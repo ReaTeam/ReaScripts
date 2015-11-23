@@ -1,0 +1,186 @@
+// The "main" function runs in a loop -> other functions are called from the main function.
+
+// gfx_r, gfx_g, gfx_b are RGB values (from 0 to 1)
+// gfx_a is "alpha value" (from 0 to 1, 1 being "brightest")
+
+
+function show_edit_cursor_position(x, y)
+(
+  gfx_x = x; // update "draw x-pos to x"
+  gfx_y = y; // update "draw y-pos" to y"
+  
+  // set white color
+  gfx_a = 0.6; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  
+  gfx_printf("Edit Cursor Position:     ");
+  gfx_a = 1; // set brighter text (alpha value) - gfx_r, gfx_g and gfx_b stays the same as above
+  
+  // format "GetCursorPosition() (return) value" and store the value to "#ec_buf" string variable
+  //    the last parameter "0" here is "(h:)m:s.ms"
+  //    "1" would be "measures.beats.time" etc.
+  format_timestr_pos(GetCursorPosition(), #ec_buf, 0); // the formatted GetCursorPosition() value is stored to #ec_buf
+  
+  // now it's formatted -> draw the formatted string
+  gfx_printf(#ec_buf);
+);
+
+
+function show_source_time_position(x, y, item, take)
+  local(item_pos, item_length, edit_cursor_pos, take_start_offset, take_playrate, active_take_number, stp)
+(
+  gfx_x = x; // update "draw x-pos to x"
+  gfx_y = y; // update "draw y-pos" to y"
+  
+  // set yellow color
+  gfx_a = 0.7; gfx_r = 1; gfx_g = 1; gfx_b = 0;
+  
+  gfx_printf("Source Time Position:   ");
+  
+  item ? ( // if item exists (if there are at least one item selected) -> get item position
+    item_pos = GetMediaItemInfo_value(item, "D_POSITION");
+    item_length = GetMediaItemInfo_value(item, "D_LENGTH");
+    edit_cursor_pos = GetCursorPosition();
+    
+    // if edit cursor is within item
+    item_pos <= edit_cursor_pos && (item_pos + item_length) >= edit_cursor_pos ? ( // if item > 0 ("item" variable is TRUE)
+      take ? (// if take_pointer > 0 
+        take_start_offset = GetMediaItemTakeInfo_value(take, "D_STARTOFFS");
+        take_playrate = GetMediaItemTakeInfo_value(take, "D_PLAYRATE");
+        
+        // get active take number
+        active_take_number = GetMediaItemTakeInfo_value(take, "IP_TAKENUMBER");
+
+        gfx_a = 1; // set brighter text (alpha value) - gfx_r, gfx_g and gfx_b stays the same as above
+        
+        // Print "edit cursor position in source", using this formula:
+        // STP = ((ECP-MIP)*PBR)+SIS
+        stp = (edit_cursor_pos - item_pos) * take_playrate + take_start_offset;
+        format_timestr_pos(stp, #stp_buf, 0); // stp value is stored to #stp_buf
+        gfx_printf(#stp_buf);
+      );
+    ) : ( // ...else edit cursor is not within item
+      gfx_a = 1;
+      gfx_r = 1; gfx_g = 0; gfx_b = 0;
+      gfx_printf("Edit Cursor Position not within selected item");
+    );
+  );
+);
+
+
+function show_take_name(x, y, item, take)
+(
+  gfx_x = x; // update "draw x-pos to x"
+  gfx_y = y; // update "draw y-pos" to y"
+  
+  // set yellow color
+  gfx_a = 0.7; gfx_r = 1; gfx_g = 1; gfx_b = 0;
+  gfx_printf("Take name: ");
+  gfx_a = 1; // brighter text
+  
+  item && take ? ( // if item_pointer > 0 and take_pointer > 0
+    GetTakeName(#take_name, take); //store take name to "#take_name" variable
+    gfx_printf(#take_name);
+  ) : ( // no selected item or item has no takes
+    gfx_r = 1; gfx_g = 0; gfx_b = 0;
+    gfx_printf("No selected item (or empty item)");
+  );
+);
+
+
+function show_number_of_takes_in_item(x, y, item, take) local(active_take_number)
+(
+  gfx_x = x; // update "draw x-pos to x"
+  gfx_y = y; // update "draw y-pos" to y"
+  
+  // set yellow color
+  gfx_a = 0.7; gfx_r = 1; gfx_g = 1; gfx_b = 0;
+  gfx_printf("Active take: ");
+  
+  item ? (
+    take ? (
+      // get active take number
+      active_take_number = GetMediaItemTakeInfo_value(take, "IP_TAKENUMBER");
+      
+      gfx_a = 1;
+      
+      // convert integer value "active_take_number" to string
+      // it's zero based -> add 1 to value
+      gfx_printf("%d", active_take_number + 1);
+      gfx_printf(" of ");
+      
+      // CountTakes(item) returns an integer -> convert int to string
+      gfx_printf("%d", CountTakes(item));
+    );
+  );
+);
+
+
+function show_take_filename(x, y, take)
+(
+  #filenamebuf = ""; // clear #filenamebuf - (string variables with "#" -prefix are always global
+  gfx_x = x; // update "draw x-pos to x"
+  gfx_y = y; // update "draw y-pos" to y"
+  
+  // set yellow color
+  gfx_a = 0.7; gfx_r = 1; gfx_g = 1; gfx_b = 0;
+  gfx_printf("Take Filename: ");
+  gfx_a = 1; // set brighter text (alpha value) - gfx_r, gfx_g and gfx_b stays the same as above
+  
+  // GetMediaItemTake_Source(take) returns PCM_source
+  // GetMediaSourceFileName(PCM_source) returns file name of the PCM_source
+  GetMediaSourceFileName(GetMediaItemTake_Source(take), #filenamebuf); // store file name to #filenamebuf
+  gfx_printf(#filenamebuf);
+);
+
+
+// this function runs in a loop - "sel_item" and "active_take" variables are updated at each iteration
+// variables are "local variables" - it's easier to "keep the namespace clean"
+function main() local(sel_item, active_take)
+( 
+  // get first selected item's pointer (at index 0) - returns 0 if nothing is selected
+  // pointer is an integer value (and >0)
+  sel_item = GetSelectedMediaItem(0, 0);
+  
+  // get active take's pointer from selected item  - returns 0 if there are no takes in item
+  // pointer is an integer value (and >0)
+  active_take = GetActiveTake(sel_item);
+  
+  
+  //// Calling the "drawing" functions ////
+  
+  // call "show_edit_cursor_position(x, y)"
+  show_edit_cursor_position(10, 10);
+  
+  // call "show_source_time_position(x, y, item_pointer, take_pointer)"
+  show_source_time_position(10, gfx_y + gfx_texth, sel_item, active_take);
+  
+  // call "show_take_name(x, y, item_pointer, take_pointer)"
+  show_take_name(10, gfx_y + gfx_texth, sel_item, active_take);
+  
+  // call "show_number_of_takes_in_item(x, y, item_pointer, take_pointer)"
+  show_number_of_takes_in_item(10, gfx_y + gfx_texth, sel_item, active_take);
+  
+  // call "show_take_filename(x, y, take_pointer)"
+  show_take_filename(10,  gfx_y + gfx_texth, active_take);
+
+
+  // when returning from the "show_take_filename" function -> update GUI window
+  gfx_update(); 
+  
+  // "main" function is running in a loop -> it jumps back to the start of the "main" function here
+  gfx_getchar() >= 0 ? defer("main();");
+);
+
+
+// this function is called first
+function init()
+(
+  // initialize GUI: gfx_init(window title, width, height)
+  gfx_init("Source Time Position Tool", 500, 120); 
+  // set font at index 1: gfx_setfont(index, font name, size in pixels)
+  gfx_setfont(1,"Arial", 16); 
+);
+
+//// Call the functions ////
+init();
+main();
