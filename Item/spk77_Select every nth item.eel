@@ -1,0 +1,157 @@
+// Item selector
+// 23.8.2014 (spk77)
+
+function highlight_mouse_hover()
+(
+  gfx_r += 0.1;
+  gfx_g += 0.1;
+  gfx_b += 0.1;
+);
+
+function highlight_mouse_on_press()
+(
+  gfx_r += 0.2;
+  gfx_g += 0.2;
+  gfx_b += 0.2;
+);
+
+ function draw_string_step(x, y, r, g, b, a) local (w, h)
+( 
+  gfx_r = r;
+  gfx_g = g;
+  gfx_b = b;
+  gfx_a = a;
+  
+  step_s = sprintf(#, "%d", step);
+  gfx_measurestr(step_s, w, h);
+  // is mouse on string?
+  mouse_x >= x && mouse_x <= x + gfx_w && mouse_y >= y && mouse_y <= y + h ? (
+    highlight_mouse_hover();
+    mouse_wheel != 0 ? (
+      highlight_mouse_on_press();
+      step += (mouse_wheel / abs(mouse_wheel));
+      step < 1 ? step = 1;
+      mouse_wheel = 0;
+    );
+    mouse_cap == 5 ? (
+      step = 1;
+    );
+  );
+  gfx_printf("Select every ");
+  gfx_printf("%d", step);
+  gfx_printf(". item");
+);
+
+ function draw_string_offset(x, y, r, g, b, a) local (w, h)
+( 
+  gfx_r = r;
+  gfx_g = g;
+  gfx_b = b;
+  gfx_a = a;
+  
+  offset_s = sprintf(#, "%d", offset);
+  gfx_measurestr(offset_s, w, h);
+  // is mouse on string?
+  mouse_x >= x && mouse_x <= x + gfx_w && mouse_y >= y && mouse_y <= y + h ? (
+    highlight_mouse_hover();
+    mouse_wheel != 0 ? (
+      highlight_mouse_on_press();
+      offset += (mouse_wheel / abs(mouse_wheel));
+      offset < 0 ? offset = 0;
+      offset > step - 1 ? offset = step - 1;
+      mouse_wheel = 0;
+    );
+    mouse_cap == 5 ? (
+      offset = 0;
+    );
+  );
+  gfx_printf("Offset: ");
+  gfx_printf("%d", offset);
+);
+
+function is_item_within_timerange(itemId, range_start, range_end)
+(
+  itemId ? (
+    pos = GetMediaItemInfo_Value(itemId, "D_POSITION"); // item start
+    length = GetMediaItemInfo_Value(itemId, "D_LENGTH"); // item end
+    end_pos = pos + length;
+    pos >= time_sel_start && end_pos <= time_sel_end ? 1 : 0; // if item is within time range -> return 1, else 0
+  ) : -1; // else return -1
+);
+
+function select_items()
+(
+  GetSet_LoopTimeRange(0, 0, time_sel_start, time_sel_end, 0);
+  index = 0;
+  k = -offset;
+  tr = GetSelectedTrack(0, 0);
+  time_sel_start != time_sel_end ? (
+    loop(CountTrackMediaItems(tr),
+      item = GetTrackMediaItem(tr, index);
+      is_item_within_timerange(item, time_sel_start, time_sel_end) ? (
+        k % step == 0 ? ( 
+          SetMediaItemSelected(item, 1);
+        ) : (
+          SetMediaItemSelected(item, 0);
+        );
+        k += 1; 
+      );
+      index += 1;
+    );
+  ) : (
+    loop(CountTrackMediaItems(tr),
+      item = GetTrackMediaItem(tr, index);
+      k % step == 0 ? ( 
+        SetMediaItemSelected(item, 1);
+      ) : (
+        SetMediaItemSelected(item, 0);
+      );
+      k += 1;
+      index += 1;
+    );
+  );
+  UpdateArrange();
+  last_step = step;
+  last_offset = offset;
+);
+
+function run()
+(
+  gfx_x = gfx_y = 20;
+  gfx_r = 0.5;
+  gfx_g = 0.8;
+  gfx_b = 0.5;
+  gfx_a = 1; 
+  //draw_string_mode(gfx_x, gfx_y, 0.5, 0.8, 0.5, 1);
+  
+  draw_string_step(gfx_x, gfx_y, 0.5, 0.8, 0.5, 1);
+  gfx_x = 20;
+  gfx_y += 2 * gfx_texth;
+ 
+  draw_string_offset(gfx_x, gfx_y, 0.5, 0.8, 0.5, 1);
+
+  (mouse_x >= 0 && mouse_x <= gfx_w && mouse_y >= 0 && mouse_y <= gfx_h) && (last_step != step || last_offset != offset  || need_update == 1) ? (
+    select_items();
+    last_step = step;
+    last_offset = offset;
+  );
+  need_update = 0;
+  mouse_cap == 1 ? lmb_down = 1 : lmb_down = 0;
+  
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("run();");
+);
+
+gfx_init("Item selector", 200, 100);
+gfx_setfont(1, "Arial", 16);
+
+step = 1;
+last_step = 1;
+offset = 0;
+last_offset = 0;
+
+need_update = 0;
+
+lmb_down = 0;
+
+run();
