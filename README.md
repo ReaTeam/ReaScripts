@@ -1,2 +1,2 @@
 # ReaScripts
-Scripts writen for Cockos Reaper
+Collection of scripts written for Cockos Reaper
