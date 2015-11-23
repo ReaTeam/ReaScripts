@@ -1,0 +1,21 @@
+function set_cc_value() 
+( 
+   GetUserInputs("Set CC value", 1, "Value", #dialog_ret_val); 
+   match("%f", #dialog_ret_val, valueIn);
+  
+  (act_editor = MIDIEditor_GetActive()) ? ( 
+    (take = MIDIEditor_GetTake(act_editor)) ? ( 
+      event_count = MIDI_CountEvts(take, notecntOut, ccevtcntOut, textsyxevtcntOut); 
+      i = 0; 
+      loop (ccevtcntOut, 
+        MIDI_GetCC(take, i, sel, mute, ppqposOut, chanmsgOut, chanOut, msg2Out, msg3Out); 
+        sel == 1 ? ( 
+          MIDI_SetCC(take, i, sel, mute, ppqposOut, chanmsgOut, chanOut, msg2Out, valueIn, 1); 
+        ); //end if sel 
+        i += 1; 
+      ); // end loop
+      MIDI_Sort(take);
+    ); // end if take          
+  ); // end if act editor 
+); // end func 
+set_cc_value();

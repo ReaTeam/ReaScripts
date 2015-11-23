@@ -1,0 +1,106 @@
+function expand_selected_items_to_edit_cursor_preserve_snapoffset()
+(
+Undo_BeginBlock();
+itemcount = CountSelectedMediaItems(0);
+i = 0;
+numstrmakrks0 = 0;
+loop(itemcount,
+   item = GetSelectedMediaItem(0, i);
+   take = GetActiveTake(item);
+   numstrmakrks = GetTakeNumStretchMarkers(take);
+   numstrmakrks0 = max(numstrmakrks,numstrmakrks0);
+   i += 1;
+   );
+   
+i = 0;
+numstrmakrks0 == 0 ? (
+ loop(itemcount,
+   item = GetSelectedMediaItem(0, i);
+   take = GetActiveTake(item);
+   rate = GetMediaItemTakeInfo_Value(take, "D_PLAYRATE");
+   pos = GetMediaItemInfo_Value(item, "D_POSITION");
+   length = GetMediaItemInfo_Value(item, "D_LENGTH");
+   snapoffset = GetMediaItemInfo_Value(item, "D_SNAPOFFSET");
+   
+   invsnapoffset = length - snapoffset;
+   snapoffset_pos = pos + snapoffset;
+   item_end = pos + length;
+   editcur = GetCursorPosition();
+   abs_beetween = abs(snapoffset_pos - editcur);
+   itemcenter = pos + length/2;
+   k = 1;
+   
+   snapoffset !== 0 ? (
+     editcur < snapoffset_pos ? (
+       k = abs_beetween / snapoffset;
+       newlength = item_end - editcur;
+       newpos = editcur;
+       newsnapoffset = snapoffset * k; 
+       snapoffset0 = snapoffset * rate;
+       SetTakeStretchMarker(take, -1, 0);
+       SetTakeStretchMarker(take, -1, snapoffset0);
+       );
+     editcur > snapoffset_pos ? (
+       k = abs_beetween / invsnapoffset;
+       newlength = editcur - pos;
+       newpos = pos;
+       newsnapoffset = snapoffset;
+       snapoffset0 = snapoffset * rate;
+       length0 = length * rate;
+       SetTakeStretchMarker(take, -1, snapoffset0);
+       SetTakeStretchMarker(take, -1, length0);
+       );
+     editcur == snapoffset_pos ? (
+       newlength = length;
+       newpos = pos;
+       newsnapoffset = snapoffset;
+       );
+   SetMediaItemInfo_Value(item, "D_SNAPOFFSET", newsnapoffset);    
+   );
+   
+   snapoffset == 0 ? (
+     editcur < itemcenter ? (
+       fut_lenght = item_end - editcur;
+       k = fut_lenght / length;
+       newlength = length * k;
+       newpos = editcur;
+       );
+     editcur > itemcenter ? (
+       fut_length = editcur - pos;
+       k = fut_length / length;
+       newlength = length * k;
+       newpos = editcur - newlength;
+       );
+     editcur == itemcenter ? (
+       newlength = length;
+       newpos = pos;
+       );
+     newrate = rate / k; 
+     SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", newrate);  
+     );
+      
+   SetMediaItemInfo_Value(item, "D_POSITION", newpos);
+   SetMediaItemInfo_Value(item, "D_LENGTH", newlength);
+    
+   
+   snapoffset !== 0 ? (
+     editcur < snapoffset_pos ? (
+       newsnapoffset0 = (snapoffset_pos - newpos) * rate;
+       SetTakeStretchMarker(take, 1, newsnapoffset0);
+       );
+     editcur > snapoffset_pos ? (
+       newlength0 = (editcur - newpos) * rate;
+       SetTakeStretchMarker(take, 0, snapoffset0);
+       SetTakeStretchMarker(take, 1, newlength0);
+       );
+     );
+  i += 1;
+  );
+ ):(
+ ShowConsoleMsg("Remove ALL stretch markers from items before running script!");
+ );
+Undo_EndBlock("expand_selected_items_to_edit_cursor_preserve_snapoffset", 0);
+);
+
+expand_selected_items_to_edit_cursor_preserve_snapoffset();
+UpdateArrange();

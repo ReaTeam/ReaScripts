@@ -1,0 +1,38 @@
+#script_title = "Delete x characters from selected track names";
+
+Undo_BeginBlock();
+
+
+function deletecharsfromname()
+(
+Undo_BeginBlock();
+#inputdata = "0,0";
+GetUserInputs("delete", 2, "symbols from start, symbols from end", #inputdata);
+match("%d,%d", #inputdata, start, end);
+
+trackcount = CountSelectedTracks(0);
+i = 0;
+loop(trackcount,
+(track = GetSelectedTrack(0, i)) ?
+  (
+  GetSetMediaTrackInfo_String(track, "P_NAME", #trackname, 0);
+  /*  ----END-DELETE---*/
+  len = strlen(#trackname);
+  offs = len - end;
+  str_delsub(#trackname, offs, end);
+  /*  ----START-DELETE---*/
+  strcpy_from(#tracknamenew,#trackname,start);
+
+  GetSetMediaTrackInfo_String(track, "P_NAME", #tracknamenew, 1);
+  );
+  i += 1;
+  );
+
+TrackList_AdjustWindows(0);
+Undo_EndBlock("deletecharsfromname", 0);
+);
+
+deletecharsfromname();
+UpdateArrange();
+
+Undo_EndBlock(#script_title, 0);
