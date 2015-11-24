@@ -1,0 +1,49 @@
+// Split selected items at stretch markers
+
+/* by Elan Hickler
+www.Soundemote.com
+www.elanhickler.com */
+
+/* Actions */
+function UNSELECT_ALL_ITEMS() (Main_OnCommand(40289, 0));
+function SPLIT_AT_CURSOR() (Main_OnCommand(40757, 0));
+function SAVE_SELECTION() (Main_OnCommand(NamedCommandLookup("_SWS_SAVEALLSELITEMS1"), 0));
+function RESTORE_SELECTION() (Main_OnCommand(NamedCommandLookup("_SWS_RESTALLSELITEMS1"), 0));
+
+items = CountSelectedMediaItems(0);
+items !=0 ? (
+	Undo_BeginBlock2(0);
+	PreventUIRefresh(1);
+	SAVE_SELECTION();
+	initPosition = GetCursorPosition();
+	
+	i=0;loop(items, item[i] = GetSelectedMediaItem(0, i); i+=1;);	// create item list
+	i=0;
+	loop(items,
+		UNSELECT_ALL_ITEMS();
+		SetMediaItemInfo_Value(item[i], "B_UISEL", 1);
+		position = GetMediaItemInfo_Value(item[i], "D_POSITION");
+		length = GetMediaItemInfo_Value(item, "D_LENGTH");
+		offset = GetMediaItemTakeInfo_Value(take, "D_STARTOFFS");
+		end = position + length;
+		take = GetActiveTake(item[i]);
+		markers = GetTakeNumStretchMarkers(take);
+		x=0;
+		loop(markers,
+			GetTakeStretchMarker(take, x, markerPos);
+			markerPos > offset || markerPos < end ? (
+				splitPos = position + markerPos;
+				SetEditCurPos(splitPos, 0, 0);			
+				SPLIT_AT_CURSOR();
+			);
+			x+=1;
+			z+=1; // Save number of splits for informative undo message
+		);
+		i += 1;
+	);
+	
+	RESTORE_SELECTION();
+	SetEditCurPos(initPosition, 0, 0);
+	Undo_EndBlock2(0, sprintf(#,"Split %{items}i items at %{z}i stretch markers"), -1);
+	PreventUIRefresh(-1);
+);

@@ -1,0 +1,22 @@
+// Set number of channels for selected tracks
+
+// by Elan Hickler
+// www.Soundemote.com
+// www.elanhickler.com
+
+tracks = CountSelectedTracks(0);
+tracks > 0 ? (
+	#input = "2";
+	Query = GetUserInputs("Set track number of channel count", 1, "number of channels:", #input);
+	match("%{input}i",#input);
+	Query == 1 ? (
+		Undo_BeginBlock2(0);
+		i = 0; 
+		loop(tracks, 
+			track = GetSelectedTrack(0, i); 
+			SetMediaTrackInfo_Value(track, "I_NCHAN", input);
+			i+=1;
+		);
+		Undo_EndBlock2(0, sprintf(#,"Set number of channels for %{tracks}i tracks"), -1);
+	);
+);

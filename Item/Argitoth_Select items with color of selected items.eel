@@ -1,0 +1,27 @@
+// Select items with color of selected items
+
+/* by Elan Hickler
+www.Soundemote.com
+www.elanhickler.com */
+
+items = CountSelectedMediaItems(); 							// store number of items
+items !=0 ? (
+	PreventUIRefresh(1);
+	Undo_BeginBlock2(0);
+	
+	item = GetSelectedMediaItem(0, 0);						// store first selected item
+	colorA = GetDisplayedMediaItemColor(item);				// store color of first selected item
+	Main_OnCommand(40182,0); 								// *select all items
+	i=0;
+	loop(CountMediaItems(0), 							// *loop through every item and unselect if color does not match
+		item = GetMediaItem(0, i);
+		colorB = GetDisplayedMediaItemColor(item);
+		colorA != colorB ? (
+			SetMediaItemInfo_Value(item, "B_UISEL", 0); zz-=1;
+			);
+		i+=1;
+	);
+	
+	Undo_EndBlock2(0, sprintf(#, "Select items with %{colorA}X color"), -1);
+	PreventUIRefresh(-1);
+);
