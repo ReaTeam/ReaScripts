@@ -7,12 +7,14 @@ Source code is taken from:
 - [HeDa official page](http://reaper.hector-corcin.com/)
 - [spk77 Reaper Stash page](http://stash.reaper.fm/u/spk77)
 - [planetnine Reaper Stash page](http://stash.reaper.fm/u/planetnine)
+- Cockos forum, Reaper Stash and many other places, where scripts were chaotically placed
 
 Contacts on Cockos forum:
 - [mpl](http://forum.cockos.com/member.php?u=70694)
 - [HeDa](http://forum.cockos.com/member.php?u=47822)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
 - [planetnine](http://forum.cockos.com/member.php?u=6549)
+- [Argitoth](http://forum.cockos.com/member.php?u=7973)
 
 
 You can always donate to some members below if you like their stuff:
