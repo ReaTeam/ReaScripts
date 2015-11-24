@@ -1,5 +1,6 @@
 # ReaScripts
 Collection of scripts written for Cockos Reaper.
+This repo is currently (nov 2015) building. That says, in the future structure could be changed a lot.
 
 Source code is taken from:
 - [mpl GitHub repo](https://github.com/MichaelPilyavskiy/ReaScripts)
