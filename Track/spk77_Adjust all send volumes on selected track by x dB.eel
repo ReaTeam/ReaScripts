@@ -1,0 +1,31 @@
+dB_val = 5; // adds 0.5 decibels to all sends on selected tracks
+
+trim = pow(10, dB_val / 20.0);
+
+function set_send_volumes(track, trim) local(tr_num_hw_outs, tr_num_sends, i, vol, new_vol)
+(
+  tr_num_hw_outs = GetTrackNumSends(track, 1);
+  tr_num_sends = GetTrackNumSends(track, 0);
+  i = 0;
+  loop(tr_num_sends,
+    GetTrackSendUIVolPan(track, tr_num_hw_outs + i, vol, 0);
+    new_vol = max(min(vol*trim, 4), 0);
+    SetTrackSendUIVol(track, tr_num_hw_outs + i, new_vol, 0);
+    i += 1;
+  );
+);
+
+
+function main() local(i, tr)
+(
+  i = 0;
+  loop(CountSelectedTracks(0),
+    (tr = GetSelectedTrack(0, i)) ? (
+      set_send_volumes(tr, trim);
+    );
+    i += 1;
+  );
+  Undo_OnStateChangeEx("Adjust send volumes", -1, -1);
+);
+
+main();

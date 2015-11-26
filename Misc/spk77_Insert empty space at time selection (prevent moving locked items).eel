@@ -1,0 +1,42 @@
+// Insert empty space at time selection (prevent moving  locked items)
+
+buf = 10000;
+
+i = 0;
+j = 0;
+GetSet_LoopTimeRange(0, 0, time_sel_start, time_sel_end, 0);
+time_sel_start != time_sel_end ? (
+  Undo_BeginBlock();
+  PreventUIRefresh(1);
+  
+  loop(CountTracks(0),
+    tr = GetTrack(0, i);
+    i_i = 0;
+    loop(CountTrackMediaItems(tr),
+      item = GetTrackMediaItem(tr, i_i);
+      item_pos = GetMediaItemInfo_value(item, "D_POSITION");
+      item_length = GetMediaItemInfo_value(item, "D_LENGTH");
+      item_end = item_pos + item_length;
+      item != last_item && GetMediaItemInfo_Value(item, "C_LOCK") && (item_end > time_sel_start) ? (
+        buf[j * 2] = item;
+        buf[j * 2 + 1] = item_pos;
+        SetMediaItemPosition(item, time_sel_end, 0);
+        j += 1;
+      );
+      i_i += 1;
+      last_item = item;
+    );
+    i += 1;
+  );
+
+  Main_OnCommand(40200,0); // insert empty space at time selection (moving later items)
+   
+  i = 0;
+  loop(j,
+    SetMediaItemPosition(buf[i * 2], buf[i * 2 + 1], 0);
+    i += 1;
+  );
+  PreventUIRefresh(-1);
+  UpdateArrange();
+  Undo_EndBlock("Insert empty space (prevent moving locked items)",-1);
+);

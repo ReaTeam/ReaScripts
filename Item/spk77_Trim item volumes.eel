@@ -1,0 +1,53 @@
+// Trim item volumes by x dB
+// EEL script by SPK77 5.5.2015 (requested by babag)
+// http://forum.cockos.com/showthread.php?p=1517801#post1517801
+
+default_val = "";
+
+function msg_s(m)
+(
+  ShowConsoleMsg(m);
+  ShowConsoleMsg("\n");
+);
+
+function msg_d(m)
+(
+  ShowConsoleMsg(sprintf(#, "%d", m)); // convert int to string
+  ShowConsoleMsg("\n");
+);
+
+function dialog()
+(
+  #dialog_ret_vals = default_val;
+  GetUserInputs("Trim item volumes by x dBs", 1, "Trim item volumes by...", #dialog_ret_vals);
+);
+
+
+function trim_item_volumes(trim) local(i, vol, new_vol)
+(
+  i = 0;
+  loop(CountSelectedMediaItems(0),
+    (item = GetSelectedMediaItem(0, i)) ? (
+      vol = GetMediaItemInfo_Value(item, "D_VOL");
+      new_vol = max(min(vol*trim, 16), 0);
+      SetMediaItemInfo_Value(item, "D_VOL", new_vol);
+    );
+    i+=1;
+  );
+  UpdateArrange();
+  Undo_OnStateChangeEx("Trim item volumes", -1, -1);
+);
+
+
+function main() local(trim, dB_val)
+(
+  dialog() ? (
+    match("%f", #dialog_ret_vals, dB_val) ? (
+      trim = pow(10, dB_val / 20.0);
+      trim_item_volumes(trim);
+    );
+  );
+);
+
+defer("main()");
+

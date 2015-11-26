@@ -1,0 +1,78 @@
+// Glue selected items preserving names
+// Author: spk77
+// Author URl: http://forum.cockos.com/member.php?u=49553
+// Source URl: https://github.com/X-Raym/REAPER-EEL-Scripts
+// Licence: GPL v3
+// Release Date: 01-02-2015
+// Forum Thread URl: http://forum.cockos.com/showthread.php?p=1470398
+
+// Version: 1.0
+// Version Date: 01-02-2015
+// Required : Reaper 4.76
+
+// Hosted by X-Raym
+// Thanks to spk77 for having succeed to do this !
+
+function merge_track_take_names(track_pointer, apply_to_first_take) 
+  local(first_take, merged_name, sel_item_count, i, item, take)
+(
+  first_take = 0;
+  merged_name = #;
+  str_setlen(merged_name,0);
+  sel_item_count = 0;
+  track_pointer ? (
+    i = 0;
+    loop(CountTrackMediaItems(track_pointer),
+      (item = GetTrackMediaItem(track_pointer, i)) ? (
+        IsMediaItemSelected(item) ? (
+          (take = GetActiveTake(item)) ? (
+            sel_item_count == 0 ? first_take = take;
+            GetTakeName(#take_name, take);
+            sel_item_count >= 1 ? strcat(merged_name, " + ");
+            strcat(merged_name, #take_name);
+            sel_item_count += 1;
+          );
+        );
+      );
+      i += 1;
+    );
+  );
+  // apply merged_name to first selected item in track (if "apply_to_first_take" is 1)
+  apply_to_first_take && sel_item_count > 0 ? GetSetMediaItemTakeInfo_String(first_take, "P_NAME", merged_name, 1);
+  sel_item_count > 0 ? merged_name; // return "merged_name"
+);
+
+
+// This function applies "merged take names" to the first takes of tracks
+// 
+function glue() local(merged_name)
+(
+  Undo_BeginBlock();
+  i = 0;
+  loop(CountTracks(0), // loop through ALL tracks
+    // func desc: merge_track_take_names(track_pointer, apply_to_first_take)
+    merged_name = merge_track_take_names(GetTrack(0, i), 1);
+    i += 1;
+  );
+  
+  // GLUE ITEMS WITHOUT TIME SELECTION
+  Main_OnCommand(40362, 0);
+  
+  i = 0;
+  // remove "glued" string from take names
+  loop(CountSelectedMediaItems(0),
+    (item = GetSelectedMediaItem(0, i)) ? (
+      (take = GetActiveTake(item)) ? (
+        GetTakeName(#take_name, take);
+        match("*glued", #take_name) ? (
+          str_delsub(#take_name, strlen(#take_name) - strlen(" glued"), strlen(" glued"));
+          GetSetMediaItemTakeInfo_String(take, "P_NAME", #take_name, 1);
+        );
+      );
+    );
+    i += 1;
+  );
+  Undo_EndBlock("Glue preserving names", -1);
+);
+
+glue();

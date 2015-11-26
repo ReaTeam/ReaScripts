@@ -1,0 +1,36 @@
+// Select MIDI events right of cursor (EEL script)
+// SPK77 27.12.2014
+
+function select() 
+  local(take, i, cursor_ppq_pos, notes, ccs, sysex, sel, muted, start, end, chan, pitch, vel, chanmsg, msg2, msg3, type)
+(
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+    MIDIEditor_OnCommand(MIDIEditor_GetActive(), 40214); // unselect all
+    cursor_ppq_pos = MIDI_GetPPQPosFromProjTime(take, GetCursorPosition());
+    MIDI_CountEvts(take, notes, ccs, sysex);
+    
+    i = 0;
+    loop(notes,
+      MIDI_GetNote(take, i, sel, muted, start, end, chan, pitch, vel);
+      start >= cursor_ppq_pos ? MIDI_SetNote(take, i, 1, muted, start, end, chan, pitch, vel);
+      i += 1;
+    );
+    
+    i = 0;
+    loop(ccs,
+      MIDI_GetCC(take, i, sel, muted, start, chanmsg, chan, msg2, msg3);
+      start >= cursor_ppq_pos ? MIDI_SetCC(take, i, 1, muted, start, chanmsg, chan, msg2, msg3);
+      i += 1;
+    );
+    
+    i = 0;
+    loop(sysex,
+      MIDI_GetTextSysexEvt(take, i, sel, muted, start, type, #msg);
+      start >= cursor_ppq_pos ? MIDI_SetTextSysexEvt(take, i, 1, muted, start, type, #msg);
+      i += 1;
+    );
+  );
+  Undo_OnStateChange("Select events right of cursor");
+);
+
+select();

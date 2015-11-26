@@ -1,0 +1,53 @@
+// Rename tracks to source filename (optionally remove file ext. from name) - EEL script by spk77 21.8.2014
+// Tracks with in-project MIDI -> uses "active take's name" for renaming
+
+//// FUNCTION get_filename(path, remove_ext) ////
+//    - extracts "filename" from "full path name"
+//    - second param == 1 -> remove file extension 
+function get_filename(path, remove_ext) local (i, char, char_s)
+(
+  i = 0;
+  loop(strlen(path),
+    char = str_getchar(path, i);  // get chars one by one
+    char_s = sprintf(#, "%c", char);  // convert char -> str
+    #fn += char_s;  // append char to #fn
+    
+    //  find the last "\" and "/" from "full path name":
+    //  (probably have to use "match("/", char_s)" for Mac ?)
+    match("\\", char_s) || match("/", char_s) ? #fn = ""; // match == True -> clear #fn
+
+    i += 1;
+  );
+  remove_ext ? str_setlen(#fn, strlen(#fn) - 4); // remove last 4 chars (if func param 2 == 1)
+  #fn; // return #fn - it's (also) a global variable
+);
+
+function main() local (t_i, tr, first_item, pcm_source, fn, tr_name)
+(
+  (sel_track_count = CountSelectedTracks(0)) ? (
+    t_i = 0;
+    tr_name = "";
+    Undo_BeginBlock();
+    loop(sel_track_count,
+      (tr = GetSelectedTrack(0, t_i)) ? (
+
+        CountTrackMediaItems(tr) ? (
+          (first_item = GetTrackMediaItem(tr, 0)) ? (
+            (pcm_source = GetMediaItemTake_Source(GetActiveTake(first_item))) ? (
+              GetMediaSourceFileName(pcm_source, fn);
+              tr_name = get_filename(fn, 1);
+            );
+            tr_name != "" ? GetTakeName(tr_name, GetActiveTake(first_item));
+            tr_name != "" ? GetSetMediaTrackInfo_String(tr, "P_NAME", tr_name, 1);
+              
+          );
+        );
+      );
+      t_i += 1;
+    );
+    Undo_EndBlock("Rename tracks", -1);
+    //TrackList_AdjustWindows(0);
+  );
+);
+
+main();

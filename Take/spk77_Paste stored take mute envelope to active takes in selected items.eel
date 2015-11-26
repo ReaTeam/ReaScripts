@@ -1,0 +1,30 @@
+// Paste "stored" take mute envelope to active takes in selected items
+// EEL script by spk77 18.7.2014
+
+function paste_take_mute_env() local(source_take, source_mute_env, item_i, item, env)
+(
+  GetExtState(#retval, "take_envelope_source", "take"); // get stored take's ID
+  match("%d", #retval, source_take) ? (
+    (source_mute_env = GetTakeEnvelopeByName(source_take, "Mute")) ? ( // env pointer found -> continue
+      GetSetEnvelopeState(source_mute_env, #source_mute_env); 
+      
+      Undo_BeginBlock();
+      item_i = 0;
+      loop(CountSelectedMediaItems(0),
+        item = GetSelectedMediaItem(0, item_i);
+        GetActiveTake(item) != source_take ? ( // skip source take
+          (env = GetTakeEnvelopeByName(GetActiveTake(item), "Mute")) == 0 ? (
+            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV3"), 0); // show take mute envelope
+            (env = GetTakeEnvelopeByName(GetActiveTake(item), "Mute")) ? (
+              GetSetEnvelopeState(env, #source_mute_env);
+            );
+          ) : GetSetEnvelopeState(env, #source_mute_env);
+        );
+        item_i += 1;
+      );        
+      Undo_EndBlock("Paste take mute envelope", -1);
+    );
+  );
+);
+
+paste_take_mute_env();

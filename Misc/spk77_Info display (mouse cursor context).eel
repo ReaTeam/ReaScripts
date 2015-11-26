@@ -1,0 +1,59 @@
+function mainloop() local(track, item, take, tr_name, take_name)
+(
+  track = extension_api("BR_TrackAtMouseCursor", 0, 0);
+  item = extension_api("BR_ItemAtMouseCursor", 0);
+  
+  // Track
+  gfx_x = 10;
+  gfx_y = 10;
+  gfx_a = 0.7;
+  gfx_printf("Track name: ");
+  track ? (
+    gfx_a = 1;
+    gfx_x = 150;
+    tr_name = GetSetMediaTrackInfo_String(track, "P_NAME", tr_name, 0);
+    gfx_printf(tr_name);
+  );
+  gfx_y += gfx_texth;
+  
+  // Item
+  gfx_x = 10;
+  gfx_a = 0.7;
+  gfx_printf("Item position: ");
+  item ? (
+    gfx_a = 1;
+    gfx_x = 150;
+    gfx_printf("%0.4f%s", GetMediaItemInfo_Value(item, "D_POSITION"), "s");
+  );
+  gfx_y += gfx_texth;
+  
+  // Active take
+  gfx_x = 10;
+  gfx_a = 0.7;
+  gfx_printf("Active take: ");
+  // item && (take = extension_api("BR_TakeAtMouseCursor", 0)) ? ( // this would get the "take under mouse cursor"
+  item && (take = GetActiveTake(item)) ? (
+    gfx_a = 1;
+    gfx_x = 150;
+    GetTakeName(take_name, take);
+    gfx_printf(take_name);
+  );
+  gfx_y += gfx_texth;
+  
+  // Show selected item count
+  gfx_x = 10;
+  gfx_a = 0.7;
+  gfx_printf("%s %d", "Selected items:", CountSelectedMediaItems(0));
+  
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("mainloop();");
+);
+
+function init()
+(
+  gfx_init("Info display", 400, 100, 257);
+  gfx_setfont(1, "Arial", 20);
+);
+
+init();
+mainloop();

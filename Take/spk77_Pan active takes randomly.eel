@@ -1,0 +1,105 @@
+// Create take pan envelope from take pan (reset take pan to "center")
+// EEL script by spk77 20.11.2014
+
+// and
+
+// Pan active takes randomly (approx normal distribution)
+// EEL script by spk77 15.11.2014
+
+// Edit these ///////////////////////////////////////////////////////////////////
+mean = 0; // range = 0 to 1.0 (-1.0 = 100%L, 0.0 = center and 1.0 = 100%R)
+standard_dev = 1; // try values in range 0.01 to 0.5, for example
+/////////////////////////////////////////////////////////////////////////////////
+
+
+function pan_takes_randomly(mean, standard_dev) local(i, item, take, c)
+(
+  mean < -1.0 ? mean = -1.0;
+  mean > 1.0 ? mean = 1.0;
+  //standard_dev > 
+  i = 0;
+  loop(CountSelectedMediaItems(0),
+    (item = GetSelectedMediaItem(0, i)) ? (
+      (take = GetActiveTake(item)) ? (
+        R = 0;
+        G = rand(2) - 1 + rand(2) - 1 + rand(2) - 1;
+        R = G * standard_dev + mean;
+        R < -1 ? R += abs(R + 1);
+        R > 1 ? R -= (R - 1);
+        SetMediaItemTakeInfo_Value(take, "D_PAN", R); // -1.0 to 1.0 (100L to 100R)
+      );
+    );
+    i += 1;
+  );
+  //UpdateArrange();
+  //Undo_OnStateChange("Pan active takes randomly");
+);
+
+
+#new_chunk_header = "<TRACK_ENVELOPE_UNKNOWN
+ACT 1
+VIS 1 1 1
+LANEHEIGHT 0 0
+ARM 1
+DEFSHAPE 0 -1 -1
+";
+
+#new_chunk_tail = ">
+";
+
+function get_set_envelope(take, envelope_name) local(env)
+(
+  //#new_chunk = "";
+  // if "take envelope" doesn't exist -> create envelope
+  (env = GetTakeEnvelopeByName(take, envelope_name) == 0) ? (
+    envelope_name == "Volume" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0); // show take volume envelope
+    envelope_name == "Pan" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV2"), 0); // show take pan envelope
+    envelope_name == "Mute" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV3"), 0); // show take mute envelope
+    envelope_name == "Pitch" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV10"), 0); // show take pitch envelope
+  );
+  // now it should exist -> get source take's "take envelope pointer"
+  (env = GetTakeEnvelopeByName(take, envelope_name)) ? (
+    GetSetEnvelopeState(env, #new_chunk);
+  );
+);
+
+function create_new_envelope_chunk(take)
+(
+  #new_chunk = "";
+  #new_chunk += #new_chunk_header;
+  #new_chunk += #new_chunk_points;
+  #new_chunk += #new_chunk_tail;
+  //get_set_envelope(take, "Pan");
+);
+
+function create_points(take)
+(
+  #new_chunk_points = "";
+  #new_chunk_points += "PT ";
+  #new_chunk_points += sprintf(#, "%f ", 0);
+  #new_chunk_points += sprintf(#, "%f ", -GetMediaItemTakeInfo_Value(take, "D_PAN")); 
+  #new_chunk_points += "0 0 1";
+  #new_chunk_points += "\n";
+  //#new_chunk_points != "" ? 1 : 0;
+  //#new_chunk_points != "" ? create_new_envelope()
+);
+
+function add_envelope() local(i, item, take)
+(
+  i = 0;
+  loop(CountSelectedMediaItems(0), 
+    (item = GetSelectedMediaItem(0, i)) ? (
+      (take = GetActiveTake(item)) ? (
+        create_points(take);
+        create_new_envelope_chunk(take);
+        get_set_envelope(take, "Pan");
+        SetMediaItemTakeInfo_Value(take, "D_PAN", 0.0);
+      );
+    );
+    i += 1;
+  );
+  UpdateArrange();
+  Undo_OnStateChange("Pan active takes randomly");
+);
+pan_takes_randomly(mean, standard_dev);
+add_envelope();

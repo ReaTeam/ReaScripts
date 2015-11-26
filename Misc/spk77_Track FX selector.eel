@@ -1,0 +1,98 @@
+// Track FX selector (EEL script by spk77 19.8.2014)
+// Use mouse wheel to increase/decrease font size
+
+font_size = 16;
+font_name = "Verdana";
+
+function adjust_font_size(mouse_wheel_val)
+(
+  mouse_wheel_val > 0 ? (
+    font_size < 20 ? (
+      font_size += 2;
+    );
+  );
+  
+  mouse_wheel_val < 0 ? (
+    (font_size > 12 ) ? (
+      font_size -= 2;
+    );
+  );
+  gfx_setfont(1, font_name, font_size);
+  mouse_wheel = 0;
+);
+
+function init(window_w, window_h)
+(
+  //gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  gfx_init("Track FX selector", window_w, window_h);
+  gfx_setfont(1, font_name, font_size);
+);
+
+function main() local(sel_track)
+( 
+  gfx_x = 10;
+  gfx_y = gfx_texth;
+  
+  (sel_track = GetSelectedTrack(0, 0)) ? (
+    i = 0;
+    TrackFX_GetCount(sel_track) ? (
+      loop(TrackFX_GetCount(sel_track),
+        TrackFX_GetOpen(sel_track, i) ? (
+          gfx_a = 0.8; gfx_r = 0; gfx_g = 1; gfx_b = 0;
+        ) : (
+          gfx_a = 0.7; gfx_r = 0.8; gfx_g = 0.8; gfx_b = 0.8;
+        );
+        
+        TrackFX_GetFXName(sel_track, i, #fx_namebuf);
+        gfx_measurestr(#fx_namebuf, s_w, s_h);
+        
+        mouse_x > 10 && mouse_x < 10 + s_w && mouse_y > gfx_texth + i * s_h && mouse_y < gfx_texth + i * s_h + s_h && mouse_state == 0 ? (
+          gfx_a = 1;
+          mouse_cap == 1 ? (
+            mouse_state == 0 ? (
+              mouse_state = 1;
+              TrackFX_SetOpen(sel_track, i, !TrackFX_GetOpen(sel_track, i));
+              last_clicked_fx = i;
+            );
+          );
+          mouse_cap == 5 && mouse_state == 0 ? (
+            mouse_state = 1;
+            j = 0;
+            !TrackFX_GetOpen(sel_track, i) ? TrackFX_SetOpen(sel_track, i , 1);
+            loop(TrackFX_GetCount(sel_track),
+              j != i ?  TrackFX_SetOpen(sel_track, j, 0);
+              j += 1;
+            );
+          );
+        );
+        
+        gfx_printf(#fx_namebuf);
+        //gfx_printf("%d", mouse_cap);
+        i < TrackFX_GetCount(sel_track) ? (
+          gfx_x = 10;
+          gfx_y += gfx_texth;
+        );
+        i += 1;
+      );
+      
+    ) : (
+      gfx_a = 0.8; gfx_r = 1; gfx_g = 0; gfx_b = 0;
+      gfx_printf("No FXs on selected track");
+    );
+    
+  ) : (
+    gfx_a = 0.8; gfx_r = 1; gfx_g = 0; gfx_b = 0;
+    gfx_printf("Please select a track");
+  );
+
+  mouse_wheel != 0 ? adjust_font_size(mouse_wheel);
+  mouse_cap == 0 || mouse_cap == 4 ? mouse_state = 0;
+  mouse_cap >= 1 && (mouse_x < 10 || mouse_x > gfx_w || mouse_y < 10 || mouse_y > gfx_h) ? mouse_state = -1;
+
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("main();");
+);
+
+// init(window_w, window_h);
+init(220, 120);
+main();

@@ -1,0 +1,16 @@
+function rand_take_pitch(range) local(i, item, take)
+(
+  i = 0;
+  loop(CountSelectedMediaItems(0), 
+    (item = GetSelectedMediaItem(0, i)) ? (
+      (take = GetActiveTake(item)) ? (
+        SetMediaItemTakeInfo_Value(take, "D_PITCH", 0.5*range*(rand(2)-1));
+      );
+    );
+    i += 1;
+  );
+  UpdateArrange(); // refresh arrange view
+  Undo_OnStateChange("Randomize take pitch");
+);
+
+rand_take_pitch(0.06);

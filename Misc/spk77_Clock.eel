@@ -1,0 +1,57 @@
+// Clock (EEL script by spk77 14.2.2015)
+// Use mouse wheel to increase/decrease font size
+// Right click on window -> cycle through time formatting modes
+
+// Initial values
+font_size = 40;
+font_name = "Arial";
+window_w = 300;
+window_h = 50;
+
+function adjust_font_size(mouse_wheel_val)
+(
+  mouse_wheel_val > 0 ? (
+    font_size < 80 ? (
+      font_size += 4;
+    );
+  );
+  mouse_wheel_val < 0 ? (
+    (font_size > 16 ) ? (
+      font_size -= 4;
+    );
+  );
+  gfx_setfont(1, font_name, font_size);
+  mouse_wheel = 0;
+);
+
+function init(window_w, window_h)
+(
+  gfx_init("Clock" , window_w, window_h);
+  gfx_setfont(1, font_name, font_size, 'b');
+  gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+);
+
+function run() local(time_range, time_sel_start, time_sel_end)
+(
+  GetPlayState() == 0 || GetPlayState() == 2 ? format_timestr_pos(GetCursorPosition(), #buf, format) : format_timestr_pos(GetPlayPosition2(), #buf, format);
+  gfx_measurestr(#buf, str_w, str_h);
+  
+  mouse_wheel != 0 ? adjust_font_size(mouse_wheel);
+  
+  mouse_state == 0 && mouse_cap == 2 && mouse_x > 5 && mouse_x < gfx_w - 5 && mouse_y > 5 && mouse_y < gfx_h - 5 ? (
+    mouse_state = 1;
+    format < 5 ? format += 1 : format = 0;
+  );
+  
+  mouse_cap == 0 ? mouse_state = 0;
+  
+  gfx_x = 0.5*(gfx_w-str_w);
+  gfx_y = 5+ 0.5*(gfx_h-font_size);
+  gfx_printf(#buf);
+  
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("run();");
+);
+
+init(window_w, window_h);
+run();

@@ -1,0 +1,29 @@
+// Select next note at same pitch, add to selection  
+// EEL script by spk77 30.9.2014
+
+function select_next_note() 
+  local(take, note_count, index, last_index, pitch, break, is_selected, is_muted, start_pos, end_pos, chan, curr_pitch, vol)
+(
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+    MIDI_CountEvts(take, note_count, 0, 0);
+    index = -1;
+    while((index = MIDI_EnumSelNotes(take, index)) != -1) (
+      index != -1 ? last_index = index;
+    );
+    index = last_index;
+    MIDI_GetNote(take, index, 0, 0, 0, 0, 0, pitch, 0);
+    index += 1;
+    break = 0;
+    while(break == 0 && index < note_count) (
+      MIDI_GetNote(take, index, is_selected, is_muted, start_pos, end_pos, chan, curr_pitch, vol);
+      curr_pitch == pitch ? (
+        MIDI_SetNote(take, index, 1, is_muted, start_pos, end_pos, chan, curr_pitch, vol);
+        break = 1;
+      );
+      index += 1;
+    );
+    Undo_OnStateChange("Select next note (at same pitch)");
+  );
+);
+
+select_next_note();

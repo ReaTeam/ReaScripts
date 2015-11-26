@@ -1,0 +1,41 @@
+// EEL script - Convert stretch markers to MIDI_notes (7.10.2014 by spk77)
+
+function convert_stretch_markers_to_MIDI_notes()
+	local(source_take, item, source_item_pos, source_item_len, index, num_sm, i, buffer, pos, start, take)
+(
+	(item = GetSelectedMediaItem(0, 0)) ? (
+		(source_take = GetActiveTake(item)) ? (
+			source_item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+			source_item_len = GetMediaItemInfo_Value(item, "D_LENGTH");
+
+			index = 0;
+			buffer = 10000;
+			num_sm = GetTakeNumStretchMarkers(source_take);
+			i = 0;
+			while(pos <= source_item_len && i < num_sm) (
+				GetTakeStretchMarker(source_take, index, pos, 0);
+				buffer[index] = pos;
+				index += 1;
+				i += 1;
+			);
+			num_sm = index;
+
+			(take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+				MIDIEditor_OnCommand(MIDIEditor_GetActive(), 40002); // delete notes
+				index = 0;
+				loop(num_sm,
+					start = MIDI_GetPPQPosFromProjTime(take, buffer[index] + source_item_pos);
+					//ShowConsoleMsg(sprintf(#, "%f", buffer[index]));
+					buffer[index] + source_item_pos >= source_item_pos ? (
+						MIDI_InsertNote(take, 1, 0, start, start + 480, 9, 36, 96);
+					);
+					index += 1;
+				);
+			);
+			UpdateArrange();
+			Undo_OnStateChange("Convert stretch markers to MIDI notes");
+		);
+  );
+);
+
+convert_stretch_markers_to_MIDI_notes();

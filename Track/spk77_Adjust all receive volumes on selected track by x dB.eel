@@ -1,0 +1,54 @@
+// Adjust all receive volumes on selected track by x dB
+// EEL script by SPK77 25.4.2015 (requested by daxliniere)
+// http://forum.cockos.com/showthread.php?t=159185
+
+
+default_val = "";
+
+function msg_s(m)
+(
+  ShowConsoleMsg(m);
+  ShowConsoleMsg("\n");
+);
+
+function msg_d(m)
+(
+  ShowConsoleMsg(sprintf(#, "%d", m)); // convert int to string
+  ShowConsoleMsg("\n");
+);
+
+function dialog()
+(
+  #dialog_ret_vals = default_val;
+  GetUserInputs("Adjust receive volumes by x dB", 1, "Adjust receive volumes by...", #dialog_ret_vals);
+);
+
+
+function set_receive_volumes(track, trim) //local(tr_num_receives, i, vol, new_vol)
+(
+  tr_num_receives = GetTrackNumSends(track, -1);
+  i = 1;
+  loop(tr_num_receives,
+    GetTrackReceiveUIVolPan(track, i-1, vol, 0);
+    new_vol = max(min(vol*trim, 4), 0);
+    SetTrackSendUIVol(track, -i, new_vol, 0);
+    i+=1;
+  );
+);
+
+
+function main() local(tr, trim, dB_val)
+(
+  (tr = GetSelectedTrack(0,0)) ? (
+    dialog() ? (
+      match("%f", #dialog_ret_vals, dB_val) ? (
+        trim = pow(10, dB_val / 20.0);
+        set_receive_volumes(tr, trim);
+      );
+    );
+    Undo_OnStateChangeEx("Adjust receive volumes", -1, -1);
+  ) : msg_s("Please select a track.");
+);
+
+
+main();

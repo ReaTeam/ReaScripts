@@ -1,0 +1,29 @@
+// Set time selection from edit cursor to end of items
+// EEL script by SPK77 1.7.2015
+
+function set_time_sel_end() //local(cursor_pos, max_pos, i, tr, j, item, item_end)
+(
+  cursor_pos = max_pos = GetCursorPosition(0);
+  i = 0;
+  loop(CountTracks(0),
+    (tr = GetTrack(0, i)) ? (
+      j = 0;
+      loop(GetTrackNumMediaItems(tr),
+        (item = GetTrackMediaItem(tr, j)) ? (
+          item_end = GetMediaItemInfo_Value(item, "D_POSITION") + GetMediaItemInfo_Value(item, "D_LENGTH");
+          max_pos < item_end ? max_pos = item_end;
+        );
+        j += 1;
+      );
+    );
+    i += 1;
+  );
+  
+  cursor_pos < max_pos ? (
+    GetSet_LoopTimeRange(1, 0, cursor_pos, max_pos, 0);
+    UpdateTimeline();
+    Undo_OnStateChangeEx("Set time selection from edit cursor to end of items", -1, -1);
+  );
+);
+
+defer("set_time_sel_end()");

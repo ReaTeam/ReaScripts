@@ -1,0 +1,29 @@
+// Select items that start and end in time selection on selected tracks (EEL script by spk77 24.7.2014)
+
+function select_items_within_time_sel() local(timesel_start, timesel_end, ti, ii, tr, item, start, end)
+(
+  GetSet_LoopTimeRange(0, 0, timesel_start, timesel_end, 0);
+  timesel_end - timesel_start > 0 ? (
+    Undo_BeginBlock();
+    Main_OnCommand(40289, 0); // unselect all items
+    ti = 0;
+    loop(CountSelectedTracks(0),
+      (tr = GetSelectedTrack(0, ti)) ? (
+        ii = 0;
+        loop(CountTrackMediaItems(tr),
+          (item = GetTrackMediaItem(tr, ii)) ? (
+            start = GetMediaItemInfo_Value(item, "D_POSITION");
+            end = start + GetMediaItemInfo_Value(item, "D_LENGTH");
+            start >= timesel_start && end <= timesel_end ? SetMediaItemSelected(item, 1);
+          );
+          ii += 1;
+        );
+      );
+      ti += 1;
+    );
+    Undo_EndBlock("Select items within time selection", -1);
+    UpdateArrange();
+  );
+);
+
+select_items_within_time_sel();

@@ -1,0 +1,59 @@
+// Copy stretch markers from selected item to other items in group 
+// EEL script by SPK77 2.12.2014
+
+buffer = 10000;
+
+function msg_f(m)
+(
+  ShowConsoleMsg(sprintf(#, "%.20f", m));
+  ShowConsoleMsg("\n");
+);
+
+function msg_s(m)
+(
+  ShowConsoleMsg(m);
+  ShowConsoleMsg("\n");
+);
+ 
+function copy_stretch_markers()
+(
+  Undo_BeginBlock();
+  CountSelectedMediaItems(0) == 1 ? (
+    (source_item = GetSelectedMediaItem(0,0)) ? (
+      (source_take = GetActiveTake(source_item)) ? (
+        group = GetMediaItemInfo_Value(source_item, "I_GROUPID");
+        source_item_pos = GetMediaItemInfo_Value(source_item, "D_POSITION");
+        index = 0;
+        num_sm = GetTakeNumStretchMarkers(source_take);
+        loop(num_sm,
+          // buffer[n] = pos, buffer[n+1] = source_pos etc.
+          GetTakeStretchMarker(source_take, index, buffer[index * 2], buffer[index * 2 + 1]);
+          index += 1;
+        );
+      );
+    );
+    
+    Main_OnCommand(41844, 0); // delete all stretchmarkers
+    item_i = 0;
+    loop(CountMediaItems(0),
+      (item = GetMediaItem(0, item_i)) ? (
+        /*item != source_item && */GetMediaItemInfo_Value(item, "I_GROUPID") == group ? (
+          item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+          (take = GetActiveTake(item)) /*&& take != source_take*/ ? (
+            index = 0;
+            loop(num_sm,
+              SetTakeStretchMarker(take, -1, buffer[index*2], buffer[index*2+1]);
+              index += 1;
+            );
+          );
+        );
+        item_i += 1;
+      );
+    );
+    UpdateArrange();
+  ) : msg_s("Please select only one item in group");
+  
+  Undo_EndBlock("Copy stretch markers to other items in group", -1);
+);
+
+copy_stretch_markers();

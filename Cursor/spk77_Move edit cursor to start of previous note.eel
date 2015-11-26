@@ -1,0 +1,22 @@
+// Move edit cursor to start of previous note  (EEL script 5.9.2014 by spk77)
+
+function move_to_prev_note() local(take, note_count, break, index, start_pos)
+(
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+    MIDI_CountEvts(take, note_count, 0, 0);
+    break = 0;
+    index = 0;
+    while(break == 0 && index < note_count) (
+      MIDI_GetNote(take, index, 0, 0, start_pos, 0, 0, 0, 0);
+      MIDI_GetProjTimeFromPPQPos(take, start_pos) >= GetCursorPosition() ? (
+        index > 0 ? MIDI_GetNote(take, index - 1, 0, 0, start_pos, 0, 0, 0, 0);
+        SetEditCurPos(MIDI_GetProjTimeFromPPQPos(take, start_pos), 1, 0);
+        break = 1;
+      );
+      index += 1;
+    );
+    Undo_OnStateChange("Move edit cursor to start of previous note");
+  );
+);
+
+move_to_prev_note();

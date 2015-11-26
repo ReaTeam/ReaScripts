@@ -1,0 +1,57 @@
+// Move edit cursor to start of next note + preview notes (EEL script 6.9.2014 by spk77)
+
+function move_to_next_note() local(take, note_count, break, index, start_pos)
+(
+  buf = 10000;
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+    MIDI_CountEvts(take, note_count, 0, 0);
+    break = 0;
+    index = 0;
+    while(break == 0 && index < note_count) (
+      MIDI_GetNote(take, index, sel, muted, start_pos, end_pos, chan, pitch, velOut);
+      buf[0] = 144 + chan;
+      buf[1] = pitch;
+      buf[2] = velOut;
+      buf_len = 3;
+      i = index+1;
+      j = 3;
+
+      MIDI_GetNote(take, i, sel, muted, start_pos_next, end_pos, chan, pitch, velOut);
+      MIDI_GetProjTimeFromPPQPos(take, start_pos) > GetCursorPosition() ? (
+        while(i < note_count && start_pos == start_pos_next) (
+          MIDI_GetNote(take, i, sel, muted, start_pos_next, end_pos, chan, pitch, velOut);
+          buf[j] = 144 + chan;
+          buf[j + 1] = pitch;
+          buf[j + 2] = velOut;
+          buf_len += 3;
+          i += 1;
+          j += 3;
+          index += 1;
+        );
+        SetEditCurPos(MIDI_GetProjTimeFromPPQPos(take, start_pos), 1, 0);
+        break = 1;
+      );
+      index += 1;
+    );
+/*      i = 0;
+    loop(buf_len / 3,
+      StuffMIDIMessage(0, 128 + chan, buf[i + 1], buf[i + 2]);
+      i += 3;
+    ); */
+    
+    i = 0;
+    loop(buf_len / 3,
+      StuffMIDIMessage(0, buf[i], buf[i + 1], buf[i + 2]);
+      i += 3;
+    );
+/*    i = 0;
+    loop(buf_len / 3,
+      StuffMIDIMessage(0, 128 + chan, buf[i + 1], buf[i + 2]);
+      i += 3;
+    ); */
+
+    Undo_OnStateChange("Move edit cursor to start of next note");
+  );
+);
+
+move_to_next_note();

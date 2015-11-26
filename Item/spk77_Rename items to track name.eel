@@ -1,0 +1,24 @@
+// Rename items to track name (works on selected tracks)
+
+function rename_tracks() local(t_i, tr, i_i, item, take, name)
+(
+  t_i = 0;
+  loop(CountSelectedTracks(0),
+    (tr = GetSelectedTrack(0, t_i)) ? (
+      GetSetMediaTrackInfo_String(tr, "P_NAME", name, 0);
+      i_i = 0;
+      loop(CountTrackMediaItems(tr),
+        (item = GetTrackMediaItem(tr, i_i)) ? (
+          (take = GetActiveTake(item)) ? (
+            GetSetMediaItemTakeInfo_String(take, "P_NAME", name, 1);
+          );
+        );
+        i_i += 1;
+      );
+      t_i += 1;
+    );
+  );
+  Undo_OnStateChange("Rename items to track name")
+);
+
+rename_tracks();

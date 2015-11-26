@@ -1,6 +1,6 @@
 # ReaScripts
 Collection of scripts written for Cockos Reaper.
-This repo is currently (nov 2015) building. That says, in the future structure could be changed a lot. 
+This repo is currently (nov 2015) building. Future structure could be changed a lot. 
 Temporary thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
 
 Source code is taken from:
@@ -11,7 +11,7 @@ Source code is taken from:
 - Cockos forum, Reaper Stash and many other places, where scripts were chaotically placed
 
 Contacts on Cockos forum:
-- [mpl](http://forum.cockos.com/member.php?u=70694)
+- [mpl](http://forum.cockos.com/member.php?u=70694) (repo creator)
 - [HeDa](http://forum.cockos.com/member.php?u=47822)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
 - [planetnine](http://forum.cockos.com/member.php?u=6549)

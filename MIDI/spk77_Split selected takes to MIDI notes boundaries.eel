@@ -1,0 +1,89 @@
+// Split items at MIDI note boundaries 
+// (original EEL script by FnA - modded by SPK77 13.2.2015)
+
+function get_items() local(i)
+(
+  sel_item_array = 10000;
+  i = 0;
+  loop(CountSelectedMediaItems(0),
+    sel_item_array[i] = GetSelectedMediaItem(0, i);
+    i += 1;
+  );
+);
+
+
+function split_at_note_boundaries() local(i_i, item, take, item_pos, item_len, item_end, item_ppq_pos, item_end_ppq_pos, note_count, i, start_pos, end_pos, curr_note_start_pos, curr_note_end_pos, first_split, second_split,item_split)
+(
+  get_items();
+  i_i = 0;
+  //Undo_BeginBlock();
+  loop(CountSelectedMediaItems(0),
+    (item = sel_item_array[i_i]) ? (
+      (take = GetActiveTake(item)) ? (
+        // Get item position/length
+        item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+        item_len = GetMediaItemInfo_Value(item, "D_LENGTH");
+        item_end = item_pos+item_len;
+        
+        // Convert item position/length to ppq time
+        item_ppq_pos = MIDI_GetPPQPosFromProjTime(take, item_pos);
+        item_end_ppq_pos = MIDI_GetPPQPosFromProjTime(take, item_end);
+        
+        MIDI_CountEvts(take, note_count, 0, 0);
+        note_count ? (
+          // Get start/end pos of first note (and set init values for "start_pos" and "end_pos"
+          MIDI_GetNote(take, 0, 0, 0, start_pos, end_pos, 0, 0, 0);
+          
+          i = 0;
+          loop(note_count,
+            MIDI_GetNote(take, i, 0, 0, curr_note_start_pos, curr_note_end_pos, 0, 0, 0);
+            end_pos <= item_ppq_pos ? start_pos = curr_note_start_pos; // find first note starting in item
+            curr_note_start_pos <= item_ppq_pos && curr_note_end_pos >= item_end_ppq_pos ? start_pos = item_ppq_pos;
+            
+            curr_note_start_pos <= item_end_ppq_pos ? (
+              curr_note_end_pos > end_pos ? end_pos = curr_note_end_pos;
+            );
+            i += 1;
+          );
+          
+          // Convert "start_pos" and "end_pos" to project time
+          start_pos = MIDI_GetProjTimeFromPPQPos(take, start_pos);
+          end_pos = MIDI_GetProjTimeFromPPQPos(take, end_pos);
+          
+          first_split = 0;
+          second_split = 0;
+
+          
+          
+          // (Next part needs cleaning)
+          
+          // Select *empty items 
+          // (*empty = no MIDI notes in "visible" area of item)
+          start_pos > item_pos && start_pos < end_pos ? (
+            item = SplitMediaItem(item, start_pos);
+            first_split = 1;
+            SetMediaItemSelected(item, 0);
+          );
+          end_pos < item_end ? (
+            second_split = 1;
+            item_split = SplitMediaItem(item, end_pos);
+            first_split ? SetMediaItemSelected(item_split, 1) : SetMediaItemSelected(item, 0);
+          );
+          // Just to make sure that items without notes are (kept) selected
+          second_split && !first_split ? (
+            start_pos < item_pos && end_pos < item_pos ||
+            start_pos > item_end || end_pos > item_end ? (
+              SetMediaItemSelected(item, 1);
+            );
+          ) : !second_split && !first_split ? SetMediaItemSelected(item, 0);
+        );
+      );
+    );
+    i_i += 1;
+  );
+  UpdateArrange();
+  //Undo_EndBlock("Split items at MIDI note boundaries", -1);
+  Undo_OnStateChangeEx("Split items at MIDI note boundaries", -1, -1);
+);
+
+split_at_note_boundaries();

@@ -1,0 +1,16 @@
+// EEL script - Store active take's ID (by spk77 16.7.2014)
+ 
+function store_take_id()
+(
+  CountSelectedMediaItems(0) == 1 ? (
+    (item = GetSelectedMediaItem(0, 0)) ? ( // get only first selected item
+      (take = GetActiveTake(item)) ? (
+        SetExtState("take_envelope_source", "take", sprintf(#, "%d", take), 0);
+      );
+    );
+  ) : (
+    ShowConsoleMsg("Please select only one (non-empty) item.");
+  );
+);
+
+store_take_id();

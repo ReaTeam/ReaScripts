@@ -1,0 +1,35 @@
+// Paste take volume envelope from active take in selected item to other takes in item 
+// EEL script by spk77 16.7.2014
+
+function paste_take_vol_env()
+(
+	CountSelectedMediaItems(0) == 1 && (source_take = GetActiveTake(GetSelectedMediaItem(0, 0))) ? (
+		item = GetSelectedMediaItem(0, 0);
+		(source_vol_env = GetTakeEnvelopeByName(source_take, "Volume")) ? (
+			GetSetEnvelopeState(source_vol_env, #source_vol_env);
+			
+			Undo_BeginBlock();
+			i = 0;
+			loop(CountTakes(item),
+				source_vol_env && source_take != GetTake(item, i) ? (
+					SetActiveTake(GetTake(item, i));
+					(env = GetTakeEnvelopeByName(GetTake(item, i), "Volume")) ? (
+						GetSetEnvelopeState(env, #source_vol_env);
+					) : (
+						Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0);
+						(env = GetTakeEnvelopeByName(GetTake(item, i), "Volume")) ? (
+							GetSetEnvelopeState(env, #source_vol_env);
+						);
+					);
+				);
+				i += 1;
+			);
+			SetActiveTake(source_take);
+			Undo_EndBlock("Paste take vol envelope", -1);
+		);
+  ) : (
+		ShowConsoleMsg("Please select only one (non-empty) item.");
+	);
+);
+
+paste_take_vol_env();

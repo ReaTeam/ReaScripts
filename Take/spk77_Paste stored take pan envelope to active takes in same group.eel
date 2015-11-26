@@ -1,0 +1,44 @@
+// Paste "stored" take pan envelope to active takes in same group
+// EEL script by spk77 20.7.2014
+
+function paste_take_pan_env() local(source_take, group, source_pan_env, item_i, item, env)
+(
+  GetExtState(#retval, "take_envelope_source", "take");
+  match("%d", #retval, source_take) ? (
+    // if source_take is not in grouped item, show error message
+    (group = GetMediaItemInfo_Value(GetMediaItemTake_Item(source_take), "I_GROUPID")) ? ( 
+      (source_pan_env = GetTakeEnvelopeByName(source_take, "Pan")) ? (
+        GetSetEnvelopeState(source_pan_env, #source_pan_env);
+        
+        Undo_BeginBlock();
+        item_i = 0;
+        group > 0 && loop(CountMediaItems(0),
+          item = GetMediaItem(0, item_i);
+          GetMediaItemInfo_Value(item, "I_GROUPID") == group && GetActiveTake(item) != source_take ? (
+            (env = GetTakeEnvelopeByName(GetActiveTake(item), "Pan")) ? (
+              GetSetEnvelopeState(env, #source_pan_env);
+            ) : (
+              isMediaItemSelected(item) ? (
+                Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV2"), 0);
+              ) : (
+                SetMediaItemSelected(item, 1);
+                UpdateArrange();
+                Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV2"), 0);
+                SetMediaItemSelected(item, 0);
+              );
+              (env = GetTakeEnvelopeByName(GetActiveTake(item), "Pan")) ? (
+                GetSetEnvelopeState(env, #source_pan_env);
+              );
+            );
+          );
+          item_i += 1;
+        );
+        Undo_EndBlock("Paste take pan envelope", -1);
+      );
+    ) : (
+      ShowConsoleMsg("Stored take's parent item is not grouped");
+    );
+  );
+);
+
+paste_take_pan_env();

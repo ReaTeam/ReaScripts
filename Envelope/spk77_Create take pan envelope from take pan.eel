@@ -1,0 +1,69 @@
+// Create take pan envelope from take pan (reset take pan to "center")
+// EEL script by spk77 20.11.2014
+
+#new_chunk_header = "<TRACK_ENVELOPE_UNKNOWN
+ACT 1
+VIS 1 1 1
+LANEHEIGHT 0 0
+ARM 1
+DEFSHAPE 0 -1 -1
+";
+
+#new_chunk_tail = ">
+";
+
+function get_set_envelope(take, envelope_name) local(env)
+(
+  //#new_chunk = "";
+  // if "take envelope" doesn't exist -> create envelope
+  (env = GetTakeEnvelopeByName(take, envelope_name) == 0) ? (
+    envelope_name == "Volume" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0); // show take volume envelope
+    envelope_name == "Pan" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV2"), 0); // show take pan envelope
+    envelope_name == "Mute" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV3"), 0); // show take mute envelope
+    envelope_name == "Pitch" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV10"), 0); // show take pitch envelope
+  );
+  // now it should exist -> get source take's "take envelope pointer"
+  (env = GetTakeEnvelopeByName(take, envelope_name)) ? (
+    GetSetEnvelopeState(env, #new_chunk);
+  );
+);
+
+function create_new_envelope_chunk(take)
+(
+  #new_chunk = "";
+  #new_chunk += #new_chunk_header;
+  #new_chunk += #new_chunk_points;
+  #new_chunk += #new_chunk_tail;
+  //get_set_envelope(take, "Pan");
+);
+
+function create_points(take)
+(
+  #new_chunk_points = "";
+  #new_chunk_points += "PT ";
+  #new_chunk_points += sprintf(#, "%f ", 0);
+  #new_chunk_points += sprintf(#, "%f ", -GetMediaItemTakeInfo_Value(take, "D_PAN")); 
+  #new_chunk_points += "0 0 1";
+  #new_chunk_points += "\n";
+  //#new_chunk_points != "" ? 1 : 0;
+  //#new_chunk_points != "" ? create_new_envelope()
+);
+
+function add_envelope() local(i, item, take)
+(
+  i = 0;
+  loop(CountSelectedMediaItems(0), 
+    (item = GetSelectedMediaItem(0, i)) ? (
+      (take = GetActiveTake(item)) ? (
+        create_points(take);
+        create_new_envelope_chunk(take);
+        get_set_envelope(take, "Pan");
+        SetMediaItemTakeInfo_Value(take, "D_PAN", 0.0);
+      );
+    );
+    i += 1;
+  );
+  UpdateArrange();
+);
+
+add_envelope();

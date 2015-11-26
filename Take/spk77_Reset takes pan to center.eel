@@ -1,0 +1,19 @@
+// Reset take pan to center
+// EEL script by spk77 15.11.2014
+
+function reset_take_pan_to_center() local(i, item, take)
+(
+  i = 0;
+  loop(CountSelectedMediaItems(0),
+    (item = GetSelectedMediaItem(0, i)) ? (
+      (take = GetActiveTake(item)) ? (
+        SetMediaItemTakeInfo_Value(take, "D_PAN", 0.0);
+      );
+    );
+    i += 1;
+  );
+  UpdateArrange();
+  Undo_OnStateChange("Reset take pan to center");
+);
+
+reset_take_pan_to_center();

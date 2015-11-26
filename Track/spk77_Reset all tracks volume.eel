@@ -1,0 +1,15 @@
+// Reset track volume faders to 0 dB - EEL script by spk77 8.2.2015
+
+function reset_vol() local(i, tr)
+(
+  i = 0;
+  loop(CountTracks(0),
+    (tr = GetTrack(0, i)) ? (
+      SetMediaTrackInfo_Value(tr, "D_VOL", 1.0);
+    );
+    i += 1;
+  );
+  Undo_OnStateChangeEx2(0, "Reset track volume faders to 0 dB", -1, -1);
+);
+
+reset_vol();

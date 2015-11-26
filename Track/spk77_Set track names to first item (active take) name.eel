@@ -1,0 +1,24 @@
+// Rename tracks to first item name (active take's name) - EEL script by spk77 21.8.2014
+
+function main() local (sel_track_count, t_i, tr, first_item)
+(
+  (sel_track_count = CountSelectedTracks(0)) ? (
+    t_i = 0;
+    Undo_BeginBlock();
+    loop(sel_track_count,
+      (tr = GetSelectedTrack(0, t_i)) ? (
+        CountTrackMediaItems(tr) ? (
+          (first_item = GetTrackMediaItem(tr, 0)) ? (
+            GetTakeName(#take_name, GetActiveTake(first_item)) ? (
+              GetSetMediaTrackInfo_String(tr, "P_NAME", #take_name, 1);
+            );
+          );
+        );
+      );
+      t_i += 1;
+    );
+    Undo_EndBlock("Rename tracks", -1);
+  ) : ShowConsoleMsg("Please select tracks");
+);
+
+main();

@@ -1,0 +1,59 @@
+// Move nearest project marker to edit cursor (or to play cursor while playing)  (EEL script 2.9.2014 by spk77)
+
+// "latency compensation"
+// adjust_pos = 0.05; would move marker 50ms to the right from the play cursor
+// adjust_pos = -0.05; would move marker 50ms to the left from the play cursor
+adjust_pos = 0.0;
+
+
+function move_closest_marker() 
+  local(num_markers, cur_pos, marker_index, marker_index_last, break, isrgn, last_pos, markrgnindexnumber, next_pos, next_markrgnindexnumber)
+(
+  CountProjectMarkers(0, num_markers, 0);
+  num_markers > 0 ? (
+    GetPlayState() > 0 ? cur_pos = GetPlayPosition() + adjust_pos : cur_pos = GetCursorPosition();
+    
+    GetLastMarkerAndCurRegion(0, cur_pos, marker_index_last, 0);
+    
+    marker_index = marker_index_last + 1;
+    break = 0;
+    is_last_marker = 1;
+    
+    // is the marker before edit cursor the last marker ?
+    while(break == 0 && EnumProjectMarkers(marker_index, isrgn, 0, 0, #name, markrgnindexnumber)) (
+      !isrgn ? (break = 1; is_last_marker = 0);
+      marker_index += 1;
+    );
+    is_last_marker ? (
+      EnumProjectMarkers(marker_index_last, 0, 0, 0, #name, markrgnindexnumber);
+      SetProjectMarker(markrgnindexnumber, 0, cur_pos, 0, #name);
+    
+    ) : marker_index_last == -1 ? ( // cursor pos < first marker pos
+      break = 0;
+      marker_index_last = 0;
+      while(break == 0 && EnumProjectMarkers(marker_index_last, isrgn, last_pos, 0, #name, markrgnindexnumber)) (
+        !isrgn ? break = 1;
+        marker_index_last += 1;
+      );
+      SetProjectMarker(markrgnindexnumber, 0, cur_pos, 0, #name);
+    
+    ) : ( // cursor pos between first marker and last marker
+
+    EnumProjectMarkers(marker_index_last, 0, last_pos, 0, #name, markrgnindexnumber);
+      break = 0;
+      marker_index_last += 1;
+      while(break == 0 && EnumProjectMarkers(marker_index_last, isrgn, next_pos, 0, #next_name, next_markrgnindexnumber)) (
+        !isrgn ? break = 1;
+        marker_index_last += 1;
+      );
+      abs(cur_pos - last_pos) < abs(cur_pos - next_pos) ? (
+        SetProjectMarker(markrgnindexnumber, 0, cur_pos, 0, #name);
+      ) : (
+        SetProjectMarker(next_markrgnindexnumber, 0, cur_pos, 0, #next_name);
+      );
+    );
+    Undo_OnStateChangeEx2(0, "Move marker to edit/play cursor", -1, -1);
+  );
+);
+
+move_closest_marker();

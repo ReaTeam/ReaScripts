@@ -1,0 +1,37 @@
+// Paste "stored" take volume envelope to active takes in selected items
+// EEL script by spk77 16.7.2014
+
+function paste_take_vol_env() local(source_take, source_vol_env, item_i, item, env)
+(
+  GetExtState(#retval, "take_envelope_source", "take"); // get stored take's ID
+  match("%d", #retval, source_take) ? (
+    (source_vol_env = GetTakeEnvelopeByName(source_take, "Volume")) ? ( // env pointer found -> continue
+      // get take volume env state (from the stored source_take)
+      GetSetEnvelopeState(source_vol_env, #source_vol_env); 
+      
+      Undo_BeginBlock();
+      item_i = 0;
+      loop(CountSelectedMediaItems(0),
+        item = GetSelectedMediaItem(0, item_i);
+        GetActiveTake(item) != source_take ? ( // skip source take
+          // check if target take's "take vol envelope" doesn't exist
+          (env = GetTakeEnvelopeByName(GetActiveTake(item), "Volume")) == 0 ? (
+            // target take's "take vol envelope" didn't exist -> run action "show take volume envelope"
+            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0); // show take volume envelope
+            // now it should exist -> get target take's "take vol envelope" pointer
+            (env = GetTakeEnvelopeByName(GetActiveTake(item), "Volume")) ? (
+              // set current "target take's vol env state" to "source_vol_env" state
+              GetSetEnvelopeState(env, #source_vol_env);
+            );
+              // (else) target take's "take vol envelope" already exists...
+              // -> set current "target take's vol env state" to "source_vol_env" state
+          ) : GetSetEnvelopeState(env, #source_vol_env);
+        );
+        item_i += 1;
+      );        
+      Undo_EndBlock("Paste take vol envelope", -1);
+    );
+  );
+);
+
+paste_take_vol_env();

@@ -1,0 +1,42 @@
+// Remove contents of time selection (from selected items - moving later items)
+
+buf = 10000;
+
+i = 0;
+j = 0;
+GetSet_LoopTimeRange(0, 0, time_sel_start, time_sel_end, 0);
+time_sel_start != time_sel_end ? (
+  Undo_BeginBlock();
+  PreventUIRefresh(1);
+  Main_OnCommand(41115,0); // invert item selection
+  loop(CountTracks(0),
+    tr = GetTrack(0, i);
+    i_i = 0;
+    loop(CountTrackMediaItems(tr),
+      item = GetTrackMediaItem(tr, i_i);
+      item_pos = GetMediaItemInfo_value(item, "D_POSITION");
+      IsMediaItemSelected(item) ? (
+        buf[j * 2] = item;
+        buf[j * 2 + 1] = item_pos;
+        j += 1;
+      );
+      i_i += 1;
+    );
+    i += 1;
+  );
+  
+  
+  ApplyNudge(0, 1, 0, 1, time_sel_end, 0, 0); // move selected items to time selection end
+  
+  Main_OnCommand(40201,0); // insert empty space at time selection (moving later items)
+  
+  Main_OnCommand(41115,0); // invert item selection 
+  i = 0;
+  loop(j,
+    SetMediaItemPosition(buf[i * 2], buf[i * 2 + 1], 0);
+    i += 1;
+  );
+  PreventUIRefresh(-1);
+  UpdateArrange();
+  Undo_EndBlock("Remove contents of time sel", -1);
+);

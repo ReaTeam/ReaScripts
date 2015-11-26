@@ -1,0 +1,33 @@
+// Get (first) item start position from start of measure (in seconds)
+function get_item_pos_in_measure() local(item, pos, time_to_beats, beats_to_time, pos_in_measure)
+(
+  (item = GetSelectedMediaItem(0, 0)) ? (
+    pos = GetMediaItemInfo_Value(item, "D_POSITION");
+    //TimeMap2_timeToBeats(ReaProject* proj, tpos, optional int &measuresOutOptional, optional int &cmlOutOptional, optional &fullbeatsOutOptional, optional int &cdenomOutOptional)
+    time_to_beats = TimeMap2_timeToBeats(0, pos, measuresOut, cmlOutOptional, fullbeatsOutOptional, cdenomOutOptional);
+    beats_to_time = TimeMap2_beatsToTime(0, 0, measuresOut);
+    pos_in_measure = pos - beats_to_time; // first item start position from start of measure (in seconds)
+  );
+);
+
+function relative_paste() local(i, item, pos)
+(
+  Main_OnCommand(40058, 0); // paste items
+  i = 0;
+  HasExtState("copy_paste", "relative_pos") ? (
+    GetExtState(#rel_pos, "copy_paste", "relative_pos");
+    match("%f", #rel_pos, rel_pos);
+    //ShowConsoleMsg(sprintf(#, "%.20f", rel_pos));
+    pos_in_measure = get_item_pos_in_measure();
+    loop(CountSelectedMediaItems(0),
+      item = GetSelectedMediaItem(0, i);
+      pos = GetMediaItemInfo_Value(item, "D_POSITION");
+      SetMediaItemInfo_Value(item, "D_POSITION", pos - pos_in_measure + rel_pos);
+      i += 1;
+    );
+  );
+);
+
+PreventUIRefresh(1);
+relative_paste();
+PreventUIRefresh(-1);

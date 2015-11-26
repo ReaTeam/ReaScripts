@@ -1,0 +1,194 @@
+// Remove redundant CC messages (Original JSFX script by DarkStar. EELed by SPK77 2.5.2014)
+
+function set_default_colors()
+(
+  gfx_r = 0.5;
+  gfx_g = 0.8;
+  gfx_b = 0.5;
+);
+
+ function check_cc_lane() local (cc_info_w, cc_info_h, lane_name_w, lane_name_h)
+( 
+  gfx_a = 1;
+  gfx_r = 0.8;
+  gfx_g = 1;
+  gfx_b = 0.8;
+  #cc_info = "";
+  last_clicked_cc_lane == -1 || last_clicked_cc_lane > 287 ? (
+    #cc_info = "Select a CC lane";
+  ) : last_clicked_cc_lane > 127 && last_clicked_cc_lane <= 287 ? (
+    #cc_info = "14-bit values not supported";
+  ) : (
+    #cc_info = "CC";
+    #cc_info += sprintf(#, "%d", last_clicked_cc_lane);
+    #cc_info += " ";
+    #cc_info += #lane_name;
+    gfx_measurestr(#cc_info, cc_info_w, cc_info_h);
+  );
+  gfx_x = draw_start_x;
+  gfx_y = draw_start_y;
+  gfx_measurestr(#cc_info, cc_info_w, cc_info_h);
+
+  gfx_drawstr(#cc_info);
+);
+  
+function remove_btn(x, y, w, h, r)
+( 
+  gfx_x = x; gfx_y = y;
+  redundant_event_count == 0 ? gfx_a = 0.4;
+  set_default_colors();
+  remove = 0;
+  mouse_x >= x && mouse_x <= x + w && mouse_y >= y && mouse_y <= y + h && lmb_click_outside_window == 0 && redundant_event_count > 0 ? (// && max_point_drag_started == 0 && min_point_drag_started == 0 ? (
+      gfx_r += 0.2;
+      gfx_g += 0.2;
+      gfx_b += 0.2;
+    mouse_cap == 1 && lmb_down == 0 ? (
+      lmb_down = 1;
+      remove = 1;
+    );
+  );
+  gfx_roundrect(gfx_x - 6, gfx_y - 3, w + 12, h + 6, r);
+  gfx_printf("Remove events");
+);
+
+function remove() local (index, selectedOut, mutedOut, startppqpos, chanmsgOut, chanOut, msg2Out, event_value, event_count)
+(
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+    last_clicked_cc_lane = MIDIEditor_GetSetting_int(MIDIEditor_GetActive(), "last_clicked_cc_lane");
+    MIDIEditor_GetSetting_str(MIDIEditor_GetActive(), "last_clicked_cc_lane", #lane_name) == 0 ? #lane_name = "";
+
+    last_clicked_cc_lane >= 0 && last_clicked_cc_lane <= 127 ? (
+      MIDI_CountEvts(take, note_cnt, cc_cnt, sysex_cnt);
+      last_event_value = -1; // global
+      index = 0;
+      event_count = 0;
+      redundant_event_count = 0; // global
+      loop(cc_cnt,
+        MIDI_GetCC(take, index, selectedOut, mutedOut, startppqpos, chanmsgOut, chanOut, msg2Out, event_value);
+        msg2Out == last_clicked_cc_lane ? (
+          event_count += 1;
+          event_value == last_event_value /*&& bypass == 0*/ ? (
+            remove == 1 ? (
+              undo_block = 1;
+              MIDI_DeleteCC(take, index);
+              index -= 1;
+            );
+            redundant_event_count += 1;
+          );
+          last_event_value = event_value;
+        );
+        index += 1;
+      );
+      gfx_x = draw_start_x;
+      gfx_y = draw_start_y + gfx_texth;
+      set_default_colors();
+      gfx_a = 1;
+      gfx_drawstr("Events: ");
+      gfx_r = 0.8;
+      gfx_b = 1;
+      gfx_g = 0.8;
+      gfx_drawstr(sprintf(#, "%d", event_count));
+      set_default_colors();
+      gfx_y += gfx_texth;
+      gfx_x = draw_start_x;
+    
+      gfx_drawstr("Red. events: ");
+      gfx_r = 0.8;
+      gfx_b = 1;
+      gfx_g = 0.8;
+      gfx_drawstr(sprintf(#, "%d", redundant_event_count));
+    );
+  );
+);
+
+function run()
+(
+  set_default_colors();
+  gfx_a = 1;
+
+  draw_end_x = gfx_w - 22;
+  draw_end_y = gfx_h - 80;
+  gfx_x = draw_start_x;
+  gfx_y = draw_start_y;
+  
+  center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+  center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+  
+  gfx_w != last_w ? (
+    center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+    slider_last_x = center_x;
+    last_w = gfx_w;
+  );
+
+  // check if "lmb down" and "mouse cursor is not in window"
+  mouse_cap >= 1 && (mouse_x <= 0 || mouse_x >= gfx_w || mouse_y < 2 || mouse_y >= gfx_h) ? (
+    lmb_click_outside_window = 1;
+  ) : mouse_cap == 0 ? (
+    lmb_click_outside_window = 0;
+  );
+
+  check_cc_lane();
+  //gfx_x = center_x - floor(s_w_remove / 2 + 0.5);
+  gfx_x = draw_start_x;
+  remove_btn(gfx_x, draw_start_y + 6 * gfx_texth, s_w_remove, s_h_remove, 12);
+  remove();
+  
+  // add "undo point" if necessary
+  undo_block == 1 && drag_started == 0 ? (
+    undo_block = 0;
+    Undo_OnStateChange("Remove CCs");
+  );
+  
+  char = gfx_getchar();
+  // ctrl+lmb to Undo
+  char == 26 ? (
+    Main_OnCommand(40029, 0); // undo
+  );
+  // Esc to exit
+  char == 27 ? (
+    undo_block == 1 ? (
+      Undo_OnStateChange("Remove CCs");
+    );
+    gfx_quit();
+  );
+  char >= 0 ? (
+    defer("run();");
+  );
+  
+  mouse_cap == 0 ? (
+    lmb_down = 0;
+    //remove = 0;
+  );
+
+  last_h = gfx_h;
+  last_w = gfx_w;
+  gfx_update();
+);
+
+// init
+function init()
+(
+  gfx_init("Remove redundant CCs",230,150);
+
+  last_w = gfx_w;
+  last_h = gfx_h;
+
+  draw_start_x = 22;
+  draw_end_x = gfx_w - 22;
+  draw_start_y = 30;
+  draw_end_y = gfx_h - 80;
+  center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+  center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+
+  gfx_setfont(1, "Verdana", 14, 'b');
+  
+  gfx_measurestr("Remove events", s_w_remove, s_h_remove);
+
+  slider_last_x = draw_start_x;
+  lmb_click_outside_window = 0;
+  last_clicked_cc_lane == -1;
+  remove = 0;
+);
+
+init();
+run();

@@ -1,0 +1,35 @@
+// Paste take pitch envelope from active take in selected item to other takes in item 
+// EEL script by spk77 20.7.2014
+
+function paste_take_pitch_env()
+(
+  CountSelectedMediaItems(0) == 1 && (source_take = GetActiveTake(GetSelectedMediaItem(0, 0))) ? (
+    item = GetSelectedMediaItem(0, 0);
+    (source_pitch_env = GetTakeEnvelopeByName(source_take, "Pitch")) ? (
+      GetSetEnvelopeState(source_pitch_env, #source_pitch_env);
+      
+      Undo_BeginBlock();
+      i = 0;
+      loop(CountTakes(item),
+        source_pitch_env && source_take != GetTake(item, i) ? (
+          SetActiveTake(GetTake(item, i));
+          (env = GetTakeEnvelopeByName(GetTake(item, i), "Pitch")) ? (
+            GetSetEnvelopeState(env, #source_pitch_env);
+          ) : (
+            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV10"), 0);
+            (env = GetTakeEnvelopeByName(GetTake(item, i), "Pitch")) ? (
+              GetSetEnvelopeState(env, #source_pitch_env);
+            );
+          );
+        );
+        i += 1;
+      );
+      SetActiveTake(source_take);
+      Undo_EndBlock("Paste take pitch envelope", -1);
+    );
+  ) : (
+    ShowConsoleMsg("Please select only one (non-empty) item.");
+  );
+);
+
+paste_take_pitch_env();

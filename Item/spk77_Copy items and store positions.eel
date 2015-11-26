@@ -1,0 +1,28 @@
+function store_pos(pos)
+(
+  pos = sprintf(#, "%.20f", pos);
+  //ShowConsoleMsg(pos);
+  SetExtState("copy_paste", "relative_pos", pos, 0);
+);
+
+// Get (first) item start position from start of measure (in seconds)
+function get_item_pos_in_measure() local(item, pos, time_to_beats, beats_to_time, pos_in_measure)
+(
+  (item = GetSelectedMediaItem(0, 0)) ? (
+    pos = GetMediaItemInfo_Value(item, "D_POSITION");
+    //TimeMap2_timeToBeats(ReaProject* proj, tpos, optional int &measuresOutOptional, optional int &cmlOutOptional, optional &fullbeatsOutOptional, optional int &cdenomOutOptional)
+    time_to_beats = TimeMap2_timeToBeats(0, pos, measuresOut, cmlOutOptional, fullbeatsOutOptional, cdenomOutOptional);
+    beats_to_time = TimeMap2_beatsToTime(0, 0, measuresOut);
+    pos_in_measure = pos - beats_to_time; // first item start position from start of measure (in seconds)
+    
+    //ShowConsoleMsg(sprintf(#, "%f", pos_in_measure));
+    //ShowConsoleMsg("s from start of measure ");
+    //ShowConsoleMsg(sprintf(#, "%d", measuresOut));
+    //ShowConsoleMsg("\n"); 
+
+    store_pos(pos_in_measure);
+  );
+);
+
+get_item_pos_in_measure();
+Main_OnCommand(40698, 0); // copy items

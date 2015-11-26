@@ -1,0 +1,235 @@
+// Time display tool (EEL script by spk77 21.7.2014)
+// added BPM view - 2.2.2015
+// Use mouse wheel to increase/decrease font size
+// left click on time string -> cycle through time formatting modes
+
+// Settings //////////////////////
+font_size = 30;
+font_name = "Verdana";
+
+// font settings
+font_max_size = 100;
+font_min_size = font_size*0.8;
+
+font_size_step = 5; // mousewheel adjusts the font size in steps of 5 pixels
+
+// BPM settings
+// (default setting shows values between 30-300 BPM)
+min_bpm = 30;
+max_bpm = 300;
+
+//////////////////////////////////
+
+
+
+function adjust_font_size(mouse_wheel_val)
+(
+  mouse_wheel_val > 0 ? (
+    font_size < font_max_size ? (
+      font_size += font_size_step;
+    );
+  );
+  
+  mouse_wheel_val < 0 ? (
+    (font_size > font_min_size) ? (
+      font_size -= font_size_step;
+    );
+  );
+  gfx_setfont(1, font_name, font_size);
+  mouse_wheel = 0;
+);
+
+function init(window_w, window_h)
+(
+  gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  gfx_init("Time display tool", window_w, window_h);
+  gfx_setfont(1, font_name, font_size);
+);
+
+function run() local(time_range, time_sel_start, time_sel_end)
+(
+  gfx_a = 0.5; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  gfx_x = 10;
+  gfx_y = 10+gfx_texth;
+  GetSet_LoopTimeRange(0, 0, time_sel_start, time_sel_end, 0);
+  time_range = time_sel_end - time_sel_start;
+
+  time_sel_end == time_sel_start ? (
+    #ts_start = "";
+    #ts_end = "";
+    #ts_buf = "";
+  ) : (
+    format_timestr_pos(time_sel_start, #ts_start, ts_format);
+    //gfx_measurestr("Start", w_ts_start_lbl, 0);
+    
+    format_timestr_pos(time_sel_end, #ts_end, ts_format);
+    //gfx_measurestr("Start", w_ts_start_lbl, 0);
+    
+    format_timestr_pos(time_range, #ts_buf, ts_format);
+    gfx_measurestr(#ts_buf, w_ts, 0);
+  );
+  
+  format_timestr_pos(GetCursorPosition(), #ec_buf, ec_format);
+  
+  y_ts = gfx_y;
+  gfx_printf("Time selection:  ");
+  x_ts = gfx_x;
+  
+  gfx_x = 10;
+  gfx_y += gfx_texth;
+  
+  y_ts_start = gfx_y;
+  gfx_printf("Start:");
+  x_ts_start = gfx_x;
+  
+  gfx_x = 10;
+  gfx_y += gfx_texth;
+  
+  y_ts_end = gfx_y;
+  gfx_printf("End:  ");
+  x_ts_end = gfx_x;
+  
+  gfx_x = 10;
+  gfx_y += 1.5*gfx_texth;
+  
+  
+  y_ec = gfx_y;
+  gfx_printf("Edit cursor pos: ");
+  x_ec = gfx_x;
+  
+  gfx_x = 10;
+  gfx_y += 2 * gfx_texth;
+  
+  y_bpm = gfx_y;
+  gfx_printf("BPM: ");
+  x_bpm = x_ec;
+  
+  
+  
+  gfx_measurestr(#ec_buf, w_ec, 0);
+  
+  
+  TimeMap2_timeToBeats(0, time_sel_start, m1, cn1, fullbeats_at_start, cdenom1);
+  TimeMap2_timeToBeats(0, time_sel_end, m2, cn2, fullbeats_at_end, cdenom2);
+  fullbeats = fullbeats_at_end-fullbeats_at_start;
+  
+  range = time_sel_end - time_sel_start;
+
+  range != last_range && range > 0.05 ? (
+    #bpm = "";
+    bpm = cn2*60/range;// * m;
+  
+    while(bpm > max_bpm) (
+      bpm /= 2;
+    );
+    
+    while(bpm < min_bpm) (
+      bpm *= 2;
+    );
+  
+    while(bpm * 2 < max_bpm ) (
+      bpm *= 2;
+    );
+  
+    while(bpm > min_bpm) (
+      #bpm += sprintf(#, "%0.3f\n", bpm);
+      bpm /= 2;
+    );
+  );
+  
+  range < 0.05?  #bpm = "";
+  
+  gfx_x = x_bpm;
+  gfx_measurestr(#bpm, w_bpm, 0);
+  //gfx_x = 10;
+  gfx_a = 1;
+  gfx_printf(#bpm);
+  
+  mouse_wheel != 0 ? adjust_font_size(mouse_wheel);
+  
+  gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  
+  mouse_x > x_ts && mouse_x < x_ts + w_ts && mouse_y > y_ts && mouse_y < y_ts + gfx_texth /*&& mouse_state == 0*/ ? (
+    gfx_x = 10;
+    gfx_y = 10;
+
+    ts_format == 0 ? (
+      gfx_printf("(h:)m:s.ms");
+    ) : ts_format == 1 ? (
+      gfx_printf("measures.beats.time");
+    ) : ts_format == 2 ? (
+      gfx_printf("measures.beats");
+    ) : ts_format == 3 ? (
+      gfx_printf("seconds");
+    ) : ts_format == 4 ? (
+      gfx_printf("samples");
+    ) : ts_format == 5 ? (
+      gfx_printf("h:m:s:frames");
+    );
+
+    gfx_r = 0.5; gfx_g = 0.5;
+    mouse_cap == 1 ? (
+      //gfx_r = 0.5; gfx_g = 0.5;
+      mouse_state == 0 ? (
+        mouse_state = 1;
+        ts_format < 5 ? ts_format += 1 : ts_format = 0;
+      );
+    );
+  );
+  gfx_x = x_ts;
+  gfx_y = y_ts;
+  gfx_printf(#ts_buf);
+  gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  
+  gfx_x = x_ts - w_ts_start;
+  gfx_y = y_ts_start;
+  gfx_printf(#ts_start);
+  
+  gfx_x = x_ts;
+  gfx_y = y_ts_end;
+  gfx_printf(#ts_end);
+  
+  
+  
+  mouse_x > x_ec && mouse_x < x_ec + w_ec && mouse_y > y_ec && mouse_y < y_ec + gfx_texth /*&& mouse_state == 0*/ ? (
+    gfx_x = 10;
+    gfx_y = 10;
+    
+    ec_format == 0 ? (
+      gfx_printf("(h:)m:s.ms");
+    ) : ec_format == 1 ? (
+      gfx_printf("measures.beats.time");
+    ) : ec_format == 2 ? (
+      gfx_printf("measures.beats");
+    ) : ec_format == 3 ? (
+      gfx_printf("seconds");
+    ) : ec_format == 4 ? (
+      gfx_printf("samples");
+    ) : ec_format == 5 ? (
+      gfx_printf("h:m:s:frames");
+    );
+    
+    gfx_r = 0.5; gfx_g = 0.5;
+    mouse_cap == 1 ? (
+      //gfx_r = 0.5; gfx_g = 0.5;
+      mouse_state == 0 ? (
+        mouse_state = 1;
+        ec_format < 5 ? ec_format += 1 : ec_format = 0;
+      );
+    );
+  );
+  gfx_x = x_ec;
+  gfx_y = y_ec;
+  gfx_printf(#ec_buf);
+  gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+
+  mouse_cap == 0 ? mouse_state = 0;// : mouse_state = 1;
+  
+  last_range = range;
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("run();");
+);
+
+// init(window_w, window_h);
+init(font_size*14, font_size*12);
+run();

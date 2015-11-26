@@ -1,0 +1,56 @@
+// EEL script - Convert MIDI notes to stretch markers (20.1.2015 by SPK77)
+// added "guide messages"
+
+function MIDI_notes_to_stretch_markers()
+  local(target_take, item, target_item_pos, target_item_len, index, pos, last_pos, midi_item_pos, source_pos, note_cnt, take)
+(
+  break = 0;
+  take = MIDIEditor_GetTake(MIDIEditor_GetActive());
+  !take ? (
+    ShowConsoleMsg("Please open a MIDI take in MIDI editor\n");
+    break = 1;
+  );
+  item = GetSelectedMediaItem(0, 0);
+  !break && (!item || item == GetMediaItemTake_Item(take)) ? (
+    ShowConsoleMsg("Please select a target (audio) take\n");
+    break = 1;
+  );
+  target_take = GetActiveTake(item);
+  !break && !target_take ? (
+    ShowConsoleMsg("Target take has no audio source\n");
+    break = 1;
+  );
+  !break && target_take == take ? (
+    ShowConsoleMsg("Please select a target (audio)take\n");
+    break = 1;
+  );
+  
+  !break ? (
+    Main_OnCommand(41844, 0); // remove all stretch markers
+
+    index = 0;
+    last_pos = -1000000;
+    midi_item_pos = GetMediaItemInfo_Value(GetMediaItemTake_Item(take), "D_POSITION");
+    
+    target_item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+    target_item_len = GetMediaItemInfo_Value(item, "D_LENGTH");
+    source_pos = GetMediaItemTakeInfo_Value(target_take, "D_STARTOFFS");
+    
+    MIDI_CountEvts(take, note_cnt, 0, 0);
+    loop(note_cnt,
+      MIDI_GetNote(take, index, sel, muted, ppq_pos, 0, 0, 0, 0);
+      pos = MIDI_GetProjTimeFromPPQPos(take, ppq_pos);
+      pos -= target_item_pos;
+      
+      pos != last_pos && pos >= 0 && pos <= target_item_len ? (
+        SetTakeStretchMarker(target_take, -1, pos, pos+source_pos);
+      );
+      last_pos = pos;
+      index += 1;
+    );
+    UpdateArrange();
+    Undo_OnStateChange("Convert MIDI notes to stretch markers");
+  );
+);
+
+MIDI_notes_to_stretch_markers();

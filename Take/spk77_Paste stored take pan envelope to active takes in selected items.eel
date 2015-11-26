@@ -1,0 +1,30 @@
+// Paste "stored" take pan envelope to active takes in selected items
+// EEL script by spk77 20.7.2014
+
+function paste_take_pan_env() local(source_take, source_pan_env, item_i, item, env)
+(
+  GetExtState(#retval, "take_envelope_source", "take"); // get stored take's ID
+  match("%d", #retval, source_take) ? (
+    (source_pan_env = GetTakeEnvelopeByName(source_take, "Pan")) ? ( // env pointer found -> continue
+      GetSetEnvelopeState(source_pan_env, #source_pan_env); 
+      
+      Undo_BeginBlock();
+      item_i = 0;
+      loop(CountSelectedMediaItems(0),
+        item = GetSelectedMediaItem(0, item_i);
+        GetActiveTake(item) != source_take ? ( // skip source take
+          (env = GetTakeEnvelopeByName(GetActiveTake(item), "Pan")) == 0 ? (
+            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV2"), 0); // show take pan envelope
+            (env = GetTakeEnvelopeByName(GetActiveTake(item), "Pan")) ? (
+              GetSetEnvelopeState(env, #source_pan_env);
+            );
+          ) : GetSetEnvelopeState(env, #source_pan_env);
+        );
+        item_i += 1;
+      );        
+      Undo_EndBlock("Paste take pan envelope", -1);
+    );
+  );
+);
+
+paste_take_pan_env();

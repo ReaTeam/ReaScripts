@@ -1,0 +1,43 @@
+// Normalize selected items to given range
+// ("take volumes" are adjusted)
+
+function msg(m)
+(
+  ShowConsoleMsg(m);
+  ShowConsoleMsg("\n");
+);
+
+function dialog()
+(
+  #dialog_ret_vals = "-30.0,-6.0"; //default values
+  GetUserInputs("Normalize active takes to range", 2, "From (dB):,To (dB):", #dialog_ret_vals);
+);
+
+function normalize()
+(
+  (sel_item_count = CountSelectedMediaItems(0)) >= 2 ? (
+    dialog() ? (
+      Undo_BeginBlock();
+      PreventUIRefresh(1);
+      Main_OnCommand(40108, 0); // normalize active takes to 0 dB (take volume)
+      match("%f,%f", #dialog_ret_vals, from_dB, to_dB);
+      i = 0;
+      loop(sel_item_count,
+        item = GetSelectedMediaItem(0, i);
+        take = GetActiveTake(item);
+        normalized_dB = 20 * log10(GetMediaItemTakeInfo_Value(take, "D_VOL"));  // normalized_dB == take normalized to 0 dB
+        new_dB = normalized_dB + from_dB + (i * ((to_dB - from_dB) / (sel_item_count - 1)));
+        new_vol = pow(10, new_dB / 20);
+        SetMediaItemTakeInfo_Value(take, "D_VOL", new_vol);
+        i += 1;
+      );
+      PreventUIRefresh(-1);
+      Undo_EndBlock("Normalize to range", -1);
+      UpdateArrange();
+    )
+  ) : ( // sel item count < 2 -> "quit" with error message
+  msg("Select at least two items");
+  );
+);
+
+normalize();

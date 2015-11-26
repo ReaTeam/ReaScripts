@@ -1,0 +1,694 @@
+// Copy Paste Item parameters //
+// EEL conversion from Python script //
+// code by spk77, Breeder (possibly also Babag?) //
+// BWF Metadata Additions by planet nine 15-Feb-15 //
+// Bug fix: fade-in/fade-out curves weren't copied properly (5-July-15)
+
+
+function rgba(r, g, b, a)
+(
+  a !=0 ? gfx_a = a; // a==0, don't change a
+  gfx_r = r; gfx_g = g; gfx_b = b; // set r,g,b
+);
+
+// draw "info text" -> don't update gfx_x, gfx_y after drawing
+function set_info_text(x, y, info_text) local(curr_x, curr_y)
+(
+  curr_x = gfx_x;
+  curr_y = gfx_y;
+  gfx_x = x;
+  gfx_y = y;
+  gfx_a = 1; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  gfx_printf(info_text);
+  gfx_x = curr_x;
+  gfx_y = curr_y;
+);
+
+function button(x1, y1, w, h, button_label, help_text) local(s_w, s_h)
+( 
+  !mouse_state && this.mouse.state ? this.mouse.state = 0;
+  
+  gfx_x = x1;
+  gfx_y = y1;
+  this.x1 = x1;
+  this.y1 = y1;
+  this.w = w;
+  this.h = h;
+  this.x2 = this.x1 + this.w;
+  this.y2 = this.y1 + this.h;
+
+  this.a = 0.6;
+  
+  mouse_x > this.x1 && mouse_x < this.x2 && mouse_y > this.y1 && mouse_y < this.y2 ? (
+    help_text != "" ? set_info_text(10, 10, help_text);
+    //gfx_a = 0.1; gfx_r = 0.5; gfx_g = 0; gfx_b = 0.5;
+    mouse_cap == 1 && !this.mouse.state && mouse_state == 0 ? (
+      this.mouse.state = 1;
+      this.state = 1;
+      mouse_state = 1;
+    );
+  );
+  
+    this.mouse.state && mouse_state ? (
+    this.a -= 0.2;
+    rgba(0.5,0.5,0.5,this.a);
+    gfx_rect(this.x1, this.y1, this.w, this.h);
+  ) : !this.mouse.state ? (
+  
+    rgba(0,0.5,0,0.5);
+    ////gfx_rect(this.x1+2, this.y1+2, this.w-4, this.h-4);
+    gfx_rect(this.x1, this.y1, this.w, this.h);
+    rgba(1,1,1,0.5);
+    // light - left
+    gfx_line(this.x1, this.y1, this.x1, this.y2-1);
+    gfx_line(this.x1+1, this.y1+1, this.x1+1, this.y2-2);
+    // light - top
+    gfx_line(this.x1+1, this.y1, this.x2-1, this.y1);
+    gfx_line(this.x1+2, this.y1+1, this.x2-2, this.y1+1);
+
+    
+    rgba(0.4,0.4,0.4,0.7);
+    // shadow - bottom
+    gfx_line(this.x1+1, this.y2-1, this.x2-2, this.y2-1);
+    gfx_line(this.x1+2, this.y2-2, this.x2-3, this.y2-2);
+    // shadow - right
+    gfx_line(this.x2-1, this.y2-1, this.x2-1, this.y1+1);
+    gfx_line(this.x2-2, this.y2-2, this.x2-2, this.y1+2);
+  );
+  
+  gfx_a = 1;
+  button_label != "";
+  //button_label != "" ? (
+    gfx_measurestr(button_label, s_w, s_h);
+    gfx_x = this.x1 + floor(0.5*this.w - 0.5 * s_w);
+    gfx_y = this.y1 + 0.5*this.h - 0.5*gfx_texth; // label y pos = center
+
+    this.mouse.state ? gfx_y +=1;
+    rgba(1,1,1,this.a+0.2);
+    gfx_printf(button_label);
+    this.mouse.state ? gfx_y -=1;
+    //gfx_printf(sprintf(#, "a: %f",this.state.pressed)); 
+    
+  //);
+
+);
+
+
+function get_set_envelope(source_take, take, envelope_name) local(env)
+(
+  #env_chunk = "";
+  // check if target take's "take envelope" doesn't exist
+  (env = GetTakeEnvelopeByName(take, envelope_name) == 0) ? (
+    // target take's "take envelope" didn't exist -> run SWS actions to show take envelopes
+    envelope_name == "Volume" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0); // show take volume envelope
+    envelope_name == "Pan" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV2"), 0); // show take pan envelope
+    envelope_name == "Mute" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV3"), 0); // show take mute envelope
+    envelope_name == "Pitch" ? Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV10"), 0); // show take pitch envelope
+  );
+  
+  // now it should exist -> get source take's "take envelope pointer"
+  (env = GetTakeEnvelopeByName(source_take, envelope_name)) ? GetSetEnvelopeState(env, #env_chunk);
+  // set current "target take's envelope state" to "source envelope state"
+  (env = GetTakeEnvelopeByName(take, envelope_name)) ? GetSetEnvelopeState(env, #env_chunk);
+);
+
+function set_item_take_properties(source_take) local(i, source_item, item, take)
+(
+  i = 0;
+  source_take ? (
+    source_item = GetMediaItemTake_Item(source_take);
+    Undo_BeginBlock();
+    loop(CountSelectedMediaItems(0),
+      (item = GetSelectedMediaItem(0, i)) ? (
+        (take = GetActiveTake(item)) ? (
+          take != source_take ? (   // don't "paste" to source take
+            state_array[0] == 1 ? SetMediaItemTakeInfo_Value(take, "D_VOL", GetMediaItemTakeInfo_Value(source_take, "D_VOL"));
+            state_array[1] == 1 ? SetMediaItemTakeInfo_Value(take, "D_PAN", GetMediaItemTakeInfo_Value(source_take, "D_PAN"));
+            state_array[2] == 1 ? SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", GetMediaItemTakeInfo_Value(source_take, "D_PLAYRATE"));
+            state_array[3] == 1 ? SetMediaItemTakeInfo_Value(take, "D_PITCH", GetMediaItemTakeInfo_Value(source_take, "D_PITCH"));
+            state_array[4] == 1 ? SetMediaItemTakeInfo_Value(take, "I_CHANMODE", GetMediaItemTakeInfo_Value(source_take, "I_CHANMODE"));
+            state_array[5] == 1 ? SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", GetMediaItemTakeInfo_Value(source_take, "D_STARTOFFS"));
+            state_array[6] == 1 ? SetMediaItemTakeInfo_Value(take, "D_PANLAW", GetMediaItemTakeInfo_Value(source_take, "D_PANLAW"));
+            state_array[7] == 1 ? get_set_envelope(source_take, take, "Volume");
+            state_array[8] == 1 ? get_set_envelope(source_take, take, "Pan"); 
+            state_array[9] == 1 ? get_set_envelope(source_take, take, "Mute"); 
+            state_array[10] == 1 ? get_set_envelope(source_take, take, "Pitch");
+            item != source_item ? ( // don't "paste" item properties to source item
+              state_array[11] == 1 ? SetMediaItemInfo_Value(item, "D_VOL", GetMediaItemInfo_Value(source_item, "D_VOL"));
+              state_array[12] == 1 ? SetMediaItemInfo_Value(item, "B_MUTE", GetMediaItemInfo_Value(source_item, "B_MUTE"));
+              state_array[13] == 1 ? SetMediaItemInfo_Value(item, "C_LOCK", GetMediaItemInfo_Value(source_item, "C_LOCK"));
+              state_array[14] == 1 ? SetMediaItemInfo_Value(item, "B_LOOPSRC", GetMediaItemInfo_Value(source_item, "B_LOOPSRC"));
+              state_array[15] == 1 ? (
+                SetMediaItemInfo_Value(item, "C_FADEINSHAPE", GetMediaItemInfo_Value(source_item, "C_FADEINSHAPE"));
+                SetMediaItemInfo_Value(item, "D_FADEINDIR", GetMediaItemInfo_Value(source_item, "D_FADEINDIR"));
+              );
+              state_array[16] == 1 ? (
+                SetMediaItemInfo_Value(item, "C_FADEOUTSHAPE", GetMediaItemInfo_Value(source_item, "C_FADEOUTSHAPE"));
+                SetMediaItemInfo_Value(item, "D_FADEOUTDIR", GetMediaItemInfo_Value(source_item, "D_FADEOUTDIR"));
+              );
+              state_array[17] == 1 ? SetMediaItemInfo_Value(item, "D_FADEINLEN", GetMediaItemInfo_Value(source_item, "D_FADEINLEN"));
+              state_array[18] == 1 ? SetMediaItemInfo_Value(item, "D_FADEOUTLEN", GetMediaItemInfo_Value(source_item, "D_FADEOUTLEN"));
+              state_array[19] == 1 ? SetMediaItemInfo_Value(item, "D_SNAPOFFSET", GetMediaItemInfo_Value(source_item, "D_SNAPOFFSET"));
+              state_array[20] == 1 ? SetMediaItemInfo_Value(item, "D_POSITION", GetMediaItemInfo_Value(source_item, "D_POSITION"));
+              state_array[21] == 1 ? SetMediaItemInfo_Value(item, "D_LENGTH", GetMediaItemInfo_Value(source_item, "D_LENGTH"));
+              //state_array[16] == 1 ? Main_OnCommand(54071, 0); // Paste FX Chain to selected items
+            );
+          );
+        );
+        i += 1;
+      );
+      UpdateArrange();
+    );
+    Undo_EndBlock("Copy item/take properties", -1);
+  );
+);
+
+
+function get_take_filename(l_take) local(count, fn_length)
+(
+  #filenamebuf = ""; // clear #filenamebuf 
+  #filenameonly = ""; // empty string for file name only
+  GetMediaSourceFileName(GetMediaItemTake_Source(l_take), #filenamebuf); // store file name to #filenamebuf
+  #pathbuf = #filenamebuf; // whole path stored to #pathbuf, later cropped to path-only...
+  strlen(#filenamebuf) ? (
+    count = strlen(#filenamebuf);
+    while (str_getchar(#filenamebuf, count, c) != 92) // count down from end to find "\" char.
+    (
+      count -=1; // count down from end
+    );
+    str_setlen(#pathbuf, count +1); // trims length of #pathbuf to "path only"
+    fn_length = strlen(#filenamebuf)-count; // length for #filenameonly determined
+    str_setlen(#filenameonly, fn_length);    // length of #filenameonly set...
+  
+    strcpy_from(#filenameonly, #filenamebuf, count+1); // filename-only
+  );
+);
+
+
+
+function get_bwf_data(bwf_take)
+(
+  // This version of get_bwf_data taken from item marker tool beta19
+  // Note: this version does not interpret RF64 (long) wavs
+  
+  last_take_file_num = take_file_num;
+  GetMediaSourceFileName(GetMediaItemTake_Source(bwf_take), #filenamebuf); // store file name to #filenamebuf
+  take_file_num = GetMediaItemTake_Source(bwf_take);
+  take_file_num != last_take_file_num ? // if calling for new take...
+  (
+    bwf_array_i=1; // This routine searches for the take file number in its bwf-offset-store array...
+    bwf_array_found_flag=0;
+    
+    /* Don't use...
+    bwf_array_total = bwf_offset_store[0]; // num records in array at pos[0]
+    while (bwf_array_i<=bwf_array_total)
+    (
+      take_file_num == bwf_offset_store[((bwf_array_i-1)*4)+1] ? // if file number matches
+      (
+        bwf_array_found_flag = 1;
+        bext_found = bwf_offset_store[((bwf_array_i-1)*4)+2]; // bext_found flag, source contains bext chunk
+        bext_time_offset = bwf_offset_store[((bwf_array_i-1)*4)+3]; // bext time offset
+        bext_VersionNum = bwf_offset_store[((bwf_array_i-1)*4)+4]; // bext chunk version number
+        bwf_array_i = bwf_array_total; // to exit while loop
+      );
+      bwf_array_i +=1;
+    );
+    */
+    
+    bwf_array_found_flag ? // take's source found in array?
+    (
+      format_timestr_pos(bext_time_offset, #bext_time_offset_buf, ecp_format); // format time offset to ecp format
+    ):(
+      // If not found, open file to read bext chunk...
+      fo = 0; bext_found =0; bext_time_offset = 0;
+      #bext_Description = "";
+      #bext_Originator = "";
+      #bext_OriginatorReference = "";
+      #bext_OriginationDate = "";
+      #bext_OriginationTime = "";
+      #bext_TimeRefLow = "";
+      #bext_TimeRefHigh = "";
+      #bext_VersionNum = "";
+      #riff_header = "";
+      #file_size_buf = "";
+      #wave_header = "";
+      #chunk_header = "";
+      #chunk_size_buf = "";
+      #chunk_data_buf = "";
+      #time_offset="";
+      // I stopped here, but the full set of bext metadata can be retrieved -PM me for further details/help -planetnine
+
+      opchn = fopen(#filenamebuf, "rb");  // open file for read
+      opchn !=0 ?
+      (
+        fread(opchn, #riff_header, 4); // import riff header
+        fread(opchn, #file_size_buf, 4); // import file size as string
+        fo +=8;
+        file_size = str_getchar(#file_size_buf, 0, 'iu'); // read file size, double, LE   
+        fread(opchn, #wave_header, 4); // import wave header
+        fo +=4;
+        
+        while ((bext_found ==0) && (fo < file_size))
+        (
+          #hex_section ="";
+          fread(opchn, #chunk_header, 4); // import chunk header
+          //gfx_printf("ChH:%s ", #chunk_header);
+          fread(opchn, #chunk_size_buf, 4); // import chunk size as string
+          chunk_size = str_getchar(#chunk_size_buf, 0, 'iu'); // read file size, double, LE   
+          fo +=8;
+          //gfx_printf("ChSz:%d ", chunk_size);
+          fread(opchn, #chunk_data_buf, chunk_size); // import chunk data as string
+          fo += chunk_size;
+
+          ch_offset = 0;
+          /*gfx_printf("Chunk: ");  // these are bugfix/development lines -enable to see the bext chunk in full :)
+          gfx_x = xs(x); gfx_y +=gfx_texth;
+          while (ch_offset < strlen(#chunk_data_buf))
+          (
+            sprintf(#hex_char, "%02X ", str_getchar(#chunk_data_buf, ch_offset, 'cu'));
+            ch_offset +=1;
+            gfx_printf("%s", #hex_char);
+            (ch_offset % 16) == 12 ? (gfx_x = xs(x); gfx_y +=gfx_texth; );
+            //#dum =  strcat(#hex_section, #hex_char);
+          );*/
+          //gfx_printf("Chunk:%s", #hex_section);   
+          //gfx_x = xs(x); gfx_y +=gfx_texth; 
+          
+          strcmp(#chunk_header, "bext") == 0 ? (bext_found =1):(bext_found =0);
+        );
+        bext_found == 0 ? bext_time_offset =0;
+        bext_found == 1 ?
+        (
+          strcpy_substr(#bext_Description, #chunk_data_buf, 0, 256);
+          strcpy_substr(#bext_Originator, #chunk_data_buf, 256, 32);
+          strcpy_substr(#bext_OriginatorReference, #chunk_data_buf, (256+32), 32);
+          strcpy_substr(#bext_OriginationDate, #chunk_data_buf, (256+32+32), 10);
+          strcpy_substr(#bext_OriginationTime, #chunk_data_buf, (256+32+32+10), 8); // left these "open" to show the obvious structure
+          strcpy_substr(#bext_TimeRefLow, #chunk_data_buf, (256+32+32+10+8), 4);    // SMPTE codes and LUFS data follow these
+          strcpy_substr(#bext_TimeRefHigh, #chunk_data_buf, (256+32+32+10+8+4), 4); // see EBU Tech 3285 v2 etc for more details.
+          strcpy_substr(#bext_VersionNum, #chunk_data_buf, (256+32+32+10+8+4+4), 2); // 
+          strcpy_substr(#bext_UMIDbytes, #chunk_data_buf, (256+32+32+10+8+4+4+2), 64); // 
+          strcpy_substr(#bext_LoudnessValue, #chunk_data_buf, (256+32+32+10+8+4+4+2+64), 2); // 
+          strcpy_substr(#bext_LoudnessRange, #chunk_data_buf, (256+32+32+10+8+4+4+2+64+2), 2); // 
+          strcpy_substr(#bext_MaxTPLevel, #chunk_data_buf, (256+32+32+10+8+4+4+2+64+2+2), 2); // 
+          strcpy_substr(#bext_MaxMomentryLoudness, #chunk_data_buf, (256+32+32+10+8+4+4+2+64+2+2+2), 2); // 
+          strcpy_substr(#bext_MaxShortTermLoudness, #chunk_data_buf, (256+32+32+10+8+4+4+2+64+2+2+2+2), 2); // 
+          
+          // I stopped here, but the full set of bext metadata can be retrieved -PM me for further details/help -planetnine
+
+          bext_TimeRefLow = str_getchar(#bext_TimeRefLow, 0, 'iu'); // unsigned integer
+          bext_TimeRefHigh = str_getchar(#bext_TimeRefHigh, 0, 'iu'); // unsigned integer
+          bext_VersionNum = str_getchar(#bext_VersionNum, 0, 'su'); // unsigned short integer
+          bext_LoudnessValue = str_getchar(#bext_LoudnessValue, 0, 'su')/100; // unsigned short integer
+          bext_LoudnessRange = str_getchar(#bext_LoudnessRange, 0, 'su')/100; // unsigned short integer
+          bext_MaxTPLevel = str_getchar(#bext_MaxTPLevel, 0, 'su')/100; // unsigned short integer
+          bext_MaxMomentryLoudness = str_getchar(#bext_MaxMomentryLoudness, 0, 'su')/100; // unsigned short integer
+          bext_MaxShortTermLoudness = str_getchar(#bext_MaxShortTermLoudness, 0, 'su')/100; // unsigned short integer
+          
+          bext_time_offset = ((bext_TimeRefHigh * 4294967295) + bext_TimeRefLow)/GetMediaSourceSampleRate(GetMediaItemTake_Source(bwf_take)); // combine high & low bytes & sample rate
+          format_timestr_pos(bext_time_offset, #bext_time_offset_buf, ecp_format); // format time offset to ecp format
+        );
+        fclose(opchn); // close file
+        #lastfilenamebuf = #filenamebuf; // prevents multiple request for fopen
+      );
+      /*
+      gfx_printf("[%d]FN:%s %s[%d] %s Ch:%s [%d] fo:%d", opchn, #filename_buf, #riff_header, file_size, #wave_header, #chunk_header, chunk_size, fo); //bugfix line
+      gfx_x = xs(x); gfx_y +=gfx_texth;
+      gfx_printf("OD:%s OT:%s TRL:%d TRH:%d VN:%d TO:%f", #bext_OriginationDate, #bext_OriginationTime, bext_TimeRefLow, bext_TimeRefHigh, bext_VersionNum, time_offset);
+      */
+      
+      // store new take file num to array...
+      /* Don't use...
+      bwf_array_total = bwf_offset_store[0]; // pos 0 is store_total
+      bwf_array_i = bwf_array_total + 1; // go to first free index
+      bwf_offset_store[((bwf_array_i-1)*4)+1] = take_file_num; // store file number
+      bwf_offset_store[((bwf_array_i-1)*4)+2] = bext_found; // store found flag
+      bwf_offset_store[((bwf_array_i-1)*4)+3] = bext_time_offset; //store offset
+      bwf_offset_store[((bwf_array_i-1)*4)+4] = bext_VersionNum; //store bext chunk version number
+      bwf_array_total +=1; // total inc by 1
+      bwf_offset_store[0] = bwf_array_total; //store total in pos 0
+      */
+    );
+  );
+);
+
+
+
+function draw_clickable_string(x, y, name, state_array_pos) local(s_w, s_h)
+( 
+  gfx_x = x;
+  gfx_y = y;
+  gfx_measurestr(name, s_w, s_h);
+
+  state_array[state_array_pos] == 1 ? gfx_a = 1 : gfx_a = 0.5; // highlight selected properties
+  gfx_r = 1; gfx_g = 1; gfx_b = 1;
+  // is mouse on string...?
+  mouse_x > x && mouse_x < x + s_w && mouse_y > y && mouse_y < y + gfx_texth ? (
+    gfx_a = 0.2;
+    gfx_rect(x, y, s_w, gfx_texth);
+    gfx_a = 0.8;
+
+    mouse_cap == 1 && mouse_state == 0 ? ( // left mouse button down and not already toggled ?
+      state_array[state_array_pos] = !state_array[state_array_pos];
+      // state toggled - mbutton has to be released and pressed down again to toggle state
+      // mouse state is checked again at the end - just before gfx_update()
+      mouse_state = 1; 
+    );
+  );
+  gfx_printf(name);
+);
+
+function draw_selected_item_text(x, y, active_take) local(parent_item, active_take)
+(
+  gfx_x = x;
+  gfx_y = y;
+  
+  active_take ? (
+    GetTakeName(#act_take_name, active_take) ? (
+ //     gfx_a = 1;
+ //     gfx_printf(#act_take_name);
+    
+    get_take_filename(active_take); // get filename less-filepath
+    rgba(0.8, 0.8, 0.0, 0.6); //yel
+  
+    gfx_x = x; gfx_y += gfx_texth;
+    gfx_a = 0.6;
+    gfx_printf("filename: ");
+    gfx_a = 1;
+    gfx_printf("%s", #filenameonly);
+    gfx_x = x; gfx_y += gfx_texth;
+
+    // Open source take's path
+    mouse_x > x && mouse_x < gfx_w && mouse_y > gfx_y - gfx_texth && mouse_y < gfx_y + gfx_texth ? (
+      set_info_text(10, 10, "Open");
+      set_info_text(40, 10, #pathbuf);
+      rgba(0.9, 0.9, 0.0, 0.6); //yel
+      mouse_cap == 1 && !last_lmb_state ? GetUserFileNameForRead(#lastfilenamebuf, #filenameonly, "*.*");
+    );
+    
+    gfx_a = 0.6;
+    gfx_printf("path: ");
+    gfx_a = 1;
+    gfx_printf("%s", #pathbuf);
+
+    get_bwf_data(active_take);
+    bext_found ? (
+        rgba(0.9, 0.6, 0.0, 0.6); //org
+
+      gfx_x = x; gfx_y += gfx_texth;
+      gfx_a = 0.6;
+      gfx_printf("bext desc: ");
+      gfx_a = 1;
+      gfx_printf("%s", #bext_Description);
+
+      gfx_x = x; gfx_y += gfx_texth;
+      gfx_a = 0.6;
+      gfx_printf("bext orig: ");
+      gfx_a = 1;
+      gfx_printf("%s", #bext_Originator);
+
+      gfx_x = x+200; 
+      gfx_a = 0.6;
+      gfx_printf("bext Li: ");
+      gfx_a = 1;
+      gfx_printf("%0.2f LUFS", bext_LoudnessValue);
+
+      gfx_x = x; gfx_y += gfx_texth;
+      gfx_a = 0.6;
+      gfx_printf("bext ref: ");
+      gfx_a = 1;
+      gfx_printf("%s", #bext_OriginatorReference);
+
+      gfx_x = x+200; 
+      gfx_a = 0.6;
+      gfx_printf("bext L/Ran: ");
+      gfx_a = 1;
+      gfx_printf("%0.2f LU", bext_LoudnessRange);
+
+      gfx_x = x; gfx_y += gfx_texth;
+      gfx_a = 0.6;
+      gfx_printf("bext date: ");
+      gfx_a = 1;
+      gfx_printf("%s", #bext_OriginationDate);
+
+      gfx_x = x+200; 
+      gfx_a = 0.6;
+      gfx_printf("bext MaxTP: ");
+      gfx_a = 1;
+      gfx_printf("%0.2f dB FSD", bext_MaxTPValue);
+
+      gfx_x = x; gfx_y += gfx_texth;
+      gfx_a = 0.6;
+      gfx_printf("bext time: ");
+      gfx_a = 1;
+      gfx_printf("%s", #bext_OriginationTime);
+
+      gfx_x = x+200; 
+      gfx_a = 0.6;
+      gfx_printf("bext Lm: ");
+      gfx_a = 1;
+      gfx_printf("%0.2f LUFS", bext_MaxMomentryLoudness);
+
+      gfx_x = x; gfx_y += gfx_texth;
+      bext_time_offset ? (
+        gfx_a = 0.6;
+        gfx_printf("bext offset: ");
+        gfx_a = 1;
+        gfx_printf("%0.3f s", bext_time_offset);
+      );
+      
+      gfx_x = x+200; 
+      gfx_a = 0.6;
+      gfx_printf("bext Ls: ");
+      gfx_a = 1;
+      gfx_printf("%0.2f LUFS", bext_MaxShortTermLoudness);
+
+    );
+   );
+  );// : (
+    //gfx_a = 1;
+    //gfx_r = 1;gfx_g = 0;gfx_b = 0;
+   // gfx_printf("(Please select an item)");
+ // );
+);
+
+function draw_source_take_text(x, y, source_take)
+(
+  gfx_x = x;
+  gfx_y = y;
+  gfx_a = 0.3; gfx_r = 0.5; gfx_g = 1; gfx_b = 0.5;
+  gfx_line(10,gfx_y-2,gfx_w-10, gfx_y-2);
+  gfx_a = 0.6;
+  gfx_printf("Source item/take: ");
+  gfx_a = 1;
+  source_take && GetMediaItemTake_Item(source_take) ? ( // check that take's parent item (still) exist
+    gfx_printf(#source_name);
+  ) : (
+    gfx_r = 1; gfx_g = 0; gfx_b = 0;
+    gfx_printf("(none set)");
+  );
+);
+
+/*
+// returns source tske's take pointer and if the button is pressed -> take name is stored to #source_name
+function draw_set_source_button(x, y, active_take) local(s_w, s_h, source_take, last_source_take)
+( 
+  gfx_x = x;
+  gfx_y = y;
+  gfx_a = 0.6; gfx_r = 0.5; gfx_g = 1; gfx_b = 0.5;
+  gfx_measurestr("Set source", s_w, s_h);
+  
+  mouse_x > x && mouse_x < x + s_w + 4 + 4 && mouse_y > y - 2 && mouse_y < y - 2 + s_h + 4 ? (
+    ////set_info_text(x, y, info_text)
+    set_info_text(10, 10, "Set currently selected item/take as source");
+    gfx_a = 1; gfx_r = 0.5; gfx_g = 1; gfx_b = 0.5;
+    mouse_cap == 1 && mouse_state == 0 ? (
+      active_take != last_source_take ? (
+        source_take = active_take;
+        GetTakeName(#source_name, source_take);
+        last_source_take = source_take;
+      );
+      mouse_state = 1;
+    );
+  );
+  
+  gfx_roundrect(x, y - 2, s_w + 4 + 4, s_h + 4, 4);
+  
+  gfx_x += 4;
+  gfx_y = y;
+  gfx_printf("Set source");
+  
+  source_take; // return source take's take pointer
+);
+*/
+
+/*
+function paste_button(x, y, source_take) local(s_w, s_h)
+( 
+  gfx_x = x;
+  gfx_y = y;
+  gfx_measurestr("Paste", s_w, s_h);
+
+  gfx_a = 0.6; gfx_r = 1; gfx_g = 1; gfx_b = 1;
+    mouse_x > x && mouse_x < x + s_w + 4 + 4 && mouse_y > y - 2 && mouse_y < y - 2 + s_h + 4  ? (
+    set_info_text(10, 10, "Paste selected properties to selected item(s)");
+    gfx_a = 1;
+
+    mouse_cap == 1 && mouse_state == 0 ? (
+      mouse_state = 1;
+      set_item_take_properties(source_take);
+    );
+  );
+
+  gfx_roundrect(x, y - 2, s_w + 4 + 4, s_h + 4, 4);
+  gfx_x += 4;
+  gfx_y = y;
+  gfx_printf("Paste");
+);
+*/
+
+function run() local(sel_item, active_take, source_take, take_prop_x, take_prop_y, item_prop_x, item_prop_y)
+( 
+  sel_item = GetSelectedMediaItem(0, 0); // get first selected item
+  active_take = GetActiveTake(sel_item);
+  
+  ////////// DRAW BUTTONS/TEXTS //////////////
+  gfx_x = 10;
+  gfx_y = 10;
+  
+  gfx_setfont(2); // Arial 14
+  ////draw_selected_item_text(x , y)
+  draw_selected_item_text(10 , gfx_texth, active_take);
+  gfx_y += 4;
+  
+  ////draw_source_take_text(x, y)
+  gfx_y += gfx_texth;
+  draw_source_take_text(10, gfx_y, source_take);
+  rgba(0.5, 1, 0.5, 0.6);
+  //gfx_a = 0.6; gfx_r = 0.5; gfx_g = 1; gfx_b = 0.5;
+  gfx_y += gfx_texth;
+  gfx_x = 10;
+  
+  active_take ? (
+    gfx_printf("Currently selected: ");
+    gfx_a = 1;
+    gfx_printf(#act_take_name);
+  ) : (
+    gfx_a = 1;
+    gfx_r = 1;gfx_g = 0;gfx_b = 0;
+    gfx_printf("(Please select an item)");
+  );
+  
+  gfx_y += 2*gfx_texth;
+  // "Set source" button
+  set_source_btn.button(10, gfx_y, 80, 20, "Set source", "Set currently selected item/take as source");
+  
+  // Check "set_source_btn" state
+  set_source_btn.state ? ( //" set_source_btn" is pressed...
+    active_take != last_source_take ? (
+      source_take = active_take;
+      GetTakeName(#source_name, source_take);
+      last_source_take = source_take;
+    );
+    set_source_btn.state = 0;
+  );
+  
+  gfx_a = 0.3; gfx_r = 0.5; gfx_g = 1; gfx_b = 0.5;
+  gfx_line(10,set_source_btn.y2+4,gfx_w-10, set_source_btn.y2+4);
+  
+  gfx_setfont(1); // Arial 16
+  take_prop_x = 10;
+  take_prop_y = 9 * gfx_texth; bext_found && active_take ? take_prop_y = 14 * gfx_texth;
+  item_prop_x = 150;
+  item_prop_y = take_prop_y;
+
+  //// draw_clickable_string(x, y, name, state_array_pos)
+  draw_clickable_string(take_prop_x, take_prop_y, "Take Volume", 0);
+  draw_clickable_string(take_prop_x, take_prop_y + gfx_texth, "Take Pan", 1);
+  draw_clickable_string(take_prop_x, take_prop_y + 2*gfx_texth, "Take Playrate", 2);
+  draw_clickable_string(take_prop_x, take_prop_y + 3*gfx_texth, "Take Pitch", 3);
+  draw_clickable_string(take_prop_x, take_prop_y + 4*gfx_texth, "Take Channel Mode", 4);
+  draw_clickable_string(take_prop_x, take_prop_y + 5*gfx_texth, "Take Start Offset", 5);
+  draw_clickable_string(take_prop_x, take_prop_y + 6*gfx_texth, "Take Pan Law", 6);
+  draw_clickable_string(take_prop_x, take_prop_y + 7*gfx_texth, "Take Volume Envelope", 7);
+  draw_clickable_string(take_prop_x, take_prop_y + 8*gfx_texth, "Take Pan Envelope", 8);
+  draw_clickable_string(take_prop_x, take_prop_y + 9*gfx_texth, "Take Mute Envelope", 9);
+  draw_clickable_string(take_prop_x, take_prop_y + 10*gfx_texth, "Take Pitch Envelope", 10);
+
+  draw_clickable_string(item_prop_x, item_prop_y, "Item Volume", 11);
+  draw_clickable_string(item_prop_x, item_prop_y + gfx_texth, "Item Mute", 12);
+  draw_clickable_string(item_prop_x, item_prop_y + 2*gfx_texth, "Item Lock", 13);
+  draw_clickable_string(item_prop_x, item_prop_y + 3*gfx_texth, "Item Loop Source", 14);
+  draw_clickable_string(item_prop_x, item_prop_y + 4*gfx_texth, "Item Fade In Shape", 15);
+  draw_clickable_string(item_prop_x, item_prop_y + 5*gfx_texth, "Item Fade Out Shape", 16);
+  draw_clickable_string(item_prop_x, item_prop_y + 6*gfx_texth, "Item Fade In Length", 17);
+  draw_clickable_string(item_prop_x, item_prop_y + 7*gfx_texth, "Item Fade Out Length", 18);
+  draw_clickable_string(item_prop_x, item_prop_y + 8*gfx_texth, "Item Snap Offset", 19);
+  draw_clickable_string(item_prop_x, item_prop_y + 9*gfx_texth, "Item Position", 20);
+  draw_clickable_string(item_prop_x, item_prop_y + 10*gfx_texth, "Item Length", 21);
+  //draw_clickable_string(gfx_x, gfx_y, "Item FX Chain", 22);
+
+  gfx_setfont(2); // Arial 14
+  
+  gfx_y += 2*gfx_texth;
+  // "Apply" button 
+  apply_btn.button(10, gfx_y, 50, 20, "Apply", "Apply selected properties to target item(s)");
+  
+  // Check "apply_btn" state
+  apply_btn.state ? ( //" apply_btn" is pressed...
+    set_item_take_properties(source_take); // ... execute function
+  apply_btn.state = 0;
+  );
+  
+  gfx_a = 0.3; gfx_r = 0.5; gfx_g = 1; gfx_b = 0.5;
+  gfx_line(10,apply_btn.y2+4,gfx_w-10, apply_btn.y2+4);
+  
+ // bext_found && active_take ? (
+  //  paste_button(10, 400, source_take);
+ // ):(
+ //    paste_button(10, 316, source_take);
+ // );
+
+  mouse_cap == 0 ? mouse_state = 0 : mouse_state = 1;
+  last_lmb_state = mouse_cap & 1;
+
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("run();");
+);
+
+function init() local(i, mask)
+(
+  state_array = 10000;
+  state_array_len = 22;
+  
+  GetExtState(#mask, "babag_copy_paste_item_params", "state_0");
+  match("%d", #mask, mask);
+  // Restore "on/off" states
+  i = 0;
+  loop(state_array_len,
+    state_array[i] = (mask & (2^i) != 0);
+    i += 1;
+  );
+  
+  gfx_init("Item/Take Paste Attributes (inc BWF)", 350, 450);
+  gfx_setfont(1,"Arial", 16);
+  gfx_setfont(2,"Arial", 14);
+);
+
+init();
+run();
+
+// Store "on/off" states
+function exit() local(mask, i)
+(
+  i = 0;
+  loop(state_array_len,
+    state_array[i] ? mask += 2^i;
+    i += 1;
+  );
+  sprintf(#mask, "%d", mask);
+  SetExtState("babag_copy_paste_item_params", "state_0", #mask, 1);
+);
+
+atexit("exit()");
+

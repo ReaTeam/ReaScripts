@@ -1,0 +1,93 @@
+// Split and implode items across tracks into takes, keeping item positions.
+
+buf = 10000;
+
+function split_and_implode_across_tracks()
+(
+  i = 0;
+  sel_item_count = CountSelectedMediaItems(0);
+  sel_item_count ? (
+    max_split_pos = 0;
+    last_item_number = 0;
+    dest_track_sel_item_cnt = 0;
+    cursor_pos = GetCursorPosition();
+
+    Undo_BeginBlock();
+    PreventUIRefresh(1);
+    //Main_OnCommand(40299, 0); // move items to source preferred position
+    loop(sel_item_count,
+      (sel_item = GetSelectedMediaItem(0, i)) ? (
+
+        buf[i * 2] = GetMediaItemInfo_Value(sel_item, "D_POSITION");
+        buf[i * 2 + 1] = buf[i * 2] + GetMediaItemInfo_Value(sel_item, "D_LENGTH");
+        buf[i * 2 + 1] > max_split_pos ? max_split_pos = buf[i * 2 + 1]; // selection end pos
+        i == 0 ? (
+          first_track = GetMediaItemTrack(sel_item);
+          min_split_pos = buf[i * 2];
+        );
+        buf[i * 2] < min_split_pos ? min_split_pos = buf[i * 2]; // selection start pos
+      );
+      dest_track_sel_item_cnt == 0 && GetMediaItem_Track(sel_item) != first_track ? dest_track_sel_item_cnt = i;
+      i += 1;
+    );
+    
+    // Add temporary track
+    //temp_track_idx = GetMediaTrackInfo_Value(first_track, "IP_TRACKNUMBER") - 1;
+    //InsertTrackAtIndex(temp_track_idx, 1);
+    //temp_track_id = GetTrack(0, temp_track_idx); 
+    //TrackList_AdjustWindows(0);
+    
+		
+		InsertTrackAtIndex(0, 1);
+		temp_track_id = GetTrack(0, 0); 
+    i = 0;
+    loop(dest_track_sel_item_cnt + 1,
+      // empty items will be added to the temp track
+      new_item = AddMediaItemToTrack(temp_track_id);
+      
+      // add empty item if first selected item's start pos > item selection start pos
+      i == 0 && min_split_pos < buf[0] ? (
+        SetMediaItemInfo_Value(new_item, "D_POSITION", min_split_pos);
+        SetMediaItemInfo_Value(new_item, "D_LENGTH",  buf[0] - min_split_pos);  
+      );
+      // fill all gaps with empty items
+      i > 0 && (i < dest_track_sel_item_cnt) && (buf[i * 2 - 1] < buf[i * 2]) ? (
+        SetMediaItemInfo_Value(new_item, "D_POSITION", buf[i * 2 - 1]);
+        SetMediaItemInfo_Value(new_item, "D_LENGTH", buf[i * 2] -  buf[i * 2 - 1]); 
+      );
+      // add empty item if last selected item's end pos < item selection end pos
+      i == dest_track_sel_item_cnt && buf[i * 2] < max_split_pos ? (
+        SetMediaItemInfo_Value(new_item, "D_POSITION", buf[i * 2 - 1]);
+        SetMediaItemInfo_Value(new_item, "D_LENGTH", max_split_pos - buf[i * 2 - 1]);   
+      );
+      SetMediaItemSelected(new_item, 1);
+      i += 1;
+    );
+    
+    // split all items at start/end pos of items
+    i = 0;
+    loop(sel_item_count * 2,
+      SetEditCurPos(buf[i], 0, 0);
+      Main_OnCommand(40757, 0); // split and keep selection
+      i += 1;
+    );
+  
+    Main_OnCommand(40438, 0); //implode items across tracks into takes
+    SetEditCurPos(cursor_pos, 0, 0);
+
+    i = 0;
+    loop(CountSelectedMediaItems(0),
+      (sel_item = GetSelectedMediaItem(0, i)) ? (
+      MoveMediaItemToTrack(sel_item, first_track) ? i -= 1;
+      i += 1;
+      );
+    );
+    Main_OnCommand(NamedCommandLookup("_S&M_DELEMPTYTAKE2"), 0); // SWS: delete empty MIDI takes/items
+    //Main_OnCommand(NamedCommandLookup("_S&M_DELEMPTYTAKE"), 0); // SWS: delete empty takes/items
+    
+    DeleteTrack(temp_track_id);
+    PreventUIRefresh(-1);
+    Undo_EndBlock("Implode items across tracks into takes", -1);
+  );
+);
+split_and_implode_across_tracks();

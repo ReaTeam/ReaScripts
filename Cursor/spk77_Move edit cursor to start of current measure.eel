@@ -1,0 +1,11 @@
+// Move edit cursor to start of current measure
+// EEL script by spk77 - 26.9.2014
+
+function move_cursor_to_start_of_curr_meas() local(meas)
+(
+  TimeMap2_timeToBeats(0, GetCursorPosition(), meas, 0, 0, 0);
+  SetEditCurPos(TimeMap2_beatsToTime(0, 0, meas), 1, 0);
+  Undo_OnStateChange("Go to start of current measure");
+);
+
+move_cursor_to_start_of_curr_meas();

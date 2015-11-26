@@ -1,0 +1,30 @@
+// Paste "stored" take pitch envelope to active takes in selected items
+// EEL script by spk77 20.7.2014
+
+function paste_take_pitch_env() local(source_take, source_pitch_env, item_i, item, env)
+(
+  GetExtState(#retval, "take_envelope_source", "take"); // get stored take's ID
+  match("%d", #retval, source_take) ? (
+    (source_pitch_env = GetTakeEnvelopeByName(source_take, "Pitch")) ? ( // env pointer found -> continue
+      GetSetEnvelopeState(source_pitch_env, #source_pitch_env); 
+      
+      Undo_BeginBlock();
+      item_i = 0;
+      loop(CountSelectedMediaItems(0),
+        item = GetSelectedMediaItem(0, item_i);
+        GetActiveTake(item) != source_take ? ( // skip source take
+          (env = GetTakeEnvelopeByName(GetActiveTake(item), "Pitch")) == 0 ? (
+            Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV10"), 0); // show take pitch envelope
+            (env = GetTakeEnvelopeByName(GetActiveTake(item), "Pitch")) ? (
+              GetSetEnvelopeState(env, #source_pitch_env);
+            );
+          ) : GetSetEnvelopeState(env, #source_pitch_env);
+        );
+        item_i += 1;
+      );        
+      Undo_EndBlock("Paste take pitch envelope", -1);
+    );
+  );
+);
+
+paste_take_pitch_env();

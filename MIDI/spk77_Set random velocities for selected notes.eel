@@ -1,0 +1,245 @@
+// "Set random MIDI note velocity within a set range" (26.3.2014 - SPK77)
+
+function set_default_colors()
+(
+  gfx_r = 0.5;
+  gfx_g = 0.8;
+  gfx_b = 0.5;
+);
+
+function scale_x_to_range(range_start, range_end, x_coord, x_start_offs, x_end_offs) local (scaled_x)
+(
+  scaled_x = floor(range_end - (range_end - range_start) * (x_coord - x_start_offs) / (gfx_w - x_start_offs - x_end_offs) + 0.5);
+  scaled_x > range_end ? scaled_x = range_end;
+  scaled_x < range_start ? scaled_x = range_start;
+  //gfx_printf("%f", scaled_x);
+  scaled_x;
+);
+
+function set_random_velocities() local (t, index, diff)
+(
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+      diff = max_point_val - min_point_val;
+      index = -1;
+      while ((index = MIDI_EnumSelNotes(take, index)) != -1) (
+        MIDI_GetNote(take, index, selectedOut, mutedOut, startppqpos, endppqposOut, chanOut, pitchOut, vel);
+        MIDI_SetNote(take, index, selectedOut, mutedOut, startppqpos, endppqposOut, chanOut, pitchOut, min_point_val + floor(rand(diff) + 0.5));
+      );
+      Undo_OnStateChange("Set random velocity");
+   );
+);
+
+ function randomize_btn (x, y, s_w, s_h, r)
+( 
+  gfx_x = x; gfx_y = y;
+  set_default_colors();
+  mouse_x >= x && mouse_x <= x + s_w && mouse_y >= y && mouse_y <= y + s_h && lmb_click_outside_window == 0 && max_point_drag_started == 0 && min_point_drag_started == 0 ? (
+      gfx_r += 0.1;
+      gfx_g += 0.1;
+      gfx_b += 0.1;
+    mouse_cap == 1 && lmb_down == 0 ? (
+      lmb_down = 1;
+      set_random_velocities();
+    );
+  );
+  gfx_roundrect(x, y, s_w, s_h, r);
+  gfx_x += 4;
+  gfx_y += 3;
+  gfx_printf("Randomize");
+);
+
+function max_point(x,y,r) local (m_x, fill)
+(
+  m_x = max_point_last_x;
+  fill = 0;
+  set_default_colors();
+  (mouse_x >= draw_start_x - r && mouse_x <= draw_end_x + r && mouse_y >= y - r && mouse_y <= y + r) || max_point_drag_started == 1 && min_point_drag_started == 0 && lmb_click_outside_window == 0 && lmb_down == 0 ? (
+    gfx_g += 0.1;
+    mouse_cap == 1 ? (
+      max_point_drag_started = 1;
+      gfx_g += 0.2;
+      m_x = mouse_x;
+      mouse_x > draw_end_x ? m_x = draw_end_x;
+      mouse_x < draw_start_x ? m_x = draw_start_x;
+      fill = 1;
+    ) : (
+      max_point_drag_started = 0;
+      fill = 1;
+    );
+  ); 
+
+  max_point_val = 128 - scale_x_to_range(1, 127, m_x, draw_start_x, gfx_w - draw_end_x); // 1 to 127
+  max_point_val <= min_point_val + 1 && max_point_drag_started == 1 ? (
+    m_x = draw_start_x + (126 - min_point_val)*(draw_end_x - draw_start_x) / 126;
+    //draw_end_x - draw_start_x - range_end - range_start <= 0 ? floor(m_x) : floor(m_x + 0.5);
+    m_x = gfx_w - m_x;
+    max_point_val = min_point_val + 1;
+    //last_max_point_val = max_point_val;
+  );
+  
+    
+  gfx_circle(m_x, y, r, fill);
+  gfx_y = y - r - gfx_texth;
+  gfx_x = m_x;
+  gfx_drawnumber(max_point_val, 0);
+  max_point_last_x = m_x;
+  last_max_point_val = max_point_val;
+);
+
+function min_point(x,y,r) local (m_x, fill)
+(
+  fill = 0;
+  m_x = min_point_last_x;
+  set_default_colors();
+  (mouse_x > draw_start_x - r && mouse_x <= draw_end_x + r && mouse_y >= y - r && mouse_y <= y + r) || min_point_drag_started == 1 && max_point_drag_started == 0 && lmb_click_outside_window == 0 && lmb_down == 0 ? (
+    gfx_g += 0.1;
+    mouse_cap == 1 ? (
+      min_point_drag_started = 1;
+      gfx_g += 0.2;
+      m_x = mouse_x;
+      mouse_x > draw_end_x ? m_x = draw_end_x;
+      mouse_x < draw_start_x ? m_x = draw_start_x;
+      fill = 1;
+    ) : (
+      min_point_drag_started = 0;
+      fill = 1;
+    );
+  );
+
+  min_point_val = 128 - scale_x_to_range(1, 127, m_x, draw_start_x, gfx_w - draw_end_x); // 1 to 127
+  min_point_val >= max_point_val - 1 && min_point_drag_started == 1 ? (
+    m_x = draw_start_x + (128 - max_point_val)*(draw_end_x - draw_start_x) / 126;
+    m_x = gfx_w - m_x;
+    min_point_val = max_point_val - 1;
+  );
+  
+  gfx_circle(m_x, y, r, fill);
+  gfx_y = y + r;
+  gfx_x = m_x;
+  gfx_drawnumber(min_point_val, 0);
+  min_point_last_x = m_x;
+);
+
+function run()
+(
+  set_default_colors();
+  gfx_a = 1;
+  
+  draw_start_x = 20;
+  draw_start_y = 20;
+  draw_end_x = gfx_w - 20;
+  draw_end_y = gfx_h - 50;
+  gfx_x = draw_start_x;
+  gfx_y = draw_start_y;
+  
+  gfx_h != last_h ? (
+    center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+    max_point_last_y = center_y - 20; 
+    min_point_last_y = center_y + 20;
+    last_h = gfx_h;
+  );
+  gfx_w != last_w ? (
+    center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+    max_point_last_x = gfx_w - (draw_start_x + (127 - max_point_val)*(draw_end_x - draw_start_x) / 126);
+    draw_end_x - draw_start_x - range_end - range_start <= 0 ? floor(max_point_last_x) : floor(max_point_last_x + 0.5);
+    min_point_last_x = gfx_w - (draw_start_x + (127 - min_point_val)*(draw_end_x - draw_start_x) / 126);
+    draw_end_x - draw_start_x - range_end - range_start <= 0 ? floor(min_point_last_x) : floor(min_point_last_x + 0.5);
+    last_w = gfx_w;
+  );
+  
+  center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+  center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+  
+    // check if "lmb down" and "mouse cursor is not in window" and "not currently adjusting env points"
+    mouse_cap >= 1 && (mouse_x <= 0 || mouse_x >= gfx_w || mouse_y < 2 || mouse_y >= gfx_h) && max_point_drag_started == 0 && min_point_drag_started == 0 ? (
+      lmb_click_outside_window = 1;
+    ) : mouse_cap == 0 ? (
+      lmb_click_outside_window = 0;
+    );
+
+  gfx_r = 0;
+  gfx_g = 0.6;
+  gfx_b = 0.3;
+  gfx_a = 0.5;
+ 
+  set_default_colors();
+  gfx_setfont(1, "Verdana", 12, 'b');
+  
+  // Draw points and a line between points
+  gfx_a = 1;
+  
+  max_point(max_point_last_x, 30, 4);
+  min_point(min_point_last_x, 50, 4);
+  randomize_btn(center_x - (s_w + 4)/2, 80, s_w + 6, s_h + 6, 5);
+  gfx_r = 0.7;
+  gfx_g = 0.7;
+  gfx_b = 1;
+  gfx_a = 0.5;
+  gfx_line(draw_start_x, 40, draw_end_x, 40);
+  gfx_line(draw_start_x, 30, draw_start_x, 50);
+  gfx_line(draw_end_x, 30, draw_end_x, 50);
+  gfx_a = 0.5;
+  
+  //set_default_colors();
+ 
+/*   // add undo point if necessary
+  undo_block == 1 && max_point_drag_started == 0 && min_point_drag_started == 0 ? (
+    undo_block = 0;
+    Undo_OnStateChange("Randomize velocities");
+  ); */
+  
+  // just to make sure that the point states are "reseted"
+  mouse_cap == 0 ? (
+    max_point_drag_started = 0; min_point_drag_started = 0; lmb_down = 0;
+  );
+  char = gfx_getchar();
+  char == 26 ? (
+    Main_OnCommand(40029, 0); // undo
+  );
+  char == 27 ? (
+    undo_block == 1 ? (
+      Undo_OnStateChange("Randomize velocities");
+    );
+    gfx_quit();
+  );
+  char >= 0 ? (
+    defer("run();");
+  );
+
+  last_h = gfx_h;
+  last_w = gfx_w;
+  //last_max_point_val = max_point_val;
+  //last_min_point_val = min_point_val;
+
+  gfx_update();
+);
+
+// init
+function init()
+(
+  gfx_init("Randomize velocities",200,120);
+
+  last_w = gfx_w;
+  last_h = gfx_h;
+
+  draw_start_x = 20;
+  draw_end_x = gfx_w - 20;
+  draw_start_y = 20;
+  draw_end_y = gfx_h - 50;
+  center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+  center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+
+  gfx_setfont(1, "Verdana", 12, 'b');
+  gfx_measurestr("Randomize", s_w, s_h);
+  
+  max_point_last_x = draw_end_x;
+  max_point_last_y = center_y - 20;
+  min_point_last_x = draw_start_x;
+  min_point_last_y = center_y + 20;
+
+  // "mouse/env. point states"
+  lmb_click_outside_window = 0;
+);
+
+init();
+run();

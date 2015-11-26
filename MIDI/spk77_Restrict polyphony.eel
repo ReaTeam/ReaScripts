@@ -1,0 +1,19 @@
+// Restrict polyphony (EEL script by spk77 10.7.2014)
+
+function restrict_polyphony() local(index, take, note_cnt, is_selected, is_muted, start_pos, end_pos, chan, pitch, vel, start_pos_next)
+(
+  (take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+    MIDIEditor_OnCommand(MIDIEditor_GetActive(), 40659); // run (MIDI editor) action "Correct overlapping notes"
+    Undo_BeginBlock();
+    index = -1;
+    MIDI_CountEvts(take, note_cnt, 0, 0);
+    while (((index = MIDI_EnumSelNotes(take, index)) != -1) && (index + 1 < note_cnt)) (
+      MIDI_GetNote(take, index, is_selected, is_muted, start_pos, end_pos, chan, pitch, vel);
+      MIDI_GetNote(take, index + 1, 0, 0, start_pos_next, 0, 0, 0, 0);
+      end_pos > start_pos_next ? MIDI_SetNote(take, index, is_selected, is_muted, start_pos, start_pos_next, chan, pitch, vel);
+    );
+    Undo_EndBlock("Restrict polyphony", -1);
+  );
+);
+
+restrict_polyphony()

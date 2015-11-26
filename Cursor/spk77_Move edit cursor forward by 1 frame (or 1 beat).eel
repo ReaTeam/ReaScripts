@@ -1,0 +1,24 @@
+// Move edit cursor right by 1 frame (or by 1 beat if "ruler time unit is not H:M:S:F")
+// EEL script by spk77 - 10.9.2014
+
+function move_cursor_right() local(snap, grid_vis, state, beat_in_meas, meas, closest_beat_in_secs)
+(
+  GetToggleCommandState(40370) ? state = 1 : state = 0;
+  
+  !state ? ( // ruler time unit is not "H:M:S:F"
+    beat_in_meas = TimeMap2_timeToBeats(0, GetCursorPosition(), meas, 0, 0, 0);
+    closest_beat_in_secs = TimeMap2_beatsToTime(0, floor(beat_in_meas + 0.5), meas);
+    
+    closest_beat_in_secs > GetCursorPosition() ? (
+      SetEditCurPos(TimeMap2_beatsToTime(0, floor(beat_in_meas + 0.5), meas), 1, 0);
+    ) : (
+      SetEditCurPos(TimeMap2_beatsToTime(0, floor(beat_in_meas + 0.5) + 1, meas), 1, 0);
+    );
+  ) : ( // ruler time unit is "H:M:S:F"
+    ApplyNudge(0, 2, 6, 18, 0.501, 0, 0); // nudge edit cursor right by 0.501 frames (snap to unit)
+  );
+
+  Undo_OnStateChange("Move edit cursor right by 1 frame (or 1 beat)");
+);
+
+move_cursor_right();
