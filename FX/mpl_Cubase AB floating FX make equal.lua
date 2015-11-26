@@ -1,5 +1,25 @@
- -- this script is ONLY for use with mpl_AB_floating_fx.lua --
+  --[[
+   * ReaScript Name: Cubase AB floating FX make equal
+   * Description: implementation of "equal" button in Cubase 7+ plugin window
+   * Instructions: this script is ONLY for use with mpl_Cubase AB floating FX
+   * Author: Michael Pilyavskiy
+   * Author URl: http://forum.cockos.com/member.php?u=70694
+   * Repository: 
+   * Repository URl: 
+   * File URl:
+   * Licence: GPL v3
+   * Forum Thread: 
+   * Forum Thread URl: 
+   * REAPER: 5.0 
+   * Extensions: 
+   --]]
  
+ --[[
+  * Changelog:
+  * v1.0 (2015-08-28)
+   + Initial Release
+  --]] 
+  
  retval, track, item, fxnum = reaper.GetFocusedFX()
   track = reaper.GetTrack(0, track-1)
   if retval == 1 then -- if track fx

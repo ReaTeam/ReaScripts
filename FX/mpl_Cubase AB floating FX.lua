@@ -1,3 +1,26 @@
+  --[[
+   * ReaScript Name: Cubase AB floating FX
+   * Description: implementation of "AB" button in Cubase 7+ plugin window
+   * Instructions: float FX, changes params, run script, change params again and run script again. 
+   It will change plugin parameters beetween two states. Use mpl_Cubase AB floating FX make equal to make two states same.
+   * Author: Michael Pilyavskiy
+   * Author URl: http://forum.cockos.com/member.php?u=70694
+   * Repository: 
+   * Repository URl: 
+   * File URl:
+   * Licence: GPL v3
+   * Forum Thread: Script: 
+   * Forum Thread URl: 
+   * REAPER: 5.0 
+   * Extensions: 
+   --]]
+   
+ --[[
+  * Changelog:
+  * v1.0 (2015-08-28)
+   + Initial Release
+  --]] 
+     
   retval, track, item, fxnum = reaper.GetFocusedFX()
   track = reaper.GetTrack(0, track-1)
   if retval == 1 then -- if track fx

@@ -1,4 +1,26 @@
-script_title = 'Show VSTi relevant to MIDI Editor'
+  --[[
+   * ReaScript Name: Float instrument relevant to MIDI Editor
+   * Description: float instrument on track where placed take opened in midi editor
+   * Instructions:
+   * Author: Michael Pilyavskiy
+   * Author URl: http://forum.cockos.com/member.php?u=70694
+   * Repository: 
+   * Repository URl: 
+   * File URl:
+   * Licence: GPL v3
+   * Forum Thread: 
+   * Forum Thread URl: 
+   * REAPER: 5.0 
+   * Extensions: 
+   --]]
+ 
+ --[[
+  * Changelog:
+  * v1.0 (2015-04-14)
+   + Initial Release
+  --]] 
+
+script_title = 'Float instrument relevant to MIDI Editor'
 
 reaper.Undo_BeginBlock()
 act_editor = reaper.MIDIEditor_GetActive()
