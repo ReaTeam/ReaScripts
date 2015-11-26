@@ -4,13 +4,7 @@ Collection of scripts written for Cockos Reaper.
 This repo is currently (nov 2015) building. Future structure could be changed a lot. 
 Temporary thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
 
-###If you are an author, you could add your script by:
-- forking repo
-- add new script into it 
-- create pull request via merging forked repo and original repo
-- waiting for review and accepting
-
-For details write to [mpl](http://forum.cockos.com/member.php?u=70694)
+If you are an author, write to [mpl](http://forum.cockos.com/member.php?u=70694)
 
 ###Source code is taken from:
 - [mpl GitHub repo](https://github.com/MichaelPilyavskiy/ReaScripts)
