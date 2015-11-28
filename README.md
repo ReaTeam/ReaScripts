@@ -12,7 +12,7 @@ Temporary thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
 - Cockos forum, Reaper Stash and many other places, where scripts were chaotically placed
 
 Contacts on Cockos forum:
-- [mpl](http://forum.cockos.com/member.php?u=70694) (repo creator)
+- [mpl](http://forum.cockos.com/member.php?u=70694)
 - [HeDa](http://forum.cockos.com/member.php?u=47822)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
 - [planetnine](http://forum.cockos.com/member.php?u=6549)
