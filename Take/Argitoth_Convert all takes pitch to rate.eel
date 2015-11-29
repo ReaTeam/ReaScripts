@@ -1,0 +1,45 @@
+// Convert item pitch to rate
+
+// by Elan Hickler
+// www.Soundemote.com
+// www.elanhickler.com
+
+Undo_BeginBlock();
+
+items = CountSelectedMediaItems(0);
+i=0;
+loop(items,
+  item        = GetSelectedMediaItem(0,i);
+  take        = GetActiveTake(item);
+  length      = GetMediaItemInfo_Value(item, "D_LENGTH");
+  rate        = GetMediaItemTakeInfo_Value(take, "D_PLAYRATE");
+  pitch       = GetMediaItemTakeInfo_Value(take, "D_PITCH");
+  snap_offset = GetMediaItemInfo_Value(item, "D_SNAPOFFSET");
+  
+  // convert pitch to rate and reset pitch
+  newRate = rate * 2.0^(pitch/12.0);
+  newPitch = 0;
+  SetMediaItemTakeInfo_Value(take, "D_PITCH", newPitch);
+
+  // set new snap offset
+  snap_offset > 0 ? (
+    new_snap_offset = snap_offset / newRate;
+    SetMediaItemInfo_Value(item, "D_SNAPOFFSET", new_snap_offset);
+  );
+  
+  // set new rate
+  SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", newRate);
+  
+  // turn off preserve pitch
+  SetMediaItemTakeInfo_Value(take, "B_PPITCH", 0);  
+  
+  // set new length
+  newLength = rate / newRate * length;
+  SetMediaItemLength(item, newLength, 0);
+    
+  i+=1;
+);
+
+UpdateArrange();
+
+Undo_EndBlock("Convert item pitch to rate", -1);
