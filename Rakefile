@@ -1,7 +1,16 @@
 require 'reapack/index'
+require 'awesome_print'
 
 task :default do
   require 'minitest/autorun'
+
+  module MiniTest
+    module Assertions
+      def mu_pp(obj)
+        obj.awesome_inspect :index => false
+      end
+    end
+  end
 
   TestMetadata = Class.new MiniTest::Test
 
