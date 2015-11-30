@@ -6,7 +6,9 @@ Other big parts are:
 - [X-Raym repo] (https://github.com/X-Raym/REAPER-ReaScripts)
 - [mpl repo] (https://github.com/MichaelPilyavskiy/ReaScripts)
 
+###Info
 Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
+[Rules Beta](http://forum.cockos.com/showpost.php?p=1602628&postcount=101)
 
 ###Source code is taken from:
 - [spk77 Reaper Stash page](http://stash.reaper.fm/u/spk77)
@@ -15,7 +17,7 @@ Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
 - [nofish GitHub] (https://github.com/nofishonfriday/ReaScripts)
 - Cockos forum, Reaper Stash and many other places, where scripts were chaotically placed
 
-ReaTeam:
+###ReaTeam:
 - [mpl](http://forum.cockos.com/member.php?u=70694)
 - [X-Raym](http://forum.cockos.com/member.php?u=58284)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
@@ -25,6 +27,7 @@ ReaTeam:
 - [cfillion](http://forum.cockos.com/member.php?u=98780)
 - [HeDa](http://forum.cockos.com/member.php?u=47822)
 
+###Donation
 You can always donate to some members below if you like their stuff:
 - [mpl] (https://www.paypal.me/donate2mpl)
 - [X-Raym] (http://www.extremraym.com/en/donation/)
