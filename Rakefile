@@ -1,9 +1,10 @@
 require 'reapack/index'
-require 'minitest/autorun'
-
-TestMetadata = Class.new MiniTest::Test
 
 task :default do
+  require 'minitest/autorun'
+
+  TestMetadata = Class.new MiniTest::Test
+
   Dir.glob('**/*.{lua,eel}').each {|file|
     mangled_file = file.downcase
     mangled_file.gsub! /[^\w]/, '_'
@@ -13,4 +14,9 @@ task :default do
       assert_nil errors
     end
   }
+end
+
+task :index do
+  indexer = ReaPack::Index::Indexer.new Dir.pwd
+  indexer.run
 end
