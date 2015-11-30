@@ -2,9 +2,9 @@
 A part of Cockos Reaper scripts collection
 This part holds stuff from different places and gives you possibility to download it by one click instead of hard browsing stash, forum threads, etc.
 
-Other parts are:
-- [mpl repo] (https://github.com/MichaelPilyavskiy/ReaScripts)
+Other big parts are:
 - [X-Raym repo] (https://github.com/X-Raym/REAPER-ReaScripts)
+- [mpl repo] (https://github.com/MichaelPilyavskiy/ReaScripts)
 
 Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
 
@@ -12,13 +12,18 @@ Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
 - [spk77 Reaper Stash page](http://stash.reaper.fm/u/spk77)
 - [planetnine Reaper Stash page](http://stash.reaper.fm/u/planetnine)
 - [Argitoth forum posts](http://forum.cockos.com/member.php?u=7973)
+- [nofish GitHub] (https://github.com/nofishonfriday/ReaScripts)
 - Cockos forum, Reaper Stash and many other places, where scripts were chaotically placed
 
-Contacts on Cockos forum:
-- [mpl](http://forum.cockos.com/member.php?u=70694) (idea of repo, owner currently)
+ReaTeam:
+- [mpl](http://forum.cockos.com/member.php?u=70694)
+- [X-Raym](http://forum.cockos.com/member.php?u=58284)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
 - [planetnine](http://forum.cockos.com/member.php?u=6549)
 - [Argitoth](http://forum.cockos.com/member.php?u=7973)
+- [nofish](http://forum.cockos.com/member.php?u=6870)
+- [cfillion](http://forum.cockos.com/member.php?u=98780)
+- [HeDa](http://forum.cockos.com/member.php?u=47822)
 
 You can always donate to some members below if you like their stuff:
 - [mpl] (https://www.paypal.me/donate2mpl)
