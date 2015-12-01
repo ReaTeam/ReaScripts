@@ -1,5 +1,7 @@
 // Item selector
 // 23.8.2014 (spk77)
+//
+// Version: 0.2014.8.23
 
 function highlight_mouse_hover()
 (

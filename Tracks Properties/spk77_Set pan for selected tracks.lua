@@ -1,5 +1,7 @@
 -- Set pan for selected track(s)
 -- Lua script by SPK77 15-Sep-2015
+-- Version: 0.2015.9.15
+--
 -- range: use values from -100 to 100
 
 function dialog(title, def_value)

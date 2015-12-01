@@ -1,5 +1,7 @@
 -- Copy take volume envelope from selected item (active take) to other takes in the same group 
 -- Lua script by SPK77 3.8.2015
+--
+-- Version: 0.2015.8.3
 
 function msg(m)
   reaper.ShowConsoleMsg(tostring(m).."\n")

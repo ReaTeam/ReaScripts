@@ -1,5 +1,7 @@
 // Paste "stored" take mute envelope to active takes in selected items
 // EEL script by spk77 18.7.2014
+//
+// Version: 0.2014.7.18
 
 function paste_take_mute_env() local(source_take, source_mute_env, item_i, item, env)
 (
