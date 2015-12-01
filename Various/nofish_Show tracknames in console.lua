@@ -1,5 +1,7 @@
 --[[ 
-List tracknames in console v1.0
+List tracknames in console
+Version: 1.0
+
 see http://forum.cockos.com/showpost.php?p=1597751&postcount=6
 a mod from http://forum.cockos.com/showpost.php?p=1596059&postcount=26
 

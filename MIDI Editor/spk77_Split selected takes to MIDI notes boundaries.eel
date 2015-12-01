@@ -1,5 +1,7 @@
 // Split items at MIDI note boundaries 
 // (original EEL script by FnA - modded by SPK77 13.2.2015)
+//
+// Version: 0.2015.2.13
 
 function get_items() local(i)
 (

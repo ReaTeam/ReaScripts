@@ -1,5 +1,7 @@
 // Paste take volume envelope from active take in selected item to other takes in item 
 // EEL script by spk77 16.7.2014
+//
+// Version: 0.2014.7.16
 
 function paste_take_vol_env()
 (

@@ -1,4 +1,6 @@
 // Remove redundant CC messages (Original JSFX script by DarkStar. EELed by SPK77 2.5.2014)
+//
+// Version: 0.2014.5.2
 
 function set_default_colors()
 (

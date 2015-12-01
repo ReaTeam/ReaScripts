@@ -1,5 +1,7 @@
 // Copy stretch markers from selected item to other items in group 
 // EEL script by SPK77 2.12.2014
+//
+// Version: 0.2014.12.2
 
 buffer = 10000;
 

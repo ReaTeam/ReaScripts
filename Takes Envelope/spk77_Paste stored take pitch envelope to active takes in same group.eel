@@ -1,5 +1,7 @@
 // Paste "stored" take pitch envelope to active takes in same group
 // EEL script by spk77 20.7.2014
+//
+// Version: 0.2014.7.20
 
 function paste_take_pitch_env() local(source_take, group, source_pitch_env, item_i, item, env)
 (
