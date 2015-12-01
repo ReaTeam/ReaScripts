@@ -12,7 +12,11 @@ task :default do
     end
   end
 
-  TestMetadata = Class.new MiniTest::Test
+  class TestMetadata < MiniTest::Test
+    def self.test_order
+      :alpha
+    end
+  end
 
   Dir.glob('**/*.{lua,eel}').each {|file|
     mangled_file = file.downcase
