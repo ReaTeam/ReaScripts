@@ -7,8 +7,8 @@ Other big parts are:
 - [mpl repo] (https://github.com/MichaelPilyavskiy/ReaScripts)
 
 ###Info
-- Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
-- [Rules Beta](http://forum.cockos.com/showpost.php?p=1602628&postcount=101)
+Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
+[Rules Beta](http://forum.cockos.com/showpost.php?p=1602628&postcount=101)
 
 ###Source code is taken from:
 - [spk77 Reaper Stash page](http://stash.reaper.fm/u/spk77)
