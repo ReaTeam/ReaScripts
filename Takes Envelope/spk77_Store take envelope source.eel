@@ -1,4 +1,6 @@
 // EEL script - Store active take's ID (by spk77 16.7.2014)
+//
+// Version: 0.2014.7.16
  
 function store_take_id()
 (

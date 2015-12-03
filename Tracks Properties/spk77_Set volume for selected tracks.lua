@@ -1,5 +1,7 @@
 -- Set volume for selected track(s)
 -- Lua script by SPK77 27-Sep-2015
+-- Version: 0.2015.9.27
+--
 -- range:
 --  min: -inf
 --  max: 12

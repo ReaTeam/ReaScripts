@@ -1,4 +1,6 @@
-// Move edit cursor to start of next note  (EEL script 5.9.2014 by spk77)
+// Move edit cursor to start of next note  (EEL script by spk77)
+//
+// Version: 0.2014.9.5
 
 function move_to_next_note() local(take, note_count, break, index, start_pos)
 (

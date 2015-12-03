@@ -1,5 +1,7 @@
 -- Create regions (with tail) from selected items
 -- Lua script by SPK77 13-Sep-2015 (requested by areeman) http://forum.cockos.com/showthread.php?t=166371
+--
+-- Version: 0.2015.9.13
 
 function dialog(title)
   local ret, retvals = reaper.GetUserInputs(title, 1, "Set tail length", "1.0")

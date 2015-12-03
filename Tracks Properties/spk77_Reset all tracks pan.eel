@@ -1,4 +1,6 @@
 // Reset track pan knobs to center - EEL script by spk77 8.2.2015
+//
+// Version: 0.2015.2.8
 
 function reset_pan() local(i, tr)
 (

@@ -1,7 +1,13 @@
 // "MIDI velocity tool" ((c) spk77 and Breeder)
+// Version: 0.2014.9.11
+// Changelog:
+//   - support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)
+//   - when in CC mode, user is still able to edit velocity by clicking it's lane
+//   - ctrl+click target fader sets it to the middle
+//   - preserve settings through REAPER or script restarts(mode, compressor weight and target, dialog dimensions)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CHANGELOG:
+// *CHANGELOG*:
 //
 // 11.9.2014 (by Breeder):
 //   - support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)

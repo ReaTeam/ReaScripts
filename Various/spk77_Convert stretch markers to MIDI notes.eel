@@ -1,4 +1,6 @@
 // EEL script - Convert stretch markers to MIDI_notes (7.10.2014 by spk77)
+//
+// Version: 0.2014.10.7
 
 function convert_stretch_markers_to_MIDI_notes()
 	local(source_take, item, source_item_pos, source_item_len, index, num_sm, i, buffer, pos, start, take)

@@ -1,4 +1,6 @@
 // Select items that start and end in time selection on selected tracks (EEL script by spk77 24.7.2014)
+//
+// Version: 0.2014.7.24
 
 function select_items_within_time_sel() local(timesel_start, timesel_end, ti, ii, tr, item, start, end)
 (

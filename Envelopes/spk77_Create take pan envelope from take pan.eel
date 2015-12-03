@@ -1,5 +1,7 @@
 // Create take pan envelope from take pan (reset take pan to "center")
 // EEL script by spk77 20.11.2014
+//
+// Version: 0.2014.11.20
 
 #new_chunk_header = "<TRACK_ENVELOPE_UNKNOWN
 ACT 1

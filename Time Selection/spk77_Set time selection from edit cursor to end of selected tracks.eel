@@ -1,5 +1,7 @@
 // Set time selection from edit cursor to end of selected tracks
 // EEL script by SPK77 1.7.2015
+//
+// Version: 2015.7.1
 
 function set_time_sel_end() local(cursor_pos, max_pos, track_count, i, tr, j, item, item_end)
 (
