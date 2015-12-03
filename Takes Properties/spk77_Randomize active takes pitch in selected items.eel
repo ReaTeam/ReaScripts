@@ -1,4 +1,13 @@
-function rand_take_pitch(range) local(i, item, take)
+/*
+   * ReaScript Name: Randomize active takes pitch in selected items
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  function rand_take_pitch(range) local(i, item, take)
 (
   i = 0;
   loop(CountSelectedMediaItems(0), 

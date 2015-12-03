@@ -1,4 +1,13 @@
-// Reset take pan to center
+/*
+   * ReaScript Name: Reset takes pan to center
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Reset take pan to center
 // EEL script by spk77 15.11.2014
 //
 // Version: 0.2014.11.15

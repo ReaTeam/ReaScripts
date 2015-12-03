@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Create regions (with tail) from selected items
+   * Lua script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 -- Create regions (with tail) from selected items
 -- Lua script by SPK77 13-Sep-2015 (requested by areeman) http://forum.cockos.com/showthread.php?t=166371
 --

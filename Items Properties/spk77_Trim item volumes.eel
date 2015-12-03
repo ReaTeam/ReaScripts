@@ -1,4 +1,13 @@
-// Trim item volumes by x dB
+/*
+   * ReaScript Name: Trim item volumes
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Trim item volumes by x dB
 // EEL script by SPK77 5.5.2015 (requested by babag)
 // http://forum.cockos.com/showthread.php?p=1517801#post1517801
 //

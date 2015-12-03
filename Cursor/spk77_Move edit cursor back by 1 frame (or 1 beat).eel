@@ -1,4 +1,13 @@
-// Move edit cursor left by 1 frame (or by 1 beat if "ruler time unit is not H:M:S:F")
+/*
+   * ReaScript Name: Move edit cursor back by 1 frame (or 1 beat)
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Move edit cursor left by 1 frame (or by 1 beat if "ruler time unit is not H:M:S:F")
 // EEL script by spk77 - 10.9.2014
 //
 // Version: 0.2014.9.10

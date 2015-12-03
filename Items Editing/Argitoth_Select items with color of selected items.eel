@@ -1,4 +1,13 @@
-// Select items with color of selected items
+/*
+   * ReaScript Name: Select items with color of selected items
+   * EEL script for Cockos REAPER
+   * Author: Elan Hickler (Argitoth)
+   * Author URI: http://forum.cockos.com/member.php?u=7973
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Select items with color of selected items
 
 /* by Elan Hickler
 www.Soundemote.com

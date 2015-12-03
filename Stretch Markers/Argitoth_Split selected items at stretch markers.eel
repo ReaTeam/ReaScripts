@@ -1,4 +1,13 @@
-// Split selected items at stretch markers
+/*
+   * ReaScript Name: Split selected items at stretch markers
+   * EEL script for Cockos REAPER
+   * Author: Elan Hickler (Argitoth)
+   * Author URI: http://forum.cockos.com/member.php?u=7973
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Split selected items at stretch markers
 
 /* by Elan Hickler
 www.Soundemote.com

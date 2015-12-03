@@ -1,4 +1,13 @@
-// Select previous note at same pitch, add to selection  
+/*
+   * ReaScript Name: Add to selection previous note at same pitch
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Select previous note at same pitch, add to selection  
 // EEL script by spk77 30.9.2014
 //
 // Version: 0.2014.8.30

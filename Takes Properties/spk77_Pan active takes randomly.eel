@@ -1,4 +1,13 @@
-// Create take pan envelope from take pan (reset take pan to "center")
+/*
+   * ReaScript Name: Pan active takes randomly
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Create take pan envelope from take pan (reset take pan to "center")
 // EEL script by spk77 20.11.2014
 
 // and

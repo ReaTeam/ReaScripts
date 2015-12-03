@@ -1,4 +1,13 @@
-// Copy stretch markers from selected item to other items in group 
+/*
+   * ReaScript Name: Copy stretch markers from selected item to other items in group
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Copy stretch markers from selected item to other items in group 
 // EEL script by SPK77 2.12.2014
 //
 // Version: 0.2014.12.2

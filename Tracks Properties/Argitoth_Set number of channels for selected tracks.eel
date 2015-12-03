@@ -1,4 +1,13 @@
-// Set number of channels for selected tracks
+/*
+   * ReaScript Name: Set number of channels for selected tracks
+   * EEL script for Cockos REAPER
+   * Author: Elan Hickler (Argitoth)
+   * Author URI: http://forum.cockos.com/member.php?u=7973
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Set number of channels for selected tracks
 
 // by Elan Hickler
 // www.Soundemote.com

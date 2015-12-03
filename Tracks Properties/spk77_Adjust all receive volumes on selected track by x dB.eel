@@ -1,4 +1,13 @@
-// Adjust all receive volumes on selected track by x dB
+/*
+   * ReaScript Name: Adjust all receive volumes on selected track by x dB
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Adjust all receive volumes on selected track by x dB
 // EEL script by SPK77 25.4.2015 (requested by daxliniere)
 // http://forum.cockos.com/showthread.php?t=159185
 //

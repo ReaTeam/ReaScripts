@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: spk77_GlueTools
+   * Lua script for Cockos REAPER
+   * Author: Breeder
+   * Author URI: http://forum.cockos.com/member.php?u=27094
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 --For more information check the forum: http://forum.cockos.com/showthread.php?t=160061
 
 -- (C) 2015, Dominik Martin Drzic

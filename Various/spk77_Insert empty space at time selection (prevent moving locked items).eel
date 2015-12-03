@@ -1,4 +1,13 @@
-// Insert empty space at time selection (prevent moving  locked items)
+/*
+   * ReaScript Name: Insert empty space at time selection (prevent moving locked items)
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Insert empty space at time selection (prevent moving  locked items)
 
 buf = 10000;
 

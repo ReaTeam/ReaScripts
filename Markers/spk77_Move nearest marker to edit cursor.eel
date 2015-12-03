@@ -1,4 +1,13 @@
-// Move nearest project marker to edit cursor (or to play cursor while playing)  (EEL script 2.9.2014 by spk77)
+/*
+   * ReaScript Name: Move nearest marker to edit cursor
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Move nearest project marker to edit cursor (or to play cursor while playing)  (EEL script 2.9.2014 by spk77)
 //
 // Version: 0.2014.9.2
 

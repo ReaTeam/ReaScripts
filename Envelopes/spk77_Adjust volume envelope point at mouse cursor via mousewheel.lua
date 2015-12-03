@@ -1,4 +1,13 @@
--- Adjust volume envelope point at mouse cursor via mousewheel 
+/*
+   * ReaScript Name: Adjust volume envelope point at mouse cursor via mousewheel
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  -- Adjust volume envelope point at mouse cursor via mousewheel 
 -- Lua script by SPK77 31-Aug-2015
 --
 -- Version: 0.2015.9.2

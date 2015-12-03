@@ -1,4 +1,13 @@
-// Glue selected items preserving names
+/*
+   * ReaScript Name: Glue selected items preserving names
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Glue selected items preserving names
 // Author: spk77
 // Author URl: http://forum.cockos.com/member.php?u=49553
 // Source URl: https://github.com/X-Raym/REAPER-EEL-Scripts

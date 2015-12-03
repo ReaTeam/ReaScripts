@@ -1,4 +1,13 @@
-// Select items that start and end in time selection on selected tracks (EEL script by spk77 24.7.2014)
+/*
+   * ReaScript Name: Select items within time selection on selected tracks
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Select items that start and end in time selection on selected tracks (EEL script by spk77 24.7.2014)
 //
 // Version: 0.2014.7.24
 

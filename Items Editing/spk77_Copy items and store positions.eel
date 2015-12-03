@@ -1,4 +1,13 @@
-function store_pos(pos)
+/*
+   * ReaScript Name: Copy items and store positions
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  function store_pos(pos)
 (
   pos = sprintf(#, "%.20f", pos);
   //ShowConsoleMsg(pos);

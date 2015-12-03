@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Dynamic mixer (for use with toolbar button)
+   * Lua script for Cockos REAPER
+   * Author: nofish
+   * Author URI: http://forum.cockos.com/member.php?u=6870
+   * Licence: GPL v3
+   * Version: 1.0
+]]
+  
 -- Dynamic Mixer --
 -- see http://forum.cockos.com/showthread.php?t=166554
 --[[ 

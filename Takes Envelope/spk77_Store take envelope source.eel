@@ -1,4 +1,13 @@
-// EEL script - Store active take's ID (by spk77 16.7.2014)
+/*
+   * ReaScript Name: Store take envelope source
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // EEL script - Store active take's ID (by spk77 16.7.2014)
 //
 // Version: 0.2014.7.16
  

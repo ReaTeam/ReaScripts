@@ -1,4 +1,13 @@
-// Normalize selected items to given range
+/*
+   * ReaScript Name: Normalize selected items to given range
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Normalize selected items to given range
 // ("take volumes" are adjusted)
 
 function msg(m)

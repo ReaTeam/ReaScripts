@@ -1,4 +1,13 @@
-// Paste take volume envelope from active take in selected item to other takes in item 
+/*
+   * ReaScript Name: Create take volume envelope from active take to other takes in item
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Paste take volume envelope from active take in selected item to other takes in item 
 // EEL script by spk77 16.7.2014
 //
 // Version: 0.2014.7.16

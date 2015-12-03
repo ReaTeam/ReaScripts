@@ -1,4 +1,13 @@
-// Get (first) item start position from start of measure (in seconds)
+/*
+   * ReaScript Name: Paste items and recall positions
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Get (first) item start position from start of measure (in seconds)
 function get_item_pos_in_measure() local(item, pos, time_to_beats, beats_to_time, pos_in_measure)
 (
   (item = GetSelectedMediaItem(0, 0)) ? (
