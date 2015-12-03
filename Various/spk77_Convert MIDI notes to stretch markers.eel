@@ -1,4 +1,13 @@
-// EEL script - Convert MIDI notes to stretch markers (20.1.2015 by SPK77)
+/*
+   * ReaScript Name: Convert MIDI notes to stretch markers
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // EEL script - Convert MIDI notes to stretch markers (20.1.2015 by SPK77)
 // added "guide messages"
 //
 // Version: 0.2015.1.20

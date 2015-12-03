@@ -1,4 +1,13 @@
-dB_val = 5; // adds 0.5 decibels to all sends on selected tracks
+/*
+   * ReaScript Name: Adjust all send volumes on selected track by x dB
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  dB_val = 5; // adds 0.5 decibels to all sends on selected tracks
 
 trim = pow(10, dB_val / 20.0);
 

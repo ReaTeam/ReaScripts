@@ -1,4 +1,13 @@
-// Reset track pan knobs to center - EEL script by spk77 8.2.2015
+/*
+   * ReaScript Name: Reset all tracks pan
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Reset track pan knobs to center - EEL script by spk77 8.2.2015
 //
 // Version: 0.2015.2.8
 

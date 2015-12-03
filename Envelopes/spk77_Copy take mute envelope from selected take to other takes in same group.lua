@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Copy take mute envelope from selected take to other takes in same group
+   * Lua script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 -- Copy take mute envelope from selected item (active take) to other takes in the same group 
 -- Lua script by SPK77 4.8.2015
 --

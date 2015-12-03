@@ -1,4 +1,13 @@
-// Item selector
+/*
+   * ReaScript Name: Select every N-th item within time selection
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Item selector
 // 23.8.2014 (spk77)
 //
 // Version: 0.2014.8.23

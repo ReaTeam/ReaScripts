@@ -1,4 +1,13 @@
-// Rename tracks to first item name (active take's name) - EEL script by spk77 21.8.2014
+/*
+   * ReaScript Name: Set track names to first item (active take) name
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Rename tracks to first item name (active take's name) - EEL script by spk77 21.8.2014
 // Version: 0.2014.8.21
 
 function main() local (sel_track_count, t_i, tr, first_item)

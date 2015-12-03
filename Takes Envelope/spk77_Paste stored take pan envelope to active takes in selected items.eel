@@ -1,4 +1,13 @@
-// Paste "stored" take pan envelope to active takes in selected items
+/*
+   * ReaScript Name: Paste stored take pan envelope to active takes in selected items
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Paste "stored" take pan envelope to active takes in selected items
 // EEL script by spk77 20.7.2014
 //
 // Version: 0.2014.7.20

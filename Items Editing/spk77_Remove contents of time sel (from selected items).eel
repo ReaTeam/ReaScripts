@@ -1,4 +1,13 @@
-// Remove contents of time selection (from selected items - moving later items)
+/*
+   * ReaScript Name: Remove contents of time sel (from selected items)
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Remove contents of time selection (from selected items - moving later items)
 
 buf = 10000;
 

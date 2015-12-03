@@ -1,4 +1,13 @@
-// The "main" function runs in a loop -> other functions are called from the main function.
+/*
+   * ReaScript Name: Source Time Position Tool
+   * EEL script for Cockos REAPER
+   * Author: PL9
+   * Author URI: http://forum.cockos.com/member.php?u=6549
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // The "main" function runs in a loop -> other functions are called from the main function.
 
 // gfx_r, gfx_g, gfx_b are RGB values (from 0 to 1)
 // gfx_a is "alpha value" (from 0 to 1, 1 being "brightest")

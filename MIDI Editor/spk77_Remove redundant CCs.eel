@@ -1,4 +1,13 @@
-// Remove redundant CC messages (Original JSFX script by DarkStar. EELed by SPK77 2.5.2014)
+/*
+   * ReaScript Name: Remove redundant CCs
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Remove redundant CC messages (Original JSFX script by DarkStar. EELed by SPK77 2.5.2014)
 //
 // Version: 0.2014.5.2
 

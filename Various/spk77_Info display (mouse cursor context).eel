@@ -1,4 +1,13 @@
-function mainloop() local(track, item, take, tr_name, take_name)
+/*
+   * ReaScript Name: Info display (mouse cursor context)
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  function mainloop() local(track, item, take, tr_name, take_name)
 (
   track = extension_api("BR_TrackAtMouseCursor", 0, 0);
   item = extension_api("BR_ItemAtMouseCursor", 0);

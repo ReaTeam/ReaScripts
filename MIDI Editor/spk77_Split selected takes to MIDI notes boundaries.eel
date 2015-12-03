@@ -1,4 +1,13 @@
-// Split items at MIDI note boundaries 
+/*
+   * ReaScript Name: Split selected takes to MIDI notes boundaries
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Split items at MIDI note boundaries 
 // (original EEL script by FnA - modded by SPK77 13.2.2015)
 //
 // Version: 0.2015.2.13

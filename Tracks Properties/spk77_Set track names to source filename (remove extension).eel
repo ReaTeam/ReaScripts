@@ -1,4 +1,13 @@
-// Rename tracks to source filename (optionally remove file ext. from name) - EEL script by spk77 21.8.2014
+/*
+   * ReaScript Name: Set track names to source filename (remove extension)
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Rename tracks to source filename (optionally remove file ext. from name) - EEL script by spk77 21.8.2014
 // Tracks with in-project MIDI -> uses "active take's name" for renaming
 //
 // Version: 0.2014.8.21

@@ -1,4 +1,13 @@
-GM_map = 1;
+/*
+   * ReaScript Name: Rename tracks after first program change (for General MIDI)
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  GM_map = 1;
 GM_map[0]="Acoustic Grand Piano";
 GM_map[1]="Bright Acoustic Piano";
 GM_map[2]="Electric Grand Piano";

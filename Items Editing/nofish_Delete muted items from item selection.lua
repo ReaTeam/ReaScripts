@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Delete muted items from item selection
+   * Lua script for Cockos REAPER
+   * Author: nofish
+   * Author URI: http://forum.cockos.com/member.php?u=6870
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 -- Delete muted items from item selection v1.0
 -- see http://forum.cockos.com/showpost.php?p=1589221&postcount=4
 --

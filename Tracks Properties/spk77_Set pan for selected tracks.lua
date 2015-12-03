@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Set pan for selected tracks
+   * Lua script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+]]
+  
 -- Set pan for selected track(s)
 -- Lua script by SPK77 15-Sep-2015
 -- Version: 0.2015.9.15

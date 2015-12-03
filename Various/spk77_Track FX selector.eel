@@ -1,4 +1,13 @@
-// Track FX selector (EEL script by spk77 19.8.2014)
+/*
+   * ReaScript Name: Track FX selector
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Track FX selector (EEL script by spk77 19.8.2014)
 // Use mouse wheel to increase/decrease font size
 //
 // Version: 0.2014.8.19

@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Show tracknames in console
+   * Lua script for Cockos REAPER
+   * Author: nofish
+   * Author URI: http://forum.cockos.com/member.php?u=6870
+   * Licence: GPL v3
+   * Version: 1.0
+]]
+  
 --[[ 
 List tracknames in console
 Version: 1.0

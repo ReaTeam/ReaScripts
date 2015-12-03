@@ -1,4 +1,13 @@
-// "Set random MIDI note velocity within a set range" (26.3.2014 - SPK77)
+/*
+   * ReaScript Name: Set random velocities for selected notes
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // "Set random MIDI note velocity within a set range" (26.3.2014 - SPK77)
 //
 // Version: 0.2014.3.26
 

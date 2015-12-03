@@ -1,4 +1,13 @@
-// "MIDI velocity tool" ((c) spk77 and Breeder)
+/*
+   * ReaScript Name: MIDI velocity tool
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // "MIDI velocity tool" ((c) spk77 and Breeder)
 // Version: 0.2014.9.11
 // Changelog:
 //   - support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)

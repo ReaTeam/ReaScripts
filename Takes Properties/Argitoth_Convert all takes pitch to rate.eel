@@ -1,4 +1,13 @@
-// Convert item pitch to rate
+/*
+   * ReaScript Name: Convert all takes pitch to rate
+   * EEL script for Cockos REAPER
+   * Author: Elan Hickler (Argitoth)
+   * Author URI: http://forum.cockos.com/member.php?u=7973
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Convert item pitch to rate
 
 // by Elan Hickler
 // www.Soundemote.com

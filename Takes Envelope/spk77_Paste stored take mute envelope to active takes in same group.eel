@@ -1,4 +1,13 @@
-// Paste "stored" mute volume envelope to active takes in same group
+/*
+   * ReaScript Name: Paste stored take mute envelope to active takes in same group
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Paste "stored" mute volume envelope to active takes in same group
 // EEL script by spk77 18.7.2014
 //
 // Version: 0.2014.7.18

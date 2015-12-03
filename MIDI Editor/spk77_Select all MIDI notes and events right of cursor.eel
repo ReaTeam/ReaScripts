@@ -1,4 +1,13 @@
-// Select MIDI events right of cursor (EEL script)
+/*
+   * ReaScript Name: Select all MIDI notes and events right of cursor
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Select MIDI events right of cursor (EEL script)
 // SPK77 27.12.2014
 //
 // Version: 0.2014.12.27

@@ -1,4 +1,13 @@
-// Set time selection from edit cursor to end of items
+/*
+   * ReaScript Name: Set time selection from edit cursor to end of items
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Set time selection from edit cursor to end of items
 // EEL script by SPK77 1.7.2015
 //
 // Version: 0.2015.7.1

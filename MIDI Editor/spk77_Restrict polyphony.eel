@@ -1,4 +1,13 @@
-// Restrict polyphony (EEL script by spk77 10.7.2014)
+/*
+   * ReaScript Name: Restrict polyphony
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  // Restrict polyphony (EEL script by spk77 10.7.2014)
 //
 // Version: 0.2014.7.10
 

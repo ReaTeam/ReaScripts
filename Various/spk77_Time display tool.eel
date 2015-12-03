@@ -1,4 +1,13 @@
-// Time display tool (EEL script by spk77 21.7.2014)
+/*
+   * ReaScript Name: Time display tool
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+  
+  // Time display tool (EEL script by spk77 21.7.2014)
 // added BPM view - 2.2.2015
 // Use mouse wheel to increase/decrease font size
 // left click on time string -> cycle through time formatting modes

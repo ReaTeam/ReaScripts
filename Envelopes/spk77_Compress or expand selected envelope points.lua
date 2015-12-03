@@ -1,3 +1,12 @@
+--[[
+   * ReaScript Name: Compress or expand selected envelope points
+   * Lua script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 
 -- class.lua
