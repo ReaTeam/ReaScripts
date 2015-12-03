@@ -1,4 +1,5 @@
 // Rename tracks to first item name (active take's name) - EEL script by spk77 21.8.2014
+// Version: 0.2014.8.21
 
 function main() local (sel_track_count, t_i, tr, first_item)
 (

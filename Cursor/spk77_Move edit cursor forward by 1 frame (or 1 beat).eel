@@ -1,5 +1,7 @@
 // Move edit cursor right by 1 frame (or by 1 beat if "ruler time unit is not H:M:S:F")
 // EEL script by spk77 - 10.9.2014
+//
+// Version: 0.2014.9.10
 
 function move_cursor_right() local(snap, grid_vis, state, beat_in_meas, meas, closest_beat_in_secs)
 (

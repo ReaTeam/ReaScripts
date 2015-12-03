@@ -1,5 +1,7 @@
 // Paste take pitch envelope from active take in selected item to other takes in item 
 // EEL script by spk77 20.7.2014
+//
+// Version: 0.2014.7.20
 
 function paste_take_pitch_env()
 (

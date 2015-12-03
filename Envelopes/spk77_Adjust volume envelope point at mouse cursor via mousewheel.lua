@@ -1,6 +1,9 @@
 -- Adjust volume envelope point at mouse cursor via mousewheel 
 -- Lua script by SPK77 31-Aug-2015
--- 2-Sep-2015: added support for all track envelopes
+--
+-- Version: 0.2015.9.2
+-- Changelog: 2-Sep-2015
+--   added support for all track envelopes
 
 -------------------
 -- User settings --

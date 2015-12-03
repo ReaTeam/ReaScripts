@@ -1,5 +1,7 @@
 // Move edit cursor to start of previous measure
 // EEL script by spk77 - 26.9.2014
+//
+// Version: 0.2014.9.26
 
 function move_cursor_to_start_of_prev_meas() local(meas)
 (

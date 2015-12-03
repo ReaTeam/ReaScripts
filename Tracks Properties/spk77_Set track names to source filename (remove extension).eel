@@ -1,5 +1,7 @@
 // Rename tracks to source filename (optionally remove file ext. from name) - EEL script by spk77 21.8.2014
 // Tracks with in-project MIDI -> uses "active take's name" for renaming
+//
+// Version: 0.2014.8.21
 
 //// FUNCTION get_filename(path, remove_ext) ////
 //    - extracts "filename" from "full path name"

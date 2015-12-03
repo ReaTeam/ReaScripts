@@ -1,6 +1,8 @@
 // Trim item volumes by x dB
 // EEL script by SPK77 5.5.2015 (requested by babag)
 // http://forum.cockos.com/showthread.php?p=1517801#post1517801
+//
+// Version: 0.2015.5.5
 
 default_val = "";
 

@@ -1,4 +1,6 @@
 // Restrict polyphony (EEL script by spk77 10.7.2014)
+//
+// Version: 0.2014.7.10
 
 function restrict_polyphony() local(index, take, note_cnt, is_selected, is_muted, start_pos, end_pos, chan, pitch, vel, start_pos_next)
 (

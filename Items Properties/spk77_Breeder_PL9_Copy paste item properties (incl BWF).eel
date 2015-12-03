@@ -1,8 +1,14 @@
 // Copy Paste Item parameters //
 // EEL conversion from Python script //
 // code by spk77, Breeder (possibly also Babag?) //
-// BWF Metadata Additions by planet nine 15-Feb-15 //
-// Bug fix: fade-in/fade-out curves weren't copied properly (5-July-15)
+//
+// Version: 0.2015.2.15
+// Changelog:
+//   BWF Metadata Additions by planet nine 15-Feb-15
+//
+// Version: 0.2015.7.5
+// Changelog:
+//   (Bug fix) fade-in/fade-out curves weren't copied properly (5-July-15)
 
 
 function rgba(r, g, b, a)

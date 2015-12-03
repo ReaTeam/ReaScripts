@@ -1,5 +1,7 @@
 // Select previous note at same pitch, add to selection  
 // EEL script by spk77 30.9.2014
+//
+// Version: 0.2014.8.30
 
 function select_previous_note() local(take, index, break, pitch, curr_pitch, is_muted, start_pos, end_pos, chan, vol)
 (

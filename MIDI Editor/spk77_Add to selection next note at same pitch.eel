@@ -1,5 +1,7 @@
 // Select next note at same pitch, add to selection  
 // EEL script by spk77 30.9.2014
+//
+// Version: 0.2014.9.30
 
 function select_next_note() 
   local(take, note_count, index, last_index, pitch, break, is_selected, is_muted, start_pos, end_pos, chan, curr_pitch, vol)
