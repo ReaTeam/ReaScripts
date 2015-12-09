@@ -1,7 +1,11 @@
+Signal.trap('INT') { abort }
+
 require 'reapack/index'
 require 'awesome_print'
 
-task :default do
+task :default => :test
+
+task :test do
   require 'minitest/autorun'
 
   module MiniTest
@@ -30,6 +34,8 @@ task :default do
 end
 
 task :index do
+  ARGV.delete_at 1 if ARGV[1] == '--'
+
   indexer = ReaPack::Index::Indexer.new Dir.pwd
   indexer.run
 end
