@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<index version="1" commit="773800f5416237e7b2bae44b71fe435a62a85b9b">
+<index version="1" commit="b8ac7bd54e4a7edf79e6021c71cbba0adfd18b84">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10">
@@ -538,16 +538,6 @@ nofish:
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20stored%20take%20pitch%20envelope%20source%20to%20active%20takes%20in%20selected%20items.eel</source>
       </version>
     </reapack>
-    <reapack name="spk77_Paste stored take vol envelope source to active takes in same group.eel" type="script">
-      <version name="1.0">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20same%20group.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Paste stored take vol envelope source to active takes in selected items.eel" type="script">
-      <version name="1.0">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20selected%20items.eel</source>
-      </version>
-    </reapack>
     <reapack name="spk77_Paste take envelopes from active take to other takes.eel" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20take%20envelopes%20from%20active%20take%20to%20other%20takes.eel</source>
@@ -556,6 +546,16 @@ nofish:
     <reapack name="spk77_Store take envelope source.eel" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Store%20take%20envelope%20source.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Paste stored take vol envelope source to active takes in same group.eel" type="script">
+      <version name="1.0">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/404c44c76bc65a1951d7f6fc773ab8c136c71bfe/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20same%20group.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Paste stored take vol envelope source to active takes in selected items.eel" type="script">
+      <version name="1.0">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/404c44c76bc65a1951d7f6fc773ab8c136c71bfe/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20selected%20items.eel</source>
       </version>
     </reapack>
   </category>
