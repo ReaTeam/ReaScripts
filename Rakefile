@@ -6,7 +6,7 @@ require 'awesome_print'
 task :default => :test
 
 task :test do
-  require 'minitest/autorun'
+  require 'minitest'
 
   module MiniTest
     module Assertions
@@ -31,6 +31,8 @@ task :test do
       assert_nil errors
     end
   }
+
+  Minitest.run ARGV
 end
 
 task :index do
