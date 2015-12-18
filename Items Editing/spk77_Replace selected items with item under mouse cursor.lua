@@ -54,9 +54,12 @@ function replace_selected_items_with_item_under_mouse_cursor()
     --reaper.SetMediaItemInfo_Value(pasted_item, "D_LENGTH", item_t[i].length) -- set item length to original item length
     selection_t[i] = pasted_item -- store pasted item's id for "restoring" the selection
   end
+	
+	-- Select the pasted items
   for i=1, #selection_t do
     reaper.SetMediaItemSelected(selection_t[i], true)
   end
+	
   reaper.SetEditCurPos(cursor_pos, false, false)
   reaper.PreventUIRefresh(-1)
   reaper.UpdateArrange()
