@@ -17,7 +17,7 @@
 -- Initialize some variables
 local tr = {} -- track data table
 local rt = {} -- routing data table
- rc_menu = {} -- right click menu table
+local rc_menu = {} -- right click menu table
 local slider_context_menu = {} --slider context menu (right click)
 --local track_id = nil
 local last_track = nil
@@ -32,7 +32,7 @@ local last_mouse_cap = -1
 ------------------------------------------------------------------------------
 -- GUI table (+user settings) --
 ------------------------------------------------------------------------------
- gui = {}
+local gui = {}
 gui.settings = {}
 gui.settings.image_index = 1
 gui.last_w = 0
@@ -148,7 +148,7 @@ mouse.last_x, mouse.last_y = gfx.mouse_x, gfx.mouse_x
 
 -- Import functions from "Slider class"  
 local slider_class = require "spk77_slider class_function" -- import "slider class"
- slider_table = slider_class.sliders
+local slider_table = slider_class.sliders
 local clear_slider_table = slider_class.clear_slider_table -- (function from "slider class")
 local get_last_touched = slider_class.get_last_touched -- (function from "slider class")
 local create_slider = slider_class.Slider -- this function creates a slider instance
