@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<index version="1" commit="b1dc3563655b874692239579e293373d70bf75f8">
+<index version="1" commit="ba091ae0180bace23592e815f2fb3479fb762828">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10">
@@ -134,7 +134,7 @@ added support for all track envelopes]]></changelog>
     </reapack>
     <reapack name="spk77_Replace selected items with item under mouse cursor.lua" type="script">
       <version name="1.0">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b1dc3563655b874692239579e293373d70bf75f8/Items%20Editing/spk77_Replace%20selected%20items%20with%20item%20under%20mouse%20cursor.lua</source>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/bcb74d80bd35a872be3133300717aee9af9d53ea/Items%20Editing/spk77_Replace%20selected%20items%20with%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
   </category>
@@ -561,6 +561,14 @@ nofish:
     <reapack name="spk77_Paste stored take vol envelope source to active takes in selected items.eel" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/404c44c76bc65a1951d7f6fc773ab8c136c71bfe/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20selected%20items.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Various/spk77_Track IO mixer">
+    <reapack name="spk77_Track IO mixer.lua" type="script">
+      <version name="0.2015.12.18">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/ba091ae0180bace23592e815f2fb3479fb762828/Various/spk77_Track%20IO%20mixer/spk77_Track%20IO%20mixer.lua</source>
+        <source platform="all" file="spk77_volthumb_47x21.png">https://github.com/ReaTeam/ReaScripts/raw/ba091ae0180bace23592e815f2fb3479fb762828/Various/spk77_Track%20IO%20mixer/spk77_volthumb_47x21.png</source>
       </version>
     </reapack>
   </category>
