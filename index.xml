@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<index version="1" commit="b8ac7bd54e4a7edf79e6021c71cbba0adfd18b84">
+<index version="1" commit="b1dc3563655b874692239579e293373d70bf75f8">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10">
@@ -130,6 +130,11 @@ added support for all track envelopes]]></changelog>
     <reapack name="spk77_Split and implode items across tracks into takes.eel" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Split%20and%20implode%20items%20across%20tracks%20into%20takes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Replace selected items with item under mouse cursor.lua" type="script">
+      <version name="1.0">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b1dc3563655b874692239579e293373d70bf75f8/Items%20Editing/spk77_Replace%20selected%20items%20with%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
   </category>
