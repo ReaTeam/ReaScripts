@@ -7,11 +7,11 @@
    * Version: 0.2015.12.18
    * Provides:
    *   spk77_volthumb_47x21.png
-   *   spk77_class_function
-   *   spk77_slider class_function
-   *   spk77_menu class_function
-   *   spk77_reaper track_function
-   *   spk77_slider class_function
+   *   spk77_class_function.lua
+   *   spk77_slider class_function.lua
+   *   spk77_menu class_function.lua
+   *   spk77_reaper track_function.lua
+   *   spk77_slider class_function.lua
   ]]
   
 -- Initialize some variables
