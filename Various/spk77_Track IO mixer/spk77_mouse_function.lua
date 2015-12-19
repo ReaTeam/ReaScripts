@@ -5,9 +5,9 @@
    * Forum Thread URI: http://forum.cockos.com/showthread.php?t=168777
    * Licence: GPL v3
    * Version: 0.2015.12.18
-	 * NoIndex: true
+   * NoIndex: true
   ]]
-	
+  
 -----------------
 -- Mouse table --
 -----------------
@@ -48,5 +48,3 @@ local mouse = {
      }
      
 return mouse
-              
-
