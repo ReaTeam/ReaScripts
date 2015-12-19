@@ -11,7 +11,6 @@
    *   spk77_slider class_function.lua
    *   spk77_menu class_function.lua
    *   spk77_reaper track_function.lua
-   *   spk77_slider class_function.lua
   ]]
   
 -- Initialize some variables
