@@ -1,20 +1,11 @@
 Signal.trap('INT') { abort }
 
 require 'reapack/index'
-require 'awesome_print'
 
 task :default => :test
 
 task :test do
   require 'minitest'
-
-  module MiniTest
-    module Assertions
-      def mu_pp(obj)
-        obj.awesome_inspect :index => false
-      end
-    end
-  end
 
   class TestMetadata < MiniTest::Test
     def self.test_order
@@ -28,7 +19,12 @@ task :test do
 
     TestMetadata.send :define_method, "test_#{mangled_file}" do
       errors = ReaPack::Index.validate_file file
-      assert_nil errors
+
+      if errors
+        flunk errors.join("\n")
+      else
+        pass
+      end
     end
   }
 
