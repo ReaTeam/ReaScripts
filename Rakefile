@@ -32,8 +32,10 @@ task :test do
 end
 
 task :index do
-  ARGV.delete_at 1 if ARGV[1] == '--'
+  args = ARGV.dup
+  args.delete_at 1 if args[1] == '--'
+  args << '--' << Dir.pwd
 
-  indexer = ReaPack::Index::Indexer.new Dir.pwd
+  indexer = ReaPack::Index::Indexer.new args
   indexer.run
 end
