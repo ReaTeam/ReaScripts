@@ -12,6 +12,7 @@ Changelog:
 
 v0.2 (2016-02-21)
   + Auto creates the Receiving Track if it doesn't exist avoiding crash. [mccrabney p=1641272&postcount=23]
+  + Delay to trigger the send change [mccrabney p=1639100&postcount=15]
   + Remove send if no track is selected (it could be just as an option if wanted)
   # fixes and internal improvements
   
