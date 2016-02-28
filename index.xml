@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c5a926f3b67eb9d3f397034167b05094b45fbfd8">
+<index version="1" commit="fa364fd90fd299dcb4ed96003654bbf4e600cac5">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-03T06:30:34Z">
@@ -479,6 +479,18 @@ nofish:
     <reapack name="HeDa_Crop Region to selected item.lua" type="script">
       <version name="1.0" author="HeDa" time="2016-02-15T19:13:46Z">
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b82c5cfd7faf04ea89544460dc8105b3ff01c675/Various/HeDa_Crop%20Region%20to%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="HeDa_AutoSend.lua" type="script">
+      <version name="0.1" author="Hector Corcin (HeDa)" time="2016-02-18T02:02:24Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/aa1de9c015d0e716584ee0c8425bf579b339dd54/Various/HeDa_AutoSend.lua</source>
+      </version>
+      <version name="0.2" author="Hector Corcin (HeDa)" time="2016-02-21T12:21:20Z">
+        <changelog><![CDATA[+ Auto creates the Receiving Track if it doesn't exist avoiding crash. [mccrabney p=1641272&postcount=23]
++ Remove send if no track is selected (it could be just as an option if wanted)
+# fixes and internal improvements
+]]></changelog>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/f387275a0bd5a27d04ebf30d75065e891cbf15c0/Various/HeDa_AutoSend.lua</source>
       </version>
     </reapack>
   </category>
