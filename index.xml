@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fa364fd90fd299dcb4ed96003654bbf4e600cac5">
+<index version="1" commit="918f292243b62069196e7bb2f770115d56269d7a" name="ReaTeam Scripts">
+  <category name="Various/spk77_Track IO mixer">
+    <reapack name="spk77_Track IO mixer.lua" type="script">
+      <version name="0.2015.12.18" author="spk77" time="2015-12-19T07:45:06Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_Track%20IO%20mixer.lua</source>
+        <source platform="all" file="spk77_volthumb_47x21.png">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_volthumb_47x21.png</source>
+        <source platform="all" file="spk77_class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_class_function.lua</source>
+        <source platform="all" file="spk77_slider class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_slider%20class_function.lua</source>
+        <source platform="all" file="spk77_menu class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_menu%20class_function.lua</source>
+        <source platform="all" file="spk77_reaper track_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_reaper%20track_function.lua</source>
+        <source platform="all" file="spk77_mouse_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_mouse_function.lua</source>
+      </version>
+    </reapack>
+  </category>
   <category name="Cursor">
-    <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
-      <version name="0.2014.9.10" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Cursor/spk77_Move%20edit%20cursor%20back%20by%201%20frame%20(or%201%20beat).eel</source>
+    <reapack name="spk77_Move edit cursor to start of next note + preview.eel" type="script">
+      <version name="0.2014.9.6" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Cursor/spk77_Move%20edit%20cursor%20to%20start%20of%20next%20note%20+%20preview.eel</source>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Cursor/spk77_Move%20edit%20cursor%20back%20by%201%20frame%20(or%201%20beat).eel</source>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Cursor/spk77_Move%20edit%20cursor%20to%20start%20of%20next%20note%20+%20preview.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor forward by 1 frame (or 1 beat).eel" type="script">
@@ -25,12 +38,12 @@
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Cursor/spk77_Move%20edit%20cursor%20to%20start%20of%20current%20measure.eel</source>
       </version>
     </reapack>
-    <reapack name="spk77_Move edit cursor to start of next note + preview.eel" type="script">
-      <version name="0.2014.9.6" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Cursor/spk77_Move%20edit%20cursor%20to%20start%20of%20next%20note%20+%20preview.eel</source>
+    <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
+      <version name="0.2014.9.10" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Cursor/spk77_Move%20edit%20cursor%20back%20by%201%20frame%20(or%201%20beat).eel</source>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Cursor/spk77_Move%20edit%20cursor%20to%20start%20of%20next%20note%20+%20preview.eel</source>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Cursor/spk77_Move%20edit%20cursor%20back%20by%201%20frame%20(or%201%20beat).eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor to start of next note.eel" type="script">
@@ -75,429 +88,10 @@ added support for all track envelopes]]></changelog>
       </version>
     </reapack>
   </category>
-  <category name="Items Editing">
-    <reapack name="nofish_Delete muted items from item selection.lua" type="script">
-      <version name="1.0" time="2015-12-03T07:38:56Z" author="nofish">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/nofish_Delete%20muted%20items%20from%20item%20selection.lua</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Glue selected items preserving names.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Glue%20selected%20items%20preserving%20names.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Select every N-th item within time selection.eel" type="script">
-      <version name="0.2014.8.23" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Editing/spk77_Select%20every%20N-th%20item%20within%20time%20selection.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Select%20every%20N-th%20item%20within%20time%20selection.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Select items within time selection on selected tracks.eel" type="script">
-      <version name="0.2014.7.24" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Editing/spk77_Select%20items%20within%20time%20selection%20on%20selected%20tracks.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Select%20items%20within%20time%20selection%20on%20selected%20tracks.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Argitoth_Select items with color of selected items.eel" type="script">
-      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Breeder_spk77_GlueTools.lua" type="script">
-      <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Copy items and store positions.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Copy%20items%20and%20store%20positions.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Paste items and recall positions.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Paste%20items%20and%20recall%20positions.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Remove contents of time sel (from selected items).eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Remove%20contents%20of%20time%20sel%20(from%20selected%20items).eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Split and implode items across tracks into takes.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Split%20and%20implode%20items%20across%20tracks%20into%20takes.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Replace selected items with item under mouse cursor.lua" type="script">
-      <version name="1.0" author="spk77" time="2015-12-18T15:44:12Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/bcb74d80bd35a872be3133300717aee9af9d53ea/Items%20Editing/spk77_Replace%20selected%20items%20with%20item%20under%20mouse%20cursor.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Items Properties">
-    <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script">
-      <version name="0.2015.7.5" time="2015-12-03T06:30:34Z">
-        <changelog><![CDATA[(Bug fix) fade-in/fade-out curves weren't copied properly (5-July-15)]]></changelog>
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Properties/spk77_Breeder_PL9_Copy%20paste%20item%20properties%20(incl%20BWF).eel</source>
-      </version>
-      <version name="1.0" author="spk77, Breeder, PL9" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Breeder_PL9_Copy%20paste%20item%20properties%20(incl%20BWF).eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Trim item volumes.eel" type="script">
-      <version name="0.2015.5.5" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Properties/spk77_Trim%20item%20volumes.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Trim%20item%20volumes.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Normalize selected items to given range.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Normalize%20selected%20items%20to%20given%20range.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Rename items to track name.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Rename%20items%20to%20track%20name.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="MIDI Editor">
-    <reapack name="spk77_Add to selection next note at same pitch.eel" type="script">
-      <version name="0.2014.9.30" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Add%20to%20selection%20next%20note%20at%20same%20pitch.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Add%20to%20selection%20next%20note%20at%20same%20pitch.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Add to selection previous note at same pitch.eel" type="script">
-      <version name="0.2014.8.30" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Add%20to%20selection%20previous%20note%20at%20same%20pitch.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Add%20to%20selection%20previous%20note%20at%20same%20pitch.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Remove redundant CCs.eel" type="script">
-      <version name="0.2014.5.2" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Remove%20redundant%20CCs.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Remove%20redundant%20CCs.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Restrict polyphony.eel" type="script">
-      <version name="0.2014.7.10" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Restrict%20polyphony.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Restrict%20polyphony.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Select all MIDI notes and events right of cursor.eel" type="script">
-      <version name="0.2014.12.27" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Select%20all%20MIDI%20notes%20and%20events%20right%20of%20cursor.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Select%20all%20MIDI%20notes%20and%20events%20right%20of%20cursor.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Set random velocities for selected notes.eel" type="script">
-      <version name="0.2014.3.26" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Set%20random%20velocities%20for%20selected%20notes.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Set%20random%20velocities%20for%20selected%20notes.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Split selected takes to MIDI notes boundaries.eel" type="script">
-      <version name="0.2015.2.13" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Split%20selected%20takes%20to%20MIDI%20notes%20boundaries.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Split%20selected%20takes%20to%20MIDI%20notes%20boundaries.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Markers">
-    <reapack name="spk77_Move nearest marker to edit cursor.eel" type="script">
-      <version name="0.2014.9.2" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Regions">
-    <reapack name="spk77_Create regions (with tail) from selected items.lua" type="script">
-      <version name="0.2015.9.13" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Regions/spk77_Create%20regions%20(with%20tail)%20from%20selected%20items.lua</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Regions/spk77_Create%20regions%20(with%20tail)%20from%20selected%20items.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Stretch Markers">
-    <reapack name="spk77_Copy stretch markers from selected item to other items in group.eel" type="script">
-      <version name="0.2014.12.2" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Stretch%20Markers/spk77_Copy%20stretch%20markers%20from%20selected%20item%20to%20other%20items%20in%20group.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/spk77_Copy%20stretch%20markers%20from%20selected%20item%20to%20other%20items%20in%20group.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Argitoth_Split selected items at stretch markers.eel" type="script">
-      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/Argitoth_Split%20selected%20items%20at%20stretch%20markers.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Takes Properties">
-    <reapack name="spk77_Reset takes pan to center.eel" type="script">
-      <version name="0.2014.11.15" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Takes%20Properties/spk77_Reset%20takes%20pan%20to%20center.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/spk77_Reset%20takes%20pan%20to%20center.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Argitoth_Convert all takes pitch to rate.eel" type="script">
-      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20pitch%20to%20rate.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Argitoth_Convert all takes rate to pitch.eel" type="script">
-      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20rate%20to%20pitch.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Pan active takes randomly.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/spk77_Pan%20active%20takes%20randomly.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Randomize active takes pitch in selected items.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/spk77_Randomize%20active%20takes%20pitch%20in%20selected%20items.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Time Selection">
-    <reapack name="spk77_Set time selection from edit cursor to end of items.eel" type="script">
-      <version name="0.2015.7.1" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20items.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20items.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Set time selection from edit cursor to end of selected tracks.eel" type="script">
-      <version name="0.2015.7.1" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20selected%20tracks.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20selected%20tracks.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Tracks Properties">
-    <reapack name="nofish_Dynamic mixer (for use with toolbar button).lua" type="script">
-      <version name="1.02" time="2015-12-03T06:30:34Z">
-        <changelog><![CDATA[September 30 2015
-nofish:
-+ script can be assigned to a toolbar button (lights when active), press again to exit
-+ MCP track view is restored on exit (thanks spk77)]]></changelog>
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/nofish_Dynamic%20mixer%20(for%20use%20with%20toolbar%20button).lua</source>
-      </version>
-      <version name="1.0" author="nofish" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/nofish_Dynamic%20mixer%20(for%20use%20with%20toolbar%20button).lua</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script">
-      <version name="0.2015.4.25" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Adjust%20all%20receive%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Adjust%20all%20receive%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Reset all tracks pan.eel" type="script">
-      <version name="0.2015.2.8" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Reset%20all%20tracks%20pan.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Reset%20all%20tracks%20pan.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Reset all tracks volume.eel" type="script">
-      <version name="0.2015.2.8" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Reset%20all%20tracks%20volume.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Reset%20all%20tracks%20volume.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Set pan for selected tracks.lua" type="script">
-      <version name="0.2015.9.15" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Set track names to first item (active take) name.eel" type="script">
-      <version name="0.2014.8.21" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20track%20names%20to%20first%20item%20(active%20take)%20name.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20track%20names%20to%20first%20item%20(active%20take)%20name.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Set track names to source filename (remove extension).eel" type="script">
-      <version name="0.2014.8.21" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20track%20names%20to%20source%20filename%20(remove%20extension).eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20track%20names%20to%20source%20filename%20(remove%20extension).eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Set volume for selected tracks.lua" type="script">
-      <version name="0.2015.9.27" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20volume%20for%20selected%20tracks.lua</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20volume%20for%20selected%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script">
-      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Adjust all send volumes on selected track by x dB.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Adjust%20all%20send%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Rename tracks after first program change (for General MIDI).eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Rename%20tracks%20after%20first%20program%20change%20(for%20General%20MIDI).eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Various">
-    <reapack name="nofish_Show tracknames in console.lua" type="script">
-      <version name="1.0" time="2015-12-03T07:38:56Z" author="nofish">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/nofish_Show%20tracknames%20in%20console.lua</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Clock.eel" type="script">
-      <version name="0.2015.2.14" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Clock.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Clock.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Convert MIDI notes to stretch markers.eel" type="script">
-      <version name="0.2015.1.20" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Convert%20MIDI%20notes%20to%20stretch%20markers.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Convert%20MIDI%20notes%20to%20stretch%20markers.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Convert stretch markers to MIDI notes.eel" type="script">
-      <version name="0.2014.10.7" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_MIDI velocity tool.eel" type="script">
-      <version name="0.2014.9.11" time="2015-12-03T06:30:34Z">
-        <changelog><![CDATA[- support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)
-- when in CC mode, user is still able to edit velocity by clicking it's lane
-- ctrl+click target fader sets it to the middle
-- preserve settings through REAPER or script restarts(mode, compressor weight and target, dialog dimensions)]]></changelog>
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_MIDI%20velocity%20tool.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_MIDI%20velocity%20tool.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Time display tool.eel" type="script">
-      <version name="0.2014.7.21" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Time%20display%20tool.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Time%20display%20tool.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Track FX selector.eel" type="script">
-      <version name="0.2014.8.19" time="2015-12-03T06:30:34Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Track%20FX%20selector.eel</source>
-      </version>
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Track%20FX%20selector.eel</source>
-      </version>
-    </reapack>
-    <reapack name="PL9_Source Time Position Tool.eel" type="script">
-      <version name="1.0" author="PL9" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/PL9_Source%20Time%20Position%20Tool.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Info display (mouse cursor context).eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Info%20display%20(mouse%20cursor%20context).eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Insert empty space at time selection (prevent moving locked items).eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Insert%20empty%20space%20at%20time%20selection%20(prevent%20moving%20locked%20items).eel</source>
-      </version>
-    </reapack>
-    <reapack name="HeDa_View Scroll Bottom.lua" type="script">
-      <version name="1.0" author="HeDa" time="2016-02-14T02:18:28Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/81a59a4533645fdd94a690542788d18af741ca04/Various/HeDa_View%20Scroll%20Bottom.lua</source>
-      </version>
-    </reapack>
-    <reapack name="HeDa_View Scroll Top.lua" type="script">
-      <version name="1.0" author="HeDa" time="2016-02-14T02:19:23Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/7e9c4ed73ed3e9b0a3b15d363bc3db28a19db265/Various/HeDa_View%20Scroll%20Top.lua</source>
-      </version>
-    </reapack>
-    <reapack name="HeDa_Crop Region to selected item.lua" type="script">
-      <version name="1.0" author="HeDa" time="2016-02-15T19:13:46Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b82c5cfd7faf04ea89544460dc8105b3ff01c675/Various/HeDa_Crop%20Region%20to%20selected%20item.lua</source>
-      </version>
-    </reapack>
-    <reapack name="HeDa_AutoSend.lua" type="script">
-      <version name="0.1" author="Hector Corcin (HeDa)" time="2016-02-18T02:02:24Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/aa1de9c015d0e716584ee0c8425bf579b339dd54/Various/HeDa_AutoSend.lua</source>
-      </version>
-      <version name="0.2" author="Hector Corcin (HeDa)" time="2016-02-21T12:21:20Z">
-        <changelog><![CDATA[+ Auto creates the Receiving Track if it doesn't exist avoiding crash. [mccrabney p=1641272&postcount=23]
-+ Remove send if no track is selected (it could be just as an option if wanted)
-# fixes and internal improvements
-]]></changelog>
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/f387275a0bd5a27d04ebf30d75065e891cbf15c0/Various/HeDa_AutoSend.lua</source>
-      </version>
-    </reapack>
-  </category>
   <category name="Envelopes/Takes">
-    <reapack name="spk77_Copy take mute envelope from selected take to other takes in same group.lua" type="script">
+    <reapack name="spk77_Store take envelope source.eel" type="script">
       <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Copy%20take%20mute%20envelope%20from%20selected%20take%20to%20other%20takes%20in%20same%20group.lua</source>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Store%20take%20envelope%20source.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy take pan envelope from selected take to other takes in same group.lua" type="script">
@@ -570,16 +164,6 @@ nofish:
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20stored%20take%20pitch%20envelope%20source%20to%20active%20takes%20in%20selected%20items.eel</source>
       </version>
     </reapack>
-    <reapack name="spk77_Paste take envelopes from active take to other takes.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20take%20envelopes%20from%20active%20take%20to%20other%20takes.eel</source>
-      </version>
-    </reapack>
-    <reapack name="spk77_Store take envelope source.eel" type="script">
-      <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Store%20take%20envelope%20source.eel</source>
-      </version>
-    </reapack>
     <reapack name="spk77_Paste stored take vol envelope source to active takes in same group.eel" type="script">
       <version name="1.0" author="spk77" time="2015-12-06T07:26:58Z">
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/404c44c76bc65a1951d7f6fc773ab8c136c71bfe/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20same%20group.eel</source>
@@ -590,17 +174,433 @@ nofish:
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/404c44c76bc65a1951d7f6fc773ab8c136c71bfe/Envelopes/Takes/spk77_Paste%20stored%20take%20vol%20envelope%20source%20to%20active%20takes%20in%20selected%20items.eel</source>
       </version>
     </reapack>
+    <reapack name="spk77_Paste take envelopes from active take to other takes.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Paste%20take%20envelopes%20from%20active%20take%20to%20other%20takes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Copy take mute envelope from selected take to other takes in same group.lua" type="script">
+      <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Copy%20take%20mute%20envelope%20from%20selected%20take%20to%20other%20takes%20in%20same%20group.lua</source>
+      </version>
+    </reapack>
   </category>
-  <category name="Various/spk77_Track IO mixer">
-    <reapack name="spk77_Track IO mixer.lua" type="script">
-      <version name="0.2015.12.18" author="spk77" time="2015-12-19T07:45:06Z">
-        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_Track%20IO%20mixer.lua</source>
-        <source platform="all" file="spk77_volthumb_47x21.png">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_volthumb_47x21.png</source>
-        <source platform="all" file="spk77_class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_class_function.lua</source>
-        <source platform="all" file="spk77_slider class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_slider%20class_function.lua</source>
-        <source platform="all" file="spk77_menu class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_menu%20class_function.lua</source>
-        <source platform="all" file="spk77_reaper track_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_reaper%20track_function.lua</source>
-        <source platform="all" file="spk77_mouse_function.lua">https://github.com/ReaTeam/ReaScripts/raw/f19fae31a71e9503561df9809984b71689f48cea/Various/spk77_Track%20IO%20mixer/spk77_mouse_function.lua</source>
+  <category name="Items Editing">
+    <reapack name="spk77_Split and implode items across tracks into takes.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Split%20and%20implode%20items%20across%20tracks%20into%20takes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Breeder_spk77_GlueTools.lua" type="script">
+      <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="nofish_Delete muted items from item selection.lua" type="script">
+      <version name="1.0" time="2015-12-03T07:38:56Z" author="nofish">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/nofish_Delete%20muted%20items%20from%20item%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Copy items and store positions.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Copy%20items%20and%20store%20positions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Glue selected items preserving names.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Glue%20selected%20items%20preserving%20names.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Paste items and recall positions.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Paste%20items%20and%20recall%20positions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Remove contents of time sel (from selected items).eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Remove%20contents%20of%20time%20sel%20(from%20selected%20items).eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Replace selected items with item under mouse cursor.lua" type="script">
+      <version name="1.0" author="spk77" time="2015-12-18T15:44:12Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/bcb74d80bd35a872be3133300717aee9af9d53ea/Items%20Editing/spk77_Replace%20selected%20items%20with%20item%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Select every N-th item within time selection.eel" type="script">
+      <version name="0.2014.8.23" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Editing/spk77_Select%20every%20N-th%20item%20within%20time%20selection.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Select%20every%20N-th%20item%20within%20time%20selection.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Select items within time selection on selected tracks.eel" type="script">
+      <version name="0.2014.7.24" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Editing/spk77_Select%20items%20within%20time%20selection%20on%20selected%20tracks.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Select%20items%20within%20time%20selection%20on%20selected%20tracks.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Argitoth_Select items with color of selected items.eel" type="script">
+      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Items Properties">
+    <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script">
+      <version name="0.2015.7.5" time="2015-12-03T06:30:34Z">
+        <changelog><![CDATA[(Bug fix) fade-in/fade-out curves weren't copied properly (5-July-15)]]></changelog>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Properties/spk77_Breeder_PL9_Copy%20paste%20item%20properties%20(incl%20BWF).eel</source>
+      </version>
+      <version name="1.0" author="spk77, Breeder, PL9" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Breeder_PL9_Copy%20paste%20item%20properties%20(incl%20BWF).eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Normalize selected items to given range.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Normalize%20selected%20items%20to%20given%20range.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Rename items to track name.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Rename%20items%20to%20track%20name.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Trim item volumes.eel" type="script">
+      <version name="0.2015.5.5" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Items%20Properties/spk77_Trim%20item%20volumes.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Trim%20item%20volumes.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="MIDI Editor">
+    <reapack name="spk77_Restrict polyphony.eel" type="script">
+      <version name="0.2014.7.10" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Restrict%20polyphony.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Restrict%20polyphony.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Add to selection previous note at same pitch.eel" type="script">
+      <version name="0.2014.8.30" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Add%20to%20selection%20previous%20note%20at%20same%20pitch.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Add%20to%20selection%20previous%20note%20at%20same%20pitch.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Remove redundant CCs.eel" type="script">
+      <version name="0.2014.5.2" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Remove%20redundant%20CCs.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Remove%20redundant%20CCs.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Add to selection next note at same pitch.eel" type="script">
+      <version name="0.2014.9.30" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Add%20to%20selection%20next%20note%20at%20same%20pitch.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Add%20to%20selection%20next%20note%20at%20same%20pitch.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Select all MIDI notes and events right of cursor.eel" type="script">
+      <version name="0.2014.12.27" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Select%20all%20MIDI%20notes%20and%20events%20right%20of%20cursor.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Select%20all%20MIDI%20notes%20and%20events%20right%20of%20cursor.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set random velocities for selected notes.eel" type="script">
+      <version name="0.2014.3.26" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Set%20random%20velocities%20for%20selected%20notes.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Set%20random%20velocities%20for%20selected%20notes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Split selected takes to MIDI notes boundaries.eel" type="script">
+      <version name="0.2015.2.13" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Split%20selected%20takes%20to%20MIDI%20notes%20boundaries.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Split%20selected%20takes%20to%20MIDI%20notes%20boundaries.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Markers">
+    <reapack name="spk77_Move nearest marker to edit cursor.eel" type="script">
+      <version name="0.2014.9.2" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Regions">
+    <reapack name="spk77_Create regions (with tail) from selected items.lua" type="script">
+      <version name="0.2015.9.13" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Regions/spk77_Create%20regions%20(with%20tail)%20from%20selected%20items.lua</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Regions/spk77_Create%20regions%20(with%20tail)%20from%20selected%20items.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Stretch Markers">
+    <reapack name="Argitoth_Split selected items at stretch markers.eel" type="script">
+      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/Argitoth_Split%20selected%20items%20at%20stretch%20markers.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Copy stretch markers from selected item to other items in group.eel" type="script">
+      <version name="0.2014.12.2" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Stretch%20Markers/spk77_Copy%20stretch%20markers%20from%20selected%20item%20to%20other%20items%20in%20group.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/spk77_Copy%20stretch%20markers%20from%20selected%20item%20to%20other%20items%20in%20group.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Takes Properties">
+    <reapack name="Argitoth_Convert all takes pitch to rate.eel" type="script">
+      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20pitch%20to%20rate.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Argitoth_Convert all takes rate to pitch.eel" type="script">
+      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/Argitoth_Convert%20all%20takes%20rate%20to%20pitch.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Pan active takes randomly.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/spk77_Pan%20active%20takes%20randomly.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Randomize active takes pitch in selected items.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/spk77_Randomize%20active%20takes%20pitch%20in%20selected%20items.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Reset takes pan to center.eel" type="script">
+      <version name="0.2014.11.15" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Takes%20Properties/spk77_Reset%20takes%20pan%20to%20center.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Takes%20Properties/spk77_Reset%20takes%20pan%20to%20center.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Time Selection">
+    <reapack name="spk77_Set time selection from edit cursor to end of items.eel" type="script">
+      <version name="0.2015.7.1" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20items.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20items.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set time selection from edit cursor to end of selected tracks.eel" type="script">
+      <version name="0.2015.7.1" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20selected%20tracks.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20selected%20tracks.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Tracks Properties">
+    <reapack name="spk77_Set volume for selected tracks.lua" type="script">
+      <version name="0.2015.9.27" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20volume%20for%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20volume%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="nofish_Dynamic mixer (for use with toolbar button).lua" type="script">
+      <version name="1.02" time="2015-12-03T06:30:34Z">
+        <changelog><![CDATA[September 30 2015
+nofish:
++ script can be assigned to a toolbar button (lights when active), press again to exit
++ MCP track view is restored on exit (thanks spk77)]]></changelog>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/nofish_Dynamic%20mixer%20(for%20use%20with%20toolbar%20button).lua</source>
+      </version>
+      <version name="1.0" author="nofish" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/nofish_Dynamic%20mixer%20(for%20use%20with%20toolbar%20button).lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script">
+      <version name="0.2015.4.25" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Adjust%20all%20receive%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Adjust%20all%20receive%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Adjust all send volumes on selected track by x dB.eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Adjust%20all%20send%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Rename tracks after first program change (for General MIDI).eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Rename%20tracks%20after%20first%20program%20change%20(for%20General%20MIDI).eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Reset all tracks pan.eel" type="script">
+      <version name="0.2015.2.8" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Reset%20all%20tracks%20pan.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Reset%20all%20tracks%20pan.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Reset all tracks volume.eel" type="script">
+      <version name="0.2015.2.8" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Reset%20all%20tracks%20volume.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Reset%20all%20tracks%20volume.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set pan for selected tracks.lua" type="script">
+      <version name="0.2015.9.15" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set track names to first item (active take) name.eel" type="script">
+      <version name="0.2014.8.21" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20track%20names%20to%20first%20item%20(active%20take)%20name.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20track%20names%20to%20first%20item%20(active%20take)%20name.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set track names to source filename (remove extension).eel" type="script">
+      <version name="0.2014.8.21" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Set%20track%20names%20to%20source%20filename%20(remove%20extension).eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20track%20names%20to%20source%20filename%20(remove%20extension).eel</source>
+      </version>
+    </reapack>
+    <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script">
+      <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Various">
+    <reapack name="spk77_Track FX selector.eel" type="script">
+      <version name="0.2014.8.19" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Track%20FX%20selector.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Track%20FX%20selector.eel</source>
+      </version>
+    </reapack>
+    <reapack name="HeDa_Crop Region to selected item.lua" type="script">
+      <version name="1.0" author="HeDa" time="2016-02-15T19:13:46Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b82c5cfd7faf04ea89544460dc8105b3ff01c675/Various/HeDa_Crop%20Region%20to%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="HeDa_View Scroll Bottom.lua" type="script">
+      <version name="1.0" author="HeDa" time="2016-02-14T02:18:28Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/81a59a4533645fdd94a690542788d18af741ca04/Various/HeDa_View%20Scroll%20Bottom.lua</source>
+      </version>
+    </reapack>
+    <reapack name="HeDa_View Scroll Top.lua" type="script">
+      <version name="1.0" author="HeDa" time="2016-02-14T02:19:23Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/7e9c4ed73ed3e9b0a3b15d363bc3db28a19db265/Various/HeDa_View%20Scroll%20Top.lua</source>
+      </version>
+    </reapack>
+    <reapack name="PL9_Source Time Position Tool.eel" type="script">
+      <version name="1.0" author="PL9" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/PL9_Source%20Time%20Position%20Tool.eel</source>
+      </version>
+    </reapack>
+    <reapack name="nofish_Show tracknames in console.lua" type="script">
+      <version name="1.0" time="2015-12-03T07:38:56Z" author="nofish">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/nofish_Show%20tracknames%20in%20console.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Clock.eel" type="script">
+      <version name="0.2015.2.14" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Clock.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Clock.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Convert MIDI notes to stretch markers.eel" type="script">
+      <version name="0.2015.1.20" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Convert%20MIDI%20notes%20to%20stretch%20markers.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Convert%20MIDI%20notes%20to%20stretch%20markers.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Convert stretch markers to MIDI notes.eel" type="script">
+      <version name="0.2014.10.7" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Info display (mouse cursor context).eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Info%20display%20(mouse%20cursor%20context).eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Insert empty space at time selection (prevent moving locked items).eel" type="script">
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Insert%20empty%20space%20at%20time%20selection%20(prevent%20moving%20locked%20items).eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_MIDI velocity tool.eel" type="script">
+      <version name="0.2014.9.11" time="2015-12-03T06:30:34Z">
+        <changelog><![CDATA[- support for 14bit lanes, pitch, aftertouch and program lanes (anything that's drawable)
+- when in CC mode, user is still able to edit velocity by clicking it's lane
+- ctrl+click target fader sets it to the middle
+- preserve settings through REAPER or script restarts(mode, compressor weight and target, dialog dimensions)]]></changelog>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_MIDI%20velocity%20tool.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_MIDI%20velocity%20tool.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Time display tool.eel" type="script">
+      <version name="0.2014.7.21" time="2015-12-03T06:30:34Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Various/spk77_Time%20display%20tool.eel</source>
+      </version>
+      <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Time%20display%20tool.eel</source>
+      </version>
+    </reapack>
+    <reapack name="HeDa_AutoSend.lua" type="script">
+      <version name="0.1" author="Hector Corcin (HeDa)" time="2016-02-18T02:02:24Z">
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/aa1de9c015d0e716584ee0c8425bf579b339dd54/Various/HeDa_AutoSend.lua</source>
+      </version>
+      <version name="0.2" author="Hector Corcin (HeDa)" time="2016-02-21T12:21:20Z">
+        <changelog><![CDATA[+ Auto creates the Receiving Track if it doesn't exist avoiding crash. [mccrabney p=1641272&postcount=23]
++ Remove send if no track is selected (it could be just as an option if wanted)
+# fixes and internal improvements
+]]></changelog>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/f387275a0bd5a27d04ebf30d75065e891cbf15c0/Various/HeDa_AutoSend.lua</source>
       </version>
     </reapack>
   </category>
