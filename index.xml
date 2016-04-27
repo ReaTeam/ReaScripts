@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5848a417a16dc1285a99cb0fb2669641280504a6" name="ReaTeam Scripts">
+<index version="1" commit="38d1f85b522636db75c83bf410d3425717d2cadc" name="ReaTeam Scripts">
   <category name="Various/spk77_Track IO mixer">
     <reapack name="spk77_Track IO mixer.lua" type="script">
       <version name="0.2015.12.18" author="spk77" time="2015-12-19T07:45:06Z">
@@ -586,6 +586,12 @@ nofish:
         <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20volume%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="spk77_Sexan_Folder Arm Monitor To Children.lua" type="script">
+      <version name="1.0" author="SPK77, SeXan" time="2016-04-27T16:45:57Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source platform="all">https://github.com/ReaTeam/ReaScripts/raw/38d1f85b522636db75c83bf410d3425717d2cadc/Tracks%20Properties/spk77_Sexan_Folder%20Arm%20Monitor%20To%20Children.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="Markers">
     <reapack name="spk77_Move nearest marker to edit cursor.eel" type="script">
@@ -693,13 +699,13 @@ X-Raym
 \sa180\par}
 }
 ]]></description>
-    <link rel="website" href="http://forum.cockos.com/member.php?u=7973">Argitoth</link>
+    <link rel="website" href="http://forum.cockos.com/member.php?u=6549">planetnine</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=27094">Breeder</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=98780">cfillion</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=47822">HeDa</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=70694">mpl</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=6870">nofish</link>
-    <link rel="website" href="http://forum.cockos.com/member.php?u=6549">planetnine</link>
+    <link rel="website" href="http://forum.cockos.com/member.php?u=7973">Argitoth</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=49553">spk77</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=58284">X-Raym</link>
     <link rel="donation" href="https://www.patreon.com/heda?ty=h">Donate to HeDa</link>
