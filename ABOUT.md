@@ -1,6 +1,6 @@
 # ReaTeam Script Repository
 
-Community-maintained collection of scripts for REAPER
+Community-maintained collection of scripts for [REAPER](http://reaper.fm/)
 
 [https://github.com/ReaTeam/ReaScripts](https://github.com/ReaTeam/ReaScripts)
 
