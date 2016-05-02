@@ -1,16 +1,34 @@
-# ReaScripts
+# ReaTeam Script Repository
 
-A part of Cockos Reaper scripts collection.  
-This part holds stuff from different places and gives you possibility to download it by one click instead of hard browsing stash, forum threads, etc.
+Community-maintained collection of scripts for REAPER
 
-Other big parts are:
+[![Build Status](https://travis-ci.org/ReaTeam/ReaScripts.svg?branch=master)](https://travis-ci.org/ReaTeam/ReaScripts)
 
-- [X-Raym repo](https://github.com/X-Raym/REAPER-ReaScripts)
-- [mpl repo](https://github.com/MichaelPilyavskiy/ReaScripts)
+Other similar repositories:
 
-### Info
+- [ReaTeam/JSFX](https://github.com/ReaTeam/JSFX)
+- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts)
+- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts)
 
-Related thread placed [here](http://forum.cockos.com/showthread.php?t=169127)
+## Installation
+
+Copy and paste this URL in Extensions > ReaPack > Import a repository:
+
+```
+https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
+```
+
+## Discussing
+
+Talk about this repository and ReaTeam in this thread on the REAPER forums:  
+http://forum.cockos.com/showthread.php?t=169127
+
+## Contributing
+
+Fork this repository, add your scripts in an appropriate category (directory)
+and send us a pull request.
+
+[Packaging Documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation)
 
 ### Source code is taken from:
 
