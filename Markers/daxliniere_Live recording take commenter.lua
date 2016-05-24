@@ -29,7 +29,6 @@
 ---   Operate during stop-mode code by HeDa  -----------------------------------
 ---   Hotkey code by HeDa   ----------------------------------------------------
 ---   Return focus to Arrange Window (pass keystrokes through) by spk77  -------
----   Writing cue to WAV code by ????? -----------------------------------------
 ---   Concept by Dax Liniere  --------------------------------------------------
 
 local Element = {}
