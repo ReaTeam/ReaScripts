@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1fb01777af880db3bc54f140ff16fe62c54d5eca" name="ReaTeam Scripts">
+<index version="1" commit="45f2aa8204684dfdc1496b0a12656a77ea2ee592" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -265,6 +265,12 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="Markers">
+    <reapack name="daxliniere_Live recording take commenter.lua" type="script">
+      <version name="1.0" author="Daxliniere, Heda, Eugen2777, spk77" time="2016-05-24T09:23:18Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/45f2aa8204684dfdc1496b0a12656a77ea2ee592/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Move nearest marker to edit cursor.eel" type="script">
       <version name="0.2014.9.2" time="2015-12-02T21:24:29Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
