@@ -11,6 +11,14 @@
  *                        4) move mouse left or right to stretch to the corresponding side,
  *                           move mouse up or down to warp towards or away from mouse.
  *                        5) To exit, move mouse out of CC lane, or press shortcut key again.
+ *                Note: Since this function is a user script, the way it responds to shortcut keys and 
+ *                    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+ *                    with mouse modifiers:  To run the script, press the shortcut key *once* 
+ *                    to start the script and then move the mouse *without* pressing any 
+ *                    mouse buttons.  Press the shortcut key again once to stop the script.  
+ *                (The first time that the script is stopped, REAPER will pop up a dialog box 
+ *                    asking whether to terminate or restart the script.  Select "Terminate"
+ *                    and "Remember my answer for this script".)
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -18,7 +26,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
+ * Version: 1.1
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -28,6 +36,8 @@
  Changelog:
  * v1.0 (2016-05-15)
     + Initial Release
+ * v1.1 (2016-05-18)
+     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
 ]]
 
 editor = reaper.MIDIEditor_GetActive()
@@ -37,14 +47,21 @@ window, segment, details = reaper.BR_GetMouseCursorContext()
 -- Mouse must be positioned in CC lane
 if details ~= "cc_lane" then return(0) end
 
--- ! SWS documentation is incorrect: NO retval is returned
--- ! by BR_GetMouseCursorContext_MIDI()
--- The 'type' of the second variable returned can perhaps distinguish between 
---     versions of this function.
-_, test, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI() 
-if type(test) == boolean then
-    reaper.ShowConsoleMsg("Error: Probably incompatible SWS version")
+-- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+-- https://github.com/Jeff0S/sws/issues/783
+-- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+if SWS283 ~= SWS283again then
+    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
     return(0)
+end
+
+if SWS283 == true then
+    _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+else 
+    _, _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
 end
 
 -- The selected events will be divided into two arrays:
@@ -176,85 +193,98 @@ end
 -- Finally, here is the warping function that will be looped by 'deferring'
 
 function loop_warpStretch()
-    _, _, newDetails = reaper.BR_GetMouseCursorContext()
-    _, _, newMouseLane, newMouseLaneValue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+
     -- Function exits if mouse is moved out of CC lane
-    if newDetails ~= "cc_lane" or newMouseLane ~= mouseLane then --or newMouseLaneValue==-1 then
+    window, _, details = reaper.BR_GetMouseCursorContext()  
+    if details ~= "cc_lane" then
         return(0)
     end
-    mouseNewTime = reaper.BR_GetMouseCursorContext_Position()
-    mouseNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseNewTime)
-    -- Prevent warping and stretcthing out of original PPQ range of events
-    --if mouseNewPPQpos >= lastPPQposR then mouseNewPPQpos = lastPPQposR-1 end
-    --if mouseNewPPQpos <= firstPPQposL then mouseNewPPQpos = firstPPQposL+1 end
+         
+    if SWS283 == true then
+        _, _, newMouseLane, newMouseLaneValue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    else 
+        _, _, _, newMouseLane, newMouseLaneValue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    end
+
+    -- If mouse moves out of original CC lane, do nothing and wait
+    if newMouseLane == mouseLane and newMouseLaneValue~=-1 then
     
-    -- The warping uses a power function, and the power variable is determined
-    --     by calculating to what power 0.5 must be raised to reach the 
-    --     mouse's deviation  mouse's deviation above or below the middle of the CC lane.
-    -- Why use absolute value?  Since power>1 gives a nicer, more 'musical looking'
-    --     shape than power<1.     
-    -- Remember to check whether lane is 7 bit, or 14 bit or pitchbend.
-    if (256 <= mouseLane and mouseLane <= 287) -- 14 bit CC
-    or (mouseLane == 0x201) then -- pitchbend 
-        mouseDirection = newMouseLaneValue-8192
-        mouseWarp = 0.5 + math.abs(mouseDirection)/16384
-    else
-        mouseDirection = newMouseLaneValue-64
-        mouseWarp = 0.5 + math.abs(mouseDirection)/128
-    end
-    -- Prevent warping too much, so that all CCs don't end up in a solid block
-    if mouseWarp > 0.99 then mouseWarp = 0.99
-    --elseif mouseWarp < 0.01 then mouseWarp = 0.01
-    end
-    power = math.log(mouseWarp, 0.5)
-    
-    if #eventsL > 0 then
-        stretchedPPQrangeL = mouseNewPPQpos - firstPPQposL
-        stretchFactorL = stretchedPPQrangeL/PPQrangeL
-    end
-    if #eventsR > 0 then
-        stretchedPPQrangeR = lastPPQposR - mouseNewPPQpos
-        stretchFactorR = stretchedPPQrangeR/PPQrangeR
-    end
-    
-    -- Draw the events in eventsL
-    for i=1, #eventsL do
-        -- First, stretch linearly:
-        newPPQpos = firstPPQposL + (eventsL[i].PPQ - firstPPQposL)*stretchFactorL
-        -- Then, warp using power function:
-        if mouseDirection > 0 then
-            newPPQpos = firstPPQposL + (((newPPQpos - firstPPQposL)/stretchedPPQrangeL)^power)*stretchedPPQrangeL
-        elseif mouseDirection < 0 then
-            newPPQpos = mouseNewPPQpos - (((mouseNewPPQpos - newPPQpos)/stretchedPPQrangeL)^power)*stretchedPPQrangeL
+        mouseNewTime = reaper.BR_GetMouseCursorContext_Position()
+        mouseNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseNewTime)
+        -- Prevent warping and stretcthing out of original PPQ range of events
+        --if mouseNewPPQpos >= lastPPQposR then mouseNewPPQpos = lastPPQposR-1 end
+        --if mouseNewPPQpos <= firstPPQposL then mouseNewPPQpos = firstPPQposL+1 end
+        
+        -- The warping uses a power function, and the power variable is determined
+        --     by calculating to what power 0.5 must be raised to reach the 
+        --     mouse's deviation  mouse's deviation above or below the middle of the CC lane.
+        -- Why use absolute value?  Since power>1 gives a nicer, more 'musical looking'
+        --     shape than power<1.     
+        -- Remember to check whether lane is 7 bit, or 14 bit or pitchbend.
+        if (256 <= mouseLane and mouseLane <= 287) -- 14 bit CC
+        or (mouseLane == 0x201) then -- pitchbend 
+            mouseDirection = newMouseLaneValue-8192
+            mouseWarp = 0.5 + math.abs(mouseDirection)/16384
+        else
+            mouseDirection = newMouseLaneValue-64
+            mouseWarp = 0.5 + math.abs(mouseDirection)/128
+        end
+        -- Prevent warping too much, so that all CCs don't end up in a solid block
+        if mouseWarp > 0.99 then mouseWarp = 0.99
+        --elseif mouseWarp < 0.01 then mouseWarp = 0.01
+        end
+        power = math.log(mouseWarp, 0.5)
+        
+        if #eventsL > 0 then
+            stretchedPPQrangeL = mouseNewPPQpos - firstPPQposL
+            stretchFactorL = stretchedPPQrangeL/PPQrangeL
+        end
+        if #eventsR > 0 then
+            stretchedPPQrangeR = lastPPQposR - mouseNewPPQpos
+            stretchFactorR = stretchedPPQrangeR/PPQrangeR
         end
         
-        if mouseLane == 0x205 or mouseLane == 0x206 then
-            reaper.MIDI_SetTextSysexEvt(take, eventsL[i].index, nil, nil, newPPQpos, nil, eventsL[i].msg, true)
-        else    
-            reaper.MIDI_SetEvt(take, eventsL[i].index, nil, nil, newPPQpos, eventsL[i].msg, true) -- Strange: according to the documentation, msg is optional
+        -- Draw the events in eventsL
+        for i=1, #eventsL do
+            -- First, stretch linearly:
+            newPPQpos = firstPPQposL + (eventsL[i].PPQ - firstPPQposL)*stretchFactorL
+            -- Then, warp using power function:
+            if mouseDirection > 0 then
+                newPPQpos = firstPPQposL + (((newPPQpos - firstPPQposL)/stretchedPPQrangeL)^power)*stretchedPPQrangeL
+            elseif mouseDirection < 0 then
+                newPPQpos = mouseNewPPQpos - (((mouseNewPPQpos - newPPQpos)/stretchedPPQrangeL)^power)*stretchedPPQrangeL
+            end
+            
+            if mouseLane == 0x205 or mouseLane == 0x206 then
+                reaper.MIDI_SetTextSysexEvt(take, eventsL[i].index, nil, nil, newPPQpos, nil, eventsL[i].msg, true)
+            else    
+                reaper.MIDI_SetEvt(take, eventsL[i].index, nil, nil, newPPQpos, eventsL[i].msg, true) -- Strange: according to the documentation, msg is optional
+            end
         end
-    end
-    
-    -- Draw the events in eventsR
-    for i=1, #eventsR do
-        -- First, stretch linearly:
-        newPPQpos = lastPPQposR - (lastPPQposR - eventsR[i].PPQ)*stretchFactorR
-        -- Then, warp using power function:
-        if mouseDirection > 0 then
-            newPPQpos = lastPPQposR - (((lastPPQposR - newPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR
-        elseif mouseDirection < 0 then
-            newPPQpos = mouseNewPPQpos + (((newPPQpos - mouseNewPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR
+        
+        -- Draw the events in eventsR
+        for i=1, #eventsR do
+            -- First, stretch linearly:
+            newPPQpos = lastPPQposR - (lastPPQposR - eventsR[i].PPQ)*stretchFactorR
+            -- Then, warp using power function:
+            if mouseDirection > 0 then
+                newPPQpos = lastPPQposR - (((lastPPQposR - newPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR
+            elseif mouseDirection < 0 then
+                newPPQpos = mouseNewPPQpos + (((newPPQpos - mouseNewPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR
+            end
+          
+            if mouseLane == 0x205 or mouseLane == 0x206 then
+                reaper.MIDI_SetTextSysexEvt(take, eventsR[i].index, nil, nil, newPPQpos, nil, eventsR[i].msg, true)
+            else    
+                reaper.MIDI_SetEvt(take, eventsR[i].index, nil, nil, newPPQpos, eventsR[i].msg, true) -- Strange: according to the documentation, msg is optional
+            end
         end
-      
-        if mouseLane == 0x205 or mouseLane == 0x206 then
-            reaper.MIDI_SetTextSysexEvt(take, eventsR[i].index, nil, nil, newPPQpos, nil, eventsR[i].msg, true)
-        else    
-            reaper.MIDI_SetEvt(take, eventsR[i].index, nil, nil, newPPQpos, eventsR[i].msg, true) -- Strange: according to the documentation, msg is optional
-        end
-    end
+        
+    end -- if newMouseLane == mouseLane and newMouseLaneValue~=-1
     
     -- Loop the function continuously
     reaper.defer(loop_warpStretch)
+
 end -- function loop_warpStretch()
 
 -----------------------------------------------------------------------
