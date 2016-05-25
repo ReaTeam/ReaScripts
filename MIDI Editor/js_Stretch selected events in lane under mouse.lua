@@ -3,7 +3,22 @@
  * Description:  A simple script for stretching MIDI events in the MIDI editor  
  *               The script only affects events in the MIDI editor lane that is under the mouse cursor.
  *               If snap to grid is enabled, the rightmost event will snap to grid.
- * Instructions:  
+ * Instructions:  The script must be linked to a shortcut key.  
+ *                To use, 1) select MIDI events to be stretched,  
+ *                        2) position mouse in the lane at the position to which the 
+ *                              rightmost event should be stretched, 
+ *                        3) press shortcut key, and
+ *                        4) move mouse left or right to change the extent of stretching.
+ *                        5) To exit, move mouse out of CC lane, or press shortcut key again.
+ *
+ *                Note: Since this function is a user script, the way it responds to shortcut keys and 
+ *                    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+ *                    with mouse modifiers:  To run the script, press the shortcut key *once* 
+ *                    to start the script and then move the mouse *without* pressing any 
+ *                    mouse buttons.  Press the shortcut key again once to stop the script.  
+ *                (The first time that the script is stopped, REAPER will pop up a dialog box 
+ *                    asking whether to terminate or restart the script.  Select "Terminate"
+ *                    and "Remember my answer for this script".)
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -11,7 +26,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
+ * Version: 1.1
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -21,6 +36,9 @@
  Changelog:
  * v1.0 (2015-05-14)
     + Initial Release
+ * v1.1 (2016-05-18)
+    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
+    + CCs can be inverted by stretching to left of range, but not notes
 ]]
 
 ----------------------------------------------------------------------
@@ -31,8 +49,14 @@ function loop_stretchEvents()
 
     -- If the mouse moves out of the original CC lane, the function exits
     _, _, currentDetails = reaper.BR_GetMouseCursorContext()
-    _, _, currentMouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI() 
-    if currentDetails ~= "cc_lane" or currentMouseLane ~= mouseLane then return(0) end
+    if currentDetails ~= "cc_lane" then return(0) end
+    
+    if SWS283 == true then
+        _, _, currentMouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    else 
+        _, _, _, currentMouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    end
+    if currentMouseLane ~= mouseLane then return(0) end
     
     -- Next step is to determine the destination position to which the rightmost CC event should be stretched
     -- If snap is enabled, events will stretch to grid, otherwise to exact mouse position    
@@ -53,6 +77,11 @@ function loop_stretchEvents()
         destPPQpos = mousePPQpos
     end
     
+    -- Except if stretching notes, in which case note-on and note-off cannot be switched around:
+    if destPPQpos <= firstPPQpos and (mouseLane == 0x200 or mouseLane == 0x207) then
+        destPPQpos = lastPPQpos
+    end
+        
     stretchFactor = (destPPQpos-firstPPQpos)/(lastPPQpos-firstPPQpos)
     
     for i=1, #events do
@@ -103,15 +132,38 @@ end
           events, count, eventIndex, eventPPQpos, msg, msg1, msg2, eventType,
           tempFirstPPQ, tempLastPPQ, firstPPQpos, lastPPQpos,
     ]]      
-    reaper.atexit(exit)
     
+    function avoidUndo()
+    end
+    reaper.defer(avoidUndo)
+    
+    -- Mouse must be positioned in CC lane
     editor = reaper.MIDIEditor_GetActive()
+    if editor == nil then return(0) end
     take = reaper.MIDIEditor_GetTake(editor)
-    _, _, details = reaper.BR_GetMouseCursorContext()
-    _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI() 
-        
-    if details ~= "cc_lane" then return(0) end -- function should only run if mouse is in a CC lane 
+    if take == nil then return(0) end
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    if details ~= "cc_lane" then return(0) end
     
+    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+    -- https://github.com/Jeff0S/sws/issues/783
+    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+    _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+    if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+    if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+    if SWS283 ~= SWS283again then
+        reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+        return(0)
+    end
+    
+    if SWS283 == true then
+        _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    else 
+        _, _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    end
+
+    -- Now stuff start to happen so define atexit
+    reaper.atexit(exit)    
     reaper.MIDI_Sort(take)
     
     --------------------------------------------------------------------
