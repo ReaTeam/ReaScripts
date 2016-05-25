@@ -19,6 +19,18 @@
  *                    or expansion.
  *                The shape of the compression is changed (from linear to 
  *                    parabolic) by moving the mouse left or right.  
+ *
+ *                Note: Since this function is a user script, the way it responds to shortcut keys and 
+ *                    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+ *                    with mouse modifiers:  To run the script, press the shortcut key *once* 
+ *                    to start the script and then move the mouse or mousewheel *without* pressing any 
+ *                    mouse buttons.  Press the shortcut key again once to stop the script.  
+ *                (The first time that the script is stopped, REAPER will pop up a dialog box 
+ *                    asking whether to terminate or restart the script.  Select "Terminate"
+ *                    and "Remember my answer for this script".)
+ *
+ *                The user can customize the speed and resolution of compression by 
+ *                    changing the "compressResolution" variable.
  *                
  * Screenshot: 
  * Notes: 
@@ -27,7 +39,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
+ * Version: 1.1
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -37,7 +49,17 @@
  Changelog:
  * v1.0 (2016-05-15)
     + Initial Release
+ * v1.1 (2016-05-18)
+    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
+    + Added an optional "compressResolution" user-defined variable
 ]]
+
+-- USER AREA:
+    
+    -- The speed/resolution of compression using mousewheel. 
+    --    Lower values imply finer resolution but slower speed.
+    --    Usable values are 0.01 ... 0.1.
+    compressResolution = 0.05
 
      
 
@@ -108,13 +130,17 @@ function compress14bitCC()
     function compress14bitCC_loop()
     
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if details ~= "cc_lane" then return(0) end
+
+        if SWS283 == true then
+            _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
         newMouseTime = reaper.BR_GetMouseCursorContext_Position()
         newMousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, newMouseTime)              
         is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
         
-        if details ~= "cc_lane" then return(0) end
-
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
         if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
@@ -122,8 +148,8 @@ function compress14bitCC()
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + 0.1
-            elseif val < 0 then wheel = wheel - 0.1
+            if val > 0 then wheel = wheel + compressResolution
+            elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
 
@@ -178,7 +204,7 @@ end -- function compress14bitCC
 --------------------------------------------------------------------
 
 function compress7bitCC()  
-
+    
     local tableCC, eventIndex, first, last, firstPPQ, lastPPQ, PPQrange, newMouseTime, newMousePPQpos, newValue, 
           prevMousePPQpos, prevMouseCCvalue, newMouseCCvalue, newMouseLane
           
@@ -216,22 +242,32 @@ function compress7bitCC()
     
     function compress7bitCC_loop()
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-        newMouseTime = reaper.BR_GetMouseCursorContext_Position()
-        newMousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, newMouseTime)              
-        is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-        
         if details ~= "cc_lane" then return(0) end
 
+        if SWS283 == true then
+            _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+        
+        newMouseTime = reaper.BR_GetMouseCursorContext_Position()
+        newMousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, newMouseTime)              
+        is_new,_,_,_,_,_,val = reaper.get_action_context()
+        scriptVal = tonumber(reaper.GetExtState("mousewheel", "val"))
+            if scriptVal == nil then scriptVal = 0 end
+        reaper.SetExtState("mousewheel", "val", "0", false)
+
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
-        if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
+        if (is_new or scriptVal ~= 0 or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
         
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + 0.1
-            elseif val < 0 then wheel = wheel - 0.1
+            if scriptVal > 0 then wheel = wheel + compressResolution
+            elseif scriptVal < 0 then wheel = wheel - compressResolution 
+            elseif val > 0 then wheel = wheel + compressResolution
+            elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
 
@@ -326,12 +362,17 @@ function compressChanPressure()
     function compressChanPressure_loop()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if details ~= "cc_lane" then return(0) end
+
+        if SWS283 == true then
+            _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+
         newMouseTime = reaper.BR_GetMouseCursorContext_Position()
         newMousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, newMouseTime)              
         is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-        
-        if details ~= "cc_lane" then return(0) end
 
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
         if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
@@ -340,8 +381,8 @@ function compressChanPressure()
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + 0.1
-            elseif val < 0 then wheel = wheel - 0.1
+            if val > 0 then wheel = wheel + compressResolution
+            elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
 
@@ -433,12 +474,17 @@ function compressPitch()
     function compressPitch_loop()
                  
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if details ~= "cc_lane" then return(0) end
+
+        if SWS283 == true then
+            _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+        
         newMouseTime = reaper.BR_GetMouseCursorContext_Position()
         newMousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, newMouseTime)              
         is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-        
-        if details ~= "cc_lane" then return(0) end
 
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
         if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
@@ -447,8 +493,8 @@ function compressPitch()
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + 0.1
-            elseif val < 0 then wheel = wheel - 0.1
+            if val > 0 then wheel = wheel + compressResolution
+            elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
 
@@ -540,12 +586,17 @@ function compressVelocity()
     function compressVelocity_loop()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if details ~= "cc_lane" then return(0) end
+
+        if SWS283 == true then
+            _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, newMouseLane, newMouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+        
         newMouseTime = reaper.BR_GetMouseCursorContext_Position()
         newMousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, newMouseTime)              
         is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-        
-        if details ~= "cc_lane" then return(0) end
 
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
         if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
@@ -554,8 +605,8 @@ function compressVelocity()
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + 0.1
-            elseif val < 0 then wheel = wheel - 0.1
+            if val > 0 then wheel = wheel + compressResolution
+            elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
 
@@ -634,14 +685,32 @@ if editor == nil then return(0) end
 take = reaper.MIDIEditor_GetTake(editor)
 if take == nil then return(0) end
 _, _, details = reaper.BR_GetMouseCursorContext()
-_, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()     
-mouseTime = reaper.BR_GetMouseCursorContext_Position() 
-mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
+if details ~= "cc_lane" then return(0) end
+
+-- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+-- https://github.com/Jeff0S/sws/issues/783
+-- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+if SWS283 ~= SWS283again then
+    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+    return(0)
+end
+
 -- Function should only run if mouse is in a CC lane
 -- atexit has not yet been defined, so if function exists here,
---     it will skip atexit.    
-if details ~= "cc_lane" or take == nil or mouseCCvalue == -1 then return(0) end 
+--     it will skip atexit. s
+if SWS283 == true then
+    _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+else 
+    _, _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+end
+if mouseCCvalue == -1 then return(0) end 
 
+mouseTime = reaper.BR_GetMouseCursorContext_Position() 
+mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
+   
 --------------------------------------------------------------------
 -- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
 -- 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
@@ -650,6 +719,8 @@ if details ~= "cc_lane" or take == nil or mouseCCvalue == -1 then return(0) end
 -- eventType is the MIDI event type: 11=CC, 14=pitchbend, etc
     
 reaper.atexit(exit)
+
+compressResolution = math.min(0.01, math.max(0.1, compressResolution))
     
 -- Since 7bit CC, 14bit CC, channel pressure, velocity and pitch all 
 --     require somewhat different tweaks, the code is simpler to read 
