@@ -17,7 +17,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
+ * Version: 1.1
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -25,9 +25,10 @@
 
 --[[
  Changelog:
- * v0.9 (2016-05-05)
+ * v1.0 (2016-05-05)
     + Initial Release
-  
+ * v1.1 (2016-05-18)
+    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) 
 ]]
 
 -- USER AREA
@@ -38,12 +39,36 @@ local _, editor, take, details, mouseLane, mouseTime, mousePPQpos, startQN, PPQ,
           events, count, eventIndex, eventPPQpos, msg, msg1, msg2, eventType,
           tempFirstPPQ, tempLastPPQ, firstPPQpos, lastPPQpos, stretchFactor, newPPQpos
     
-editor = reaper.MIDIEditor_GetActive()
-take = reaper.MIDIEditor_GetTake(editor)
-_, _, details = reaper.BR_GetMouseCursorContext()
-_, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI() 
+function avoidUndo() -- Avoid automatic creation of undo point
+end
+reaper.defer(avoidUndo)
 
-if details ~= "cc_lane" or mouseCCvalue == -1 then return(0) end -- function should only run if mouse is in a CC lane     
+-- function should only run if mouse is in a CC lane 
+editor = reaper.MIDIEditor_GetActive()
+if editor == nil then return(0) end
+take = reaper.MIDIEditor_GetTake(editor)
+if take == nil then return(0) end
+_, _, details = reaper.BR_GetMouseCursorContext()
+if details ~= "cc_lane" then return(0) end
+
+-- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+-- https://github.com/Jeff0S/sws/issues/783
+-- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+if SWS283 ~= SWS283again then
+    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+    return(0)
+end
+
+if SWS283 == true then
+    _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+else 
+    _, _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+end
+
+if mouseCCvalue == -1 then return(0) end     
 
 reaper.Undo_BeginBlock()
 
