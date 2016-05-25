@@ -1,9 +1,25 @@
 --[[
  * ReaScript Name:  Tilt selected events in lane under mouse to mouse position
  * Description:  A simple script for linear tilting of selected events.  
+ *               The endpoint events are tilted to the exact value of the mouse position,
+ *                  so the script is useful for precise positioning of ramps and other CC shapes.
  *               The script only affects events in the MIDI editor lane that is under the mouse cursor.
  *               The script can be used in 7-bit CC lanes, 14-bit CC lanes, velocity, pitchwheel and channel pressure.
- * Instructions:  
+ * Instructions:  The script must be linked to a shortcut key.  
+ *                To use, 1) select MIDI events to be tilted,  
+ *                        2) position mouse in lane, 
+ *                        3) press shortcut key, and
+ *                        4) move mouse up or down to change tilting position.
+ *                        5) To exit, move mouse out of CC lane, or press shortcut key again.
+ *
+ *                Note: Since this function is a user script, the way it responds to shortcut keys and 
+ *                    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+ *                    with mouse modifiers:  To run the script, press the shortcut key *once* 
+ *                    to start the script and then move the mouse *without* pressing any 
+ *                    mouse buttons.  Press the shortcut key again once to stop the script.  
+ *                (The first time that the script is stopped, REAPER will pop up a dialog box 
+ *                    asking whether to terminate or restart the script.  Select "Terminate"
+ *                    and "Remember my answer for this script".)
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -11,7 +27,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
+ * Version: 1.1
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -21,6 +37,8 @@
  Changelog:
  * v1.0 (2016-05-15)
     + Initial Release
+ * v1.1 (2016-05-18)
+    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
 ]]    
 
 function tilt14bitCC()    
@@ -89,7 +107,13 @@ function tilt14bitCC()
     function tilt14bitCC_loop()
     
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if window ~= "midi_editor" then return(0) end
+        
+        if SWS283 == true then
+            _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
         mouseTime = reaper.BR_GetMouseCursorContext_Position()
         mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
         
@@ -165,7 +189,13 @@ function tilt7bitCC()
     function tilt7bitCC_loop()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if window ~= "midi_editor" then return(0) end
+        
+        if SWS283 == true then
+            _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
         mouseTime = reaper.BR_GetMouseCursorContext_Position()
         mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
         
@@ -238,7 +268,14 @@ function tiltChanPressure()
     function tiltChanPressure_loop()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if window ~= "midi_editor" then return(0) end
+        
+        if SWS283 == true then
+            _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+        
         mouseTime = reaper.BR_GetMouseCursorContext_Position()
         mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
         
@@ -311,7 +348,14 @@ function tiltPitch()
     function tiltPitch_loop()
                  
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if window ~= "midi_editor" then return(0) end
+        
+        if SWS283 == true then
+            _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+        
         mouseTime = reaper.BR_GetMouseCursorContext_Position()
         mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
     
@@ -387,7 +431,14 @@ function tiltVelocity()
     function tiltVelocity_loop()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
-        _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        if window ~= "midi_editor" then return(0) end
+        
+        if SWS283 == true then
+            _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+
         mouseTime = reaper.BR_GetMouseCursorContext_Position()
         mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
         
@@ -447,7 +498,23 @@ take = reaper.MIDIEditor_GetTake(editor)
 if take == nil then return(0) end
 _, _, details = reaper.BR_GetMouseCursorContext()
 if details ~= "cc_lane" then return(0) end 
-_, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+
+-- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+-- https://github.com/Jeff0S/sws/issues/783
+-- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+if SWS283 ~= SWS283again then
+    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+    return(0)
+end
+
+if SWS283 == true then
+    _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+else 
+    _, _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+end
 
 --------------------------------------------------------------------
 -- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
