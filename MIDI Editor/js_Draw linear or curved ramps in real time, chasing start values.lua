@@ -34,7 +34,7 @@
  *                (The first time that the script is stopped, REAPER will pop up a dialog box 
  *                    asking whether to terminate or restart the script.  Select "Terminate"
  *                    and "Remember my answer for this script".)
-
+ *
  * Screenshot: 
  * Notes: 
  * Category: 
