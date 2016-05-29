@@ -1,18 +1,19 @@
 --[[
  * ReaScript Name:  Xenakios's LFO generator and shaper (Julian mod) - MIDI editor version
  * Description:  LFO generator and shaper - MIDI editor version
+ *               Draw fancy LFO curves in REAPER's piano roll.
  * Instructions:  
-          DRAWING ENVELOPES:
-          Click in open space to add an envelope point.
-          Alt-click (or -drag) to remove points
-          Cntl-click (or -drag) to set all points to the same value.
-          Right-click to save/load/delete curves.
-          A curve saved as "default" will be loaded by default at startup.
-                    
-          CUSTOMIZATION:
-          The user can easily add custom shapes to the script - see the instructions in the script.
-          In addition, the interface colors can be customized in the USER AREA in the script.
- 
+ *         DRAWING ENVELOPES:
+ *         Click in open space to add an envelope point.
+ *         Alt-click (or -drag) to remove points
+ *         Cntl-click (or -drag) to set all points to the same value.
+ *         Right-click to save/load/delete curves.
+ *         A curve saved as "default" will be loaded by default at startup.
+ *                   
+ *         CUSTOMIZATION:
+ *         The user can easily add custom shapes to the script - see the instructions in the script.
+ *         In addition, the interface colors can be customized in the USER AREA in the script.
+ * 
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -27,7 +28,7 @@
 
 --[[
  Changelog:
- * v0.?
+ * v0.1
     + Xenakios' Initial Release
  * v0.2
     + Julian's mod
@@ -48,7 +49,8 @@
  * v0.91 (2016-05-25)
     + Fixed "attempt to get length of a nil value (global 'savedNames')" bug
  * v0.99 (2016-05-27)
-    + The MIDI editor version!!
+    + The MIDI editor version!  
+    + Bézier curves are not yet implemented in this v0.99. All REAPER envelope shapes are implemented.
     + Envelope area now resizeable (allowing finer resolution).
     + Alt-drag for quick delete of multiple nodes.
     + Slow start/end shape replaced by Sine in MIDI editor version.
