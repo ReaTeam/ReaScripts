@@ -39,7 +39,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.1
+ * Version: 1.11
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -52,6 +52,8 @@
  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
     + Added an optional "compressResolution" user-defined variable
+ * v1.11 (2016-05-29)
+    + If linked to a menu button, script will toggle button state to indicate activation/termination
 ]]
 
 -- USER AREA:
@@ -662,6 +664,12 @@ end -- function compressVelocity
 
 function exit()
     reaper.MIDI_Sort(take)
+    
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+        
     if 0 <= mouseLane and mouseLane <= 127 then -- CC, 7 bit (single lane)
         reaper.Undo_OnStateChange("Compress selected 7-bit CC events in lane ".. mouseLane, -1)
     elseif mouseLane == 0x203 then -- Channel pressure
@@ -717,6 +725,12 @@ mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
 -- 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)"
 --
 -- eventType is the MIDI event type: 11=CC, 14=pitchbend, etc
+    
+_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+    reaper.SetToggleCommandState(sectionID, cmdID, 1)
+    reaper.RefreshToolbar2(sectionID, cmdID)
+end
     
 reaper.atexit(exit)
 
