@@ -1,6 +1,6 @@
 --[[
- * ReaScript Name:  Xenakios's LFO generator and shaper (Julian mod)
- * Description:  LFO generator and shaper
+ * ReaScript Name:  Xenakios's LFO generator and shaper (Julian mod) - Envelope version
+ * Description:  LFO generator and shaper - Envelope version
  * Instructions:  
           DRAWING ENVELOPES:
           Click in open space to add an envelope point.
