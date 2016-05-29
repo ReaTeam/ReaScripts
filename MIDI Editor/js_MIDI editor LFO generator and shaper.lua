@@ -56,7 +56,7 @@
     + Slow start/end shape replaced by Sine in MIDI editor version.
     + Accurate interpolation of Fast start, Fast end and Sine shapes.
     + Curve named "default" will be loaded on startup.
- * v0.991 (2016-05-29(
+ * v0.991 (2016-05-29)
     + Script does not fail when "Zoom dependent" CC density is selected in Preferences
 ]]
 
