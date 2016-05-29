@@ -42,7 +42,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.1
+ * Version: 1.11
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -55,6 +55,9 @@
  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
     + Improved speed and responsiveness
+ * v1.11 (2016-05-29)
+    + Script does not fail when "Zoom dependent" CC density is selected in Preferences
+    + If linked to a menu button, script will toggle button state to indicate activation/termination
 ]]
 
 -- USER AREA
@@ -231,7 +234,12 @@ function exit()
     --    "Draw linear or shaped ramps between selected events in lane under mouse".        
            
     drawFinalRamp()
-        
+    
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+            
     if wheel == 0 then shapeStr = "linear" else shapeStr = "curved" end
     
     if laneType == CC7BIT then
@@ -553,7 +561,12 @@ function main()
         return(0)
     end
 
-    -- OK, it seems like this function will do something, so define atexit with its Undo statements
+    -- OK, it seems like this function will do something, so toggle button (if any) and define atexit with its Undo statements
+    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        reaper.SetToggleCommandState(sectionID, cmdID, 1)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
     reaper.atexit(exit)
     
     ------------------------------------------------------------------------
@@ -590,7 +603,8 @@ function main()
     -- While we are busy with grid, get CC density 'grid' values
     -- First, Get the default grid resolution as set in Preferences -> 
     --    MIDI editor -> "Events per quarter note when drawing in CC lanes"
-    density = math.floor(reaper.SNM_GetIntConfigVar("midiCCdensity", 32))
+    density = reaper.SNM_GetIntConfigVar("midiCCdensity", 32)
+    density = math.floor(math.max(4, math.min(128, math.abs(density)))) -- If user selected "Zoom dependent", density<0
     PPperCC = PPQ/density
     QNperCC = 1/density
     firstCCPPQposInTake = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(startQN/QNperCC)))
