@@ -19,7 +19,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.1
+ * Version: 1.11
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -31,6 +31,8 @@
     + Initial Release
  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
+ * v1.11 (2016-05-29)
+    + Script does not fail when "Zoom dependent" CC density is selected in Preferences
 ]] 
 
 --------------------------------------------------------------------
@@ -485,6 +487,7 @@ if not ((0 <= mouseLane and mouseLane <= 127)
      then return(0) end
       
 density = reaper.SNM_GetIntConfigVar("midiCCdensity", 64) -- Get the default grid resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC"
+density = math.floor(math.max(4, math.min(128, math.abs(density))))
 shape = 1
 skip = true
 newSel = true
