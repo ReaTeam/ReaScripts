@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bab6dccc9dd0e64959a919e193fd33d06eafd4ad" name="ReaTeam Scripts">
+<index version="1" commit="66d43814363da66f5afd3e1f07b798038c2b1b2a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -286,45 +286,78 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/gofer_spk77_Smooth%20CCs.eel</source>
       </version>
     </reapack>
-    <reapack name="juliansader_1-sided warp (accelerate) selected events in lane under mouse.lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
-        <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+    <reapack name="js_1-sided warp (accelerate) selected events in lane under mouse.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:24:15Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0937755929d71fe678018c4f57815104097c7325/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-05-29T12:59:10Z">
+        <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b8f7337d8ecdd6cccde000576a7512b88e29baad/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
-    <reapack name="juliansader_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
-        <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+    <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:25:40Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6796fb90c30a273877d3b45b0e55ec9cf17b898b/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-05-29T12:59:56Z">
+        <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d05beb2899d074eccb25f1aa824b03ecbb8e40ec/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
-    <reapack name="juliansader_Compress or expand selected CC or velocity events using mousewheel.lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
-        <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+    <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:26:45Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
++ Added an optional "compressResolution" user-defined variable]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/91242b4531d2277a1dee9b8aa100c421300f5a3a/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-05-29T13:00:33Z">
+        <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/2250728cabb45ebf6110879f236389c5adba396e/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
-    <reapack name="juliansader_Deselect all events outside time selection (from all tracks).lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
+    <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-05-25T09:27:26Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bc8f3c2d8d4ba4ff74c7ae0d01853a60c46cfdf/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
       </version>
     </reapack>
-    <reapack name="juliansader_Insert CC or pitch at mouse position, leaving other selected.lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
+    <reapack name="js_Insert CC or pitch at mouse position, leaving other selected.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:28:20Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) ]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6a21218ba0570c5714d0545019ea2cb3950991e4/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
     </reapack>
-    <reapack name="juliansader_Stretch selected events in lane under mouse.lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
-        <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+    <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:30:26Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/14ad9e2c8158e9f7e9d537a072e383d93bdf1764/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-05-29T13:03:30Z">
+        <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/53559a80d633845b1c3b4a672fd4b261e7a0a306/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
-    <reapack name="juliansader_Tilt selected CCs or velocities to mouse position.lua" type="script">
-      <version name="1.0" author="juliansader" time="2016-05-17T20:11:42Z">
-        <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/juliansader_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+    <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:31:26Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
++ CCs can be inverted by stretching to left of range, but not notes]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/84425742db6a22609b891c711d4ea2d965aadf05/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-05-29T13:04:14Z">
+        <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b0cdcc7ef0fb32052ac85f61cc4444299fe971b/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script">
+      <version name="1.1" author="juliansader" time="2016-05-25T09:32:59Z">
+        <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ea9830bf2779fa946319f411fc59c4499b37b68a/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-05-29T13:05:17Z">
+        <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/66d43814363da66f5afd3e1f07b798038c2b1b2a/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Add to selection next note at same pitch.eel" type="script">
