@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="66d43814363da66f5afd3e1f07b798038c2b1b2a" name="ReaTeam Scripts">
+<index version="1" commit="206110bba7a6f2873207212ff73340e7e69f9396" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -229,6 +229,12 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Select%20items%20within%20time%20selection%20on%20selected%20tracks.eel</source>
       </version>
     </reapack>
+    <reapack name="spk77_Split all items at edit cursor.lua" type="script">
+      <version name="1.0" author="spk77" time="2016-05-29T16:30:30Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/206110bba7a6f2873207212ff73340e7e69f9396/Items%20Editing/spk77_Split%20all%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Split and implode items across tracks into takes.eel" type="script">
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/spk77_Split%20and%20implode%20items%20across%20tracks%20into%20takes.eel</source>
@@ -268,7 +274,7 @@ added support for all track envelopes]]></changelog>
     <reapack name="daxliniere_Live recording take commenter.lua" type="script">
       <version name="1.0" author="Daxliniere, Heda, Eugen2777, spk77" time="2016-05-24T09:23:18Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/45f2aa8204684dfdc1496b0a12656a77ea2ee592/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b0b2b0387ec43b2ca14220347678c695ffc85b41/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Move nearest marker to edit cursor.eel" type="script">
@@ -689,13 +695,13 @@ nofish:
     </reapack>
     <reapack name="spk77_Track IO mixer.lua" type="script">
       <version name="0.2015.12.18" author="spk77" time="2016-05-01T23:43:18Z">
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer.lua</source>
-        <source file="spk77_Track IO mixer/spk77_class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer/spk77_class_function.lua</source>
-        <source file="spk77_Track IO mixer/spk77_menu class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer/spk77_menu%20class_function.lua</source>
-        <source file="spk77_Track IO mixer/spk77_mouse_function.lua">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer/spk77_mouse_function.lua</source>
-        <source file="spk77_Track IO mixer/spk77_reaper track_function.lua">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer/spk77_reaper%20track_function.lua</source>
-        <source file="spk77_Track IO mixer/spk77_slider class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer/spk77_slider%20class_function.lua</source>
-        <source file="spk77_Track IO mixer/spk77_volthumb_47x21.png">https://github.com/ReaTeam/ReaScripts/raw/37a47c7ca9514415bf14a07a9ec6bab50c5dd662/Various/spk77_Track%20IO%20mixer/spk77_volthumb_47x21.png</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer.lua</source>
+        <source file="spk77_Track IO mixer/spk77_class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer/spk77_class_function.lua</source>
+        <source file="spk77_Track IO mixer/spk77_menu class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer/spk77_menu%20class_function.lua</source>
+        <source file="spk77_Track IO mixer/spk77_mouse_function.lua">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer/spk77_mouse_function.lua</source>
+        <source file="spk77_Track IO mixer/spk77_reaper track_function.lua">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer/spk77_reaper%20track_function.lua</source>
+        <source file="spk77_Track IO mixer/spk77_slider class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer/spk77_slider%20class_function.lua</source>
+        <source file="spk77_Track IO mixer/spk77_volthumb_47x21.png">https://github.com/ReaTeam/ReaScripts/raw/a3a32037bcc9b9c5cfd2e17b04eb2ddc65628243/Various/spk77_Track%20IO%20mixer/spk77_volthumb_47x21.png</source>
       </version>
     </reapack>
   </category>
