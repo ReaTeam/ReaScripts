@@ -26,7 +26,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.1
+ * Version: 1.11
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -39,6 +39,8 @@
  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
     + CCs can be inverted by stretching to left of range, but not notes
+ * v1.11 (2016-05-29)
+    + If linked to a menu button, script will toggle button state to indicate activation/termination
 ]]
 
 ----------------------------------------------------------------------
@@ -101,6 +103,12 @@ end -- function loop_stretchEvents()
 -- Called when function exists
 function exit()    
     reaper.MIDI_Sort(take)
+    
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+        
     if mouseLane == 0x206 then
         undoString = "Stretch events in single lane: Sysex"
     elseif mouseLane == 0x205 then
@@ -162,7 +170,13 @@ end
         _, _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
     end
 
-    -- Now stuff start to happen so define atexit
+    -- Now stuff start to happen so toggle toolbar button (if any) and define atexit
+    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        reaper.SetToggleCommandState(sectionID, cmdID, 1)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+    
     reaper.atexit(exit)    
     reaper.MIDI_Sort(take)
     
