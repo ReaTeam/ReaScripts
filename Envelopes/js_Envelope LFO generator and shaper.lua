@@ -55,7 +55,8 @@
     + Envelope area now resizeable (allowing finer resolution).
     + Alt-drag for quick delete of multiple nodes.
     + Accurate interpolation of Fast start, Fast end shapes.
-    + Curve named "default" will be loaded on startup.]]
+    + Curve named "default" will be loaded on startup.
+]]
 
 --  USER AREA:
     --[[ 
