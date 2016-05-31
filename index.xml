@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="206110bba7a6f2873207212ff73340e7e69f9396" name="ReaTeam Scripts">
+<index version="1" commit="05739117d82f530e929777caee204e5d5ab3f7f0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -59,6 +59,29 @@
     </reapack>
   </category>
   <category name="Envelopes">
+    <reapack name="js_Envelope LFO generator and shaper.lua" type="script">
+      <version name="0.99" author="Xenakios (modded by juliansader)" time="2016-05-29T18:25:17Z">
+        <changelog><![CDATA[+ The MIDI editor version now available!!
++ Envelope area now resizeable (allowing finer resolution).
++ Alt-drag for quick delete of multiple nodes.
++ Accurate interpolation of Fast start, Fast end shapes.
++ Curve named "default" will be loaded on startup.]]
+
+--  USER AREA:
+--[[ 
+Colors are defined as {red, green, blue, alpha}
+(Values are between 0 and 1)
+
+Default colors are:
+backgroundColor = {0.15, 0.15, 0.15, 1}
+foregroundColor = {0.75, 0.29, 0, 0.8}
+textColor       = {1, 1, 1, 0.7}  
+buttonColor     = {1, 0, 0, 1} 
+hotbuttonColor  = {0, 1, 0, 1}
+shadows         = true]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c8dca777afc4f23262f8ebc0b7ee1a4d8536eaf9/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
       <version name="0.2015.9.2" time="2015-12-02T21:24:29Z">
         <changelog><![CDATA[2-Sep-2015
@@ -277,6 +300,12 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b0b2b0387ec43b2ca14220347678c695ffc85b41/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
       </version>
     </reapack>
+    <reapack name="spk77_Duplicate previous marker.lua" type="script">
+      <version name="1.0" author="spk77" time="2016-05-31T16:36:39Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/05739117d82f530e929777caee204e5d5ab3f7f0/Markers/spk77_Duplicate%20previous%20marker.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Move nearest marker to edit cursor.eel" type="script">
       <version name="0.2014.9.2" time="2015-12-02T21:24:29Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
@@ -329,6 +358,13 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bc8f3c2d8d4ba4ff74c7ae0d01853a60c46cfdf/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
       </version>
     </reapack>
+    <reapack name="js_Draw linear or curved ramps in real time, chasing start values.lua" type="script">
+      <version name="1.11" author="juliansader" time="2016-05-29T18:38:36Z">
+        <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences
++ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/e1b100d1e14aa0e9a6e2022434b50cfb054a604e/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Insert CC or pitch at mouse position, leaving other selected.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:28:20Z">
         <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) ]]></changelog>
@@ -343,6 +379,12 @@ added support for all track envelopes]]></changelog>
       <version name="1.11" author="juliansader" time="2016-05-29T13:03:30Z">
         <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/53559a80d633845b1c3b4a672fd4b261e7a0a306/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_MIDI editor LFO generator and shaper.lua" type="script">
+      <version name="0.991" author="Xenakios (modded by juliansader)" time="2016-05-29T18:37:54Z">
+        <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bb3ac2dba0f9d66f85638c4227e5b9f877e8bb6/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
