@@ -122,12 +122,23 @@ function get_script_path()
   return script_path
 end
 
+------------------------------------------------------------------------------
+-- "Get file separator" function
+------------------------------------------------------------------------------
+function get_file_separator()
+  local OS = reaper.GetOS()
+  if OS ~= "Win32" and OS ~= "Win64" then
+    return "/"
+  end
+  return "\\"
+end
+
 
 ------------------------------------------------------------------------------
 -- Import modules and initialize tables --
 ------------------------------------------------------------------------------
 -- get "script path"
-local script_path = get_script_path()
+local script_path = get_script_path() .. "spk77_Track IO mixer" .. get_file_separator()
 --msg(script_path)
 
 -- modify "package.path"
