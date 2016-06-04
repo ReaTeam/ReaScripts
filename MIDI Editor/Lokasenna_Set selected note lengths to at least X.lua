@@ -1,18 +1,21 @@
 --[[
-	Set selected note lengths at least X
-	by Lokasenna
-	v1.0
-		
-	Prompts for the user to type in a note length (i.e. 1 /4 ), and then sets
-	all selected notes to be at least that long.
-	
-	For something like a dotted eighth, you would type 1.5/8 and so on.
-	
-	
-
-]]--
-
-
+  * ReaScript Name: Set selected note lengths at least X
+  * Description:
+  * Instructions: Prompts for the user to type in a note length (i.e. 1 /4 ), and then sets
+  *               all selected notes to be at least that long.
+  *               For something like a dotted eighth, you would type 1.5/8 and so on.
+  * Screenshot: 
+  * Notes: 
+  * Category: 
+  * Author: Lokasenna
+  * Author URI:
+  * Licence: GPL v3
+  * Forum Thread: 
+  * Forum Thread URL:
+  * Version: 1.0
+  * REAPER:
+  * Extensions: SWS
+]]
 
 -- Print stuff to the Reaper console, for debugging purposes
 function Msg(message)
