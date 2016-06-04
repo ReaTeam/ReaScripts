@@ -42,7 +42,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -58,6 +58,8 @@
  * v1.11 (2016-05-29)
     + Script does not fail when "Zoom dependent" CC density is selected in Preferences
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-02)
+    + Few tweaks to improve appearance of real-time ramp when using very low CC density
 ]]
 
 -- USER AREA
@@ -86,7 +88,8 @@ local tableIndices = {}
 local tableIndicesLSB = {}
 local qualityCCs = math.floor(math.max(0.1, math.min(4, quality))*1024)
 local usedPPQs = {}
-usedPPQsTableHasBeenSetup = false
+local usedPPQsTableHasBeenSetup = false
+ 
 
 -----------------------------------------------------------------------------      
 -- General note:
@@ -153,7 +156,9 @@ function loop_trackMouseMovement()
         end
         
         -- Are there enough CCs to draw each 'CC density grid' in the ramp?
-        if (math.abs(endpointTwoPPQpos - startingPPQpos) > (#tableIndices-1) * PPperCC) and #tableIndices < qualityCCs then            
+        --     "-4" because there must be enough CCs to draw ramp on grid as well as endpoints that are not on grid,
+        --     and enough to ensure that when rounding to grid, does not skip any grid.
+        if (math.abs(endpointTwoPPQpos - startingPPQpos) > (#tableIndices-4) * PPperCC) and #tableIndices < qualityCCs then            
             insertNewCCs(density*4)
         end
                 
@@ -185,11 +190,13 @@ function loop_trackMouseMovement()
         PPQrange = endpointTwoPPQpos - startingPPQpos
         PPQrangeAbs = math.abs(PPQrange)
         for i = 2, #tableIndices-1 do
+            -- If PPQrange == 0, don't need to calculate anything (and beware of 0 denominator)
             if PPQrange == 0 then
                 insertPPQpos = startingPPQpos
                 insertValue = endpointOneValue
             else
-                insertPPQpos = startingPPQpos + (endpointTwoPPQpos-startingPPQpos)*(i-1)/(#tableIndices-1)
+                -- Use (i-2)/(#tableIndices-3) to ensure that this weight factor runs from 0 to 1.
+                insertPPQpos = startingPPQpos + (endpointTwoPPQpos-startingPPQpos)*(i-2)/(#tableIndices-3)
                 -- Now round to nearest 'CC density grid' to the left
                 insertPPQpos = math.floor(firstCCPPQposInTake + ((insertPPQpos - firstCCPPQposInTake)//PPperCC)*PPperCC + 0.5)
                 -- Because the internal events snap to CC density grid while the endpoint do not necessarily snap to grid,
@@ -222,7 +229,7 @@ function loop_trackMouseMovement()
     -- Continuously loop the function
     reaper.runloop(loop_trackMouseMovement)
 
-end -- function loop_trackMouseMovement()
+end -- loop_trackMouseMovement()
 
 -------------------------------------------
 
@@ -802,4 +809,3 @@ reaper.defer(avoidUndo)
 
 
 main()
-
