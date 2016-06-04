@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="05739117d82f530e929777caee204e5d5ab3f7f0" name="ReaTeam Scripts">
+<index version="1" commit="9f65970e2441c2cedf1b3f81a6f65d91415aad00" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -364,6 +364,10 @@ added support for all track envelopes]]></changelog>
 + If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/e1b100d1e14aa0e9a6e2022434b50cfb054a604e/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="1.12" author="juliansader" time="2016-06-04T12:07:06Z">
+        <changelog><![CDATA[+ Few tweaks to improve appearance of real-time ramp when using very low CC density]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/eb53a3b4333a396c4349608f59f30f2d6a4f287b/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Insert CC or pitch at mouse position, leaving other selected.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:28:20Z">
@@ -406,6 +410,16 @@ added support for all track envelopes]]></changelog>
       <version name="1.11" author="juliansader" time="2016-05-29T13:05:17Z">
         <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/66d43814363da66f5afd3e1f07b798038c2b1b2a/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script">
+      <version name="1.0" author="Lokasenna" time="2016-06-04T15:10:02Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9f65970e2441c2cedf1b3f81a6f65d91415aad00/MIDI%20Editor/Lokasenna_Delete%20note%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Set selected note lengths to at least X.lua" type="script">
+      <version name="1.0" author="Lokasenna" time="2016-06-04T15:10:02Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9f65970e2441c2cedf1b3f81a6f65d91415aad00/MIDI%20Editor/Lokasenna_Set%20selected%20note%20lengths%20to%20at%20least%20X.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Add to selection next note at same pitch.eel" type="script">
