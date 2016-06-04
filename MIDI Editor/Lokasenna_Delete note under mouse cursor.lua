@@ -1,13 +1,20 @@
 --[[
-	Delete note under mouse cursor
-	by Lokasenna
-	v1.0
-	(Largely copied from a script by X-Raym)
-		
-	Deletes the note your cursor is hovering over
-	
-	
-]]--
+  * ReaScript Name: Delete note under mouse cursor
+  * Description: Deletes the note your cursor is hovering over (Largely copied from a script by X-Raym)
+  * Instructions:
+  * Screenshot: 
+  * Notes: 
+  * Category: 
+  * Author: Lokasenna
+  * Author URI:
+  * Licence: GPL v3
+  * Forum Thread: 
+  * Forum Thread URL:
+  * Version: 1.0
+  * REAPER:
+  * Extensions: SWS
+]]
+
 
 -- For debugging purposes, prints a message to the Reaper console
 function Msg(message)
