@@ -2,7 +2,7 @@
 
 Community-maintained collection of scripts for [REAPER](http://reaper.fm/)
 
--[![Build Status](https://travis-ci.org/ReaTeam/ReaScripts.svg?branch=master)](https://travis-ci.org/ReaTeam/ReaScripts)
+[![Build Status](https://travis-ci.org/ReaTeam/ReaScripts.svg?branch=master)](https://travis-ci.org/ReaTeam/ReaScripts)
 
 Everyone who contributed to this repository is listed [here](ABOUT.md).
 
