@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9f65970e2441c2cedf1b3f81a6f65d91415aad00" name="ReaTeam Scripts">
+<index version="1" commit="473915a806cd9cb6e9e5ad075c8ba9f1b54fea7c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -316,6 +316,12 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="MIDI Editor">
+    <reapack name="cfillion_Toggle MIDI Preview on Transport Change.lua" type="script">
+      <version name="1.1" author="cfillion" time="2016-06-05T01:28:45Z">
+        <changelog><![CDATA[Fixed preview toggling when reopening the midi editor]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/473915a806cd9cb6e9e5ad075c8ba9f1b54fea7c/MIDI%20Editor/cfillion_Toggle%20MIDI%20Preview%20on%20Transport%20Change.lua</source>
+      </version>
+    </reapack>
     <reapack name="gofer_spk77_Smooth CCs.eel" type="script">
       <version name="1.0" author="spk77" time="2016-05-17T20:11:42Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/gofer_spk77_Smooth%20CCs.eel</source>
