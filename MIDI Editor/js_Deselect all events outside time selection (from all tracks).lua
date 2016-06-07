@@ -9,7 +9,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
+ * Version: 1.01
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -19,6 +19,8 @@
  Changelog:
  * v1.0 (2015-05-14)
     + Initial Release
+ * v1.01 (2015-06-06)
+    + CC events at rightmost PPQ of time selection are deselected
 ]]
 
 --[[function deselect() 
@@ -67,7 +69,7 @@
         while (e ~= -1) do -- and beyondEnd == false) do
             _, _, _, ppqpos, _, _, _, _ = reaper.MIDI_GetCC(cur_take, e)
             if (ppqpos >= timesel_startppq) then
-                if (ppqpos <= timesel_endppq) then
+                if (ppqpos < timesel_endppq) then
                     table.insert(tableCCs, e)
                 --else
                 --    beyondEnd = true
@@ -83,7 +85,7 @@
             -- Documentation is incorrect: MIDI_SetTextSysexEvt requires msg
             _, _, _, ppqpos, _, msg = reaper.MIDI_GetTextSysexEvt(cur_take, e)
             if (ppqpos >= timesel_startppq) then
-                if (ppqpos <= timesel_endppq) then
+                if (ppqpos < timesel_endppq) then
                     table.insert(tableSysex, {index = e, msg = msg})
                     --else
                     --    beyondEnd = true
