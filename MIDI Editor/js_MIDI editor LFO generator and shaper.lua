@@ -9,10 +9,21 @@
  *         Cntl-click (or -drag) to set all points to the same value.
  *         Right-click to save/load/delete curves.
  *         A curve saved as "default" will be loaded by default at startup.
+ *         
+ *         LFO AREA AND CC LANE:
+ *         The LFO can be drawn in either the time selection, or underneath selected notes.
+ *         Also, the LFO can be drawn in eiher the last clicked CC lane, or the lane under the mouse. 
+ *         These setting can be customized in the script's USER AREA.
+ *         Hint: Use REAPER's built-in Action "Edit: Set time selection to selected notes" to fill the entire time span of notes.
  *                   
- *         CUSTOMIZATION:
- *         The user can easily add custom shapes to the script - see the instructions in the script.
- *         In addition, the interface colors can be customized in the USER AREA in the script.
+ *         FURTHER CUSTOMIZATION:
+ *         Further customization is possible - see the instructions in the script's USER AREA.
+ *         This include:
+ *         - Easily adding custom LFO shapes.
+ *         - Changing interface colors.
+ *         - Changing the default curve name.
+ *         etc...
+ *         
  * 
  * Screenshot: 
  * Notes: 
@@ -21,7 +32,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.991
+ * Version: 0.995
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -57,7 +68,12 @@
     + Accurate interpolation of Fast start, Fast end and Sine shapes.
     + Curve named "default" will be loaded on startup.
  * v0.991 (2016-05-29)
-    + Script does not fail when "Zoom dependent" CC density is selected in Preferences
+    + Bug fix: Script does not fail when "Zoom dependent" CC density is selected in Preferences.
+ * v0.995 (2016-06-06)
+    + New option to draw LFO underneath selected notes, instead of in time selection.
+    + New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
+    + Esc closes GUI.
+    
 ]]
 
 --  USER AREA:
@@ -73,14 +89,41 @@
     hotbuttonColor  = {0, 1, 0, 1}
     shadows         = true
     ]]
-    backgroundColor = {0.1, 0.1, 0.15, 1}
-    foregroundColor = {0.3, 0.3, 0.8, 0.7}
+    backgroundColor = {0.1, 0.15, 0.1, 1}
+    foregroundColor = {0.3, 0.8, 0.3, 0.7}
     textColor       = {1, 1, 1, 0.7}  
     buttonColor     = {1, 0, 1, 1} 
     hotbuttonColor  = {0, 1, 0, 1}
     shadows         = true  
-      
-    -- If set to false, CCs in channels other than the LFO's channel will not be deleted
+    
+    -- Which area should be filled with CCs?
+    -- "notes" to fill areas underneath selected notes, or "time" for time selection
+    --    If "time", script can be linked to a mouse modifier such as double-click.
+    -- It may suit workflow to save two versions of the script: one that can be used to 
+    --    insert CCs underneath selected notes, and one that inserts an LFO in the time 
+    --    selection.
+    selectionToUse = "time" 
+    
+    -- Lane in which to insert LFO: either "under mouse" or "last clicked"
+    -- "last clicked" has the advantage that the script can be run from a toolbar button, 
+    --    since the mouse does not need to be positioned over a CC lane.  
+    --    "under mouse" needs to be linked to a shortcut key.
+    -- "last clicked" also enables automatic closing of the GUI as soon as a new lane
+    --    or note is clicked.
+    laneToUse = "last clicked" 
+    
+    -- Name of curve to load as default.
+    --    By changing this name and saving as new script, different default curves can be 
+    --    linked to different shortcut keys.
+    defaultCurveName = "default" 
+    
+    -- Should the script show error messages in REAPER's console?  
+    --    Set to true or false.
+    verbose = true
+    
+    -- If set to false, CCs in channels other than the LFO's channel will not be deleted.
+    -- NOTE: If selectionToUse == "notes", the newly inserted CCs will have the same channel 
+    --    as the note under which they are inserted. 
     deleteOnlyDrawChannel = true
     
     --[[
@@ -212,10 +255,21 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\nCntl-click (or -drag) to set all points to the same value."
          .."\n\nRight-click to save/load/delete curves."
          .."\n\nA curve saved as 'default' will be loaded by default."
-         .."\n\nCUSTOMIZATION:"
-         .."\n\nThe user can easily add custom shapes to the script - see the instructions in the script."
-         .."\n\nIn addition, the interface colors can be customized in the USER AREA in the script."
-
+         .."\n\n"
+         .."\n\nLFO AREA AND CC LANE:"
+         .."\n\nThe LFO can be drawn in either the time selection, or underneath selected notes."
+         .."\n\nAlso, the LFO can be drawn in eiher the last clicked CC lane, or the lane under the mouse. "
+         .."\n\nThese setting can be customized in the script's USER AREA."
+         .."\n\nHint: Use REAPER's built-in Action 'Edit: Set time selection to selected notes' to fill entire time span of notes."
+         .."\n\n"         
+         .."\n\nFURTHER CUSTOMIZATION:"
+         .."\n\nFurther customization is possible - see the instructions in the script's USER AREA."
+         .."\n\nThis include:"
+         .."\n\n- Easily adding custom LFO shapes."
+         .."\n\n- Changing interface colors."
+         .."\n\n- Changing the default curve name."
+         .."\n\netc..."
+         
 -- laneTypes         
 CC7BIT = 0
 CHANPRESSURE = 1
@@ -831,6 +885,19 @@ function exit()
     reaper.Undo_OnStateChange("LFO tool: ".. clickedLaneString, -1)
 end -- function exit() 
 
+----------------------
+
+
+-------------------------------
+function showErrorMsg(errorMsg)
+    if verbose == true and type(errorMsg) == "string" then
+        reaper.ShowConsoleMsg("\n\nERROR:\n" 
+                              .. errorMsg 
+                              .. "\n\n"
+                              .. "(To prevent future error messages, set 'verbose' to 'false' in the USER AREA near the beginning of the script.)"
+                              .. "\n\n")
+    end
+end -- showErrorMsg(errorMsg)
 
 -------------------------------------------------------------------------
 -- The function that gets user inputs from the GUI and then draws the CCs
@@ -841,14 +908,26 @@ already_removed_pt=false
 last_mouse_cap=0
 
 function update()
+    -- Quit script if GUI has been closed, or Esc has been pressed
     local char = gfx.getchar()
-    if char<0 or char==27 then return end -- Tests whether GUI has been closed, or Esc has been pressed
-    time_start_new, time_end_new = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
-    if time_start_new ~= time_start or time_end_new ~= time_end then 
-        return(0) 
+    if char<0 or char==27 then 
+        return(0)
+    end 
+    -- The LFO Tool automatically quits if the time selection, the note selection, or the last clicked lane changes, 
+    --     which prepares the editor to insert a new LFO.
+    -- (Clicking in the piano roll to select new notes changes the "last clicked lane".)
+    if laneToUse == "last clicked" then
+        newClickedLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")   
+        if newClickedLane ~= clickedLane then
+            return(0)
+        end
     end
-    --if reaper.GetExtState("LFO Generator", "isRunning") == "quit" then return(0) end
-    
+    --if selectionToUse == "time" then
+        time_start_new, time_end_new = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
+        if time_start_new ~= timeSelectStart or time_end_new ~= timeSelectEnd then 
+            return(0) 
+        end
+    --end
     
     setColor(backgroundColor)
     gfx.rect(0,0,gfx.w,gfx.h,true)
@@ -1386,51 +1465,174 @@ function constructNewGUI()
     
 end -- constructNewGUI()
 
+------------------------
+
+
+---------------------------------------
+
+function insertNewCCs(take, insertChannel, PPQstart, PPQend)
+
+ -- Delete all CCs in time selection (in last clicked lane and in channel)
+        -- Use binary search to find event close to rightmost edge of ramp
+        reaper.MIDI_Sort(take)
+        _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)        
+        rightIndex = ccevtcnt-1
+        leftIndex = 0
+        while (rightIndex-leftIndex)>1 do
+            middleIndex = math.ceil((rightIndex+leftIndex)/2)
+            _, _, _, middlePPQpos, _, _, _, _ = reaper.MIDI_GetCC(take, middleIndex)
+            if middlePPQpos > PPQend then
+                rightIndex = middleIndex
+            else -- middlePPQpos <= startingPPQpos
+                leftIndex = middleIndex
+            end     
+        end -- while (rightIndex-leftIndex)>1
+        
+        -- Now delete events original events between the two endpoints.
+        for i = rightIndex, 0, -1 do   
+            _, selected, _, ppqpos, chanmsg, chan, msg2, _ = reaper.MIDI_GetCC(take, i)
+            if ppqpos < PPQstart then
+                break -- Once below range of selected events, no need to search further
+            elseif ppqpos < PPQend
+            and (deleteOnlyDrawChannel == false or (deleteOnlyDrawChannel == true and chan == insertChannel)) -- same channel
+            and (   (laneType == CC7BIT and chanmsg == 176 and msg2 == clickedLane) 
+                 or (laneType == PITCH and chanmsg == 224)
+                 or (laneType == CHANPRESSURE and chanmsg == 208)
+                 or (laneType == CC14BIT and chanmsg == 176 and msg2 == clickedLane-256)
+                 or (laneType == CC14BIT and chanmsg == 176 and msg2 == clickedLane-224)
+                )
+            then
+                reaper.MIDI_DeleteCC(take, i)
+            end -- elseif
+        end -- for i = rightIndex, 0, -1
+        
+        -----------------------------------------------------------------
+        -- Insert new (selected) CCs at CC density grid in time selection
+        -- Insert endpoints at time_start and time_end
+        
+        insertValue = 8000
+        
+        if laneType == CC7BIT then
+            reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, insertChannel, clickedLane, insertValue>>7)
+        elseif laneType == PITCH then
+            reaper.MIDI_InsertCC(take, true, false, PPQstart, 224, insertChannel, insertValue&127, insertValue>>7)
+        elseif laneType == CHANPRESSURE then
+            reaper.MIDI_InsertCC(take, true, false, PPQstart, 208, insertChannel, insertValue>>7, 0)
+        else -- laneType == CC14BIT
+            reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, insertChannel, clickedLane-256, insertValue>>7)
+            reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, insertChannel, clickedLane-224, insertValue&127)
+        end
+        
+        --[[ In the new versions of this tool, a CC is not inserted at the very end of the time selection,
+        --     since this CC actually falls outside the time selection.
+        if laneType == CC7BIT then
+            reaper.MIDI_InsertCC(take, true, false, PPQend, 176, insertChannel, clickedLane, insertValue>>7)
+        elseif laneType == PITCH then
+            reaper.MIDI_InsertCC(take, true, false, PPQend, 224, insertChannel, insertValue&127, insertValue>>7)
+        elseif laneType == CHANPRESSURE then
+            reaper.MIDI_InsertCC(take, true, false, PPQend, 208, insertChannel, insertValue>>7, 0)
+        else -- laneType == CC14BIT
+            reaper.MIDI_InsertCC(take, true, false, PPQend, 176, insertChannel, clickedLane-256, insertValue>>7)
+            reaper.MIDI_InsertCC(take, true, false, PPQend, 176, insertChannel, clickedLane-224, insertValue&127)
+        end          
+        ]]
+        
+        -- Get first insert position at CC density 'grid'
+        local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, PPQstart)
+        firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
+        if math.floor(firstCCinsertPPQpos+0.5) <= PPQstart then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
+        
+        -- PPQend is actually beyond time selection, so "-1" to prevent insert at PPQend
+        for p = firstCCinsertPPQpos, PPQend-1, PPperCC do
+            insertPPQpos = math.floor(p + 0.5)      
+            --if insertPPQpos ~= PPQstart and insertPPQpos ~= PPQend then
+                if laneType == CC7BIT then
+                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, insertChannel, clickedLane, insertValue>>7)
+                elseif laneType == PITCH then
+                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 224, insertChannel, insertValue&127, insertValue>>7)
+                elseif laneType == CHANPRESSURE then
+                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 208, insertChannel, insertValue>>7, 0)
+                else -- laneType == CC14BIT
+                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, insertChannel, clickedLane-256, insertValue>>7)
+                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, insertChannel, clickedLane-224, insertValue&127)
+                end
+            --end
+        end
+        
+end -- insertNewCCs(startPPQ, endPPQ)
+
+-------------------------------------
+
+
 ---------------------------------------------
 -- Main 
 
 function newTimeAndCCs()
    
+    if type(verbose) ~= "boolean" then 
+        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' of 'false'.\n") return(false) end
+    if laneToUse ~= "last clicked" and laneToUse ~= "under mouse" then 
+        reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "laneToUse" must be either "last clicked" or "under mouse".\n') return(false) end
+    if selectionToUse ~= "time" and selectionToUse ~= "notes" then 
+        reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "selectionToUse" must be either "time" or "notes".\n') return(false) end
+    if type(defaultCurveName) ~= "string" then
+        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'defaultCurveName' must be a string.\n") return(false) end
+    if type(deleteOnlyDrawChannel) ~= "boolean" then
+        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'deleteOnlyDrawChannel' must be either 'true' of 'false'.\n") return(false) end
+    if #backgroundColor ~= 4 or #foregroundColor ~= 4 or #textColor ~= 4 or #buttonColor ~= 4 or #hotbuttonColor ~= 4 then
+        reaper.ShowConsoleMsg("\n\nERROR: \nThe custom interface colors must each be a table of four values between 0 and 1.\n") return(false) end
+    
     editor = reaper.MIDIEditor_GetActive()
-    if editor == nil then return(false) end
+    if editor == nil then showErrorMsg("No active MIDI editor found.") return(false) end
     take = reaper.MIDIEditor_GetTake(editor)
-    if take == nil then return(false) end
-    clickedLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")
-    _, clickedLaneString = reaper.MIDIEditor_GetSetting_str(editor, "last_clicked_cc_lane", "")
+    if take == nil then showErrorMsg("No active take found in MIDI editor.") return(false) end
 
-    if 256 <= clickedLane and clickedLane <= 287 then
-        clickedLaneString = "CC ".. tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224) .. " 14-bit"
-    elseif clickedLaneString == "" then
-        clickedLaneString = "CC ".. tostring(clickedLane)
-    end
-    defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
-    
-    time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
-    if time_end<=time_start then return(false) end
-    PPQstart = reaper.MIDI_GetPPQPosFromProjTime(take, time_start)
-    PPQend   = reaper.MIDI_GetPPQPosFromProjTime(take, time_end)
-    
-    --[[ If an LFO tool is already running, remove
-    if reaper.HasExtState("LFO Generator", "isRunning") then
-        reaper.SetExtState("LFO Generator", "isRunning", "quit", true)
-        while reaper.HasExtState("LFO Generator", "isRunning") do end
-    end
-    
-    reaper.SetExtState("LFO Generator", "isRunning", "running", true)
-    ]]
-    
-    -- OK, script can start, so activate menu button, if relevant, and define atexit
-    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-        reaper.SetToggleCommandState(sectionID, cmdID, 1)
-        reaper.RefreshToolbar2(sectionID, cmdID)
-    end    
-    reaper.atexit(exit)
-    
+    -- LFO Tool can only work in channels that use continuous data.
     -- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
     --     require somewhat different tweaks, these must often be 
-    --     distinguished.   
-    if 0 <= clickedLane and clickedLane <= 127 then -- CC, 7 bit (single lane)
+    --     distinguished.
+    if laneToUse == "under mouse" then
+        window, segment, details = reaper.BR_GetMouseCursorContext()
+        if details ~= "cc_lane" then showErrorMsg("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over either "
+                                                  .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
+                                                  .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.")
+            return(false) 
+        end
+                       
+        -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+        -- https://github.com/Jeff0S/sws/issues/783
+        -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+        _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+        if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+        if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+        if SWS283 ~= SWS283again then
+            showErrorMsg("Could not determine compatible SWS version")
+            return(false)
+        end
+        
+        if SWS283 == true then
+            _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        else 
+            _, _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        end
+        
+        clickedLane = mouseLane
+    else
+        clickedLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")   
+    end
+    
+    if type(clickedLane) ~= "number" then
+        if laneToUse == "under mouse" then
+            showErrorMsg("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over either "
+                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.")
+                         
+            showErrorMsg("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be either "
+                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.")
+        end
+        return(false)
+    elseif 0 <= clickedLane and clickedLane <= 127 then -- CC, 7 bit (single lane)
         laneType = CC7BIT
     elseif clickedLane == 0x203 then -- Channel pressure
         laneType = CHANPRESSURE
@@ -1439,103 +1641,137 @@ function newTimeAndCCs()
     elseif clickedLane == 0x201 then
         laneType = PITCH
     else -- not a lane type in which a ramp can be drawn (sysex, velocity etc).
+        if laneToUse == "under mouse" then
+            showErrorMsg("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over either "
+                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.")
+        else                         
+            showErrorMsg("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be either "
+                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.")
+        end
         return(false)
     end
-        
-    ------------------------------------------------------------------------
-    -- Deselect all events in one shot.  Much faster than doing this via Lua
-    reaper.MIDI_SelectAll(take, false)
     
-    -- Delete all CCs in time selection (in last clicked lane and in channel)
-    -- Use binary search to find event close to rightmost edge of ramp
-    reaper.MIDI_Sort(take)
-    _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)        
-    rightIndex = ccevtcnt-1
-    leftIndex = 0
-    while (rightIndex-leftIndex)>1 do
-        middleIndex = math.ceil((rightIndex+leftIndex)/2)
-        _, _, _, middlePPQpos, _, _, _, _ = reaper.MIDI_GetCC(take, middleIndex)
-        if middlePPQpos > PPQend then
-            rightIndex = middleIndex
-        else -- middlePPQpos <= startingPPQpos
-            leftIndex = middleIndex
-        end     
-    end -- while (rightIndex-leftIndex)>1
-    
-    -- Now delete events original events between the two endpoints.
-    for i = rightIndex, 0, -1 do   
-        _, selected, _, ppqpos, chanmsg, chan, msg2, _ = reaper.MIDI_GetCC(take, i)
-        if ppqpos < PPQstart then
-            break -- Once below range of selected events, no need to search further
-        elseif ppqpos <= PPQend
-        and (deleteOnlyDrawChannel == false or (deleteOnlyDrawChannel == true and chan == defaultChannel)) -- same channel
-        and (   (laneType == CC7BIT and chanmsg == 176 and msg2 == clickedLane) 
-             or (laneType == PITCH and chanmsg == 224)
-             or (laneType == CHANPRESSURE and chanmsg == 208)
-             or (laneType == CC14BIT and chanmsg == 176 and msg2 == clickedLane-256)
-             or (laneType == CC14BIT and chanmsg == 176 and msg2 == clickedLane-224)
-            )
-        then
-            reaper.MIDI_DeleteCC(take, i)
-        end -- elseif
-    end -- for i = rightIndex, 0, -1
-    
-    -----------------------------------------------------------------
-    -- Insert new (selected) CCs at CC density grid in time selection
-    -- Insert endpoints at time_start and time_end
-    
-    insertValue = 8000
-    
-    if laneType == CC7BIT then
-        reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, defaultChannel, clickedLane, insertValue>>7)
-    elseif laneType == PITCH then
-        reaper.MIDI_InsertCC(take, true, false, PPQstart, 224, defaultChannel, insertValue&127, insertValue>>7)
-    elseif laneType == CHANPRESSURE then
-        reaper.MIDI_InsertCC(take, true, false, PPQstart, 208, defaultChannel, insertValue>>7, 0)
-    else -- laneType == CC14BIT
-        reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, defaultChannel, clickedLane-256, insertValue>>7)
-        reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, defaultChannel, clickedLane-224, insertValue&127)
+    if laneToUse == "under mouse" then
+        if laneType == CC7BIT then clickedLaneString = "CC " .. tostring(clickedLane)
+        elseif laneType == CHANPRESSURE then clickedLaneString = "Channel pressure"
+        elseif laneType == CC14BIT then clickedLaneString = "CC ".. tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224) .. " 14-bit"
+        elseif laneType == PITCH then clickedLaneString = "Pitchwheel"
+        end
+    else
+        _, clickedLaneString = reaper.MIDIEditor_GetSetting_str(editor, "last_clicked_cc_lane", "")    
+        if 256 <= clickedLane and clickedLane <= 287 then
+            clickedLaneString = "CC ".. tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224) .. " 14-bit"
+        elseif type(clickedLaneString) ~= "string" or clickedLaneString == "" then
+            clickedLaneString = "CC ".. tostring(clickedLane)
+        end
     end
+     
+    -- Test whether there is actually a time span in which to draw LFO
+    timeSelectStart, timeSelectEnd = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
+    if selectionToUse == "time" then
+        if type(timeSelectStart) ~= "number"
+        or type(timeSelectEnd) ~= "number"
+        or timeSelectEnd<=timeSelectStart 
+        or reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectStart) < 0
+        or reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectEnd) < 0
+        then 
+            showErrorMsg("A time range must be selected (within the active item's own time range).")
+            return(false) 
+        end
+    else -- selectionToUse == "notes"
+        if reaper.MIDI_EnumSelNotes(take, -1) ==  -1 then -- no notes selected
+            showErrorMsg("No selected notes found in active take.")
+            return(false) 
+        end 
+    end
+            
+    -- OK, tests completed and script can start, so activate menu button, if relevant, and define atexit
+    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        reaper.SetToggleCommandState(sectionID, cmdID, 1)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end    
+    reaper.atexit(exit)
     
-    if laneType == CC7BIT then
-        reaper.MIDI_InsertCC(take, true, false, PPQend, 176, defaultChannel, clickedLane, insertValue>>7)
-    elseif laneType == PITCH then
-        reaper.MIDI_InsertCC(take, true, false, PPQend, 224, defaultChannel, insertValue&127, insertValue>>7)
-    elseif laneType == CHANPRESSURE then
-        reaper.MIDI_InsertCC(take, true, false, PPQend, 208, defaultChannel, insertValue>>7, 0)
-    else -- laneType == CC14BIT
-        reaper.MIDI_InsertCC(take, true, false, PPQend, 176, defaultChannel, clickedLane-256, insertValue>>7)
-        reaper.MIDI_InsertCC(take, true, false, PPQend, 176, defaultChannel, clickedLane-224, insertValue&127)
-    end          
-    
-    -- Get first insert position at CC density 'grid'
     -- First, Get the default grid resolution as set in Preferences -> 
     --    MIDI editor -> "Events per quarter note when drawing in CC lanes"
+    --    and calculate PPQ per CC density
     takeStartQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
     PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, takeStartQN+1)
     density = math.floor(reaper.SNM_GetIntConfigVar("midiCCdensity", 32))
     density = math.floor(math.min(128, math.max(4, math.abs(density)))) -- If user selected "Zoom dependent", density < 0
     PPperCC = PPQ/density
-    local QNperCC = 1/density
-    local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, PPQstart)
-    firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
-    --if firstCCinsertPPQpos = PPQstart then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
+    QNperCC = 1/density
     
-    for p = firstCCinsertPPQpos, PPQend, PPperCC do
-        insertPPQpos = math.floor(p + 0.5)      
-        if insertPPQpos ~= PPQstart and insertPPQpos ~= PPQend then
-            if laneType == CC7BIT then
-                reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, defaultChannel, clickedLane, insertValue>>7)
-            elseif laneType == PITCH then
-                reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 224, defaultChannel, insertValue&127, insertValue>>7)
-            elseif laneType == CHANPRESSURE then
-                reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 208, defaultChannel, insertValue>>7, 0)
-            else -- laneType == CC14BIT
-                reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, defaultChannel, clickedLane-256, insertValue>>7)
-                reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, defaultChannel, clickedLane-224, insertValue&127)
-            end
+        
+    -------------------------------------------------------------
+    -- Now, draw the new CCs in the time/note selection.  
+    --    The new CCs will be selected, but all other MIDI data
+    --    (except selected notes, if selectionToUse == "notes") 
+    --    will be deselected.  This enables further manipulation
+    --    of the CCs by other scripts.
+    --
+    -- There is not a "lane uder mouse" equivalent of the built-in function
+    --    "Unselect all CC events in last clicked lane".  Therefore is "lane under mouse"
+    --    is used, all MIDI events must be deselected, or a custom deselect function must be coded.
+    
+    if selectionToUse == "time" then
+        if laneToUse == "under mouse" then
+            reaper.MIDI_SelectAll(take, false)
+        else
+            reaper.MIDIEditor_OnCommand(editor, 40669) -- Unselect all CC events in last clicked lane 
         end
+        --reaper.MIDIEditor_OnCommand(editor, 40747) -- Select all CC events in time selection (in last clicked CC lane)
+        --reaper.MIDIEditor_OnCommand(editor, reaper.NamedCommandLookup("_BR_ME_DEL_SE_EVENTS_LAST_LANE")) -- Delete selected events in last clicked lane        
+        time_start = timeSelectStart
+        time_end = timeSelectEnd
+        insertNewCCs(take, reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan"), 
+                           reaper.MIDI_GetPPQPosFromProjTime(take, time_start), 
+                           reaper.MIDI_GetPPQPosFromProjTime(take, time_end))
+    else -- selectionToUse == "notes"
+        -- If "Unselect all CC events in last clicked lane" is used rather than "SelectAll(take, false)"
+        --    then it is not really necessary to store the selected notes in a table before unselecting.
+        local tableSelectedNotes = {}
+        local tempFirstPPQ = math.huge
+        local tempLastPPQ = 0
+        selectedNoteIndex = reaper.MIDI_EnumSelNotes(take, -1)
+        while (selectedNoteIndex ~= -1) do
+            _, _, _, notePPQstart, notePPQend, noteChannel, _, _ = reaper.MIDI_GetNote(take, selectedNoteIndex)
+            table.insert(tableSelectedNotes, {noteIndex = selectedNoteIndex, 
+                                              notePPQstart = notePPQstart, 
+                                              notePPQend = notePPQend, 
+                                              noteChannel = noteChannel})
+            if notePPQstart < tempFirstPPQ then tempFirstPPQ = notePPQstart end
+            if notePPQend > tempLastPPQ then tempLastPPQ = notePPQend end
+            selectedNoteIndex = reaper.MIDI_EnumSelNotes(take, selectedNoteIndex)
+        end
+        time_start = reaper.MIDI_GetProjTimeFromPPQPos(take, tempFirstPPQ)
+        time_end = reaper.MIDI_GetProjTimeFromPPQPos(take, tempLastPPQ)
+        
+        -- Make sure the notes are sorted
+        function sortPPQstart(a,b)
+            if a.notePPQstart < b.notePPQstart then return(true) else return(false) end
+        end
+        table.sort(tableSelectedNotes,sortPPQstart)
+        
+        -- Should all MIDI be unselected, or only the CC events in the last clicked lane?
+        if laneToUse == "under mouse" then
+            reaper.MIDI_SelectAll(take, false)        
+        else
+            reaper.MIDIEditor_OnCommand(editor, 40669) -- Unselect all CC events in last clicked lane 
+        end
+        for i = 1, #tableSelectedNotes do
+            reaper.MIDI_SetNote(take, tableSelectedNotes[i].noteIndex, true, nil, nil, nil, nil, nil, nil, true)
+            insertNewCCs(take, tableSelectedNotes[i].noteChannel, 
+                               tableSelectedNotes[i].notePPQstart, 
+                               tableSelectedNotes[i].notePPQend)
+        end
+
     end
+           
+    reaper.MIDI_Sort(take)
     
     -----------------------------------------------------------
     -- Get indices of the newly inserted CCs and store in table
@@ -1543,34 +1779,38 @@ function newTimeAndCCs()
     tableCCLSB = nil
     tableCC = {}
     tableCCLSB = {}
+    local ppqpos, chanmsg, msg2
     
-    if laneType ~= CC14BIT then -- Since the events in the ramp are the only selected ones in take, no need to check event types
+    -- If "SelectAll(take, false)" was used, the events in the ramp are the only selected 
+    --    ones in take, so no need to check event types.
+    -- But if "Unselect all CC events in last clicked lane" was used, the lane must be checked.
+    if laneType ~= CC14BIT then
         selCCindex = reaper.MIDI_EnumSelCC(take, -1)
         while (selCCindex ~= -1) do
-            _, _, _, ppqpos, _, _, _, _ = reaper.MIDI_GetCC(take, selCCindex)
-            --if (laneType == CC7BIT and chanmsg == 176 and msg2 == clickedLane)
-            --or (laneType == PITCH and chanmsg == 224)
-            --or (laneType == CHANPRESSURE and chanmsg == 208) then
+            _, _, _, ppqpos, chanmsg, _, msg2, _ = reaper.MIDI_GetCC(take, selCCindex)
+            if (laneType == CC7BIT and chanmsg == 176 and msg2 == clickedLane)
+            or (laneType == PITCH and chanmsg == 224)
+            or (laneType == CHANPRESSURE and chanmsg == 208) then
                 table.insert(tableCC, {index = selCCindex,
                                       PPQ = ppqpos})
-            --end
+            end
             selCCindex = reaper.MIDI_EnumSelCC(take, selCCindex)
         end
     else -- When 14-bit CC, must distinguish between MSB and LSB events
         selCCindex = reaper.MIDI_EnumSelCC(take, -1)
         while (selCCindex ~= -1) do
-            _, _, _, ppqpos, _, _, msg2, _ = reaper.MIDI_GetCC(take, selCCindex)
-            if msg2 == clickedLane-256 then
+            _, _, _, ppqpos, chanmsg, _, msg2, _ = reaper.MIDI_GetCC(take, selCCindex)
+            if chanmsg == 176 and msg2 == clickedLane-256 then
                 table.insert(tableCC, {index = selCCindex,
                                        PPQ = ppqpos})
-            else
+            elseif chanmsg == 176 and msg2 == clickedLane-224 then
                 table.insert(tableCCLSB, {index = selCCindex,
                                           PPQ = ppqpos})
             end
             selCCindex = reaper.MIDI_EnumSelCC(take, selCCindex)
         end
         if #tableCC ~= #tableCCLSB then
-            reaper.ShowConsoleMsg("Something went wrong while writing CCs")
+            reaper.ShowConsoleMsg("Something went wrong while writing 14-bit CCs")
             return(false)
         end
     end
@@ -1599,7 +1839,7 @@ constructNewGUI()
 if getSavedCurvesAndNames() ~= false then
     if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
         for i = 1, #savedNames do
-            if savedNames[i] == "default" then
+            if savedNames[i] == defaultCurveName then
                 loadCurve(i)
             end
         end
