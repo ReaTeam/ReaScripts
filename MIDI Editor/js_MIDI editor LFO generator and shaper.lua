@@ -73,7 +73,7 @@
     + New option to draw LFO underneath selected notes, instead of in time selection.
     + New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
     + Esc closes GUI.
-    
+    + More extensive help and error messages.
 ]]
 
 --  USER AREA:
