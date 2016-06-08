@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="81b0283eb48dbb0d5ceb9e2c67ddd2de99be56af" name="ReaTeam Scripts">
+<index version="1" commit="7211142377827197c98a656217c8b16a0d556b46" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -579,6 +579,11 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
       </version>
     </reapack>
+    <reapack name="cfillion_Explode selected tracks to mono tracks.lua" type="script">
+      <version name="1.1" author="cfillion" time="2016-06-08T02:29:31Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/265c009d637beaadf376f715ebeb8c673a591381/Tracks%20Properties/cfillion_Explode%20selected%20tracks%20to%20mono%20tracks.lua</source>
+      </version>
+    </reapack>
     <reapack name="nofish_Dynamic mixer (for use with toolbar button).lua" type="script">
       <version name="1.02" time="2015-12-02T21:24:29Z">
         <changelog><![CDATA[September 30 2015
@@ -669,6 +674,15 @@ nofish:
       <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bab6dccc9dd0e64959a919e193fd33d06eafd4ad/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.2" author="cfillion" time="2016-06-08T03:06:35Z">
+        <changelog><![CDATA[+ enhance formatting of arrays containing nil values
++ implement Delete key
++ implement word movement keys (Shift+Left and Shift+Right)
++ imply the return statement by default
++ limit maximum depth when formatting tables
++ protect against overriding of built-in variables]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/7211142377827197c98a656217c8b16a0d556b46/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script">
