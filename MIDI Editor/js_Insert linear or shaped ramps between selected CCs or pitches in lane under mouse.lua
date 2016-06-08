@@ -3,15 +3,17 @@
  * Description:   Useful for quickly adding ramps between 'nodes'.
  *                Useful for smoothing transitions between CCs that were drawn at low resolution.
  *
- *      The script starts with a dialog box in which the user can set:
+ *                The script starts with a dialog box in which the user can set:
  *                - the CC density, 
  *                - the shape of the ramp (as a linear or power function),
  *                - whether the new events should be selected, and
  *                - whether redundant events (that would duplicate the value of previous event) should be skipped.
  *                (Any extraneous CCs/pitchbend between selected events are deleted)
  *
- * Instructions:  For faster one-click execution, the code for the user input dialog box can be commented out.
- *      Combine with warping script to easily insert all kinds of weird shapes.
+ * Instructions:  For faster one-click execution, skip the dialog box by setting "showDialogBox" to "false" in the USER AREA.
+ *                The default ramp properties can also be defined in the USER AREA.
+ *                Combine with warping script to easily insert all kinds of weird shapes.
+ *
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -19,7 +21,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -28,21 +30,46 @@
 --[[
  Changelog:
  * v1.0 (2016-05-15)
-    + Initial Release
+    + Initial Release.
  * v1.1 (2016-05-18)
-    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
+    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3).
  * v1.11 (2016-05-29)
-    + Script does not fail when "Zoom dependent" CC density is selected in Preferences
+    + Script does not fail when "Zoom dependent" CC density is selected in Preferences.
+ * v1.12 (2016-06-08)
+    + New options in USER AREA to define default shape and/or to skip dialog box.
+    + More extensive error messages.
 ]] 
 
+-- USER AREA
+-- (Settings that the user can customize)
+
+showDialogBox = true -- Should the dialog box be skipped and default values used?  true or false.
+
+verbose = true -- Should error messages be shown in REAPER's console?  true or false.
+
+-- Default values for ramp shape:
+shape = 1 -- Shape of the ramp.  1 => linear.
+skipRedundantCCs = true -- Should redundant CCs be skipped?  true or false.
+newCCsAreSelected = true -- Should the newly inserted CCs be selected?  true or false.
+
+-- NOTE: The script uses the default CC density set in REAPER's Preferences -> MIDI editor -> Events per quarter note when drawing in CC lanes 
+
+
+-- End of USER AREA
+--------------------------------------------------------------------
+
+  
 --------------------------------------------------------------------
 
 function drawRamp7bitCC()  
           
-    tableCC = {}
+    -- All the selected events in the target lane will be stored in this table
+    --    so that their properties can be accessed quicker, and so that they 
+    --    can be re-inserted and selected after drawing the ramp.
+    local tableCC = {}
         
-    eventIndex = reaper.MIDI_EnumSelCC(take, -1)
-    startChannel = false
+    local eventIndex = reaper.MIDI_EnumSelCC(take, -1)
+    local startChannel = false
     while(eventIndex ~= -1) do
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 11 and msg2 == mouseLane then
@@ -104,16 +131,19 @@ function drawRamp7bitCC()
                 -- REAPER will insert CCs on (rounded) integer PPQ values,
                 --     so insertValue must be calculated at round(p).
                 -- But lua does not have round function, so...
-                pRound = math.floor(p+0.5)
+                local pRound = math.floor(p+0.5)
                 
-                -- Calculate the interpolated CC values
-                weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
-                
-                -- If redundant, skip insertion
-                if not (skip == true and insertValue == prevCCvalue) then
-                    reaper.MIDI_InsertCC(take, newSel, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane, insertValue)
-                    prevCCvalue = insertValue
+                -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
+                if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
+                    -- Calculate the interpolated CC values
+                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    
+                    -- If redundant, skip insertion
+                    if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
+                        reaper.MIDI_InsertCC(take, newCCsAreSelected, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane, insertValue)
+                        prevCCvalue = insertValue
+                    end
                 end
                         
             end -- for p = nextGridPPQ, tableCC[i+1].PPQ, PPgrid
@@ -135,10 +165,10 @@ end -- function drawRamp7bitCC
 
 function drawRampChanPressure()  
           
-    tableCC = {}
+    local tableCC = {}
         
-    eventIndex = reaper.MIDI_EnumSelCC(take, -1)
-    startChannel = false
+    local eventIndex = reaper.MIDI_EnumSelCC(take, -1)
+    local startChannel = false
     while(eventIndex ~= -1) do
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 13 then -- MIDI event type = channel pressure
@@ -199,16 +229,19 @@ function drawRampChanPressure()
                 -- REAPER will insert CCs on (rounded) integer PPQ values,
                 --     so insertValue must be calculated at round(p).
                 -- But lua does not have round function, so...
-                pRound = math.floor(p+0.5)
-                
-                -- Calculate the interpolated CC values
-                weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
-                
-                -- If redundant, skip insertion
-                if not (skip == true and insertValue == prevCCvalue) then
-                    reaper.MIDI_InsertCC(take, newSel, tableCC[i].muted, pRound, 13<<4, startChannel, insertValue, 0)
-                    prevCCvalue = insertValue
+                local pRound = math.floor(p+0.5)
+
+                -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
+                if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
+                    -- Calculate the interpolated CC values
+                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    
+                    -- If redundant, skip insertion
+                    if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
+                        reaper.MIDI_InsertCC(take, newCCsAreSelected, tableCC[i].muted, pRound, 13<<4, startChannel, insertValue, 0)
+                        prevCCvalue = insertValue
+                    end
                 end
                         
             end -- for p = nextGridPPQ, tableCC[i+1].PPQ, PPgrid
@@ -230,10 +263,10 @@ end -- function drawRampChanPressure
 
 function drawRampPitch()  
           
-    tableCC = {}
+    local tableCC = {}
         
-    eventIndex = reaper.MIDI_EnumSelCC(take, -1)
-    startChannel = false
+    local eventIndex = reaper.MIDI_EnumSelCC(take, -1)
+    local startChannel = false
     while(eventIndex ~= -1) do
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 14 then
@@ -293,16 +326,19 @@ function drawRampPitch()
                 -- REAPER will insert CCs on (rounded) integer PPQ values,
                 --     so insertValue must be calculated at round(p).
                 -- But lua does not have round function, so...
-                pRound = math.floor(p+0.5)
+                local pRound = math.floor(p+0.5)
                 
-                -- Calculate the interpolated CC values
-                weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
-                
-                -- If redundant, skip insertion
-                if not (skip == true and insertValue == prevCCvalue) then
-                    reaper.MIDI_InsertCC(take, newSel, tableCC[i].muted, pRound, 14<<4, startChannel, insertValue&127, insertValue>>7)
-                    prevCCvalue = insertValue
+                -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
+                if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
+                    -- Calculate the interpolated CC values
+                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    
+                    -- If redundant, skip insertion
+                    if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
+                        reaper.MIDI_InsertCC(take, newCCsAreSelected, tableCC[i].muted, pRound, 14<<4, startChannel, insertValue&127, insertValue>>7)
+                        prevCCvalue = insertValue
+                    end
                 end
                               
             end -- for p = nextGridPPQ, tableCC[i+1].PPQ, PPgrid
@@ -323,18 +359,16 @@ end -- function drawRampPitch
 --------------------------------------------------------------------
 
 function drawRamp14bitCC()  
-          
-    tableCC = {}
-        
+                  
     -- All selected events in the MSB and LSB lanes will be stored in 
     --     separate temporary tables.  These tables will then be searched to
     --     find the LSB and MSB events that fall on the same ppq, 
     --     which means that they combine to form one 14-bit CC event.
-    tempTableLSB = {}
-    tempTableMSB = {}
-    tableCC = {}
+    local tempTableLSB = {}
+    local tempTableMSB = {}
+    local tableCC = {}
         
-    eventIndex = reaper.MIDI_EnumSelCC(take, -1)
+    local eventIndex = reaper.MIDI_EnumSelCC(take, -1)
   
     while(eventIndex ~= -1) do
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
@@ -417,17 +451,20 @@ function drawRamp14bitCC()
                 -- REAPER will insert CCs on (rounded) integer PPQ values,
                 --     so insertValue must be calculated at round(p).
                 -- But lua does not have round function, so...
-                pRound = math.floor(p+0.5)
+                local pRound = math.floor(p+0.5)
                 
-                -- Calculate the interpolated CC values
-                weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
-                
-                -- If redundant, skip insertion
-                if not (skip == true and insertValue == prevCCvalue) then
-                    reaper.MIDI_InsertCC(take, newSel, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane-256, insertValue>>7)
-                    reaper.MIDI_InsertCC(take, newSel, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane-224, insertValue&127)
-                    prevCCvalue = insertValue
+                -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
+                if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
+                    -- Calculate the interpolated CC values
+                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    
+                    -- If redundant, skip insertion
+                    if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
+                        reaper.MIDI_InsertCC(take, newCCsAreSelected, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane-256, insertValue>>7)
+                        reaper.MIDI_InsertCC(take, newCCsAreSelected, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane-224, insertValue&127)
+                        prevCCvalue = insertValue
+                    end
                 end
                         
             end -- for p = nextGridPPQ, tableCC[i+1].PPQ, PPgrid
@@ -446,6 +483,18 @@ end -- function drawRamp14bitCC
 -------------------------------
 
 
+-------------------------------
+function showErrorMsg(errorMsg)
+    if verbose == true and type(errorMsg) == "string" then
+        reaper.ShowConsoleMsg("\n\nERROR:\n" 
+                              .. errorMsg 
+                              .. "\n\n"
+                              .. "(To prevent future error messages, set 'verbose' to 'false' in the USER AREA near the beginning of the script.)"
+                              .. "\n\n")
+    end
+end -- showErrorMsg(errorMsg)
+
+
 ---------------------------------------------------------------------
 -- Here the code execustion starts
 ---------------------------------------------------------------------
@@ -456,11 +505,27 @@ function noUndo()
 end
 reaper.defer(noUndo)
 
+-- Test whether user customizable variables are usable
+if type(verbose) ~= "boolean" then 
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' of 'false'.\n") return(false) end
+if type(shape) ~= "number" or shape <= 0 then 
+    reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "shape" must be a number larger than 0.\n') return(false) end
+if type(skipRedundantCCs) ~= "boolean" then 
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'skipRedundantCCs' must be either 'true' of 'false'.\n") return(false) end
+if type(newCCsAreSelected) ~= "boolean" then
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'newCCsAreSelected' must be either 'true' of 'false'.\n") return(false) end
+if type(showDialogBox) ~= "boolean" then
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'showDialogBox' must be either 'true' of 'false'.\n") return(false) end
+    
+
 -- Test whether mouse is in MIDI editor
-take = reaper.MIDIEditor_GetTake(reaper.MIDIEditor_GetActive())
-if take == nil then return(0) end
+editor = reaper.MIDIEditor_GetActive()
+if editor == nil then showErrorMsg("No active MIDI editor found.") return(false) end
+take = reaper.MIDIEditor_GetTake(editor)
+if take == nil then showErrorMsg("No active take found in MIDI editor.") return(false) end
 _, _, details = reaper.BR_GetMouseCursorContext()
-if details ~= "cc_lane" then return(0) end
+if details ~= "cc_lane" and details ~= "cc_selector" then showErrorMsg("The mouse should be positioned over a CC lane in a MIDI editor.")
+    return(false) end
 
 -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
 -- https://github.com/Jeff0S/sws/issues/783
@@ -469,8 +534,8 @@ _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
 if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
 if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
 if SWS283 ~= SWS283again then
-    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
-    return(0)
+    reaper.ShowConsoleMsg("ERROR: \nCould not determine compatible SWS version.\n")
+    return(false)
 end
 
 if SWS283 == true then
@@ -482,60 +547,64 @@ end
 -- If mouse is not in lane that can be ramped, no need to ask user inputs,
 --     so quit right here
 if not ((0 <= mouseLane and mouseLane <= 127) 
-     or (256 <= mouseLane and mouseLane <= 287)
-     or mouseLane == 0x203 or mouseLane == 0x201)
-     then return(0) end
+        or (256 <= mouseLane and mouseLane <= 287)
+        or mouseLane == 0x203 or mouseLane == 0x201)
+        then 
+        showErrorMsg("The mouse should be positioned over a CC lane in which ramps can be drawn: 7-bit CC, 14-bit CC, pitchwheel or channel pressure.")
+        return(false) 
+end
       
-density = reaper.SNM_GetIntConfigVar("midiCCdensity", 64) -- Get the default grid resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC"
+density = reaper.SNM_GetIntConfigVar("midiCCdensity", 64) -- Get the default grid resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
 density = math.floor(math.max(4, math.min(128, math.abs(density))))
-shape = 1
-skip = true
-newSel = true
+
 
 -------------------------------------------------------------
 -- Get user inputs
 -- If user inputs are not needed each time the script is run,
 --     simply comment out this section.
+if showDialogBox == true then
 
-descriptionsCSVstring = "Events per QN (integer):,Shape (>0, 1=linear):,Skip redundant CCs? (y/n),New CCs selected? (y/n)"
-if skip then skipStr = "y" else skipStr = "n" end
-if newSel then newSelStr = "y" else newSelStr = "n" end
-defaultsCSVstring = tostring(density) .. "," .. tostring(shape) .. "," .. skipStr .. "," .. newSelStr
-
--- Repeat getUserInputs until we get usable inputs
-gotUserInputs = false
-while gotUserInputs == false do
-    retval, userInputsCSV = reaper.GetUserInputs("Draw shaped ramps between selected CCs", 4, descriptionsCSVstring, defaultsCSVstring)
-    if retval == false then
-        return(0)
-    else
-        density, shape, skip, newSel = userInputsCSV:match("([^,]+),([^,]+),([^,]+),([^,]+)")
-        
-        gotUserInputs = true -- temporary, will be changed to fasle if anything is wrong
-        
-        density = tonumber(density) 
-        if density == nil then gotUserInputs = false
-        elseif density ~= math.floor(density) then gotUserInputs = false 
-        end
-        
-        shape = tonumber(shape)
-        if shape == nil then gotUserInputs = false 
-        elseif shape <= 0 then gotUserInputs = false 
-        end
-        
-        if skip == "y" or skip == "Y" then skip = true
-        elseif skip == "n" or skip == "N" then skip = false
-        else gotUserInputs = false
-        end
-        
-        if newSel == "y" or newSel == "Y" then newSel = true
-        elseif newSel == "n" or newSel == "N" then newSel = false
-        else gotUserInputs = false
-        end 
-        
-    end -- if retval == 
+    descriptionsCSVstring = "Events per QN (integer>0):,Shape (>0, 1=linear):,Skip redundant CCs? (y/n),New CCs selected? (y/n)"
+    if skipRedundantCCs then skipStr = "y" else skipStr = "n" end
+    if newCCsAreSelected then newSelStr = "y" else newSelStr = "n" end
+    defaultsCSVstring = tostring(density) .. "," .. tostring(shape) .. "," .. skipStr .. "," .. newSelStr
     
-end -- while gotUserInputs == false
+    -- Repeat getUserInputs until we get usable inputs
+    gotUserInputs = false
+    while gotUserInputs == false do
+        retval, userInputsCSV = reaper.GetUserInputs("Draw shaped ramps between selected CCs", 4, descriptionsCSVstring, defaultsCSVstring)
+        if retval == false then
+            return(0)
+        else
+            density, shape, skipRedundantCCs, newCCsAreSelected = userInputsCSV:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+            
+            gotUserInputs = true -- temporary, will be changed to false if anything is wrong
+            
+            density = tonumber(density) 
+            if density == nil then gotUserInputs = false
+            elseif density ~= math.floor(density) or density <= 0 then gotUserInputs = false 
+            end
+            
+            shape = tonumber(shape)
+            if shape == nil then gotUserInputs = false 
+            elseif shape <= 0 then gotUserInputs = false 
+            end
+            
+            if skipRedundantCCs == "y" or skipRedundantCCs == "Y" then skipRedundantCCs = true
+            elseif skipRedundantCCs == "n" or skipRedundantCCs == "N" then skipRedundantCCs = false
+            else gotUserInputs = false
+            end
+            
+            if newCCsAreSelected == "y" or newCCsAreSelected == "Y" then newCCsAreSelected = true
+            elseif newCCsAreSelected == "n" or newCCsAreSelected == "N" then newCCsAreSelected = false
+            else gotUserInputs = false
+            end 
+            
+        end -- if retval == 
+        
+    end -- while gotUserInputs == false
+
+end -- if showDialogBox == true
 
 -- End of user inputs section
 -----------------------------
@@ -552,19 +621,19 @@ QNgrid = 1/density -- Quarter notes per event
 if 0 <= mouseLane and mouseLane <= 127 then -- CC, 7 bit (single lane)
     drawRamp7bitCC()
     reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Draw shaped ramps between selected events: 7-bit CC lane "
+    reaper.Undo_OnStateChange("Insert ramps between selected events: 7-bit CC lane "
                               .. tostring(mouseLane))
 elseif mouseLane == 0x203 then -- Channel pressure
     drawRampChanPressure()
     reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Draw shaped ramps between selected events: Channel pressure")
+    reaper.Undo_OnStateChange("Insert ramps between selected events: Channel pressure")
 elseif 256 <= mouseLane and mouseLane <= 287 then -- CC, 14 bit (double lane)
     drawRamp14bitCC()
     reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Draw shaped ramps between selected events: 14-bit CC lanes "
+    reaper.Undo_OnStateChange("Insert ramps between selected events: 14-bit CC lanes "
                               .. tostring(mouseLane-256) .. "/" .. tostring(mouseLane-224))
 elseif mouseLane == 0x201 then
     drawRampPitch()
     reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Draw shaped ramps between selected events: Pitchwheel")
+    reaper.Undo_OnStateChange("Insert ramps between selected events: Pitchwheel")
 end
