@@ -1,16 +1,25 @@
--- @version 0.1
+-- @version 0.2
 -- @author cfillion
 -- @changelog
---   Initial release
+--   + enhance formatting of arrays containing nil values
+--   + implement Delete key
+--   + implement word movement keys (Shift+Left and Shift+Right)
+--   + imply the return statement by default
+--   + limit maximum depth when formatting tables
+--   + protect against overriding of built-in variables
 --
--- Send patches to the original repository at <https://github.com/cfillion/reascripts>
+-- Send patches at <https://github.com/cfillion/reascripts>.
+
+local string, table, math, os, reaper, gfx = string, table, math, os, reaper, gfx
+local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs
 
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v1.0 by cfillion',
+  BANNER = 'Interactive ReaScript v0.2 by cfillion',
   MARGIN = 3,
   MAXLINES = 1024,
+  MAXDEPTH = 3,
   INDENT = 2,
   INDENT_THRESHOLD = 5,
   PROMPT = '> ',
@@ -34,13 +43,12 @@ local ireascript = {
   FONT_NORMAL = 1,
   FONT_BOLD = 2,
 
-  EXT_SECTION = 'cfillion_ireascripts',
-
   KEY_BACKSPACE = 8,
   KEY_CLEAR = 144,
   KEY_CTRLD = 4,
   KEY_CTRLL = 12,
   KEY_CTRLU = 21,
+  KEY_DELETE = 6579564,
   KEY_DOWN = 1685026670,
   KEY_END = 6647396,
   KEY_ENTER = 13,
@@ -111,7 +119,7 @@ function ireascript.reset(banner)
 
   if banner then
     ireascript.resetFormat()
-    ireascript.push('Interactive ReaScript v0.1 by cfillion')
+    ireascript.push(ireascript.BANNER)
     ireascript.nl()
     ireascript.push("Type Lua code or .help")
     ireascript.nl()
@@ -138,6 +146,11 @@ function ireascript.keyboard()
     ireascript.input = string.sub(before, 0, -2) .. after
     ireascript.moveCursor(ireascript.cursor - 1)
     ireascript.prompt()
+  elseif char == ireascript.KEY_DELETE then
+    local before, after = ireascript.splitInput()
+    ireascript.input = before .. string.sub(after, 2)
+    ireascript.scrollTo(0)
+    ireascript.prompt()
   elseif char == ireascript.KEY_CLEAR then
     ireascript.input = ''
     ireascript.moveCursor(0)
@@ -163,9 +176,28 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_HOME then
     ireascript.moveCursor(0)
   elseif char == ireascript.KEY_LEFT then
-    ireascript.moveCursor(ireascript.cursor - 1)
+    local pos
+
+    if gfx.mouse_cap & 8 == 8 then
+      local length = ireascript.input:len()
+      pos = length - ireascript.nextBoundary(ireascript.input:reverse(),
+        length - ireascript.cursor + 1)
+      if pos > 0 then pos = pos + 1 end
+    else
+      pos = ireascript.cursor - 1
+    end
+
+    ireascript.moveCursor(pos)
   elseif char == ireascript.KEY_RIGHT then
-    ireascript.moveCursor(ireascript.cursor + 1)
+    local pos
+
+    if gfx.mouse_cap & 8 == 8 then
+      pos = ireascript.nextBoundary(ireascript.input, ireascript.cursor)
+    else
+      pos = ireascript.cursor + 1
+    end
+
+    ireascript.moveCursor(pos)
   elseif char == ireascript.KEY_END then
     ireascript.moveCursor(ireascript.input:len())
   elseif char == ireascript.KEY_UP then
@@ -180,6 +212,16 @@ function ireascript.keyboard()
   end
 
   return true
+end
+
+function ireascript.nextBoundary(input, from)
+  local boundary = input:find('%W%w', from + 1)
+
+  if boundary then
+    return boundary
+  else
+    return input:len()
+  end
 end
 
 function ireascript.draw()
@@ -507,13 +549,11 @@ function ireascript.eval()
       ireascript.push(string.format("command not found: '%s'", name))
     end
   elseif ireascript.input:len() > 0 then
-    local _, err = pcall(function()
-      ireascript.lua(ireascript.input)
-    end)
+    local err = ireascript.lua(ireascript.input)
 
     if err then
       ireascript.errorFormat()
-      ireascript.push(ireascript.makeError(err))
+      ireascript.push(err)
     else
       reaper.TrackList_AdjustWindows(false)
       reaper.UpdateArrange()
@@ -525,19 +565,33 @@ function ireascript.eval()
 end
 
 function ireascript.lua(code)
-  local func, err = load(code, 'eval')
+  local scope = 'eval' -- arbitrary value to have consistent error messages
 
-  if err then
-    ireascript.errorFormat()
-    ireascript.push(ireascript.makeError(err))
-  else
-    local values = {func()}
+  local ok, values = xpcall(function()
+    local func, err = load('return ' .. code, scope)
 
+    if not func then
+      -- hack: reparse without the implicit return
+      func, err = load(code, scope)
+    end
+
+    if func then
+      return {func()}
+    else
+      error(err, 2)
+    end
+  end, function(err)
+    return err
+  end)
+
+  if ok then
     if #values <= 1 then
       ireascript.format(values[1])
     else
       ireascript.format(values)
     end
+  else
+    return values:sub(20)
   end
 end
 
@@ -547,21 +601,36 @@ function ireascript.format(value)
   local t = type(value)
 
   if t == 'table' then
-    local i, array = 1, #value > 0
+    local i, array, last = 0, #value > 0, 0
 
     for k,v in pairs(value) do
-      if k ~= i then
+      if tonumber(k) then
+        i = i + (k - last) - 1
+        last = k
+      else
         array = false
       end
 
       i = i + 1
     end
 
+    if ireascript.flevel == nil then
+      ireascript.flevel = 1
+    elseif ireascript.flevel >= ireascript.MAXDEPTH then
+      ireascript.errorFormat()
+      ireascript.push('...')
+      return
+    else
+      ireascript.flevel = ireascript.flevel + 1
+    end
+
     if array then
-      ireascript.formatArray(value)
+      ireascript.formatArray(value, i)
     else
       ireascript.formatTable(value, i)
     end
+
+    ireascript.flevel = ireascript.flevel - 1
 
     return
   elseif value == nil then
@@ -581,11 +650,11 @@ function ireascript.format(value)
   ireascript.push(tostring(value))
 end
 
-function ireascript.formatArray(value)
-  local i = 1
-
+function ireascript.formatArray(value, size)
   ireascript.push('[')
-  for k,v in ipairs(value) do
+
+  for i=1,size do
+    local v = value[i]
     if i > 1 then
       ireascript.resetFormat()
       ireascript.push(', ')
@@ -594,6 +663,7 @@ function ireascript.formatArray(value)
     ireascript.format(v)
     i = i + 1
   end
+
   ireascript.resetFormat()
   ireascript.push(']')
 end
@@ -654,10 +724,6 @@ function ireascript.splitInput()
   local before = ireascript.input:sub(0, ireascript.cursor)
   local after = ireascript.input:sub(ireascript.cursor + 1)
   return before, after
-end
-
-function ireascript.makeError(err)
-  return err:sub(20)
 end
 
 function ireascript.useFont(font)
