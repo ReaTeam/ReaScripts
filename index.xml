@@ -803,6 +803,9 @@ cfillion
  ({\field{\*\fldinst{HYPERLINK "http://cfillion.tk"}}{\fldrslt{\ul
 website
 }}}
+, {\field{\*\fldinst{HYPERLINK "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T3DEWBQJAV7WL&lc=CA&item_name=ReaScripts&no_note=0&cn=Custom%20message&no_shipping=1&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"}}{\fldrslt{\ul
+donate
+}}}
 )\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=9328"}}{\fldrslt{\ul
 gofer
@@ -862,6 +865,7 @@ donate
     <link rel="website" href="http://forum.cockos.com/member.php?u=6549">planetnine</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=49553">spk77</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=58284">X-Raym</link>
+    <link rel="donation" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=T3DEWBQJAV7WL&amp;lc=CA&amp;item_name=ReaScripts&amp;no_note=0&amp;cn=Custom%20message&amp;no_shipping=1&amp;currency_code=CAD&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted">Donate to cfillion</link>
     <link rel="donation" href="https://www.paypal.me/donate2mpl">Donate to mpl</link>
     <link rel="donation" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=5NUK834ZGR5NU&amp;lc=FI&amp;item_name=SPK77%20scripts%20for%20REAPER&amp;currency_code=EUR&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted">Donate to spk77</link>
     <link rel="donation" href="http://www.extremraym.com/en/donation/">Donate to X-Raym</link>
