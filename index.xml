@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="473915a806cd9cb6e9e5ad075c8ba9f1b54fea7c" name="ReaTeam Scripts">
+<index version="1" commit="81b0283eb48dbb0d5ceb9e2c67ddd2de99be56af" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -363,6 +363,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bc8f3c2d8d4ba4ff74c7ae0d01853a60c46cfdf/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
       </version>
+      <version name="1.01" author="juliansader" time="2016-06-07T11:50:56Z">
+        <changelog><![CDATA[+ CC events at rightmost PPQ of time selection are deselected]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9c93670e93836044d657ae2ba5ecde5854ee67f0/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time, chasing start values.lua" type="script">
       <version name="1.11" author="juliansader" time="2016-05-29T18:38:36Z">
@@ -395,6 +399,12 @@ added support for all track envelopes]]></changelog>
       <version name="0.991" author="Xenakios (modded by juliansader)" time="2016-05-29T18:37:54Z">
         <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bb3ac2dba0f9d66f85638c4227e5b9f877e8bb6/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.995" author="Xenakios (modded by juliansader)" time="2016-06-07T12:07:18Z">
+        <changelog><![CDATA[+ New option to draw LFO underneath selected notes, instead of in time selection.
++ New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
++ Esc closes GUI.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c97f0001f7a10abc758530e74295c06dfc829982/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
