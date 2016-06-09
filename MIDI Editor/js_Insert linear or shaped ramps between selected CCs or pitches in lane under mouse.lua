@@ -74,7 +74,7 @@ function drawRamp7bitCC()
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 11 and msg2 == mouseLane then
             if startChannel ~= false and startChannel ~= chan then
-                reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
+                reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
                 return(0)
             else
             startChannel = chan
@@ -173,7 +173,7 @@ function drawRampChanPressure()
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 13 then -- MIDI event type = channel pressure
             if startChannel ~= false and startChannel ~= chan then
-                reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
+                reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
                 return(0)
             else
             startChannel = chan
@@ -271,7 +271,7 @@ function drawRampPitch()
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 14 then
             if startChannel ~= false and startChannel ~= chan then
-                reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
+                reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
                 return(0)
             else
             startChannel = chan
@@ -393,7 +393,7 @@ function drawRamp14bitCC()
         for m = 1, #tempTableMSB do
             if tempTableLSB[l].PPQ == tempTableMSB[m].PPQ and tempTableLSB[l].channel == tempTableMSB[m].channel then
                 if startChannel ~= false and startChannel ~= tempTableLSB[l].channel then
-                    reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
+                    reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
                     return(0)
                 else
                 startChannel = tempTableLSB[l].channel
@@ -507,15 +507,15 @@ reaper.defer(noUndo)
 
 -- Test whether user customizable variables are usable
 if type(verbose) ~= "boolean" then 
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' of 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' or 'false'.\n") return(false) end
 if type(shape) ~= "number" or shape <= 0 then 
     reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "shape" must be a number larger than 0.\n') return(false) end
 if type(skipRedundantCCs) ~= "boolean" then 
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'skipRedundantCCs' must be either 'true' of 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'skipRedundantCCs' must be either 'true' or 'false'.\n") return(false) end
 if type(newCCsAreSelected) ~= "boolean" then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'newCCsAreSelected' must be either 'true' of 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'newCCsAreSelected' must be either 'true' or 'false'.\n") return(false) end
 if type(showDialogBox) ~= "boolean" then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'showDialogBox' must be either 'true' of 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'showDialogBox' must be either 'true' or 'false'.\n") return(false) end
     
 
 -- Test whether mouse is in MIDI editor
