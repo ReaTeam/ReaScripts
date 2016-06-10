@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7211142377827197c98a656217c8b16a0d556b46" name="ReaTeam Scripts">
+<index version="1" commit="8c84f3365a3fa183cc1e6c0e04f447ec4e1ab46c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -394,6 +394,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/53559a80d633845b1c3b4a672fd4b261e7a0a306/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="1.12" author="juliansader" time="2016-06-08T21:47:58Z">
+        <changelog><![CDATA[+ New options in USER AREA to define default shape and/or to skip dialog box.
++ More extensive error messages.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/040b530f3f090a97fbf99ff2458ceb500caea1e8/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_MIDI editor LFO generator and shaper.lua" type="script">
       <version name="0.991" author="Xenakios (modded by juliansader)" time="2016-05-29T18:37:54Z">
@@ -405,6 +410,12 @@ added support for all track envelopes]]></changelog>
 + New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
 + Esc closes GUI.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c97f0001f7a10abc758530e74295c06dfc829982/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Remove redundant CCs.lua" type="script">
+      <version name="0.9" author="juliansader" time="2016-06-09T07:58:09Z">
+        <changelog><![CDATA[+ Initial release.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/12e39007760f480b581e0461323088d0a912c113/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
@@ -797,9 +808,12 @@ nofish:
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaTeam Script Repository\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Community-maintained collection of scripts for REAPER\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/ReaScripts"}}{\fldrslt{\ul
-https://github.com/ReaTeam/ReaScripts
+{\pard \ql \f0 \sa180 \li0 \fi0 Community-maintained collection of scripts for {\field{\*\fldinst{HYPERLINK "http://www.reaper.fm"}}{\fldrslt{\ul
+REAPER
+}}}
+ Digital Audio Workstation.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://travis-ci.org/ReaTeam/ReaScripts"}}{\fldrslt{\ul
+{\cf1 [image: https://travis-ci.org/ReaTeam/ReaScripts.svg?branch=master]\cf0}
 }}}
 \par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributors\par}
@@ -868,6 +882,96 @@ website
 donate
 }}}
 )\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaTeam ReaScripts is compatible with cfillion's {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack"}}{\fldrslt{\ul
+ReaPack
+}}}
+ package manager for REAPER.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This repo is already registered in ReaPack, but if you need to reinstall it manually:\line Copy and paste this URL in Extensions > ReaPack > Import a repository:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Talk about this repository and ReaTeam in this thread on the REAPER forums:\line http://forum.cockos.com/showthread.php?t=169127\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Fork this repository, add your scripts in an appropriate category (directory) and send us a pull request.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation"}}{\fldrslt{\ul
+Packaging Documentation
+}}}
+\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Other ReaScripts/JSFX Repositories\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaTeam Repo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/JSFX"}}{\fldrslt{\ul
+ReaTeam/JSFX
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 ReaTeam members individual repositories\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These repos are nativelly registred in ReaPack.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/X-Raym/REAPER-ReaScripts"}}{\fldrslt{\ul
+X-Raym/REAPER-ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts"}}{\fldrslt{\ul
+mpl/ReaScripts
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Non-ReaTeam ReaPack compatible repositories\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/chtammik/chtammik_Reaper_Scripts"}}{\fldrslt{\ul
+chtammik/chtammik_Reaper_Scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/kawaCat/ReaScript-MidiPack"}}{\fldrslt{\ul
+kawaCat/ReaScript-MidiPack
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/EUGEN27771/ReaScripts"}}{\fldrslt{\ul
+EUGEN27771/ReaScripts
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Non-ReaTeam Non-ReaPack compatible repositories\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/actonDev/Reaper-Scripts"}}{\fldrslt{\ul
+actonDev/Reaper-Scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/belangeo/cookdsp"}}{\fldrslt{\ul
+belangeo/cookdsp
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/GoranKovac/ReaScripts"}}{\fldrslt{\ul
+GoranKovac/ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/indiscipline/reaper_scripts"}}{\fldrslt{\ul
+indiscipline/reaper_scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/kronihias/ambix"}}{\fldrslt{\ul
+kronihias/ambix
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Lazzle/ReaMIDI"}}{\fldrslt{\ul
+Lazzle/ReaMIDI
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/lossius/js-plugins"}}{\fldrslt{\ul
+lossius/js-plugins
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/me2beats/rea-me2"}}{\fldrslt{\ul
+me2beats/rea-me2
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelKlier/KolorEyesOSCSync"}}{\fldrslt{\ul
+MichaelKlier/KolorEyesOSCSync
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/nofishonfriday/ReaScripts"}}{\fldrslt{\ul
+nofishonfriday/ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/przemoc/REAPER-ReaScripts"}}{\fldrslt{\ul
+przemoc/REAPER-ReaScripts
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you want your repo to appear on this list, simply edit this file and send a pull request.\par}
 }
 ]]></description>
     <link rel="website" href="http://forum.cockos.com/member.php?u=7973">Argitoth</link>
