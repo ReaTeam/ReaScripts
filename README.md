@@ -38,7 +38,7 @@ http://forum.cockos.com/showthread.php?t=169127
 
 Fork this repository, add your scripts in an appropriate category (directory)
 and send us a pull request.
-
+[ReaPack indexer wiki](https://github.com/cfillion/reapack-index/wiki)
 [Packaging Documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation)
 
 ## Other ReaScripts/JSFX Repositories
@@ -54,13 +54,13 @@ These repos are nativelly registred in ReaPack.
 - [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts)
 - [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts)
 
-### Non-ReaTeam ReaPack compatible repositories
+### Other ReaPack compatible repositories
 
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [kawaCat/ReaScript-MidiPack](https://github.com/kawaCat/ReaScript-MidiPack)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 
-### Non-ReaTeam Non-ReaPack compatible repositories
+### Other repositories not compatible with ReaPack yet
 
 - [actonDev/Reaper-Scripts](https://github.com/actonDev/Reaper-Scripts)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
