@@ -2,7 +2,6 @@
 
 Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Digital Audio Workstation.
 
-[![Build Status](https://travis-ci.org/ReaTeam/ReaScripts.svg?branch=master)](https://travis-ci.org/ReaTeam/ReaScripts)
 
 ## Contributors
 
@@ -21,41 +20,30 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 ## Installation
 
 ReaTeam ReaScripts is compatible with cfillion's [ReaPack](https://github.com/cfillion/reapack) package manager for REAPER.
-
-This repo is already registered in ReaPack, but if you need to reinstall it manually:  
-Copy and paste this URL in Extensions > ReaPack > Import a repository:
-
-```
-https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
-```
+[How to install ReaPack](https://github.com/cfillion/reapack/wiki) 
 
 ## Discussing
 
 Talk about this repository and ReaTeam in this thread on the REAPER forums:  
-http://forum.cockos.com/showthread.php?t=169127
+- [Developing thread](http://forum.cockos.com/showthread.php?t=169127)
 
 ## Contributing
 
 Fork this repository, add your scripts in an appropriate category (directory)
 and send us a pull request.
-[ReaPack indexer wiki](https://github.com/cfillion/reapack-index/wiki)
-[Packaging Documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation)
+- [ReaPack indexer wiki](https://github.com/cfillion/reapack-index/wiki)
+- [Packaging Documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation)
 
-## Other ReaScripts/JSFX Repositories
 
-### Other ReaTeam Repo
+### ReaTeam Repositories
 
 - [ReaTeam/JSFX](https://github.com/ReaTeam/JSFX)
-
-### ReaTeam members individual repositories
-
-These repos are nativelly registred in ReaPack.
-
-- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts)
-- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts)
+- [Reateam/ReaScripts-Templates](https://github.com/ReaTeam/ReaScripts-Templates)
 
 ### Other ReaPack compatible repositories
 
+- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts) (nativelly registred in ReaPack)
+- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (nativelly registred in ReaPack)
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [kawaCat/ReaScript-MidiPack](https://github.com/kawaCat/ReaScript-MidiPack)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
