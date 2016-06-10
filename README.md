@@ -42,8 +42,8 @@ and send us a pull request.
 
 ### Other ReaPack compatible repositories
 
-- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts) (nativelly registred in ReaPack)
-- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (nativelly registred in ReaPack)
+- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts) (natively registered in ReaPack)
+- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (natively registered in ReaPack)
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [kawaCat/ReaScript-MidiPack](https://github.com/kawaCat/ReaScript-MidiPack)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
