@@ -18,9 +18,15 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 - [X-Raym](http://forum.cockos.com/member.php?u=58284) ([website](http://extremraym.com/), [donate](http://www.extremraym.com/en/donation/))
 
 ## Installation
-
 ReaTeam ReaScripts is compatible with cfillion's [ReaPack](https://github.com/cfillion/reapack) package manager for REAPER.
-[How to install ReaPack](https://github.com/cfillion/reapack/wiki) 
+- This repo is already registered in ReaPack, but if you need to reinstall it manually,
+Copy and paste this URL in Extensions > ReaPack > Import a repository:
+ 
+```
+https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
+```
+
+- [ReaPack installation instructions](https://github.com/cfillion/reapack/wiki) 
 
 ## Discussing
 
