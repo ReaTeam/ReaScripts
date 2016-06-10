@@ -58,12 +58,12 @@ These repos are nativelly registred in ReaPack.
 
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [kawaCat/ReaScript-MidiPack](https://github.com/kawaCat/ReaScript-MidiPack)
+- [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 
 ### Non-ReaTeam Non-ReaPack compatible repositories
 
 - [actonDev/Reaper-Scripts](https://github.com/actonDev/Reaper-Scripts)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
-- [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
 - [kronihias/ambix](https://github.com/kronihias/ambix)
