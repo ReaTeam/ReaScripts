@@ -30,6 +30,7 @@
  Changelog:
  * v1.60 (2016-06-11)
     + fixed colour swatch reset
+    + changed default preset
 ]]
 
 -- /////////Basic Config Start////////////////////////////////
