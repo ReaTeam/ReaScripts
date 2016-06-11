@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9825343942e134559aa4bbece362a368d07bd2df" name="ReaTeam Scripts">
+<index version="1" commit="a1a1e3a609c4d48260b32aad305f7d2bd6933de3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -705,6 +705,12 @@ nofish:
     </reapack>
   </category>
   <category name="Various">
+    <reapack name="Airon_Colour Swatch.lua" type="script">
+      <version name="1.60" author="Airon" time="2016-06-11T18:15:59Z">
+        <changelog><![CDATA[+ fixed colour swatch reset]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/08415ae25592c9caa2463d4dd04c376563d1f42f/Various/Airon_Colour%20Swatch.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script">
       <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
         <changelog><![CDATA[Initial release]]></changelog>
