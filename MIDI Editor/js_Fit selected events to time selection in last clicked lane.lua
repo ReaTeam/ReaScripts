@@ -2,6 +2,9 @@
  * ReaScript Name:  Fit selected events in last clicked lane to time selection
  * Description:  Move and stretch selected events (notes, CCs, pitchwheel, sysex, etc) to fit precisely into time selection.
  *               The script only affects events in the MIDI editor lane that has been clicked last.
+ *               The script is particularly useful for precisely positioning CC curves underneath notes (after running
+ *                    "Edit: Set time selection to selected notes").
+ *
  * Instructions:  The script can be linked to a shortcut key or a menu button, or it can be included in the 
  *                    CC lane context menu.
  *                In the script's USER AREA (below the Changelog), the user can customize the following settings:
@@ -22,6 +25,9 @@
  *
  *                Note that the "Stretch events" script can be used to further tweak the positions of the events.
  *
+ *                WARNING: Moving notes onto existing notes in the time selection may confuse REAPER, 
+ *                    leading to artefacts such as endless notes.
+ *
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -34,7 +40,6 @@
  * Extensions: SWS/S&M 2.8.3
 ]]
  
-
 --[[
  Changelog:
  * v1.0 (2016-06-11)
