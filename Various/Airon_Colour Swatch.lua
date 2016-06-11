@@ -31,7 +31,7 @@
  * v1.60 (2016-06-11)
     + fixed colour swatch reset
     + changed default preset
-]]
+--]]
 
 -- /////////Basic Config Start////////////////////////////////
 dbug_flag = 0 -- set to 0 for no debugging messages, 1 to get them
