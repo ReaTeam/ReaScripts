@@ -10,7 +10,7 @@
  *               
  *               HINT: The following two scripts are useful for setting up the track names of MIDI files:
  *                  "X-Raym_Rename tracks with first VSTi and its preset name.lua"
- *                  "spk77_Rename MIDI tracks.eel"
+ *                  "spk77_Rename tracks after first program change (for General MIDI).eel"
  * Instructions:
  * 
  * Screenshot: 
