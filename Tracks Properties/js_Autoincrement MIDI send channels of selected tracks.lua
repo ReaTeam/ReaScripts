@@ -20,6 +20,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
+ *                   http://forum.cockos.com/showthread.php?t=173781
  * Version: 1.0
  * REAPER: 5.20
  * Extensions:
