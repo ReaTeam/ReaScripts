@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8c84f3365a3fa183cc1e6c0e04f447ec4e1ab46c" name="ReaTeam Scripts">
+<index version="1" commit="9825343942e134559aa4bbece362a368d07bd2df" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -379,6 +379,18 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/eb53a3b4333a396c4349608f59f30f2d6a4f287b/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Fit selected events to time selection in lane under mouse.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-06-11T14:08:04Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d93b36a6d5aff4ec0534e93ca4c26d5d5f2c6012/MIDI%20Editor/js_Fit%20selected%20events%20to%20time%20selection%20in%20lane%20under%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Fit selected events to time selection in last clicked lane.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-06-11T14:08:04Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d93b36a6d5aff4ec0534e93ca4c26d5d5f2c6012/MIDI%20Editor/js_Fit%20selected%20events%20to%20time%20selection%20in%20last%20clicked%20lane.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Insert CC or pitch at mouse position, leaving other selected.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:28:20Z">
         <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) ]]></changelog>
@@ -416,6 +428,18 @@ added support for all track envelopes]]></changelog>
       <version name="0.9" author="juliansader" time="2016-06-09T07:58:09Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/12e39007760f480b581e0461323088d0a912c113/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-06-11T15:12:24Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9825343942e134559aa4bbece362a368d07bd2df/MIDI%20Editor/js_Set%20time%20selection%20to%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Set time selection to selected events in last clicked lane.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-06-11T15:12:24Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9825343942e134559aa4bbece362a368d07bd2df/MIDI%20Editor/js_Set%20time%20selection%20to%20selected%20events%20in%20last%20clicked%20lane.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
