@@ -1,21 +1,32 @@
 --[[
- * ReaScript Name:  Xenakios's LFO generator and shaper (Julian mod) - Envelope version
- * Description:  LFO generator and shaper - Envelope version
+ * ReaScript Name: js_Envelope LFO generator and shaper.lua
+ * Description: Xenakios's LFO generator and shaper (Julian mod) - Envelope version
  * Instructions:  
  *         DRAWING ENVELOPES:
- *         Click in open space to add an envelope point.
- *         Alt-click (or -drag) to remove points
- *         Cntl-click (or -drag) to set all points to the same value.
- *         Right-click to save/load/delete curves.
- *         A curve saved as "default" will be loaded by default at startup.
- *         
- *         COPYING TO CC:
- *         'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active.
- *         
- *         CUSTOMIZATION:
- *         The user can easily add custom shapes to the script - see the instructions in the script.
- *         In addition, the interface colors can be customized in the USER AREA in the script.
- * 
+ *         Leftclick in open space to add an envelope point.
+ *         Alt + Leftclick (or -drag) to delete points
+ *         Ctrl + Leftclick (or -drag) to set all points to the same value.
+ *         Rightclick on Rate envelope hotpoint to set LFO period to a precise note length.
+ *         Ctrl + Rightclick in Rate envelope area to set LFO period at all points to a precise note length.
+ *         Move mousewheel while mouse hovers above hotpoint for fine adjustment.
+ *         Ctrl + Mousewheel for fine adjustment of all points simultaneously.
+ *         When the mouse hovers above a point, the envelope value at that time point will b-e displayed above 
+ *            the point: In the Rate envelope, the (momentary) LFO period at that time point is displayed as 
+ *            a note value. In the Center and Amplitude envelopes, the value is normalized.
+ *
+ *         LOADING AND SAVING CURVES:
+ *         Right-click (outside envelope area) to save/load/delete curves.
+ *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
+ *                           
+ *         FURTHER CUSTOMIZATION:
+ *         Further customization is possible - see the instructions in the script's USER AREA.
+ *         This include:
+ *         - Easily adding custom LFO shapes.
+ *         - Changing interface colors.
+ *         - Changing the default curve name.
+ *         - Specify the resolution of the mousewheel fine adjustment.
+ *         etc... 
+ *
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -23,7 +34,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.99
+ * Version: 0.996
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -56,6 +67,9 @@
     + Alt-drag for quick delete of multiple nodes.
     + Accurate interpolation of Fast start, Fast end shapes.
     + Curve named "default" will be loaded on startup.
+ * v0.996 (2016-06-12)
+    + Mousewheel can be used for super fine adjustment of node values.
+    + Rightclick in envelope area to set the LFO period to precise note lengths.
 ]]
 
 --  USER AREA:
@@ -78,6 +92,16 @@
     hotbuttonColor  = {0, 1, 0, 1}
     shadows         = true  
       
+    -- Name of curve to load as default.
+    --    By changing this name and saving as new script, different default curves can be 
+    --    linked to different shortcut keys.
+    defaultCurveName = "default" 
+        
+    -- How fine should the mousewheel adjustment be? (Between 0 and 1.)
+    -- 0 would result in no fine adjustment, while 1 would result in immediate jumps to
+    --    minimum or maximum values.
+    fineAdjust = 0.0003
+    
     --[[
     The user can easily add new shapes:
     Simply add the new items to 1) shapeMenu, 2) shapeTable, 4) the list of values
@@ -192,8 +216,9 @@ sliderHeight = 28
 borderWidth = 10
 envHeight = 190
 initXsize = 209 --300 -- Initial sizes for the GUI
-initYsize = borderWidth + sliderHeight*11 + envHeight + 35
-envYpos = borderWidth+sliderHeight*11+5
+initYsize = borderWidth + sliderHeight*11 + envHeight + 45
+envYpos = initYsize - envHeight - 30
+
 -- The Clip slider and value in the original code
 --     do not appear to have any effect, 
 --     so the slider was replaced by the "Real-time copy to CC?" 'slider',
@@ -201,19 +226,43 @@ envYpos = borderWidth+sliderHeight*11+5
 clip = 1
 
 helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\nClick in open space to add an envelope point."
-         .."\n\nAlt-click (or -drag) to remove points."
-         .."\n\nCntl-click (or -drag) to set all points to the same value."
-         .."\n\nRight-click to save/load/delete curves."
-         .."\n\nA curve saved as 'default' will be loaded by default at startup."
+         .."\n\nLeftclick in open space: add an envelope point."
+         .."\n\nAlt + Leftclick (or -drag): delete points."
+         .."\n\nCtrl + Leftclick (or -drag): set all points to the same value."
+         .."\n\nRightclick on Rate envelope hotpoint: set LFO period to a precise note length."
+         .."\n\nCtrl + Rightclick in Rate envelope area: set LFO period at all points to a precise note length."
+         .."\n\nMove mousewheel while mouse hovers above hotpoint: fine adjustment."
+         .."\n\nCtrl + Mousewheel: for fine adjustment of all points simultaneously."
+         .."\n\nWhen the mouse hovers above a point, the envelope value at that time point will b-e displayed above the point: In the Rate envelope, the (momentary) LFO period at that time point is displayed as a note value. In the Center and Amplitude envelopes, the value is normalized."
+        
+         .."\n\nLOADING AND SAVING CURVES:"
+         .."\n\nRight-click (outside envelope area) to save/load/delete curves."
+         .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
+        
          .."\n\nCOPYING TO CC:"
          .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
-         .."\n\nCUSTOMIZATION:"
-         .."\n\nThe user can easily add custom shapes to the script - see the instructions in the script."
-         .."\n\nIn addition, the interface colors can be customized in the USER AREA in the script."
+        
+         .."\n\nFURTHER CUSTOMIZATION:"
+         .."\n\nFurther customization is possible - see the instructions in the script's USER AREA.\nThis includes:"
+         .."\n- Easily adding custom LFO shapes."
+         .."\n- Changing interface colors."
+         .."\n- Changing the default curve name."
+         .."\n- Specify the resolution of the mousewheel fine adjustment."
+         .."\netc..."
 
----------------------------------------------
+-- mouse_cap values
+NOTHING = 0
+LEFTBUTTON = 1
+RIGHTBUTTON = 2
+CTRLKEY = 4
+SHIFTKEY = 8
+ALTKEY = 16
+WINKEY = 32
+MIDDLEBUTTON = 64
+
+------------------------------------------------------------------------
 -- Reader beware: there is lots of cruft remaining in this script
+--    since it is an unfinished script that was later hacked and modded.
 
 fader_img=0
 
@@ -584,9 +633,31 @@ function draw_envelope(env,enabled)
         
         if env.hotpoint==i then
             setColor(hotbuttonColor)
+
+            -- If Rate envelope, display period above hotpoint
+            if env.name == "Rate" then
+                local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+                local bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + envpoint[1]*(time_end-time_start))
+                -- This is based on Xenakios's formula for freqhz
+                pointPeriod =(960*(((envpoint[2]^2)*15.8)+0.2)/(bpm*totalSteps))
+                hotString = ("1/".. tostring(pointPeriod)):sub(1,6)
+                -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
+                if math.floor(pointPeriod+0.5) == math.floor(pointPeriod*1000 + 0.5)/1000 then
+                    hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
+                end
+            -- If Amplitude or Center, simply display y value
+            else
+                hotString = tostring(envpoint[2]):sub(1,5)
+            end
+            -- The following lines shift the x-position of the string
+            stringWidth, stringHeight = gfx.measurestr(hotString)
+            gfx.x = (xcor+3) - (stringWidth+5)*(xcor-env.x())/env.w()
+            gfx.y = ycor - 5 - stringHeight
+            gfx.drawstr(hotString)
         else
             setColor(buttonColor)
         end
+        
         i=i+1
         gfx.circle(xcor,ycor,5.0,true,true)
     end
@@ -895,159 +966,304 @@ already_removed_pt=false
 last_mouse_cap=0
 
 function update()
-  local char = gfx.getchar()
-  if char<0 or char==27 then return end -- Tests whether GUI has been closed, or Esc has been pressed
-  setColor(backgroundColor)
-  gfx.rect(0,0,gfx.w,gfx.h,true)
-  curenv=reaper.GetSelectedEnvelope(0)
-  --if curenv==nil and last_envelope~=nil then curenv=last_envelope end
-  if curenv~=last_envelope then 
-    last_envelope=curenv
-    if last_used_params[curenv]~=nil then
-      for i=1, #egsliders do 
-        if egsliders[i].type=="Slider" then
-          --egsliders[i].value=last_used_params[curenv][i]
-        end
-      end
-    end
-  end
 
-  if gfx.mouse_cap==0 then 
-      captured_control=nil
-      already_added_pt=false 
-      already_removed_pt=false
-      firstClick = true
-      if was_changed==true then
-        reaper.Undo_OnStateChangeEx("Generate envelope points",1,-1) 
+    ---------------------------------------------------------------------------
+    -- First, test whether the script should exit
+    -- Quit script if GUI has been closed, or Esc has been pressed
+    local char = gfx.getchar()
+    if char<0 or char==27 then return end -- Tests whether GUI has been closed, or Esc has been pressed
+    setColor(backgroundColor)
+    gfx.rect(0,0,gfx.w,gfx.h,true)
+    curenv=reaper.GetSelectedEnvelope(0)
+    --if curenv==nil and last_envelope~=nil then curenv=last_envelope end
+    if curenv~=last_envelope then 
+      last_envelope=curenv
+      if last_used_params[curenv]~=nil then
+        for i=1, #egsliders do 
+          if egsliders[i].type=="Slider" then
+            --egsliders[i].value=last_used_params[curenv][i]
+          end
+        end
       end
-      was_changed=false
-  end
+    end
+
+    ------------------------------------------------------------------------
+    -- Reset several parameters
+    -- Including firstClick to prevent long mousebutton press from activating buttons multiple times
+    if gfx.mouse_cap==0 then 
+        captured_control=nil
+        already_added_pt=false 
+        already_removed_pt=false
+        firstClick = true
+        was_changed=false
+    end
     
-  
-  if (gfx.mouse_cap == 1 
-  and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > initYsize-22) 
-  and firstClick == true then
-      firstClick = false
-      reaper.ShowConsoleMsg(helpText)
-  end  
-  
-  
-  local dogenerate=false
-  for key,tempcontrol in pairs(egsliders) do
-    --if key>=200 and tempcontrol.type=="Button" then reaper.ShowConsoleMsg(tostring(tempcontrol).." ") end
-    if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) then
-      if gfx.mouse_cap==1 and captured_control==nil then
-        captured_control=tempcontrol
-      
-      end
-      --[[
-      if tempcontrol.type=="Slider" and gfx.mouse_cap==2 
-        and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude") then
-        gfx.x=gfx.mouse_x
-        gfx.y=gfx.mouse_y
-        local menuresult=gfx.showmenu("Toggle envelope active|Show envelope")
-        if menuresult==1 then
-          if tempcontrol.env_enabled==false then
-            tempcontrol.env_enabled=true else
-            tempcontrol.env_enabled=false
-          end
-        end
-        if menuresult==2 then
-          egsliders[100].envelope=tempcontrol.envelope
-          egsliders[100].name=tempcontrol.name
-        end
-      end
-      ]]
-      
-      
-      if gfx.mouse_cap==1 and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
-        egsliders[100].envelope=tempcontrol.envelope
-        egsliders[100].name=tempcontrol.name
-      end  
-      
-      if gfx.mouse_cap==1 and (tempcontrol.name=="Real-time copy to CC?") 
-      and firstClick == true
-      then
-        tempcontrol.enabled = not tempcontrol.enabled
+    -----------------------------------------------------------------------
+    -- Now, check all the possible combinations of mousebuttons, mousewheel
+    --    and mouse position to see what to do
+    
+    -- Show help menu  
+    if (gfx.mouse_cap == LEFTBUTTON
+    and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > initYsize-22) 
+    and firstClick == true then
         firstClick = false
-        dogenerate = true
-      end 
-      
-      if gfx.mouse_cap == 1 and tempcontrol.name == "LFO shape?" then
-          gfx.x = gfx.mouse_x
-          gfx.y = gfx.mouse_y
-          retval = gfx.showmenu(shapeMenu)
-          if retval ~= 0 then shapeSelected = retval end
-          dogenerate = true
-      end
-      
-      if gfx.mouse_cap == 5 and tempcontrol.type == "Envelope" then
-          pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-          for i = 1, #tempcontrol.envelope do
-              tempcontrol.envelope[i][2] = 1 - pt_y
+        reaper.ShowConsoleMsg(helpText)
+    end  
+    
+    -- Iterate through all the buttons and sliders in the GUI  
+    local dogenerate=false
+    for key,tempcontrol in pairs(egsliders) do
+    
+      --if key>=200 and tempcontrol.type=="Button" then reaper.ShowConsoleMsg(tostring(tempcontrol).." ") end
+      if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) then
+          if gfx.mouse_cap==1 and captured_control==nil then
+              captured_control=tempcontrol
           end
-          dogenerate = true
-      end
+          --[[
+          if tempcontrol.type=="Slider" and gfx.mouse_cap==2 
+            and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude") then
+            gfx.x=gfx.mouse_x
+            gfx.y=gfx.mouse_y
+            local menuresult=gfx.showmenu("Toggle envelope active|Show envelope")
+            if menuresult==1 then
+              if tempcontrol.env_enabled==false then
+                tempcontrol.env_enabled=true else
+                tempcontrol.env_enabled=false
+              end
+            end
+            if menuresult==2 then
+              egsliders[100].envelope=tempcontrol.envelope
+              egsliders[100].name=tempcontrol.name
+            end
+          end
+          ]]
+        
+            -- Click on Rate/Center/Amplitude buttons to change envelope type
+            if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
+                egsliders[100].envelope=tempcontrol.envelope
+                egsliders[100].name=tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            end   
+        
+            -- Enable or disable Real-time copy-to-CC
+            if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Real-time copy to CC?") 
+            and firstClick == true
+            then
+              tempcontrol.enabled = not tempcontrol.enabled
+              firstClick = false
+              dogenerate = true
+            end 
+        
+            -- Choose envelope shape
+            if gfx.mouse_cap == LEFTBUTTON and tempcontrol.name == "LFO shape?" then
+                gfx.x = gfx.mouse_x
+                gfx.y = gfx.mouse_y
+                retval = gfx.showmenu(shapeMenu)
+                if retval ~= 0 then shapeSelected = retval end
+                dogenerate = true
+                firstClick = false
+            end       
+        
+            -- Several options when drawing in envelope
+            if tempcontrol.type=="Envelope" then
+            
+              -- Detect hotpoint if hovering over or drag-deleting
+              -- The value of the tempcontrol.hotpoint variable is the number of the 'hot'
+              --       node of the envelope.  0 if no hotpoint.
+              if gfx.mouse_cap==NOTHING or gfx.mouse_cap==(LEFTBUTTON+ALTKEY) then
+                tempcontrol.hotpoint=get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)
+              end
+              
+              -- Ctrl+left click in envelope area to set all nodes to same value
+              if gfx.mouse_cap == (LEFTBUTTON + CTRLKEY) then
+                  pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
+                  for i = 1, #tempcontrol.envelope do
+                      tempcontrol.envelope[i][2] = 1 - pt_y
+                  end
+                  dogenerate = true
+                  firstClick = false
+              end
+                              
+              -- Ctrl+mousewheel for fine adjustment of all points simultaneously
+              if gfx.mouse_cap == CTRLKEY and gfx.mouse_wheel ~= 0 then
+                  if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
+                  gfx.mouse_wheel = 0
+                  for i = 1, #tempcontrol.envelope do
+                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
+                  end
+                  dogenerate = true
+              end  
+              
       
-      if tempcontrol.type=="Envelope" then
-        if gfx.mouse_cap==0 or gfx.mouse_cap==17 then
-          tempcontrol.hotpoint=get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)
-        end
-        if gfx.mouse_cap&1 == 1 or gfx.mouse_cap&2 == 2 then
-            firstClick = false
-        end
-        if tempcontrol.hotpoint==0 and gfx.mouse_cap==1 and already_added_pt==false then
-          --reaper.ShowConsoleMsg("gonna add point ")
-          local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
-          local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-          tempcontrol.envelope[#tempcontrol.envelope+1]={ pt_x,1.0-pt_y }
-          dogenerate=true
-          already_added_pt=true
-          sort_envelope(tempcontrol.envelope)
-        end
-        --if already_removed_pt==false and tempcontrol.hotpoint>0 and gfx.mouse_cap == 17  then
-        if tempcontrol.hotpoint>0 and gfx.mouse_cap == 17 then
-          table.remove(tempcontrol.envelope,tempcontrol.hotpoint)
-          dogenerate=true
-          --already_removed_pt=true
-          --reaper.ShowConsoleMsg("remove pt "..tempcontrol.hotpoint)
-        end       
-        if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==1 then
-          local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-captured_control.x())
-          local pt_y = 1.0/captured_control.h()*(gfx.mouse_y-captured_control.y())
-          ept = captured_control.envelope[captured_control.hotpoint]
-          ept[1]=pt_x
-          ept[2]=1.0-pt_y
-          dogenerate=true
-          --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
-        end
-      end
-    end
-    local env_enabled=false
-    if captured_control~=nil then
-        if captured_control.OnMouse~=nil then 
-            --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
-        end
-        if captured_control.type=="Slider" then
-            if captured_control.envelope==egsliders[100].envelope then 
-                 env_enabled=captured_control.env_enabled
-            end
-            local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
-            new_value=bound_value(0.0,new_value,1.0)
-            --reaper.ShowConsoleMsg(captured_control.type .. " ")
-            if captured_control.value~=new_value then
-                dogenerate=true
-                captured_control.value=new_value
-            end
-        end
-    end
-    draw_slider(tempcontrol)
-    draw_envelope(tempcontrol,env_enabled)
-  end  
+              -- Add an envelope node at mouse position
+              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false then
+                  --reaper.ShowConsoleMsg("gonna add point ")
+                  local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
+                  local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
+                  tempcontrol.envelope[#tempcontrol.envelope+1]={ pt_x,1.0-pt_y }
+                  dogenerate=true
+                  already_added_pt=true
+                  sort_envelope(tempcontrol.envelope)
+                  firstClick = false
+              end
+              
+              --Remove envelope point under mouse
+              --if already_removed_pt==false and tempcontrol.hotpoint>0 and gfx.mouse_cap == 17  then
+              if tempcontrol.hotpoint>0 and gfx.mouse_cap == (LEFTBUTTON+ALTKEY) then
+                  table.remove(tempcontrol.envelope,tempcontrol.hotpoint)
+                  dogenerate=true
+                  firstClick = false
+                  --already_removed_pt=true
+                  --reaper.ShowConsoleMsg("remove pt "..tempcontrol.hotpoint)
+              end  
+                           
+              -- Move existing envelope node
+              if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==LEFTBUTTON then
+                  local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-captured_control.x())
+                  local pt_y = 1.0/captured_control.h()*(gfx.mouse_y-captured_control.y())
+                  ept = captured_control.envelope[captured_control.hotpoint]
+                  ept[1]=pt_x
+                  ept[2]=1.0-pt_y
+                  dogenerate=true
+                  firstClick = false
+                  --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
+              end
+      
+              -- Fine adjust hotpoint using mousewheel
+              if tempcontrol.hotpoint>0 and gfx.mouse_cap==NOTHING and gfx.mouse_wheel ~= 0 then
+                  if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
+                  gfx.mouse_wheel = 0
+                  tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, tempcontrol.envelope[tempcontrol.hotpoint][2] + fineAdjust))
+                  dogenerate=true
+                  --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
+              end
+        
+              -- If Rate: Quantize period of ALL nodes
+              if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
+                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                  quantmenuSel = gfx.showmenu("#Set period at ALL nodes to:|1/64 triplet|1/64|1/32 triplet|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole||Custom")
+                  userRateFound = false
+                  if quantmenuSel >= 2 and quantmenuSel < 15 then 
+                      local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
+                      userRate = tableNoteRates[quantmenuSel]
+                      userRateFound = true
+                  elseif quantmenuSel == 15 then
+                      repeat
+                          retval, userRate = reaper.GetUserInputs("Set period at ALL nodes", 1, "Periods per whole note", "")
+                          userRate = tonumber(userRate)
+                          if type(userRate) == "number" and userRate > 0 then 
+                              userRateFound = true 
+                              userRate = 1/userRate
+                          end
+                      until retval == false or userRateFound == true
+                  end
+                  
+                  if userRateFound == true then
+                      --userRate = 4*tonumber(userRate)
+                      totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
+                      for i = 1, #tempcontrol.envelope do
+                          --tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
+                          bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
+                          rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
+                          tempcontrol.envelope[i][2] = rateForBPM
+                      end
+                      dogenerate = true
+                  end         
+              end -- if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON
+              
+              -- If Rate and right-click or hotpoint: Quantize period of hotpoint
+              if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON then
+                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                  quantmenuSel = gfx.showmenu("#Set period at node to:|1/64 triplet|1/64|1/32 triplet|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole||Custom")
+                  userRateFound = false
+                  if quantmenuSel >= 2 and quantmenuSel < 15 then 
+                      local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
+                      userRate = tableNoteRates[quantmenuSel]
+                      userRateFound = true
+                  elseif quantmenuSel == 15 then
+                      repeat
+                          retval, userRate = reaper.GetUserInputs("Set period at node", 1, "Periods per whole note", "")
+                          userRate = tonumber(userRate)
+                          if type(userRate) == "number" and userRate > 0 then 
+                              userRateFound = true 
+                              userRate = 1/userRate
+                          end
+                      until retval == false or userRateFound == true
+                  end
+                  
+                  if userRateFound == true then
+                      bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
+                      totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
+                      rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = rateForBPM
+                      dogenerate = true
+                  end              
+              end -- if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON
+              
+              -- If Amplitude or Center: Reset to middle
+              if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center") 
+                  and tempcontrol.hotpoint>0 
+                  and gfx.mouse_cap==RIGHTBUTTON 
+                  then
+                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                  doReset = gfx.showmenu("Reset point to 0.5")
+                  if doReset == 1 then
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = 0.5
+                  end
+              end
+              
+              -- If Amplitude or Center: Reset ALL nodes to middle
+              if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center") 
+                  and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON 
+                  then
+                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                  doReset = gfx.showmenu("Reset all points to 0.5")
+                  if doReset == 1 then
+                      for i = 1, #tempcontrol.envelope do
+                          tempcontrol.envelope[i][2] = 0.5
+                      end
+                  end
+                  dogenerate = true        
+              end
+              
+          end -- if tempcontrol.type=="Envelope"
+                  
+      end -- if is_in_rect
+      
+      local env_enabled=false
+      if captured_control~=nil then
+          if captured_control.OnMouse~=nil then 
+              --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
+          end
+          if captured_control.type=="Slider" then
+              if captured_control.envelope==egsliders[100].envelope then 
+                   env_enabled=captured_control.env_enabled
+              end
+              local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
+              new_value=bound_value(0.0,new_value,1.0)
+              --reaper.ShowConsoleMsg(captured_control.type .. " ")
+              if captured_control.value~=new_value then
+                  dogenerate=true
+                  captured_control.value=new_value
+              end
+          end
+      end -- if captured_control~=nil
+      
+      draw_slider(tempcontrol)
+      draw_envelope(tempcontrol,env_enabled)
+    end -- for key,tempcontrol in pairs(egsliders)
   
   ---------------------------------------------
   -- If right-click, show save/load/delete menu
-  if gfx.mouse_cap == 2 then
+  -- (But not if in envelope drawing area)
+  if gfx.mouse_cap == RIGHTBUTTON and not is_in_rect(gfx.mouse_x,
+                                                     gfx.mouse_y,
+                                                     egsliders[100].x(),
+                                                     egsliders[100].y(),
+                                                     egsliders[100].w(),
+                                                     egsliders[100].h()) 
+                                                     then
   
       --reaper.DeleteExtState("LFO generator", "savedCurves", true) -- delete the ExtState
   
@@ -1164,24 +1380,24 @@ function update()
   
   
   if dogenerate==true then
-    --if egsliders[10].value>0.5 then use_note_rates=true else use_note_rates=false end 
-    generate(egsliders[1].value,
-    egsliders[2].value,
-    egsliders[3].value,
-    egsliders[4].value,
-    egsliders[5].value,
-    egsliders[6].value,
-    egsliders[7].value,
-    egsliders[8].value,
-    egsliders[9].value,
-    0, --egsliders[10].value,
-    clip)
-    was_changed=true
-    -- Julian's mod: Real-time copy to CC
-    if egsliders[slidNum_copyCC].enabled == true then
-        editor = reaper.MIDIEditor_GetActive()
-        reaper.MIDIEditor_OnCommand(editor, commandID)    
-    end
+      --if egsliders[10].value>0.5 then use_note_rates=true else use_note_rates=false end 
+      generate(egsliders[1].value,
+      egsliders[2].value,
+      egsliders[3].value,
+      egsliders[4].value,
+      egsliders[5].value,
+      egsliders[6].value,
+      egsliders[7].value,
+      egsliders[8].value,
+      egsliders[9].value,
+      0, --egsliders[10].value,
+      clip)
+      was_changed=true
+      -- Julian's mod: Real-time copy to CC
+      if egsliders[slidNum_copyCC].enabled == true then
+          editor = reaper.MIDIEditor_GetActive()
+          reaper.MIDIEditor_OnCommand(editor, commandID)    
+      end
   end
   last_mouse_cap=gfx.mouse_cap
   gfx.update()
@@ -1316,8 +1532,43 @@ function loadCurve(curveNum)
 
 end -- loadCurve()
 
+-------------------------------
+function showErrorMsg(errorMsg)
+    if verbose == true and type(errorMsg) == "string" then
+        reaper.ShowConsoleMsg("\n\nERROR:\n" 
+                              .. errorMsg 
+                              .. "\n\n"
+                              .. "(To prevent future error messages, set 'verbose' to 'false' in the USER AREA near the beginning of the script.)"
+                              .. "\n\n")
+    end
+end -- showErrorMsg(errorMsg)
+
+
 ---------------------------------------------------
+-- Here the main part of the code starts execution
 ---------------------------------------------------
+if type(defaultCurveName) ~= "string" then
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'defaultCurveName' must be a string.\n") return(false) end
+if type(backgroundColor) ~= "table" 
+    or type(foregroundColor) ~= "table" 
+    or type(textColor) ~= "table" 
+    or type(buttonColor) ~= "table" 
+    or type(hotbuttonColor) ~= "table"
+    or #backgroundColor ~= 4 
+    or #foregroundColor ~= 4 
+    or #textColor ~= 4 
+    or #buttonColor ~= 4 
+    or #hotbuttonColor ~= 4 
+    then
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe custom interface colors must each be a table of four values between 0 and 1.\n") 
+    return(false) 
+    end
+if type(shadows) ~= "boolean" then 
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'shadows' must be either 'true' of 'false'.\n") return(false) end
+if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'fineAdjust' must be a number between 0 and 1.\n") return(false) end
+       
+
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
 if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
     reaper.SetToggleCommandState(sectionID, cmdID, 1)
