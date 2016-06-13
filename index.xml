@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="83a1a85b851d2ef4958ab97cae28dadda40411a2" name="ReaTeam Scripts">
+<index version="1" commit="99112cd9af039463a53ef98e1cd87a4ed4c986fd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -80,6 +80,11 @@ buttonColor     = {1, 0, 0, 1}
 hotbuttonColor  = {0, 1, 0, 1}
 shadows         = true]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c8dca777afc4f23262f8ebc0b7ee1a4d8536eaf9/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.996" author="Xenakios (modded by juliansader)" time="2016-06-13T01:42:41Z">
+        <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
++ Rightclick in envelope area to set the LFO period to precise note lengths.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/99112cd9af039463a53ef98e1cd87a4ed4c986fd/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
@@ -428,6 +433,11 @@ added support for all track envelopes]]></changelog>
 + New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
 + Esc closes GUI.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c97f0001f7a10abc758530e74295c06dfc829982/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.996" author="Xenakios (modded by juliansader)" time="2016-06-13T01:41:18Z">
+        <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
++ Rightclick in envelope area to set the LFO period to precise note lengths.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4b582fb429f4eae1648801e927efd4c04bf29ba9/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
