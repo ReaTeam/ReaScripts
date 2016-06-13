@@ -343,7 +343,7 @@ function drawRampPitch()
                     if type(shape) == "number" then
                         weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
                     else -- shape == "sine"
-                        weight = (1 - math.cos((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ)))/2
+                        weight = (1 - math.cos(math.pi*(pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ)))/2
                     end
                     insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight + 0.5)
                     
