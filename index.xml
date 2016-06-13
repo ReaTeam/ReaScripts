@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="99112cd9af039463a53ef98e1cd87a4ed4c986fd" name="ReaTeam Scripts">
+<index version="1" commit="a988bdbf35fb979b2c0483c369e1a0f30e344367" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -85,6 +85,16 @@ shadows         = true]]></changelog>
         <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
 + Rightclick in envelope area to set the LFO period to precise note lengths.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/99112cd9af039463a53ef98e1cd87a4ed4c986fd/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.997" author="Xenakios (modded by juliansader)" time="2016-06-13T06:33:53Z">
+        <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
++ Rightclick in envelope area to set the LFO period to precise note lengths.
++ Envelope value displayed above hotpoint.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0ea56d55801e226433412cf016b5b4371f89bf59/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.998" author="Xenakios (modded by juliansader)" time="2016-06-13T17:13:26Z">
+        <changelog><![CDATA[+ Changed interpolation between nodes from linear to parabolic.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/25650c7887a8db20706f2431e2bf9e9def87e96d/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
@@ -422,6 +432,13 @@ added support for all track envelopes]]></changelog>
 + More extensive error messages.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/040b530f3f090a97fbf99ff2458ceb500caea1e8/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="1.13" author="juliansader" time="2016-06-13T09:10:13Z">
+        <changelog><![CDATA[+ New shape, "sine".]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/40ef49a5504a5548f8717e425970d09741ea331a/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.13b" author="juliansader" time="2016-06-13T10:20:52Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/423057b1d063e5bafdbf75aa307f2280d67d35fa/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_MIDI editor LFO generator and shaper.lua" type="script">
       <version name="0.991" author="Xenakios (modded by juliansader)" time="2016-05-29T18:37:54Z">
@@ -438,6 +455,16 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
 + Rightclick in envelope area to set the LFO period to precise note lengths.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4b582fb429f4eae1648801e927efd4c04bf29ba9/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.997" author="Xenakios (modded by juliansader)" time="2016-06-13T06:33:57Z">
+        <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
++ Rightclick in envelope area to set the LFO period to precise note lengths.
++ Envelope value displayed above hotpoint.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/cd4f143bd7580f9a94341e51ad26ffb207783d25/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.998" author="Xenakios (modded by juliansader)" time="2016-06-13T17:13:21Z">
+        <changelog><![CDATA[+ Changed interpolation between nodes from linear to parabolic.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/345eea82a70bb13b12e5ce4a524a28925d8324df/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
