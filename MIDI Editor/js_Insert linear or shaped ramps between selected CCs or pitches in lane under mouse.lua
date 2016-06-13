@@ -21,7 +21,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.13
+ * Version: 1.13b
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -40,6 +40,8 @@
     + More extensive error messages.
  * v1.13 (2016-06-13)
     + New shape, "sine".
+ * v1.13b (2016-06-13)
+    + Fixed deletion bug when inserting 14bit CC ramps.
 ]] 
 
 -- USER AREA
@@ -437,7 +439,7 @@ function drawRamp14bitCC()
     reaper.MIDI_Sort(take)
     _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)
     for i = ccevtcnt-1, 0, -1 do     
-        _, _, _, ppqpos, chanmsg, chan, _, _ = reaper.MIDI_GetCC(take, i)
+        _, _, _, ppqpos, chanmsg, chan, msg2, _ = reaper.MIDI_GetCC(take, i)
         if ppqpos < tableCC[1].PPQ then break -- Once below range of selected events, no need to search further
         elseif ppqpos <= tableCC[#tableCC].PPQ
             and chan == startChannel -- same channel
@@ -447,7 +449,7 @@ function drawRamp14bitCC()
                 reaper.MIDI_DeleteCC(take, i)
         end -- elseif
     end -- for i = ccevtcnt-1, 0, -1
-    
+  
     ----------------------------------------------------------------------------
     -- The main function that iterates through selected events and inserts ramps
     for i = 1, #tableCC-1 do
@@ -563,12 +565,17 @@ end
 
 -- If mouse is not in lane that can be ramped, no need to ask user inputs,
 --     so quit right here
-if not ((0 <= mouseLane and mouseLane <= 127) 
-        or (256 <= mouseLane and mouseLane <= 287)
-        or mouseLane == 0x203 or mouseLane == 0x201)
-        then 
-        showErrorMsg("The mouse should be positioned over a CC lane in which ramps can be drawn: 7-bit CC, 14-bit CC, pitchwheel or channel pressure.")
-        return(false) 
+if 0 <= mouseLane and mouseLane <= 127 then
+    laneString = "CC lane " .. tostring(mouseLane)
+elseif 256 <= mouseLane and mouseLane <= 287 then
+    laneString = "14-bit CC lanes " .. tostring(mouseLane-256) .. "/" .. tostring(mouseLane-224)
+elseif mouseLane == 0x203 then
+    laneString = "Channel pressure"
+elseif mouseLane == 0x201 then
+    laneString = "Pitchwheel"
+else 
+    showErrorMsg("The mouse should be positioned over a CC lane in which ramps can be drawn: 7-bit CC, 14-bit CC, pitchwheel or channel pressure.")
+    return(false) 
 end
       
 density = reaper.SNM_GetIntConfigVar("midiCCdensity", 64) -- Get the default grid resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
@@ -589,7 +596,7 @@ if showDialogBox == true then
     -- Repeat getUserInputs until we get usable inputs
     gotUserInputs = false
     while gotUserInputs == false do
-        retval, userInputsCSV = reaper.GetUserInputs("Draw shaped ramps between selected CCs", 4, descriptionsCSVstring, defaultsCSVstring)
+        retval, userInputsCSV = reaper.GetUserInputs("Insert ramps: ".. laneString, 4, descriptionsCSVstring, defaultsCSVstring)
         if retval == false then
             return(0)
         else
@@ -637,22 +644,16 @@ QNgrid = 1/density -- Quarter notes per event
 -- Since 7bit CC, 14bit CC, channel pressure, velocity and pitch all 
 --     require somewhat different tweaks, the code is simpler to read 
 --     if divided into separate functions.    
+        
 if 0 <= mouseLane and mouseLane <= 127 then -- CC, 7 bit (single lane)
     drawRamp7bitCC()
-    reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Insert ramps between selected events: 7-bit CC lane "
-                              .. tostring(mouseLane))
 elseif mouseLane == 0x203 then -- Channel pressure
     drawRampChanPressure()
-    reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Insert ramps between selected events: Channel pressure")
 elseif 256 <= mouseLane and mouseLane <= 287 then -- CC, 14 bit (double lane)
     drawRamp14bitCC()
-    reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Insert ramps between selected events: 14-bit CC lanes "
-                              .. tostring(mouseLane-256) .. "/" .. tostring(mouseLane-224))
 elseif mouseLane == 0x201 then
     drawRampPitch()
-    reaper.MIDI_Sort(take)
-    reaper.Undo_OnStateChange("Insert ramps between selected events: Pitchwheel")
 end
+
+reaper.MIDI_Sort(take)
+reaper.Undo_OnStateChange("Insert ramps between selected events: " .. laneString)
