@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a988bdbf35fb979b2c0483c369e1a0f30e344367" name="ReaTeam Scripts">
+<index version="1" commit="daf6f357dcdfe89e80b76d4c5329fd3535964584" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -95,6 +95,10 @@ shadows         = true]]></changelog>
       <version name="0.998" author="Xenakios (modded by juliansader)" time="2016-06-13T17:13:26Z">
         <changelog><![CDATA[+ Changed interpolation between nodes from linear to parabolic.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/25650c7887a8db20706f2431e2bf9e9def87e96d/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.999" author="Xenakios / juliansader" time="2016-06-13T19:00:18Z">
+        <changelog><![CDATA[+ Changed Rate interpolation between nodes from linear to parabolic.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/daf6f357dcdfe89e80b76d4c5329fd3535964584/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
@@ -439,6 +443,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.13b" author="juliansader" time="2016-06-13T10:20:52Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/423057b1d063e5bafdbf75aa307f2280d67d35fa/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="1.14" author="juliansader" time="2016-06-13T18:53:13Z">
+        <changelog><![CDATA[+ Fixed deletion bug when inserting 14bit CC ramps.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c1360a7cb4eacf4dc76786ca010c723942372c8b/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_MIDI editor LFO generator and shaper.lua" type="script">
       <version name="0.991" author="Xenakios (modded by juliansader)" time="2016-05-29T18:37:54Z">
@@ -465,6 +473,10 @@ added support for all track envelopes]]></changelog>
       <version name="0.998" author="Xenakios (modded by juliansader)" time="2016-06-13T17:13:21Z">
         <changelog><![CDATA[+ Changed interpolation between nodes from linear to parabolic.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/345eea82a70bb13b12e5ce4a524a28925d8324df/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.999" author="Xenakios / juliansader" time="2016-06-13T19:00:13Z">
+        <changelog><![CDATA[+ Changed Rate interpolation between nodes from linear to parabolic.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/e3f555d0f14482a1d89d39fdb3d9dcbbd08838e5/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
