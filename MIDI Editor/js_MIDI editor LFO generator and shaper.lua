@@ -1,6 +1,6 @@
 --[[
  * ReaScript Name: js_MIDI editor LFO generator and shaper.lua
- * Description: Xenakios's LFO generator and shaper (Julian mod) - MIDI editor version
+ * Description: LFO generator and shaper - MIDI editor version
  *               Draw fancy LFO curves in REAPER's piano roll.
  * Instructions:  
  *         DRAWING ENVELOPES:
@@ -36,11 +36,11 @@
  * Screenshot: 
  * Notes: 
  * Category: 
- * Author: Xenakios (modded by juliansader)
+ * Author: Xenakios / juliansader
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.997
+ * Version: 0.999
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -85,6 +85,8 @@
     + Mousewheel can be used for super fine adjustment of node values.
     + Rightclick in envelope area to set the LFO period to precise note lengths.
     + Envelope value displayed above hotpoint.
+ * v0.999 (2016-06-13)
+    + Changed Rate interpolation between nodes from linear to parabolic.
 ]]
 
 --  USER AREA:
@@ -266,6 +268,7 @@ envYpos = initYsize - envHeight - 30
 clip = 1
 
 rateDisplayType = "period note length" -- "frequency" or "period note length"
+rateInterpolationType = "parabolic" -- "linear" or "parabolic"
 
 helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\nLeftclick (or -drag) in open space to add envelope points."
@@ -487,12 +490,24 @@ function get_envelope_range(env)
 end
 ]]
 
+
 function setColor(colorTable)
     gfx.r = colorTable[1]
     gfx.g = colorTable[2]
     gfx.b = colorTable[3]
     gfx.a = colorTable[4]
 end
+
+
+function getBPM(projtime)
+    return(reaper.TimeMap_GetDividedBpmAtTime(projtime))
+    --[[
+    local currentQN = reaper.TimeMap2_timeToQN(0, projtime)
+    local nextQNtime = reaper.TimeMap2_QNToTime(0, currentQN + 1)
+    return(60/(nextQNtime-projtime))
+    ]]
+end
+
 
 function is_in_rect(xcora,ycora,xa,ya,wa,ha)
 if (xcora>=xa and xcora<xa+wa and ycora>=ya and ycora<ya+ha) then
@@ -687,7 +702,7 @@ function draw_envelope(env,enabled)
             if env.name == "Rate" then
                 if rateDisplayType == "period note length" then
                      local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
-                     local bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + envpoint[1]*(time_end-time_start))
+                     local bpm = getBPM(time_start + envpoint[1]*(time_end-time_start))
                      -- This is based on Xenakios's formula for freqhz
                      local pointPeriod =(960*(((envpoint[2]^2)*15.8)+0.2)/(bpm*totalSteps))
                      hotString = ("1/".. tostring(pointPeriod)):sub(1,6)
@@ -726,27 +741,37 @@ function get_hot_env_point(env,mx,my)
   return 0
 end
 
-function get_env_interpolated_value(env,x)
+function get_env_interpolated_value(env,x,curveType)
   if #env==0 then return 0.0 end
   if x<env[1][1] then return env[1][2] end
   if x>env[#env][1] then return env[#env][2] end
   local i=1
   for key,envpoint in pairs(env) do
-    if x>=envpoint[1] then
-      nextpt=env[key+1]
-      if nextpt==nil then nextpt=envpoint end
-      if x<nextpt[1] then
-        local timedelta=nextpt[1]-envpoint[1]
-        if timedelta<0.0001 then timedelta=0.0001 end
-        local valuedelta=nextpt[2]-envpoint[2]
-        local interpos=(x-envpoint[1])
-        return envpoint[2]+valuedelta*((1.0/timedelta)*interpos)
+      if x>=envpoint[1] then
+          nextpt=env[key+1]
+          if nextpt==nil then nextpt=envpoint end
+          if x<nextpt[1] then
+              local timedelta=nextpt[1]-envpoint[1]
+              if timedelta<0.0001 then timedelta=0.0001 end
+              -- Remember that the envelope area is mapping to freqhz using a power curve:
+              -- freqhz = 0.2+(15.8*freq_norm_to_use^2.0)
+              -- Therefore this function was changed from a linear interpolation to a similar power curve.
+              if curveType == "parabolic" then
+                  local valuedelta=nextpt[2]^2 - envpoint[2]^2
+                  local interpos=(x-envpoint[1])
+                  return ((envpoint[2]^2 + valuedelta*(interpos/timedelta))^0.5)
+              else
+                  local valuedelta=nextpt[2] - envpoint[2]
+                  local interpos=(x-envpoint[1])
+                  return (envpoint[2] + valuedelta*(interpos/timedelta))
+              end
+          end
       end
-    end
-    i=i+1
+      i=i+1
   end
   return 0.0
 end
+
 
 function sort_envelope(env)
   table.sort(env,function(a,b) return a[1]<b[1] end)
@@ -795,7 +820,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
     -- while isBeyondEnd == false do
     repeat   
         time_to_interp = 1.0/timeseldur*(time-time_start)
-        freq_norm_to_use = get_env_interpolated_value(egsliders[1].envelope,time_to_interp)
+        freq_norm_to_use = get_env_interpolated_value(egsliders[1].envelope,time_to_interp, rateInterpolationType)
         freqhz = 0.2+(15.8*freq_norm_to_use^2.0) -- Huh? I have no idea how this formula was derived?
         
         -- fade goes to infinity when trying to calculate point beyond end_time, 
@@ -859,10 +884,10 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           
             --if time_to_interp<0.0 or time_to_interp>1.0 then
             --  reaper.ShowConsoleMsg(time_to_interp.." ") end
-            amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp)
+            amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp, "linear")
             --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
             val=0.5+(0.5*amp_to_use*fade_gain)*val
-            local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp)
+            local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp, "linear")
             local rangea=maxv-minv
             val=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
             z=(2*math.random()-1)*randomness*(maxv-minv)/2
@@ -1183,11 +1208,24 @@ function update()
                     then
                     gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
                     if rateDisplayType == "frequency" then
-                        retval = gfx.showmenu("#Display rate as|!Frequency|Period note length")
+                        rateMenuString = "#Display rate as|!Frequency|Period note length"
                     else
-                        retval = gfx.showmenu("#Display rate as|Frequency|!Period note length")
+                        rateMenuString = "#Display rate as|Frequency|!Period note length"
                     end
-                    if retval == 2 then rateDisplayType = "frequency" elseif retval == 3 then rateDisplayType = "period note length" end
+                    --[[
+                    if rateInterpolationType == "parabolic" then
+                        rateMenuString = rateMenuString .. "||#Interpolate rate as|Linear|!Parabolic"
+                    else 
+                        rateMenuString = rateMenuString .. "||#Interpolate rate as|!Linear|Parabolic"
+                    end
+                    ]]
+
+                    retval = gfx.showmenu(rateMenuString)
+                    if retval == 2 then rateDisplayType = "frequency" 
+                    elseif retval == 3 then rateDisplayType = "period note length" 
+                    elseif retval == 5 then rateInterpolationType = "linear"
+                    elseif retval == 6 then rateInterpolationType = "parabolic"
+                    end
     
                     dogenerate = true        
                 end
@@ -1217,7 +1255,7 @@ function update()
                         totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
                         for i = 1, #tempcontrol.envelope do
                             --tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
-                            bpm = reaper.TimeMap_GetDividedBpmAtTime(timeSelectStart + tempcontrol.envelope[i][1]*(timeSelectEnd-timeSelectStart))
+                            bpm = getBPM(timeSelectStart + tempcontrol.envelope[i][1]*(timeSelectEnd-timeSelectStart))
                             rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
                             tempcontrol.envelope[i][2] = rateForBPM
                         end
@@ -1246,7 +1284,7 @@ function update()
                     end
                     
                     if userRateFound == true then
-                        bpm = reaper.TimeMap_GetDividedBpmAtTime(timeSelectStart + tempcontrol.envelope[tempcontrol.hotpoint][1]*(timeSelectEnd-timeSelectStart))
+                        bpm = getBPM(timeSelectStart + tempcontrol.envelope[tempcontrol.hotpoint][1]*(timeSelectEnd-timeSelectStart))
                         totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
                         rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
                         tempcontrol.envelope[tempcontrol.hotpoint][2] = rateForBPM
