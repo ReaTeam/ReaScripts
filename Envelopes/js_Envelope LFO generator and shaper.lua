@@ -3,7 +3,7 @@
  * Description: Xenakios's LFO generator and shaper (Julian mod) - Envelope version
  * Instructions:  
  *         DRAWING ENVELOPES:
- *         Leftclick in open space to add an envelope point.
+ *         Leftclick (or -drag) in open space to add envelope points.
  *         Alt + Leftclick (or -drag) to delete points
  *         Ctrl + Leftclick (or -drag) to set all points to the same value.
  *         Rightclick on Rate envelope hotpoint to set LFO period to a precise note length.
@@ -11,7 +11,7 @@
  *         Move mousewheel while mouse hovers above hotpoint for fine adjustment.
  *         Ctrl + Mousewheel for fine adjustment of all points simultaneously.
  *         Envelope value is displayed above hotpoint. (Amplitude and Center values are normalized.) 
- *         Rightclick away from points to set hotpoint Rate display as either Frequency or Period.
+ *         Rightclick in open space to select hotpoint Rate display as either Frequency or Period.
  *
  *         LOADING AND SAVING CURVES:
  *         Right-click (outside envelope area) to save/load/delete curves.
@@ -228,7 +228,7 @@ rateDisplayType = "period note length" -- "frequency" or "period note length"
 clip = 1
 
 helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\nLeftclick in open space to add an envelope point."
+         .."\n\nLeftclick (or -drag) in open space to add envelope points."
          .."\n\nAlt + Leftclick (or -drag) to delete points."
          .."\n\nCtrl + Leftclick (or -drag) to set all points to the same value."
          .."\n\nRightclick on Rate envelope hotpoint to set LFO period to a precise note length."
@@ -638,10 +638,10 @@ function draw_envelope(env,enabled)
             setColor(hotbuttonColor)
 
             -- If Rate envelope, display period above hotpoint
-            if env.name == "Rate" then
+            if env.name == "Rate" and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                 if rateDisplayType == "period note length" then
-                    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
                     local bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + envpoint[1]*(time_end-time_start))
+                    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
                     -- This is based on Xenakios's formula for freqhz
                     local pointPeriod =(960*(((envpoint[2]^2)*15.8)+0.2)/(bpm*totalSteps))
                     hotString = ("1/".. tostring(pointPeriod)):sub(1,6)
@@ -652,7 +652,7 @@ function draw_envelope(env,enabled)
                 else -- rateDisplayType == "frequency"
                     hotString = tostring(0.2+(15.8*envpoint[2]^2.0)):sub(1,4) .. "Hz"
                 end
-            -- If Amplitude or Center, simply display y value
+            -- If Amplitude or Center, or if no time selection, simply display y value
             else
                 hotString = tostring(envpoint[2]):sub(1,5)
             end
@@ -1104,7 +1104,8 @@ function update()
               
       
               -- Add an envelope node at mouse position
-              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false then
+              -- Ignore already_added_pt to allow left-drag
+              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON then --and already_added_pt==false then
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
@@ -1182,7 +1183,7 @@ function update()
                       until retval == false or userRateFound == true
                   end
                   
-                  if userRateFound == true then
+                  if userRateFound == true and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       --userRate = 4*tonumber(userRate)
                       totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
                       for i = 1, #tempcontrol.envelope do
@@ -1215,7 +1216,7 @@ function update()
                       until retval == false or userRateFound == true
                   end
                   
-                  if userRateFound == true then
+                  if userRateFound == true and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
                       totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
                       rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
@@ -1598,6 +1599,8 @@ if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
     reaper.RefreshToolbar2(sectionID, cmdID)
 end  
 reaper.atexit(exit)
+
+time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
 
 gfx.init("LFO tool",initXsize, initYsize,0)
 gfx.setfont(1,"Ariel", 15)
