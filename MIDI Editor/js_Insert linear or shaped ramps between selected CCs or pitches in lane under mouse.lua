@@ -38,6 +38,8 @@
  * v1.12 (2016-06-08)
     + New options in USER AREA to define default shape and/or to skip dialog box.
     + More extensive error messages.
+ * v1.13 (2016-06-13)
+    + New shape, "sine".
 ]] 
 
 -- USER AREA
@@ -48,7 +50,7 @@ showDialogBox = true -- Should the dialog box be skipped and default values used
 verbose = true -- Should error messages be shown in REAPER's console?  true or false.
 
 -- Default values for ramp shape:
-shape = 1 -- Shape of the ramp.  1 => linear.
+shape = "sine" -- Shape of the ramp.  Either "sine", or a number>0 for a power curve (1 implies linear).
 skipRedundantCCs = true -- Should redundant CCs be skipped?  true or false.
 newCCsAreSelected = true -- Should the newly inserted CCs be selected?  true or false.
 
@@ -74,7 +76,7 @@ function drawRamp7bitCC()
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 11 and msg2 == mouseLane then
             if startChannel ~= false and startChannel ~= chan then
-                reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
+                reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
                 return(0)
             else
             startChannel = chan
@@ -136,9 +138,12 @@ function drawRamp7bitCC()
                 -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
                 if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
                     -- Calculate the interpolated CC values
-                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
-                    
+                    if type(shape) == "number" then
+                        weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    else -- shape == "sine"
+                        weight = (1 - math.cos(math.pi*(pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ)))/2
+                    end
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight + 0.5)
                     -- If redundant, skip insertion
                     if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
                         reaper.MIDI_InsertCC(take, newCCsAreSelected, tableCC[i].muted, pRound, 11<<4, startChannel, mouseLane, insertValue)
@@ -173,7 +178,7 @@ function drawRampChanPressure()
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 13 then -- MIDI event type = channel pressure
             if startChannel ~= false and startChannel ~= chan then
-                reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
+                reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
                 return(0)
             else
             startChannel = chan
@@ -234,8 +239,12 @@ function drawRampChanPressure()
                 -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
                 if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
                     -- Calculate the interpolated CC values
-                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    if type(shape) == "number" then
+                        weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    else -- shape == "sine"
+                        weight = (1 - math.cos(math.pi*(pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ)))/2
+                    end
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight + 0.5)
                     
                     -- If redundant, skip insertion
                     if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
@@ -271,7 +280,7 @@ function drawRampPitch()
         _, _, mute, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, eventIndex)
         if (chanmsg>>4) == 14 then
             if startChannel ~= false and startChannel ~= chan then
-                reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
+                reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
                 return(0)
             else
             startChannel = chan
@@ -331,8 +340,12 @@ function drawRampPitch()
                 -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
                 if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
                     -- Calculate the interpolated CC values
-                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    if type(shape) == "number" then
+                        weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    else -- shape == "sine"
+                        weight = (1 - math.cos((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ)))/2
+                    end
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight + 0.5)
                     
                     -- If redundant, skip insertion
                     if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
@@ -393,7 +406,7 @@ function drawRamp14bitCC()
         for m = 1, #tempTableMSB do
             if tempTableLSB[l].PPQ == tempTableMSB[m].PPQ and tempTableLSB[l].channel == tempTableMSB[m].channel then
                 if startChannel ~= false and startChannel ~= tempTableLSB[l].channel then
-                    reaper.ShowConsoleMsg("\n\nERROR:\nAll selected events should be in the same channel.\n")
+                    reaper.ShowConsoleMsg("Error: All selected events should be in the same channel")
                     return(0)
                 else
                 startChannel = tempTableLSB[l].channel
@@ -456,8 +469,12 @@ function drawRamp14bitCC()
                 -- New CCs should not be inserted at PPQ positions of selected nodes, otherwise the nodes may be overwritten.
                 if pRound > tableCC[i].PPQ and pRound < tableCC[i+1].PPQ then
                     -- Calculate the interpolated CC values
-                    weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
-                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight)
+                    if type(shape) == "number" then
+                        weight = ((pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ))^shape
+                    else -- shape == "sine"
+                        weight = (1 - math.cos(math.pi*(pRound - tableCC[i].PPQ) / (tableCC[i+1].PPQ - tableCC[i].PPQ)))/2
+                    end
+                    insertValue = math.floor(tableCC[i].value + (tableCC[i+1].value - tableCC[i].value)*weight + 0.5)
                     
                     -- If redundant, skip insertion
                     if not (skipRedundantCCs == true and insertValue == prevCCvalue) then
@@ -507,15 +524,15 @@ reaper.defer(noUndo)
 
 -- Test whether user customizable variables are usable
 if type(verbose) ~= "boolean" then 
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' or 'false'.\n") return(false) end
-if type(shape) ~= "number" or shape <= 0 then 
-    reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "shape" must be a number larger than 0.\n') return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' of 'false'.\n") return(false) end
+if (shape ~= "sine" and type(shape) ~= "number") or (type(shape)=="number" and shape <= 0) then 
+    reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "shape" must either be "sine" or a number larger than 0.\n') return(false) end
 if type(skipRedundantCCs) ~= "boolean" then 
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'skipRedundantCCs' must be either 'true' or 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'skipRedundantCCs' must be either 'true' of 'false'.\n") return(false) end
 if type(newCCsAreSelected) ~= "boolean" then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'newCCsAreSelected' must be either 'true' or 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'newCCsAreSelected' must be either 'true' of 'false'.\n") return(false) end
 if type(showDialogBox) ~= "boolean" then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'showDialogBox' must be either 'true' or 'false'.\n") return(false) end
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'showDialogBox' must be either 'true' of 'false'.\n") return(false) end
     
 
 -- Test whether mouse is in MIDI editor
@@ -585,9 +602,11 @@ if showDialogBox == true then
             elseif density ~= math.floor(density) or density <= 0 then gotUserInputs = false 
             end
             
-            shape = tonumber(shape)
-            if shape == nil then gotUserInputs = false 
-            elseif shape <= 0 then gotUserInputs = false 
+            if shape ~= "sine" then
+                shape = tonumber(shape)
+                if shape == nil then gotUserInputs = false 
+                elseif shape <= 0 then gotUserInputs = false 
+                end
             end
             
             if skipRedundantCCs == "y" or skipRedundantCCs == "Y" then skipRedundantCCs = true
