@@ -4,7 +4,7 @@
  *               Draw fancy LFO curves in REAPER's piano roll.
  * Instructions:  
  *         DRAWING ENVELOPES:
- *         Leftclick in open space to add an envelope point.
+ *         Leftclick (or -drag) in open space to add envelope points.
  *         Alt + Leftclick (or -drag) to remove points.
  *         Ctrl + Leftclick (or -drag) to set all points to the same value.
  *         Rightclick on Rate envelope hotpoint to set LFO period to a precise note length.
@@ -12,7 +12,7 @@
  *         Move mousewheel while mouse hovers above hotpoint for fine adjustment.
  *         Ctrl + Mousewheel for fine adjustment of all points simultaneously.
  *         Envelope value is displayed above hotpoint. (Amplitude and Center values are normalized.) 
- *         Rightclick away from points to set hotpoint Rate display as either Frequency or Period.
+ *         Rightclick in open space to select hotpoint Rate display as either Frequency or Period.
  *
  *         LOADING AND SAVING CURVES:
  *         Right-click (outside envelope area) to save/load/delete curves.
@@ -268,7 +268,7 @@ clip = 1
 rateDisplayType = "period note length" -- "frequency" or "period note length"
 
 helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\nLeftclick in open space to add an envelope point."
+         .."\n\nLeftclick (or -drag) in open space to add envelope points."
          .."\n\nAlt + Leftclick (or -drag) to delete points."
          .."\n\nCtrl + Leftclick (or -drag) to set all points to the same value."
          .."\n\nRightclick on Rate envelope hotpoint to set LFO period to a precise note length."
@@ -1133,7 +1133,8 @@ function update()
                 end                
                 
                 -- Add an envelope node at mouse position
-                if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false then
+                -- Ignore already_added_pt to allow left-drag
+                if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON then --and already_added_pt==false then
                     --reaper.ShowConsoleMsg("gonna add point ")
                     local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                     local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
