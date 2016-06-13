@@ -21,7 +21,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.13b
+ * Version: 1.14
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -40,7 +40,7 @@
     + More extensive error messages.
  * v1.13 (2016-06-13)
     + New shape, "sine".
- * v1.13b (2016-06-13)
+ * v1.14 (2016-06-13)
     + Fixed deletion bug when inserting 14bit CC ramps.
 ]] 
 
