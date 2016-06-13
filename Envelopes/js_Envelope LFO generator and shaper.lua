@@ -10,9 +10,8 @@
  *         Ctrl + Rightclick in Rate envelope area to set LFO period at all points to a precise note length.
  *         Move mousewheel while mouse hovers above hotpoint for fine adjustment.
  *         Ctrl + Mousewheel for fine adjustment of all points simultaneously.
- *         When the mouse hovers above a point, the envelope value at that time point will b-e displayed above 
- *            the point: In the Rate envelope, the (momentary) LFO period at that time point is displayed as 
- *            a note value. In the Center and Amplitude envelopes, the value is normalized.
+ *         Envelope value is displayed above hotpoint. (Amplitude and Center values are normalized.) 
+ *         Rightclick away from points to set hotpoint Rate display as either Frequency or Period.
  *
  *         LOADING AND SAVING CURVES:
  *         Right-click (outside envelope area) to save/load/delete curves.
@@ -34,7 +33,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.996
+ * Version: 0.997
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -67,9 +66,10 @@
     + Alt-drag for quick delete of multiple nodes.
     + Accurate interpolation of Fast start, Fast end shapes.
     + Curve named "default" will be loaded on startup.
- * v0.996 (2016-06-12)
+ * v0.997 (2016-06-13)
     + Mousewheel can be used for super fine adjustment of node values.
     + Rightclick in envelope area to set the LFO period to precise note lengths.
+    + Envelope value displayed above hotpoint.
 ]]
 
 --  USER AREA:
@@ -219,6 +219,8 @@ initXsize = 209 --300 -- Initial sizes for the GUI
 initYsize = borderWidth + sliderHeight*11 + envHeight + 45
 envYpos = initYsize - envHeight - 30
 
+rateDisplayType = "period note length" -- "frequency" or "period note length"
+
 -- The Clip slider and value in the original code
 --     do not appear to have any effect, 
 --     so the slider was replaced by the "Real-time copy to CC?" 'slider',
@@ -226,15 +228,16 @@ envYpos = initYsize - envHeight - 30
 clip = 1
 
 helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\nLeftclick in open space: add an envelope point."
-         .."\n\nAlt + Leftclick (or -drag): delete points."
-         .."\n\nCtrl + Leftclick (or -drag): set all points to the same value."
-         .."\n\nRightclick on Rate envelope hotpoint: set LFO period to a precise note length."
+         .."\n\nLeftclick in open space to add an envelope point."
+         .."\n\nAlt + Leftclick (or -drag) to delete points."
+         .."\n\nCtrl + Leftclick (or -drag) to set all points to the same value."
+         .."\n\nRightclick on Rate envelope hotpoint to set LFO period to a precise note length."
          .."\n\nCtrl + Rightclick in Rate envelope area: set LFO period at all points to a precise note length."
-         .."\n\nMove mousewheel while mouse hovers above hotpoint: fine adjustment."
-         .."\n\nCtrl + Mousewheel: for fine adjustment of all points simultaneously."
-         .."\n\nWhen the mouse hovers above a point, the envelope value at that time point will b-e displayed above the point: In the Rate envelope, the (momentary) LFO period at that time point is displayed as a note value. In the Center and Amplitude envelopes, the value is normalized."
-        
+         .."\n\nMove mousewheel while mouse hovers above hotpoint for fine adjustment."
+         .."\n\nCtrl + Mousewheel for fine adjustment of all points simultaneously."
+         .."\n\nEnvelope value is displayed above hotpoint. (Amplitude and Center values are normalized.)" 
+         .."\n\nRightclick away from points to set hotpoint Rate display as either Frequency or Period."
+                 
          .."\n\nLOADING AND SAVING CURVES:"
          .."\n\nRight-click (outside envelope area) to save/load/delete curves."
          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
@@ -636,14 +639,18 @@ function draw_envelope(env,enabled)
 
             -- If Rate envelope, display period above hotpoint
             if env.name == "Rate" then
-                local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
-                local bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + envpoint[1]*(time_end-time_start))
-                -- This is based on Xenakios's formula for freqhz
-                pointPeriod =(960*(((envpoint[2]^2)*15.8)+0.2)/(bpm*totalSteps))
-                hotString = ("1/".. tostring(pointPeriod)):sub(1,6)
-                -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
-                if math.floor(pointPeriod+0.5) == math.floor(pointPeriod*1000 + 0.5)/1000 then
-                    hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
+                if rateDisplayType == "period note length" then
+                    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+                    local bpm = reaper.TimeMap_GetDividedBpmAtTime(time_start + envpoint[1]*(time_end-time_start))
+                    -- This is based on Xenakios's formula for freqhz
+                    local pointPeriod =(960*(((envpoint[2]^2)*15.8)+0.2)/(bpm*totalSteps))
+                    hotString = ("1/".. tostring(pointPeriod)):sub(1,6)
+                    -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
+                    if math.floor(pointPeriod+0.5) == math.floor(pointPeriod*1000 + 0.5)/1000 then
+                        hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
+                    end
+                else -- rateDisplayType == "frequency"
+                    hotString = tostring(0.2+(15.8*envpoint[2]^2.0)):sub(1,4) .. "Hz"
                 end
             -- If Amplitude or Center, simply display y value
             else
@@ -754,12 +761,12 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   local dividend=notevalues[nvindex][1]
   local divisor=notevalues[nvindex][2]
   --reaper.ShowConsoleMsg(dividend .. " " .. divisor .. "\n")
-  local freqhz=1.0
+  --[[!!!!local freqhz=1.0
   if ratemode>0.5 then
     freqhz=(reaper.Master_GetTempo()/60.0)*1.0/(dividend/divisor)
   else
     freqhz=0.1+(31.9*freq^2.0)
-  end
+  end]]
   
   --minv,maxv=get_envelope_range(env)
   minv = BRenvMinValue
@@ -1139,6 +1146,22 @@ function update()
                   --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
               end
         
+              -- Rightclick away from nodes: select rate display
+              if (tempcontrol.name == "Rate") 
+                  and type(tempcontrol.hotpoint)=="number" and tempcontrol.hotpoint<=0
+                  and gfx.mouse_cap==RIGHTBUTTON 
+                  then
+                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                  if rateDisplayType == "frequency" then
+                      retval = gfx.showmenu("#Display rate as|!Frequency|Period note length")
+                  else
+                      retval = gfx.showmenu("#Display rate as|Frequency|!Period note length")
+                  end
+                  if retval == 2 then rateDisplayType = "frequency" elseif retval == 3 then rateDisplayType = "period note length" end
+  
+                  dogenerate = true        
+              end
+        
               -- If Rate: Quantize period of ALL nodes
               if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
@@ -1225,8 +1248,8 @@ function update()
                       end
                   end
                   dogenerate = true        
-              end
-              
+              end              
+                            
           end -- if tempcontrol.type=="Envelope"
                   
       end -- if is_in_rect
