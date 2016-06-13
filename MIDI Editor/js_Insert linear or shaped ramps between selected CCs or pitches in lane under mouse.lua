@@ -581,7 +581,7 @@ density = math.floor(math.max(4, math.min(128, math.abs(density))))
 --     simply comment out this section.
 if showDialogBox == true then
 
-    descriptionsCSVstring = "Events per QN (integer>0):,Shape (>0, 1=linear):,Skip redundant CCs? (y/n),New CCs selected? (y/n)"
+    descriptionsCSVstring = "Events per QN (integer>0):,Shape (sine or number>0):,Skip redundant CCs? (y/n),New CCs selected? (y/n)"
     if skipRedundantCCs then skipStr = "y" else skipStr = "n" end
     if newCCsAreSelected then newSelStr = "y" else newSelStr = "n" end
     defaultsCSVstring = tostring(density) .. "," .. tostring(shape) .. "," .. skipStr .. "," .. newSelStr
