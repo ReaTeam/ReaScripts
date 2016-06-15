@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="089c41b4ec0d674627402f83a02f3c04c9745aca" name="ReaTeam Scripts">
+<index version="1" commit="85712e09f412121c9ad8885a28ff335da58db513" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -99,6 +99,10 @@ shadows         = true]]></changelog>
       <version name="0.999" author="Xenakios / juliansader" time="2016-06-13T19:00:18Z">
         <changelog><![CDATA[+ Changed Rate interpolation between nodes from linear to parabolic.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/daf6f357dcdfe89e80b76d4c5329fd3535964584/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.9999" author="Xenakios / juliansader" time="2016-06-15T22:00:34Z">
+        <changelog><![CDATA[+ Timebase: Beats option]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/934edcd1b8a8363a534bbb473015d94432480257/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
@@ -477,6 +481,10 @@ added support for all track envelopes]]></changelog>
       <version name="0.999" author="Xenakios / juliansader" time="2016-06-13T19:00:13Z">
         <changelog><![CDATA[+ Changed Rate interpolation between nodes from linear to parabolic.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/e3f555d0f14482a1d89d39fdb3d9dcbbd08838e5/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="0.9999" author="Xenakios / juliansader" time="2016-06-15T22:00:39Z">
+        <changelog><![CDATA[+ Timebase: Beats option]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/85712e09f412121c9ad8885a28ff335da58db513/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
