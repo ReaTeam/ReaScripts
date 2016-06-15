@@ -1,10 +1,14 @@
+-- @version 1.61
+-- @author Airon
+-- @changelog
+--    + spk77: fixed colour swatch reset (forum.cockos.com/showpost.php?p=1694646&postcount=282)
+
 --[[
 * ReaScript Name: Colour Swatch Window
 * Author: Airon
 * Licence: GPL v3
 * REAPER: 5.0
 * Extensions: None
-* Version: 1.60
 * Description: Colour Swatch window for context sensitive colouring of tracks or items
 * Instructions:
 *   FULL AUTHOR LIST:
@@ -28,10 +32,11 @@
 
 --[[
  Changelog:
+ * v1.61 (2016-06-15)
+    + spk77: fixed colour swatch reset
  * v1.60 (2016-06-11)
     + fixed colour swatch reset
-    + changed default preset
---]]
+]]
 
 -- /////////Basic Config Start////////////////////////////////
 dbug_flag = 0 -- set to 0 for no debugging messages, 1 to get them
@@ -780,7 +785,9 @@ function colour_swatch_init()
     elseif save_settings_on_exit == 1 then
         if reaper.HasExtState(r_ini_strsection,"generate_colour") then
             generate_colour  =  tonumber(reaper.GetExtState(r_ini_strsection, "generate_colour"))
-          end
+        else
+          settings_from_preset(preset_default)
+        end
         if generate_colour == 1 then
             --dbug ("Saved state exists\n")
             retrieve_and_set_last_used_setting()
@@ -792,8 +799,7 @@ function colour_swatch_init()
                 settings_from_preset(preset_default)
               end
         end
-    end
-  
+    end  
   
     sw_table = NIL
     sw_table = {} -- our current name and colour information ends up in this table
