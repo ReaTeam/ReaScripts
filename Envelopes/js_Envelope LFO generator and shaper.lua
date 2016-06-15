@@ -33,46 +33,17 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.999
+ * Version: 0.9999
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v0.?
-    + Xenakios' Initial Release
- * v0.2
-    + Julian's mod
- * v0.3 (2016-05-20)
-    + Time selection now works properly with take envelopes when take position is not at start of project.
-    + LFO now uses full range of envelopes with different min and max values (such as pitch).
- * v0.4 (2016-05-20)
-    + Cntl-click (or -drag) in envelope now sets all points to the same value.
-    + Added help text and "?" button.
- * v0.5 (2016-05-21)
-    + Prevent slow mouse clicks from activating buttons multiple times.
-    + Interface colors now easily customizable.
-    + Replaced 'Delay' with 'Phase step', which steps through nodes in shape definition.
-    + The LFO generator now inserts an interpolated envelope point at end of time selection.
- * v0.9 (2016-05-22)
-    + Saving and loading of curves
-    + New interface look
- * v0.91 (2016-05-25)
-    + Fixed "attempt to get length of a nil value (global 'savedNames')" bug
- * v0.99 (2016-05-27)
-    + The MIDI editor version now available!!
-    + Envelope area now resizeable (allowing finer resolution).
-    + Alt-drag for quick delete of multiple nodes.
-    + Accurate interpolation of Fast start, Fast end shapes.
-    + Curve named "default" will be loaded on startup.
- * v0.997 (2016-06-13)
-    + Mousewheel can be used for super fine adjustment of node values.
-    + Rightclick in envelope area to set the LFO period to precise note lengths.
-    + Envelope value displayed above hotpoint.
- * v0.999 (2016-06-13)
-    + Changed Rate interpolation between nodes from linear to parabolic.
+ * v0.9999 (2016-06-15)
+    + Timebase: Beats option
 ]]
+-- The archive of the full changelog is at the end of the script.
 
 --  USER AREA:
     --[[ 
@@ -218,11 +189,18 @@ sliderHeight = 28
 borderWidth = 10
 envHeight = 190
 initXsize = 209 --300 -- Initial sizes for the GUI
-initYsize = borderWidth + sliderHeight*11 + envHeight + 45
+initYsize = borderWidth + sliderHeight*12 + envHeight + 45
 envYpos = initYsize - envHeight - 30
 
 rateDisplayType = "period note length" -- "frequency" or "period note length"
 rateInterpolationType = "parabolic" -- "linear" or "parabolic"
+
+-- By default, these curve will align if the tempo is a constant 120bpm
+-- The range is between 2 whole notes and 1/32 notes, or 0.25Hz and 16Hz.
+timeBaseMax = 16 -- 16 oscillations per second
+timeBaseMin = 0.25
+beatBaseMax = 32 -- 32 divisions per whole note
+beatBaseMin = 0.5
 
 -- The Clip slider and value in the original code
 --     do not appear to have any effect, 
@@ -360,7 +338,7 @@ function make_menubutton(x,y,w,h,val,name,valcb)
   return slider
 end -- function make_menubutton
 
-function make_question(x,y,w,h,val,name,valcb)
+function make_question(x,y,w,h,val,name,valcb, trueanswer, falseanswer)
   slider={}
   slider.x=function() return x end
   slider.y=function() return y end
@@ -370,6 +348,8 @@ function make_question(x,y,w,h,val,name,valcb)
   slider.valcb=valcb
   slider.name=name
   slider.enabled = false
+  slider.trueanswer = trueanswer
+  slider.falseanswer = falseanswer
   slider.type="Question"
   slider.env_enabled=false
   slider.envelope= {{ 0.0, val }, 
@@ -562,20 +542,20 @@ function draw_slider(slid)
             gfx.x=slid.x()+4+gfx.measurestr(slid.name)+gfx.measurestr("w")
             gfx.y=slid.y()+3
             setColor({0,0,0,1})
-            if slid.enabled == true then
-                gfx.drawstr("Enabled")
+            if slid.value == 1 then
+                gfx.drawstr(slid.trueanswer)
             else
-                gfx.drawstr("Disabled")      
+                gfx.drawstr(slid.falseanswer)      
             end
         end
         gfx.x=slid.x()+3+gfx.measurestr(slid.name)+gfx.measurestr("w")
         gfx.y=slid.y()+2
         setColor(foregroundColor)
         gfx.a = gfx.a + 0.3  
-        if slid.enabled == true then
-            gfx.drawstr("Enabled")
+        if slid.value == 1 then
+            gfx.drawstr(slid.trueanswer)
         else
-            gfx.drawstr("Disabled")      
+            gfx.drawstr(slid.falseanswer)      
         end    
     end    
         
@@ -642,18 +622,36 @@ function draw_envelope(env,enabled)
 
             -- If Rate envelope, display period above hotpoint
             if env.name == "Rate" and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                if rateDisplayType == "period note length" then
-                    local bpm = getBPM(time_start + envpoint[1]*(time_end-time_start))
-                    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
-                    -- This is based on Xenakios's formula for freqhz
-                    local pointPeriod =(960*(((envpoint[2]^2)*15.8)+0.2)/(bpm*totalSteps))
-                    hotString = ("1/".. tostring(pointPeriod)):sub(1,6)
+                if egsliders[slidNum_timebase].value == 1 and rateDisplayType == "period note length" then
+                    local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
+                    if pointRate <= 1 then hotString = tostring(1/pointRate):sub(1,4)
+                    else hotString = ("1/".. tostring(pointRate)):sub(1,6)
+                    end
                     -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
-                    if math.floor(pointPeriod+0.5) == math.floor(pointPeriod*1000 + 0.5)/1000 then
+                    if math.floor(pointRate+0.5) == math.floor(pointRate*1000 + 0.5)/1000 then
                         hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
                     end
-                else -- rateDisplayType == "frequency"
-                    hotString = tostring(0.2+(15.8*envpoint[2]^2.0)):sub(1,4) .. "Hz"
+                elseif egsliders[slidNum_timebase].value == 1 and rateDisplayType == "frequency" then
+                    local timeStartQN = reaper.TimeMap_timeToQN(time_start)
+                    local timeEndQN = reaper.TimeMap_timeToQN(time_end)
+                    local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + envpoint[1]*(timeEndQN-timeStartQN))
+                    local bpm = getBPM(timeAtNode)
+                    local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
+                    hotString = tostring(pointRate * bpm / 240):sub(1,5) .. "Hz"
+                elseif egsliders[slidNum_timebase].value == 0 and rateDisplayType == "period note length" then
+                    local bpm = getBPM(time_start + envpoint[1]*(time_end-time_start))
+                    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+                    local pointFreq = timeBaseMin + (timeBaseMax-timeBaseMin)*(envpoint[2]^2)
+                    local pointRate = pointFreq * 240 / bpm
+                    if pointRate <= 1 then hotString = tostring(1/pointRate):sub(1,4)
+                    else hotString = ("1/".. tostring(pointRate)):sub(1,6)
+                    end
+                    -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
+                    if math.floor(pointRate+0.5) == math.floor(pointRate*1000 + 0.5)/1000 then
+                        hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
+                    end
+                elseif egsliders[slidNum_timebase].value == 0 and rateDisplayType == "frequency" then -- rateDisplayType == "frequency"
+                    hotString = tostring(timeBaseMin+((timeBaseMax-timeBaseMin)*(envpoint[2])^2.0)):sub(1,5) .. "Hz"
                 end
             -- If Amplitude or Center, or if no time selection, simply display y value
             else
@@ -685,8 +683,8 @@ end
 
 function get_env_interpolated_value(env,x,curveType)
   if #env==0 then return 0.0 end
-  if x<env[1][1] then return env[1][2] end
-  if x>env[#env][1] then return env[#env][2] end
+  if x<=env[1][1] then return env[1][2] end
+  if x>=env[#env][1] then return env[#env][2] end
   local i=1
   for key,envpoint in pairs(env) do
       if x>=envpoint[1] then
@@ -695,7 +693,7 @@ function get_env_interpolated_value(env,x,curveType)
           if x<nextpt[1] then
               local timedelta=nextpt[1]-envpoint[1]
               if timedelta<0.0001 then timedelta=0.0001 end
-              -- Remember that the envelope area is mapping to freqhz using a power curve:
+              -- Remember that the envelope area is mapping of [0,1] to freqhz using a power curve:
               -- freqhz = 0.2+(15.8*freq_norm_to_use^2.0)
               -- Therefore this function was changed from a linear interpolation to a similar power curve.
               if curveType == "parabolic" then
@@ -723,6 +721,7 @@ last_used_params={}
 last_envelope=nil
 
 function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip)
+
   math.randomseed(1)
      
   tableVals = nil
@@ -763,17 +762,16 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       --time_end = math.min(envItemLength - envTakeOffsetInItem, time_end - envTakeOffsetInItem - envItemOffset)
   end
   if time_end<=time_start then return end
-
-  time=time_start
   
   local envscalingmode=reaper.GetEnvelopeScalingMode(env)
 
   --local freqhz=1.0+7.0*freq^2.0
-  local nvindex=math.floor(1+(#notevalues-1)*freq)
+  --[[local nvindex=math.floor(1+(#notevalues-1)*freq)
   local dividend=notevalues[nvindex][1]
   local divisor=notevalues[nvindex][2]
+  ]]
   --reaper.ShowConsoleMsg(dividend .. " " .. divisor .. "\n")
-  --[[!!!!local freqhz=1.0
+  --[[local freqhz=1.0
   if ratemode>0.5 then
     freqhz=(reaper.Master_GetTempo()/60.0)*1.0/(dividend/divisor)
   else
@@ -784,18 +782,26 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   minv = BRenvMinValue
   maxv = BRenvMaxValue
   
-  gen_end_time=time_end
+  --!! -- Keep time_start and time_end in timebase, gen_time_start and gen_time_end is in time or beats.
   if ratemode>0.5 then
     time=reaper.TimeMap_timeToQN(time_start)
-    gen_end_time=reaper.TimeMap_timeToQN(time_end)
-  end
+    gen_time_start = time --!!
+    gen_time_end=reaper.TimeMap_timeToQN(time_end)
+  else
+    time=time_start
+    gen_time_start = time
+    gen_time_end=time_end
+  end 
+  
   reaper.DeleteEnvelopePointRange(env, time_start-phase,time_end+0.0001)
-  local timeseldur=time_end-time_start
-  local fadoutstart_time = time_end-time_start-timeseldur*fadoutdur
+  local timeseldur = gen_time_end - gen_time_start --!!time_end-time_start
+  
+  --[[local fadoutstart_time = time_end-time_start-timeseldur*fadoutdur
   if ratemode>0.5 then
     fadoutstart_time = reaper.TimeMap_timeToQN(fadoutstart_time)
-    time_start = reaper.TimeMap_timeToQN(time_start)
+    --!!time_start = reaper.TimeMap_timeToQN(time_start)
   end
+  ]]
   
   local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
   local phaseStep = math.floor(phase * totalSteps)
@@ -804,7 +810,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   local segshape=-1.0+2.0*tilt
   local ptcount=0
   
-  if time <= gen_end_time then
+  if time <= gen_time_end then
       isBeyondEnd = false else isBeyondEnd = true
   end
   
@@ -814,25 +820,24 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   --    this loop must actually progress one step beyond the end time.  The point beyond end_time 
   --    of course not be inserted, but will only be used to calculate the interpolated closing point.
   while isBeyondEnd == false do
-      time_to_interp = 1.0/timeseldur*(time-time_start)
-      freq_norm_to_use=get_env_interpolated_value(egsliders[1].envelope,time_to_interp, rateInterpolationType)
-      freqhz=0.2+(15.8*freq_norm_to_use^2.0)
+
+      -- Calculate the step size to next envelope node
+      -- The script's internal envelope value is between [0,1] and must be mapped to 
+      --    a period between [timeBaseMin, timeBaseMax] or [beatBaseMin,beatBaseMax].
+      -- This is done using a power curve: 
+      --    nextNodeStepSize = (1/(MINFREQ + (MAXFREQ-MINFREQ)*(freq_norm_to_use^FREQPOWER)) / totalSteps
+      time_to_interp = (1.0/timeseldur)*(time-gen_time_start) --!!time_start
       
-      -- fade goes to infinity when trying to calculate point beyond gen_end_time, 
-      --    so use fadeHackTime when calculating the point efter end_time.
-      fade_gain = 1.0
-      fadeHackTime = math.min(time, gen_end_time) 
-      if ratemode<0.5 then
-        if fadeHackTime-time_start<timeseldur*fadindur then
-          fade_gain=1.0/(timeseldur*fadindur)*(fadeHackTime - time_start)
-        end
-        if fadeHackTime - time_start>fadoutstart_time then
-          fade_gain=1.0-(1.0/(timeseldur*fadoutdur)*(fadeHackTime - fadoutstart_time - time_start))
-        end
+      freq_norm_to_use=get_env_interpolated_value(egsliders[1].envelope,time_to_interp, rateInterpolationType)
+      if ratemode < 0.5 then
+          -- Timebase is time, so step size in seconds
+          nextNodeStepSize = (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
       else
-          -- ??????
-      end -- if ratemode<0.5
-                 
+          -- Timebase == beats, so step size in Quarter Notes
+          nextNodeStepSize = (4.0/(beatBaseMin + (beatBaseMax-beatBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
+      end
+
+      ---------------------         
       -- Get info for point
       totalSteps, val, pointShape, pointTension, linearJump = shape_function[shapeSelected](ptcount-phaseStep)
       -- Usually "false" values are skipped, but not if it is the very first point
@@ -867,95 +872,114 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       end  
               
       if val == false then -- Skip point
-         time=time+(1.0/freqhz/4.0)
-         ptcount=ptcount+1   
+          time=time+nextNodeStepSize
+          ptcount=ptcount+1   
       else -- Point will be inserted. Must first calculate value
       -- If linearJump, then oppositeVal must also be calculated               
-         if linearJump == true then oppositeVal = -val end
-      
-         --if time_to_interp<0.0 or time_to_interp>1.0 then
-        --  reaper.ShowConsoleMsg(time_to_interp.." ") end
-        amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp, "linear")
-        --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
-        val=0.5+(0.5*amp_to_use*fade_gain)*val
-        local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp, "linear")
-        local rangea=maxv-minv
-        val=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
-        local z=math.random()*randomness
-        val=val+(-randomness/2.0)+z
-        local tilt_ramp = 1.0/(gen_end_time-time_start) * (time-time_start)
-        local tilt_amount = -1.0+2.0*tilt
-        local tilt_delta = -tilt_amount+(2.0*tilt_amount)*tilt_ramp
-        --val=val+tilt_delta
-        local num_quansteps=3+quansteps*61
-        --[[if num_quansteps<64 then
-          val=quantize_value(val,num_quansteps)
-        end]]
-        if quansteps ~= 1 then
-             val=quantize_value(val,3 + math.ceil(quansteps*125))
-        end
+          if linearJump == true then oppositeVal = -val end
         
-        local instime=time
-        
-        val=bound_value(minv,val,maxv)
-        val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
-        local tension = segshape*pointTension  
-        
-        if linearJump == true then
-            oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
-            oppositeVal=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
-            oppositeVal=oppositeVal+(-randomness/2.0)+z
-            if quansteps ~= 1 then
-                 val=quantize_value(val,3 + math.ceil(quansteps*125))
-            end
-            oppositeVal=bound_value(minv,oppositeVal,maxv)
-            oppositeVal = reaper.ScaleToEnvelopeMode(envscalingmode, oppositeVal)
-            local tension = segshape*pointTension
-        end
-
-        -- Insert point in envelope        
-        if time < gen_end_time then
-            if linearJump == true then
-                reaper.InsertEnvelopePoint(env, instime, val, 0, 0, true, true)
-                reaper.InsertEnvelopePoint(env, instime, oppositeVal, pointShape, tension, true, true)
-                prevVal = oppositeVal
-            else             
-                reaper.InsertEnvelopePoint(env, instime, val, pointShape, tension, true, true)
-                prevVal = val
-            end
-            prevTime = instime
-            prevShape = pointShape
-            prevTension = tension
-        else -- interpolate the last envelope point
-            isBeyondEnd = true
-            if ratemode>0.5 then
-              endTime=reaper.TimeMap2_QNToTime(0, gen_end_time)  
-            else
-              endTime=gen_end_time
-            end
-            if prevShape == 0 then -- linear
-                endVal = prevVal + (val-prevVal)*(endTime-prevTime)/(instime-prevTime)
-            elseif prevShape == 1 then -- square
-                endVal = prevVal
-            elseif prevShape == 2 then -- slow start/end (seems to be sine?)
-                local pifrac    = (math.pi)*(endTime-prevTime)/(instime-prevTime)
-                local cosfrac = (1-math.cos(pifrac))/2
-                endVal = prevVal + cosfrac*(val-prevVal)
-            else
-                endVal = prevVal + (val-prevVal)*(endTime-prevTime)/(instime-prevTime)
-            end
-            reaper.InsertEnvelopePoint(env, endTime, endVal, pointShape, tension, true, true)
-        end
-            
-            
-        
-        --oscphase=oscphase+1.0/((2*3.141592653)/(freqhz))
-        time=time+(1.0/freqhz/4.0)
-        --time=time+(1.0/(freqhz*32))
-        ptcount=ptcount+1
+          -- fade goes to infinity when trying to calculate point beyond gen_time_end, 
+          --    so use timeFadeHack when calculating the point efter end_time.
+          fade_gain = 1.0
+          timeFadeHack = math.min(time, gen_time_end) 
+          if timeFadeHack - gen_time_start < timeseldur*fadindur then
+             fade_gain = 1.0/(timeseldur*fadindur)*(timeFadeHack - gen_time_start)
+          end
+          if timeFadeHack - gen_time_start > gen_time_end - timeseldur*fadoutdur then
+             --!!fade_gain = 1.0-(1.0/(timeseldur*fadoutdur)*(timeFadeHack - fadoutstart_time - gen_time_start))
+             fade_gain = fade_gain * (1.0/(timeseldur*fadoutdur))*(gen_time_end - timeFadeHack)
+          end
+          
+          
+          --if time_to_interp<0.0 or time_to_interp>1.0 then
+          --  reaper.ShowConsoleMsg(time_to_interp.." ") end
+          amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp, "linear")
+          --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
+          val=0.5+(0.5*amp_to_use*fade_gain)*val
+          local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp, "linear")
+          local rangea=maxv-minv
+          val=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
+          local z=math.random()*randomness
+          val=val+(-randomness/2.0)+z
+          local tilt_ramp = (time - gen_time_start) / (timeseldur) --!!1.0/(gen_time_end-time_start) * (time-time_start)
+          local tilt_amount = -1.0+2.0*tilt
+          local tilt_delta = -tilt_amount+(2.0*tilt_amount)*time_to_interp --!!tilt_ramp
+          --val=val+tilt_delta
+          local num_quansteps=3+quansteps*61
+          --[[if num_quansteps<64 then
+            val=quantize_value(val,num_quansteps)
+          end]]
+          if quansteps ~= 1 then
+              val=quantize_value(val,3 + math.ceil(quansteps*125))
+          end          
+          
+          val=bound_value(minv,val,maxv)
+          val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
+          local tension = segshape*pointTension  
+          
+          if linearJump == true then
+              oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
+              oppositeVal=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
+              oppositeVal=oppositeVal+(-randomness/2.0)+z
+              if quansteps ~= 1 then
+                   val=quantize_value(val,3 + math.ceil(quansteps*125))
+              end
+              oppositeVal=bound_value(minv,oppositeVal,maxv)
+              oppositeVal = reaper.ScaleToEnvelopeMode(envscalingmode, oppositeVal)
+              local tension = segshape*pointTension
+          end
+  
+          -- To insert envelope nodes, timebase==beat must be mapped back to timebase==time
+          --!!local instime=time
+          if ratemode>0.5 then
+              instime=reaper.TimeMap2_QNToTime(0, time)
+          else
+              instime = time
+          end
+  
+          -- Insert point in envelope        
+          if time < gen_time_end then
+              if linearJump == true then
+                  reaper.InsertEnvelopePoint(env, instime, val, 0, 0, true, true)
+                  reaper.InsertEnvelopePoint(env, instime, oppositeVal, pointShape, tension, true, true)
+                  prevVal = oppositeVal
+              else             
+                  reaper.InsertEnvelopePoint(env, instime, val, pointShape, tension, true, true)
+                  prevVal = val
+              end
+              prevTime = instime
+              prevShape = pointShape
+              prevTension = tension
+          else -- interpolate the last envelope point
+              isBeyondEnd = true
+              if ratemode>0.5 then
+                endTime=reaper.TimeMap2_QNToTime(0, gen_time_end)  
+              else
+                endTime=gen_time_end
+              end
+              if prevShape == 0 then -- linear
+                  endVal = prevVal + (val-prevVal)*(endTime-prevTime)/(instime-prevTime)
+              elseif prevShape == 1 then -- square
+                  endVal = prevVal
+              elseif prevShape == 2 then -- slow start/end (seems to be sine?)
+                  local pifrac    = (math.pi)*(endTime-prevTime)/(instime-prevTime)
+                  local cosfrac = (1-math.cos(pifrac))/2
+                  endVal = prevVal + cosfrac*(val-prevVal)
+              else
+                  endVal = prevVal + (val-prevVal)*(endTime-prevTime)/(instime-prevTime)
+              end
+              reaper.InsertEnvelopePoint(env, endTime, endVal, pointShape, tension, true, true)
+          end
+              
+              
+          
+          --oscphase=oscphase+1.0/((2*3.141592653)/(freqhz))
+          time=time+nextNodeStepSize
+          --time=time+(1.0/(freqhz*32))
+          ptcount=ptcount+1
       end -- if val ~= false
      
-  end -- while time<=gen_end_time
+  end -- while time<=gen_time_end
    
   --if last_used_parms==nil then last_used_params={"}
   last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
@@ -1076,10 +1100,14 @@ function update()
             end   
         
             -- Enable or disable Real-time copy-to-CC
-            if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Real-time copy to CC?") 
+            if gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
             and firstClick == true
             then
-              tempcontrol.enabled = not tempcontrol.enabled
+              if tempcontrol.value == 0 then
+                  tempcontrol.value = 1
+              else
+                  tempcontrol.value = 0
+              end
               firstClick = false
               dogenerate = true
             end 
@@ -1139,8 +1167,11 @@ function update()
               end
               
               --Remove envelope point under mouse
+              --Prevent removal of endpoint nodes
               --if already_removed_pt==false and tempcontrol.hotpoint>0 and gfx.mouse_cap == 17  then
-              if tempcontrol.hotpoint>0 and gfx.mouse_cap == (LEFTBUTTON+ALTKEY) then
+              if tempcontrol.hotpoint > 0 and gfx.mouse_cap == (LEFTBUTTON+ALTKEY)
+                  and not (tempcontrol.hotpoint == 1 or tempcontrol.hotpoint == #tempcontrol.envelope)
+                  then
                   table.remove(tempcontrol.envelope,tempcontrol.hotpoint)
                   dogenerate=true
                   firstClick = false
@@ -1153,8 +1184,14 @@ function update()
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-captured_control.x())
                   local pt_y = 1.0/captured_control.h()*(gfx.mouse_y-captured_control.y())
                   ept = captured_control.envelope[captured_control.hotpoint]
-                  ept[1]=pt_x
-                  ept[2]=1.0-pt_y
+                  if tempcontrol.hotpoint == 1 then 
+                      ept[1]=0
+                  elseif tempcontrol.hotpoint == #tempcontrol.envelope then
+                      ept[1]=1
+                  else
+                      ept[1]=math.min(1, math.max(0, pt_x))
+                  end
+                  ept[2]=math.min(1, math.max(0, 1.0-pt_y))
                   dogenerate=true
                   firstClick = false
                   --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
@@ -1176,9 +1213,9 @@ function update()
                   then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
                   if rateDisplayType == "frequency" then
-                      rateMenuString = "#Display rate as|!Frequency|Period note length"
+                      rateMenuString = "#Display rate as|!Time (Frequency)|Beats (Period note length)"
                   else
-                      rateMenuString = "#Display rate as|Frequency|!Period note length"
+                      rateMenuString = "#Display rate as|Time (Frequency)|!Beats (Period note length)"
                   end
                   --[[
                   if rateInterpolationType == "parabolic" then
@@ -1197,92 +1234,166 @@ function update()
                   dogenerate = true       
               end
         
-              -- If Rate: Quantize period of ALL nodes
+              -- If Rate: Ctrl-RightClick to quantize period of ALL nodes
               if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  quantmenuSel = gfx.showmenu("#Set period at ALL nodes to:|1/64 triplet|1/64|1/32 triplet|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole||Custom")
-                  userRateFound = false
-                  if quantmenuSel >= 2 and quantmenuSel < 15 then 
-                      local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
-                      userRate = tableNoteRates[quantmenuSel]
-                      userRateFound = true
-                  elseif quantmenuSel == 15 then
+                  local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
+                  quantmenuSel = gfx.showmenu("#Set rate at ALL nodes to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
+                  userNoteFound = false
+                  userFreqFound = false
+                  if quantmenuSel >= 2 and quantmenuSel <= #tableNoteRates then 
+                      --local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
+                      userNote = tableNoteRates[quantmenuSel]
+                      userNoteFound = true
+                  elseif quantmenuSel == #tableNoteRates + 1 then
                       repeat
-                          retval, userRate = reaper.GetUserInputs("Set period at ALL nodes", 1, "Periods per whole note", "")
-                          userRate = tonumber(userRate)
-                          if type(userRate) == "number" and userRate > 0 then 
-                              userRateFound = true 
-                              userRate = 1/userRate
+                          retval, userNote = reaper.GetUserInputs("Set rate at all nodes", 1, "Periods per whole note", "")
+                          userNote = tonumber(userNote)
+                          if type(userNote) == "number" and userNote >= beatBaseMin and userNote <= beatBaseMax  then 
+                              userNoteFound = true 
                           end
-                      until retval == false or userRateFound == true
+                      until retval == false or userNoteFound == true
+                  elseif quantmenuSel == #tableNoteRates + 2 then
+                      repeat
+                          retval, userFreq = reaper.GetUserInputs("Set rate at all node", 1, "Frequency in Hz ("
+                                                                                             .. tostring(timeBaseMin) 
+                                                                                             .. "-" 
+                                                                                             .. tostring(timeBaseMax)
+                                                                                             .. ")", "")
+                          userFreq = tonumber(userFreq)
+                          if type(userFreq) == "number" and userFreq >= timeBaseMin and userFreq <= timeBaseMax then 
+                              userFreqFound = true 
+                          end
+                      until retval == false or userFreqFound == true
                   end
-                  
-                  if userRateFound == true and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      --userRate = 4*tonumber(userRate)
-                      totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
+                    
+                  if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
+                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       for i = 1, #tempcontrol.envelope do
-                          --tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
-                          bpm = getBPM(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
-                          rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
-                          tempcontrol.envelope[i][2] = rateForBPM
+                          local bpm = getBPM(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
+                          local userFreq = userNote * bpm / 240.0
+                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       end
                       dogenerate = true
-                  end         
+                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
+                      local normalizedValue = ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)
+                      for i = 1, #tempcontrol.envelope do
+                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
+                      end
+                      dogenerate = true
+                  elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
+                      local normalizedValue = ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)
+                      for i = 1, #tempcontrol.envelope do
+                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
+                      end
+                      dogenerate = true
+                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
+                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                      for i = 1, #tempcontrol.envelope do
+                          local timeStartQN = reaper.TimeMap_timeToQN(time_start)
+                          local timeEndQN = reaper.TimeMap_timeToQN(time_end)
+                          local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[i][1]*(timeEndQN-timeStartQN))
+                          local bpm = getBPM(timeAtNode)
+                          local userNote = 240.0 * userFreq / bpm
+                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                      end
+                      dogenerate = true
+                  end 
+                                          
               end -- if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON
               
-              -- If Rate and right-click or hotpoint: Quantize period of hotpoint
+              
+              -- If Rate and right-click on hotpoint: Quantize period of hotpoint
               if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  quantmenuSel = gfx.showmenu("#Set period at node to:|1/64 triplet|1/64|1/32 triplet|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole||Custom")
-                  userRateFound = false
-                  if quantmenuSel >= 2 and quantmenuSel < 15 then 
-                      local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
-                      userRate = tableNoteRates[quantmenuSel]
-                      userRateFound = true
-                  elseif quantmenuSel == 15 then
+                  local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
+                  quantmenuSel = gfx.showmenu("#Set rate at node to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
+                  userNoteFound = false
+                  userFreqFound = false
+                  if quantmenuSel >= 2 and quantmenuSel <= #tableNoteRates then 
+                      --local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
+                      userNote = tableNoteRates[quantmenuSel]
+                      userNoteFound = true
+                  elseif quantmenuSel == #tableNoteRates + 1 then
                       repeat
-                          retval, userRate = reaper.GetUserInputs("Set period at node", 1, "Periods per whole note", "")
-                          userRate = tonumber(userRate)
-                          if type(userRate) == "number" and userRate > 0 then 
-                              userRateFound = true 
-                              userRate = 1/userRate
+                          retval, userNote = reaper.GetUserInputs("Set rate at node", 1, "Periods per whole note", "")
+                          userNote = tonumber(userNote)
+                          if type(userNote) == "number" and userNote >= beatBaseMin and userNote <= beatBaseMax  then 
+                              userNoteFound = true 
                           end
-                      until retval == false or userRateFound == true
+                      until retval == false or userNoteFound == true
+                  elseif quantmenuSel == #tableNoteRates + 2 then
+                      repeat
+                          retval, userFreq = reaper.GetUserInputs("Set rate at node", 1, "Frequency in Hz ("
+                                                                                      .. tostring(timeBaseMin) 
+                                                                                      .. "-" 
+                                                                                      .. tostring(timeBaseMax)
+                                                                                      .. ")"
+                                                                                      , "")
+                          userFreq = tonumber(userFreq)
+                          if type(userFreq) == "number" and userFreq >= timeBaseMin and userFreq <= timeBaseMax then 
+                              userFreqFound = true 
+                          end
+                      until retval == false or userFreqFound == true
                   end
                   
-                  if userRateFound == true and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      bpm = getBPM(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
-                      totalSteps, _, _, _, _ = shape_function[shapeSelected](1)
-                      rateForBPM = math.min(1, math.max(0, (((((bpm*totalSteps)/(960*userRate))-0.2)/15.8)^0.5)))
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = rateForBPM
+                  if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
+                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                      local bpm = getBPM(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
+                      local userFreq = userNote * bpm / 240.0
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                      dogenerate = true                                            
+                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                      dogenerate = true
+                  elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                      dogenerate = true
+                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
+                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                      local timeStartQN = reaper.TimeMap_timeToQN(time_start)
+                      local timeEndQN = reaper.TimeMap_timeToQN(time_end)
+                      local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[tempcontrol.hotpoint][1]*(timeEndQN-timeStartQN))
+                      local bpm = getBPM(timeAtNode)
+                      local userNote = 240.0 * userFreq / bpm
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       dogenerate = true
                   end              
               end -- if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON
               
-              -- If Amplitude or Center: Reset to middle
+              
+              -- If Amplitude or Center and rightclick on hotpoint: Set to precise custom value
               if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center") 
                   and tempcontrol.hotpoint>0 
                   and gfx.mouse_cap==RIGHTBUTTON 
                   then
-                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  doReset = gfx.showmenu("Reset point to 0.5")
-                  if doReset == 1 then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = 0.5
-                  end
+                  repeat
+                          retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "")
+                          userVal = tonumber(userVal)
+                  until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
+                  
+                  if retval == true then
+                      tempcontrol.envelope[tempcontrol.hotpoint][2] = userVal
+                      dogenerate = true
+                  end 
               end
               
-              -- If Amplitude or Center: Reset ALL nodes to middle
+              
+              -- If Amplitude or Center and Ctrl-rightclick: Set ALL nodes to precise custom value
               if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center") 
                   and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON 
                   then
-                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  doReset = gfx.showmenu("Reset all points to 0.5")
-                  if doReset == 1 then
+                  repeat
+                          retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "")
+                          userVal = tonumber(userVal)
+                  until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
+                  
+                  if retval == true then                  
                       for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = 0.5
-                      end
+                          tempcontrol.envelope[i][2] = userVal
+                      end                 
+                      dogenerate = true        
                   end
-                  dogenerate = true        
               end              
                             
           end -- if tempcontrol.type=="Envelope"
@@ -1317,10 +1428,10 @@ function update()
   -- (But not if in envelope drawing area)
   if gfx.mouse_cap == RIGHTBUTTON and not is_in_rect(gfx.mouse_x,
                                                      gfx.mouse_y,
-                                                     egsliders[100].x(),
+                                                     0, --egsliders[100].x(),
                                                      egsliders[100].y(),
-                                                     egsliders[100].w(),
-                                                     egsliders[100].h()) 
+                                                     gfx.w, --egsliders[100].w(),
+                                                     gfx.h - egsliders[100].y()) --egsliders[100].h()) 
                                                      then
   
       --reaper.DeleteExtState("LFO generator", "savedCurves", true) -- delete the ExtState
@@ -1367,14 +1478,14 @@ function update()
               for i = 0, 11 do
                   if egsliders[i] == nil then -- skip
                   elseif egsliders[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(shapeSelected)
-                  elseif egsliders[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(egsliders[i].enabled) 
+                  --elseif egsliders[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(egsliders[i].enabled) 
                   elseif egsliders[i].name == "Phase step" then saveString = saveString .. ",Phase step," .. tostring(egsliders[i].value)
                   elseif egsliders[i].name == "Randomness" then saveString = saveString .. ",Randomness," .. tostring(egsliders[i].value)
                   elseif egsliders[i].name == "Quant steps" then saveString = saveString .. ",Quant steps," .. tostring(egsliders[i].value)
                   elseif egsliders[i].name == "Bezier shape" then saveString = saveString .. ",Bezier shape," .. tostring(egsliders[i].value)
                   elseif egsliders[i].name == "Fade in duration" then saveString = saveString .. ",Fade in duration," .. tostring(egsliders[i].value)
                   elseif egsliders[i].name == "Fade out duration" then saveString = saveString .. ",Fade out duration," .. tostring(egsliders[i].value)
-                  elseif egsliders[i].name == "Rate mode" then saveString = saveString .. ",Rate mode," .. tostring(egsliders[i].value)
+                  elseif egsliders[i].name == "Timebase?" then saveString = saveString .. ",Timebase?," .. tostring(egsliders[i].value)
                   elseif egsliders[i].name == "Rate" then 
                       saveString = saveString .. ",Rate,"  .. tostring(#egsliders[i].envelope)
                       for p = 1, #egsliders[i].envelope do
@@ -1439,20 +1550,20 @@ function update()
   
   if dogenerate==true then
       --if egsliders[10].value>0.5 then use_note_rates=true else use_note_rates=false end 
-      generate(egsliders[1].value,
-      egsliders[2].value,
-      egsliders[3].value,
-      egsliders[4].value,
-      egsliders[5].value,
-      egsliders[6].value,
-      egsliders[7].value,
-      egsliders[8].value,
-      egsliders[9].value,
-      0, --egsliders[10].value,
-      clip)
+      generate(egsliders[1].value, -- freq
+             egsliders[2].value, -- amp
+             egsliders[3].value, -- center
+             egsliders[4].value, -- phase
+             egsliders[5].value, -- randomness
+             egsliders[6].value, -- quansteps
+             egsliders[7].value, -- tilt
+             egsliders[8].value, -- fadindur
+             egsliders[9].value, -- fadoutdur
+             egsliders[10].value, -- timebase (aka ratemode)
+             clip)      
       was_changed=true
       -- Julian's mod: Real-time copy to CC
-      if egsliders[slidNum_copyCC].enabled == true then
+      if egsliders[slidNum_copyCC].value == 1 then
           editor = reaper.MIDIEditor_GetActive()
           reaper.MIDIEditor_OnCommand(editor, commandID)    
       end
@@ -1524,6 +1635,9 @@ function loadCurve(curveNum)
         end
         
         curveName = nextStr()
+        -- For compatibility with previous version that only has timebase=time, timebase is set to 0 by default
+        egsliders[slidNum_timebase].value = 0
+        
         for i = 0, 11 do
             --reaper.ShowConsoleMsg("\nsliderName = ")
             sliderName = nextStr()
@@ -1541,7 +1655,7 @@ function loadCurve(curveNum)
             elseif sliderName == "Bezier shape" then egsliders[slidNum_Bezier].value = tonumber(nextStr())
             elseif sliderName == "Fade in duration" then egsliders[slidNum_fadein].value = tonumber(nextStr())
             elseif sliderName == "Fade out duration" then egsliders[slidNum_fadeout].value = tonumber(nextStr())
-            elseif sliderName == "Rate mode" then egsliders[slidNum_mode].value = tonumber(nextStr())
+            elseif sliderName == "Timebase?" then egsliders[slidNum_timebase].value = tonumber(nextStr())
             elseif sliderName == "Rate" then 
                 egsliders[slidNum_rate].envelope = nil
                 egsliders[slidNum_rate].envelope = {}
@@ -1573,16 +1687,16 @@ function loadCurve(curveNum)
             egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[3])
         end
         
-        generate(egsliders[1].value,
-               egsliders[2].value,
-               egsliders[3].value,
-               egsliders[4].value,
-               egsliders[5].value,
-               egsliders[6].value,
-               egsliders[7].value,
-               egsliders[8].value,
-               egsliders[9].value,
-               0, --egsliders[10].value,
+        generate(egsliders[1].value, -- freq
+               egsliders[2].value, -- amp
+               egsliders[3].value, -- center
+               egsliders[4].value, -- phase
+               egsliders[5].value, -- randomness
+               egsliders[6].value, -- quansteps
+               egsliders[7].value, -- tilt
+               egsliders[8].value, -- fadindur
+               egsliders[9].value, -- fadoutdur
+               egsliders[10].value, -- timebase (aka ratemode)
                clip)
                was_changed=true
                       
@@ -1649,25 +1763,25 @@ egsliders[2]=make_radiobutton(borderWidth,borderWidth+sliderHeight*1,0,0,0.5,"Am
 slidNum_amp = 2
 egsliders[3]=make_radiobutton(borderWidth,borderWidth+sliderHeight*2,0,0,0.5,"Center",function(nx) end)
 slidNum_center = 3
-egsliders[0]=make_menubutton(borderWidth,borderWidth+sliderHeight*3,0,0,0.0,"LFO shape?",function(nx) end)
+egsliders[10]=make_question(borderWidth,borderWidth+sliderHeight*3,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
+slidNum_timebase = 10
+egsliders[0]=make_menubutton(borderWidth,borderWidth+sliderHeight*4,0,0,0.0,"LFO shape?",function(nx) end)
 slidNum_shape = 0
-egsliders[11]=make_question(borderWidth,borderWidth+sliderHeight*4,0,0,0.0,"Real-time copy to CC?",function(nx) end)
+egsliders[11]=make_question(borderWidth,borderWidth+sliderHeight*5,0,0,0.0,"Real-time copy to CC?",function(nx) end, "Enabled", "Disabled")
 slidNum_copyCC = 11
 -- The following slider was originally named "Phase"
-egsliders[4]=make_slider(borderWidth,borderWidth+sliderHeight*5,0,0,0.0,"Phase step",function(nx) end)
+egsliders[4]=make_slider(borderWidth,borderWidth+sliderHeight*6,0,0,0.0,"Phase step",function(nx) end)
 slidNum_phase = 4
-egsliders[5]=make_slider(borderWidth,borderWidth+sliderHeight*6,0,0,0.0,"Randomness",function(nx) end)
+egsliders[5]=make_slider(borderWidth,borderWidth+sliderHeight*7,0,0,0.0,"Randomness",function(nx) end)
 slidNum_random = 5
-egsliders[6]=make_slider(borderWidth,borderWidth+sliderHeight*7,0,0,1.0,"Quant steps",function(nx) end)
+egsliders[6]=make_slider(borderWidth,borderWidth+sliderHeight*8,0,0,1.0,"Quant steps",function(nx) end)
 slidNum_quant = 6
-egsliders[7]=make_slider(borderWidth,borderWidth+sliderHeight*8,0,0,0.7,"Bezier shape",function(nx) end)
+egsliders[7]=make_slider(borderWidth,borderWidth+sliderHeight*9,0,0,0.7,"Bezier shape",function(nx) end)
 slidNum_Bezier = 7
-egsliders[8]=make_slider(borderWidth,borderWidth+sliderHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
+egsliders[8]=make_slider(borderWidth,borderWidth+sliderHeight*10,0,0,0.0,"Fade in duration",function(nx) end)
 slidNum_fadein = 8
-egsliders[9]=make_slider(borderWidth,borderWidth+sliderHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
+egsliders[9]=make_slider(borderWidth,borderWidth+sliderHeight*11,0,0,0.0,"Fade out duration",function(nx) end)
 slidNum_fadeout = 9
---egsliders[10]=make_slider(borderWidth,borderWidth+sliderHeight*11,0,0,0.0,"Rate mode",function(nx) end)
---slidNum_mode = 10
 egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight,egsliders[1]) --315-30
 
 --[[for key,tempcontrol in pairs(egsliders) do
@@ -1686,3 +1800,38 @@ if getSavedCurvesAndNames() ~= false then
 end
 
 update()
+
+--[[ Archive of changelog
+ * v0.?
+    + Xenakios' Initial Release
+ * v0.2
+    + Julian's mod
+ * v0.3 (2016-05-20)
+    + Time selection now works properly with take envelopes when take position is not at start of project.
+    + LFO now uses full range of envelopes with different min and max values (such as pitch).
+ * v0.4 (2016-05-20)
+    + Cntl-click (or -drag) in envelope now sets all points to the same value.
+    + Added help text and "?" button.
+ * v0.5 (2016-05-21)
+    + Prevent slow mouse clicks from activating buttons multiple times.
+    + Interface colors now easily customizable.
+    + Replaced 'Delay' with 'Phase step', which steps through nodes in shape definition.
+    + The LFO generator now inserts an interpolated envelope point at end of time selection.
+ * v0.9 (2016-05-22)
+    + Saving and loading of curves
+    + New interface look
+ * v0.91 (2016-05-25)
+    + Fixed "attempt to get length of a nil value (global 'savedNames')" bug
+ * v0.99 (2016-05-27)
+    + The MIDI editor version now available!!
+    + Envelope area now resizeable (allowing finer resolution).
+    + Alt-drag for quick delete of multiple nodes.
+    + Accurate interpolation of Fast start, Fast end shapes.
+    + Curve named "default" will be loaded on startup.
+ * v0.997 (2016-06-13)
+    + Mousewheel can be used for super fine adjustment of node values.
+    + Rightclick in envelope area to set the LFO period to precise note lengths.
+    + Envelope value displayed above hotpoint.
+ * v0.999 (2016-06-13)
+    + Changed Rate interpolation between nodes from linear to parabolic.
+]]
