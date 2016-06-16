@@ -104,7 +104,7 @@ shadows         = true]]></changelog>
         <changelog><![CDATA[+ Timebase: Beats option]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/934edcd1b8a8363a534bbb473015d94432480257/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
-      <version name="0.99991" author="Xenakios / juliansader" time="2016-06-16T17:31:15Z">
+      <version name="1.0" author="Xenakios / juliansader" time="2016-06-16T17:31:15Z">
         <changelog><![CDATA[+ Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0c03b9825c16e9dd278e607a061c1fe9c8dfee6c/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
