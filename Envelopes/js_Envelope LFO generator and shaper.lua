@@ -37,15 +37,15 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 1.0
+ * Version: 1.01
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v1.0 (2016-06-16)
-    + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
+ * v1.01 (2016-06-16)
+    + Fixed regression in handling of take envelopes.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -787,9 +787,10 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   if envTake ~= nil then -- Envelope is take envelope
       envItem = reaper.GetMediaItemTake_Item(envTake)
       envItemOffset = reaper.GetMediaItemInfo_Value(envItem, "D_POSITION")
-      envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
-      envTakeOffsetInItem = reaper.GetMediaItemTakeInfo_Value(envTake, "D_STARTOFFS")
-      timeOffset = envTakeOffsetInItem + envItemOffset
+      --envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
+      --Does the "start offset in take of item" return value of the following function add any info?
+      --envTakeOffsetInItem = reaper.GetMediaItemTakeInfo_Value(envTake, "D_STARTOFFS")
+      timeOffset = envItemOffset --envTakeOffsetInItem + envItemOffset
       -- The following lines would further restrict time selection to within
       --    the position and length of the take (or item).  However, by leaving 
       --    the time selection unrestricted allows the take to be expanded into
@@ -1050,7 +1051,9 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
               else
                   endVal = prevVal + (val-prevVal)*(time_end-prevTime)/(instime-prevTime)
               end
-              reaper.InsertEnvelopePoint(env, time_end-timeOffset, endVal, 0, tension, true, false) -- endTime-timeOffset
+              -- What shape should the final point have, if endEnvPointFound == false?  
+              -- The script uses "square", which keeps the envelope flat till the next point.
+              reaper.InsertEnvelopePoint(env, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
               
               -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
               if endEnvPointFound == true then
@@ -1924,4 +1927,6 @@ update()
     + Changed Rate interpolation between nodes from linear to parabolic.
  * v0.9999 (2016-06-15)
     + Timebase: Beats option
+ * v1.0 (2016-06-16)
+    + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
 ]]
