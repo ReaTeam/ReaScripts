@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0c03b9825c16e9dd278e607a061c1fe9c8dfee6c" name="ReaTeam Scripts">
+<index version="1" commit="f0a190014eebd9927abcb10718cee011c4f043e5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -104,9 +104,9 @@ shadows         = true]]></changelog>
         <changelog><![CDATA[+ Timebase: Beats option]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/934edcd1b8a8363a534bbb473015d94432480257/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
-      <version name="1.0" author="Xenakios / juliansader" time="2016-06-16T17:31:15Z">
+      <version name="1.0" author="Xenakios / juliansader" time="2016-06-16T18:26:58Z">
         <changelog><![CDATA[+ Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0c03b9825c16e9dd278e607a061c1fe9c8dfee6c/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f0a190014eebd9927abcb10718cee011c4f043e5/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
