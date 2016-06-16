@@ -16,6 +16,10 @@
  *         LOADING AND SAVING CURVES:
  *         Right-click (outside envelope area) to save/load/delete curves.
  *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
+ *
+ *         PRESERVING EXISTING ENVELOPE SHAPES:
+ *         To preserve existing envelope shapes and values outside the time selection, the user should ensure that
+ *         there are envelope points at the edges of the time selection.  These points will be preserved.
  *                           
  *         FURTHER CUSTOMIZATION:
  *         Further customization is possible - see the instructions in the script's USER AREA.
@@ -33,15 +37,15 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.9999
+ * Version: 0.99991
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v0.9999 (2016-06-15)
-    + Timebase: Beats option
+ * v0.99991 (2016-06-16)
+    + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -222,6 +226,9 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\nLOADING AND SAVING CURVES:"
          .."\n\nRight-click (outside envelope area) to save/load/delete curves."
          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
+         
+         .."\n\nPRESERVING EXISTING ENVELOPE SHAPES:"
+         .."\n\nTo preserve existing envelope shapes and values outside the time selection, the user should ensure that there are envelope points at the edges of the time selection.  These points will be preserved."
         
          .."\n\nCOPYING TO CC:"
          .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
@@ -720,6 +727,9 @@ last_used_params={}
 
 last_envelope=nil
 
+---------------------------------------------------------------------------------------------------
+-- The important function that calculates the positions and values of the envelope points, and 
+--    inserts the points into whatever envelope is active.
 function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip)
 
   math.randomseed(1)
@@ -727,10 +737,39 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   tableVals = nil
   tableVals = {}
   
-  env=reaper.GetSelectedEnvelope(0)
-  if env==nil then return end
+  newSelection = false -- temporary
+  env = nil
   
+  env=reaper.GetSelectedEnvelope(0)
+  if env==nil then 
+      return
+  elseif env ~= envPrev then 
+      newSelection = true
+      startEnvPointFound = false
+      endEnvPointFound = false
+      envPrev = env
+  end
+      
   time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
+  if time_end <= time_start then -- If no time is selected, time_start = time_end = 0
+      return
+  elseif time_start ~= timeStartPrev or time_end ~= timeEndPrev then -- What happens when only one edge is changed?
+      newSelection = true
+      startEnvPointFound = false
+      endEnvPointFound = false
+      timeStartPrev = time_start
+      timeEndPrev = time_end
+  end
+  
+  --------------------------------------------------------------------------------------------
+  -- This script creates an Undo point whenever the target envelope or time selection changes.
+  -- Except if it is the first envelope: An undo point should only be created AFTER the first 
+  --    envelope has been shaped.
+  -- Another undo point will be created when the script exits.
+  if newSelection == true and not (firstNewSelection == true) then
+      reaper.Undo_OnStateChange("LFO Tool: Envelope", -1)
+      firstNewSelection = false
+  end
   
   -- The reaper.InsertEnvelopePoint function uses time position relative to 
   --    start of *take*, whereas the reaper.GetSet_LoopTimeRange function returns 
@@ -750,8 +789,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       envItemOffset = reaper.GetMediaItemInfo_Value(envItem, "D_POSITION")
       envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
       envTakeOffsetInItem = reaper.GetMediaItemTakeInfo_Value(envTake, "D_STARTOFFS")
-      time_start = time_start - envTakeOffsetInItem - envItemOffset
-      time_end = time_end - envTakeOffsetInItem - envItemOffset
+      timeOffset = envTakeOffsetInItem + envItemOffset
       -- The following lines would further restrict time selection to within
       --    the position and length of the take (or item).  However, by leaving 
       --    the time selection unrestricted allows the take to be expanded into
@@ -760,8 +798,52 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       --    restricted to item end, not take end.
       --time_start = math.max(0, time_start - envTakeOffsetInItem - envItemOffset)
       --time_end = math.min(envItemLength - envTakeOffsetInItem, time_end - envTakeOffsetInItem - envItemOffset)
+  else
+      timeOffset = 0
   end
-  if time_end<=time_start then return end
+  
+  -- The LFO tries to preserve existing envelope values outside the time selection.
+  -- To do so, it tries to find envelope points at the edges of the selection.
+  if newSelection == true then
+      reaper.Envelope_SortPoints(env)
+      local totalNumberOfPoints = reaper.CountEnvelopePoints(env)
+      
+      local closestPointBeforeOrAtStart = reaper.GetEnvelopePointByTime(env, time_start - timeOffset)
+      for i = closestPointBeforeOrAtStart, 0, -1 do
+          local retval, timeOut, valueOut, _, _, _ = reaper.GetEnvelopePoint(env, i)
+          if retval == true and timeOut == time_start - timeOffset then
+              startEnvPointFound = true
+              startEnvPoint = {value = valueOut}
+          elseif retval == true and timeOut < time_start - timeOffset then
+              break
+          end
+      end
+      
+      local closestPointBeforeOrAtEnd = reaper.GetEnvelopePointByTime(env, time_end - timeOffset)
+      for i = closestPointBeforeOrAtEnd, totalNumberOfPoints do
+          local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePoint(env, i)
+          if retval == true and timeOut == time_end - timeOffset then
+              endEnvPointFound = true
+              endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
+          elseif retval == true and timeOut > time_end - timeOffset then
+              break
+          end
+      end
+      
+  end -- if newSelection == true
+  
+  
+  -- Remember that take envelopes require a time offset
+  reaper.DeleteEnvelopePointRange(env, time_start - timeOffset,time_end+0.0001 - timeOffset) -- time_start - phase?
+  
+  -- startEnvPoint (to preservce existing envelope values) must be inserted before 
+  --    the LFO's own points
+  if startEnvPointFound == true then
+      reaper.InsertEnvelopePoint(env, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
+  end
+  
+  
+  --if time_end<=time_start then return end
   
   local envscalingmode=reaper.GetEnvelopeScalingMode(env)
 
@@ -793,7 +875,6 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
     gen_time_end=time_end
   end 
   
-  reaper.DeleteEnvelopePointRange(env, time_start-phase,time_end+0.0001)
   local timeseldur = gen_time_end - gen_time_start --!!time_end-time_start
   
   --[[local fadoutstart_time = time_end-time_start-timeseldur*fadoutdur
@@ -938,13 +1019,14 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           end
   
           -- Insert point in envelope        
+          -- And remember that takes envelopes require a time offset
           if time < gen_time_end then
               if linearJump == true then
-                  reaper.InsertEnvelopePoint(env, instime, val, 0, 0, true, true)
-                  reaper.InsertEnvelopePoint(env, instime, oppositeVal, pointShape, tension, true, true)
+                  reaper.InsertEnvelopePoint(env, instime-timeOffset, val, 0, 0, true, true)
+                  reaper.InsertEnvelopePoint(env, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
                   prevVal = oppositeVal
               else             
-                  reaper.InsertEnvelopePoint(env, instime, val, pointShape, tension, true, true)
+                  reaper.InsertEnvelopePoint(env, instime-timeOffset, val, pointShape, tension, true, true)
                   prevVal = val
               end
               prevTime = instime
@@ -952,23 +1034,28 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
               prevTension = tension
           else -- interpolate the last envelope point
               isBeyondEnd = true
-              if ratemode>0.5 then
+              --[[if ratemode>0.5 then
                 endTime=reaper.TimeMap2_QNToTime(0, gen_time_end)  
               else
                 endTime=gen_time_end
-              end
+              end]]
               if prevShape == 0 then -- linear
-                  endVal = prevVal + (val-prevVal)*(endTime-prevTime)/(instime-prevTime)
+                  endVal = prevVal + (val-prevVal)*(time_end - prevTime)/(instime-prevTime)
               elseif prevShape == 1 then -- square
                   endVal = prevVal
               elseif prevShape == 2 then -- slow start/end (seems to be sine?)
-                  local pifrac    = (math.pi)*(endTime-prevTime)/(instime-prevTime)
+                  local pifrac    = (math.pi)*(time_end - prevTime)/(instime-prevTime)
                   local cosfrac = (1-math.cos(pifrac))/2
                   endVal = prevVal + cosfrac*(val-prevVal)
               else
-                  endVal = prevVal + (val-prevVal)*(endTime-prevTime)/(instime-prevTime)
+                  endVal = prevVal + (val-prevVal)*(time_end-prevTime)/(instime-prevTime)
               end
-              reaper.InsertEnvelopePoint(env, endTime, endVal, pointShape, tension, true, true)
+              reaper.InsertEnvelopePoint(env, time_end-timeOffset, endVal, 0, tension, true, false) -- endTime-timeOffset
+              
+              -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
+              if endEnvPointFound == true then
+                  reaper.InsertEnvelopePoint(env, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
+              end
           end
               
               
@@ -997,7 +1084,7 @@ function exit()
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
     
-    reaper.Undo_OnStateChange("LFO tool: Envelope",-1)
+    reaper.Undo_OnStateChange("LFO Tool: Envelope",-1)
 end -- function exit()
 
 
@@ -1122,6 +1209,7 @@ function update()
                 firstClick = false
             end       
         
+            
             -- Several options when drawing in envelope
             if tempcontrol.type=="Envelope" then
             
@@ -1834,4 +1922,6 @@ update()
     + Envelope value displayed above hotpoint.
  * v0.999 (2016-06-13)
     + Changed Rate interpolation between nodes from linear to parabolic.
+ * v0.9999 (2016-06-15)
+    + Timebase: Beats option
 ]]
