@@ -18,8 +18,8 @@
  *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
  *
  *         PRESERVING EXISTING ENVELOPE SHAPES:
- *         To preserve existing envelope shapes and values outside the time selection, the user should ensure that
- *         there are envelope points at the edges of the time selection.  These points will be preserved.
+ *         To preserve existing envelope shapes and values outside the time selection, the user can insert
+ *         envelope points at the edges of the time selection.  These points will be preserved.
  *                           
  *         FURTHER CUSTOMIZATION:
  *         Further customization is possible - see the instructions in the script's USER AREA.
@@ -37,14 +37,14 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 0.99991
+ * Version: 1.0
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v0.99991 (2016-06-16)
+ * v1.0 (2016-06-16)
     + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
 ]]
 -- The archive of the full changelog is at the end of the script.
@@ -228,7 +228,7 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
          
          .."\n\nPRESERVING EXISTING ENVELOPE SHAPES:"
-         .."\n\nTo preserve existing envelope shapes and values outside the time selection, the user should ensure that there are envelope points at the edges of the time selection.  These points will be preserved."
+         .."\n\nTo preserve existing envelope shapes and values outside the time selection, the user can insert envelope points at the edges of the time selection.  These points will be preserved."
         
          .."\n\nCOPYING TO CC:"
          .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
