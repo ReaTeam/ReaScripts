@@ -16,10 +16,6 @@
  *         LOADING AND SAVING CURVES:
  *         Right-click (outside envelope area) to save/load/delete curves.
  *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
- *
- *         PRESERVING EXISTING ENVELOPE SHAPES:
- *         To preserve existing envelope shapes and values outside the time selection, the user can insert
- *         envelope points at the edges of the time selection.  These points will be preserved.
  *                           
  *         FURTHER CUSTOMIZATION:
  *         Further customization is possible - see the instructions in the script's USER AREA.
@@ -37,15 +33,16 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 1.01
+ * Version: 1.02
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v1.01 (2016-06-16)
-    + Fixed regression in handling of take envelopes.
+ * v1.02 (2016-06-17)
+    + Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
+    + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -78,6 +75,15 @@
     -- 0 would result in no fine adjustment, while 1 would result in immediate jumps to
     --    minimum or maximum values.
     fineAdjust = 0.0003
+    
+    -- Should the LFO Tool try to preserve the shape and values of the pre-existing envelope 
+    --    outside the time selection?  
+    -- To do so, the script will preserve the outermost pre-existing envelope points at the 
+    --    edges of the selection.  If it cannot find such points, it will insert new points 
+    --    at the edges with values of the existing envelope.
+    -- NOTE: Certain envelope shapes, particularly the non-linear shapes, will not 
+    --    be perfectly preserved by inserting new edge points.
+    preserveExistingEnvelope = true -- "true" or "false"
     
     --[[
     The user can easily add new shapes:
@@ -213,7 +219,8 @@ beatBaseMin = 0.5
 clip = 1
 
 helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\nLeftclick (or -drag) in open space to add envelope points."
+         .."\n\nLeftclick in open space to add an envelope point."
+         .."\n\nShift + Left-drag to add multiple envelope points."
          .."\n\nAlt + Leftclick (or -drag) to delete points."
          .."\n\nCtrl + Leftclick (or -drag) to set all points to the same value."
          .."\n\nRightclick on Rate envelope hotpoint to set LFO period to a precise note length."
@@ -226,10 +233,7 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\nLOADING AND SAVING CURVES:"
          .."\n\nRight-click (outside envelope area) to save/load/delete curves."
          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
-         
-         .."\n\nPRESERVING EXISTING ENVELOPE SHAPES:"
-         .."\n\nTo preserve existing envelope shapes and values outside the time selection, the user can insert envelope points at the edges of the time selection.  These points will be preserved."
-        
+                 
          .."\n\nCOPYING TO CC:"
          .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
         
@@ -803,9 +807,22 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       timeOffset = 0
   end
   
+  ---------------------------------------------------------------------------------
   -- The LFO tries to preserve existing envelope values outside the time selection.
-  -- To do so, it tries to find envelope points at the edges of the selection.
+  -- To do so, it will preserve the outermost pre-existing envelope points at the 
+  --    edges of the selection.
+  -- If it cannot find such points, it will insert new points with values of the 
+  --    existing envelope.
+  -- NOTE: Certain envelope shapes, particularly the non-linear shapes, will not 
+  --    be perfectly preserved by inserting new edge points.
   if newSelection == true then
+      startEnvPoint = nil
+      endEnvPoint = nil      
+      startEnvPoint = {}
+      endEnvPoint = {}
+      startEnvPointFound = false
+      endEnvPointFound = false
+      
       reaper.Envelope_SortPoints(env)
       local totalNumberOfPoints = reaper.CountEnvelopePoints(env)
       
@@ -820,16 +837,40 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           end
       end
       
+      -- If no point found, interpolate envelope value to insert new point
+      if startEnvPointFound == false then
+          local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_start-timeOffset, 0, 0)
+          --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
+              startEnvPointFound = true
+              startEnvPoint = {value = valueOut}
+          --end
+      end 
+      
       local closestPointBeforeOrAtEnd = reaper.GetEnvelopePointByTime(env, time_end - timeOffset)
       for i = closestPointBeforeOrAtEnd, totalNumberOfPoints do
           local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePoint(env, i)
+          -- Store the parameters of points < time_end, in case they nood to be used to interpolate a 
+          --    edge point to preserve existing envelope outside time selection
+          if retval == true and timeOut <= time_end - timeOffset then
+              endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
+          end
           if retval == true and timeOut == time_end - timeOffset then
               endEnvPointFound = true
-              endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
           elseif retval == true and timeOut > time_end - timeOffset then
               break
           end
       end
+      
+      -- If no point found, interpolate envelope value to insert new point
+      if endEnvPointFound == false then
+          local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_end-timeOffset, 0, 0)
+          --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
+              endEnvPointFound = true
+              endEnvPoint.value = valueOut
+              if type(endEnvPoint.shape) ~= "number" then endEnvPoint.shape = 1 end -- If no shape was found earlier
+              if type(endEnvPoint.tension) ~= "number" then endEnvPoint.tension = 0.5 end
+          --end
+      end 
       
   end -- if newSelection == true
   
@@ -839,7 +880,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   
   -- startEnvPoint (to preservce existing envelope values) must be inserted before 
   --    the LFO's own points
-  if startEnvPointFound == true then
+  if preserveExistingEnvelope == true and startEnvPointFound == true then
       reaper.InsertEnvelopePoint(env, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
   end
   
@@ -1056,7 +1097,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
               reaper.InsertEnvelopePoint(env, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
               
               -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
-              if endEnvPointFound == true then
+              if preserveExistingEnvelope == true and endEnvPointFound == true then
                   reaper.InsertEnvelopePoint(env, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
               end
           end
@@ -1244,9 +1285,22 @@ function update()
               end  
               
       
-              -- Add an envelope node at mouse position
+              -- Lefgtclick to add an envelope node at mouse position
               -- Ignore already_added_pt to allow left-drag
-              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON then --and already_added_pt==false then
+              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false then
+                  --reaper.ShowConsoleMsg("gonna add point ")
+                  local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
+                  local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
+                  tempcontrol.envelope[#tempcontrol.envelope+1]={ pt_x,1.0-pt_y }
+                  dogenerate=true
+                  already_added_pt=true
+                  sort_envelope(tempcontrol.envelope)
+                  firstClick = false
+              end
+              
+              -- Shift+left-drag to add multiple envelope nodes
+              -- Ignore already_added_pt to allow left-drag
+              if tempcontrol.hotpoint==0 and gfx.mouse_cap==(LEFTBUTTON+SHIFTKEY) then --and already_added_pt==false then
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
@@ -1830,6 +1884,8 @@ if type(shadows) ~= "boolean" then
     reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'shadows' must be either 'true' of 'false'.\n") return(false) end
 if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
     reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'fineAdjust' must be a number between 0 and 1.\n") return(false) end
+if type(preserveExistingEnvelope) ~= "boolean" then 
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'preserveExistingEnvelope' must be either 'true' of 'false'.\n") return(false) end
        
 
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
@@ -1929,4 +1985,6 @@ update()
     + Timebase: Beats option
  * v1.0 (2016-06-16)
     + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
+ * v1.01 (2016-06-16)
+    + Fixed regression in handling of take envelopes.
 ]]
