@@ -41,7 +41,7 @@
 --[[
  Changelog:
  * v1.02 (2016-06-17)
-    + Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
+    + Envelope outside time selection will be preserved by default, even if there are no pre-existing points at the edges of the time selection.
     + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.
 ]]
 -- The archive of the full changelog is at the end of the script.
