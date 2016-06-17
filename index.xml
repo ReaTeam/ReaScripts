@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d7af60aabe5a56230171f0c7ee333c4407c534c9" name="ReaTeam Scripts">
+<index version="1" commit="7e644cac32b84f32c466fc7a2af07322aa804cc8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -111,6 +111,11 @@ shadows         = true]]></changelog>
       <version name="1.01" author="Xenakios / juliansader" time="2016-06-16T20:50:44Z">
         <changelog><![CDATA[+ Fixed regression in handling of take envelopes.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d7af60aabe5a56230171f0c7ee333c4407c534c9/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.02" author="Xenakios / juliansader" time="2016-06-17T01:06:53Z">
+        <changelog><![CDATA[+ Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
++ Leftclick only adds a single node point; Shift + Left-drag to add multiple points.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ead20b3c3d8a4e0b7201b87c98d2deecd1bf1ad7/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
