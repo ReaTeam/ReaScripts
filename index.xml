@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e644cac32b84f32c466fc7a2af07322aa804cc8" name="ReaTeam Scripts">
+<index version="1" commit="0176323bd12e757641f954de65135a8026b1122e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -116,6 +116,13 @@ shadows         = true]]></changelog>
         <changelog><![CDATA[+ Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
 + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ead20b3c3d8a4e0b7201b87c98d2deecd1bf1ad7/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.03" author="Xenakios / juliansader" time="2016-06-18T07:21:14Z">
+        <changelog><![CDATA[+ Fixed regression in fade out.
++ Added "Reset curve" option in Save/Load menu.
++ Added optional display of hotpoint time position (in any of REAPER's time formats).
++ Improved sensitivity of nodes at edges of envelope drawing area.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9bf463249430e8bc1b7e880dd40f5176c1707eae/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
@@ -372,6 +379,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b8f7337d8ecdd6cccde000576a7512b88e29baad/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="1.12" author="juliansader" time="2016-06-18T15:24:04Z">
+        <changelog><![CDATA[+ Added a warning about overlapping notes in the instructions, as well as a safety check in the code.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0176323bd12e757641f954de65135a8026b1122e/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:25:40Z">
@@ -381,6 +392,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.11" author="juliansader" time="2016-05-29T12:59:56Z">
         <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d05beb2899d074eccb25f1aa824b03ecbb8e40ec/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.12" author="juliansader" time="2016-06-18T15:24:04Z">
+        <changelog><![CDATA[+ Added a warning about overlapping notes in the instructions, as well as a safety check in the code.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0176323bd12e757641f954de65135a8026b1122e/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script">
@@ -499,6 +514,13 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Timebase: Beats option]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/85712e09f412121c9ad8885a28ff335da58db513/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
+      <version name="1.03" author="Xenakios / juliansader" time="2016-06-18T08:26:33Z">
+        <changelog><![CDATA[+ Fixed regression in fade out.
++ Added "Reset curve" option in Save/Load menu.
++ Added optional display of hotpoint time position (in any of REAPER's time formats).
++ Improved sensitivity of nodes at edges of envelope drawing area.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6a3adc893012b06712932021f6c1407d840aad43/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
       <version name="0.9" author="juliansader" time="2016-06-09T07:58:09Z">
@@ -527,6 +549,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.11" author="juliansader" time="2016-05-29T13:04:14Z">
         <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b0cdcc7ef0fb32052ac85f61cc4444299fe971b/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="1.12" author="juliansader" time="2016-06-18T15:24:04Z">
+        <changelog><![CDATA[+ Added a warning about overlapping notes in the instructions, as well as a safety check in the code.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0176323bd12e757641f954de65135a8026b1122e/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script">
