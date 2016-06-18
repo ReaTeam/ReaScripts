@@ -19,6 +19,10 @@
  *                (The first time that the script is stopped, REAPER will pop up a dialog box 
  *                    asking whether to terminate or restart the script.  Select "Terminate"
  *                    and "Remember my answer for this script".)
+ *
+ *                WARNING: As with any script that involves moving or stretching notes, the user should
+ *                         take care that there are no overlapping notes, both when starting and when
+ *                         terminating the script, since such notes may lead to various artefacts.
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -26,7 +30,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -40,15 +44,24 @@
      + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-18)
+    + Added a warning about overlapping notes in the instructions, as well as a safety check in the code.
 ]]
 
-editor = reaper.MIDIEditor_GetActive()
-take = reaper.MIDIEditor_GetTake(editor)
-window, segment, details = reaper.BR_GetMouseCursorContext()
+-- Trick to prevent REAPER from automatically creating an undo point
+function avoidUndo()
+end
+reaper.defer(avoidUndo)
 
--- Mouse must be positioned in CC lane
+-- Mouse must be positioned in a CC lane of an active MIDI editor
+editor = reaper.MIDIEditor_GetActive()
+if editor == nil then return(0) end
+take = reaper.MIDIEditor_GetTake(editor)
+if take == nil then return(0) end
+window, segment, details = reaper.BR_GetMouseCursorContext()
 if details ~= "cc_lane" then return(0) end
 
+local mouseLane, mouseStartTime, mouseStartPPQpos, eventPPQpos, eventType
 -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
 -- https://github.com/Jeff0S/sws/issues/783
 -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
@@ -71,8 +84,12 @@ end
 --    so that they can be warped separately
 mouseStartTime = reaper.BR_GetMouseCursorContext_Position()
 mouseStartPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseStartTime)
-eventsL = {}
-eventsR = {}
+local eventsL = {}
+local eventsR = {}
+local firstPPQposL = math.huge
+local lastPPQposL = 0
+local firstPPQposR = math.huge
+local lastPPQposR = 0
 
 --------------------------------------------------------------------
 -- Find events in mouse lane.
@@ -81,6 +98,8 @@ eventsR = {}
 -- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
 -- 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
 -- 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)"
+
+reaper.MIDI_Sort(take)
 
 if mouseLane == 0x206 or mouseLane == 0x205 -- sysex and text events
     then
@@ -95,11 +114,15 @@ if mouseLane == 0x206 or mouseLane == 0x205 -- sysex and text events
                                        PPQ = eventPPQpos,
                                        msg = msg,
                                        type = 0xF})
+                if eventPPQpos < firstPPQposL then firstPPQposL = eventPPQpos end
+                if eventPPQpos > lastPPQposL then lastPPQposL = eventPPQpos end
             else
                 table.insert(eventsR, {index = eventIndex,
                                        PPQ = eventPPQpos,
                                        msg = msg,
                                        type = 0xF})
+                if eventPPQpos < firstPPQposR then firstPPQposR = eventPPQpos end
+                if eventPPQpos > lastPPQposR then lastPPQposR = eventPPQpos end
             end           
         end
         eventIndex = reaper.MIDI_EnumSelTextSysexEvts(take, eventIndex)
@@ -134,12 +157,16 @@ else  -- all other event types that are not sysex or text
                 table.insert(eventsL, {index = eventIndex,
                                        PPQ = eventPPQpos,
                                        msg = msg,
-                                       type = 0xF})
+                                       type = eventType})
+                if eventPPQpos < firstPPQposL then firstPPQposL = eventPPQpos end
+                if eventPPQpos > lastPPQposL then lastPPQposL = eventPPQpos end
             else
                 table.insert(eventsR, {index = eventIndex,
                                        PPQ = eventPPQpos,
                                        msg = msg,
-                                       type = 0xF})
+                                       type = eventType})
+                if eventPPQpos < firstPPQposR then firstPPQposR = eventPPQpos end
+                if eventPPQpos > lastPPQposR then lastPPQposR = eventPPQpos end
             end             
         end
         eventIndex = reaper.MIDI_EnumSelEvts(take, eventIndex)
@@ -148,47 +175,60 @@ end
 
 --------------------------------------------------------------
 -- If too few events are selected, there is nothing to warp
-if (#eventsL + #eventsR < 3)
+if (#eventsL == 0 or #eventsR == 0)
+or (#eventsL + #eventsR < 3)
 or (256 <= mouseLane and mouseLane <= 287 and #eventsL + #eventsR < 6)
 or (mouseLane == 0x204 and #eventsL + #eventsR < 6)
+or ((mouseLane == 0x200 or mouseLane == 0x207) and #eventsL + #eventsR < 6)
     then return(0) 
 end
 
-------------------------------------------------------------------------------------------
--- Find first and last PPQ of events
--- Take care if mouse position is outside range of events, and eventsL or eventsR is emtpy
-if #eventsL > 0 then
-    tempFirstPPQ = eventsL[1].PPQ
-    tempLastPPQ = eventsL[1].PPQ
-    for i=2, #eventsL do
-        if eventsL[i].PPQ < tempFirstPPQ then tempFirstPPQ = eventsL[i].PPQ
-        elseif eventsL[i].PPQ > tempLastPPQ then tempLastPPQ = eventsL[i].PPQ
+-------------------------------------------------------------------------------
+-- Now we know there are events in both of the tables, so ranges can be defined
+PPQrangeL = mouseStartPPQpos - firstPPQposL
+PPQrangeR = lastPPQposR - mouseStartPPQpos  
+eventsPPQrange = lastPPQposR - firstPPQposL
+if eventsPPQrange == 0 then return(0) end
+
+---------------------------------------------------------------------------
+-- If notes, do safety tests to check for overlapping notes
+-- These tests will only detect overlapping notes among the selected notes,
+--    and will not detect overlaps with UNselected notes.
+if mouseLane == 0x200 or mouseLane == 0x207 then
+    --First, test whether there are overlapping notes in REAPER's internal representation of the notes
+    local tableEndPPQs = {}
+    local noteIndex = reaper.MIDI_EnumSelNotes(take, -1)
+    while (noteIndex ~= -1) do
+        local _, _, _, startppqposOut, endppqposOut, chanOut, pitchOut, _ = reaper.MIDI_GetNote(take, noteIndex)
+        if tableEndPPQs[chanOut*128 + pitchOut] == nil then
+            tableEndPPQs[chanOut*128 + pitchOut] = endppqposOut
+        else
+            if startppqposOut < tableEndPPQs[chanOut*128 + pitchOut] then
+                reaper.ShowConsoleMsg("\n\nERROR:\nThe selected notes appear to include overlapping notes. The script will unfortunately not work with such notes.")
+                return(0)
+            else
+                tableEndPPQs[chanOut*128 + pitchOut] = endppqposOut
+            end
+        end
+        noteIndex = reaper.MIDI_EnumSelNotes(take, noteIndex)
+    end
+    
+    -- Now test whether there are an equal number of note-ons and note-offs
+    local count = 0
+    for i = 1, #eventsL do
+        if eventsL[i].type == 8 then count = count + 1
+        elseif eventsL[i].type == 9 then count = count - 1
         end
     end
-    firstPPQposL = tempFirstPPQ
-    lastPPQposL = tempLastPPQ
-    PPQrangeL = mouseStartPPQpos - firstPPQposL
-end
-
-if #eventsR > 0 then
-    tempFirstPPQ = eventsR[1].PPQ
-    tempLastPPQ = eventsR[1].PPQ
-    for i=2, #eventsR do
-        if eventsR[i].PPQ < tempFirstPPQ then tempFirstPPQ = eventsR[i].PPQ
-        elseif eventsR[i].PPQ > tempLastPPQ then tempLastPPQ = eventsR[i].PPQ
+    for i = 1, #eventsR do
+        if eventsR[i].type == 8 then count = count + 1
+        elseif eventsR[i].type == 9 then count = count - 1
         end
     end
-    firstPPQposR = tempFirstPPQ
-    lastPPQposR = tempLastPPQ
-    PPQrangeR = lastPPQposR - mouseStartPPQpos  
-end
-
-if #eventsL > 0 and #eventsR > 0 then
-    eventsPPQrange = lastPPQposR - firstPPQposL
-elseif #eventsL == 0 then
-    eventsPPQrange = PPQrangeR
-elseif #eventsR == 0 then
-    eventsPPQrange = PPQrangeL
+    if count ~= 0 then 
+        reaper.ShowConsoleMsg("\n\nERROR:\nThere appears to be an unequal number of note-ons and note-offs among the selected notes. The script will unfortunately not work with such notes.")
+        return(0)
+    end
 end
 
 ---------------------------------------------------------------------------
@@ -213,9 +253,14 @@ function loop_warpStretch()
     
         mouseNewTime = reaper.BR_GetMouseCursorContext_Position()
         mouseNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseNewTime)
-        -- Prevent warping and stretcthing out of original PPQ range of events
-        --if mouseNewPPQpos >= lastPPQposR then mouseNewPPQpos = lastPPQposR-1 end
-        --if mouseNewPPQpos <= firstPPQposL then mouseNewPPQpos = firstPPQposL+1 end
+        
+        -- If notes, prevent warping and stretching out of original PPQ range of events
+        -- Leave 
+        if (mouseLane == 0x200 or mouseLane == 0x207) 
+        and (mouseNewPPQpos >= lastPPQposR-#eventsR or mouseNewPPQpos <= firstPPQposL+#eventsL) 
+        then
+            mouseNewPPQpos = mouseStartPPQpos
+        end
         
         -- The warping uses a power function, and the power variable is determined
         --     by calculating to what power 0.5 must be raised to reach the 
@@ -236,49 +281,54 @@ function loop_warpStretch()
         --elseif mouseWarp < 0.01 then mouseWarp = 0.01
         end
         power = math.log(mouseWarp, 0.5)
-        
-        if #eventsL > 0 then
+                
+        -- Draw the events in eventsL
+        if PPQrangeL > 0 then
             stretchedPPQrangeL = mouseNewPPQpos - firstPPQposL
             stretchFactorL = stretchedPPQrangeL/PPQrangeL
+            for i=1, #eventsL do
+                -- Events at the edges do not need to be warped
+                if eventsL[i].PPQ ~= firstPPQposL then
+                    -- First, stretch linearly:
+                    newPPQpos = firstPPQposL + (eventsL[i].PPQ - firstPPQposL)*stretchFactorL
+                    -- Then, warp using power function:
+                    if mouseDirection > 0 then
+                        newPPQpos = math.floor(firstPPQposL + (((newPPQpos - firstPPQposL)/stretchedPPQrangeL)^power)*stretchedPPQrangeL + 0.5)
+                    elseif mouseDirection < 0 then
+                        newPPQpos = math.floor(mouseNewPPQpos - (((mouseNewPPQpos - newPPQpos)/stretchedPPQrangeL)^power)*stretchedPPQrangeL + 0.5)
+                    end
+                    
+                    if mouseLane == 0x205 or mouseLane == 0x206 then
+                        reaper.MIDI_SetTextSysexEvt(take, eventsL[i].index, nil, nil, newPPQpos, nil, eventsL[i].msg, true)
+                    else    
+                        reaper.MIDI_SetEvt(take, eventsL[i].index, nil, nil, newPPQpos, eventsL[i].msg, true) -- Strange: according to the documentation, msg is optional
+                    end
+                end
+            end
         end
-        if #eventsR > 0 then
+            
+        -- Draw the events in eventsR
+        if PPQrangeR > 0 then
             stretchedPPQrangeR = lastPPQposR - mouseNewPPQpos
             stretchFactorR = stretchedPPQrangeR/PPQrangeR
-        end
-        
-        -- Draw the events in eventsL
-        for i=1, #eventsL do
-            -- First, stretch linearly:
-            newPPQpos = firstPPQposL + (eventsL[i].PPQ - firstPPQposL)*stretchFactorL
-            -- Then, warp using power function:
-            if mouseDirection > 0 then
-                newPPQpos = firstPPQposL + (((newPPQpos - firstPPQposL)/stretchedPPQrangeL)^power)*stretchedPPQrangeL
-            elseif mouseDirection < 0 then
-                newPPQpos = mouseNewPPQpos - (((mouseNewPPQpos - newPPQpos)/stretchedPPQrangeL)^power)*stretchedPPQrangeL
-            end
-            
-            if mouseLane == 0x205 or mouseLane == 0x206 then
-                reaper.MIDI_SetTextSysexEvt(take, eventsL[i].index, nil, nil, newPPQpos, nil, eventsL[i].msg, true)
-            else    
-                reaper.MIDI_SetEvt(take, eventsL[i].index, nil, nil, newPPQpos, eventsL[i].msg, true) -- Strange: according to the documentation, msg is optional
-            end
-        end
-        
-        -- Draw the events in eventsR
-        for i=1, #eventsR do
-            -- First, stretch linearly:
-            newPPQpos = lastPPQposR - (lastPPQposR - eventsR[i].PPQ)*stretchFactorR
-            -- Then, warp using power function:
-            if mouseDirection > 0 then
-                newPPQpos = lastPPQposR - (((lastPPQposR - newPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR
-            elseif mouseDirection < 0 then
-                newPPQpos = mouseNewPPQpos + (((newPPQpos - mouseNewPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR
-            end
-          
-            if mouseLane == 0x205 or mouseLane == 0x206 then
-                reaper.MIDI_SetTextSysexEvt(take, eventsR[i].index, nil, nil, newPPQpos, nil, eventsR[i].msg, true)
-            else    
-                reaper.MIDI_SetEvt(take, eventsR[i].index, nil, nil, newPPQpos, eventsR[i].msg, true) -- Strange: according to the documentation, msg is optional
+            for i=1, #eventsR do
+                -- Events at the edges do not need to be warped
+                if eventsR[i].PPQ ~= lastPPQposR then
+                    -- First, stretch linearly:
+                    newPPQpos = lastPPQposR - (lastPPQposR - eventsR[i].PPQ)*stretchFactorR
+                    -- Then, warp using power function:
+                    if mouseDirection > 0 then
+                        newPPQpos = math.floor(lastPPQposR - (((lastPPQposR - newPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR + 0.5)
+                    elseif mouseDirection < 0 then
+                        newPPQpos = math.floor(mouseNewPPQpos + (((newPPQpos - mouseNewPPQpos)/stretchedPPQrangeR)^power)*stretchedPPQrangeR + 0.5)
+                    end
+                  
+                    if mouseLane == 0x205 or mouseLane == 0x206 then
+                        reaper.MIDI_SetTextSysexEvt(take, eventsR[i].index, nil, nil, newPPQpos, nil, eventsR[i].msg, true)
+                    else    
+                        reaper.MIDI_SetEvt(take, eventsR[i].index, nil, nil, newPPQpos, eventsR[i].msg, true) -- Strange: according to the documentation, msg is optional
+                    end
+                end
             end
         end
         

@@ -18,6 +18,10 @@
  *                (The first time that the script is stopped, REAPER will pop up a dialog box 
  *                    asking whether to terminate or restart the script.  Select "Terminate"
  *                    and "Remember my answer for this script".)
+ *
+ *                WARNING: As with any script that involves moving or stretching notes, the user should
+ *                         take care that there are no overlapping notes, both when starting and when
+ *                         terminating the script, since such notes may lead to various artefacts.
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -25,7 +29,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -39,6 +43,8 @@
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-18)
+    + Added a warning about overlapping notes in the instructions, as well as a safety check in the code.
 ]]
 
 local editor, take, window, segment, details, test, newDetails,
@@ -47,6 +53,11 @@ local editor, take, window, segment, details, test, newDetails,
       newPPQpos, mouseDirection, mouseMovement, mouseNewPPQpos, newMouseLane,
       firstPPQpos, lastPPQpos, eventsPPQrange
 
+-- Trick to prevent REAPER from automatically creating an undo point
+function avoidUndo()
+end
+reaper.defer(avoidUndo)
+    
 -- Mouse must be positioned in CC lane
 editor = reaper.MIDIEditor_GetActive()
 if editor == nil then return(0) end
@@ -83,7 +94,11 @@ mouseStartPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseStartTime)
 -- 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
 -- 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)"
 
+reaper.MIDI_Sort(take)
+
 local events = {} -- All selected events in lane will be stored in an array
+local firstPPQpos = math.huge
+local lastPPQpos = 0
 
 if mouseLane == 0x206 or mouseLane == 0x205 -- sysex and text events
     then
@@ -97,6 +112,8 @@ if mouseLane == 0x206 or mouseLane == 0x205 -- sysex and text events
                                   PPQ = eventPPQpos, 
                                   msg = msg, 
                                   type = 0xF})
+            if eventPPQpos < firstPPQpos then firstPPQpos = eventPPQpos end
+            if eventPPQpos > lastPPQpos then lastPPQpos = eventPPQpos end           
         end
         eventIndex = reaper.MIDI_EnumSelTextSysexEvts(take, eventIndex)
     end
@@ -128,6 +145,8 @@ else  -- all other event types that are not sysex or text
                                   PPQ = eventPPQpos, 
                                   msg = msg, 
                                   type = eventType})
+            if eventPPQpos < firstPPQpos then firstPPQpos = eventPPQpos end
+            if eventPPQpos > lastPPQpos then lastPPQpos = eventPPQpos end
         end
         eventIndex = reaper.MIDI_EnumSelEvts(take, eventIndex)
     end
@@ -138,21 +157,50 @@ end
 if (#events < 3)
 or (256 <= mouseLane and mouseLane <= 287 and #events < 6)
 or (mouseLane == 0x204 and #events < 6)
+or ((mouseLane == 0x200 or mouseLane == 0x207) and #events < 6)
     then return(0) 
 end
 
-------------------------------------
--- Find first and last PPQ of events
-tempFirstPPQ = events[1].PPQ
-tempLastPPQ = events[1].PPQ
-for i=2, #events do
-    if events[i].PPQ < tempFirstPPQ then tempFirstPPQ = events[i].PPQ
-    elseif events[i].PPQ > tempLastPPQ then tempLastPPQ = events[i].PPQ
+-------------------------------------------------------------------------
+-- Now we know there are events in the table, so the range can be defined
+eventsPPQrange = lastPPQpos - firstPPQpos
+if eventsPPQrange == 0 then return(0) end
+
+---------------------------------------------------------------------------
+-- If notes, do safety tests to check for overlapping notes
+-- These tests will only detect overlapping notes among the selected notes,
+--    and will not detect overlaps with UNselected notes.
+if mouseLane == 0x200 or mouseLane == 0x207 then
+    --First, test whether there are overlapping notes in REAPER's internal representation of the notes
+    local tableEndPPQs = {}
+    local noteIndex = reaper.MIDI_EnumSelNotes(take, -1)
+    while (noteIndex ~= -1) do
+        local _, _, _, startppqposOut, endppqposOut, chanOut, pitchOut, _ = reaper.MIDI_GetNote(take, noteIndex)
+        if tableEndPPQs[chanOut*128 + pitchOut] == nil then
+            tableEndPPQs[chanOut*128 + pitchOut] = endppqposOut
+        else
+            if startppqposOut < tableEndPPQs[chanOut*128 + pitchOut] then
+                reaper.ShowConsoleMsg("\n\nERROR:\nThe selected notes appear to include overlapping notes. The script will unfortunately not work with such notes.")
+                return(0)
+            else
+                tableEndPPQs[chanOut*128 + pitchOut] = endppqposOut
+            end
+        end
+        noteIndex = reaper.MIDI_EnumSelNotes(take, noteIndex)
+    end
+    
+    -- Now test whether there are an equal number of note-ons and note-offs
+    local count = 0
+    for i = 1, #events do
+        if events[i].type == 8 then count = count + 1
+        elseif events[i].type == 9 then count = count - 1
+        end
+    end
+    if count ~= 0 then 
+        reaper.ShowConsoleMsg("\n\nERROR:\nThere appears to be an unequal number of note-ons and note-offs among the selected notes. The script will unfortunately not work with such notes.")
+        return(0)
     end
 end
-firstPPQpos = tempFirstPPQ
-lastPPQpos = tempLastPPQ
-eventsPPQrange = lastPPQpos - firstPPQpos
 
 ---------------------------------------------------------------------------
 -- Finally, here is the warping function that will be looped by 'deferring'
@@ -197,9 +245,9 @@ function loop_warp()
             if mouseDirection == 0 then
                 newPPQpos = events[i].PPQ
             elseif mouseDirection < 0 then
-                newPPQpos = lastPPQpos - (((lastPPQpos - events[i].PPQ)/eventsPPQrange)^power)*eventsPPQrange
+                newPPQpos = math.floor(lastPPQpos - (((lastPPQpos - events[i].PPQ)/eventsPPQrange)^power)*eventsPPQrange + 0.5)
             else -- mouseDirection > 0
-                newPPQpos = firstPPQpos + (((events[i].PPQ - firstPPQpos)/eventsPPQrange)^power)*eventsPPQrange
+                newPPQpos = math.floor(firstPPQpos + (((events[i].PPQ - firstPPQpos)/eventsPPQrange)^power)*eventsPPQrange + 0.5)
             end
             
             if mouseLane == 0x205 or mouseLane == 0x206 then

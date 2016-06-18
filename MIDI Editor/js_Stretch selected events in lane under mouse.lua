@@ -19,6 +19,10 @@
  *                (The first time that the script is stopped, REAPER will pop up a dialog box 
  *                    asking whether to terminate or restart the script.  Select "Terminate"
  *                    and "Remember my answer for this script".)
+ *
+ *                WARNING: As with any script that involves moving or stretching notes, the user should
+ *                         take care that there are no overlapping notes, both when starting and when
+ *                         terminating the script, since such notes may lead to various artefacts.
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -26,7 +30,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -41,6 +45,8 @@
     + CCs can be inverted by stretching to left of range, but not notes
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-18)
+    + Added a warning about overlapping notes in the instructions, as well as a safety check in the code.
 ]]
 
 ----------------------------------------------------------------------
@@ -80,11 +86,11 @@ function loop_stretchEvents()
     end
     
     -- Except if stretching notes, in which case note-on and note-off cannot be switched around:
-    if destPPQpos <= firstPPQpos and (mouseLane == 0x200 or mouseLane == 0x207) then
+    if destPPQpos <= firstPPQpos+#events and (mouseLane == 0x200 or mouseLane == 0x207) then
         destPPQpos = lastPPQpos
     end
         
-    stretchFactor = (destPPQpos-firstPPQpos)/(lastPPQpos-firstPPQpos)
+    stretchFactor = (destPPQpos-firstPPQpos)/eventsPPQrange
     
     for i=1, #events do
         newPPQpos = math.floor(firstPPQpos + (events[i].PPQ - firstPPQpos)*stretchFactor + 0.5) -- add 0.5 to simulate rounding
@@ -160,7 +166,7 @@ end
     if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
     if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
     if SWS283 ~= SWS283again then
-        reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+        reaper.ShowConsoleMsg("\n\nERROR:\nCould not determine compatible SWS version.")
         return(0)
     end
     
@@ -191,7 +197,9 @@ end
     -- eventType is the MIDI event type: 11=CC, 14=pitchbend, etc
     
     events = {} -- All selected events in lane will be stored in an array
-    
+    firstPPQpos = math.huge
+    lastPPQpos = 0 
+        
     if mouseLane == 0x206 or mouseLane == 0x205 -- sysex and text events
         then
         eventIndex = reaper.MIDI_EnumSelTextSysexEvts(take, -1)
@@ -204,6 +212,8 @@ end
                                       PPQ = eventPPQpos,
                                       msg = msg,
                                       type = 0xF})
+                if eventPPQpos < firstPPQpos then firstPPQpos = eventPPQpos end
+                if eventPPQpos > lastPPQpos then lastPPQpos = eventPPQpos end           
             end
             eventIndex = reaper.MIDI_EnumSelTextSysexEvts(take, eventIndex)
         end
@@ -236,6 +246,8 @@ end
                                       PPQ = eventPPQpos,
                                       msg = msg,
                                       type = eventType})
+                if eventPPQpos < firstPPQpos then firstPPQpos = eventPPQpos end
+                if eventPPQpos > lastPPQpos then lastPPQpos = eventPPQpos end                           
             end
             eventIndex = reaper.MIDI_EnumSelEvts(take, eventIndex)
         end
@@ -248,20 +260,46 @@ end
     or (mouseLane == 0x204 and #events < 4)
         then return(0) end
     
-    -----------------------------------------------------------------------------
-    -- Find first and last PPQ of events so that stretch factor can be calculated
-    tempFirstPPQ = events[1].PPQ
-    tempLastPPQ = events[1].PPQ
-    for i=1, #events do
-        -- un-comment if note-off events should be skipped, so that note ON events stretch to destination position
-        -- if events[i].type ~= 8 then
-            if events[i].PPQ < tempFirstPPQ then tempFirstPPQ = events[i].PPQ
-            elseif events[i].PPQ > tempLastPPQ then tempLastPPQ = events[i].PPQ
+    -------------------------------------------------------------------------
+    -- Now we know there are events in the table, so the range can be defined
+    eventsPPQrange = lastPPQpos - firstPPQpos
+    if eventsPPQrange == 0 then return(0) end    
+    
+    ---------------------------------------------------------------------------
+    -- If notes, do safety tests to check for overlapping notes
+    -- These tests will only detect overlapping notes among the selected notes,
+    --    and will not detect overlaps with UNselected notes.
+    if mouseLane == 0x200 or mouseLane == 0x207 then
+        --First, test whether there are overlapping notes in REAPER's internal representation of the notes
+        local tableEndPPQs = {}
+        local noteIndex = reaper.MIDI_EnumSelNotes(take, -1)
+        while (noteIndex ~= -1) do
+            local _, _, _, startppqposOut, endppqposOut, chanOut, pitchOut, _ = reaper.MIDI_GetNote(take, noteIndex)
+            if tableEndPPQs[chanOut*128 + pitchOut] == nil then
+                tableEndPPQs[chanOut*128 + pitchOut] = endppqposOut
+            else
+                if startppqposOut < tableEndPPQs[chanOut*128 + pitchOut] then
+                    reaper.ShowConsoleMsg("\n\nERROR:\nThe selected notes appear to include overlapping notes. The script will unfortunately not work with such notes.")
+                    return(0)
+                else
+                    tableEndPPQs[chanOut*128 + pitchOut] = endppqposOut
+                end
             end
-        -- end
+            noteIndex = reaper.MIDI_EnumSelNotes(take, noteIndex)
+        end
+        
+        -- Now test whether there are an equal number of note-ons and note-offs
+        local count = 0
+        for i = 1, #events do
+            if events[i].type == 8 then count = count + 1
+            elseif events[i].type == 9 then count = count - 1
+            end
+        end
+        if count ~= 0 then 
+            reaper.ShowConsoleMsg("\n\nERROR:\nThere appears to be an unequal number of note-ons and note-offs among the selected notes. The script will unfortunately not work with such notes.")
+            return(0)
+        end
     end
-    firstPPQpos = tempFirstPPQ
-    lastPPQpos = tempLastPPQ    
     
     ---------------------------------------------------
     -- Finally, call the function that will be deferred
