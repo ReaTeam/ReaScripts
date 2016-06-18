@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0176323bd12e757641f954de65135a8026b1122e" name="ReaTeam Scripts">
+<index version="1" commit="3f04ce442b485bf934aa110f42ff13757e72641f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -707,6 +707,18 @@ added support for all track envelopes]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20selected%20tracks.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set time selection to item fade-in.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-06-18T18:53:59Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/3f04ce442b485bf934aa110f42ff13757e72641f/Time%20Selection/spk77_Set%20time%20selection%20to%20item%20fade-in.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set time selection to item fade-out.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-06-18T18:53:59Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/3f04ce442b485bf934aa110f42ff13757e72641f/Time%20Selection/spk77_Set%20time%20selection%20to%20item%20fade-out.lua</source>
       </version>
     </reapack>
   </category>
