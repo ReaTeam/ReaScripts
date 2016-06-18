@@ -2,22 +2,27 @@
  * ReaScript Name: js_Envelope LFO generator and shaper.lua
  * Description: LFO generator and shaper - Envelope version
  * Instructions:  
- *         DRAWING ENVELOPES:
- *         Leftclick (or -drag) in open space to add envelope points.
- *         Alt + Leftclick (or -drag) to delete points
- *         Ctrl + Leftclick (or -drag) to set all points to the same value.
- *         Rightclick on Rate envelope hotpoint to set LFO period to a precise note length.
- *         Ctrl + Rightclick in Rate envelope area to set LFO period at all points to a precise note length.
- *         Move mousewheel while mouse hovers above hotpoint for fine adjustment.
- *         Ctrl + Mousewheel for fine adjustment of all points simultaneously.
- *         Envelope value is displayed above hotpoint. (Amplitude and Center values are normalized.) 
- *         Rightclick in open space to select hotpoint Rate display as either Frequency or Period.
+ *         DRAWING ENVELOPES
+ *         Leftclick in open space in the envelope drawing area to add an envelope node.
+ *         Shift + Leftdrag to add multiple envelope nodes.
+ *         Alt + Leftclick (or -drag) to delete nodes.
+ *         Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.
+ *         Move mousewheel while mouse hovers above node for fine adjustment.
+ * 
+ *         Use a Ctrl modifier to edit all nodes simultaneously:
+ *         Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.
+ *         Ctrl + Rightclick to enter a precise custom value for all nodes.
+ *         Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.
  *
- *         LOADING AND SAVING CURVES:
- *         Right-click (outside envelope area) to save/load/delete curves.
+ *         VALUE AND TIME DISPLAY
+ *         The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.
+ *         Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.
+ *
+ *         LOADING AND SAVING CURVES
+ *         Right-click (outside envelope area) to open the Save/Load/Delete curve menu.
  *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
  *                           
- *         FURTHER CUSTOMIZATION:
+ *         FURTHER CUSTOMIZATION
  *         Further customization is possible - see the instructions in the script's USER AREA.
  *         This include:
  *         - Easily adding custom LFO shapes.
@@ -33,16 +38,18 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 1.02
+ * Version: 1.03
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v1.02 (2016-06-17)
-    + Envelope outside time selection will be preserved by default, even if there are no pre-existing points at the edges of the time selection.
-    + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.
+ * v1.03 (2016-06-18)
+    + Fixed regression in fade out.
+    + Added "Reset curve" option in Save/Load menu.
+    + Added optional display of hotpoint time position (in any of REAPER's time formats).
+    + Improved sensitivity of nodes at edges of envelope drawing area.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -202,7 +209,8 @@ initXsize = 209 --300 -- Initial sizes for the GUI
 initYsize = borderWidth + sliderHeight*12 + envHeight + 45
 envYpos = initYsize - envHeight - 30
 
-rateDisplayType = "period note length" -- "frequency" or "period note length"
+hotpointRateDisplayType = "period note length" -- "frequency" or "period note length"
+hotpointTimeDisplayType = -1
 rateInterpolationType = "parabolic" -- "linear" or "parabolic"
 
 -- By default, these curve will align if the tempo is a constant 120bpm
@@ -217,21 +225,25 @@ beatBaseMin = 0.5
 --     so the slider was replaced by the "Real-time copy to CC?" 'slider',
 --     and the value was replaced by this constant
 clip = 1
-
+                  
 helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\nLeftclick in open space to add an envelope point."
-         .."\n\nShift + Left-drag to add multiple envelope points."
-         .."\n\nAlt + Leftclick (or -drag) to delete points."
-         .."\n\nCtrl + Leftclick (or -drag) to set all points to the same value."
-         .."\n\nRightclick on Rate envelope hotpoint to set LFO period to a precise note length."
-         .."\n\nCtrl + Rightclick in Rate envelope area: set LFO period at all points to a precise note length."
-         .."\n\nMove mousewheel while mouse hovers above hotpoint for fine adjustment."
-         .."\n\nCtrl + Mousewheel for fine adjustment of all points simultaneously."
-         .."\n\nEnvelope value is displayed above hotpoint. (Amplitude and Center values are normalized.)" 
-         .."\n\nRightclick away from points to set hotpoint Rate display as either Frequency or Period."
+         .."\n\n  * Leftclick in open space in the envelope drawing area to add an envelope node."
+         .."\n\n  * Shift + Leftdrag to add multiple envelope nodes."
+         .."\n\n  * Alt + Leftclick (or -drag) to delete nodes."
+         .."\n\n  * Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered."
+         .."\n\n  * Move mousewheel while mouse hovers above node for fine adjustment."
+
+         .."\n\nUse a Ctrl modifier to edit all nodes simultaneously:"
+         .."\n\n  * Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position."
+         .."\n\n  * Ctrl + Rightclick to enter a precise custom value for all nodes."
+         .."\n\n  * Ctrl + Mousewheel for fine adjustment of all nodes simultaneously."
+         
+         .."\n\nVALUE AND TIME DISPLAY:"
+         .."\n\nThe precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node." 
+         .."\n\nRightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected."
                  
          .."\n\nLOADING AND SAVING CURVES:"
-         .."\n\nRight-click (outside envelope area) to save/load/delete curves."
+         .."\n\nRight-click (outside envelope area) to open the Save/Load/Delete curve menu."
          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
                  
          .."\n\nCOPYING TO CC:"
@@ -239,10 +251,10 @@ helpText = "\n\nDRAWING ENVELOPES:"
         
          .."\n\nFURTHER CUSTOMIZATION:"
          .."\n\nFurther customization is possible - see the instructions in the script's USER AREA.\nThis includes:"
-         .."\n- Easily adding custom LFO shapes."
-         .."\n- Changing interface colors."
-         .."\n- Changing the default curve name."
-         .."\n- Specify the resolution of the mousewheel fine adjustment."
+         .."\n  * Easily adding custom LFO shapes."
+         .."\n  * Changing interface colors."
+         .."\n  * Changing the default curve name."
+         .."\n  * Specifying the resolution of the mousewheel fine adjustment."
          .."\netc..."
 
 -- mouse_cap values
@@ -630,45 +642,77 @@ function draw_envelope(env,enabled)
         
         if env.hotpoint==i then
             setColor(hotbuttonColor)
-
-            -- If Rate envelope, display period above hotpoint
-            if env.name == "Rate" and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                if egsliders[slidNum_timebase].value == 1 and rateDisplayType == "period note length" then
-                    local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
-                    if pointRate <= 1 then hotString = tostring(1/pointRate):sub(1,4)
-                    else hotString = ("1/".. tostring(pointRate)):sub(1,6)
-                    end
-                    -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
-                    if math.floor(pointRate+0.5) == math.floor(pointRate*1000 + 0.5)/1000 then
-                        hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
-                    end
-                elseif egsliders[slidNum_timebase].value == 1 and rateDisplayType == "frequency" then
+            
+            -- Must calculate the hotpoint time and rate displays
+            local timeAtNode
+            if type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                if egsliders[slidNum_timebase].value == 1 then -- Timebase == Beats
                     local timeStartQN = reaper.TimeMap_timeToQN(time_start)
                     local timeEndQN = reaper.TimeMap_timeToQN(time_end)
-                    local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + envpoint[1]*(timeEndQN-timeStartQN))
+                    timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + envpoint[1]*(timeEndQN-timeStartQN))
+                else
+                    timeAtNode = time_start + envpoint[1]*(time_end - time_start)
+                end
+            else -- Just in case no envelope selected, or update() has not yet been run, or something.
+                timeAtNode = 0
+            end
+            
+            -- If Rate envelope, display either period or frequency above hotpoint
+            if env.name == "Rate" then
+                
+                if egsliders[slidNum_timebase].value == 1 and hotpointRateDisplayType == "period note length" then
+                    local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
+                    local pointRateInverse = 1.0/pointRate
+                    if pointRateInverse == math.floor(pointRateInverse) then hotString = string.format("%i", tostring(pointRateInverse))
+                    elseif pointRate == math.floor(pointRate) then hotString = "1/" .. string.format("%i", tostring(pointRate))
+                    elseif pointRate > 1 then hotString = "1/" .. string.format("%.3f", tostring(pointRate))
+                    else hotString = string.format("%.3f", tostring(pointRateInverse))
+                    end
+                elseif egsliders[slidNum_timebase].value == 1 and hotpointRateDisplayType == "frequency" then
                     local bpm = getBPM(timeAtNode)
                     local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
-                    hotString = tostring(pointRate * bpm / 240):sub(1,5) .. "Hz"
-                elseif egsliders[slidNum_timebase].value == 0 and rateDisplayType == "period note length" then
-                    local bpm = getBPM(time_start + envpoint[1]*(time_end-time_start))
-                    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+                    local pointFreq = (1.0/240) * pointRate * bpm
+                    hotString = string.format("%.3f", tostring(pointFreq)) .. "Hz"
+                elseif egsliders[slidNum_timebase].value == 0 and hotpointRateDisplayType == "period note length" then
+                    local bpm = getBPM(timeAtNode)
                     local pointFreq = timeBaseMin + (timeBaseMax-timeBaseMin)*(envpoint[2]^2)
-                    local pointRate = pointFreq * 240 / bpm
-                    if pointRate <= 1 then hotString = tostring(1/pointRate):sub(1,4)
-                    else hotString = ("1/".. tostring(pointRate)):sub(1,6)
+                    local pointRate = (1.0/bpm) * pointFreq * 240 -- oscillations/sec * sec/min * min/beat * beats/wholenote
+                    local pointRateInverse = 1.0/pointRate
+                    if pointRateInverse == math.floor(pointRateInverse) then hotString = string.format("%i", tostring(pointRateInverse))
+                    elseif pointRate == math.floor(pointRate) then hotString = "1/" .. string.format("%i", tostring(pointRate))
+                    elseif pointRate > 1 then hotString = "1/" .. string.format("%.3f", tostring(pointRate))
+                    else hotString = string.format("%.3f", tostring(pointRateInverse))
                     end
-                    -- I prefer display of 1/4 rather than 1/4.0 when pointPeriod is almost exactly 4
-                    if math.floor(pointRate+0.5) == math.floor(pointRate*1000 + 0.5)/1000 then
-                        hotString = hotString:sub(1, hotString:find(".", 1, true)-1)
-                    end
-                elseif egsliders[slidNum_timebase].value == 0 and rateDisplayType == "frequency" then -- rateDisplayType == "frequency"
-                    hotString = tostring(timeBaseMin+((timeBaseMax-timeBaseMin)*(envpoint[2])^2.0)):sub(1,5) .. "Hz"
+                elseif egsliders[slidNum_timebase].value == 0 and hotpointRateDisplayType == "frequency" then -- hotpointRateDisplayType == "frequency"
+                    local pointFreq = timeBaseMin+((timeBaseMax-timeBaseMin)*(envpoint[2])^2.0)
+                    hotString = string.format("%.3f", tostring(pointFreq)) .. "Hz"
                 end
-            -- If Amplitude or Center, or if no time selection, simply display y value
-            else
-                hotString = tostring(envpoint[2]):sub(1,5)
+                hotString = "R =" .. hotString
+                
+            -- If Amplitude or Center, display value scaled to actual envelope range.
+            -- (The BRenvMaxValue and BRenvMinValue variables are calculated in the update() function.)
+            elseif env.name == "Amplitude" then
+                if type(BRenvMinValue) == "number" and type(BRenvMaxValue) == "number" then
+                    hotString = "A =" .. string.format("%.3f", tostring(envpoint[2]*0.5*(BRenvMaxValue-BRenvMinValue)))
+                else
+                    hotString = "A = ?"
+                end
+            else -- env.name == "Center"
+                if type(BRenvMinValue) == "number" and type(BRenvMaxValue) == "number" then
+                    hotString = "C =" .. string.format("%.3f", tostring(BRenvMinValue + envpoint[2]*(BRenvMaxValue-BRenvMinValue)))
+                else
+                    hotString = "C = ?"
+                end
             end
-            -- The following lines shift the x-position of the string
+            
+            if hotpointTimeDisplayType >= -1 and hotpointTimeDisplayType <=5 then
+                hotString = hotString .. ", " .. "t =" .. reaper.format_timestr_pos(timeAtNode, "", hotpointTimeDisplayType)
+            elseif hotpointTimeDisplayType == 6 then
+                hotString = hotString .. ", " .. "t =" .. string.format("%.3f", tostring(envpoint[1]))
+            -- if hotpointTimeDisplayType == 7 then do nothing
+            end
+            
+            -- The following lines shift the x-position of the string            
             stringWidth, stringHeight = gfx.measurestr(hotString)
             gfx.x = (xcor+3) - (stringWidth+5)*(xcor-env.x())/env.w()
             gfx.y = ycor - 5 - stringHeight
@@ -704,8 +748,8 @@ function get_env_interpolated_value(env,x,curveType)
           if x<nextpt[1] then
               local timedelta=nextpt[1]-envpoint[1]
               if timedelta<0.0001 then timedelta=0.0001 end
-              -- Remember that the envelope area is mapping of [0,1] to freqhz using a power curve:
-              -- freqhz = 0.2+(15.8*freq_norm_to_use^2.0)
+              -- Remember that the envelope area is a mapping of [0,1] to actual frequency or period using a power curve:
+              -- freqhz = MIN + (MAX-MIN)*(pointValue^2.0)
               -- Therefore this function was changed from a linear interpolation to a similar power curve.
               if curveType == "parabolic" then
                   local valuedelta=nextpt[2]^2 - envpoint[2]^2
@@ -1008,7 +1052,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           if timeFadeHack - gen_time_start < timeseldur*fadindur then
              fade_gain = 1.0/(timeseldur*fadindur)*(timeFadeHack - gen_time_start)
           end
-          if timeFadeHack - gen_time_start > gen_time_end - timeseldur*fadoutdur then
+          if timeFadeHack - gen_time_start > timeseldur - timeseldur*fadoutdur then
              --!!fade_gain = 1.0-(1.0/(timeseldur*fadoutdur)*(timeFadeHack - fadoutstart_time - gen_time_start))
              fade_gain = fade_gain * (1.0/(timeseldur*fadoutdur))*(gen_time_end - timeFadeHack)
           end
@@ -1174,7 +1218,7 @@ function update()
     ------------------------------------------------------------------------
     -- Reset several parameters
     -- Including firstClick to prevent long mousebutton press from activating buttons multiple times
-    if gfx.mouse_cap==0 then 
+    if gfx.mouse_cap==NOTHING then 
         captured_control=nil
         already_added_pt=false 
         already_removed_pt=false
@@ -1188,7 +1232,7 @@ function update()
     
     -- Show help menu  
     if (gfx.mouse_cap == LEFTBUTTON
-    and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > initYsize-22) 
+    and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > gfx.h-22) 
     and firstClick == true then
         firstClick = false
         reaper.ShowConsoleMsg(helpText)
@@ -1199,8 +1243,11 @@ function update()
     for key,tempcontrol in pairs(egsliders) do
     
       --if key>=200 and tempcontrol.type=="Button" then reaper.ShowConsoleMsg(tostring(tempcontrol).." ") end
-      if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) then
-          if gfx.mouse_cap==1 and captured_control==nil then
+      if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
+      or (key == slidNum_env and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
+      --get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)>0) -- Envelope gets captured if on hotbutton, even if outside rectangle
+      then
+          if gfx.mouse_cap==LEFTBUTTON and captured_control==nil then
               captured_control=tempcontrol
           end
           --[[
@@ -1253,7 +1300,7 @@ function update()
                 firstClick = false
             end       
         
-            
+            --------------------------------------------------------------------------------------------------
             -- Several options when drawing in envelope
             if tempcontrol.type=="Envelope" then
             
@@ -1268,30 +1315,24 @@ function update()
               if gfx.mouse_cap == (LEFTBUTTON + CTRLKEY) then
                   pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
                   for i = 1, #tempcontrol.envelope do
-                      tempcontrol.envelope[i][2] = 1 - pt_y
+                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, 1 - pt_y))
                   end
                   dogenerate = true
                   firstClick = false
-              end
-                              
-              -- Ctrl+mousewheel for fine adjustment of all points simultaneously
-              if gfx.mouse_cap == CTRLKEY and gfx.mouse_wheel ~= 0 then
-                  if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
-                  gfx.mouse_wheel = 0
-                  for i = 1, #tempcontrol.envelope do
-                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
-                  end
-                  dogenerate = true
-              end  
+              end 
               
       
-              -- Lefgtclick to add an envelope node at mouse position
-              -- Ignore already_added_pt to allow left-drag
-              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false then
+              -- Leftclick to add an envelope node at mouse position
+              -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
+              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false 
+              and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
+              and tempcontrol == captured_control -- To prevent adding nodes while moving Fade out slider
+              then
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  tempcontrol.envelope[#tempcontrol.envelope+1]={ pt_x,1.0-pt_y }
+                  tempcontrol.envelope[#tempcontrol.envelope+1]={math.min(1, math.max(0, pt_x)),
+                                                                 math.min(1, math.max(0, 1.0-pt_y)) }
                   dogenerate=true
                   already_added_pt=true
                   sort_envelope(tempcontrol.envelope)
@@ -1300,11 +1341,15 @@ function update()
               
               -- Shift+left-drag to add multiple envelope nodes
               -- Ignore already_added_pt to allow left-drag
-              if tempcontrol.hotpoint==0 and gfx.mouse_cap==(LEFTBUTTON+SHIFTKEY) then --and already_added_pt==false then
+              -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
+              if tempcontrol.hotpoint==0 and gfx.mouse_cap==(LEFTBUTTON+SHIFTKEY) 
+              and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
+              then --and already_added_pt==false then
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  tempcontrol.envelope[#tempcontrol.envelope+1]={ pt_x,1.0-pt_y }
+                  tempcontrol.envelope[#tempcontrol.envelope+1]={math.min(1, math.max(0, pt_x)),
+                                                                 math.min(1, math.max(0, 1.0-pt_y)) }
                   dogenerate=true
                   already_added_pt=true
                   sort_envelope(tempcontrol.envelope)
@@ -1326,8 +1371,8 @@ function update()
                            
               -- Move existing envelope node
               if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==LEFTBUTTON then
-                  local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-captured_control.x())
-                  local pt_y = 1.0/captured_control.h()*(gfx.mouse_y-captured_control.y())
+                  local pt_x = (1.0/captured_control.w())*(gfx.mouse_x-captured_control.x())
+                  local pt_y = (1.0/captured_control.h())*(gfx.mouse_y-captured_control.y())
                   ept = captured_control.envelope[captured_control.hotpoint]
                   if tempcontrol.hotpoint == 1 then 
                       ept[1]=0
@@ -1350,30 +1395,62 @@ function update()
                   dogenerate=true
                   --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
               end
+              
+                              
+              -- Ctrl+mousewheel for fine adjustment of all points simultaneously
+              if gfx.mouse_cap == CTRLKEY and gfx.mouse_wheel ~= 0 then
+                  if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
+                  gfx.mouse_wheel = 0
+                  for i = 1, #tempcontrol.envelope do
+                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
+                  end
+                  dogenerate = true
+              end 
         
-              -- Rightclick away from nodes: select rate display
-              if (tempcontrol.name == "Rate") 
-                  and type(tempcontrol.hotpoint)=="number" and tempcontrol.hotpoint<=0
+              -- Rightclick away from nodes: select rate and time display
+              if type(tempcontrol.hotpoint)=="number" and tempcontrol.hotpoint<=0
                   and gfx.mouse_cap==RIGHTBUTTON 
                   then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  if rateDisplayType == "frequency" then
-                      rateMenuString = "#Display rate as|!Time (Frequency)|Beats (Period note length)"
+                  if hotpointRateDisplayType == "frequency" then
+                      rateMenuString = "#Display hotpoint rate as|!Time (Frequency)|Beats (Period note length)"
                   else
-                      rateMenuString = "#Display rate as|Time (Frequency)|!Beats (Period note length)"
+                      rateMenuString = "#Display hotpoint rate as|Time (Frequency)|!Beats (Period note length)"
+                  end 
+                  
+                  if hotpointTimeDisplayType == -1 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|!Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 0 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|!Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 1 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|!Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 2 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|!Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 3 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|!Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 4 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|!Samples|h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 5 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|!h:m:s:f|Normalized|Do not display time"
+                  elseif hotpointTimeDisplayType == 6 then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|!Normalized|Do not display time"
+                  else --if hotpointTimeDisplayType == false then
+                      rateMenuString = rateMenuString .. 
+                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|!Do not display time"
                   end
-                  --[[
-                  if rateInterpolationType == "parabolic" then
-                      rateMenuString = rateMenuString .. "||#Interpolate rate as|Linear|!Parabolic"
-                  else 
-                      rateMenuString = rateMenuString .. "||#Interpolate rate as|!Linear|Parabolic"
-                  end
-                  ]]
+                  
                   retval = gfx.showmenu(rateMenuString)
-                  if retval == 2 then rateDisplayType = "frequency" 
-                  elseif retval == 3 then rateDisplayType = "period note length" 
-                  elseif retval == 5 then rateInterpolationType = "linear"
-                  elseif retval == 6 then rateInterpolationType = "parabolic"
+                  if retval == 2 then hotpointRateDisplayType = "frequency" 
+                  elseif retval == 3 then hotpointRateDisplayType = "period note length" 
+                  elseif type(retval) == "number" and retval > 3 then hotpointTimeDisplayType = retval-6
                   end
                   
                   dogenerate = true       
@@ -1394,19 +1471,23 @@ function update()
                       repeat
                           retval, userNote = reaper.GetUserInputs("Set rate at all nodes", 1, "Periods per whole note", "")
                           userNote = tonumber(userNote)
-                          if type(userNote) == "number" and userNote >= beatBaseMin and userNote <= beatBaseMax  then 
+                          if type(userNote) == "number" and userNote > 0 then -- >= beatBaseMin and userNote <= beatBaseMax  then 
                               userNoteFound = true 
                           end
                       until retval == false or userNoteFound == true
                   elseif quantmenuSel == #tableNoteRates + 2 then
                       repeat
-                          retval, userFreq = reaper.GetUserInputs("Set rate at all node", 1, "Frequency in Hz ("
+                          retval, userFreq = reaper.GetUserInputs("Set rate at all nodes", 1, "Frequency in Hz"
+                                                                                             --[[
+                                                                                             .. " ("
                                                                                              .. tostring(timeBaseMin) 
                                                                                              .. "-" 
                                                                                              .. tostring(timeBaseMax)
-                                                                                             .. ")", "")
+                                                                                             .. ")"
+                                                                                             ]]
+                                                                                             , "")
                           userFreq = tonumber(userFreq)
-                          if type(userFreq) == "number" and userFreq >= timeBaseMin and userFreq <= timeBaseMax then 
+                          if type(userFreq) == "number" and userFreq > 0 then -- >= timeBaseMin and userFreq <= timeBaseMax then 
                               userFreqFound = true 
                           end
                       until retval == false or userFreqFound == true
@@ -1416,7 +1497,7 @@ function update()
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       for i = 1, #tempcontrol.envelope do
                           local bpm = getBPM(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
-                          local userFreq = userNote * bpm / 240.0
+                          local userFreq = (1.0/240) * userNote * bpm
                           tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       end
                       dogenerate = true
@@ -1439,7 +1520,7 @@ function update()
                           local timeEndQN = reaper.TimeMap_timeToQN(time_end)
                           local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[i][1]*(timeEndQN-timeStartQN))
                           local bpm = getBPM(timeAtNode)
-                          local userNote = 240.0 * userFreq / bpm
+                          local userNote = (1.0/bpm) * 240.0 * userFreq
                           tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       end
                       dogenerate = true
@@ -1463,20 +1544,23 @@ function update()
                       repeat
                           retval, userNote = reaper.GetUserInputs("Set rate at node", 1, "Periods per whole note", "")
                           userNote = tonumber(userNote)
-                          if type(userNote) == "number" and userNote >= beatBaseMin and userNote <= beatBaseMax  then 
+                          if type(userNote) == "number" and userNote > 0 then -- >= beatBaseMin and userNote <= beatBaseMax  then 
                               userNoteFound = true 
                           end
                       until retval == false or userNoteFound == true
                   elseif quantmenuSel == #tableNoteRates + 2 then
                       repeat
-                          retval, userFreq = reaper.GetUserInputs("Set rate at node", 1, "Frequency in Hz ("
+                          retval, userFreq = reaper.GetUserInputs("Set rate at node", 1, "Frequency in Hz"
+                                                                                      --[[
+                                                                                      .. " ("
                                                                                       .. tostring(timeBaseMin) 
                                                                                       .. "-" 
                                                                                       .. tostring(timeBaseMax)
                                                                                       .. ")"
+                                                                                      ]]
                                                                                       , "")
                           userFreq = tonumber(userFreq)
-                          if type(userFreq) == "number" and userFreq >= timeBaseMin and userFreq <= timeBaseMax then 
+                          if type(userFreq) == "number" and userFreq > 0 then -- >= timeBaseMin and userFreq <= timeBaseMax then 
                               userFreqFound = true 
                           end
                       until retval == false or userFreqFound == true
@@ -1485,7 +1569,7 @@ function update()
                   if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       local bpm = getBPM(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
-                      local userFreq = userNote * bpm / 240.0
+                      local userFreq = (1.0/240.0) * userNote * bpm
                       tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       dogenerate = true                                            
                   elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
@@ -1500,7 +1584,7 @@ function update()
                       local timeEndQN = reaper.TimeMap_timeToQN(time_end)
                       local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[tempcontrol.hotpoint][1]*(timeEndQN-timeStartQN))
                       local bpm = getBPM(timeAtNode)
-                      local userNote = 240.0 * userFreq / bpm
+                      local userNote = (1.0/bpm) * 240.0 * userFreq
                       tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       dogenerate = true
                   end              
@@ -1529,13 +1613,13 @@ function update()
                   and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON 
                   then
                   repeat
-                          retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "")
+                          retval, userVal = reaper.GetUserInputs("Set value of all nodes", 1, "Node value (normalized)", "")
                           userVal = tonumber(userVal)
                   until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
                   
                   if retval == true then                  
                       for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = userVal
+                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, userVal))
                       end                 
                       dogenerate = true        
                   end
@@ -1585,10 +1669,12 @@ function update()
       -- First, try to load all saved curves
       getSavedCurvesAndNames()
       
+      local gotSavedNames
       loadStr = ""
       if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
 
-          loadStr = "||>Load curve"
+          gotSavedNames = true
+          loadStr = ">Load curve"
           for i = 1, #savedNames do
               loadStr = loadStr .. "|" .. savedNames[i]
           end
@@ -1598,9 +1684,12 @@ function update()
               loadStr = loadStr .. "|" .. savedNames[i] 
           end
           loadStr = loadStr .. "|<||"           
+      else
+          gotSavedNames = false
+          loadStr = "#Load curve||#Delete curve||"
       end
       
-      saveLoadString = "Save curve" .. loadStr       
+      saveLoadString = "Save curve||" .. loadStr .. "Reset curve"     
       
       
       ----------------------------------------
@@ -1611,6 +1700,26 @@ function update()
       if menuSel == 0 then  
           -- do nothing
           
+      --------------   
+      -- Reset curve
+      elseif (gotSavedNames == true and menuSel == 2 + 2*#savedNames)
+          or (gotSavedNames == false and menuSel == 4)
+          then
+          egsliders[slidNum_rate].envelope = {{0,0.5}, {1,0.5}}
+          egsliders[slidNum_amp].envelope = {{0,0.5}, {1,0.5}}
+          egsliders[slidNum_center].envelope = {{0,0.5}, {1,0.5}}
+          dogenerate = true
+          
+          -------------------------------------------------------
+          -- Draw the newly loaded envelope
+          if egsliders[100].name == egsliders[1].name then -- "Rate"
+              egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[1])
+          elseif egsliders[100].name == egsliders[2].name then -- "Amplitude"
+              egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[2])
+          else -- "Center"
+              egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[3])
+          end
+
       ------------------------
       -- Save curve
       elseif menuSel == 1 then
@@ -1929,7 +2038,8 @@ egsliders[8]=make_slider(borderWidth,borderWidth+sliderHeight*10,0,0,0.0,"Fade i
 slidNum_fadein = 8
 egsliders[9]=make_slider(borderWidth,borderWidth+sliderHeight*11,0,0,0.0,"Fade out duration",function(nx) end)
 slidNum_fadeout = 9
-egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight,egsliders[1]) --315-30
+egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight,egsliders[1])
+slidNum_env = 100 --315-30
 
 --[[for key,tempcontrol in pairs(egsliders) do
   reaper.ShowConsoleMsg(key.." "..tempcontrol.type.." "..tempcontrol.name.."\n")
@@ -1987,4 +2097,7 @@ update()
     + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
  * v1.01 (2016-06-16)
     + Fixed regression in handling of take envelopes.
+ * v1.02 (2016-06-17)
+    + Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
+    + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.
 ]]
