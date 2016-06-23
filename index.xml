@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="97cbac48ac6f15eca18ea12244e1d3743a5725a9" name="ReaTeam Scripts">
+<index version="1" commit="5a28621e99fbe2164dd0fd90cc8397d2c576457d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -123,6 +123,10 @@ shadows         = true]]></changelog>
 + Added optional display of hotpoint time position (in any of REAPER's time formats).
 + Improved sensitivity of nodes at edges of envelope drawing area.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9bf463249430e8bc1b7e880dd40f5176c1707eae/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.04" author="Xenakios / juliansader" time="2016-06-23T10:21:13Z">
+        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/5a28621e99fbe2164dd0fd90cc8397d2c576457d/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script">
@@ -526,6 +530,10 @@ added support for all track envelopes]]></changelog>
 + Added optional display of hotpoint time position (in any of REAPER's time formats).
 + Improved sensitivity of nodes at edges of envelope drawing area.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6a3adc893012b06712932021f6c1407d840aad43/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.04" author="Xenakios / juliansader" time="2016-06-23T10:21:09Z">
+        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
