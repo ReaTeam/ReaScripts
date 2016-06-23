@@ -26,6 +26,7 @@
  *         Further customization is possible - see the instructions in the script's USER AREA.
  *         This include:
  *         - Easily adding custom LFO shapes.
+ *         - Specifying the resolution of LFO shapes' phase steps.         
  *         - Changing interface colors.
  *         - Changing the default curve name.
  *         - Specify the resolution of the mousewheel fine adjustment.
@@ -38,18 +39,15 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 1.03
+ * Version: 1.04
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
 
 --[[
  Changelog:
- * v1.03 (2016-06-18)
-    + Fixed regression in fade out.
-    + Added "Reset curve" option in Save/Load menu.
-    + Added optional display of hotpoint time position (in any of REAPER's time formats).
-    + Improved sensitivity of nodes at edges of envelope drawing area.
+ * v1.04 (2016-06-23)
+    + User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -92,6 +90,11 @@
     --    be perfectly preserved by inserting new edge points.
     preserveExistingEnvelope = true -- "true" or "false"
     
+    -- Number of phase steps in standard LFO shapes.  (Must be a positive multiple of 4.)
+    -- The higher the number, the more nearly continuous the phase steps will be.  However, it may also
+    --    slow the responsiveness of the scripts down.
+    phaseStepsDefault = 100
+    
     --[[
     The user can easily add new shapes:
     Simply add the new items to 1) shapeMenu, 2) shapeTable, 4) the list of values
@@ -122,70 +125,59 @@ shape_function = {}
 
 shape_function[Bezier] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  if cnt % 4 == 0 then return 4, 1, 5, 1, false end
-  if cnt % 4 == 1 then return 4, 0, 5, -1, false end
-  if cnt % 4 == 2 then return 4, -1, 5, 1, false end
-  return 4, 0, 5, -1, false
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 5, 1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault/4 then return phaseStepsDefault, 0, 5, -1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 5, 1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault*3/4 then return phaseStepsDefault, 0, 5, -1, false end
+  return phaseStepsDefault, false, 5, -1, false
 end
 
 shape_function[SawUp] = function(cnt)
-  -- returns totalSteps, amplitude, shape, tension, linearJump
-  -- The skipped point ("false") are inserted to make period more similar to Bézier shape  
-  if cnt % 4 == 0 then return 4, 1, 0, 1, true end
-  return 4, false, 0, 1, false
+  -- returns totalSteps, amplitude, shape, tension, linearJump 
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 0, 1, true end
+  return phaseStepsDefault, false, 0, 1, false
 end
 
 shape_function[SawDown] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  -- The skipped points ("false") are inserted to make period more similar to Bézier shape
-  if cnt % 4 == 0 then return 4, -1, 0, 1, true end
-  return 4, false, 0, 1, false
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, -1, 0, 1, true end
+  return phaseStepsDefault, false, 0, 1, false
 end
 
 shape_function[Square] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  -- The skipped points ("false") are inserted to make period more equal to Bézier shape
-  if cnt % 4 == 0 then return 4, false, 1, 1, false end
-  if cnt % 4 == 1 then return 4, -1, 1, 1, false end  
-  if cnt % 4 == 2 then return 4, false, 1, 1, false end
-  return 4, 1, 1, 1, false
+  if cnt % phaseStepsDefault == phaseStepsDefault/4 then return phaseStepsDefault, -1, 1, 1, false end  
+  if cnt % phaseStepsDefault == phaseStepsDefault*3/4 then return phaseStepsDefault, 1, 1, 1, false end
+  return phaseStepsDefault, false, 1, 1, false
 end
 
 shape_function[Triangle] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  -- The skipped point ("false") are inserted to make period equal to Bézier shape
-  if cnt % 4 == 0 then return 4, 1, 0, 1, false end
-  if cnt % 4 == 1 then return 4, false, 0, 1, false end  
-  if cnt % 4 == 2 then return 4, -1, 0, 1, false end
-  return 4, false, 0, 1, false
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 0, 1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 0, 1, false end
+  return phaseStepsDefault, false, 0, 1, false
 end
 
 shape_function[Sineish] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  if cnt % 4 == 0 then return 4, 1, 2, 1, false end
-  if cnt % 4 == 1 then return 4, false, 2, 1, false end
-  if cnt % 4 == 2 then return 4, -1, 2, 1, false end
-  return 4, false, 2, 1, false
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 2, 1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 2, 1, false end
+  return phaseStepsDefault, false, 2, 1, false
 end
 
 shape_function[FastEndTri] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  -- The skipped point ("false") are inserted to make period equal to Bézier shape
-  if cnt % 4 == 0 then return 4, 1, 4, 1, false end
-  if cnt % 4 == 1 then return 4, false, 4, 1, false end  
-  if cnt % 4 == 2 then return 4, -1, 4, 1, false end
-  return 4, false, 4, 1, false
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 4, 1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 4, 1, false end
+  return phaseStepsDefault, false, 4, 1, false
 end
 
 shape_function[FastStartTri] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  -- The skipped point ("false") are inserted to make period equal to Bézier shape
-  if cnt % 4 == 0 then return 4, 1, 3, 1, false end
-  if cnt % 4 == 1 then return 4, false, 3, 1, false end  
-  if cnt % 4 == 2 then return 4, -1, 3, 1, false end
-  return 4, false, 3, 1, false
+  if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 3, 1, false end
+  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 3, 1, false end
+  return phaseStepsDefault, false, 3, 1, false
 end
-
 shape_function[MwMwMw] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
   if cnt % 8 == 0 then return 8, 0.5, 0, 1, false end
@@ -250,11 +242,12 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
         
          .."\n\nFURTHER CUSTOMIZATION:"
-         .."\n\nFurther customization is possible - see the instructions in the script's USER AREA.\nThis includes:"
+         .."\n\nFurther customization is possible - refer to the instructions in the script's USER AREA.\nThis includes:"
          .."\n  * Easily adding custom LFO shapes."
+         .."\n  * Specifying the resolution of LFO shapes' phase steps."
+         .."\n  * Specifying the resolution of the mousewheel fine adjustment."
          .."\n  * Changing interface colors."
          .."\n  * Changing the default curve name."
-         .."\n  * Specifying the resolution of the mousewheel fine adjustment."
          .."\netc..."
 
 -- mouse_cap values
@@ -424,8 +417,10 @@ function bound_value(minval, val, maxval)
     return val
 end
 
-function quantize_value(val, numsteps)
-  return 1.0/numsteps*math.floor(val*numsteps)
+function quantize_value(val, numSteps, rangeMin, rangeMax)
+  local stepSize = (1.0/numSteps) * (rangeMax-rangeMin)
+  return math.max(rangeMin, math.min(rangeMax, rangeMin + stepSize * math.floor((val-rangeMin)/stepSize + 0.5)))
+  --return (1.0/numsteps) * math.floor(val*numsteps + 0.5)
 end
 --[[function quantize_value(val, numsteps)
     stepSize = math.floor(0.5 + (maxv-minv)/numsteps)
@@ -785,6 +780,11 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   tableVals = nil
   tableVals = {}
   
+  --------------------------------------------------------------------------------------------
+  -- This script creates an Undo point whenever the target envelope or time selection changes.
+  -- Except if it is the first envelope: An undo point should only be created AFTER the first 
+  --    envelope has been shaped.
+  -- Another undo point will be created when the script exits.
   newSelection = false -- temporary
   env = nil
   
@@ -809,16 +809,13 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       timeEndPrev = time_end
   end
   
-  --------------------------------------------------------------------------------------------
-  -- This script creates an Undo point whenever the target envelope or time selection changes.
-  -- Except if it is the first envelope: An undo point should only be created AFTER the first 
-  --    envelope has been shaped.
-  -- Another undo point will be created when the script exits.
+  -- If the LFO Tool has just been opened, firstNewSelection = nil
   if newSelection == true and not (firstNewSelection == true) then
       reaper.Undo_OnStateChange("LFO Tool: Envelope", -1)
       firstNewSelection = false
   end
   
+  -------------------------------------------------------------------------------
   -- The reaper.InsertEnvelopePoint function uses time position relative to 
   --    start of *take*, whereas the reaper.GetSet_LoopTimeRange function returns 
   --    time relative to *project* start.
@@ -827,8 +824,8 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   -- The project's own time offset in seconds (Project settings -> 
   --    Project start time) does not appear to have an effect - but must still
   --    make sure about this...
-  BRenv = reaper.BR_EnvAlloc(env, true)
-  envTake = reaper.BR_EnvGetParentTake(BRenv)
+  local BRenv = reaper.BR_EnvAlloc(env, true)
+  local envTake = reaper.BR_EnvGetParentTake(BRenv)
   _, _, _, _, _, _, BRenvMinValue, BRenvMaxValue, _, _, _ = reaper.BR_EnvGetProperties(BRenv)
   reaper.BR_EnvFree(BRenv, false)
   
@@ -918,7 +915,6 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       
   end -- if newSelection == true
   
-  
   -- Remember that take envelopes require a time offset
   reaper.DeleteEnvelopePointRange(env, time_start - timeOffset,time_end+0.0001 - timeOffset) -- time_start - phase?
   
@@ -929,31 +925,18 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   end
   
   
-  --if time_end<=time_start then return end
-  
-  local envscalingmode=reaper.GetEnvelopeScalingMode(env)
+  ------------------------------------------------------------------------------
+  -- OK, preservation is done, now can start calculating LFO's own point values.
+  envscalingmode=reaper.GetEnvelopeScalingMode(env)
 
-  --local freqhz=1.0+7.0*freq^2.0
-  --[[local nvindex=math.floor(1+(#notevalues-1)*freq)
-  local dividend=notevalues[nvindex][1]
-  local divisor=notevalues[nvindex][2]
-  ]]
-  --reaper.ShowConsoleMsg(dividend .. " " .. divisor .. "\n")
-  --[[local freqhz=1.0
-  if ratemode>0.5 then
-    freqhz=(reaper.Master_GetTempo()/60.0)*1.0/(dividend/divisor)
-  else
-    freqhz=0.1+(31.9*freq^2.0)
-  end]]
-  
-  --minv,maxv=get_envelope_range(env)
   minv = BRenvMinValue
   maxv = BRenvMaxValue
   
-  --!! -- Keep time_start and time_end in timebase, gen_time_start and gen_time_end is in time or beats.
+  -- Keep time_start and time_end in timebase, gen_time_start and gen_time_end is in time or beats.
+  local time, gen_time_start, gen_time_end
   if ratemode>0.5 then
     time=reaper.TimeMap_timeToQN(time_start)
-    gen_time_start = time --!!
+    gen_time_start = time
     gen_time_end=reaper.TimeMap_timeToQN(time_end)
   else
     time=time_start
@@ -961,19 +944,11 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
     gen_time_end=time_end
   end 
   
-  local timeseldur = gen_time_end - gen_time_start --!!time_end-time_start
-  
-  --[[local fadoutstart_time = time_end-time_start-timeseldur*fadoutdur
-  if ratemode>0.5 then
-    fadoutstart_time = reaper.TimeMap_timeToQN(fadoutstart_time)
-    --!!time_start = reaper.TimeMap_timeToQN(time_start)
-  end
-  ]]
-  
+  local timeseldur = gen_time_end - gen_time_start
+    
   local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
   local phaseStep = math.floor(phase * totalSteps)
 
-  --local oscphase=phase
   local segshape=-1.0+2.0*tilt
   local ptcount=0
   
@@ -1031,6 +1006,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
                   val = prevVal + (nextVal-prevVal)*((p/(p+n))^3)               
               else -- Linear or Bézier: This interpolation will only be accurate for linear shapes
                   val = prevVal + (nextVal-prevVal) * p / (p+n)
+                  pointTension = prevTension
               end         
           else
               return(0) -- entire shape is false
@@ -1072,28 +1048,28 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           local tilt_amount = -1.0+2.0*tilt
           local tilt_delta = -tilt_amount+(2.0*tilt_amount)*time_to_interp --!!tilt_ramp
           --val=val+tilt_delta
-          local num_quansteps=3+quansteps*61
-          --[[if num_quansteps<64 then
+          --[[local num_quansteps=3+quansteps*61
+          if num_quansteps<64 then
             val=quantize_value(val,num_quansteps)
           end]]
           if quansteps ~= 1 then
-              val=quantize_value(val,3 + math.ceil(quansteps*125))
+              val=quantize_value(val, 3 + math.ceil(quansteps*125), minv, maxv)
           end          
           
           val=bound_value(minv,val,maxv)
           val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
-          local tension = segshape*pointTension  
+          tension = segshape*pointTension  
           
           if linearJump == true then
               oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
               oppositeVal=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
               oppositeVal=oppositeVal+(-randomness/2.0)+z
               if quansteps ~= 1 then
-                   val=quantize_value(val,3 + math.ceil(quansteps*125))
+                   oppositeVal=quantize_value(oppositeVal,3 + math.ceil(quansteps*125), minv, maxv)
               end
               oppositeVal=bound_value(minv,oppositeVal,maxv)
               oppositeVal = reaper.ScaleToEnvelopeMode(envscalingmode, oppositeVal)
-              local tension = segshape*pointTension
+              --tension = segshape*pointTension -- override val's tension
           end
   
           -- To insert envelope nodes, timebase==beat must be mapped back to timebase==time
@@ -1995,6 +1971,9 @@ if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
     reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'fineAdjust' must be a number between 0 and 1.\n") return(false) end
 if type(preserveExistingEnvelope) ~= "boolean" then 
     reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'preserveExistingEnvelope' must be either 'true' of 'false'.\n") return(false) end
+if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
+    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'phaseStepsDefault' must be a positive multiple of 4.\n") return(false) end
+
        
 
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
@@ -2100,4 +2079,9 @@ update()
  * v1.02 (2016-06-17)
     + Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
     + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.
+ * v1.03 (2016-06-18)
+    + Fixed regression in fade out.
+    + Added "Reset curve" option in Save/Load menu.
+    + Added optional display of hotpoint time position (in any of REAPER's time formats).
+    + Improved sensitivity of nodes at edges of envelope drawing area.
 ]]
