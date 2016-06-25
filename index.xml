@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5a28621e99fbe2164dd0fd90cc8397d2c576457d" name="ReaTeam Scripts">
+<index version="1" commit="aa3adb361e8974453fd5b228af6cfb835e3bcd8a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -552,6 +552,18 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="juliansader" time="2016-06-11T15:12:24Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9825343942e134559aa4bbece362a368d07bd2df/MIDI%20Editor/js_Set%20time%20selection%20to%20selected%20events%20in%20last%20clicked%20lane.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Split notes by drawing a line with the mouse.lua" type="script">
+      <version name="0.9" author="juliansader" time="2016-06-25T01:28:06Z">
+        <changelog><![CDATA[+ Initial beta release. (Bugs may be encountered.)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/8cd2aacd6a1156bbe43f9787fe5ab03f92189c15/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Split selected notes by drawing a line with the mouse.lua" type="script">
+      <version name="0.9" author="juliansader" time="2016-06-25T01:28:06Z">
+        <changelog><![CDATA[+ Initial beta release. (Bugs may be encountered.)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/8cd2aacd6a1156bbe43f9787fe5ab03f92189c15/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
