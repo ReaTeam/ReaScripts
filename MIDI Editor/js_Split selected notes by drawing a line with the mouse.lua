@@ -34,7 +34,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 0.9
+ * Version: 0.91
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -43,12 +43,14 @@
  Changelog:
  * v0.9 (2016-06-24)
     + Initial beta release. (Bugs may be encountered.)
+ * v0.91 (2016-06-25)
+    + A few tweaks.
 ]] 
 
 -- USER AREA
 -- Settings that the user can customize
 
-thicknessPPQ = 120 -- Thickness of the cutting line, in PPQs.  Quarter note = 960.
+thicknessPPQ = 60 -- Thickness of the cutting line, in PPQs.  Quarter note = 960.
 
 -- Should the script only slice selected notes, or should it slice any note
 --    that intersects with the cutting line?
@@ -104,7 +106,7 @@ function cutNotesLoop()
         end
         
         for row = 0, 127 do
-            if row >= minRow and row <= maxRow then
+            if row >= minRow and row <= maxRow and mouseNoteRow ~= noteRowStart then
                 local ppq = math.floor(mousePPQstart + (mousePPQ-mousePPQstart)*(row-noteRowStart)/(mouseNoteRow-noteRowStart) + 0.5)
                 if isSnapEnabled ==1 and row ~= noteRowStart and row ~= mouseNoteRow then
                     local QNpos = reaper.MIDI_GetProjQNFromPPQPos(take, ppq)
@@ -132,43 +134,45 @@ function exit()
     -- First, move the line of notes to their original gap position, where they can be deleted 
     --    without causing artefacts with overlapping notes
     for row = 0, 127 do
-        reaper.MIDI_SetNote(take, tableLine[row].index, true, false, gapPPQstart, gapPPQstart+1, defaultChan, gapPitch, 1, true)
+        reaper.MIDI_SetNote(take, tableLine[row].index, true, false, gapPPQstart+row, gapPPQstart+row+1, defaultChan, gapPitch, 1, true)
     end    
     
-    -- Use binary search to find event close to rightmost edge of notes to be deleted
+    -- Use binary search to find event close to leftmost edge of notes to be deleted
     reaper.MIDI_Sort(take)
     _, numNotes3, _, _ = reaper.MIDI_CountEvts(take)        
-    local rightIndex = numNotes3-1
-    local leftIndex = 0
+    rightIndex = numNotes3-1
+    leftIndex = 0
     while (rightIndex-leftIndex)>1 do
-        middleIndex = math.ceil((rightIndex+leftIndex)/2)
+        middleIndex = math.floor((rightIndex+leftIndex)/2)
         local _, _, _, startppqpos, _, _, _, _ = reaper.MIDI_GetNote(take, middleIndex)
-        if startppqpos > gapPPQstart+1 then
+        if startppqpos >= gapPPQstart then
             rightIndex = middleIndex
         else -- middlePPQpos <= startingPPQpos
             leftIndex = middleIndex
         end     
     end -- while (rightIndex-leftIndex)>1
     
-    i = rightIndex
+    i = leftIndex
     repeat
-        _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
+        local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
         if selected == true
         and muted == false
-        and startppqpos == gapPPQstart
-        and (endppqpos == gapPPQstart+1 or endppqpos == gapPPQstart) -- Sometimes the stacked notes cut each other off
+        and startppqpos >= gapPPQstart
+        and startppqpos <= gapPPQstart+128
+        --and (endppqpos == gapPPQstart+1 or endppqpos == gapPPQstart) -- Sometimes the stacked notes cut each other off
         and chan == defaultChan
         and pitch == gapPitch
         and vel == 1
         then
             reaper.MIDI_DeleteNote(take, i)
             numNotes3 = numNotes3 - 1
-            -- i does not get decremented, to ensure that index stays to right of notes to be deleted, in case sorting changes indices
-            i = math.min(i, numNotes3-1)
+            -- Reset the index so that start again from left of new notes
+            -- (just to make sure that there are no shenanigans when REAPER re-sort the indices after deletion)
+            i = leftIndex 
         else
-            i = i - 1
+            i = i + 1
         end
-    until startppqpos < gapPPQstart or i == -1
+    until startppqpos > gapPPQstart+128 or i >= numNotes3
 
     reaper.MIDI_Sort(take)
     _, numNotes4, _, _ = reaper.MIDI_CountEvts(take) 
