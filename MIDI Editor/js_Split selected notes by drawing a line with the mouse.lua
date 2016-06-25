@@ -34,7 +34,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 0.91
+ * Version: 0.92
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -45,6 +45,8 @@
     + Initial beta release. (Bugs may be encountered.)
  * v0.91 (2016-06-25)
     + A few tweaks.
+ * v0.92 (2016-06-26)
+    + Beta 3: Fixed "Could not find gap" bug.
 ]] 
 
 -- USER AREA
@@ -125,118 +127,122 @@ function cutNotesLoop()
     reaper.defer(cutNotesLoop)
 end
   
+
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
 -- This function is called when the script terminates
 -- It deletes the line of notes, and then slices any note that crossed the line
 function exit()
 
-    -- First, move the line of notes to their original gap position, where they can be deleted 
-    --    without causing artefacts with overlapping notes
-    for row = 0, 127 do
-        reaper.MIDI_SetNote(take, tableLine[row].index, true, false, gapPPQstart+row, gapPPQstart+row+1, defaultChan, gapPitch, 1, true)
-    end    
-    
-    -- Use binary search to find event close to leftmost edge of notes to be deleted
-    reaper.MIDI_Sort(take)
-    _, numNotes3, _, _ = reaper.MIDI_CountEvts(take)        
-    rightIndex = numNotes3-1
-    leftIndex = 0
-    while (rightIndex-leftIndex)>1 do
-        middleIndex = math.floor((rightIndex+leftIndex)/2)
-        local _, _, _, startppqpos, _, _, _, _ = reaper.MIDI_GetNote(take, middleIndex)
-        if startppqpos >= gapPPQstart then
-            rightIndex = middleIndex
-        else -- middlePPQpos <= startingPPQpos
-            leftIndex = middleIndex
-        end     
-    end -- while (rightIndex-leftIndex)>1
-    
-    i = leftIndex
-    repeat
-        local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
-        if selected == true
-        and muted == false
-        and startppqpos >= gapPPQstart
-        and startppqpos <= gapPPQstart+128
-        --and (endppqpos == gapPPQstart+1 or endppqpos == gapPPQstart) -- Sometimes the stacked notes cut each other off
-        and chan == defaultChan
-        and pitch == gapPitch
-        and vel == 1
-        then
-            reaper.MIDI_DeleteNote(take, i)
-            numNotes3 = numNotes3 - 1
-            -- Reset the index so that start again from left of new notes
-            -- (just to make sure that there are no shenanigans when REAPER re-sort the indices after deletion)
-            i = leftIndex 
-        else
-            i = i + 1
-        end
-    until startppqpos > gapPPQstart+128 or i >= numNotes3
-
-    reaper.MIDI_Sort(take)
-    _, numNotes4, _, _ = reaper.MIDI_CountEvts(take) 
-    if numNotes4 ~= numNotes then
-        reaper.ShowConsoleMsg("\n\nERROR:\nCould not delete all the notes that were used to draw the line.") 
-        return(false) 
-    end
-    
-    -- If the script was terminated by moving the mouse out of the piano roll notes area, don't do anything else besides removing the line notes
-    if segment == "notes" then
-        -- Now that the line note are deleted, the script must find all notes that crossed the line and that should therefore be sliced
-        -- Use binary search to find event close to rightmost edge of line    
-        local rightmostCutPPQ = math.max(mousePPQstart, mousePPQ)
-        local rightIndex = numNotes4-1
-        local leftIndex = 0
+    if type(tableLine) == "table" and #tableLine == 127 then
+        -- First, move the line of notes to their original gap position, where they can be deleted 
+        --    without causing artefacts with overlapping notes
+        for row = 0, 127 do
+            reaper.MIDI_SetNote(take, tableLine[row].index, true, false, gapPPQstart+row, gapPPQstart+row+1, defaultChan, gapPitch, 1, true)
+        end    
+        
+        -- Use binary search to find event close to leftmost edge of notes to be deleted
+        reaper.MIDI_Sort(take)
+        _, numNotes3, _, _ = reaper.MIDI_CountEvts(take)        
+        rightIndex = numNotes3-1
+        leftIndex = 0
         while (rightIndex-leftIndex)>1 do
-            middleIndex = math.ceil((rightIndex+leftIndex)/2)
+            middleIndex = math.floor((rightIndex+leftIndex)/2)
             local _, _, _, startppqpos, _, _, _, _ = reaper.MIDI_GetNote(take, middleIndex)
-            if startppqpos > rightmostCutPPQ then
+            if startppqpos >= gapPPQstart then
                 rightIndex = middleIndex
             else -- middlePPQpos <= startingPPQpos
                 leftIndex = middleIndex
             end     
         end -- while (rightIndex-leftIndex)>1
         
-        -- Find all the notes that cross the slice line, and
-        --    store the info of the notes in a table, so that new notes can be inserted with the same pitch, channel, etc
-        tableCut = {}
-        leftIndex = reaper.MIDI_EnumSelNotes(take, -1)
-        if onlySliceSelectedNotes == false or leftIndex < 0 then 
-            leftIndex = 0
-        end
-        local minRow = math.min(noteRowStart, mouseNoteRow)
-        local maxRow = math.max(noteRowStart, mouseNoteRow)
-        local leftmostEdgePPQ = math.min(mousePPQstart, mousePPQ) - wholeNotesInLongestNote*3840 -- 3840=960*4=length of whole note in PPQs
-        --local rightmostCutPPQ = math.max(mousePPQstart, mousePPQ) 
-        
-        for i = rightIndex, leftIndex, -1 do
+        i = leftIndex
+        repeat
             local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
-            if pitch >= minRow and pitch <= maxRow 
-            and (onlySliceSelectedNotes == false or (onlySliceSelectedNotes == true and selected == true)) 
+            if selected == true
+            and muted == false
+            and startppqpos >= gapPPQstart
+            and startppqpos <= gapPPQstart+128
+            --and (endppqpos == gapPPQstart+1 or endppqpos == gapPPQstart) -- Sometimes the stacked notes cut each other off
+            and chan == defaultChan
+            and pitch == gapPitch
+            and vel == 1
             then
-                local cutppqpos = tableLine[pitch].startppqpos -- + thicknessPPQ/2
-                if endppqpos > cutppqpos and startppqpos < cutppqpos then
-                    table.insert(tableCut, {index=i, 
-                                            selected=selected, 
-                                            muted=muted, 
-                                            cutppqpos=cutppqpos,
-                                            endppqpos=endppqpos, 
-                                            chan=chan, 
-                                            pitch=pitch, 
-                                            vel=vel})
-                    reaper.MIDI_SetNote(take, i, nil, nil, nil, cutppqpos, nil, nil, nil, true)
-                end
+                reaper.MIDI_DeleteNote(take, i)
+                numNotes3 = numNotes3 - 1
+                -- Reset the index so that start again from left of new notes
+                -- (just to make sure that there are no shenanigans when REAPER re-sort the indices after deletion)
+                i = leftIndex 
+            else
+                i = i + 1
             end
-            if startppqpos < leftmostEdgePPQ then break end
+        until startppqpos > gapPPQstart+128 or i >= numNotes3
+    
+        reaper.MIDI_Sort(take)
+        _, numNotes4, _, _ = reaper.MIDI_CountEvts(take) 
+        if numNotes4 ~= numNotes then
+            reaper.ShowConsoleMsg("\n\nERROR:\nCould not delete all the notes that were used to draw the line.") 
+            return(false) 
         end
         
-        -- Insert new notes (second part of each sliced note)
-        for i = 1, #tableCut do
-            reaper.MIDI_InsertNote(take, tableCut[i].selected, tableCut[i].muted, tableCut[i].cutppqpos, tableCut[i].endppqpos, tableCut[i].chan, tableCut[i].pitch, tableCut[i].vel, true)     
-        end
-        
-    end -- if segment == "notes"      
+        -- If the script was terminated by moving the mouse out of the piano roll notes area, don't do anything else besides removing the line notes
+        if segment == "notes" then
+            -- Now that the line note are deleted, the script must find all notes that crossed the line and that should therefore be sliced
+            -- Use binary search to find event close to rightmost edge of line    
+            local rightmostCutPPQ = math.max(mousePPQstart, mousePPQ)
+            local rightIndex = numNotes4-1
+            local leftIndex = 0
+            while (rightIndex-leftIndex)>1 do
+                middleIndex = math.ceil((rightIndex+leftIndex)/2)
+                local _, _, _, startppqpos, _, _, _, _ = reaper.MIDI_GetNote(take, middleIndex)
+                if startppqpos > rightmostCutPPQ then
+                    rightIndex = middleIndex
+                else -- middlePPQpos <= startingPPQpos
+                    leftIndex = middleIndex
+                end     
+            end -- while (rightIndex-leftIndex)>1
+            
+            -- Find all the notes that cross the slice line, and
+            --    store the info of the notes in a table, so that new notes can be inserted with the same pitch, channel, etc
+            tableCut = {}
+            leftIndex = reaper.MIDI_EnumSelNotes(take, -1)
+            if onlySliceSelectedNotes == false or leftIndex < 0 then 
+                leftIndex = 0
+            end
+            local minRow = math.min(noteRowStart, mouseNoteRow)
+            local maxRow = math.max(noteRowStart, mouseNoteRow)
+            local leftmostEdgePPQ = math.min(mousePPQstart, mousePPQ) - wholeNotesInLongestNote*3840 -- 3840=960*4=length of whole note in PPQs
+            --local rightmostCutPPQ = math.max(mousePPQstart, mousePPQ) 
+            
+            for i = rightIndex, leftIndex, -1 do
+                local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
+                if pitch >= minRow and pitch <= maxRow 
+                and (onlySliceSelectedNotes == false or (onlySliceSelectedNotes == true and selected == true)) 
+                then
+                    local cutppqpos = tableLine[pitch].startppqpos -- + thicknessPPQ/2
+                    if endppqpos > cutppqpos and startppqpos < cutppqpos then
+                        table.insert(tableCut, {index=i, 
+                                                selected=selected, 
+                                                muted=muted, 
+                                                cutppqpos=cutppqpos,
+                                                endppqpos=endppqpos, 
+                                                chan=chan, 
+                                                pitch=pitch, 
+                                                vel=vel})
+                        reaper.MIDI_SetNote(take, i, nil, nil, nil, cutppqpos, nil, nil, nil, true)
+                    end
+                end
+                if startppqpos < leftmostEdgePPQ then break end
+            end
+            
+            -- Insert new notes (second part of each sliced note)
+            for i = 1, #tableCut do
+                reaper.MIDI_InsertNote(take, tableCut[i].selected, tableCut[i].muted, tableCut[i].cutppqpos, tableCut[i].endppqpos, tableCut[i].chan, tableCut[i].pitch, tableCut[i].vel, true)     
+            end
+            
+        end -- if segment == "notes"      
+    
+    end -- if type(tableLine) == "table" and #tableLine == 127
     
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
         reaper.SetToggleCommandState(sectionID, cmdID, 0)
@@ -275,6 +281,7 @@ reaper.MIDI_Sort(take) -- First sort, hopefully to sort out overlapping and othe
 _, numNotes, _, _ = reaper.MIDI_CountEvts(take)
 if numNotes <= 0 then return(0) end
 
+-----------------------------------------------------------------------------------
 -- Get the starting position of the mouse
 --[[ NOTE:
 SWS version 2.8.3 has a bug in the crucial action "BR_GetMouseCursorContext_MIDI()"
@@ -296,19 +303,6 @@ else
 end
 if isInline == true then return(0) end
 
-
--- OK, tests are completed.  
--- Now can specify atexit function, which will create an undo point when the function exits.
--- And toggle toolbar button (if any).
-reaper.atexit(exit)
-
-_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-    reaper.SetToggleCommandState(sectionID, cmdID, 1)
-    reaper.RefreshToolbar2(sectionID, cmdID)
-end
-
---local mousePosStart = reaper.BR_GetMouseCursorContext_Position()
 mousePPQstart = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)
 isSnapEnabled = reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")
 if isSnapEnabled==1 then
@@ -319,17 +313,15 @@ if isSnapEnabled==1 then
     local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mousePPQstart) -- Mouse position in quarter notes
     local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
     mousePPQstart = reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) -- Snap enabled, so destination PPQ falls on grid 
--- Otherwise, destination PPQ is exact mouse position
+-- Otherwise, starting PPQ is exact mouse position
 end
 
--------------------------------------------------------------------------------------
--- Now the script must insert the notes that will later be moved into the line
+------------------------------------------------------------------------------------------
 -- Since inserting overlapping notes can lead to weird artefact, this script 
---    will try to find a gap somewhere where 128 notes can be inserted.
+--    will try to find a gap somewhere where 128 notes can be inserted (1 for each pitch).
 -- Once inserted, the notes can be moved into new positions without causing problems.
 -- (This search doesn't bother with channels.)
-reaper.MIDI_Sort(take)
-
+-- reaper.MIDI_Sort(take) -- Sorting was already done above
 local tableEnds = {} -- table of last note PPQ ends for each note pitch
 for pitch = 0, 127 do
     tableEnds[pitch] = 0
@@ -346,6 +338,7 @@ for i = 0, numNotes-1 do
         end
     end
     local _, _, _, startppqpos, endppqpos, chan, pitch, _ = reaper.MIDI_GetNote(take, i)
+    -- Since MIDI is sorted by startppqpos, if any note is more than 128 PPQ away from minEnd, minEndPitch's next note would also be
     if startppqpos - minEnd > 128 then
         gapFound = true
         gapPitch = minEndPitch
@@ -356,11 +349,51 @@ for i = 0, numNotes-1 do
     end
 end
 
-if gapFound ~= true then
-    reaper.ShowConsoleMsg("\n\nERROR:\nCould not find a gap into which the notes could be inserted.") 
-    return(false) 
+if gapFound ~= true then -- This may happen, for example, if only one note in take and note starts at 0 
+    -- So there is not a gap between minEnd and start of some note, but check whether there is a gap to end of take
+    -- Does REAPER's MIDI items have a minimum length of 1/16 note?
+    minEnd = math.huge
+    for pitch = 0, 127 do
+        if tableEnds[pitch] < minEnd then
+            minEnd = tableEnds[pitch]
+            minEndPitch = pitch
+        end
+    end
+    
+    source = reaper.GetMediaItemTake_Source(take)
+    sourceLengthQN, lengthIsQN = reaper.GetMediaSourceLength(source)
+    if type(lengthIsQN) ~= "boolean" then
+        reaper.ShowConsoleMsg("\n\nERROR:\nCould not determine length of take.") 
+        return(false)
+    end
+    if lengthIsQN == false then
+        takeStartTime = reaper.MIDI_GetProjTimeFromPPQPos(take, 0)
+        sourceLengthQN = reaper.MIDI_GetPPQPosFromProjTime(take, takeStartTime + sourceLengthQN)
+    end
+    if minEnd + 128 < sourceLengthQN * 960 then
+        gapFound = true
+        gapPitch = minEndPitch
+        gapPPQstart = minEnd
+    else
+        reaper.ShowConsoleMsg("\n\nERROR:\nCould not find a gap into which the notes could be inserted.") 
+        return(false) 
+    end
 end
 
+--------------------------------------------------------------------------------------------
+-- OK, tests are completed.  
+-- Now can specify atexit function, which will create an undo point when the function exits.
+-- And toggle toolbar button (if any).
+reaper.atexit(exit)
+
+_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+    reaper.SetToggleCommandState(sectionID, cmdID, 1)
+    reaper.RefreshToolbar2(sectionID, cmdID)
+end
+
+------------------------------------------------------------------------------
+-- Now the script must insert the notes that will later be moved into the line
 -- Gap was found, now insert 128 notes (1 for each pitch) into the gap
 defaultChan = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
 for i = 0, 127 do
@@ -413,6 +446,7 @@ until #tableLine == 128 or startppqpos < gapPPQstart or i == -1
 
 if #tableLine ~= 128 then
     reaper.ShowConsoleMsg("\n\nERROR:\nCould not find all the notes after inserting into gap.")
+    tableLine = nil
     return(false)
 end
 
