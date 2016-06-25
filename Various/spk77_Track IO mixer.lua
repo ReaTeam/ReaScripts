@@ -4,7 +4,7 @@
  * Author URI: http://forum.cockos.com/member.php?u=49553
  * Forum Thread URI: http://forum.cockos.com/showthread.php?t=168777
  * Licence: GPL v3
- * Version: 0.2015.12.18
+ * Version: 0.2016.06.25
  * Provides: spk77_Track IO mixer/*.{lua,png}
 --]]
 
