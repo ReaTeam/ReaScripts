@@ -27,7 +27,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -41,6 +41,8 @@
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-26)
+    + Script will not run if all selected events fall on the same time position
 ]]    
 
 function tilt14bitCC()    
@@ -103,6 +105,7 @@ function tilt14bitCC()
         end
     end
     PPQrange = lastPPQ - firstPPQ
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -185,6 +188,7 @@ function tilt7bitCC()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -264,6 +268,7 @@ function tiltChanPressure()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
    
     --------------------------------------------------------------------
     
@@ -344,6 +349,7 @@ function tiltPitch()
         end
     end            
     PPQrange = lastPPQ - firstPPQ
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -427,6 +433,7 @@ function tiltVelocity()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
    
     --------------------------------------------------------------------
     
