@@ -39,7 +39,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.11
+ * Version: 1.12
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -54,6 +54,8 @@
     + Added an optional "compressResolution" user-defined variable
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-26)
+    + Script will not run if all selected events fall on the same time position
 ]]
 
 -- USER AREA:
@@ -126,6 +128,7 @@ function compress14bitCC()
         end
     end
     PPQrange = lastPPQ - firstPPQ
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -239,6 +242,7 @@ function compress7bitCC()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
         
     --------------------------------------------------------------------
     
@@ -356,6 +360,7 @@ function compressChanPressure()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
     
     prevMousePPQpos = mousePPQpos
    
@@ -470,6 +475,7 @@ function compressPitch()
         end
     end            
     PPQrange = lastPPQ - firstPPQ
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -582,6 +588,7 @@ function compressVelocity()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
    
     --------------------------------------------------------------------
     
