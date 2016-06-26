@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1df4f2e8de59c3494b4a6f965e0517d53ccbca71" name="ReaTeam Scripts">
+<index version="1" commit="37ae73fa03af930aa2242fc645cd4bfb3ada1474" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -418,6 +418,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/2250728cabb45ebf6110879f236389c5adba396e/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
+      <version name="1.12" author="juliansader" time="2016-06-26T12:28:00Z">
+        <changelog><![CDATA[+ Script will not run if all selected events fall on the same time position]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script">
       <version name="1.0" author="juliansader" time="2016-05-25T09:27:26Z">
@@ -567,6 +571,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Beta 3: Fixed "Could not find gap" bug.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/1df4f2e8de59c3494b4a6f965e0517d53ccbca71/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
+      <version name="0.93" author="juliansader" time="2016-06-26T12:28:00Z">
+        <changelog><![CDATA[+ Implemented workaround for bug in MIDI_SetNote().
++ WARNING: The script is still in beta, and may be unstable.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Split selected notes by drawing a line with the mouse.lua" type="script">
       <version name="0.9" author="juliansader" time="2016-06-25T01:28:06Z">
@@ -580,6 +589,11 @@ added support for all track envelopes]]></changelog>
       <version name="0.92" author="juliansader" time="2016-06-25T22:19:40Z">
         <changelog><![CDATA[+ Beta 3: Fixed "Could not find gap" bug.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/1df4f2e8de59c3494b4a6f965e0517d53ccbca71/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+      <version name="0.93" author="juliansader" time="2016-06-26T12:28:00Z">
+        <changelog><![CDATA[+ Implemented workaround for bug in MIDI_SetNote().
++ WARNING: The script is still in beta, and may be unstable.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
@@ -605,6 +619,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.11" author="juliansader" time="2016-05-29T13:05:17Z">
         <changelog><![CDATA[+ If linked to a menu button, script will toggle button state to indicate activation/termination]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/66d43814363da66f5afd3e1f07b798038c2b1b2a/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="1.12" author="juliansader" time="2016-06-26T12:28:00Z">
+        <changelog><![CDATA[+ Script will not run if all selected events fall on the same time position]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script">
