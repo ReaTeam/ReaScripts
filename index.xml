@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="37ae73fa03af930aa2242fc645cd4bfb3ada1474" name="ReaTeam Scripts">
+<index version="1" commit="c2dbb59ba8a7a4bfaf0499a944b9bf1e3bdc40e3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -257,6 +257,12 @@ added support for all track envelopes]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_spk77_Sort items by length.lua" type="script">
+      <version name="1.0" author="Mordi &amp; spk77" time="2016-06-26T17:32:59Z">
+        <changelog><![CDATA[+ Changed script to only work on selected items.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c2dbb59ba8a7a4bfaf0499a944b9bf1e3bdc40e3/Items%20Editing/Mordi_spk77_Sort%20items%20by%20length.lua</source>
       </version>
     </reapack>
     <reapack name="nofish_Delete muted items from item selection.lua" type="script">
