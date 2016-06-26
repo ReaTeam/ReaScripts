@@ -191,8 +191,8 @@ function exit()
     if numNotesAfterDeletion ~= numNotes then
         reaper.ShowConsoleMsg("\n\nERROR:\nThe number of notes in the take appears to have changed. Possible causes include:"
                               .."\n\n  * Unexpected actions (such as mouse clicks) during execution of the script, which may change the numbering of the MIDI notes."
-                              .."\n\n  * Unstable notes (most likely overlapping notes), which get re-configured when REAPER runs a ReaScript."
-                              .."\n\n  * Bug in the reaper.MIDI_Sort function."
+                              .."\n\n  * Unstable notes (most likely overlapping notes), which are incompatible with ReaScripts."
+                              .."\n\n  * Bug in the reaper.MIDI_SetNote function."
                               .."\n\nPlease check whether any extraneous notes remain near the start of the take, in pitch "
                               ..tostring(gapPitch)..".") 
     end
