@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="118dedf53e9cc92c5f3641a27d89329213e20c79" name="ReaTeam Scripts">
+<index version="1" commit="bef6ea8e9e09d8c8f3629786c02abb99ceb45905" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -546,10 +546,38 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Remove redundant CCs (from selected events in lane under mouse).lua" type="script">
+      <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
+        <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
++ CC LANE: CCs will be removed from the lane that is under the mouse at the time the script is called (not from the last clicked lane).
++ SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
++ MUTED: Muted CCs will automatically be removed since they are inherently redundant.
++ 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script">
+      <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
+        <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
++ CC LANE: CCs will be removed from the last clicked CC lane (not from the lane under the mouse).
++ SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
++ MUTED: Muted CCs will automatically be removed since they are inherently redundant.
++ 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
       <version name="0.9" author="juliansader" time="2016-06-09T07:58:09Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/12e39007760f480b581e0461323088d0a912c113/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
+        <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
++ CC LANE: CCs will be removed from the lane that is under the mouse at the time the script is called (not from the last clicked lane).
++ SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
++ MUTED: Muted CCs will automatically be removed since they are inherently redundant.
++ 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script">
