@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c2dbb59ba8a7a4bfaf0499a944b9bf1e3bdc40e3" name="ReaTeam Scripts">
+<index version="1" commit="118dedf53e9cc92c5f3641a27d89329213e20c79" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -641,6 +641,27 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9f65970e2441c2cedf1b3f81a6f65d91415aad00/MIDI%20Editor/Lokasenna_Set%20selected%20note%20lengths%20to%20at%20least%20X.lua</source>
       </version>
     </reapack>
+    <reapack name="Mordi-ahmusic_Search selected notes in scale finder.lua" type="script">
+      <version name="1.1" author="Mordi &amp; AHmusic" time="2016-06-28T22:45:35Z">
+        <changelog><![CDATA[This script will take any selected notes and generate a URL
+that will show what chord the notes make, if any.
+It uses the wonderful site "www.scales-chords.com" to
+do this.
+Made by Mordi, Jan 2016
+Modified by AHmusic, Jan 2016]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b2bebdfd0b64aed76c5ba72f504d5b5e471d652e/MIDI%20Editor/Mordi-ahmusic_Search%20selected%20notes%20in%20scale%20finder.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Search selected notes in chord finder.lua" type="script">
+      <version name="1.1" author="Mordi" time="2016-06-28T22:45:35Z">
+        <changelog><![CDATA[This script will take any selected notes and generate a URL
+that will show what chord the notes make, if any.
+It uses the wonderful site "www.scales-chords.com" to
+do this.
+Made by Mordi, Jan 2016]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b2bebdfd0b64aed76c5ba72f504d5b5e471d652e/MIDI%20Editor/Mordi_Search%20selected%20notes%20in%20chord%20finder.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Add to selection next note at same pitch.eel" type="script">
       <version name="0.2014.9.30" time="2015-12-02T21:24:29Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/MIDI%20Editor/spk77_Add%20to%20selection%20next%20note%20at%20same%20pitch.eel</source>
@@ -1073,6 +1094,10 @@ donate
 )\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=14710"}}{\fldrslt{\ul
 juliansader
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=91120"}}{\fldrslt{\ul
+mordi
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
