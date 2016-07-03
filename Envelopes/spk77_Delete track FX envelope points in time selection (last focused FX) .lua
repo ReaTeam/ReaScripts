@@ -33,6 +33,7 @@ function msg(m)
   return reaper.ShowConsoleMsg(tostring(m) .. "\n")
 end
 
+function delete_FX_env_points()
   local time_sel_start, time_sel_end = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
   if time_sel_start == time_sel_end then return end
   local retval, track_number, item_number, fx_number = reaper.GetFocusedFX()
@@ -64,3 +65,4 @@ end
   reaper.Undo_OnStateChangeEx("Delete FX envelope points in time selection", -1, -1)
 end
 
+reaper.defer(delete_FX_env_points)
