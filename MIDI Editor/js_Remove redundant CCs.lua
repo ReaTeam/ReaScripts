@@ -14,9 +14,9 @@
  * Category: 
  * Author: juliansader
  * Licence: GPL v3
- * Forum Thread:
- * Forum Thread URL: 
- * Version: 0.9
+ * Forum Thread: Simple but useful MIDI editor tools: warp, stretch, deselect etc
+ * Forum Thread URL: forum.cockos.com/showthread.php?t=176878
+ * Version: 0.91
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -25,6 +25,12 @@
  Changelog:
   * v0.9 (2016-05-28)
     + Initial release.
+  * v0.91 (2016-06-29)
+    + The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
+    + CC LANE: CCs will be removed from the lane that is under the mouse at the time the script is called (not from the last clicked lane).
+    + SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
+    + MUTED: Muted CCs will automatically be removed since they are inherently redundant.
+    + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.
 ]]
 
 -- USER AREA:
@@ -36,7 +42,7 @@ only_analyze_selected = true -- Limit analysis and removal to selected events?
 automatically_delete_muted_CCs = true -- Muted CCs are inherently redundant
 show_error_messages = true
 
--- ask_confirmation_before_deletion -- not used yet in version 0.9
+-- ask_confirmation_before_deletion -- not used yet in this version
 
 -- End of USER AREA
 -----------------------------------------------------------------
@@ -49,7 +55,7 @@ function showErrorMsg(errorMsg)
         reaper.ShowConsoleMsg("\n\nERROR:\n" 
                               .. errorMsg 
                               .. "\n\n"
-                              .. "(To prevent future error messages, set 'show_error_messages' to 'false' in the USER AREA near the beginning of the script.)"
+                              .. "(To suppress future non-critical error messages, set 'show_error_messages' to 'false' in the USER AREA near the beginning of the script.)"
                               .. "\n\n")    
     end
 end  
@@ -110,10 +116,14 @@ if lanes_from_which_to_remove == "last clicked" then
 
     targetLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")
     if targetLane == -1 then
-        showErrorMsg("No clicked lane.")
+        showErrorMsg("No clicked lane found in MIDI editor.\n\n"
+                    .."(Hint: To remove CCs from the lane under the mouse instead of the last clicked lane, "
+                    .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'under mouse'.)")
         return(false)
     elseif not ((0 <= targetLane and targetLane <= 127) or targetLane == PITCHlane or targetLane == CHANPRESSlane) then
-        showErrorMsg("This script only works in 7-bit CC lanes, pitchwheel or channel pressure lanes.")
+        showErrorMsg("This script only works in 7-bit CC lanes, pitchwheel or channel pressure lanes."
+                    .."(Note: The choice of method for removing redundancies from 14-bit CC lanes will depend on the user's intent: "
+                    .."For example, LSB information can be removed by simply deleting the CCs in the LSB lane.)")
         return(false)
     end
     
@@ -121,7 +131,9 @@ elseif lanes_from_which_to_remove == "under mouse" then
 
     _, _, currentDetails = reaper.BR_GetMouseCursorContext()
     if not (currentDetails == "cc_lane" or currentDetails == "cc_selector") then 
-        showErrorMsg("Mouse is not over a CC lane.")
+        showErrorMsg("Mouse is not over a CC lane.\n\n"
+                   .."(Hint: To remove CCs from the last clicked lane instead of the lane under the mouse, "
+                   .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'last clicked'.)")
         return(false)
     end
     
@@ -146,7 +158,9 @@ elseif lanes_from_which_to_remove == "under mouse" then
         showErrorMsg("Could not determine lane under mouse.")
         return(false)
     elseif not ((0 <= targetLane and targetLane <= 127) or targetLane == PITCHlane or targetLane == CHANPRESSlane) then
-        showErrorMsg("This script only works in 7-bit CC lanes, pitchwheel or channel pressure lanes.")
+        showErrorMsg("This script only works in 7-bit CC lanes, pitchwheel or channel pressure lanes.\n\n"
+                    .."(Note: The choice of method for removing redundancies from 14-bit CC lanes will depend on the user's intent: "
+                    .."For example, LSB information can be removed by simply deleting the CCs in the LSB lane.)")
         return(false)
     end    
     

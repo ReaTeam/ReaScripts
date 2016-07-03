@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c2dbb59ba8a7a4bfaf0499a944b9bf1e3bdc40e3" name="ReaTeam Scripts">
+<index version="1" commit="bef6ea8e9e09d8c8f3629786c02abb99ceb45905" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -546,10 +546,38 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Remove redundant CCs (from selected events in lane under mouse).lua" type="script">
+      <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
+        <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
++ CC LANE: CCs will be removed from the lane that is under the mouse at the time the script is called (not from the last clicked lane).
++ SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
++ MUTED: Muted CCs will automatically be removed since they are inherently redundant.
++ 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script">
+      <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
+        <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
++ CC LANE: CCs will be removed from the last clicked CC lane (not from the lane under the mouse).
++ SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
++ MUTED: Muted CCs will automatically be removed since they are inherently redundant.
++ 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script">
       <version name="0.9" author="juliansader" time="2016-06-09T07:58:09Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/12e39007760f480b581e0461323088d0a912c113/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
+        <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
++ CC LANE: CCs will be removed from the lane that is under the mouse at the time the script is called (not from the last clicked lane).
++ SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
++ MUTED: Muted CCs will automatically be removed since they are inherently redundant.
++ 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script">
@@ -639,6 +667,27 @@ added support for all track envelopes]]></changelog>
     <reapack name="Lokasenna_Set selected note lengths to at least X.lua" type="script">
       <version name="1.0" author="Lokasenna" time="2016-06-04T15:10:02Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9f65970e2441c2cedf1b3f81a6f65d91415aad00/MIDI%20Editor/Lokasenna_Set%20selected%20note%20lengths%20to%20at%20least%20X.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi-ahmusic_Search selected notes in scale finder.lua" type="script">
+      <version name="1.1" author="Mordi &amp; AHmusic" time="2016-06-28T22:45:35Z">
+        <changelog><![CDATA[This script will take any selected notes and generate a URL
+that will show what chord the notes make, if any.
+It uses the wonderful site "www.scales-chords.com" to
+do this.
+Made by Mordi, Jan 2016
+Modified by AHmusic, Jan 2016]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b2bebdfd0b64aed76c5ba72f504d5b5e471d652e/MIDI%20Editor/Mordi-ahmusic_Search%20selected%20notes%20in%20scale%20finder.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Search selected notes in chord finder.lua" type="script">
+      <version name="1.1" author="Mordi" time="2016-06-28T22:45:35Z">
+        <changelog><![CDATA[This script will take any selected notes and generate a URL
+that will show what chord the notes make, if any.
+It uses the wonderful site "www.scales-chords.com" to
+do this.
+Made by Mordi, Jan 2016]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b2bebdfd0b64aed76c5ba72f504d5b5e471d652e/MIDI%20Editor/Mordi_Search%20selected%20notes%20in%20chord%20finder.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Add to selection next note at same pitch.eel" type="script">
@@ -1073,6 +1122,10 @@ donate
 )\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=14710"}}{\fldrslt{\ul
 juliansader
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=91120"}}{\fldrslt{\ul
+mordi
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
