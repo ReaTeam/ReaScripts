@@ -17,7 +17,7 @@
   * Licence: GPL v3
   * Forum Thread: 
   * Forum Thread URL:
-  * Version: 0.1
+  * Version: 0.2
   * REAPER:
   * Extensions: SWS
 ]]
@@ -25,6 +25,8 @@
 
 --[[
  Changelog:
+ * v0.2 (2016-07-03)
+    + fixed function name
  * v0.1 (2016-07-03)
     + Initial Release
 ]]
