@@ -52,7 +52,7 @@ and send us a pull request.
 - [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts) (natively registered in ReaPack)
 - [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (natively registered in ReaPack)
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
-- [kawaCat/ReaScript-MidiPack](https://github.com/kawaCat/ReaScript-MidiPack)
+- [kawaCat/ReaScript-M2BPack](https://bitbucket.org/kawaCat/reascript-m2bpack/)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 
 ### Other repositories not compatible with ReaPack yet
