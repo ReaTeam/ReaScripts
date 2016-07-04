@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  Compress or expand CC or velocity using mousewheel
+ * ReaScript Name:  js_Compress or expand selected CC or velocity events using mousewheel.lua
  * Description:  Compress or expand CC or velocity using mousewheel
  * Instructions:  There are two ways in which this script can be run:  
  *                  1) First, the script can be linked to its own shortcut key (such as "Ctrl+C"), in which case
@@ -164,13 +164,15 @@ function compress14bitCC()
         reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
                                 
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
-        if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
+        if (is_new or scriptVal ~= 0 or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
-        
+            
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + compressResolution
+            if scriptVal > 0 then wheel = wheel + compressResolution
+            elseif scriptVal < 0 then wheel = wheel - compressResolution
+            elseif val > 0 then wheel = wheel + compressResolution
             elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
@@ -228,7 +230,7 @@ end -- function compress14bitCC
 --------------------------------------------------------------------
 
 function compress7bitCC()  
-    
+
     local tableCC, eventIndex, first, last, firstPPQ, lastPPQ, PPQrange, newMouseTime, newMousePPQpos, newValue, 
           prevMousePPQpos, prevMouseCCvalue, newMouseCCvalue, newMouseLane
           
@@ -288,7 +290,7 @@ function compress7bitCC()
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
         if (is_new or scriptVal ~= 0 or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
-        
+            
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
@@ -413,17 +415,19 @@ function compressChanPressure()
         reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
                         
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
-        if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
+        if (is_new or scriptVal ~= 0 or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
-        
+            
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + compressResolution
+            if scriptVal > 0 then wheel = wheel + compressResolution
+            elseif scriptVal < 0 then wheel = wheel - compressResolution
+            elseif val > 0 then wheel = wheel + compressResolution
             elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
-
+            
             -- Why use absolute value and then later distinguish between neg and pos mouseMovement?  
             --     Since power < 1 gives a nicer shape.
             mouseMovement = (newMousePPQpos-mousePPQpos)/PPQrange
@@ -534,17 +538,19 @@ function compressPitch()
         reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
                         
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
-        if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
+        if (is_new or scriptVal ~= 0 or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
-        
+            
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + compressResolution
+            if scriptVal > 0 then wheel = wheel + compressResolution
+            elseif scriptVal < 0 then wheel = wheel - compressResolution
+            elseif val > 0 then wheel = wheel + compressResolution
             elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
-
+            
             -- Why use absolute value and then later distinguish between neg and pos mouseMovement?  
             --     Since power < 1 gives a nicer shape.
             mouseMovement = (newMousePPQpos-mousePPQpos)/PPQrange
@@ -657,13 +663,15 @@ function compressVelocity()
         reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
                 
         -- Only do something if mouse position or mousewheel has changed, but mouse is still in original CC lane
-        if (is_new or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
+        if (is_new or scriptVal ~= 0 or newMousePPQpos ~= prevMousePPQpos or newMouseCCvalue ~= prevMouseCCvalue)
         and not (newMouseLane ~= mouseLane or newMouseCCvalue == -1) then
-        
+            
             prevMousePPQpos = newMousePPQpos
             prevMouseCCvalue = newMouseCCvalue
             
-            if val > 0 then wheel = wheel + compressResolution
+            if scriptVal > 0 then wheel = wheel + compressResolution
+            elseif scriptVal < 0 then wheel = wheel - compressResolution
+            elseif val > 0 then wheel = wheel + compressResolution
             elseif val < 0 then wheel = wheel - compressResolution
             end
             wheel = math.max(wheel, -1) -- A factor of -1 means fully compressed.  Expansion can go to infinity.
