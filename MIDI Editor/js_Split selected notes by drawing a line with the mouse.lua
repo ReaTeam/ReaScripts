@@ -4,7 +4,18 @@
  *               Notes that intersect the cutting line will be split at the position of intersection.
  *               If snap-to-grid is enabled in the MIDI editor, the notes will be split at the grid.
  *
- * Instructions:  The script must be linked to a shortcut key.  
+ * Instructions: There are two ways in which this script can be run:  
+ *                  1) First, the script can be linked to its own shortcut key.
+ *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+ *                        can each be linked to a toolbar button.  
+ *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+ *                        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+ *                        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+ *                     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+ *                        and this selected (armed) script can then be run by using the shortcut for the 
+ *                        aforementioned "js_Run..." script.
+ *                     For further instructions - please refer to the "js_Run..." script. 
+ * 
  *                To use, position mouse in the 'notes' area of the piano roll, press the shortcut key once,
  *                      and then move the mouse to draw the cutting line.  
  *
@@ -34,7 +45,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 0.93
+ * Version: 1.0
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -50,12 +61,15 @@
  * v0.93 (2016-06-27)
     + Implemented workaround for bug in MIDI_SetNote().
     + WARNING: The script is still in beta, and may be unstable.
-]] 
+ * v1.0 (2016-07-04)
+    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
+    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
+]]
 
 -- USER AREA
 -- Settings that the user can customize
 
-thicknessPPQ = 60 -- Thickness of the cutting line, in PPQs.  Quarter note = 960.
+thicknessPPQ = 90 -- Thickness of the cutting line, in PPQs.  Quarter note = 960.
 
 -- Should the script only slice selected notes, or should it slice any note
 --    that intersects with the cutting line?
@@ -80,6 +94,8 @@ function cutNotesLoop()
     if segment ~= "notes" then 
         return(0)
     end
+    
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
     
     -- Get the new mouse position
     mousePPQ = math.max(0, math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5))
@@ -191,20 +207,35 @@ function exit()
     if numNotesAfterDeletion ~= numNotes then
         reaper.ShowConsoleMsg("\n\nERROR:\nThe number of notes in the take appears to have changed. Possible causes include:"
                               .."\n\n  * Unexpected actions (such as mouse clicks) during execution of the script, which may change the numbering of the MIDI notes."
-                              .."\n\n  * Unstable notes (most likely overlapping notes), which are incompatible with ReaScript."
-                              .."\n\n  * Bug in the reaper.MIDI_SetNote function."
+                              .."\n\n  * Unstable notes (most likely overlapping notes), which get re-configured when REAPER runs a ReaScript."
+                              .."\n\n  * Bug in the reaper.MIDI_Sort function."
                               .."\n\nPlease check whether any extraneous notes remain near the start of the take, in pitch "
                               ..tostring(gapPitch)..".") 
     end
     
     -- If the script was terminated by moving the mouse out of the piano roll notes area, don't do anything else besides removing the line notes
     if segment=="notes" and type(tableLine)=="table" and mousePPQ~=nil and mouseRow~=nil then
-        -- Now that the line note are deleted, the script must find all notes that crossed the line 
-        --    and that should therefore be sliced.
-        -- Use binary search to find event close to rightmost edge of line.
-        local rightmostCutPPQ = math.max(startPPQ, mousePPQ)
-        local rightIndex = numNotesAfterDeletion-1
-        local leftIndex = 0
+        minRow = math.min(startRow, mouseRow)
+        maxRow = math.max(startRow, mouseRow)
+        
+        -- If snap is enabled, this script can be used to cut notes at the grid.  To do so,
+        --    the cutting position must be at the left edge of the cutting line.
+        --    If snap is not enabled, the cutting position is the middle of the line.
+        if isSnapEnabled ~= 1 then
+            startPPQ = startPPQ + thicknessPPQ//2
+            mousePPQ = mousePPQ + thicknessPPQ//2    
+            for row = minRow, maxRow do
+                tableLine[row].startppqpos = tableLine[row].startppqpos + thicknessPPQ//2
+            end
+        end
+
+        rightmostCutPPQ = math.max(startPPQ, mousePPQ)
+        leftmostSearchPPQ = math.min(startPPQ, mousePPQ) - wholeNotesInLongestNote*3840 -- 3840=960*4=length of whole note in PPQs        
+        
+        -- The script must find all notes that crossed the line and that should therefore be sliced.
+        -- Use binary search to find event close to rightmost edge of line.        
+        rightIndex = numNotesAfterDeletion-1
+        leftIndex = 0
         while (rightIndex-leftIndex)>1 do
             middleIndex = math.ceil((rightIndex+leftIndex)/2)
             local _, _, _, startppqpos, _, _, _, _ = reaper.MIDI_GetNote(take, middleIndex)
@@ -222,11 +253,7 @@ function exit()
         if onlySliceSelectedNotes == false or leftIndex < 0 then 
             leftIndex = 0
         end
-        local minRow = math.min(startRow, mouseRow)
-        local maxRow = math.max(startRow, mouseRow)
-        local leftmostEdgePPQ = math.min(startPPQ, mousePPQ) - wholeNotesInLongestNote*3840 -- 3840=960*4=length of whole note in PPQs
-        --local rightmostCutPPQ = math.max(startPPQ, mousePPQ) 
-        
+
         for i = rightIndex, leftIndex, -1 do
             local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
             if retval == true
@@ -246,7 +273,7 @@ function exit()
                     reaper.MIDI_SetNote(take, i, nil, nil, nil, cutppqpos, nil, nil, nil, true)
                 end
             end
-            if startppqpos < leftmostEdgePPQ then break end
+            if startppqpos < leftmostSearchPPQ then break end
         end
         
         -- Insert new notes (second part of each sliced note)
@@ -256,14 +283,69 @@ function exit()
         
     end -- if segment == "notes"      
     
-    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
+        and (prevToggleState == 0 or prevToggleState == 1) 
+        then
+        reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
-    
+        
     reaper.Undo_OnStateChange("Split notes by drawing a line with the mouse")
     
 end
+
+   
+-----------------------------------------------------------------------------------------------
+-- Set this script as the armed command that will be called by "js_Run the js action..." script
+function setAsNewArmedToolbarAction()
+
+    local tablePrevIDs, prevCommandIDs, prevSeparatorPos, nextSeparatorPos, prevID
+    
+    _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
+    if sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1 then
+        return(false)
+    end
+    
+    tablePrevIDs = {}
+    
+    reaper.SetToggleCommandState(sectionID, ownCommandID, 1)
+    reaper.RefreshToolbar2(sectionID, ownCommandID)
+    
+    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
+        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
+        if type(prevCommandIDs) ~= "string" then
+            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
+        else
+            prevSeparatorPos = 0
+            repeat
+                nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
+                if nextSeparatorPos ~= nil then
+                    prevID = tonumber(prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1))
+                    -- Is the stored number a valid (integer) commandID, and not own ID?
+                    if type(prevID) == "number" and prevID%1 == 0 and prevID ~= ownCommandID then
+                        table.insert(tablePrevIDs, prevID)
+                    end
+                    prevSeparatorPos = nextSeparatorPos
+                end
+            until nextSeparatorPos == nil
+            for i = 1, #tablePrevIDs do
+                reaper.SetToggleCommandState(sectionID, tablePrevIDs[i], 0)
+                reaper.RefreshToolbar2(sectionID, tablePrevIDs[i])
+            end
+        end
+    end
+    
+    prevCommandIDs = tostring(ownCommandID) .. "|"
+    for i = 1, #tablePrevIDs do
+        prevCommandIDs = prevCommandIDs .. tostring(tablePrevIDs[i]) .. "|"
+    end
+    reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
+    
+    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
+end
+
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -284,10 +366,19 @@ end
 
 editor = reaper.MIDIEditor_GetActive()
 if editor == nil then return(0) end
+
+window, segment, details = reaper.BR_GetMouseCursorContext()
+-- If window == "unknown", assume to be called from floating toolbar
+-- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+    setAsNewArmedToolbarAction()
+    return(0) 
+elseif segment ~= "notes" then 
+    return(0) 
+end
+
 take = reaper.MIDIEditor_GetTake(editor)
 if take == nil then return(0) end
-_, segment, _ = reaper.BR_GetMouseCursorContext()
-if segment ~= "notes" then return(0) end
 
 reaper.MIDI_Sort(take) -- First sort, hopefully to sort out overlapping and other illegal notes
 _, numNotes, _, _ = reaper.MIDI_CountEvts(take)
@@ -526,6 +617,7 @@ reaper.atexit(exit)
 
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
 if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
     reaper.SetToggleCommandState(sectionID, cmdID, 1)
     reaper.RefreshToolbar2(sectionID, cmdID)
 end

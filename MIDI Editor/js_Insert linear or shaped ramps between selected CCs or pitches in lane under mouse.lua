@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  Insert linear or shaped ramps between selected CCs or pitches in lane under mouse
+ * ReaScript Name:  js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua
  * Description:   Useful for quickly adding ramps between 'nodes'.
  *                Useful for smoothing transitions between CCs that were drawn at low resolution.
  *
@@ -14,6 +14,18 @@
  *                The default ramp properties can also be defined in the USER AREA.
  *                Combine with warping script to easily insert all kinds of weird shapes.
  *
+ *                There are two ways in which this script can be run:  
+ *                  1) First, the script can be linked to its own shortcut key.
+ *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+ *                        can each be linked to a toolbar button.  
+ *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+ *                        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+ *                        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+ *                     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+ *                        and this selected (armed) script can then be run by using the shortcut for the 
+ *                        aforementioned "js_Run..." script.
+ *                     For further instructions - please refer to the "js_Run..." script. 
+ *
  * Screenshot: 
  * Notes: 
  * Category: 
@@ -21,7 +33,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.14
+ * Version: 2.0
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -42,6 +54,9 @@
     + New shape, "sine".
  * v1.14 (2016-06-13)
     + Fixed deletion bug when inserting 14bit CC ramps.
+ * v2.0 (2016-07-04)
+    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
+    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
 ]] 
 
 -- USER AREA
@@ -513,16 +528,67 @@ function showErrorMsg(errorMsg)
     end
 end -- showErrorMsg(errorMsg)
 
+-----------------------------------------------------------------------------------------------
+-- Set this script as the armed command that will be called by "js_Run the js action..." script
+function setAsNewArmedToolbarAction()
+
+    local tablePrevIDs, prevCommandIDs, prevSeparatorPos, nextSeparatorPos, prevID
+    
+    _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
+    if sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1 then
+        return(false)
+    end
+    
+    tablePrevIDs = {}
+    
+    reaper.SetToggleCommandState(sectionID, ownCommandID, 1)
+    reaper.RefreshToolbar2(sectionID, ownCommandID)
+    
+    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
+        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
+        if type(prevCommandIDs) ~= "string" then
+            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
+        else
+            prevSeparatorPos = 0
+            repeat
+                nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
+                if nextSeparatorPos ~= nil then
+                    prevID = tonumber(prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1))
+                    -- Is the stored number a valid (integer) commandID, and not own ID?
+                    if type(prevID) == "number" and prevID%1 == 0 and prevID ~= ownCommandID then
+                        table.insert(tablePrevIDs, prevID)
+                    end
+                    prevSeparatorPos = nextSeparatorPos
+                end
+            until nextSeparatorPos == nil
+            for i = 1, #tablePrevIDs do
+                reaper.SetToggleCommandState(sectionID, tablePrevIDs[i], 0)
+                reaper.RefreshToolbar2(sectionID, tablePrevIDs[i])
+            end
+        end
+    end
+    
+    prevCommandIDs = tostring(ownCommandID) .. "|"
+    for i = 1, #tablePrevIDs do
+        prevCommandIDs = prevCommandIDs .. tostring(tablePrevIDs[i]) .. "|"
+    end
+    reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
+    
+    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
+end
 
 ---------------------------------------------------------------------
 -- Here the code execustion starts
 ---------------------------------------------------------------------
+-- function main()
 
 -- Trying a trick to prevent creation of new undo state 
 --     if code does not reach own Undo_BeginBlock
 function noUndo()
 end
 reaper.defer(noUndo)
+
+reaper.DeleteExtState("js_Mouse actions", "Status", true)
 
 -- Test whether user customizable variables are usable
 if type(verbose) ~= "boolean" then 
@@ -538,15 +604,32 @@ if type(showDialogBox) ~= "boolean" then
     
 
 -- Test whether mouse is in MIDI editor
-editor = reaper.MIDIEditor_GetActive()
+--[[editor = reaper.MIDIEditor_GetActive()
 if editor == nil then showErrorMsg("No active MIDI editor found.") return(false) end
 take = reaper.MIDIEditor_GetTake(editor)
 if take == nil then showErrorMsg("No active take found in MIDI editor.") return(false) end
 _, _, details = reaper.BR_GetMouseCursorContext()
 if details ~= "cc_lane" and details ~= "cc_selector" then showErrorMsg("The mouse should be positioned over a CC lane in a MIDI editor.")
     return(false) end
+]]
+editor = reaper.MIDIEditor_GetActive()
+if editor == nil then return(0) end
 
--- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+window, segment, details = reaper.BR_GetMouseCursorContext()
+-- If window == "unknown", assume to be called from floating toolbar
+-- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+    setAsNewArmedToolbarAction()
+    return(0) 
+elseif details ~= "cc_lane" then 
+    showErrorMsg("The mouse should be positioned over a CC lane in a MIDI editor.")
+    return(0) 
+end
+   
+take = reaper.MIDIEditor_GetTake(editor)
+if take == nil then return(0) end
+
+-- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
 -- https://github.com/Jeff0S/sws/issues/783
 -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
 _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()

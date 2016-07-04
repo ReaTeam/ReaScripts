@@ -1,9 +1,20 @@
 --[[
- * ReaScript Name:  Stretch selected events in lane under mouse
+ * ReaScript Name:  js_Stretch selected events in lane under mouse.lua
  * Description:  A simple script for stretching MIDI events in the MIDI editor  
  *               The script only affects events in the MIDI editor lane that is under the mouse cursor.
  *               If snap to grid is enabled, the rightmost event will snap to grid.
- * Instructions:  The script must be linked to a shortcut key.  
+ * Instructions: There are two ways in which this script can be run:  
+ *                  1) First, the script can be linked to its own shortcut key.
+ *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+ *                        can each be linked to a toolbar button.  
+ *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+ *                        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+ *                        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+ *                     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+ *                        and this selected (armed) script can then be run by using the shortcut for the 
+ *                        aforementioned "js_Run..." script.
+ *                     For further instructions - please refer to the "js_Run..." script. 
+ *
  *                To use, 1) select MIDI events to be stretched,  
  *                        2) position mouse in the lane at the position to which the 
  *                              rightmost event should be stretched, 
@@ -30,7 +41,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.12
+ * Version: 2.0
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -47,6 +58,9 @@
     + If linked to a menu button, script will toggle button state to indicate activation/termination
  * v1.12 (2016-06-18)
     + Added a warning about overlapping notes in the instructions, as well as a safety check in the code.
+ * v2.0 (2016-07-04)
+    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
+    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
 ]]
 
 ----------------------------------------------------------------------
@@ -65,6 +79,8 @@ function loop_stretchEvents()
         _, _, _, currentMouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
     end
     if currentMouseLane ~= mouseLane then return(0) end
+    
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end   
     
     -- Next step is to determine the destination position to which the rightmost CC event should be stretched
     -- If snap is enabled, events will stretch to grid, otherwise to exact mouse position    
@@ -108,13 +124,18 @@ end -- function loop_stretchEvents()
 ------------------------------
 -- Called when function exists
 function exit()    
-    reaper.MIDI_Sort(take)
+
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
-    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
+        and (prevToggleState == 0 or prevToggleState == 1) 
+        then
+        reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
         
+    reaper.MIDI_Sort(take)
+            
     if mouseLane == 0x206 then
         undoString = "Stretch events in single lane: Sysex"
     elseif mouseLane == 0x205 then
@@ -140,6 +161,55 @@ function exit()
     reaper.Undo_OnStateChange(undoString, -1)
 end
 
+-----------------------------------------------------------------------------------------------
+-- Set this script as the armed command that will be called by "js_Run the js action..." script
+function setAsNewArmedToolbarAction()
+
+    local tablePrevIDs, prevCommandIDs, prevSeparatorPos, nextSeparatorPos, prevID
+    
+    _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
+    if sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1 then
+        return(false)
+    end
+    
+    tablePrevIDs = {}
+    
+    reaper.SetToggleCommandState(sectionID, ownCommandID, 1)
+    reaper.RefreshToolbar2(sectionID, ownCommandID)
+    
+    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
+        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
+        if type(prevCommandIDs) ~= "string" then
+            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
+        else
+            prevSeparatorPos = 0
+            repeat
+                nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
+                if nextSeparatorPos ~= nil then
+                    prevID = tonumber(prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1))
+                    -- Is the stored number a valid (integer) commandID, and not own ID?
+                    if type(prevID) == "number" and prevID%1 == 0 and prevID ~= ownCommandID then
+                        table.insert(tablePrevIDs, prevID)
+                    end
+                    prevSeparatorPos = nextSeparatorPos
+                end
+            until nextSeparatorPos == nil
+            for i = 1, #tablePrevIDs do
+                reaper.SetToggleCommandState(sectionID, tablePrevIDs[i], 0)
+                reaper.RefreshToolbar2(sectionID, tablePrevIDs[i])
+            end
+        end
+    end
+    
+    prevCommandIDs = tostring(ownCommandID) .. "|"
+    for i = 1, #tablePrevIDs do
+        prevCommandIDs = prevCommandIDs .. tostring(tablePrevIDs[i]) .. "|"
+    end
+    reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
+    
+    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
+end
+
 -----------------------------------------------------------------------------------------------------------
 --[[function main() 
     local _, editor, take, details, mouseLane, QNperGrid, mouseQNpos, 
@@ -154,12 +224,21 @@ end
     -- Mouse must be positioned in CC lane
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil then return(0) end
+    
+   window, segment, details = reaper.BR_GetMouseCursorContext()
+   -- If window == "unknown", assume to be called from floating toolbar
+   -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+   if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+       setAsNewArmedToolbarAction()
+       return(0) 
+   elseif details ~= "cc_lane" then 
+       return(0) 
+   end
+    
     take = reaper.MIDIEditor_GetTake(editor)
     if take == nil then return(0) end
-    window, segment, details = reaper.BR_GetMouseCursorContext()
-    if details ~= "cc_lane" then return(0) end
     
-    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
     -- https://github.com/Jeff0S/sws/issues/783
     -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
     _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
@@ -179,6 +258,7 @@ end
     -- Now stuff start to happen so toggle toolbar button (if any) and define atexit
     _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
         reaper.SetToggleCommandState(sectionID, cmdID, 1)
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
