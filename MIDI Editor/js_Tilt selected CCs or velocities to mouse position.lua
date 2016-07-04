@@ -1,11 +1,23 @@
 --[[
- * ReaScript Name:  Tilt selected events in lane under mouse to mouse position
- * Description:  A simple script for linear tilting of selected events.  
+ * ReaScript Name:  js_Tilt selected CCs or velocities to mouse position.lua
+ * Description:  A simple script for linear tilting of selected events in the lane under mouse.  
  *               The endpoint events are tilted to the exact value of the mouse position,
  *                  so the script is useful for precise positioning of ramps and other CC shapes.
  *               The script only affects events in the MIDI editor lane that is under the mouse cursor.
  *               The script can be used in 7-bit CC lanes, 14-bit CC lanes, velocity, pitchwheel and channel pressure.
- * Instructions:  The script must be linked to a shortcut key.  
+ *
+ * Instructions: There are two ways in which this script can be run:  
+ *                  1) First, the script can be linked to its own shortcut key.
+ *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+ *                        can each be linked to a toolbar button.  
+ *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+ *                        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+ *                        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+ *                     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+ *                        and this selected (armed) script can then be run by using the shortcut for the 
+ *                        aforementioned "js_Run..." script.
+ *                     For further instructions - please refer to the "js_Run..." script. 
+ * 
  *                To use, 1) select MIDI events to be tilted,  
  *                        2) position mouse in lane, 
  *                        3) press shortcut key, and
@@ -27,7 +39,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.12
+ * Version: 2.0
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -41,8 +53,11 @@
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
- * v1.12 (2016-06-26)
-    + Script will not run if all selected events fall on the same time position
+ * v1.12 (2016-06-19)
+    + Script safely quits if time range of selected events is zero.
+ * v2.0 (2016-07-04)
+    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
+    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
 ]]    
 
 function tilt14bitCC()    
@@ -113,6 +128,8 @@ function tilt14bitCC()
     
         window, segment, details = reaper.BR_GetMouseCursorContext()
         if window ~= "midi_editor" then return(0) end
+        
+        if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
         
         if SWS283 == true then
             _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
@@ -188,7 +205,7 @@ function tilt7bitCC()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
-    if PPQrange == 0 then return(0) end
+    if PPQrange == 0 then return(0) end  
     
     --------------------------------------------------------------------
     
@@ -196,6 +213,8 @@ function tilt7bitCC()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
         if window ~= "midi_editor" then return(0) end
+        
+        if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
         
         if SWS283 == true then
             _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
@@ -276,6 +295,8 @@ function tiltChanPressure()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
         if window ~= "midi_editor" then return(0) end
+        
+        if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
         
         if SWS283 == true then
             _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
@@ -358,6 +379,8 @@ function tiltPitch()
         window, segment, details = reaper.BR_GetMouseCursorContext()
         if window ~= "midi_editor" then return(0) end
         
+        if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
+        
         if SWS283 == true then
             _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
         else 
@@ -432,8 +455,8 @@ function tiltVelocity()
             last = i
         end
     end        
-    PPQrange = lastPPQ - firstPPQ    
-    if PPQrange == 0 then return(0) end
+    PPQrange = lastPPQ - firstPPQ  
+    if PPQrange == 0 then return(0) end 
    
     --------------------------------------------------------------------
     
@@ -441,6 +464,8 @@ function tiltVelocity()
                 
         window, segment, details = reaper.BR_GetMouseCursorContext()
         if window ~= "midi_editor" then return(0) end
+        
+        if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
         
         if SWS283 == true then
             _, _, ccLane, ccLaneVal, _ = reaper.BR_GetMouseCursorContext_MIDI()
@@ -484,11 +509,15 @@ end -- function tiltVelocity
 function exit()
     reaper.MIDI_Sort(take)
     
-    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-        reaper.SetToggleCommandState(sectionID, cmdID, 0)
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
+        and (prevToggleState == 0 or prevToggleState == 1) 
+        then
+        reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
-        
+            
     if 0 <= mouseLane and mouseLane <= 127 then -- CC, 7 bit (single lane)
         reaper.Undo_OnStateChange("Tilt selected 7-bit CC events in lane ".. mouseLane, -1)
     elseif mouseLane == 0x203 then -- Channel pressure
@@ -503,25 +532,84 @@ function exit()
     end
 end
 
+-----------------------------------------------------------------------------------------------
+-- Set this script as the armed command that will be called by "js_Run the js action..." script
+function setAsNewArmedToolbarAction()
+
+    local tablePrevIDs, prevCommandIDs, prevSeparatorPos, nextSeparatorPos, prevID
+    
+    _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
+    if sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1 then
+        return(false)
+    end
+    
+    tablePrevIDs = {}
+    
+    reaper.SetToggleCommandState(sectionID, ownCommandID, 1)
+    reaper.RefreshToolbar2(sectionID, ownCommandID)
+    
+    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
+        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
+        if type(prevCommandIDs) ~= "string" then
+            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
+        else
+            prevSeparatorPos = 0
+            repeat
+                nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
+                if nextSeparatorPos ~= nil then
+                    prevID = tonumber(prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1))
+                    -- Is the stored number a valid (integer) commandID, and not own ID?
+                    if type(prevID) == "number" and prevID%1 == 0 and prevID ~= ownCommandID then
+                        table.insert(tablePrevIDs, prevID)
+                    end
+                    prevSeparatorPos = nextSeparatorPos
+                end
+            until nextSeparatorPos == nil
+            for i = 1, #tablePrevIDs do
+                reaper.SetToggleCommandState(sectionID, tablePrevIDs[i], 0)
+                reaper.RefreshToolbar2(sectionID, tablePrevIDs[i])
+            end
+        end
+    end
+    
+    prevCommandIDs = tostring(ownCommandID) .. "|"
+    for i = 1, #tablePrevIDs do
+        prevCommandIDs = prevCommandIDs .. tostring(tablePrevIDs[i]) .. "|"
+    end
+    reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
+    
+    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
+end
+
 --------------------------------------------------------------------
 -- Here the code execution starts
 --------------------------------------------------------------------
+-- function main()    
     
 editor = reaper.MIDIEditor_GetActive()
 if editor == nil then return(0) end
+
+window, segment, details = reaper.BR_GetMouseCursorContext()
+-- If window == "unknown", assume to be called from floating toolbar
+-- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+    setAsNewArmedToolbarAction()
+    return(0) 
+elseif details ~= "cc_lane" then 
+    return(0) 
+end
+
 take = reaper.MIDIEditor_GetTake(editor)
 if take == nil then return(0) end
-_, _, details = reaper.BR_GetMouseCursorContext()
-if details ~= "cc_lane" then return(0) end 
 
--- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+-- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
 -- https://github.com/Jeff0S/sws/issues/783
 -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
 _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
 if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
 if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
 if SWS283 ~= SWS283again then
-    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+    reaper.ShowConsoleMsg("\n\nERROR:\nCould not determine compatible SWS version.")
     return(0)
 end
 
@@ -541,6 +629,7 @@ end
 -- Now stuff start to happen so toggle toolbar button (if any) and define atexit
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
 if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
     reaper.SetToggleCommandState(sectionID, cmdID, 1)
     reaper.RefreshToolbar2(sectionID, cmdID)
 end

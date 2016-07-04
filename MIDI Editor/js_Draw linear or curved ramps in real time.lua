@@ -1,6 +1,6 @@
 --[[
- * ReaScript Name:  js_Draw linear or curved ramps in real time, chasing start values.lua
- * Description: Draw linear or curved ramps of CC and pitchwheel events in real time, chasing start values.
+ * ReaScript Name:  js_Draw linear or curved ramps in real time.lua
+ * Description: Draw linear or curved ramps of CC and pitchwheel events in real time.
  *              An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
  *               1) If snap to grid is enabled in the MIDI editor, the endpoints of the 
  *                  ramp will snap to grid, allowing precise positioning of the ramp 
@@ -35,8 +35,8 @@
  *                        aforementioned "js_Run..." script.
  *                     For further instructions - please refer to the "js_Run..." script.                 
  *
- *                To disable chasing of existing CC values, set the "doBackChase" and/or
- *                    "doForwardChase" parameters in the USER AREA at the beginning of the script to "false".
+ *                To enable chasing of existing CC values, set the "doBackChase" and/or
+ *                    "doForwardChase" parameters in the USER AREA at the beginning of the script to "true".
  *
  *                Since this function is a user script, the way it responds to shortcut keys and 
  *                    mouse buttons is opposite to that of REAPER's built-in mouse actions 
@@ -87,8 +87,8 @@
     --    a shortcut key.  In one version, chasing is set to true (for smooth ramping), while
     --    in the other it is set to false (for exact positioning at mouse position).  Remember
     --    that ramp endpoints can also easily be re-positioned using the Tilt script.
-    doBackChase = true
-    doForwardChase = true
+    doBackChase = false
+    doForwardChase = false
     
     deleteOnlyDrawChannel = true
 
@@ -130,7 +130,6 @@ function loop_trackMouseMovement()
     
     if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
         
-    -- Has mouse been moved?
     if SWS283 == true then
         _, _, mouseCClane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
     else 
