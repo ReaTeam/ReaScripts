@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5436bdbf286281e918f7853902212f128d2e57c9" name="ReaTeam Scripts">
+<index version="1" commit="9af0daf3a6c6e1f8284cf5d4b4a9112864dc7d9e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -409,6 +409,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Added a warning about overlapping notes in the instructions, as well as a safety check in the code.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0176323bd12e757641f954de65135a8026b1122e/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:25:40Z">
@@ -422,6 +427,11 @@ added support for all track envelopes]]></changelog>
       <version name="1.12" author="juliansader" time="2016-06-18T15:24:04Z">
         <changelog><![CDATA[+ Added a warning about overlapping notes in the instructions, as well as a safety check in the code.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0176323bd12e757641f954de65135a8026b1122e/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script">
@@ -437,6 +447,11 @@ added support for all track envelopes]]></changelog>
       <version name="1.12" author="juliansader" time="2016-06-26T12:28:00Z">
         <changelog><![CDATA[+ Script will not run if all selected events fall on the same time position]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script">
@@ -458,6 +473,32 @@ added support for all track envelopes]]></changelog>
       <version name="1.12" author="juliansader" time="2016-06-04T12:07:06Z">
         <changelog><![CDATA[+ Few tweaks to improve appearance of real-time ramp when using very low CC density]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/eb53a3b4333a396c4349608f59f30f2d6a4f287b/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Draw linear or curved ramps in real time.lua" type="script">
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script">
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Draw sine curve in real time.lua" type="script">
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script">
@@ -482,6 +523,11 @@ added support for all track envelopes]]></changelog>
       <version name="1.1" author="juliansader" time="2016-05-25T09:28:20Z">
         <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) ]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6a21218ba0570c5714d0545019ea2cb3950991e4/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
+      </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script">
@@ -508,6 +554,35 @@ added support for all track envelopes]]></changelog>
       <version name="1.14" author="juliansader" time="2016-06-13T18:53:13Z">
         <changelog><![CDATA[+ Fixed deletion bug when inserting 14bit CC ramps.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c1360a7cb4eacf4dc76786ca010c723942372c8b/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script">
+      <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script">
+      <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script">
+      <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script">
+      <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI editor LFO generator and shaper.lua" type="script">
@@ -565,6 +640,11 @@ added support for all track envelopes]]></changelog>
 + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script">
       <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
@@ -588,6 +668,13 @@ added support for all track envelopes]]></changelog>
 + MUTED: Muted CCs will automatically be removed since they are inherently redundant.
 + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bef6ea8e9e09d8c8f3629786c02abb99ceb45905/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ Initial release.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script">
@@ -620,6 +707,11 @@ added support for all track envelopes]]></changelog>
 + WARNING: The script is still in beta, and may be unstable.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
+      <version name="1.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Split selected notes by drawing a line with the mouse.lua" type="script">
       <version name="0.9" author="juliansader" time="2016-06-25T01:28:06Z">
@@ -639,6 +731,11 @@ added support for all track envelopes]]></changelog>
 + WARNING: The script is still in beta, and may be unstable.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
+      <version name="1.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:31:26Z">
@@ -654,6 +751,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Added a warning about overlapping notes in the instructions, as well as a safety check in the code.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0176323bd12e757641f954de65135a8026b1122e/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script">
       <version name="1.1" author="juliansader" time="2016-05-25T09:32:59Z">
@@ -667,6 +769,11 @@ added support for all track envelopes]]></changelog>
       <version name="1.12" author="juliansader" time="2016-06-26T12:28:00Z">
         <changelog><![CDATA[+ Script will not run if all selected events fall on the same time position]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/37ae73fa03af930aa2242fc645cd4bfb3ada1474/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
+        <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script">
