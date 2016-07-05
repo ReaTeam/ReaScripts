@@ -66,6 +66,8 @@
  * v2.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
+ * v2.01 (2016-07-05)
+    + Fixed mousewheel bug.
 ]]
 
 -- USER AREA:
@@ -883,3 +885,4 @@ elseif mouseLane == 0x200 or mouseLane == 0x207 then
 else
     return(0)    
 end
+
