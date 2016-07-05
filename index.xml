@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9af0daf3a6c6e1f8284cf5d4b4a9112864dc7d9e" name="ReaTeam Scripts">
+<index version="1" commit="f7f3655008736b226e57dc813cc36b7f10776eec" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -452,6 +452,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
+      <version name="2.01" author="juliansader" time="2016-07-05T14:27:45Z">
+        <changelog><![CDATA[+ Fixed mousewheel bug.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f7f3655008736b226e57dc813cc36b7f10776eec/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script">
