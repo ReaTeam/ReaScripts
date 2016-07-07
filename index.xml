@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f7f3655008736b226e57dc813cc36b7f10776eec" name="ReaTeam Scripts">
+<index version="1" commit="dcbcb384760016e7d89ca8c898be8252837e57f1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -325,6 +325,21 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="spk77" time="2016-05-29T16:30:30Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/206110bba7a6f2873207212ff73340e7e69f9396/Items%20Editing/spk77_Split%20all%20items%20at%20edit%20cursor.lua</source>
+      </version>
+      <version name="1.1" author="spk77" time="2016-07-07T17:32:53Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/5228233b118927e8496aa31c0ee37f7da253ba3a/Items%20Editing/spk77_Split%20all%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Split all non-locked audio items at edit cursor.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-07-07T17:32:53Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/5228233b118927e8496aa31c0ee37f7da253ba3a/Items%20Editing/spk77_Split%20all%20non-locked%20audio%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Split all non-locked MIDI items at edit cursor.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-07-07T17:32:53Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/5228233b118927e8496aa31c0ee37f7da253ba3a/Items%20Editing/spk77_Split%20all%20non-locked%20MIDI%20items%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Split and implode items across tracks into takes.eel" type="script">
