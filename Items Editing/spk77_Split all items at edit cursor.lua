@@ -22,6 +22,7 @@
  Changelog:
  * v1.0 (2015-05-29)
     + Initial Release
+ * v1.1 (2015-07-07)
     + Locked items are ignored
 ]]  
 
