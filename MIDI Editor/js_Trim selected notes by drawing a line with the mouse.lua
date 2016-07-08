@@ -14,7 +14,7 @@
  *                     (The first time that the script is stopped, REAPER will pop up a dialog box 
  *                          asking whether to terminate or restart the script.  Select "Terminate"
  *                          and "Remember my answer for this script".)
- 
+ *
  *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
  *                        can each be linked to a toolbar button.  
  *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
@@ -33,7 +33,6 @@
  *                In the script's USER AREA (near the beginning of the script), the user can customize:
  *                    - The thickness of the cutting line.
  *                    - Whether all notes or only selected notes should be split.
- *
  *
  *                WARNING: - As with any ReaScript that involves moving or stretching notes, the user should
  *                           take care that there are no overlapping notes, both when starting and when
