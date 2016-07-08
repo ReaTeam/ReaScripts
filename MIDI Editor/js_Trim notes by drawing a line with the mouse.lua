@@ -58,8 +58,6 @@
     + Initial release (based on the "Split notes" script).
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
- * v1.01 (2016-07-08)
-    + Fix ReaPack indexing error.
 ]] 
 
 -- USER AREA
