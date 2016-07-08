@@ -48,7 +48,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 2.01
+ * Version: 2.02
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
@@ -62,21 +62,29 @@
     + Added an optional "compressResolution" user-defined variable
  * v1.11 (2016-05-29)
     + If linked to a menu button, script will toggle button state to indicate activation/termination
+ * v1.12 (2016-06-26)
+    + Script will not run if all selected events fall on the same time position
  * v2.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
  * v2.01 (2016-07-05)
     + Fixed mousewheel bug.
+ * v2.02 (2016-07-06)
+    + Tweaked resolution/speed of compression.
 ]]
 
 -- USER AREA:
+-- Settings that the user can customize   
     
     -- The speed/resolution of compression using mousewheel. 
     --    Lower values imply finer resolution but slower speed.
     --    Usable values are 0.01 ... 0.1.
-    compressResolution = 0.05
+    compressResolution = 0.02
 
-     
+-- End of USER AREA     
+
+
+----------------------------------------------------------------------------------------------------------------
 
 function compress14bitCC()    
 
@@ -87,8 +95,8 @@ function compress14bitCC()
     --     separate temporary tables.  These tables will then be searched to
     --     find the LSB and MSB events that fall on the same ppq, 
     --     which means that they combine to form one 14-bit CC event.
-    tempTableLSB = {}
-    tempTableMSB = {}
+    local tempTableLSB = {}
+    local tempTableMSB = {}
     tableCC = {}
         
     eventIndex = reaper.MIDI_EnumSelCC(take, -1)
@@ -111,11 +119,10 @@ function compress14bitCC()
     for l = 1, #tempTableLSB do
         for m = 1, #tempTableMSB do
             if tempTableLSB[l].PPQ == tempTableMSB[m].PPQ then
-                table.insert(tableCC, {
-                             PPQ = tempTableLSB[l].PPQ,
-                             MSBindex = tempTableMSB[m].index,
-                             LSBindex = tempTableLSB[l].index,
-                             value = tempTableMSB[m].value*128 + tempTableLSB[l].value
+                table.insert(tableCC, {PPQ = tempTableLSB[l].PPQ,
+                                       MSBindex = tempTableMSB[m].index,
+                                       LSBindex = tempTableLSB[l].index,
+                                       value = tempTableMSB[m].value*128 + tempTableLSB[l].value
                              })
             end -- if
         end -- #tempTableMSB
@@ -139,6 +146,7 @@ function compress14bitCC()
         end
     end
     PPQrange = lastPPQ - firstPPQ
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -264,6 +272,7 @@ function compress7bitCC()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
         
     --------------------------------------------------------------------
     
@@ -387,9 +396,8 @@ function compressChanPressure()
             last = i
         end
     end        
-    PPQrange = lastPPQ - firstPPQ    
-    
-    prevMousePPQpos = mousePPQpos
+    PPQrange = lastPPQ - firstPPQ   
+    if PPQrange == 0 then return(0) end 
    
     --------------------------------------------------------------------
     
@@ -513,6 +521,7 @@ function compressPitch()
         end
     end            
     PPQrange = lastPPQ - firstPPQ
+    if PPQrange == 0 then return(0) end
     
     --------------------------------------------------------------------
     
@@ -638,6 +647,7 @@ function compressVelocity()
         end
     end        
     PPQrange = lastPPQ - firstPPQ    
+    if PPQrange == 0 then return(0) end
    
     --------------------------------------------------------------------
     
@@ -866,7 +876,7 @@ end
     
 reaper.atexit(exit)
 
-compressResolution = math.min(0.01, math.max(0.1, compressResolution))
+compressResolution = math.max(0.01, math.min(0.1, compressResolution))
     
 -- Since 7bit CC, 14bit CC, channel pressure, velocity and pitch all 
 --     require somewhat different tweaks, the code is simpler to read 
