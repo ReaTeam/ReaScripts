@@ -47,7 +47,7 @@
  * Licence: GPL v3
  * Forum Thread: 
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.01
+ * Version: 1.0
  * REAPER: 5.20
  * Extensions: SWS/S&M 2.8.3
 ]]
