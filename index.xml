@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="052d036360052155637f624af3fe3c640d37457e" name="ReaTeam Scripts">
+<index version="1" commit="7ab049373c9b1c2d97d622e3d0724405bdbcedb0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -813,6 +813,30 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Trim notes by drawing a line with the mouse.lua" type="script">
+      <version name="1.01" author="juliansader" time="2016-07-08T19:29:30Z">
+        <changelog><![CDATA[+ Fix ReaPack indexing error.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/1df39894860a7fe0a5f88752d86b768ece2865d2/MIDI%20Editor/js_Trim%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+      <version name="1.0" author="juliansader" time="2016-07-08T19:32:09Z">
+        <changelog><![CDATA[+ Initial release (based on the "Split notes" script).
++ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/7ab049373c9b1c2d97d622e3d0724405bdbcedb0/MIDI%20Editor/js_Trim%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Trim selected notes by drawing a line with the mouse.lua" type="script">
+      <version name="1.01" author="juliansader" time="2016-07-08T19:29:30Z">
+        <changelog><![CDATA[+ Fix ReaPack indexing error.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/1df39894860a7fe0a5f88752d86b768ece2865d2/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+      <version name="1.0" author="juliansader" time="2016-07-08T19:32:06Z">
+        <changelog><![CDATA[+ Initial release (based on the "Split notes" script).
++ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
++ Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/236004db773ce00636b302475d7ed43cdc233e1c/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script">
