@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0257547809bc9d39ed1c7537f091416dc861119" name="ReaTeam Scripts">
+<index version="1" commit="9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1177,14 +1177,14 @@ https://github.com/cfillion/reascripts
       </metadata>
       <version name="0.3" author="cfillion" time="2016-07-15T02:34:49Z">
         <changelog><![CDATA[+ added autocompletion with Tab key
-+ added PageUp/PageDown keys to scroll fater
++ added PageUp/PageDown keys to scroll faster
 + fix formatting of multiline text chunks
 + implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
 + preserve current input and history on .clear
 + protect against invalid access on reaper/gfx tables (thanks to X-Raym)
 + set global `_` variable to the first return value of last statement
 + support multi-line statements]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d0257547809bc9d39ed1c7537f091416dc861119/Various/cfillion_Interactive%20ReaScript.lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script">
