@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7ab049373c9b1c2d97d622e3d0724405bdbcedb0" name="ReaTeam Scripts">
+<index version="1" commit="d0257547809bc9d39ed1c7537f091416dc861119" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1130,7 +1130,7 @@ nofish:
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/089c41b4ec0d674627402f83a02f3c04c9745aca/Various/Airon_Colour%20Swatch.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Interactive ReaScript.lua" type="script">
+    <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
       <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bab6dccc9dd0e64959a919e193fd33d06eafd4ad/Various/cfillion_Interactive%20ReaScript.lua</source>
@@ -1143,6 +1143,48 @@ nofish:
 + limit maximum depth when formatting tables
 + protect against overriding of built-in variables]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/7211142377827197c98a656217c8b16a0d556b46/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Interactive ReaScript (iReaScript)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script simulates a REPL shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 http://i.imgur.com/RrGfulR.gif\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy/Paste from clipboard\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
+https://github.com/cfillion/reascripts
+}}}
+.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
+        <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
+      </metadata>
+      <version name="0.3" author="cfillion" time="2016-07-15T02:34:49Z">
+        <changelog><![CDATA[+ added autocompletion with Tab key
++ added PageUp/PageDown keys to scroll fater
++ fix formatting of multiline text chunks
++ implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
++ preserve current input and history on .clear
++ protect against invalid access on reaper/gfx tables (thanks to X-Raym)
++ set global `_` variable to the first return value of last statement
++ support multi-line statements]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d0257547809bc9d39ed1c7537f091416dc861119/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script">
