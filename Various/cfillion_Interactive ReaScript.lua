@@ -1,28 +1,61 @@
--- @version 0.2
+-- @version 0.3
 -- @author cfillion
 -- @changelog
---   + enhance formatting of arrays containing nil values
---   + implement Delete key
---   + implement word movement keys (Shift+Left and Shift+Right)
---   + imply the return statement by default
---   + limit maximum depth when formatting tables
---   + protect against overriding of built-in variables
+--   + added autocompletion with Tab key
+--   + added PageUp/PageDown keys to scroll fater
+--   + fix formatting of multiline text chunks
+--   + implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
+--   + preserve current input and history on .clear
+--   + protect against invalid access on reaper/gfx tables (thanks to X-Raym)
+--   + set global `_` variable to the first return value of last statement
+--   + support multi-line statements
+-- @description Interactive ReaScript (iReaScript)
+-- @website
+--   Forum Thread http://forum.cockos.com/showthread.php?t=177324
+-- @screenshot http://i.imgur.com/RrGfulR.gif
+-- @about
+--   # Interactive ReaScript (iReaScript)
 --
--- Send patches at <https://github.com/cfillion/reascripts>.
+--   This script simulates a REPL shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.
+--
+--   ## Screenshot
+--
+--   http://i.imgur.com/RrGfulR.gif
+--
+--   ## Main Features
+--
+--   - Autocompletion
+--   - Code history
+--   - Colored output
+--   - Copy/Paste from clipboard
+--   - Error catching
+--   - Pretty print return values
+--   - Scrolling
+--   - Text wrapping
+--
+--   ## Known Issues/Limitations
+--
+--   - Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)
+--   - This tool cannot be used to open a new GFX window
+--
+--   ## Contributing
+--
+--   Send patches at <https://github.com/cfillion/reascripts>.
 
-local string, table, math, os, reaper, gfx = string, table, math, os, reaper, gfx
+local string, table, math, os = string, table, math, os
 local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs
 
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v0.2 by cfillion',
+  BANNER = 'Interactive ReaScript v0.3 by cfillion',
   MARGIN = 3,
   MAXLINES = 1024,
   MAXDEPTH = 3,
   INDENT = 2,
   INDENT_THRESHOLD = 5,
   PROMPT = '> ',
+  PROMPT_CONTINUE = '*> ',
   PREFIX = '.',
 
   COLOR_BLACK = {12, 12, 12},
@@ -45,9 +78,11 @@ local ireascript = {
 
   KEY_BACKSPACE = 8,
   KEY_CLEAR = 144,
+  KEY_CTRLC = 3,
   KEY_CTRLD = 4,
   KEY_CTRLL = 12,
   KEY_CTRLU = 21,
+  KEY_CTRLV = 22,
   KEY_DELETE = 6579564,
   KEY_DOWN = 1685026670,
   KEY_END = 6647396,
@@ -56,8 +91,25 @@ local ireascript = {
   KEY_INPUTRANGE_FIRST = 32,
   KEY_INPUTRANGE_LAST = 125,
   KEY_LEFT = 1818584692,
+  KEY_PGDOWN = 1885824110,
+  KEY_PGUP = 1885828464,
   KEY_RIGHT = 1919379572,
+  KEY_TAB = 9,
   KEY_UP = 30064,
+
+  GFXVARS = {
+    'r', 'g', 'b', 'a',
+    'w', 'h',
+    'x', 'y',
+    'mode',
+    'clear',
+    'dest',
+    'texth',
+    'ext_retina',
+    'mouse_x', 'mouse_y',
+    'mouse_wheel', 'mouse_hwheel',
+    'mouse_cap',
+  },
 }
 
 function ireascript.help()
@@ -107,15 +159,24 @@ ireascript.BUILTIN = {
   {name='help', desc="Print this help text", func=ireascript.help},
 }
 
-function ireascript.reset(banner)
-  ireascript.buffer = {}
-  ireascript.wrappedBuffer = {w = 0}
+function ireascript.run()
   ireascript.input = ''
-  ireascript.lines = 0
+  ireascript.prepend = ''
   ireascript.cursor = 0
   ireascript.history = {}
   ireascript.hindex = 0
+
+  ireascript.reset(true)
+  ireascript.proxify()
+  ireascript.loop()
+end
+
+function ireascript.reset(banner)
+  ireascript.buffer = {}
+  ireascript.lines = 0
+  ireascript.page = 0
   ireascript.scroll = 0
+  ireascript.wrappedBuffer = {w = 0}
 
   if banner then
     ireascript.resetFormat()
@@ -163,11 +224,9 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_ENTER then
     ireascript.removeCursor()
     ireascript.nl()
-    if ireascript.input:len() > 0 then
-      ireascript.eval()
-      ireascript.input = ''
-      ireascript.hindex = 0
-    end
+    ireascript.eval()
+    ireascript.input = ''
+    ireascript.hindex = 0
     ireascript.moveCursor(0)
   elseif char == ireascript.KEY_CTRLL then
     ireascript.clear()
@@ -204,6 +263,16 @@ function ireascript.keyboard()
     ireascript.historyJump(ireascript.hindex + 1)
   elseif char == ireascript.KEY_DOWN then
     ireascript.historyJump(ireascript.hindex - 1)
+  elseif char == ireascript.KEY_PGUP then
+    ireascript.scrollTo(ireascript.scroll + ireascript.page)
+  elseif char == ireascript.KEY_PGDOWN then
+    ireascript.scrollTo(ireascript.scroll - ireascript.page)
+  elseif char == ireascript.KEY_CTRLC then
+    ireascript.copy()
+  elseif char == ireascript.KEY_CTRLV then
+    ireascript.paste()
+  elseif char == ireascript.KEY_TAB then
+    ireascript.complete()
   elseif char >= ireascript.KEY_INPUTRANGE_FIRST and char <= ireascript.KEY_INPUTRANGE_LAST then
     local before, after = ireascript.splitInput()
     ireascript.input = before .. string.char(char) .. after
@@ -302,6 +371,8 @@ function ireascript.draw()
   end
 
   ireascript.scrollbar(before, after)
+
+  ireascript.page = math.floor(#lines * (1 - (before+after) / (height+after)))
 end
 
 function ireascript.scrollbar(before, after)
@@ -452,11 +523,18 @@ function ireascript.push(contents)
     error('content is nil')
   end
 
-  ireascript.buffer[#ireascript.buffer + 1] = {
-    font=ireascript.font,
-    fg=ireascript.foreground, bg=ireascript.background,
-    text=contents,
-  }
+  local index = 0
+
+  for line in contents:gmatch("[^\r\n]+") do
+    if index > 0 then ireascript.nl() end
+    index = index + 1
+
+    ireascript.buffer[#ireascript.buffer + 1] = {
+      font=ireascript.font,
+      fg=ireascript.foreground, bg=ireascript.background,
+      text=line,
+    }
+  end
 end
 
 function ireascript.prompt()
@@ -464,7 +542,11 @@ function ireascript.prompt()
 
   ireascript.resetFormat()
   ireascript.backtrack()
-  ireascript.push(ireascript.PROMPT)
+  if ireascript.prepend:len() == 0 then
+    ireascript.push(ireascript.PROMPT)
+  else
+    ireascript.push(ireascript.PROMPT_CONTINUE)
+  end
   ireascript.push(before)
   ireascript.buffer[#ireascript.buffer + 1] = ireascript.SG_CURSOR
   ireascript.push(after)
@@ -548,8 +630,8 @@ function ireascript.eval()
       ireascript.errorFormat()
       ireascript.push(string.format("command not found: '%s'", name))
     end
-  elseif ireascript.input:len() > 0 then
-    local err = ireascript.lua(ireascript.input)
+  else
+    local err = ireascript.lua(ireascript.code())
 
     if err then
       ireascript.errorFormat()
@@ -562,6 +644,14 @@ function ireascript.eval()
 
   ireascript.nl()
   table.insert(ireascript.history, 1, ireascript.input)
+end
+
+function ireascript.code()
+  if ireascript.prepend:len() > 0 then
+    return ireascript.prepend .. "\n" .. ireascript.input
+  else
+    return ireascript.input
+  end
 end
 
 function ireascript.lua(code)
@@ -585,12 +675,23 @@ function ireascript.lua(code)
   end)
 
   if ok then
+    _ = values[1]
+
     if #values <= 1 then
       ireascript.format(values[1])
     else
       ireascript.format(values)
     end
+
+    ireascript.prepend = ''
   else
+    if values:sub(-5) == '<eof>' and ireascript.input:len() > 0 then
+      ireascript.prepend = ireascript.code()
+      return
+    else
+      ireascript.prepend = ''
+    end
+
     return values:sub(20)
   end
 end
@@ -739,17 +840,160 @@ function ireascript.useColor(color)
   gfx.b = color[3] / 255
 end
 
+function ireascript.copy()
+  local tool
+
+  if ireascript.isosx() then
+    tool = 'pbcopy'
+  elseif ireascript.iswindows() then
+    tool = 'clip'
+  end
+
+  local proc = assert(io.popen(tool, 'w'))
+  proc:write(ireascript.code())
+  proc:close()
+end
+
+function ireascript.paste()
+  local tool
+
+  if ireascript.isosx() then
+    tool = 'pbpaste'
+  elseif ireascript.iswindows() then
+    tool = 'powershell -windowstyle hidden -Command Get-Clipboard'
+  end
+
+  local proc, first = assert(io.popen(tool, 'r')), true
+  for line in proc:lines() do
+    if line:len() > 0 then
+      if first then
+        first = false
+      else
+        ireascript.nl()
+        ireascript.eval()
+        ireascript.input = ''
+        ireascript.moveCursor(0)
+      end
+
+      local before, after = ireascript.splitInput()
+      ireascript.input = before .. line .. after
+      ireascript.moveCursor(ireascript.cursor + line:len())
+      ireascript.prompt()
+    end
+  end
+
+  proc:close()
+end
+
+function ireascript.complete()
+  local before, after = ireascript.splitInput()
+
+  local code = ireascript.prepend .. "\x20" .. before
+  local matches, exact, source = {}
+  local var, word = code:match("([%a$d_]+)%s?%.%s?([%a%d_]*)$")
+
+  if word then
+    source = _G[var]
+    if type(source) ~= 'table' then return end
+  else
+    var = before:match("([%a%d_]+)$")
+    if not var then return end
+
+    source = _G
+    word = var
+  end
+
+  word = word:lower()
+
+  for k, _ in pairs(source) do
+    test = k:lower()
+    if test == word then
+      exact = k
+    elseif test:sub(1, word:len()) == word then
+      matches[#matches + 1] = k
+    end
+  end
+
+  if not exact then
+    if #matches == 1 then
+      exact = matches[1]
+      table.remove(matches, 1)
+    elseif #matches < 1 then
+      return
+    else
+      table.sort(matches)
+    end
+  end
+
+  if exact then
+    before = before:sub(1, -(word:len() + 1))
+    ireascript.input = before .. exact .. after
+    ireascript.cursor = ireascript.cursor + (exact:len() - word:len())
+  end
+
+  if #matches > 0 then
+    ireascript.nl()
+
+    for i=1,#matches do
+      ireascript.push(matches[i])
+      ireascript.nl()
+    end
+  end
+
+  ireascript.prompt()
+end
+
+function ireascript.iswindows()
+  return reaper.GetOS():find('Win') ~= nil
+end
+
+function ireascript.isosx()
+  return reaper.GetOS():find('OSX') ~= nil
+end
+
 function ireascript.dup(table)
   local copy = {}
   for k,v in pairs(table) do copy[k] = v end
   return copy
 end
 
-ireascript.reset(true)
+function ireascript.contains(table, val)
+  for i=1,#table do
+    if table[i] == val then
+      return true
+    end
+  end
+
+  return false
+end
+
+function ireascript.proxify()
+  -- hack to workaround http://forum.cockos.com/showthread.php?t=177319
+  if ireascript.reaper then return end
+
+  ireascript.reaper, reaper = reaper, {}
+  for k,v in pairs(ireascript.reaper) do reaper[k] = v end
+
+  ireascript.gfx, gfx = gfx, {}
+  for k,v in pairs(ireascript.gfx) do gfx[k] = v end
+
+  setmetatable(gfx, {
+    __index = function(t, k)
+      if ireascript.contains(ireascript.GFXVARS, k) then
+        return ireascript.gfx[k]
+      end
+    end,
+    __newindex = function(t, k, v)
+      if ireascript.contains(ireascript.GFXVARS, k) then
+        ireascript.gfx[k] = v
+      end
+    end
+  })
+end
 
 gfx.init(ireascript.TITLE, 550, 350)
 gfx.setfont(ireascript.FONT_NORMAL, 'Courier', 14)
 gfx.setfont(ireascript.FONT_BOLD, 'Courier', 14, 'b')
 
 -- GO!!
-ireascript.loop()
+ireascript.run()
