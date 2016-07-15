@@ -2,7 +2,7 @@
 -- @author cfillion
 -- @changelog
 --   + added autocompletion with Tab key
---   + added PageUp/PageDown keys to scroll fater
+--   + added PageUp/PageDown keys to scroll faster
 --   + fix formatting of multiline text chunks
 --   + implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
 --   + preserve current input and history on .clear
@@ -133,6 +133,7 @@ function ireascript.help()
 end
 
 function ireascript.clear()
+  ireascript.input = ''
   ireascript.reset(false)
   ireascript.update()
 end
