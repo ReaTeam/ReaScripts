@@ -10,7 +10,7 @@
  *               
  *               HINT: The following two scripts are useful for setting up the track names of MIDI files:
  *                  "X-Raym_Rename tracks with first VSTi and its preset name.lua"
- *                  "spk77_Rename tracks after first program change (for General MIDI).eel"
+ *                  "spk77_Rename MIDI tracks.eel"
  * Instructions:
  * 
  * Screenshot: 
@@ -20,8 +20,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- *                   http://forum.cockos.com/showthread.php?t=173781
- * Version: 1.0
+ * Version: 1.1
  * REAPER: 5.20
  * Extensions:
 ]]
@@ -30,6 +29,8 @@
  Changelog:
  * v1.0
     + Initial Release
+ * v1.1 (2016-07-15)
+    + Audio send to parent track will also be removed if "Remove audio sends" is selected
 ]]
 
 -- USER AREA
@@ -89,15 +90,16 @@ until gotUserInputs == true
 -- Iterate through all selected tracks
 chan = startChan
 for trackIndex = 0, numSelTracks-1 do
-     selTrack = reaper.GetSelectedTrack(0, trackIndex);
+     selTrack = reaper.GetSelectedTrack(0, trackIndex)
      
      -- Iterate through all internal track sends
      for sendIndex = 0, reaper.GetTrackNumSends(selTrack, 0)-1 do
           MIDIflags = reaper.GetTrackSendInfo_Value(selTrack, 0, sendIndex, "I_MIDIFLAGS")
           -- I_MIDIFLAGS : returns int *, low 5 bits=source channel 0=all, 1-16, 
           --     next 5 bits=dest channel, 0=orig, 1-16=chan
-          -- 4294966303 = b11111111111111111111110000011111
-          MIDIflags = (MIDIflags & 4294966303)
+          -- The following sets orig (bits 1-5) to "all" and inserts channel into bits 6-10.
+          -- 0xFFFFFC00 = b1111 1111 1111 1111 1111 1100 0000 0000
+          MIDIflags = (MIDIflags & 0xFFFFFC00)          
           MIDIflags = MIDIflags | (chan << 5)
           -- SetTrackSendInfo_Value(MediaTrack tr, int category, int sendidx, "parmname", newvalue)
           -- category is <0 for receives, 0=sends, >0 for hardware outputs
@@ -106,6 +108,7 @@ for trackIndex = 0, numSelTracks-1 do
           -- Remove audio sends (I_SRCCHAN : -1 for none)
           if removeAudio == "y" or removeAudio == "Y" then
               reaper.SetTrackSendInfo_Value(selTrack, 0, sendIndex, "I_SRCCHAN", -1)
+              reaper.SetMediaTrackInfo_Value(selTrack, "B_MAINSEND", 0)
           end
      end
      
