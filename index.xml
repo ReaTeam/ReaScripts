@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e" name="ReaTeam Scripts">
+<index version="1" commit="8e2229f0a1d22703f66384444eb84caa86c7a09d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -670,6 +670,18 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Option - Selecting single note or CC in active take sets channel for new events.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-07-17T14:49:58Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ea6cb0acbef9d70cd60b855b54703c13eaf94e55/MIDI%20Editor/js_Option%20-%20Selecting%20single%20note%20or%20CC%20in%20active%20take%20sets%20channel%20for%20new%20events.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Option - Switching active take sets channel for new events to channel of existing events.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-07-17T14:49:58Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ea6cb0acbef9d70cd60b855b54703c13eaf94e55/MIDI%20Editor/js_Option%20-%20Switching%20active%20take%20sets%20channel%20for%20new%20events%20to%20channel%20of%20existing%20events.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in lane under mouse).lua" type="script">
       <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
         <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
@@ -1032,6 +1044,16 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.0" author="juliansader" time="2016-06-11T21:59:06Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/828afc1a07f96f449a8a2e4d2d0e77a2157d40f1/Tracks%20Properties/js_Autoincrement%20MIDI%20send%20channels%20of%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.1" author="juliansader" time="2016-07-17T14:50:38Z">
+        <changelog><![CDATA[+ Audio send to parent track will also be removed if "Remove audio sends" is selected]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/8e2229f0a1d22703f66384444eb84caa86c7a09d/Tracks%20Properties/js_Autoincrement%20MIDI%20send%20channels%20of%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-07-17T14:50:38Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/8e2229f0a1d22703f66384444eb84caa86c7a09d/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
       </version>
     </reapack>
     <reapack name="nofish_Dynamic mixer (for use with toolbar button).lua" type="script">
