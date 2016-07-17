@@ -21,7 +21,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878, http://forum.cockos.com/showthread.php?t=178256
- * Version: 1.0
+ * Version: 1.01
  * REAPER: 5.20
  * Extensions:
 ]]
@@ -29,7 +29,9 @@
 --[[
  Changelog:
  * v1.0 (2016-07-15)
-    + Initial Release
+    + Initial release
+ * v1.01 (2016-07-17)
+    + Additional tests to verify REAPER's channel values.
 ]]
 
 -- USER AREA
@@ -114,24 +116,32 @@ end
    
 -- Iterate through all selected tracks
 for trackIndex = 0, reaper.CountSelectedTracks(0) - 1 do
-    curTrack = reaper.GetSelectedTrack(0, trackIndex)
+    local curTrack = reaper.GetSelectedTrack(0, trackIndex)
     
     -- Iterate through all items within the track to find MIDI events
     for itemIndex = 0, reaper.CountTrackMediaItems(curTrack) - 1 do
-        curItem = reaper.GetTrackMediaItem(curTrack, itemIndex)
+        local curItem = reaper.GetTrackMediaItem(curTrack, itemIndex)
         
         -- Iterate through all takes within item
         for takeIndex = 0, reaper.CountTakes(curItem) - 1 do
-            curTake = reaper.GetTake(curItem, takeIndex)
+            local curTake = reaper.GetTake(curItem, takeIndex)
             
             if reaper.TakeIsMIDI(curTake) then
             
                 -- Iterate through all events within take until one with usable channel info is found
-                eventIndex = 0
+                -- Strangely, REAPER sometimes returns a msg that is simply a blank string "",
+                --    or sometimes other weird strings with event types = 0, etc.  Therefore check msg thoroughly.
+                local eventIndex = 0
                 repeat
                     returnOK, _, _, _, msg = reaper.MIDI_GetEvt(curTake, eventIndex, true, true, 0, "")
                     eventIndex = eventIndex + 1
-                until returnOK == false or (returnOK == true and type(msg) == "string" and msg ~= "")
+                until returnOK == false 
+                      or (returnOK == true 
+                          and type(msg) == "string" 
+                          and msg ~= ""
+                          and msg:len() == 3 
+                          and ((tonumber(string.byte(msg:sub(1,1))))>>4) >= 8 -- MIDI event types are >= 8.
+                         )
                 
                 if returnOK == true then
                     -- REAPER's functions for track channels use channel range 1-16, NOT 0-15, therefore add 1
