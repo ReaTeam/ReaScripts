@@ -1,5 +1,10 @@
 language: ruby
 rvm:
   - 2.3.0
+before_install:
+  - gem update bundler
+  - sudo apt-get -qq update
+  - sudo apt-get install -y pandoc
+cache: bundler
 install: gem install reapack-index --pre
 script: reapack-index --check
