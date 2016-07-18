@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ab90ee028b06a1193fa464f86177cae471b48c0c" name="ReaTeam Scripts">
+<index version="1" commit="24fd5f81bf0f774a0990a0d9ae9fde40a3b25d14" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -684,6 +684,11 @@ added support for all track envelopes]]></changelog>
       <version name="1.01" author="juliansader" time="2016-07-17T17:09:40Z">
         <changelog><![CDATA[+ Additional tests to verify REAPER's channel values]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ab90ee028b06a1193fa464f86177cae471b48c0c/MIDI%20Editor/js_Option%20-%20Switching%20active%20take%20sets%20channel%20for%20new%20events%20to%20channel%20of%20existing%20events.lua</source>
+      </version>
+      <version name="1.10" author="juliansader" time="2016-07-18T17:39:26Z">
+        <changelog><![CDATA[+ Compatible with multi-item tracks
++ Use MIDI send channel as default channel if no MIDI events are found]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c935c1eb8e44dbfd387d48461c88e68d2a247df4/MIDI%20Editor/js_Option%20-%20Switching%20active%20take%20sets%20channel%20for%20new%20events%20to%20channel%20of%20existing%20events.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in lane under mouse).lua" type="script">
