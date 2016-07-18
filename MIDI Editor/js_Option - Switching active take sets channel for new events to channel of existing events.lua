@@ -7,11 +7,11 @@
  *              If the existing MIDI events in the track use more than one channel, the default channel will be set
  *                  one of these channels, usually - but not always - the channel of the very first event in the take.
  *
- *              To find the channel, the script will first search through the newly active take itself to find
+ *              To find the channel, the script will first search through the newly active take to find
  *                  MIDI events with usable channel info.  If no such MIDI events are found (for example
- *                  if the take is empty) the script will search through other takes in the same track.
+ *                  if the take is still empty) the script will search through other takes in the same track.
  *              If no MIDI events are found anywhere in the track, the script will check whether the track 
- *                  has any MIDI sends, and will use the MIDI send channel of the sends, if any.
+ *                  has any MIDI sends, and will use the destination channel of the sends, if any.
  *              (Therefore, by setting a MIDI send channel before drawing new MIDI events in the track, the send
  *                  channel will act as the default channel for MIDI events in the track.) 
  *                
