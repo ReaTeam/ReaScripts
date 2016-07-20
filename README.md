@@ -60,6 +60,7 @@ and send us a pull request.
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
+- [kawaCat/ReaScript-M2BPack](http://stash.reaper.fm/v/26812/ReaScript-MIDI.zip)
 - [kronihias/ambix](https://github.com/kronihias/ambix)
 - [Lazzle/ReaMIDI](https://github.com/Lazzle/ReaMIDI)
 - [lossius/js-plugins](https://github.com/lossius/js-plugins)
@@ -67,6 +68,5 @@ and send us a pull request.
 - [MichaelKlier/KolorEyesOSCSync](https://github.com/MichaelKlier/KolorEyesOSCSync)
 - [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
-- [kawaCat/ReaScript-M2BPack](https://bitbucket.org/kawaCat/reascript-m2bpack/)
 
 If you want your repo to appear on this list, simply edit this file and send a pull request.
