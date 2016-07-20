@@ -52,10 +52,9 @@ and send us a pull request.
 - [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts) (natively registered in ReaPack)
 - [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (natively registered in ReaPack)
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
-- [kawaCat/ReaScript-M2BPack](https://bitbucket.org/kawaCat/reascript-m2bpack/)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 
-### Other repositories not compatible with ReaPack yet
+### Other repositories not compatible with ReaPack
 
 - [actonDev/Reaper-Scripts](https://github.com/actonDev/Reaper-Scripts)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
@@ -68,5 +67,6 @@ and send us a pull request.
 - [MichaelKlier/KolorEyesOSCSync](https://github.com/MichaelKlier/KolorEyesOSCSync)
 - [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
+- [kawaCat/ReaScript-M2BPack](https://bitbucket.org/kawaCat/reascript-m2bpack/)
 
 If you want your repo to appear on this list, simply edit this file and send a pull request.
