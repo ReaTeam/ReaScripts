@@ -32,7 +32,7 @@
     + Initial release
  * v1.01 (2016-07-17)
     + Additional tests to verify REAPER's channel values.
- * v1.02 (2-16-07-22)
+ * v1.02 (2016-07-22)
     + Prevent sysex events from confusing channel detector.
 ]]
 
