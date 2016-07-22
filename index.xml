@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="24fd5f81bf0f774a0990a0d9ae9fde40a3b25d14" name="ReaTeam Scripts">
+<index version="1" commit="d2dac1e58556e9e562b26de1551dcaf4ebd4a550" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -690,6 +690,11 @@ added support for all track envelopes]]></changelog>
 + Use MIDI send channel as default channel if no MIDI events are found]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/c935c1eb8e44dbfd387d48461c88e68d2a247df4/MIDI%20Editor/js_Option%20-%20Switching%20active%20take%20sets%20channel%20for%20new%20events%20to%20channel%20of%20existing%20events.lua</source>
       </version>
+      <version name="1.11" author="juliansader" time="2016-07-22T11:01:58Z">
+        <changelog><![CDATA[+ Implement workaround for bug in MIDIEditor_GetTake
++ Prevent sysex messages from confusing channel detector]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/1c5c166e1cf41a11a9a84a724a028669afb835f3/MIDI%20Editor/js_Option%20-%20Switching%20active%20take%20sets%20channel%20for%20new%20events%20to%20channel%20of%20existing%20events.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in lane under mouse).lua" type="script">
       <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
@@ -1067,6 +1072,10 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.01" author="juliansader" time="2016-07-17T17:09:34Z">
         <changelog><![CDATA[+ Additional tests to verify REAPER's channel values.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/571038504731de9ff563700d2c058e5eba2c41a3/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
+      </version>
+      <version name="1.02" author="juliansader" time="2016-07-22T11:02:03Z">
+        <changelog><![CDATA[+ Prevent sysex events from confusing channel detector.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/51d5f47f7f057e41e2ea2f57fcf04864c8c9e800/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
       </version>
     </reapack>
     <reapack name="nofish_Dynamic mixer (for use with toolbar button).lua" type="script">
