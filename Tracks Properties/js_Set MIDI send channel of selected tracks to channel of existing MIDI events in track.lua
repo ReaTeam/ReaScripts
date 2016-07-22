@@ -21,7 +21,7 @@
  * Licence: GPL v3
  * Forum Thread:
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878, http://forum.cockos.com/showthread.php?t=178256
- * Version: 1.01
+ * Version: 1.02
  * REAPER: 5.20
  * Extensions:
 ]]
@@ -32,6 +32,8 @@
     + Initial release
  * v1.01 (2016-07-17)
     + Additional tests to verify REAPER's channel values.
+ * v1.02 (2-16-07-22)
+    + Prevent sysex events from confusing channel detector.
 ]]
 
 -- USER AREA
@@ -114,41 +116,63 @@ end
 -- Now find MIDI events inside track
 ------------------------------------------------------
    
+local noteOK, _, notePPQ, noteChannel, ccOK, ccPPQ, ccChannel, curItem, curTrack
+
 -- Iterate through all selected tracks
 for trackIndex = 0, reaper.CountSelectedTracks(0) - 1 do
-    local curTrack = reaper.GetSelectedTrack(0, trackIndex)
+    curTrack = reaper.GetSelectedTrack(0, trackIndex)
     
     -- Iterate through all items within the track to find MIDI events
     for itemIndex = 0, reaper.CountTrackMediaItems(curTrack) - 1 do
-        local curItem = reaper.GetTrackMediaItem(curTrack, itemIndex)
+        curItem = reaper.GetTrackMediaItem(curTrack, itemIndex)
         
         -- Iterate through all takes within item
         for takeIndex = 0, reaper.CountTakes(curItem) - 1 do
-            local curTake = reaper.GetTake(curItem, takeIndex)
+            curTake = reaper.GetTake(curItem, takeIndex)
             
-            if reaper.TakeIsMIDI(curTake) then
+            if reaper.ValidatePtr(curTake, "MediaItem_Take*") and reaper.TakeIsMIDI(curTake) then
             
-                -- Iterate through all events within take until one with usable channel info is found
-                -- Strangely, REAPER sometimes returns a msg that is simply a blank string "",
-                --    or sometimes other weird strings with event types = 0, etc.  Therefore check msg thoroughly.
-                local eventIndex = 0
-                repeat
-                    returnOK, _, _, _, msg = reaper.MIDI_GetEvt(curTake, eventIndex, true, true, 0, "")
-                    eventIndex = eventIndex + 1
-                until returnOK == false 
-                      or (returnOK == true 
-                          and type(msg) == "string" 
-                          and msg ~= ""
-                          and msg:len() == 3 
-                          and ((tonumber(string.byte(msg:sub(1,1))))>>4) >= 8 -- MIDI event types are >= 8.
-                         )
+                -- Note that sysex events do not carry channel info, so these events must be ignored, and
+                --     the function cannot simply use the first *event* with index 0.
+                -- The code assumes that the note or CC indexing will never skip index 0.
+                                
+                noteOK, _, _, notePPQ, _, noteChannel, _, _ = reaper.MIDI_GetNote(curTake, 0)
+                ccOK, _, _, ccPPQ, _, ccChannel, _, _ = reaper.MIDI_GetCC(curTake, 0)
                 
-                if returnOK == true then
-                    -- REAPER's functions for track channels use channel range 1-16, NOT 0-15, therefore add 1
-                    setTrackChannel(curTrack, 1 + ((tonumber(string.byte(msg:sub(1,1))))&15))
-                    goto gotChannelForTrack
+                -- Just make sure REAPER returned valid values
+                if type(noteOK)~="boolean" or type(notePPQ)~="number" or type(noteChannel)~="number" then
+                    noteOK = false
+                elseif (noteChannel%1)~=0 or noteChannel<0 or noteChannel>15 then
+                    noteOK = false
                 end
-            end
+                
+                if type(ccOK)~="boolean" or type(ccPPQ)~="number" or type(ccChannel)~="number" then
+                    ccOK = false
+                elseif (ccChannel%1)~=0 or ccChannel<0 or ccChannel>15 then
+                    ccOK = false
+                end
+                
+                -- Compare PPQs to find channel of first event
+                -- REAPER's functions for track channels use channel range 1-16, NOT 0-15, therefore add 1
+                if noteOK and ccOK then
+                    if notePPQ <= ccPPQ then 
+                        setTrackChannel(curTrack, noteChannel+1)
+                        goto gotChannelForTrack
+                    else
+                        setTrackChannel(curTrack, ccChannel+1)
+                        goto gotChannelForTrack
+                    end
+                elseif noteOK and not ccOK then
+                    setTrackChannel(curTrack, noteChannel+1)
+                    goto gotChannelForTrack
+                elseif ccOK and not noteOK then
+                    setTrackChannel(curTrack, ccChannel+1)
+                    goto gotChannelForTrack
+                -- elseif noteOK==false and ccOK==false
+                    -- Do nothing
+                end
+                
+            end -- if reaper.ValidatePtr(curTake, "MediaItem_Take*") and reaper.TakeIsMIDI(curTake)
         
         end -- for takeIndex
     end -- for itemIndex
