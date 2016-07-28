@@ -1,0 +1,226 @@
+/*
+   * ReaScript Name: Quantize stretch markers
+   * EEL script for Cockos REAPER
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+
+//// Quantize stretch markers - EEL script by spk77 12.10.2014
+//
+// - slider values from 0% to 100% -> stretch markers by X percent towards grid
+// - slider values from 0% to -100% -> unquantizes stretch markers by X percent away from grid
+// - ctrl + z to undo
+// - esc to close
+
+function set_default_colors()
+(
+  gfx_r = 0.5;
+  gfx_g = 0.8;
+  gfx_b = 0.5;
+);
+  
+function scale_x_to_range(range_start, range_end, x_coord, x_start_offs, x_end_offs) local (scaled_x)
+(
+  scaled_x = range_end - (range_end - range_start) * (x_coord - x_start_offs) / (gfx_w - x_start_offs - x_end_offs);
+  scaled_x > range_end ? scaled_x = range_end;
+  scaled_x < range_start ? scaled_x = range_start;
+  scaled_x;
+);
+
+function slider (x,y,r) local (m_x, fill, s_w, s_h)
+(
+  fill = 0;
+  gfx_r = 0.8;
+  gfx_g = 0.8;
+  gfx_b = 0.8;
+  m_x = center_x;
+  (mouse_x >= draw_start_x - r && mouse_x <= draw_end_x && mouse_y >= y - r && mouse_y <= y + r) || drag_started == 1 && lmb_click_outside_window == 0 && lmb_down == 0 ? (
+    gfx_b += 0.1;
+    drag_started = 0;
+    mouse_cap == 1 ? (
+      drag_started = 1;
+      gfx_b += 0.2;
+      m_x = mouse_x;
+      mouse_x > draw_end_x ? m_x = draw_end_x;
+      mouse_x < draw_start_x ? m_x = draw_start_x;
+      fill = 1;
+    ) : (
+      drag_started = 0;
+      m_x = center_x;
+      fill = 1;
+    );
+  );
+  
+  slider_val = 100 - scale_x_to_range (0, 200, m_x, draw_start_x, gfx_w - draw_end_x);
+  gfx_circle(m_x, y, r, fill);
+  
+  gfx_measurestr(sprintf(slider_val_str, "%d", slider_val), s_w, s_h);
+  gfx_a = 1;
+  gfx_x = m_x - r/2 - s_w/2;
+  gfx_y = y - gfx_texth - 6;
+  gfx_printf("%s %%", slider_val_str);
+
+  slider_last_x = m_x;
+  //last_slider_val = slider_val;
+);
+
+function quantize() local (item, take, pos, item_pos, sm_i, sm_pos, sm_srcpos, snap, grid)
+( 
+  drag_started == 0 || mouse_cap == 0 ? sm_pos_array_created = 0;
+
+  // create a new "sm position array" only if "slider_val" changes and dragging is started
+  drag_started == 1 && slider_val != last_slider_val ? (
+    sm_pos_array_created == 0 ? (
+      memset(sm_positions, 0, num_sm * 2);
+      num_sm = 0;
+      (item = GetSelectedMediaItem(0, 0)) ? (
+        (take = GetActiveTake(item)) ? (
+          item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+          //start_offs = GetMediaItemTakeInfo_Value(take, "D_STARTOFFS");
+          sm_i = 0;
+          num_sm = GetTakeNumStretchMarkers(take);
+          loop(num_sm,
+            GetTakeStretchMarker(take, sm_i, sm_pos, sm_srcpos);
+            sm_positions[sm_i * 2] = sm_pos;
+            sm_positions[sm_i * 2 + 1] = sm_srcpos;
+            sm_i += 1;  
+          );
+          sm_pos_array_created = 1;
+        );
+      );    
+    );
+    
+    item && take ? (
+      GetToggleCommandState(1157) ? ( // snap on?
+        snap = 1;
+      ) : (
+        snap = 0;
+        Main_OnCommand(1157, 0);
+      );
+      GetToggleCommandState(40145) ? ( // grid visible?
+        grid = 1;
+      ) : (
+        grid = 0;
+        Main_OnCommand(40145, 0);
+      );
+
+      i = 0;
+      loop(num_sm,
+        pos = sm_positions[i * 2];
+        source_pos = sm_positions[i * 2 + 1];
+        new_pos = pos - slider_val / 100 * (item_pos + pos - SnapToGrid(0, item_pos + pos));
+        SetTakeStretchMarker(take, i, new_pos, source_pos);
+        i += 1;
+      );
+      UpdateItemInProject(item);
+      undo_block = 1;
+      snap == 0 ? Main_OnCommand(1157, 0);
+      grid == 0 ? Main_OnCommand(40145, 0);
+    );
+  );
+  last_slider_val = slider_val;
+);
+
+function run() local (s_w, s_h)
+(
+  set_default_colors();
+  gfx_a = 1;
+
+  draw_end_x = gfx_w - 22;
+  draw_end_y = gfx_h - 80;
+  gfx_x = draw_start_x;
+  gfx_y = draw_start_y;
+  
+  center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+  center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+  
+  gfx_w != last_w ? (
+    center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+    slider_last_x = center_x;
+    last_w = gfx_w;
+  );
+
+  // check if "lmb down" and "mouse cursor is not in window" and "not currently moving slider"
+  mouse_cap >= 1 && (mouse_x <= 0 || mouse_x >= gfx_w || mouse_y < 2 || mouse_y >= gfx_h) && drag_started == 0 ? (
+    lmb_click_outside_window = 1;
+  ) : mouse_cap == 0 ? (
+    lmb_click_outside_window = 0;
+  );
+
+  slider(center_x, gfx_h - center_y, 5);
+
+  gfx_r = 0.7;
+  gfx_g = 0.7;
+  gfx_b = 1;
+  gfx_a = 0.2;
+  
+  gfx_line(draw_start_x, gfx_h - center_y, draw_end_x, gfx_h - center_y);
+  gfx_line(draw_start_x, gfx_h - center_y - 10, draw_start_x, gfx_h - center_y + 10);
+  gfx_line(draw_end_x, gfx_h - center_y - 10, draw_end_x, gfx_h - center_y + 10);
+
+  gfx_a = 0.8;
+  gfx_y = gfx_h - center_y - 3 * gfx_texth;
+  
+  gfx_measurestr("<- Unquantize | Quantize ->  ", e_w, e_h);
+  gfx_x = center_x - floor(e_w / 2 + 0.5);
+  
+  gfx_drawstr("<- Unquantize | Quantize ->  ");
+
+  
+  // call the quantize function
+  quantize();
+  
+  // add "undo point" if necessary
+  undo_block == 1 && drag_started == 0 ? (
+    undo_block = 0;
+    Undo_OnStateChange("Quantize stretch markers");
+  );
+  
+  char = gfx_getchar();
+  // ctrl+lmb to Undo
+  char == 26 ? (
+    Main_OnCommand(40029, 0); // undo
+  );
+  // Esc to exit
+  char == 27 ? (
+    undo_block == 1 ? (
+      Undo_OnStateChange("Quantize stretch markers");
+    );
+    gfx_quit();
+  );
+  char >= 0 ? (
+    defer("run();");
+  );
+
+  last_h = gfx_h;
+  last_w = gfx_w;
+  gfx_update();
+);
+
+// init
+function init()
+(
+  gfx_init("Quantize Stretch Markers",300,80);
+
+  last_w = gfx_w;
+  last_h = gfx_h;
+
+  draw_start_x = 22;
+  draw_end_x = gfx_w - 22;
+  draw_start_y = 30;
+  draw_end_y = gfx_h - 80;
+  center_x = floor(draw_start_x + (draw_end_x - draw_start_x) / 2 + 0.5);
+  center_y = floor(draw_start_y + (draw_end_y - draw_start_y) / 2 + 0.5);
+
+  gfx_setfont(1, "Arial", 14);
+
+  slider_last_x = center_x;
+  lmb_click_outside_window = 0;
+
+  sm_positions = 10000;
+);
+
+init();
+run();
