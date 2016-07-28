@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d2dac1e58556e9e562b26de1551dcaf4ebd4a550" name="ReaTeam Scripts">
+<index version="1" commit="b7af8c316e6270ae2cb5795be3a8e72f89d838f1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -158,6 +158,11 @@ added support for all track envelopes]]></changelog>
       <version name="0.2" author="spk77" time="2016-07-03T19:49:38Z">
         <changelog><![CDATA[+ fixed function name]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/5436bdbf286281e918f7853902212f128d2e57c9/Envelopes/spk77_Delete%20track%20FX%20envelope%20points%20in%20time%20selection%20(last%20focused%20FX)%20.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Manipulate take volume envelope.lua" type="script">
+      <version name="1.0" author="spk77" time="2016-07-28T09:11:30Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b7af8c316e6270ae2cb5795be3a8e72f89d838f1/Envelopes/spk77_Manipulate%20take%20volume%20envelope.lua</source>
       </version>
     </reapack>
   </category>
@@ -983,6 +988,11 @@ Made by Mordi, Jan 2016]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/spk77_Copy%20stretch%20markers%20from%20selected%20item%20to%20other%20items%20in%20group.eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Quantize stretch markers.eel" type="script">
+      <version name="1.0" author="spk77" time="2016-07-28T08:04:59Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/43731f04a963dc68053c550a6a2606e8c5e3b51b/Stretch%20Markers/spk77_Quantize%20stretch%20markers.eel</source>
       </version>
     </reapack>
   </category>
