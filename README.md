@@ -19,15 +19,16 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 - [X-Raym](http://forum.cockos.com/member.php?u=58284) ([website](http://extremraym.com/), [donate](http://www.extremraym.com/en/donation/))
 
 ## Installation
-ReaTeam ReaScripts is compatible with cfillion's [ReaPack](https://github.com/cfillion/reapack) package manager for REAPER.
-- This repo is already registered in ReaPack, but if you need to reinstall it manually,
-Copy and paste this URL in Extensions > ReaPack > Import a repository:
+
+ReaTeam/ReaScripts is compatible with cfillion's [ReaPack](https://reapack.com) package manager for REAPER.  
+This repo is included by default in ReaPack, but if you need to reinstall it manually,
+copy and paste this URL in Extensions &gt; ReaPack &gt; Import a repository:
  
 ```
 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
 ```
 
-- [ReaPack installation instructions](https://github.com/cfillion/reapack/wiki) 
+- [ReaPack user guide](https://github.com/cfillion/reapack/wiki)
 
 ## Discussing
 
@@ -36,11 +37,12 @@ Talk about this repository and ReaTeam in this thread on the REAPER forums:
 
 ## Contributing
 
-Fork this repository, add your scripts in an appropriate category (directory)
-and send us a pull request.
-- [ReaPack indexer wiki](https://github.com/cfillion/reapack-index/wiki)
-- [Packaging Documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation)
-
+1. [Fork](https://github.com/ReaTeam/ReaScripts/fork) this repository in your GitHub account
+2. Add your lua/eel/python scripts in an appropriate category (directory)
+3. Insert metadata at the top of the files (check out the
+[package examples](https://github.com/cfillion/reapack-index/wiki/Examples) and
+reapack-index's [packaging documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation))
+4. Send a pull request here, done!
 
 ### ReaTeam Repositories
 
