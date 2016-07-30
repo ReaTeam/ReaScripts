@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b7af8c316e6270ae2cb5795be3a8e72f89d838f1" name="ReaTeam Scripts">
+<index version="1" commit="4bca619a1113daca60ffe19f5c87a193c3e29426" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1143,6 +1143,24 @@ nofish:
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set solo for send 1.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-07-30T11:33:01Z">
+        <changelog><![CDATA[+ initial release (30-Jun-2016)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bca619a1113daca60ffe19f5c87a193c3e29426/Tracks%20Properties/spk77_Set%20solo%20for%20send%201.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set solo for send 2.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-07-30T11:33:01Z">
+        <changelog><![CDATA[+ initial release (30-Jun-2016)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bca619a1113daca60ffe19f5c87a193c3e29426/Tracks%20Properties/spk77_Set%20solo%20for%20send%202.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set solo for send 3.lua" type="script">
+      <version name="0.1" author="spk77" time="2016-07-30T11:33:01Z">
+        <changelog><![CDATA[+ initial release (30-Jun-2016)]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bca619a1113daca60ffe19f5c87a193c3e29426/Tracks%20Properties/spk77_Set%20solo%20for%20send%203.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set track names to first item (active take) name.eel" type="script" desc="Set track names to first item (active take) name">
