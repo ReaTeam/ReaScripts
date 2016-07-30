@@ -1145,23 +1145,53 @@ nofish:
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="spk77_Set solo for send 1.lua" type="script">
+    <reapack name="spk77_Set solo for send 1.lua" type="script" desc="Set solo for send 1">
       <version name="0.1" author="spk77" time="2016-07-30T11:33:01Z">
         <changelog><![CDATA[+ initial release (30-Jun-2016)]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bca619a1113daca60ffe19f5c87a193c3e29426/Tracks%20Properties/spk77_Set%20solo%20for%20send%201.lua</source>
       </version>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set solo for send 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets solo for send number 1 (by muting all other sends on the track). This works on selected tracks.\par}
+}
+]]></description>
+      </metadata>
     </reapack>
-    <reapack name="spk77_Set solo for send 2.lua" type="script">
+    <reapack name="spk77_Set solo for send 2.lua" type="script" desc="Set solo for send 2">
       <version name="0.1" author="spk77" time="2016-07-30T11:33:01Z">
         <changelog><![CDATA[+ initial release (30-Jun-2016)]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bca619a1113daca60ffe19f5c87a193c3e29426/Tracks%20Properties/spk77_Set%20solo%20for%20send%202.lua</source>
       </version>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set solo for send 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets solo for send number 2 (by muting all other sends on the track). This works on selected tracks.\par}
+}
+]]></description>
+      </metadata>
     </reapack>
-    <reapack name="spk77_Set solo for send 3.lua" type="script">
+    <reapack name="spk77_Set solo for send 3.lua" type="script" desc="Set solo for send 3">
       <version name="0.1" author="spk77" time="2016-07-30T11:33:01Z">
         <changelog><![CDATA[+ initial release (30-Jun-2016)]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/4bca619a1113daca60ffe19f5c87a193c3e29426/Tracks%20Properties/spk77_Set%20solo%20for%20send%203.lua</source>
       </version>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set solo for send 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets solo for send number 3 (by muting all other sends on the track). This works on selected tracks.\par}
+}
+]]></description>
+      </metadata>
     </reapack>
     <reapack name="spk77_Set track names to first item (active take) name.eel" type="script" desc="Set track names to first item (active take) name">
       <version name="0.2014.8.21" time="2015-12-02T21:24:29Z">
