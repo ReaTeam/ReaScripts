@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67fd50e77c2fba56fb8d614ea42845b96e694b03" name="ReaTeam Scripts">
+<index version="1" commit="cfb6d4ba001a84325aff41628faef273a0a59447" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1158,7 +1158,12 @@ nofish:
       </metadata>
       <version name="0.1" author="spk77" time="2016-07-31T12:25:58Z">
         <changelog><![CDATA[+ initial release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/67fd50e77c2fba56fb8d614ea42845b96e694b03/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source>https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="true" file="spk77_Set solo for send 1.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%201.lua</source>
+        <source main="true" file="spk77_Set solo for send 2.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%202.lua</source>
+        <source main="true" file="spk77_Set solo for send 3.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%203.lua</source>
+        <source main="true" file="spk77_Set solo for send 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%204.lua</source>
+        <source main="true" file="spk77_Set solo for send 5.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%205.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set track names to first item (active take) name.eel" type="script" desc="Set track names to first item (active take) name">
