@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c08485211a4b20d05cc0ac9bb79a6f57f18bfea0" name="ReaTeam Scripts">
+<index version="1" commit="67fd50e77c2fba56fb8d614ea42845b96e694b03" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1143,6 +1143,22 @@ nofish:
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/spk77_Set%20pan%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Set solo for send X.lua" type="script" desc="Set solo for send X">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set solo for send X\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets solo for send X (by muting all other sends on the track). This works on selected tracks.\par}
+}
+]]></description>
+      </metadata>
+      <version name="0.1" author="spk77" time="2016-07-31T12:25:58Z">
+        <changelog><![CDATA[+ initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/67fd50e77c2fba56fb8d614ea42845b96e694b03/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set track names to first item (active take) name.eel" type="script" desc="Set track names to first item (active take) name">
