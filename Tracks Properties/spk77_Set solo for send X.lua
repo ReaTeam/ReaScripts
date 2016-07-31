@@ -7,7 +7,7 @@
 --   # Set solo for send X
 --
 --  Sets solo for send X (by muting all other sends on the track). This works on selected tracks.
-
+--
 -- @provides
 --   [nomain] .
 --   [main] spk77_Set solo for send 1.lua
