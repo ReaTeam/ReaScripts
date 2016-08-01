@@ -2,8 +2,8 @@
  * ReaScript Name:  js_Select and deselect MIDI notes by step pattern.lua
  * Description: This script selects and deselects notes, based on a step pattern that the user can draw in a GUI.
  *              For example, the pattern can be drawn to select notes 1, 3 and 4 in a six-step pattern.
- *              The length of the pattern as well as the steps that will be selected are determined by the user.
- *              Notes that start within one grid length of each are regarded as one chord, and will be selected/deselected together.
+ *              The length of the pattern as well as the steps that will be selected/deselected are determined by the user.
+ *              Notes that start within one grid length of each are regarded as one chord (or glissando), and will be selected/deselected together.
  *
  * Instructions: First, select the note on which the step pattern must be applied.  
  *              (Of course, some of these notes will be deselected by the script.)
@@ -14,9 +14,13 @@
  *                  (for example, if notes are added to or deleted from the take), the script will dim out the step 
  *                  pattern display, and wait for the user to load a new set of notes.
  *
- *              HINT: This script works well with the "js_Deselect all notes outside time selection (from all 
- *                  takes).lua" script.  Use the piano roll keys to select all notes in a range of pitches, and
- *                  then run the Deselect script to limit the note selection to the time selection.
+ *              HINTS: ~ This script works well with the "js_Deselect all notes outside time selection (from all 
+ *                         takes).lua" script.  Use the piano roll keys to select all notes in a range of pitches, and
+ *                         then run the Deselect script to limit the note selection to the time selection.
+ *                     ~ If it seems that the script does not apply the correct pattern, check the MIDI editor's grid
+ *                         setting. Most likely the grid length is longer than the distance between the notes' start
+ *                         positions, so the script regards all these notes as a single chord or glissando.
+ *                       
  *                  
  * Screenshot: 
  * Notes: 
