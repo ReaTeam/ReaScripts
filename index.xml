@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c054fb1f67ef9f35491ded1f2cfb014847fee313" name="ReaTeam Scripts">
+<index version="1" commit="764cbd9933d63eef34343f9bd00550287097b75f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -743,6 +743,12 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Initial release.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Select and deselect MIDI notes by step pattern.lua" type="script">
+      <version name="0.9" author="juliansader" time="2016-08-01T13:43:29Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6bafb5e7831442e293db1af57441238622c0d9d7/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
