@@ -20,7 +20,6 @@
  *                     ~ If it seems that the script does not apply the correct pattern, check the MIDI editor's grid
  *                         setting. Most likely the grid length is longer than the distance between the notes' start
  *                         positions, so the script regards all these notes as a single chord or glissando.
- *                       
  *                  
  * Screenshot: 
  * Notes: 
