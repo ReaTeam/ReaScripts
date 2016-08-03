@@ -55,6 +55,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (natively registered in ReaPack)
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
+- [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
 
 ### Other repositories not compatible with ReaPack
 
