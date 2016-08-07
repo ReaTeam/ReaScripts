@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="764cbd9933d63eef34343f9bd00550287097b75f" name="ReaTeam Scripts">
+<index version="1" commit="a8e3b9acd5a79b1ab9143c9fb8ba5725bdb4909b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -356,6 +356,24 @@ added support for all track envelopes]]></changelog>
       </version>
       <version name="1.0" author="spk77, Breeder, PL9" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Breeder_PL9_Copy%20paste%20item%20properties%20(incl%20BWF).eel</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Export item names and time stamps to text file.lua" type="script" desc="Export item names and time stamps to a text file">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Export item names and time stamps to a text file\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script creates a text file from selected items. - "exports" item names and positions - new file is created into script folder - created file name is "Exported item list.txt"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Text file format\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 hh:mm:ss.sss[tab][active take name] 1:03.000 Guitar Left 1:03.000 Guitar Right 1:10.200 Guitar Solo etc.\par}
+}
+]]></description>
+      </metadata>
+      <version name="0.1" author="spk77" time="2016-08-07T16:35:40Z">
+        <changelog><![CDATA[initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/a8e3b9acd5a79b1ab9143c9fb8ba5725bdb4909b/Items%20Properties/spk77_Export%20item%20names%20and%20time%20stamps%20to%20text%20file.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Normalize selected items to given range.eel" type="script" desc="Normalize selected items to given range">
