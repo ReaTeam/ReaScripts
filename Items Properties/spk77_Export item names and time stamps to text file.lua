@@ -9,16 +9,11 @@
 --   # Export item names and time stamps to a text file
 --
 --   This script creates a text file from selected items.
+--
+--   ## Main Features
 --   - "exports" item names and positions 
 --   - new file is created into script folder
 --   - created file name is "Exported item list.txt"
---
---   ## Text file format
---   hh:mm:ss.sss[tab][active take name]
---   1:03.000  Guitar Left
---   1:03.000  Guitar Right
---   1:10.200  Guitar Solo
---   etc.
 
 local file_name = "Exported item list.txt"
 
