@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="236b858e6d4d55b197ddb462f7849a384074f072" name="ReaTeam Scripts">
+<index version="1" commit="bc7676ede3cea114403e2287c7de09f586a2770b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -691,6 +691,18 @@ added support for all track envelopes]]></changelog>
       <version name="1.04" author="Xenakios / juliansader" time="2016-06-23T10:21:09Z">
         <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Notation - Double displayed length of selected notes and add staccato articulation.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-08-08T16:44:04Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0ef6238e23fe871585ab12e48af4a3173b3e4ff5/MIDI%20Editor/js_Notation%20-%20Double%20displayed%20length%20of%20selected%20notes%20and%20add%20staccato%20articulation.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Notation - Set displayed length of selected notes to custom value.lua" type="script">
+      <version name="1.0" author="juliansader" time="2016-08-08T16:43:16Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/a04b7eb561f3ce537b3340c3ad8d9772fda22a0f/MIDI%20Editor/js_Notation%20-%20Set%20displayed%20length%20of%20selected%20notes%20to%20custom%20value.lua</source>
       </version>
     </reapack>
     <reapack name="js_Option - Selecting single note or CC in active take sets channel for new events.lua" type="script" desc="js_Option - Selecting single note or CC in active take sets channel for new events.lua">
