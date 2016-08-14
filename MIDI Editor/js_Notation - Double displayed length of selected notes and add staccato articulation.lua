@@ -1,22 +1,32 @@
--- @description js_Notation - Double displayed length of selected notes and add staccato articulation.lua
--- @about
---  # Double the displayed length of selected notes and add staccato articulation
---
---    This script is intended to help solve the problem of short notes (such as staccato or muted guitar notes) 
---      that are notated with extraneous rests in-between.
---    Simply increasing the displayed length of the notes (by using the built-in action "Nudge length display offset right", 
---      for example) will remove the rests, but then the displayed lengths will not accurately reflect the lengths of 
---      the underlying MIDI notes.
---    This script therefore adds a staccato articulation to indicate that the underlying MIDI notes are actually shorter.
---    (The standard interpretation of staccato articulations is to halve the length of a note.)
---
--- @author juliansader
--- @website
---   Forum Thread http://forum.cockos.com/showthread.php?t=172782&page=25
--- @screenshot
--- @version 1.0
--- @changelog
---   + Initial beta release
+--[[
+ReaScript name: js_Notation - Set display length of selected notes to double and add staccato articulation.lua
+Version: 1.1
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=172782&page=25
+About:
+  # Description
+  This script sets the notation displayed lengths of selected notes to double their MIDI lengths, and then
+  adds staccato articulations.
+  
+  The script is intended to help solve the problem of short notes (such as staccato or muted guitar notes) 
+  that are notated with extraneous rests in-between.
+  
+  Simply increasing the displayed length of the notes (by using the built-in action "Nudge length display 
+  offset right", for example) will remove the rests, but then the displayed lengths will not accurately 
+  reflect the lengths of the underlying MIDI notes.
+  
+  This script therefore adds staccato articulations to indicate that the underlying MIDI notes are 
+  actually shorter. (The standard interpretation of staccato articulations is to halve the length of a note.)
+]]
+
+--[[
+Changelog:
+  * v1.0
+    + Initial beta release.
+  * v1.1 (2016-08-15)
+    + Improved accuracy of length calculation.
+    + Script's About info compatible with ReaPack 1.1.
+]]
 
 
 ---------------------------------------------------------------
@@ -74,7 +84,6 @@ if editor ~= nil then
         -- Weird, sometimes REAPER's PPQ is not 960.  So first get PPQ of take.
         local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
         PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - QNstart
-        PP64 = PPQ/16
                     
         i = -1
         repeat
@@ -83,7 +92,7 @@ if editor ~= nil then
                 noteOK, _, _, noteStartPPQ, noteEndPPQ, channel, pitch, _ = reaper.MIDI_GetNote(take, i)
                 -- Based on experimentation, it seems that in REAPER's "disp_len" field, a value of "0.064" 
                 --    increases the displayed note length by one 1/64th note.
-                textForField = string.format("%.4f", tostring(((noteEndPPQ - noteStartPPQ)/PP64) * 0.064))
+                textForField = string.format("%.3f", tostring(  (noteEndPPQ - noteStartPPQ)/PPQ  ))
                 
                 notationIndex, msg = getTextIndexForNote(take, noteStartPPQ, channel, pitch)
                 if notationIndex == -1 then
@@ -105,6 +114,6 @@ if editor ~= nil then
             end
         until i == -1
         
-        reaper.Undo_EndBlock2(0, "Notation - Double displayed length and add staccato articulation", -1)
+        reaper.Undo_EndBlock2(0, "Notation - Set display length to double and add staccato articulation", -1)
     end
 end
