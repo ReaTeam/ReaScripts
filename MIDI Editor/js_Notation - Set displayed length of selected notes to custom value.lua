@@ -1,15 +1,24 @@
--- @description js_Notation - Set displayed length of selected notes to custom value.lua
--- @about
---  # Sets the displayed length of selected notes (in the MIDI editor's notation view) to a value that the user can specify in a popup window.
---
--- @author juliansader
--- @website
---   Forum Thread http://forum.cockos.com/showthread.php?t=172782&page=25
--- @screenshot
--- @version 1.0
--- @changelog
---   + Initial beta release
+--[[
+ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
+Version: 1.1
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=172782&page=25
+About:
+  # Description
+  Sets the displayed length of selected notes (in the MIDI editor's notation view) 
+  to a value that the user can specify in a popup window.
+  
+  NB:  If the discrepancy between the displayed length and the underlying MIDI length 
+  is too large, the displayed length may not be exactly accurate.  The display can 
+  sometimes be improved by setting quantization to a coarser value.
+]]
 
+--[[
+Changelog:
+  * v1.1 (2016-08-15)
+    + If displayed length equal to MIDI length, remove field.
+    + Script's About info compatible with ReaPack 1.1.
+]]
 
 ---------------------------------------------------------------
 -- Returns the textsysex index of a given note's notation info.
@@ -88,23 +97,25 @@ if editor ~= nil then
                 noteOK, _, _, noteStartPPQ, noteEndPPQ, channel, pitch, _ = reaper.MIDI_GetNote(take, i)
                 -- Based on experimentation, it seems that in REAPER's "disp_len" field, a value of "0.064" 
                 --    increases the displayed note length by one 1/64th note.
-                noteLength = noteEndPPQ - noteStartPPQ
-                textForField = string.format("%.4f", tostring(((userLength - noteLength)/PP64) * 0.064))
+                local difference = userLength - (noteEndPPQ - noteStartPPQ)
+                if difference == 0 then
+                    textForField = ""
+                else
+                    textForField = " disp_len " .. string.format("%.3f", tostring((difference/PP64) * 0.064))
+                end
                 
                 notationIndex, msg = getTextIndexForNote(take, noteStartPPQ, channel, pitch)
-                if notationIndex == -1 then
+                if notationIndex == -1 and difference ~= 0 then
                     -- If note does not yet have notation info, create new event
                     reaper.MIDI_InsertTextSysexEvt(take, true, false, noteStartPPQ, 15, "NOTE "
                                                                                         ..tostring(channel)
                                                                                         .." "
                                                                                         ..tostring(pitch)
-                                                                                        .." "
-                                                                                        .." disp_len "
                                                                                         ..textForField)
                 else
-                    -- Remove length tweaks 
+                    -- Remove existing length tweaks and add own
                     msg = msg:gsub(" disp_len [%-]*[%d]+.[%d]+", "")
-                    msg = msg .." disp_len "..textForField
+                    msg = msg .. textForField
                     reaper.MIDI_SetTextSysexEvt(take, notationIndex, nil, nil, nil, nil, msg, false)
                 end
             end
