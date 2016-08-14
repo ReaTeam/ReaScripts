@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bc7676ede3cea114403e2287c7de09f586a2770b" name="ReaTeam Scripts">
+<index version="1" commit="229216726114f0b0697519465328e6ece2b13278" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -525,6 +525,13 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ CC events at rightmost PPQ of time selection are deselected]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/9c93670e93836044d657ae2ba5ecde5854ee67f0/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
       </version>
+      <metadata>
+        <link rel="screenshot">http://stash.reaper.fm/27595/Deselect%20all%20MIDI%20events%20outside%20time%20selection%20%28from%20all%20tracks%29%20-%20Copy.gif</link>
+      </metadata>
+      <version name="1.10" author="juliansader" time="2016-08-14T20:20:49Z">
+        <changelog><![CDATA[+ Header compatible with ReaPack 1.1]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/14a417de7bff5b4c32c8c2b37f2b2390ae1d5cca/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time, chasing start values.lua" type="script" desc="js_Draw linear or curved ramps in real time, chasing start values.lua">
       <version name="1.11" author="juliansader" time="2016-05-29T18:38:36Z">
@@ -693,16 +700,61 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Notation - Double displayed length of selected notes and add staccato articulation.lua" type="script">
+    <reapack name="js_Notation - Double displayed length of selected notes and add staccato articulation.lua" type="script" desc="js_Notation - Set display length of selected notes to double and add staccato articulation.lua">
       <version name="1.0" author="juliansader" time="2016-08-08T16:44:04Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0ef6238e23fe871585ab12e48af4a3173b3e4ff5/MIDI%20Editor/js_Notation%20-%20Double%20displayed%20length%20of%20selected%20notes%20and%20add%20staccato%20articulation.lua</source>
       </version>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script sets the notation displayed lengths of selected notes to double their MIDI lengths, and then adds staccato articulations.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script is intended to help solve the problem of short notes (such as staccato or muted guitar notes) that are notated with extraneous rests in-between.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Simply increasing the displayed length of the notes (by using the built-in action "Nudge length display offset right", for example) will remove the rests, but then the displayed lengths will not accurately reflect the lengths of the underlying MIDI notes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script therefore adds staccato articulations to indicate that the underlying MIDI notes are actually shorter. (The standard interpretation of staccato articulations is to halve the length of a note.)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1" author="juliansader" time="2016-08-14T21:56:59Z">
+        <changelog><![CDATA[+ Improved accuracy of length calculation.
++ Script's About info compatible with ReaPack 1.1.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/229216726114f0b0697519465328e6ece2b13278/MIDI%20Editor/js_Notation%20-%20Double%20displayed%20length%20of%20selected%20notes%20and%20add%20staccato%20articulation.lua</source>
+      </version>
     </reapack>
-    <reapack name="js_Notation - Set displayed length of selected notes to custom value.lua" type="script">
+    <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
+      <version name="1.0" author="juliansader" time="2016-08-14T20:59:35Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/65913073c76a21ece09685bcd492e953e5c3b1db/MIDI%20Editor/js_Notation%20-%20Select%20all%20notes%20that%20have%20customized%20display%20lengths%20or%20positions.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Notation - Set displayed length of selected notes to custom value.lua" type="script" desc="js_Notation - Set displayed length of selected notes to custom value.lua">
       <version name="1.0" author="juliansader" time="2016-08-08T16:43:16Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/a04b7eb561f3ce537b3340c3ad8d9772fda22a0f/MIDI%20Editor/js_Notation%20-%20Set%20displayed%20length%20of%20selected%20notes%20to%20custom%20value.lua</source>
+      </version>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets the displayed length of selected notes (in the MIDI editor's notation view) to a value that the user can specify in a popup window.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.1" author="juliansader" time="2016-08-14T20:55:56Z">
+        <changelog><![CDATA[+ If displayed length equal to MIDI length, remove field.
++ Script's About info compatible with ReaPack 1.1.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/dce648eb5b2dc2572ac2724e50a149de01b0bd7c/MIDI%20Editor/js_Notation%20-%20Set%20displayed%20length%20of%20selected%20notes%20to%20custom%20value.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2016-08-14T21:42:20Z">
+        <changelog><![CDATA[+ If display length is set equal to MIDI length, the MIDI editor will regard the note's length as non-customized.
++ Improved accuracy of length calculation.
++ Script's About info compatible with ReaPack 1.1.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/e01ace14c3fa73ea2d95b79e603e0c8052f640b2/MIDI%20Editor/js_Notation%20-%20Set%20displayed%20length%20of%20selected%20notes%20to%20custom%20value.lua</source>
       </version>
     </reapack>
     <reapack name="js_Option - Selecting single note or CC in active take sets channel for new events.lua" type="script" desc="js_Option - Selecting single note or CC in active take sets channel for new events.lua">
