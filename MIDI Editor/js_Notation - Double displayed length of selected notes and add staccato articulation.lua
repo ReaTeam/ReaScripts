@@ -90,8 +90,8 @@ if editor ~= nil then
             i = reaper.MIDI_EnumSelNotes(take, i)
             if i ~= -1 then
                 noteOK, _, _, noteStartPPQ, noteEndPPQ, channel, pitch, _ = reaper.MIDI_GetNote(take, i)
-                -- Based on experimentation, it seems that in REAPER's "disp_len" field, a value of "0.064" 
-                --    increases the displayed note length by one 1/64th note.
+                -- Based on experimentation, it seems that the value of the "disp_len" field (in the notation
+                --    editor's text events) represents (change in length)/(quarter note).
                 textForField = string.format("%.3f", tostring(  (noteEndPPQ - noteStartPPQ)/PPQ  ))
                 
                 notationIndex, msg = getTextIndexForNote(take, noteStartPPQ, channel, pitch)
