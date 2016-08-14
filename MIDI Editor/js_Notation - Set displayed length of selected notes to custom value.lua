@@ -1,22 +1,19 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 1.1
+Version: 1.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
   # Description
   Sets the displayed length of selected notes (in the MIDI editor's notation view) 
   to a value that the user can specify in a popup window.
-  
-  NB:  If the discrepancy between the displayed length and the underlying MIDI length 
-  is too large, the displayed length may not be exactly accurate.  The display can 
-  sometimes be improved by setting quantization to a coarser value.
 ]]
 
 --[[
 Changelog:
-  * v1.1 (2016-08-15)
-    + If displayed length equal to MIDI length, remove field.
+  * v1.11 (2016-08-15)
+    + If display length is set equal to MIDI length, the MIDI editor will regard the note's length as non-customized.
+    + Improved accuracy of length calculation.
     + Script's About info compatible with ReaPack 1.1.
 ]]
 
@@ -87,7 +84,6 @@ if editor ~= nil then
         -- Weird, sometimes REAPER's PPQ is not 960.  So first get PPQ of take.
         local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
         PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - QNstart
-        PP64 = PPQ/16
         userLength = (4.0/input)*PPQ -- Desired length of displayed notes in ticks
                     
         i = -1
@@ -95,18 +91,15 @@ if editor ~= nil then
             i = reaper.MIDI_EnumSelNotes(take, i)
             if i ~= -1 then
                 noteOK, _, _, noteStartPPQ, noteEndPPQ, channel, pitch, _ = reaper.MIDI_GetNote(take, i)
-                -- Based on experimentation, it seems that in REAPER's "disp_len" field, a value of "0.064" 
-                --    increases the displayed note length by one 1/64th note.
-                local difference = userLength - (noteEndPPQ - noteStartPPQ)
-                if difference == 0 then
-                    textForField = ""
-                else
-                    textForField = " disp_len " .. string.format("%.3f", tostring((difference/PP64) * 0.064))
-                end
+                -- Based on experimentation, it seems that the value of the "disp_len" field (in the notation
+                --    editor's text events) represents (change in length)/(quarter note).
+                difference = userLength - (noteEndPPQ - noteStartPPQ)
+                textForField = " disp_len " .. string.format("%.3f", tostring(difference/PPQ))
                 
                 notationIndex, msg = getTextIndexForNote(take, noteStartPPQ, channel, pitch)
                 if notationIndex == -1 and difference ~= 0 then
-                    -- If note does not yet have notation info, create new event
+                    -- If note does not yet have notation info, create new event.
+                    -- If display length is equal to MIDI length, don't need to do anything.
                     reaper.MIDI_InsertTextSysexEvt(take, true, false, noteStartPPQ, 15, "NOTE "
                                                                                         ..tostring(channel)
                                                                                         .." "
@@ -115,7 +108,9 @@ if editor ~= nil then
                 else
                     -- Remove existing length tweaks and add own
                     msg = msg:gsub(" disp_len [%-]*[%d]+.[%d]+", "")
-                    msg = msg .. textForField
+                    if difference ~= 0 then
+                        msg = msg .. textForField
+                    end
                     reaper.MIDI_SetTextSysexEvt(take, notationIndex, nil, nil, nil, nil, msg, false)
                 end
             end
