@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f46f012b6cad130e69226bb627b6319336deee39" name="ReaTeam Scripts">
+<index version="1" commit="0e1f82c66a78a8ec4e267500462bb0d262f1e31b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -792,6 +792,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.2" author="juliansader" time="2016-08-15T05:58:22Z">
         <changelog><![CDATA[+ Bug fix for compatibility with takes that do not start at 0.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b078cec30d3c84928b8f707fba295e0d37bd2be9/MIDI%20Editor/js_Notation%20-%20Set%20displayed%20length%20of%20selected%20notes%20to%20custom%20value.lua</source>
+      </version>
+      <version name="1.20" author="juliansader" time="2016-08-15T06:16:27Z">
+        <changelog><![CDATA[+ Bug fix for compatibility with takes that do not start at 0.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0e1f82c66a78a8ec4e267500462bb0d262f1e31b/MIDI%20Editor/js_Notation%20-%20Set%20displayed%20length%20of%20selected%20notes%20to%20custom%20value.lua</source>
       </version>
     </reapack>
     <reapack name="js_Option - Selecting single note or CC in active take sets channel for new events.lua" type="script" desc="js_Option - Selecting single note or CC in active take sets channel for new events.lua">
