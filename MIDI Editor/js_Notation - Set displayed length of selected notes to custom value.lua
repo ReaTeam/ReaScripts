@@ -1,12 +1,15 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 1.11
+Version: 1.2
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
   # Description
   Sets the displayed length of selected notes (in the MIDI editor's notation view) 
   to a value that the user can specify in a popup window.
+  
+  # Forum thread 
+  http://forum.cockos.com/showthread.php?t=172782&page=25
 ]]
 
 --[[
@@ -15,6 +18,8 @@ Changelog:
     + If display length is set equal to MIDI length, the MIDI editor will regard the note's length as non-customized.
     + Improved accuracy of length calculation.
     + Script's About info compatible with ReaPack 1.1.
+  * v1.2 (2016-08-15)
+    + Bug fix for compatibility with takes that do not start at 0.
 ]]
 
 ---------------------------------------------------------------
@@ -83,7 +88,7 @@ if editor ~= nil then
 
         -- Weird, sometimes REAPER's PPQ is not 960.  So first get PPQ of take.
         local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-        PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - QNstart
+        PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - reaper.MIDI_GetPPQPosFromProjQN(take, QNstart)
         userLength = (4.0/input)*PPQ -- Desired length of displayed notes in ticks
                     
         i = -1
