@@ -1,12 +1,16 @@
 --[[
-ReaScript Name:  Deselect all MIDI events outside time selection (from all tracks) 
-Version: 1.10
+ReaScript name: js_Deselect all MIDI events outside time selection (from all tracks).lua
+Version: 1.11
 Author: juliansader
 Licence: GPL v3
-Website: http://forum.cockos.com/showthread.php?t=176878
-Screenshot: http://stash.reaper.fm/27595/Deselect%20all%20MIDI%20events%20outside%20time%20selection%20%28from%20all%20tracks%29%20-%20Copy.gif
 REAPER version: 5.20
 Extensions required: -
+About:
+  # Website
+  http://forum.cockos.com/showthread.php?t=176878
+
+  # Screenshot
+  http://stash.reaper.fm/27595/Deselect%20all%20MIDI%20events%20outside%20time%20selection%20%28from%20all%20tracks%29%20-%20Copy.gif
 ]]
  
 --[[
@@ -16,8 +20,11 @@ Extensions required: -
  * v1.01 (2015-06-06)
     + CC events at rightmost PPQ of time selection are deselected
  * v1.10 (2016-08-15)
-    + Header compatible with ReaPack 1.1
+    + Trying to create header that is compatible with ReaPack 1.1
+ * v1.11 (2016-08-15)
+    + Trying to create header that is compatible with ReaPack 1.1
 ]]
+
 
 -----------------------------------------------------------------
 --function main() 
