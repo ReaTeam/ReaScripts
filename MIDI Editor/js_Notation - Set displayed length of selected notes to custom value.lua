@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 1.2
+Version: 1.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
@@ -18,7 +18,7 @@ Changelog:
     + If display length is set equal to MIDI length, the MIDI editor will regard the note's length as non-customized.
     + Improved accuracy of length calculation.
     + Script's About info compatible with ReaPack 1.1.
-  * v1.2 (2016-08-15)
+  * v1.20 (2016-08-15)
     + Bug fix for compatibility with takes that do not start at 0.
 ]]
 
