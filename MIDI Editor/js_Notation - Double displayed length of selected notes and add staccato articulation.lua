@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set display length of selected notes to double and add staccato articulation.lua
-Version: 1.1
+Version: 1.2
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
@@ -17,6 +17,9 @@ About:
   
   This script therefore adds staccato articulations to indicate that the underlying MIDI notes are 
   actually shorter. (The standard interpretation of staccato articulations is to halve the length of a note.)
+  
+  # Forum thread
+  http://forum.cockos.com/showthread.php?t=172782&page=25
 ]]
 
 --[[
@@ -24,8 +27,10 @@ Changelog:
   * v1.0
     + Initial beta release.
   * v1.1 (2016-08-15)
-    + Improved accuracy of length calculation.
     + Script's About info compatible with ReaPack 1.1.
+    + Improved accuracy of length calculation.
+  * v1.2 (2016-08-15)
+    + Bug fix for compatibility with takes that do not start at 0.
 ]]
 
 
@@ -83,7 +88,7 @@ if editor ~= nil then
 
         -- Weird, sometimes REAPER's PPQ is not 960.  So first get PPQ of take.
         local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-        PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - QNstart
+        PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - reaper.MIDI_GetPPQPosFromProjQN(take, QNstart)
                     
         i = -1
         repeat
