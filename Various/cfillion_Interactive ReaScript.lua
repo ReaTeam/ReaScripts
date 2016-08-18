@@ -1,22 +1,26 @@
--- @version 0.3
+-- @version 0.4
 -- @author cfillion
 -- @changelog
---   + added autocompletion with Tab key
---   + added PageUp/PageDown keys to scroll faster
---   + fix formatting of multiline text chunks
---   + implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
---   + preserve current input and history on .clear
---   + protect against invalid access on reaper/gfx tables (thanks to X-Raym)
---   + set global `_` variable to the first return value of last statement
---   + support multi-line statements
+--   + autocomplete partial matches
+--   + don't execute empty code input (v0.3 regression)
+--   + enhance formatting of string values
+--   + fix input of tildes
+--   + increase maximum buffer size to 2048 lines
+--   + limit maximum size of tables values when formatting
+--   + optimize layout by only computing new or modified text segments
+--   + preserve current input when using Ctrl+L shortcut
+--   + prevent cursor positon from affecting text position
+--   + remove reaper/gfx proxy variable workaround (requires REAPER v5.23 [t=177319])
+--   + rewrite drawing & scrolling code
+--   + wait at least one second before blinking the cursor
 -- @description Interactive ReaScript (iReaScript)
--- @website
---   Forum Thread http://forum.cockos.com/showthread.php?t=177324
+-- @link Forum Thread http://forum.cockos.com/showthread.php?t=177324
 -- @screenshot http://i.imgur.com/RrGfulR.gif
 -- @about
 --   # Interactive ReaScript (iReaScript)
 --
---   This script simulates a REPL shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.
+--   This script simulates a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
+--   shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.
 --
 --   ## Screenshot
 --
@@ -48,10 +52,11 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v0.3 by cfillion',
+  BANNER = 'Interactive ReaScript v0.4 by cfillion',
   MARGIN = 3,
-  MAXLINES = 1024,
-  MAXDEPTH = 3,
+  MAXLINES = 2048,
+  MAXDEPTH = 3, -- maximum array depth
+  MAXLEN = 1024, -- maximum array size
   INDENT = 2,
   INDENT_THRESHOLD = 5,
   PROMPT = '> ',
@@ -71,7 +76,7 @@ local ireascript = {
 
   -- internal constants
   SG_NEWLINE = 1,
-  SG_CURSOR = 2,
+  SG_BUFNEWLINE = 2,
 
   FONT_NORMAL = 1,
   FONT_BOLD = 2,
@@ -89,27 +94,13 @@ local ireascript = {
   KEY_ENTER = 13,
   KEY_HOME = 1752132965,
   KEY_INPUTRANGE_FIRST = 32,
-  KEY_INPUTRANGE_LAST = 125,
+  KEY_INPUTRANGE_LAST = 126,
   KEY_LEFT = 1818584692,
   KEY_PGDOWN = 1885824110,
   KEY_PGUP = 1885828464,
   KEY_RIGHT = 1919379572,
   KEY_TAB = 9,
   KEY_UP = 30064,
-
-  GFXVARS = {
-    'r', 'g', 'b', 'a',
-    'w', 'h',
-    'x', 'y',
-    'mode',
-    'clear',
-    'dest',
-    'texth',
-    'ext_retina',
-    'mouse_x', 'mouse_y',
-    'mouse_wheel', 'mouse_hwheel',
-    'mouse_cap',
-  },
 }
 
 function ireascript.help()
@@ -132,8 +123,12 @@ function ireascript.help()
   end
 end
 
-function ireascript.clear()
-  ireascript.input = ''
+function ireascript.clear(keepInput)
+  if not keepInput then
+    ireascript.input = ''
+    ireascript.cursor = 0
+  end
+
   ireascript.reset(false)
   ireascript.update()
 end
@@ -166,9 +161,9 @@ function ireascript.run()
   ireascript.cursor = 0
   ireascript.history = {}
   ireascript.hindex = 0
+  ireascript.lastMove = os.time()
 
   ireascript.reset(true)
-  ireascript.proxify()
   ireascript.loop()
 end
 
@@ -178,6 +173,7 @@ function ireascript.reset(banner)
   ireascript.page = 0
   ireascript.scroll = 0
   ireascript.wrappedBuffer = {w = 0}
+  ireascript.from = nil
 
   if banner then
     ireascript.resetFormat()
@@ -207,7 +203,6 @@ function ireascript.keyboard()
     local before, after = ireascript.splitInput()
     ireascript.input = string.sub(before, 0, -2) .. after
     ireascript.moveCursor(ireascript.cursor - 1)
-    ireascript.prompt()
   elseif char == ireascript.KEY_DELETE then
     local before, after = ireascript.splitInput()
     ireascript.input = before .. string.sub(after, 2)
@@ -216,12 +211,10 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_CLEAR then
     ireascript.input = ''
     ireascript.moveCursor(0)
-    ireascript.prompt()
   elseif char == ireascript.KEY_CTRLU then
     local before, after = ireascript.splitInput()
     ireascript.input = after
     ireascript.moveCursor(0)
-    ireascript.prompt()
   elseif char == ireascript.KEY_ENTER then
     ireascript.removeCursor()
     ireascript.nl()
@@ -230,7 +223,7 @@ function ireascript.keyboard()
     ireascript.hindex = 0
     ireascript.moveCursor(0)
   elseif char == ireascript.KEY_CTRLL then
-    ireascript.clear()
+    ireascript.clear(true)
   elseif char == ireascript.KEY_CTRLD then
     ireascript.exit()
   elseif char == ireascript.KEY_HOME then
@@ -278,7 +271,6 @@ function ireascript.keyboard()
     local before, after = ireascript.splitInput()
     ireascript.input = before .. string.char(char) .. after
     ireascript.moveCursor(ireascript.cursor + 1)
-    ireascript.prompt()
   end
 
   return true
@@ -294,31 +286,88 @@ function ireascript.nextBoundary(input, from)
   end
 end
 
-function ireascript.draw()
+function ireascript.draw(offset)
   ireascript.useColor(ireascript.COLOR_BLACK)
   gfx.rect(0, 0, gfx.w, gfx.h)
 
   gfx.x = ireascript.MARGIN
-  gfx.y = ireascript.MARGIN + (ireascript.drawOffset or 0)
+  gfx.y = gfx.h - (offset or 0)
 
-  local lines, lineHeight, cursor = {}, ireascript.MARGIN, nil
+  local lineEnd = #ireascript.wrappedBuffer
+  local nl = lineEnd + 1 -- past the end of the buffer
+  local lines, lineHeight = 0, 0
+  local lastSkipped, before, after = nil, 0, 0
 
-  for i=1,#ireascript.wrappedBuffer do
+  ireascript.page = 0
+
+  while nl > 0 do
+    while nl > 0 and ireascript.wrappedBuffer[nl] ~= ireascript.SG_NEWLINE do
+      nl = nl - 1
+    end
+
+    local lineStart = nl + 1
+
+    lines = lines + 1
+
+    lineHeight = ireascript.lineHeight(lineStart, lineEnd)
+
+    if lines > ireascript.scroll then
+      gfx.x, gfx.y = ireascript.MARGIN, gfx.y - lineHeight
+
+      if gfx.y > -lineHeight then
+        ireascript.drawLine(lineStart, lineEnd, lineHeight)
+      else
+        before = before + lineHeight
+      end
+
+      if gfx.y > 0 then
+        ireascript.page = ireascript.page + 1
+      end
+    else
+      after = after + lineHeight
+      lastSkipped = {lineStart, lineEnd, lineHeight}
+    end
+
+    lineEnd = nl - 1
+    nl = lineEnd
+  end
+
+  if offset then
+    if lastSkipped then
+      lineStart, lineEnd = lastSkipped[1], lastSkipped[2]
+      gfx.x, gfx.y = ireascript.MARGIN, gfx.h - offset
+      after = after - lastSkipped[3]
+      ireascript.drawLine(lineStart, lineEnd, lastSkipped[3])
+    end
+
+    ireascript.page = ireascript.page + math.floor(offset / lineHeight)
+  elseif gfx.y > ireascript.MARGIN then
+    return ireascript.draw(gfx.y - ireascript.MARGIN)
+  end
+
+  ireascript.scrollbar(before, after)
+end
+
+function ireascript.lineHeight(lineStart, lineEnd)
+  local height = 0
+
+  for i=lineStart,lineEnd do
+    local segment = ireascript.wrappedBuffer[i]
+    if type(segment) == 'table' then
+      height = math.max(height, segment.h)
+    end
+  end
+
+  return height
+end
+
+function ireascript.drawLine(lineStart, lineEnd, lineHeight)
+  local now = os.time()
+
+  for i=lineStart,lineEnd do
     local segment = ireascript.wrappedBuffer[i]
 
-    if segment == ireascript.SG_NEWLINE then
-      gfx.x = ireascript.MARGIN
-      gfx.y = gfx.y + lineHeight
-
-      lines[#lines + 1] = lineHeight
-      lineHeight = 0
-    elseif segment == ireascript.SG_CURSOR then
-      if os.time() % 2 == 0 then
-        cursor = {x=gfx.x, y=gfx.y, h=lineHeight}
-      end
-    elseif gfx.y < -segment.h or gfx.y > gfx.h then
-      lineHeight = math.max(lineHeight, segment.h)
-    else
+    if type(segment) == 'table' then
       ireascript.useFont(segment.font)
 
       ireascript.useColor(segment.bg)
@@ -326,61 +375,25 @@ function ireascript.draw()
 
       ireascript.useColor(segment.fg)
 
-      gfx.drawstr(segment.text)
-      lineHeight = math.max(lineHeight, segment.h)
-    end
-  end
-
-  lines[#lines + 1] = lineHeight -- last line
-
-  if cursor then
-    gfx.line(cursor.x, cursor.y, cursor.x, cursor.y + cursor.h)
-  end
-
-  local height = ireascript.MARGIN
-  ireascript.scroll = math.max(0, math.min(ireascript.scroll, #lines))
-  for i=1,#lines - ireascript.scroll do
-    height = height + lines[i]
-  end
-
-  ireascript.drawOffset = gfx.h - height
-
-  if ireascript.drawOffset > 0 then
-    -- allow the first line to be completely visible, but not anything above that
-    if ireascript.drawOffset > lines[1] then
-      local extra = lines[1]
-
-      for i=1,#lines do
-        ireascript.scroll = ireascript.scroll - 1
-        extra = extra + lines[i]
-
-        if extra > ireascript.drawOffset then
-          break
-        end
+      if segment.cursor and (now % 2 == 0 or now - ireascript.lastMove < 1) then
+        local w, _ = gfx.measurestr(segment.text:sub(0, segment.cursor))
+        ireascript.drawCursor(gfx.x + w, gfx.y, lineHeight)
       end
-    end
 
-    ireascript.drawOffset = 0
-  end
-
-  local before = math.abs(ireascript.drawOffset)
-  local after = 0
-  for i=(#lines-ireascript.scroll)+1,#lines do
-    if lines[i] then
-      after = after + lines[i]
+      gfx.drawstr(segment.text)
     end
   end
+end
 
-  ireascript.scrollbar(before, after)
-
-  ireascript.page = math.floor(#lines * (1 - (before+after) / (height+after)))
+function ireascript.drawCursor(x, y, h)
+  gfx.line(x, y, x, y + h)
 end
 
 function ireascript.scrollbar(before, after)
   local total = before + gfx.h + after
   local visible = gfx.h / total
 
-  if visible == 1 then
+  if visible >= 1 then
     return
   end
 
@@ -400,19 +413,33 @@ function ireascript.update()
     return -- gui is not ready yet
   end
 
-  ireascript.wrappedBuffer = {}
+  if not ireascript.from or ireascript.from.wrapped <= 1 then
+    ireascript.wrappedBuffer = {lines=0}
+    ireascript.from = {buffer=1}
+  else
+    while #ireascript.wrappedBuffer >= ireascript.from.wrapped do
+      if ireascript.wrappedBuffer[#ireascript.wrappedBuffer] == ireascript.SG_NEWLINE then
+        ireascript.wrappedBuffer.lines = ireascript.wrappedBuffer.lines - 1
+      end
+
+      table.remove(ireascript.wrappedBuffer)
+    end
+  end
+
   ireascript.wrappedBuffer.w = gfx.w
 
   local leftmost = ireascript.MARGIN
   local left = leftmost
 
-  for i=1,#ireascript.buffer do
+  for i=ireascript.from.buffer,#ireascript.buffer do
     local segment = ireascript.buffer[i]
 
     if type(segment) ~= 'table' then
       ireascript.wrappedBuffer[#ireascript.wrappedBuffer + 1] = segment
 
       if segment == ireascript.SG_NEWLINE then
+        ireascript.wrappedBuffer[#ireascript.wrappedBuffer + 1] = ireascript.SG_BUFNEWLINE
+        ireascript.wrappedBuffer.lines = ireascript.wrappedBuffer.lines + 1
         left = leftmost
       end
     else
@@ -452,6 +479,7 @@ function ireascript.update()
 
         if resized then
           ireascript.wrappedBuffer[#ireascript.wrappedBuffer + 1] = ireascript.SG_NEWLINE
+          ireascript.wrappedBuffer.lines = ireascript.wrappedBuffer.lines + 1
           left = leftmost
         end
 
@@ -459,6 +487,8 @@ function ireascript.update()
       end
     end
   end
+
+  ireascript.from = {buffer=#ireascript.buffer, wrapped=#ireascript.wrappedBuffer}
 end
 
 function ireascript.loop()
@@ -479,10 +509,12 @@ function ireascript.loop()
   end
 
   if ireascript.wrappedBuffer.w ~= gfx.w then
+    ireascript.from = nil -- full reflow
     ireascript.update()
   end
 
   ireascript.draw()
+  ireascript.scrollTo(ireascript.scroll) -- refreshed bound check
 
   gfx.update()
 end
@@ -501,16 +533,14 @@ end
 
 function ireascript.nl()
   if ireascript.lines >= ireascript.MAXLINES then
-    local first = ireascript.buffer[1]
+    local buf = ireascript.removeUntil(ireascript.buffer, ireascript.SG_NEWLINE)
+    local wrap, nlCount = ireascript.removeUntil(ireascript.wrappedBuffer, ireascript.SG_BUFNEWLINE)
 
-    while first ~= nil do
-      table.remove(ireascript.buffer, 1)
+    ireascript.wrappedBuffer.lines = ireascript.wrappedBuffer.lines - nlCount
 
-      if first == ireascript.SG_NEWLINE then
-        break
-      end
-
-      first = ireascript.buffer[1]
+    if ireascript.from then
+      ireascript.from.buffer = ireascript.from.buffer - buf
+      ireascript.from.wrapped = ireascript.from.wrapped - wrap
     end
   else
     ireascript.lines = ireascript.lines + 1
@@ -539,8 +569,6 @@ function ireascript.push(contents)
 end
 
 function ireascript.prompt()
-  local before, after = ireascript.splitInput()
-
   ireascript.resetFormat()
   ireascript.backtrack()
   if ireascript.prepend:len() == 0 then
@@ -548,37 +576,68 @@ function ireascript.prompt()
   else
     ireascript.push(ireascript.PROMPT_CONTINUE)
   end
-  ireascript.push(before)
-  ireascript.buffer[#ireascript.buffer + 1] = ireascript.SG_CURSOR
-  ireascript.push(after)
+
+  if ireascript.input:len() > 0 then
+    ireascript.push(ireascript.input)
+    ireascript.buffer[#ireascript.buffer].cursor = ireascript.cursor
+  else
+    local promptLen = ireascript.buffer[#ireascript.buffer].text:len()
+    ireascript.buffer[#ireascript.buffer].cursor = promptLen
+  end
+
   ireascript.update()
 end
 
 function ireascript.backtrack()
-  local i = #ireascript.buffer
-  while i >= 1 do
-    if ireascript.buffer[i] == ireascript.SG_NEWLINE then
-      return
+  local bi = #ireascript.buffer
+  while bi > 0 do
+    if ireascript.buffer[bi] == ireascript.SG_NEWLINE then
+      break
     end
 
     table.remove(ireascript.buffer)
-    i = i - 1
+    bi = bi - 1
+  end
+
+  if ireascript.from and ireascript.from.buffer > bi then
+    ireascript.from.buffer = bi
+
+    wi = #ireascript.wrappedBuffer
+    while wi > 0 do
+      if ireascript.wrappedBuffer[wi] == ireascript.SG_BUFNEWLINE then
+        break
+      end
+
+      wi = wi - 1
+    end
+
+    ireascript.from.wrapped = wi - 1
   end
 end
 
 function ireascript.removeCursor()
-  local i = #ireascript.buffer
-  while i >= 1 do
-    local segment = ireascript.buffer[i]
+  ireascript.buffer[#ireascript.buffer].cursor = nil
+end
 
-    if segment == ireascript.SG_NEWLINE then
-      return
-    elseif segment == ireascript.SG_CURSOR then
-      table.remove(ireascript.buffer, i)
+function ireascript.removeUntil(buf, sep)
+  local first, count, nl = buf[1], 0, 0
+
+  while first ~= nil do
+    table.remove(buf, 1)
+    count = count + 1
+
+    if first == ireascript.SG_NEWLINE then
+      nl = nl + 1
     end
 
-    i = i - 1
+    if first == sep then
+      break
+    end
+
+    first = buf[1]
   end
+
+  return count, nl
 end
 
 function ireascript.moveCursor(pos)
@@ -586,6 +645,7 @@ function ireascript.moveCursor(pos)
 
   if pos >= 0 and pos <= ireascript.input:len() then
     ireascript.cursor = pos
+    ireascript.lastMove = os.time()
     ireascript.prompt()
   end
 end
@@ -604,8 +664,8 @@ function ireascript.historyJump(pos)
 end
 
 function ireascript.scrollTo(pos)
-  ireascript.scroll = pos
-  -- more calculations, bould checking and adjustments done by update()
+  local max = ireascript.wrappedBuffer.lines - (ireascript.page - 1)
+  ireascript.scroll = math.max(0, math.min(pos, max))
 end
 
 function ireascript.eval()
@@ -656,6 +716,8 @@ function ireascript.code()
 end
 
 function ireascript.lua(code)
+  if code:len() < 1 then return end
+
   local scope = 'eval' -- arbitrary value to have consistent error messages
 
   local ok, values = xpcall(function()
@@ -744,9 +806,10 @@ function ireascript.format(value)
     value = string.format('<%s>', value)
   elseif t == 'string' then
     ireascript.foreground = ireascript.COLOR_GREEN
-    value = string.format('"%s"',
-      value:gsub('\\', '\\\\'):gsub("\n", '\\n'):gsub('"', '\\"')
-    )
+    value = string.format('%q', value):
+      gsub("\\\n", '\\n'):
+      gsub('\\13', '\\r'):
+      gsub("\\9", '\\t')
   end
 
   ireascript.push(tostring(value))
@@ -762,8 +825,14 @@ function ireascript.formatArray(value, size)
       ireascript.push(', ')
     end
 
-    ireascript.format(v)
-    i = i + 1
+    if i > ireascript.MAXLEN then
+      ireascript.errorFormat()
+      ireascript.push(string.format('%d more...', size - i))
+      break
+    else
+      ireascript.format(v)
+      i = i + 1
+    end
   end
 
   ireascript.resetFormat()
@@ -803,12 +872,18 @@ function ireascript.formatTable(value, size)
       end
     end
 
-    ireascript.format(k)
-    ireascript.resetFormat()
-    ireascript.push('=')
-    ireascript.format(v)
+    if i > ireascript.MAXLEN then
+      ireascript.errorFormat()
+      ireascript.push(string.format('%d more...', size - i))
+      break
+    else
+      ireascript.format(k)
+      ireascript.resetFormat()
+      ireascript.push('=')
+      ireascript.format(v)
 
-    i = i + 1
+      i = i + 1
+    end
   end
 
   ireascript.resetFormat()
@@ -870,6 +945,7 @@ function ireascript.paste()
       if first then
         first = false
       else
+        ireascript.removeCursor()
         ireascript.nl()
         ireascript.eval()
         ireascript.input = ''
@@ -879,7 +955,6 @@ function ireascript.paste()
       local before, after = ireascript.splitInput()
       ireascript.input = before .. line .. after
       ireascript.moveCursor(ireascript.cursor + line:len())
-      ireascript.prompt()
     end
   end
 
@@ -890,7 +965,7 @@ function ireascript.complete()
   local before, after = ireascript.splitInput()
 
   local code = ireascript.prepend .. "\x20" .. before
-  local matches, exact, source = {}
+  local matches, source = {}
   local var, word = code:match("([%a$d_]+)%s?%.%s?([%a%d_]*)$")
 
   if word then
@@ -908,21 +983,34 @@ function ireascript.complete()
 
   for k, _ in pairs(source) do
     test = k:lower()
-    if test == word then
-      exact = k
-    elseif test:sub(1, word:len()) == word then
+    if test:sub(1, word:len()) == word then
       matches[#matches + 1] = k
     end
   end
 
-  if not exact then
-    if #matches == 1 then
-      exact = matches[1]
-      table.remove(matches, 1)
-    elseif #matches < 1 then
-      return
-    else
-      table.sort(matches)
+  local exact
+
+  if #matches == 1 then
+    exact = matches[1]
+    table.remove(matches, 1)
+  elseif #matches < 1 then
+    return
+  else
+    table.sort(matches)
+
+    len = matches[1]:len()
+    for i=1,#matches-1 do
+      while len > word:len() do
+        if matches[i]:sub(1, len) == matches[i + 1]:sub(1, len) then
+          break
+        else
+          len = len - 1
+        end
+      end
+    end
+
+    if len > word:len() then
+      exact = matches[1]:sub(1, len)
     end
   end
 
@@ -933,6 +1021,7 @@ function ireascript.complete()
   end
 
   if #matches > 0 then
+    ireascript.removeCursor()
     ireascript.nl()
 
     for i=1,#matches do
@@ -966,30 +1055,6 @@ function ireascript.contains(table, val)
   end
 
   return false
-end
-
-function ireascript.proxify()
-  -- hack to workaround http://forum.cockos.com/showthread.php?t=177319
-  if ireascript.reaper then return end
-
-  ireascript.reaper, reaper = reaper, {}
-  for k,v in pairs(ireascript.reaper) do reaper[k] = v end
-
-  ireascript.gfx, gfx = gfx, {}
-  for k,v in pairs(ireascript.gfx) do gfx[k] = v end
-
-  setmetatable(gfx, {
-    __index = function(t, k)
-      if ireascript.contains(ireascript.GFXVARS, k) then
-        return ireascript.gfx[k]
-      end
-    end,
-    __newindex = function(t, k, v)
-      if ireascript.contains(ireascript.GFXVARS, k) then
-        ireascript.gfx[k] = v
-      end
-    end
-  })
 end
 
 gfx.init(ireascript.TITLE, 550, 350)
