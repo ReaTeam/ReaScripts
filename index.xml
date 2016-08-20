@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bcc6916b38bd291fa675960b805ba2f120129f08" name="ReaTeam Scripts">
+<index version="1" commit="f97bfe2843ff917df7be11e80e3277d1c25cb31d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -732,7 +732,7 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default colors of the GUI, as well as the default size, can be customized in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING!\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In REAPER v5.2x, the actions for changing the default channel for new events ("Set channel for new events to 1 [...16]") is buggy and may inappropriately activate the MIDI editor's event filter (as set in the Filter window). Changing the default channel via this script (or by running the actions directly) may therefore make some notes of CCs invisible.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In REAPER v5.2x, the actions for changing the default channel for new events ("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate the MIDI editor's event filter (as set in the Filter window). Changing the default channel via this script (or by running the actions directly) may therefore make some notes of CCs invisible.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Website\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 http://forum.cockos.com/showthread.php?t=176878\par}
 }
@@ -749,8 +749,12 @@ added support for all track envelopes]]></changelog>
       </version>
       <version name="0.92" author="juliansader" time="2016-08-20T12:36:48Z">
         <changelog><![CDATA[+ When default channel is changed, GUI will immediately update
-+ WARNING: ]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/8690d7d24ee71e4e2087b661e69cd7f1013f9f4c/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
++ WARNING: In REAPER v5.2x, the actions for changing the default channel for new events 
+("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate 
+the MIDI editor's event filter (as set in the Filter window).  Changing the default 
+channel via this script (or by running the actions directly) may therefore make 
+some notes of CCs invisible.]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f97bfe2843ff917df7be11e80e3277d1c25cb31d/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
