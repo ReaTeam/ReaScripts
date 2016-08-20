@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d92d7da488c418f46612e2e530b8ffbb2aa86715" name="ReaTeam Scripts">
+<index version="1" commit="a98cbbc55b8ed997999825fbd1323c9340ec0ec4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -726,14 +726,15 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default colors of the GUI can be customized in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Website\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 http://forum.cockos.com/showthread.php?t=176878\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
         <link rel="screenshot">http://stash.reaper.fm/v/28295/js_MIDI%20Inspector.jpeg</link>
       </metadata>
       <version name="0.90" author="juliansader" time="2016-08-20T11:15:03Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/d92d7da488c418f46612e2e530b8ffbb2aa86715/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/a98cbbc55b8ed997999825fbd1323c9340ec0ec4/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
