@@ -1,9 +1,9 @@
 --[[
- * ReaScript Name:  js_Select and deselect MIDI notes by step pattern.lua
+ * ReaScript name:  js_Select and deselect MIDI notes by step pattern.lua
  * Description: This script selects and deselects notes, based on a step pattern that the user can draw in a GUI.
  *              For example, the pattern can be drawn to select notes 1, 3 and 4 in a six-step pattern.
- *              The length of the pattern as well as the steps that will be selected/deselected are determined by the user.
- *              Notes that start within one grid length of each are regarded as one chord (or glissando), and will be selected/deselected together.
+ *              The length of the pattern as well as the steps that will be selected are determined by the user.
+ *              Notes that start within one grid length of each are regarded as one chord, and will be selected/deselected together.
  *
  * Instructions: First, select the note on which the step pattern must be applied.  
  *              (Of course, some of these notes will be deselected by the script.)
@@ -14,12 +14,9 @@
  *                  (for example, if notes are added to or deleted from the take), the script will dim out the step 
  *                  pattern display, and wait for the user to load a new set of notes.
  *
- *              HINTS: ~ This script works well with the "js_Deselect all notes outside time selection (from all 
- *                         takes).lua" script.  Use the piano roll keys to select all notes in a range of pitches, and
- *                         then run the Deselect script to limit the note selection to the time selection.
- *                     ~ If it seems that the script does not apply the correct pattern, check the MIDI editor's grid
- *                         setting. Most likely the grid length is longer than the distance between the notes' start
- *                         positions, so the script regards all these notes as a single chord or glissando.
+ *              HINT: This script works well with the "js_Deselect all notes outside time selection (from all 
+ *                  takes).lua" script.  Use the piano roll keys to select all notes in a range of pitches, and
+ *                  then run the Deselect script to limit the note selection to the time selection.
  *                  
  * Screenshot: 
  * Notes: 
@@ -28,15 +25,17 @@
  * Licence: GPL v3
  * Forum Thread: Simple but useful MIDI editor tools: warp, stretch, deselect etc
  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 0.9
+ * Version: 0.91
  * REAPER: 5.20
  * Extensions:
 ]]
  
 --[[
- Changelog:
- * v0.9 (2016-08-01)
+  Changelog:
+  * v0.9 (2016-08-01)
     + Initial beta release
+  * v0.91 (2016-08-20)
+    + Compatible with projects that use a PPQ different from 960
 ]]
 
 
@@ -129,7 +128,7 @@ function drawGUI()
 end -- function drawGUI
 
 
-----------------------------
+---------------------------
 function updateTableNotes()
 
     -- When a new set of notes is loaded, seems to be good place to add an Undo point
@@ -205,13 +204,17 @@ function updateTableNotes()
 end
 
 
-------------------------------
+--------------------------------------
 function updateNoteSelectionInEditor()
     if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and type(tableNotes)=="table" then
     
+        -- Weird, sometimes REAPER's PPQ is not 960.  So first get PPQ of take.
+        local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+        local PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - reaper.MIDI_GetPPQPosFromProjQN(take, QNstart)
+        
         -- Notes that start within one grid length from each other are regarded as one chord
         gridQN, _, _ = reaper.MIDI_GetGrid(take)
-        gridPPQ = gridQN * 960
+        gridPPQ = gridQN * PPQ
         local step = 1
         for i = 1, #tableNotes do
             if i > 1 and (tableNotes[i].ppq > tableNotes[i-1].ppq + gridPPQ) then
@@ -224,7 +227,7 @@ function updateNoteSelectionInEditor()
 end
 
 
-----------------------------
+---------------------------
 function loopNoteSelector()
 
     -- Quit script if GUI has been closed
