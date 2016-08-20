@@ -1,11 +1,8 @@
 --[[
-ReaScript name:  js_MIDI Inspector.lua
+ReaScript name: js_MIDI Inspector.lua
 Version: 0.90
 Author: juliansader
-Link: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/v/28295/js_MIDI%20Inspector.jpeg
-REAPER version: 5.23
-Extensions required: -
 About:
   # Description: 
   This script open a GUI that shows important information about the active MIDI take, 
@@ -26,11 +23,14 @@ About:
   in which the values can be changed.
   
   The default colors of the GUI can be customized in the script's USER AREA.
+
+  # Website
+  http://forum.cockos.com/showthread.php?t=176878
 ]]
  
 --[[
  Changelog:
- * v0.90 (2016-08-18)
+ * v0.90 (2016-08-20)
     + Initial beta release
 ]]
 
