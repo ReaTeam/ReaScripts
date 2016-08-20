@@ -27,20 +27,28 @@ About:
   Click on any of the highlighted values to open a Properties window or a dropdown menu 
   in which the values can be changed.
   
-  The default colors of the GUI can be customized in the script's USER AREA.
+  The default colors of the GUI, as well as the default size, can be customized in the script's USER AREA.
 
+  # WARNING!
+  In REAPER v5.2x, the actions for changing the default channel for new events 
+  ("Set channel for new events to 1 [...16]") is buggy and may inappropriately activate 
+  the MIDI editor's event filter (as set in the Filter window).  Changing the default 
+  channel via this script (or by running the actions directly) may therefore make 
+  some notes of CCs invisible.
+  
   # Website
   http://forum.cockos.com/showthread.php?t=176878
 ]]
  
 --[[
- Changelog:
- * v0.90 (2016-08-20)
+  Changelog:
+  * v0.90 (2016-08-20)
     + Initial beta release
- * v0.91 (2016-08-20)
+  * v0.91 (2016-08-20)
     + Improved header info
- * v0.92 (2016-08-20)
-    + Changing default channel updates GUI
+  * v0.92 (2016-08-20)
+    + When default channel is changed, GUI will immediately update
+    + WARNING: 
 ]]
 
 -- USER AREA
@@ -427,6 +435,7 @@ end -- function updateGUI
 ----------------------------
 function loopMIDIInspector()
 
+    -- Apparently gfx.update must be called in order to update gfx.w, gfx.mouse_x and other gfx variables
     gfx.update()
     
     -- Quit script if GUI has been closed
@@ -437,7 +446,7 @@ function loopMIDIInspector()
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil then return(0) end
     
-    -- If paused, GUI updates and mouseclicks will be done, but no MIDI updates
+    -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates
     if paused == false then    
            
         local take = reaper.MIDIEditor_GetTake(editor)
@@ -473,6 +482,7 @@ function loopMIDIInspector()
                 
                 ------------------------------------------------------------
                 -- Now get all the info of the selected NOTES in active take
+                -- Note: For later versions: use MIDI_GetHash limited to notes to check whether this section can be skipped
                 local noteLowPPQ = math.huge
                 local noteHighPPQ = -1
                 local noteLowChannel = 17
@@ -483,18 +493,7 @@ function loopMIDIInspector()
                 local noteHighVelocity = -1
                 local noteHighLength = -1
                 local noteLowLength = math.huge
-                --[[
-                noteLowPPQ = math.huge
-                noteHighPPQ = -1
-                noteLowChannel = 17
-                noteHighChannel = -1
-                noteLowPitch = 200
-                noteHighPitch = -1
-                noteLowVelocity = 200
-                noteHighVelocity = -1
-                noteHighLength = -1
-                noteLowLength = math.huge
-                ]]
+
                 local noteIndex = reaper.MIDI_EnumSelNotes(take, -1)
                 countSelNotes = 0
                 while noteIndex > -1 do
@@ -702,7 +701,7 @@ function loopMIDIInspector()
     
     -------------------------------------
     -- Now check if any mouse interaction
-    gfx.update()
+    -- gfx.update()
                 
     if gfx.mouse_cap == 0 then mouseAlreadyClicked = false end
     
@@ -725,7 +724,7 @@ function loopMIDIInspector()
             local menuChoice = gfx.showmenu(channelString)
             if menuChoice > 0 then
                 reaper.MIDIEditor_OnCommand(editor, 40482+menuChoice-2) -- Set channel for new events to 0+channel
-                prevHash = nil -- This just to force everything to update
+                prevHash = nil -- This just to force GUI to update in next loop
             end
         end -- type(defaultChannel) == "number" 
     end -- if gfx.mouse_cap == 1
@@ -772,7 +771,7 @@ function loopMIDIInspector()
         local menuChoice = gfx.showmenu(menuString)
         if menuChoice > 1 then 
             timeFormat = menuChoice-3 
-            prevHash = nil -- This just to force everything to update    
+            prevHash = nil -- This just to force GUI to update in next loop    
         end
     end
     
