@@ -1,18 +1,23 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 0.90
+Version: 0.91
 Author: juliansader
-Screenshot: http://stash.reaper.fm/v/28295/js_MIDI%20Inspector.jpeg
+Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 About:
   # Description: 
-  This script open a GUI that shows important information about the active MIDI take, 
+  This script opens a GUI that shows important information about the active MIDI take, 
   selected notes, and selected CCs.
   
   The script improves on REAPER's native Properties windows in several ways:
+  
   * The GUI is continuously updated and does not interfere with MIDI editing.  
+  
   * If multiple events are selected, value ranges are shown.
+  
   * Note, CC and take information are all shown simultaneously.
+  
   * Note and CC positions can be displayed in any of REAPER's time formats.
+  
   * The GUI can be docked.
   
   In addition, the script clearly shows the take's default insert channel, and allows 
@@ -32,6 +37,8 @@ About:
  Changelog:
  * v0.90 (2016-08-20)
     + Initial beta release
+ * v0.91 (2016-08-20)
+    + Improved header info
 ]]
 
 -- USER AREA
