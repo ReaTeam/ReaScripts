@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 0.91
+Version: 0.92
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 About:
@@ -39,6 +39,8 @@ About:
     + Initial beta release
  * v0.91 (2016-08-20)
     + Improved header info
+ * v0.92 (2016-08-20)
+    + Changing default channel updates GUI
 ]]
 
 -- USER AREA
@@ -723,6 +725,7 @@ function loopMIDIInspector()
             local menuChoice = gfx.showmenu(channelString)
             if menuChoice > 0 then
                 reaper.MIDIEditor_OnCommand(editor, 40482+menuChoice-2) -- Set channel for new events to 0+channel
+                prevHash = nil -- This just to force everything to update
             end
         end -- type(defaultChannel) == "number" 
     end -- if gfx.mouse_cap == 1
