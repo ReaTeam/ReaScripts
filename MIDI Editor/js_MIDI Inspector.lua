@@ -31,7 +31,7 @@ About:
 
   # WARNING!
   In REAPER v5.2x, the actions for changing the default channel for new events 
-  ("Set channel for new events to 1 [...16]") is buggy and may inappropriately activate 
+  ("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate 
   the MIDI editor's event filter (as set in the Filter window).  Changing the default 
   channel via this script (or by running the actions directly) may therefore make 
   some notes of CCs invisible.
@@ -48,7 +48,11 @@ About:
     + Improved header info
   * v0.92 (2016-08-20)
     + When default channel is changed, GUI will immediately update
-    + WARNING: 
+    + WARNING: In REAPER v5.2x, the actions for changing the default channel for new events 
+      ("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate 
+      the MIDI editor's event filter (as set in the Filter window).  Changing the default 
+      channel via this script (or by running the actions directly) may therefore make 
+      some notes of CCs invisible.
 ]]
 
 -- USER AREA
