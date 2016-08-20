@@ -3,8 +3,7 @@ rvm:
   - 2.3.0
 before_install:
   - gem update bundler
-  - sudo apt-get -qq update
-  - sudo apt-get install -y pandoc
-cache: bundler
+  - wget https://github.com/jgm/pandoc/releases/download/1.17.2/pandoc-1.17.2-1-amd64.deb -O pandoc.deb
+  - sudo dpkg -i pandoc.deb
 install: gem install reapack-index --pre
 script: reapack-index --check
