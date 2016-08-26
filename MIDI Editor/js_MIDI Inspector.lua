@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 0.92
+Version: 0.93
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 About:
@@ -21,7 +21,8 @@ About:
   * The GUI can be docked.
   
   In addition, the script clearly shows the take's default insert channel, and allows 
-  the user to change the channel.  This crucial setting is hidden in the default MIDI editor.
+  the user to change the channel.  (From REAPER v2.54 onward, this crucial setting will
+  also be available by default in the MIDI editor itself.)
   
   # Instructions
   Click on any of the highlighted values to open a Properties window or a dropdown menu 
@@ -30,7 +31,7 @@ About:
   The default colors of the GUI, as well as the default size, can be customized in the script's USER AREA.
 
   # WARNING!
-  In REAPER v5.2x, the actions for changing the default channel for new events 
+  Prior to REAPER v5.24, the actions for changing the default channel for new events 
   ("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate 
   the MIDI editor's event filter (as set in the Filter window).  Changing the default 
   channel via this script (or by running the actions directly) may therefore make 
@@ -53,6 +54,11 @@ About:
       the MIDI editor's event filter (as set in the Filter window).  Changing the default 
       channel via this script (or by running the actions directly) may therefore make 
       some notes of CCs invisible.
+  * v0.93 (2016-08-25)
+    + In REAPER itself, the aforementioned bug (setting channel for new events activates 
+      event filter) has been fixed in v2.54.
+    + In the MIDI Inspector, the GUI will immediately update if the channel for new events
+      is changed via the action list or via the MIDI editor's own new channel features.  
 ]]
 
 -- USER AREA
@@ -74,15 +80,6 @@ initHeight = 450
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
-
---[[tableTimeFormats = {}
-tableTimeFormats[-1] = "Project default"
-tableTimeFormats[0] = "Time"
-tableTimeFormats[1] = "Measrs.beats+time"
-tableTimeFormats[2] = "Measures.beats"
-tableTimeFormats[3] = "Seconds"
-tableTimeFormats[4] = "Samples"
-tableTimeFormats[5] = "h:m:s:f"]]
 
 tableTimeFormats = {[-1] = "Project default",
                     [0] = "Time",
@@ -177,6 +174,8 @@ end -- function pitchString
 
 --------------------
 function updateGUI()
+    -- Updates the GUI - assuming that all the strings have already been given 
+    --    their correct values by loopMIDIInspector
     
     local tabLong = tabLong
     local tabShort = tabShort
@@ -193,7 +192,7 @@ function updateGUI()
     
     local midX = gfx.w/2
     
-    ------------------
+    ---------------------------------------------------------------
     -- Draw take stuff
     setColor(backgroundColor)
     gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
@@ -420,20 +419,11 @@ function updateGUI()
         gfx.drawstr("X")
     end
         
-    --[[setColor(backgroundColor)
-    gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
-    gfx.rect(gfx.w-8-strHeight, 2+lineHeight*19.5, strHeight-2, strHeight-2, false)
-    setColor(shadowColor)
-    gfx.rect(gfx.w-9-strHeight, 1+lineHeight*19.5, strHeight-2, strHeight-2, false)
-    setColor(textColor) --{0.7,0.7,0.7,1})
-    gfx.a = gfx.a*0.5
-    gfx.rect(gfx.w-7-strHeight, 3+lineHeight*19.5, strHeight-5, strHeight-5, true)
-    setColor(textColor)
-    gfx.x = gfx.w-13-strHeight-strWidthDock
-    gfx.y = lineHeight * 19.5
-    gfx.drawstr("Dock")
-    ]]
-    gfx.update()
+    -- In order to do as little per cycle (so as not to waste REAPER's resources)
+    --    this call to gfx.update has been commented out.  Only one call will be done 
+    --    per cycle - right at the beginning of the loop.
+    --gfx.update()
+    
 end -- function updateGUI
 
 ----------------------------
@@ -449,40 +439,34 @@ function loopMIDIInspector()
     -- Or if there is no active MIDI editor
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil then return(0) end
-    
+        
     -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates
     if paused == false then    
            
+        
+        -- (The GetTake function is buggy and sometimes returns an invalid, deleted take, so must validate take.)
         local take = reaper.MIDIEditor_GetTake(editor)
-        -- The GetTake function is buggy and sometimes returns an invalid, deleted take, so must validate
         if reaper.ValidatePtr(take, "MediaItem_Take*") then
         
-            -- Only do all the time-consuming stuff if there were in fact changes in MIDI (or if active take switched)
+            -- Only do all the time-consuming GetNote and GetCC stuff if there were in fact changes in MIDI,
+            --    or if active take has switched.
+            -- Changes in MIDI can be monitored by getting the take's hash, but not changes in default 
+            --    channel or velocity, so these settings are monitored separately.
+            defaultVelocity = reaper.MIDIEditor_GetSetting_int(editor, "default_note_vel")
+            -- Some of REAPER's MIDI function work with channel range 0-15, others with 1-16
+            defaultChannel  = 1 + reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")  
+        
             hashOK, takeHash = reaper.MIDI_GetHash(take, false, "")
             if take ~= prevTake or (hashOK and takeHash ~= prevHash) then
                 prevTake = take
                 prevHash = takeHash
-                --[[
-                countSelNotes = ""
-                noteChannelString = ""
-                notePitchString = "sdf"
-                notePositionString = ""
-                noteVelocityString = ""
-                
-                countSelCCs = ""
-                ccChannelString = ""
-                ccPositionString = ""
-                ccValueString = ""
-                ]]
+
                 countOK, numNotes, numCCs, numSysex = reaper.MIDI_CountEvts(take)
                 --[[if countOK ~= true then
                     numNotes = "?"
                     numCCs = "?"
                     numSysex = "?"
                 end]]
-                defaultVelocity = reaper.MIDIEditor_GetSetting_int(editor, "default_note_vel")
-                -- Some of REAPER's MIDI function work with channel range 0-15, others with 1-16
-                defaultChannel  = 1 + reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")  
                 
                 ------------------------------------------------------------
                 -- Now get all the info of the selected NOTES in active take
@@ -600,20 +584,6 @@ function loopMIDIInspector()
                 countSelCCs = 0
                 while ccIndex > -1 do
                     ccOK, _, _, PPQpos, chanmsg, channel, msg2, msg3 = reaper.MIDI_GetCC(take, ccIndex)
-                    --[[            
-                    if (0 <= mouseLane and mouseLane <= 127 -- CC, 7 bit (single lane)
-                        and msg2 == mouseLane and eventType == 11)
-                    or (256 <= mouseLane and mouseLane <= 287 -- CC, 14 bit (double lane)
-                        and (msg2 == mouseLane-256 or msg2 == mouseLane-224) and eventType ==11) -- event can be from either MSB or LSB lane
-                    or ((mouseLane == 0x200 or mouseLane == 0x207) -- Velocity or off-velocity
-                        and (eventType == 9 or eventType == 8)) -- note on or note off
-                    or (mouseLane == 0x201 and eventType == 14) -- pitch
-                    or (mouseLane == 0x202 and eventType == 12) -- program select
-                    or (mouseLane == 0x203 and eventType == 13) -- channel pressure (after-touch)
-                    or (mouseLane == 0x204 and eventType == 12) -- Bank/Program select - Program select
-                    or (mouseLane == 0x204 and eventType == 11 and msg2 == 0) -- Bank/Program select - Bank select MSB
-                    or (mouseLane == 0x204 and eventType == 11 and msg2 == 32) -- Bank/Program select - Bank select LSB
-                    ]]
                     
                     if ccOK == true then 
                         countSelCCs = countSelCCs + 1
@@ -656,9 +626,7 @@ function loopMIDIInspector()
                             ccLaneString = ccLaneString .. " (" .. tableCCLanes[ccLowLane] .. ")"
                         end
                     else 
-                       ccLaneString = tostring(ccLowLane) 
-                                              .. " - " 
-                                              .. tostring(ccHighLane)
+                       ccLaneString = tostring(ccLowLane) .. " - " .. tostring(ccHighLane)
                     end
                 else
                     ccLaneString = ""
@@ -668,9 +636,7 @@ function loopMIDIInspector()
                 elseif ccLowValue == ccHighValue then 
                     ccValueString = tostring(ccLowValue)
                 else 
-                    ccValueString = tostring(ccLowValue) 
-                                     .. " - " 
-                                     .. tostring(ccHighValue)
+                    ccValueString = tostring(ccLowValue) .. " - " .. tostring(ccHighValue)
                 end
                 
                 if ccLowPPQ > ccHighPPQ then ccPositionString = ""
@@ -686,21 +652,17 @@ function loopMIDIInspector()
                 elseif ccLowChannel == ccHighChannel then 
                     ccChannelString = tostring(ccLowChannel+1)
                 else 
-                    ccChannelString = tostring(ccLowChannel+1) 
-                                     .. " - " 
-                                     .. tostring(ccHighChannel+1)
+                    ccChannelString = tostring(ccLowChannel+1) .. " - " .. tostring(ccHighChannel+1)
                 end
                                         
                 if ccLowValue > ccHighValue then ccValueString = ""
                 elseif ccLowValue == ccHighValue then 
                     ccValueString = tostring(ccLowValue)
                 else 
-                    ccValueString = tostring(ccLowValue) 
-                                     .. " - " 
-                                     .. tostring(ccHighValue)
+                    ccValueString = tostring(ccLowValue) .. " - " .. tostring(ccHighValue)
                 end
-            end -- if takeHash ~= prevHash
-        end -- if take ~= nil
+            end -- if takeHash ~= prevHash: get new note and CC info
+        end -- if take ~= nil: get new default channel and velocity
     end -- if paused == false
     
     -------------------------------------
