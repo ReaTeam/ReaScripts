@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
-Version: 1.20
+Version: 1.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 About:
@@ -20,6 +20,8 @@ Changelog:
     + Script's About info compatible with ReaPack 1.1.
   * v1.20 (2016-08-15)
     + Bug fix for compatibility with takes that do not start at 0.
+  * v1.21 (2016-09-02)
+    + Allow more complex note values such as "0.75" or "3/8".
 ]]
 
 ---------------------------------------------------------------
@@ -74,14 +76,25 @@ if editor ~= nil then
                        
         -- Get user-specified displayed note length
         repeat
-            retval, input = reaper.GetUserInputs("Set displayed note length", 
+            OKorCancel, input = reaper.GetUserInputs("Set displayed note length", 
                                                       1,
                                                       "Note length (1/8 =Eighth note)",
                                                       "1/8") 
-            input = tonumber(input:match("1/([%d]+)"))
-        until retval == false or (type(input) == "number" and input>0)
+            if type(tonumber(input)) == "number" and tonumber(input) > 0 then -- numbers such as 1 or 0.5, without "/"
+                input = tonumber(input)
+            else -- Otherwise, check if note is in format of "1/8"
+                numerator, divisor = input:match("([%.%d]+)/([%.%d]+)")
+                numerator = tonumber(numerator)
+                divisor = tonumber(divisor)
+                if type(numerator) == "number" and type(divisor) == "number" and numerator ~= 0 and divisor ~= 0 then
+                    input = (1.0/divisor)*numerator -- Is this more accurate than (numerator/divisor) ??
+                else
+                    input = false
+                end
+            end
+        until OKorCancel == false or not (input == false)
         
-        if retval == false then return(0) end
+        if OKorCancel == false then return(0) end
         
         -- Got length, now script can continue 
         reaper.Undo_BeginBlock2(0)
@@ -89,7 +102,7 @@ if editor ~= nil then
         -- Weird, sometimes REAPER's PPQ is not 960.  So first get PPQ of take.
         local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
         PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, QNstart + 1) - reaper.MIDI_GetPPQPosFromProjQN(take, QNstart)
-        userLength = (4.0/input)*PPQ -- Desired length of displayed notes in ticks
+        userLength = (4.0*PPQ)*input -- Desired length of displayed notes in ticks
                     
         i = -1
         repeat
