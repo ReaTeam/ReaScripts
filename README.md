@@ -56,6 +56,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
+- [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 
 ### Other repositories not compatible with ReaPack
 
@@ -70,7 +71,6 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [me2beats/rea-me2](https://github.com/me2beats/rea-me2)
 - [MichaelKlier/KolorEyesOSCSync](https://github.com/MichaelKlier/KolorEyesOSCSync)
 - [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
-- [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [thenfour/ReaperScripts](https://github.com/thenfour/ReaperScripts)
 
 If you want your repo to appear on this list, simply edit this file and send a pull request.
