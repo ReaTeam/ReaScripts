@@ -1,6 +1,6 @@
 --[[
-ReaScript name: js_Notation - Set beaming of selected notes to custom rhythm.lua
-Version: 1.0
+ReaScript name: js_Notation - Set beaming of selected notes to custom rhythm (using grid as margin).lua
+Version: 1.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
 REAPER version: v5.24
@@ -28,6 +28,9 @@ About:
   Changelog:
   * v1.0 (2016-08-20)
     + Initial beta release
+  * v1.01 (2016-09-04)
+    + Added "using grid as margin" in title to inform users of this option
+    + (More details can be found in the script itself.)
 ]]
 
 -- USER AREA
