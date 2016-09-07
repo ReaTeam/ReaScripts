@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="979795bc5a3fa626e50f9b5ebb2d27f2248c73ec" name="ReaTeam Scripts">
+<index version="1" commit="f4038365379b015def478a5e2f65bc4ac32667fb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1232,12 +1232,12 @@ Made by Mordi, Jan 2016]]></changelog>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=181160">Request Thread</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2016-09-07T01:35:45Z">
-        <source>https://github.com/ReaTeam/ReaScripts/raw/979795bc5a3fa626e50f9b5ebb2d27f2248c73ec/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
-        <source main="true" file="cfillion_Toggle take FX 1 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/979795bc5a3fa626e50f9b5ebb2d27f2248c73ec/Takes%20Properties/cfillion_Toggle%20take%20FX%201%20bypass%20for%20selected%20items.lua</source>
-        <source main="true" file="cfillion_Toggle take FX 2 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/979795bc5a3fa626e50f9b5ebb2d27f2248c73ec/Takes%20Properties/cfillion_Toggle%20take%20FX%202%20bypass%20for%20selected%20items.lua</source>
-        <source main="true" file="cfillion_Toggle take FX 3 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/979795bc5a3fa626e50f9b5ebb2d27f2248c73ec/Takes%20Properties/cfillion_Toggle%20take%20FX%203%20bypass%20for%20selected%20items.lua</source>
-        <source main="true" file="cfillion_Toggle take FX 4 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/979795bc5a3fa626e50f9b5ebb2d27f2248c73ec/Takes%20Properties/cfillion_Toggle%20take%20FX%204%20bypass%20for%20selected%20items.lua</source>
-        <source main="true" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/979795bc5a3fa626e50f9b5ebb2d27f2248c73ec/Takes%20Properties/cfillion_Toggle%20take%20FX%205%20bypass%20for%20selected%20items.lua</source>
+        <source>https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="true" file="cfillion_Toggle take FX 1 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%201%20bypass%20for%20selected%20items.lua</source>
+        <source main="true" file="cfillion_Toggle take FX 2 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%202%20bypass%20for%20selected%20items.lua</source>
+        <source main="true" file="cfillion_Toggle take FX 3 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%203%20bypass%20for%20selected%20items.lua</source>
+        <source main="true" file="cfillion_Toggle take FX 4 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%204%20bypass%20for%20selected%20items.lua</source>
+        <source main="true" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%205%20bypass%20for%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Pan active takes randomly.eel" type="script" desc="Pan active takes randomly">
