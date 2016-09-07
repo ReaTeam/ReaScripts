@@ -17,5 +17,6 @@ function toggleTakeFX(fxIndex)
       not reaper.TakeFX_GetEnabled(take, fxIndex))
   end
 
-  reaper.Undo_EndBlock(string.format("Toggle take FX %d", fxIndex + 1), 1)
+  local name = string.format("Toggle take FX %d bypass for selected items", fxIndex + 1)
+  reaper.Undo_EndBlock(name, 1)
 end
