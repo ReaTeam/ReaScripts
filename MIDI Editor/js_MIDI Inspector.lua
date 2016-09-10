@@ -1,8 +1,9 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 0.93
+Version: 0.94
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
+Website: http://forum.cockos.com/showthread.php?t=176878
 About:
   # Description: 
   This script opens a GUI that shows important information about the active MIDI take, 
@@ -59,13 +60,21 @@ About:
       event filter) has been fixed in v2.54.
     + In the MIDI Inspector, the GUI will immediately update if the channel for new events
       is changed via the action list or via the MIDI editor's own new channel features.  
+  * v0.94 (2016-09-10)
+    + If user clicks in CC area, the script will ask whether all notes, text and sysex events 
+      should deselected before opening REAPER's Event Properties, to avoid opening the
+      Note Properties or Text/Sysex windows instead.
+    + New position formats: Ticks, and Measure:Beat:Ticks 
+      (the latter is similar to how the MIDI editor's Event Properties displays position).
 ]]
 
 -- USER AREA
 -- Settings that the user can customize
 
+defaultTimeFormat = 6 -- Refer to tableTimeFormats below for description of the formats
+
 fontFace = "Ariel"
-fontSize = 16
+fontSize = 14
 textColor = {1,1,1,0.7}
 highlightColor = {1,1,0,1}
 backgroundColor = {0.18, 0.18, 0.18, 1}
@@ -73,8 +82,8 @@ shadowColor = {0,0,0,1}
 
 -- If the initialization dimensions are not specified, the script
 --    will calculate appropriate values based on font size
-initWidth = 210
-initHeight = 450
+initWidth = 209
+initHeight = 408
 
 -- End of USER AREA
 
@@ -83,11 +92,13 @@ initHeight = 450
 
 tableTimeFormats = {[-1] = "Project default",
                     [0] = "Time",
-                    [1] = "Measrs.beats+time",
-                    [2] = "Measures.beats",
+                    [1] = "Measures.Beats+Time",
+                    [2] = "Measures.Beats",
                     [3] = "Seconds",
                     [4] = "Samples",
-                    [5] = "h:m:s:frames"}
+                    [5] = "h:m:s:frames",
+                    [6] = "Measures.Beats.Ticks", -- This is how the MIDI editor's Properties window displays position
+                    [7] = "Ticks"}
     
 tableCCTypes = {[8] = "Note on",
                 [9] = "Note off",
@@ -171,6 +182,39 @@ function pitchString(pitch)
     local pitchNames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
     return tostring(pitchNames[(pitch%12)+1])..tostring(pitch//12 - 1)
 end -- function pitchString
+
+-------------------
+function timeStr(take, ppq, format)
+    -- format_timestr_pos returns strings that are not in the same format as 
+    --    how the MIDI editor's Properties window displays position.
+    -- Therefore extra format options were added.
+    if format <= 5 then
+        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", format)
+    elseif format == 6 then -- Custom format measure:beat:ticks
+        measureBeatTime = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 1)
+        measureStr, beatStr = measureBeatTime:match("(%d+)%.(%d+)%.%d+")
+        -- When displayed, measure and beat is counted from 1 instead of 0, so subtract 1
+        measure = tonumber(measureStr)-1
+        beat = tonumber(beatStr)-1
+        beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
+        beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
+        if beatPPQ > ppq then
+            beat = beat - 1
+            beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
+            measureBeatTime = reaper.format_timestr_pos(beatTime, "", 1)
+            measureStr, beatStr = measureBeatTime:match("(%d+)%.(%d+)%.%d+")
+            measure = tonumber(measureStr)-1
+            beat = tonumber(beatStr)-1
+            beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
+        end
+        ticksStr = tostring(ppq - beatPPQ) --:gsub("%.%d+", "") -- Remove decimal point
+        ticksStr = string.format("%03d", ticksStr)
+        return (measureStr .. "." .. beatStr .. "." .. ticksStr)
+    else 
+        return (tostring(ppq):gsub("%.%d+", ""))
+    end
+end
+
 
 --------------------
 function updateGUI()
@@ -444,7 +488,7 @@ function loopMIDIInspector()
     if paused == false then    
            
         
-        -- (The GetTake function is buggy and sometimes returns an invalid, deleted take, so must validate take.)
+        -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
         local take = reaper.MIDIEditor_GetTake(editor)
         if reaper.ValidatePtr(take, "MediaItem_Take*") then
         
@@ -505,25 +549,12 @@ function loopMIDIInspector()
                 
                 if noteLowPPQ > noteHighPPQ then notePositionString = ""
                 else
-                    -- The GetProjTime returns a string that is not in the same format as 
-                    --    how the Properties window displays position.
-                    -- The 3rd number is returned as 1/100th of a beat, instead of ticks
-                    --[[
-                    -- This code does not work yet
-                    noteLowTime = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, noteLowPPQ), "", 2)
-                    noteLowBeats, noteLowTicks = noteLowTime:match("([%d]+.[%d]+).([%d]+)")
-                    noteLowTicks = 9.6 * tonumber(noteLowTicks)
-                    
-                    noteHighTime = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, noteHighPPQ), "", 2)
-                    noteHighBeats, noteHighTicks = noteHighTime:match("([%d]+.[%d]+).([%d]+)")
-                    noteHighTicks = 9.6 * tonumber(noteHighTicks)
-                    ]]
-                    if noteLowPPQ == noteHighPPQ then 
-                        notePositionString = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, noteLowPPQ), "", timeFormat)
+                    if noteLowPPQ == noteHighPPQ then
+                        notePositionString = timeStr(take, noteLowPPQ, timeFormat)
                     else 
-                        notePositionString =  reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, noteLowPPQ), "", timeFormat) 
-                                         .. " - " 
-                                         .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, noteHighPPQ), "", timeFormat)
+                        notePositionString = timeStr(take, noteLowPPQ, timeFormat) 
+                                             .. " - " 
+                                             .. timeStr(take, noteHighPPQ, timeFormat)
                     end
                 end
                 
@@ -641,11 +672,11 @@ function loopMIDIInspector()
                 
                 if ccLowPPQ > ccHighPPQ then ccPositionString = ""
                 elseif ccLowPPQ == ccHighPPQ then 
-                    ccPositionString = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ccLowPPQ), "", timeFormat)
+                    ccPositionString = timeStr(take, ccLowPPQ, timeFormat)
                 else 
-                    ccPositionString =  reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ccLowPPQ), "", timeFormat) 
+                    ccPositionString = timeStr(take, ccLowPPQ, timeFormat)
                                      .. " - " 
-                                     .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ccHighPPQ), "", timeFormat)
+                                     .. timeStr(take, ccHighPPQ, timeFormat)
                 end
                 
                 if ccLowChannel > ccHighChannel then ccChannelString = ""
@@ -741,14 +772,60 @@ function loopMIDIInspector()
         end
     end
     
-    -- Click anywhere else where there are highlighted values, open REAPER's Properties window
+    -- Click in notes area, open REAPER's Properties window (which defaults to Note Properties if notes as well as CCs are selected)
     if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
     and (  (gfx.mouse_y > lineHeight*8.5 and gfx.mouse_y < lineHeight*13.5)
-        or (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
+        --or (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
         )
     then
         mouseAlreadyClicked = true
         reaper.MIDIEditor_OnCommand(editor, 40004)
+    end
+    
+    -- Click in CC area, first ask user whether all notes should be deselected, then call Event Properties
+    --    If notes are not deselected, REAPER will automatically open the Notes Properties window instead
+    if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
+    and (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
+    then
+        mouseAlreadyClicked = true
+        
+        -- Check whether there are any selected notes. If there are, get user input.
+        local take = reaper.MIDIEditor_GetTake(editor)
+        if reaper.ValidatePtr(take, "MediaItem_Take*") 
+        and (reaper.MIDI_EnumSelNotes(take, -1) ~= -1 or reaper.MIDI_EnumSelTextSysexEvts(take, -1) ~= -1)
+        then
+            inputOK, userInput = reaper.GetUserInputs("CC properties", 1, "Deselect notes and text/sysex?", "y")
+            if inputOK and (userInput == "y" or userInput == "Y") then
+                reaper.MIDI_Sort(take)
+                -- Quickly deselect all notes
+                reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert selection in active take
+                reaper.MIDIEditor_OnCommand(editor, 40003) -- Select all notes in active take
+                reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert again
+                
+                -- No such quick trick for text/sysex events
+                local evtIndex = reaper.MIDI_EnumSelTextSysexEvts(take, -1)
+                while evtIndex ~= -1 do
+                    reaper.MIDI_SetTextSysexEvt(take, evtIndex, false, nil, nil, nil, "", true)
+                    evtIndex = reaper.MIDI_EnumSelTextSysexEvts(take, evtIndex)
+                end
+                
+                --[[ And now find and deselect all bank/program select events
+                local ccIndex = reaper.MIDI_EnumSelCC(take, -1)
+                while ccIndex ~= -1 do
+                    local ccOK, _, _, _, chanmsg, _, msg2, msg3 = reaper.MIDI_GetCC(take, ccIndex)
+                    if ((chanmsg>>4) == 12)
+                    --or ((chanmsg>>4) == 11 and (msg2 == 0 or msg2 == 32)) 
+                    then
+                        reaper.MIDI_SetCC(take, ccIndex, false, nil, nil, nil, nil, nil, nil, true)
+                    end
+                    ccIndex = reaper.MIDI_EnumSelCC(take, ccIndex)
+                end
+                ]]
+                reaper.MIDI_Sort(take)
+            end
+        end
+        
+        reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
     end
     
     updateGUI()
@@ -817,10 +894,10 @@ lineHeight = math.max(strHeight, gfx.h / 21)
 gfx.quit()
 
 paused = false
-timeFormat = -1
+timeFormat = defaultTimeFormat
 
 if type(initWidth) ~= "number" then initWidth = strWidth["Long time format"]+tabShort+15 end
-if type(initHeight) ~= "number" then initHeight = (strHeight+3)*20 end
+if type(initHeight) ~= "number" then initHeight = (strHeight+3)*24 end
 gfx.init("MIDI Inspector", initWidth, initHeight)
 gfx.setfont(1, fontFace, fontSize, 'b')
 gfx.update()
