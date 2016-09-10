@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f4038365379b015def478a5e2f65bc4ac32667fb" name="ReaTeam Scripts">
+<index version="1" commit="bbb3706f930e7fec4b8ae5f6cc5686cae9339a49" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -762,6 +762,14 @@ event filter) has been fixed in v2.54.
 + In the MIDI Inspector, the GUI will immediately update if the channel for new events
 is changed via the action list or via the MIDI editor's own new channel features.  ]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/fd1434aee6978a42a41d05cda454dbc4b35b0243/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
+      <version name="0.94" author="juliansader" time="2016-09-10T08:49:16Z">
+        <changelog><![CDATA[+ If user clicks in CC area, the script will ask whether all notes, text and sysex events 
+should deselected before opening REAPER's Event Properties, to avoid opening the
+Note Properties or Text/Sysex windows instead.
++ New position formats: Ticks, and Measure:Beat:Ticks 
+(the latter is similar to how the MIDI editor's Event Properties displays position).]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bbb3706f930e7fec4b8ae5f6cc5686cae9339a49/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
