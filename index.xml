@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0c95fd4ec74fd4c06a7917e102411e2500b01f44" name="ReaTeam Scripts">
+<index version="1" commit="910260e7dfe71834a28a7dc5fe7ece4395adf430" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1587,7 +1587,7 @@ https://github.com/cfillion/reascripts
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 displays a small clock window\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 displays a small clock window see http://forum.cockos.com/showthread.php?t=165884\par}
 }
 ]]></description>
       </metadata>
