@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bbb3706f930e7fec4b8ae5f6cc5686cae9339a49" name="ReaTeam Scripts">
+<index version="1" commit="0c95fd4ec74fd4c06a7917e102411e2500b01f44" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1579,6 +1579,21 @@ https://github.com/cfillion/reascripts
     <reapack name="HeDa_View Scroll Top.lua" type="script" desc="View Scroll Top">
       <version name="1.0" author="HeDa" time="2016-02-14T02:19:23Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/7e9c4ed73ed3e9b0a3b15d363bc3db28a19db265/Various/HeDa_View%20Scroll%20Top.lua</source>
+      </version>
+    </reapack>
+    <reapack name="nofish_Realtime clock.lua" type="script" desc="nofish_Realtime clock">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 displays a small clock window\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="nofish" time="2016-09-12T00:43:46Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0c95fd4ec74fd4c06a7917e102411e2500b01f44/Various/nofish_Realtime%20clock.lua</source>
       </version>
     </reapack>
     <reapack name="nofish_Show tracknames in console.lua" type="script" desc="Show tracknames in console">
