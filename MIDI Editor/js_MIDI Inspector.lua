@@ -68,7 +68,7 @@ About:
       Note Properties or Text/Sysex windows instead.
     + New position formats: Ticks, and Measure:Beat:Ticks 
       (the latter is similar to how the MIDI editor's Event Properties displays position).
-  + v0.95 (2016-09-13)
+  * v0.95 (2016-09-13)
     + In Measure:Beat:Ticks format, script will display fractional tick values if the MIDI item's
       ticks are not precisely aligned with the project beats.  (As discussed in t=181211.)
 ]]
