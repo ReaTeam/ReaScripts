@@ -4,7 +4,7 @@
  * Author: nofish
  * About:
  *   displays a small clock window
-     see http://forum.cockos.com/showthread.php?t=165884
+ *   see http://forum.cockos.com/showthread.php?t=165884
 --]]
 
 --[[
