@@ -5,7 +5,7 @@ Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
 About:
-  # Description: 
+  # Description
   This script opens a GUI that shows important information about the active MIDI take, 
   selected notes, and selected CCs.
   
