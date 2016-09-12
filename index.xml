@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84d29a8660e0b8043747d07bd13f69593fbef125" name="ReaTeam Scripts">
+<index version="1" commit="af56041410fe409f7c5e732ea34c646f69cf90ee" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -450,7 +450,7 @@ added support for all track envelopes]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6b374be1f3351f081ab153b6e65ab85f3f371b6a/MIDI%20Editor/gofer_spk77_Smooth%20CCs.eel</source>
       </version>
     </reapack>
-    <reapack name="js_1-sided warp (accelerate) selected events in lane under mouse.lua" type="script" desc="1-sided warp (accelerate) selected events in lane under mouse.">
+    <reapack name="js_1-sided warp (accelerate) selected events in lane under mouse.lua" type="script" desc="js_1-sided warp (accelerate) selected events in lane under mouse.lua">
       <version name="1.1" author="juliansader" time="2016-05-25T09:24:15Z">
         <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/0937755929d71fe678018c4f57815104097c7325/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
@@ -466,10 +466,10 @@ added support for all track envelopes]]></changelog>
       <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/af56041410fe409f7c5e732ea34c646f69cf90ee/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
-    <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="2-sided warp (and stretch) selected events in lane under mouse.">
+    <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
       <version name="1.1" author="juliansader" time="2016-05-25T09:25:40Z">
         <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/6796fb90c30a273877d3b45b0e55ec9cf17b898b/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
@@ -485,7 +485,7 @@ added support for all track envelopes]]></changelog>
       <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
-        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/ebd6894720af0446dcb26d8e9b8bf39d90f0ae10/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with linear or power curve.lua" type="script" desc="js_Arch selected events in lane under mouse with linear or power curve.lua">
