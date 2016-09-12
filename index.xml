@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="910260e7dfe71834a28a7dc5fe7ece4395adf430" name="ReaTeam Scripts">
+<index version="1" commit="75a1d5a222d3e277668c0d741ec2317bf707df28" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -267,6 +267,22 @@ added support for all track envelopes]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua" type="script" desc="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Removes all CCs, pitch, channel pressure and program change events from all takes and all tracks in project.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.00" author="juliansader" time="2016-09-12T22:52:02Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/83a2b6b55fcb551ee47a054a61644b15161de868/Items%20Editing/js_Remove%20all%20CCs,%20pitch,%20channel%20pressure%20and%20program%20change%20events%20from%20all%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_spk77_Sort items by length.lua" type="script" desc="Sort selected items by length (ascending)">
@@ -719,13 +735,14 @@ added support for all track envelopes]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script opens a GUI that shows important information about the active MIDI take, selected notes, and selected CCs.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script improves on REAPER's native Properties windows in several ways:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The GUI is continuously updated and does not interfere with MIDI editing.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If multiple events are selected, value ranges are shown.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Note, CC and take information are all shown simultaneously.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Note and CC positions can be displayed in any of REAPER's time formats.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In Measure:Beat:Ticks format, script can display fractional tick values.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The GUI can be docked.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In addition, the script clearly shows the take's default insert channel, and allows the user to change the channel. (From REAPER v2.54 onward, this crucial setting will also be available by default in the MIDI editor itself.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
@@ -770,6 +787,9 @@ Note Properties or Text/Sysex windows instead.
 + New position formats: Ticks, and Measure:Beat:Ticks 
 (the latter is similar to how the MIDI editor's Event Properties displays position).]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/bbb3706f930e7fec4b8ae5f6cc5686cae9339a49/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
+      <version name="0.95" author="juliansader" time="2016-09-12T22:28:26Z">
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/99349dc414290c166ca77aa07823142e444cac97/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
@@ -1316,6 +1336,23 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.1" author="juliansader" time="2016-07-17T14:50:38Z">
         <changelog><![CDATA[+ Audio send to parent track will also be removed if "Remove audio sends" is selected]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/8e2229f0a1d22703f66384444eb84caa86c7a09d/Tracks%20Properties/js_Autoincrement%20MIDI%20send%20channels%20of%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Propagate note names of last clicked track to all selected tracks.lua" type="script" desc="js_Propagate note names of last clicked track to all selected tracks.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Propagates the note names of last clicked track to all selected tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will open a dialog box in which the user can: * confirm or change the source track, and * select whether all existing note names in the selected tracks should be removed.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.00" author="juliansader" time="2016-09-12T23:03:11Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/75a1d5a222d3e277668c0d741ec2317bf707df28/Tracks%20Properties/js_Propagate%20note%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua" type="script" desc="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua">
