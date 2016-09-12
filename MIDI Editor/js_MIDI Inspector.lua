@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 0.94
+Version: 0.95
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -17,7 +17,9 @@ About:
   
   * Note, CC and take information are all shown simultaneously.
   
-  * Note and CC positions can be displayed in any of REAPER's time formats.
+  * Note and CC positions can be displayed in any of REAPER's time formats.  
+  
+  * In Measure:Beat:Ticks format, script can display fractional tick values.
   
   * The GUI can be docked.
   
@@ -66,6 +68,9 @@ About:
       Note Properties or Text/Sysex windows instead.
     + New position formats: Ticks, and Measure:Beat:Ticks 
       (the latter is similar to how the MIDI editor's Event Properties displays position).
+  + v0.95 (2016-09-13)
+    + In Measure:Beat:Ticks format, script will display fractional tick values if the MIDI item's
+      ticks are not precisely aligned with the project beats.  (As discussed in t=181211.)
 ]]
 
 -- USER AREA
@@ -92,12 +97,12 @@ initHeight = 408
 
 tableTimeFormats = {[-1] = "Project default",
                     [0] = "Time",
-                    [1] = "Measures.Beats+Time",
+                    [1] = "Measures.Beats.Time",
                     [2] = "Measures.Beats",
                     [3] = "Seconds",
                     [4] = "Samples",
                     [5] = "h:m:s:frames",
-                    [6] = "Measures.Beats.Ticks", -- This is how the MIDI editor's Properties window displays position
+                    [6] = "Measures:Beats:Ticks", -- This is how the MIDI editor's Properties window displays position (exept with . instead of :)
                     [7] = "Ticks"}
     
 tableCCTypes = {[8] = "Note on",
@@ -191,13 +196,15 @@ function timeStr(take, ppq, format)
     if format <= 5 then
         return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", format)
     elseif format == 6 then -- Custom format measure:beat:ticks
-        measureBeatTime = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 1)
-        measureStr, beatStr = measureBeatTime:match("(%d+)%.(%d+)%.%d+")
+        local measureBeatTime = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 1)
+        local measureStr, beatStr = measureBeatTime:match("(%d+)%.(%d+)%.%d+")
         -- When displayed, measure and beat is counted from 1 instead of 0, so subtract 1
-        measure = tonumber(measureStr)-1
-        beat = tonumber(beatStr)-1
-        beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
-        beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
+        local measure = tonumber(measureStr)-1
+        local beat = tonumber(beatStr)-1
+        local beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
+        local beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
+        -- In measure.beat.time format, the position may be rounded *up* to nearest beat.
+        -- In measure:beat:ticks, must never round up.  So must check:
         if beatPPQ > ppq then
             beat = beat - 1
             beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
@@ -207,10 +214,20 @@ function timeStr(take, ppq, format)
             beat = tonumber(beatStr)-1
             beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
         end
-        ticksStr = tostring(ppq - beatPPQ) --:gsub("%.%d+", "") -- Remove decimal point
-        ticksStr = string.format("%03d", ticksStr)
-        return (measureStr .. "." .. beatStr .. "." .. ticksStr)
-    else 
+        -- If the start of the MIDI item is not precisely aligned with the grid, or if
+        --    the items is stretched, the event may be a fractional tick away from the 
+        --    measure:beat position.
+        -- Note that beatPPQ may be fractional, whereas a MIDI event's ppq is always an integer.
+        local ticksStr
+        if (ppq - beatPPQ)%1 == 0 then -- integer, so can format nicely without decimal point
+            ticksStr = tostring(ppq - beatPPQ):gsub("%.%d+", "")
+            ticksStr = string.format("%03d", ticksStr)
+        else -- Not integer, so display exact displacement
+            ticksStr = tostring(ppq - beatPPQ)
+            ticksStr = string.format("%.3f", ticksStr)
+        end
+        return (measureStr .. ":" .. beatStr .. ":" .. ticksStr)
+    else
         return (tostring(ppq):gsub("%.%d+", ""))
     end
 end
