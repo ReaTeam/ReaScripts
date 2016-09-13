@@ -60,6 +60,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
 - [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
+- [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
 
 ### Other repositories or packs not compatible with ReaPack
