@@ -44,23 +44,28 @@ Talk about this repository and ReaTeam in this thread on the REAPER forums:
 reapack-index's [packaging documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation))
 4. Send a pull request here, done!
 
-### ReaTeam Repositories
+### Other ReaTeam Scripts Repository (included in ReaPack)
 
 - [ReaTeam/JSFX](https://github.com/ReaTeam/JSFX)
-- [Reateam/ReaScripts-Templates](https://github.com/ReaTeam/ReaScripts-Templates)
 
-### Other ReaPack compatible repositories
+### Other ReaPack compatible repositories (included in ReaPack)
 
-- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts) (natively registered in ReaPack)
-- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts) (natively registered in ReaPack)
+- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts)
+- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts)
+
+### Other ReaPack compatible repositories (not included in ReaPack)
+
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
+- [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
 - [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
+- [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
 
-### Other repositories not compatible with ReaPack
+### Other repositories or packs not compatible with ReaPack
 
 - [actonDev/Reaper-Scripts](https://github.com/actonDev/Reaper-Scripts)
+- [ambisonictoolkit/atk-reaper](https://github.com/ambisonictoolkit/atk-reaper)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
