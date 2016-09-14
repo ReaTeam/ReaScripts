@@ -1727,75 +1727,208 @@ https://github.com/cfillion/reascripts
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Package indexer for git-based ReaPack repositories\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Parent project: {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack"}}{\fldrslt{\ul
-https://github.com/cfillion/reapack
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaTeam Script Repository\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Community-maintained collection of scripts for {\field{\*\fldinst{HYPERLINK "http://www.reaper.fm"}}{\fldrslt{\ul
+REAPER
 }}}
-\line Subproject: {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/metaheader"}}{\fldrslt{\ul
-https://github.com/cfillion/metaheader
-}}}
-\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "http://badge.fury.io/rb/reapack-index"}}{\fldrslt{\ul
-{\cf1 [image: https://badge.fury.io/rb/reapack-index.svg]\cf0}
-}}}
- {\field{\*\fldinst{HYPERLINK "https://travis-ci.org/cfillion/reapack-index"}}{\fldrslt{\ul
-{\cf1 [image: https://travis-ci.org/cfillion/reapack-index.svg?branch=master]\cf0}
-}}}
- {\field{\*\fldinst{HYPERLINK "https://gemnasium.com/cfillion/reapack-index"}}{\fldrslt{\ul
-{\cf1 [image: https://gemnasium.com/cfillion/reapack-index.svg]\cf0}
-}}}
- {\field{\*\fldinst{HYPERLINK "https://coveralls.io/github/cfillion/reapack-index?branch=master"}}{\fldrslt{\ul
-{\cf1 [image: https://coveralls.io/repos/cfillion/reapack-index/badge.svg?branch=master&service=github]\cf0}
-}}}
- {\field{\*\fldinst{HYPERLINK "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T3DEWBQJAV7WL&lc=CA&item_name=reapack-index%3a%20Package%20indexer%20for%20git-based%20ReaPack%20repositories&no_note=0&cn=Custom%20message&no_shipping=1&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"}}{\fldrslt{\ul
-{\pict\pngblip\picw74\pich21\picwgoal1480\pichgoal420\bin 89504e470d0a1a0a0000000d494844520000004a000000150803000000d6d6886100000b4a69545874584d4c3a636f6d2e61646f62652e786d7000000000003c3f787061636b657420626567696e3d22efbbbf222069643d2257354d304d7043656869487a7265537a4e54637a6b633964223f3e0a3c783a786d706d65746120786d6c6e733a783d2261646f62653a6e733a6d6574612f2220783a786d70746b3d2241646f626520584d5020436f726520352e352d6330313220312e3134393630322c20323031322f31302f31302d31383a31303a32342020202020202020223e0a203c7264663a52444620786d6c6e733a7264663d22687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e7323223e0a20203c7264663a4465736372697074696f6e207264663a61626f75743d22220a20202020786d6c6e733a64633d22687474703a2f2f7075726c2e6f72672f64632f656c656d656e74732f312e312f220a20202020786d6c6e733a64616d3d22687474703a2f2f7777772e6461792e636f6d2f64616d2f312e30220a20202020786d6c6e733a746966663d22687474703a2f2f6e732e61646f62652e636f6d2f746966662f312e302f220a20202020786d6c6e733a786d704d4d3d22687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f6d6d2f220a20202020786d6c6e733a73745265663d22687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f73547970652f5265736f7572636552656623220a20202020786d6c6e733a50617950616c3d227777772e70617970616c2e636f6d2f626173652f7631220a20202020786d6c6e733a786d703d22687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f220a20202064633a666f726d61743d22696d6167652f706e67220a20202064633a6d6f6469666965643d22323031332d31322d31375431353a33363a34322e3432312d30383a3030220a20202064616d3a73697a653d2232323233220a20202064616d3a506879736963616c7769647468696e696e636865733d222d312e30220a20202064616d3a6578747261637465643d22323031332d31322d31375431353a33363a34312e3336372d30383a3030220a20202064616d3a736861313d2237316238383336303262306535343161366136316463343732633830376131316533666137306237220a20202064616d3a4e756d6265726f667465787475616c636f6d6d656e74733d2232220a20202064616d3a46696c65666f726d61743d22504e47220a20202064616d3a50726f67726573736976653d226e6f220a20202064616d3a506879736963616c686569676874696e6470693d222d31220a20202064616d3a436f6d6d656e74733d22536f6674776172653a2041646f626520496d6167655265616479262378413b584d4c3a636f6d2e61646f62652e786d703a20266c743b3f787061636b657420626567696e3d2671756f743befbbbf2671756f743b2069643d2671756f743b57354d304d7043656869487a7265537a4e54637a6b6339642671756f743b3f2667743b20266c743b783a786d706d65746120786d6c6e733a783d2671756f743b61646f62653a6e733a6d6574612f2671756f743b20783a786d70746b3d2671756f743b41646f626520584d5020436f726520352e332d633031312036362e3134353636312c20323031322f30322f30362d31343a35363a323720202020202020202671756f743b2667743b20266c743b7264663a52444620786d6c6e733a7264663d2671756f743b687474703a2f2f7777772e77332e6f72672f313939392f30322f32322d7264662d73796e7461782d6e73232671756f743b2667743b20266c743b7264663a4465736372697074696f6e207264663a61626f75743d2671756f743b2671756f743b20786d6c6e733a786d703d2671756f743b687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f2671756f743b20786d6c6e733a786d704d4d3d2671756f743b687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f6d6d2f2671756f743b20786d6c6e733a73745265663d2671756f743b687474703a2f2f6e732e61646f62652e636f6d2f7861702f312e302f73547970652f5265736f75726365526566232671756f743b20786d703a43726561746f72546f6f6c3d2671756f743b41646f62652050686f746f73686f7020435336202857696e646f7773292671756f743b20786d704d4d3a496e7374616e636549443d2671756f743b786d702e6969643a32324431323844373631304331314533383346354439413741383238333131362671756f743b20786d704d4d3a446f63756d656e7449443d2671756f743b786d702e6469643a32324431323844383631304331314533383346354439413741383238333131362671756f743b2667743b20266c743b786d704d4d3a4465726976656446726f6d2073745265663a696e7374616e636549443d2671756f743b786d702e6969643a32324431323844353631304331314533383346354439413741383238333131362671756f743b2073745265663a646f63756d656e7449443d2671756f743b786d702e6469643a32324431323844363631304331314533383346354439413741383238333131362671756f743b2f2667743b20266c743b2f7264663a4465736372697074696f6e2667743b20266c743b2f7264663a5244462667743b20266c743b2f783a786d706d6574612667743b20266c743b3f787061636b657420656e643d2671756f743b722671756f743b3f2667743b262378413b220a20202064616d3a4d494d45747970653d22696d6167652f706e67220a20202064616d3a4e756d6265726f66696d616765733d2231220a20202064616d3a42697473706572706978656c3d2238220a20202064616d3a506879736963616c686569676874696e696e636865733d222d312e30220a20202064616d3a506879736963616c7769647468696e6470693d222d31220a202020746966663a496d6167654c656e6774683d223231220a202020746966663a496d61676557696474683d223734220a202020786d704d4d3a446f63756d656e7449443d22786d702e6469643a3232443132384438363130433131453338334635443941374138323833313136220a202020786d704d4d3a496e7374616e636549443d22786d702e6969643a3232443132384437363130433131453338334635443941374138323833313136220a20202050617950616c3a7374617475733d22536f75726365417070726f766564220a20202050617950616c3a736f757263654e6f6465506174683d222f636f6e74656e742f64616d2f50617950616c4469676974616c4173736574732f737061727461496d616765732f4c6f63616c697a6564496d616765732f656e5f55532f62746e2f62746e5f646f6e6174655f37347832312e706e67220a20202050617950616c3a6973536f757263653d2274727565220a202020786d703a43726561746f72546f6f6c3d2241646f62652050686f746f73686f7020435336202857696e646f777329223e0a2020203c64633a6c616e67756167653e0a202020203c7264663a4261673e0a20202020203c7264663a6c693e656e5f55533c2f7264663a6c693e0a202020203c2f7264663a4261673e0a2020203c2f64633a6c616e67756167653e0a2020203c786d704d4d3a4465726976656446726f6d0a2020202073745265663a696e7374616e636549443d22786d702e6969643a3232443132384435363130433131453338334635443941374138323833313136220a2020202073745265663a646f63756d656e7449443d22786d702e6469643a3232443132384436363130433131453338334635443941374138323833313136222f3e0a20203c2f7264663a4465736372697074696f6e3e0a203c2f7264663a5244463e0a3c2f783a786d706d6574613e0a3c3f787061636b657420656e643d2272223f3e54d5a4850000001974455874536f6674776172650041646f626520496d616765526561647971c9653c0000024f504c5445ffaa00ffac05ffdd97333333ffe1a2dd921ffff6e9ffe4acfcb934ffd98bffd071ffd57fffbe3affb92effcc63ffaf0dffc755ffc248ffb522ffb217ffd786d69927d6bf90b3924fbf974affbc366e5d3ef7a508ffd276ffd47ebf9748bf9a50ffc145bf9544cba355b39d70bfa167494134ffc44effca605d513c5d5445ffd073ffbf3dffdc97b3832ae4a746f4af2fbf9b529a8969fee7bbbf9f5ee2a443ffd684efa82b4942369a855cffd279fbc2559a8865494133f1ab2ceda62aeba429e79f26f3dab35d5342f6b130fee6bb9a7b43ffe4adbfa46d5d4f37494337494439ffb216e9a227f2ad2ef7b331cb9b3fd6af64e29923a78340e19825f9b634e49b24fcba36ffc756d6c5a1ffe7b6fff5e7e69d25fdc556ebc881ffe0a1a7926a8c7f65f5daa4a79570d6a84d9a82555d4e367d6942e99c158c754a9a8e776e634e6e5a39b39c6f6e5e41bfa165f5c15bb39252ffcf6effda90bf9037fccc6ff5cc78bf8a29ebb851ffc654ebbb5ba78a54b39d73e0c081ebc4758c692eb39b695d503bfee7ba8c7a56e0c287b39458ffb41debb243cba55c7d683fb39f78b39966e0af4e5d4c33bf9f61b3975fbf9950fee8bcfccd70a78d5db39c6dbfa46effc54effd98dffca5ee0b04febc577e99b15cb9226494338f4dab3bf9b555d5444ebab2fdd932149463fbfa267ffd37bfee1aabf984cd69d2f5d5443f5ae23cb9228b3904c9a7b4249443bffb51ffee1acf4dbb56e6451ffce69b39e74f5ab19a78d59bfaa7e9a7e489a82545d4d34b39d72f5c86edd9322bfa675a79674d6a13ca7894ed6aa55bfae8ca7884cfffffffdcd89b0000000c574524e53ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff003456c791000001f74944415478daaccf5573db401405e0db9e52125b716ccb76cc8e99c2ccccccd4949999999999999999fcc3ba6a9f36337ab2be87a3abbb7376248a658ff64f8b5bff68768c4eaead1d9e12b7e1da53bba8f8de50fdd4b8d50fbd28a6deb1498a18eba5f6890a69a79a041e98eac2e909b2e48e6a28238987458383bf5f3dbb94246339640e32a82d9187cf7979e767ddfe9828e32c640edaa84ce0e1308bd7336f0842a619e64cb630ce47935110d2cc68fa2018d9ffa749f34ee3b86219e56b78382ee50e68ec701bdcb06bd07cc6301b17376086e13de66cfb0ec317fb55b7e14db39d2fe653790a0f7ba5dc8c944056c81fca0aa4604bc85f84fb470e156d3a80131b8fc1ef0b9474feea2c59c617cba942c5c34a29172e5621873d73a0c27569eb38f7b3d47b100e9503eced3fbe5841ad6a1e9eb0b889d3ea601d1bea826a98a4ade901b6aebecb6613d4eae0d24824b2e71b5f6ca54a2d0f4f4571fdd1872bb41e44c5283c5ab8a4adeb07d688dbd1ad75417ce429888a8f3f75f3c54a1ad1f1a42f9f3777dd739db3a1118d0d4e1d3aa46d476aa1b7f4cfee82b7fbab71c5796709bcef347c7184fa92797ac63ad0c2a6b0556f0db3456af2bf18b0d97c176c2dfbac6c0eafd2db7ce38a7dd43541215dd4430ae9a1748b323759d2e9e56545eeb22cb846b1aadcaf93e3762bb72af657800100e4fa85e03c01961a0000000049454e44ae426082}
+ Digital Audio Workstation.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=7973"}}{\fldrslt{\ul
+Argitoth
 }}}
 \par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Installation\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Ruby v2.3 or newer must be installed on your computer in order to install and use this software.\line Run the following command from a command prompt (eg. cmd.exe, Terminal.app, XTerm) to install reapack-index:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 gem install reapack-index\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Usage\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 reapack-index [options] [path-to-your-repository]\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 Modes:\line
-    -c, --check                      Test every package including uncommited changes and exit\line
-    -s, --scan [FILE|COMMIT]         Scan new commits (default), a file or a commit\line
-        --rebuild                    Clear the index and rescan the whole git history\line
-Indexer options:\line
-    -a, --[no-]amend                 Update existing versions\line
-    -i, --ignore PATH                Don't check or index any file starting with PATH\line
-    -o, --output FILE=./index.xml    Set the output filename and path for the index\line
-        --[no-]strict                Enable strict validation mode\line
-    -U, --url-template TEMPLATE=auto Set the template for implicit download links\line
-Repository metadata:\line
-    -n, --name NAME                  Set the name shown in ReaPack for this repository\line
-    -l, --link LINK                  Add or remove a website link\line
-        --screenshot-link LINK       Add or remove a screenshot link\line
-        --donation-link LINK         Add or remove a donation link\line
-        --ls-links                   Display the link list then exit\line
-    -A, --about=FILE                 Set the about content from a file\line
-        --remove-about               Remove the about content from the index\line
-        --dump-about                 Dump the raw about content in RTF and exit\line
-Misc options:\line
-        --[no-]progress              Enable or disable progress information\line
-    -V, --[no-]verbose               Activate diagnosis messages\line
-    -C, --[no-]commit                Select whether to commit the modified index\line
-        --prompt-commit              Ask at runtime whether to commit the index\line
-    -W, --warnings                   Enable warnings\line
-    -w, --no-warnings                Turn off warnings\line
-    -q, --[no-]quiet                 Disable almost all output\line
-        --no-config                  Bypass the configuration files\line
-    -v, --version                    Display version information\line
-    -h, --help                       Prints this help\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A getting started guide and packaging documentation are available in the {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki"}}{\fldrslt{\ul
-wiki
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
+Breeder
 }}}
-.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Configuration\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Options can be specified from the command line or stored in configuration files. The syntax is the same as the command line, but with a single option per line.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The settings are applied in the following order:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ~/.reapack-index.conf ({\f1 ~} = home directory)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ./.reapack-index.conf ({\f1 .} = repository root)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab command line\sa180\par}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=98780"}}{\fldrslt{\ul
+cfillion
+}}}
+ ({\field{\*\fldinst{HYPERLINK "http://cfillion.tk"}}{\fldrslt{\ul
+website
+}}}
+, {\field{\*\fldinst{HYPERLINK "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T3DEWBQJAV7WL&lc=CA&item_name=ReaScripts&no_note=0&cn=Custom%20message&no_shipping=1&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"}}{\fldrslt{\ul
+donate
+}}}
+)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=9328"}}{\fldrslt{\ul
+gofer
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=47822"}}{\fldrslt{\ul
+HeDa
+}}}
+ ({\field{\*\fldinst{HYPERLINK "https://www.patreon.com/heda?ty=h"}}{\fldrslt{\ul
+donate
+}}}
+)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=14710"}}{\fldrslt{\ul
+juliansader
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=91120"}}{\fldrslt{\ul
+mordi
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
+mpl
+}}}
+ ({\field{\*\fldinst{HYPERLINK "https://www.paypal.me/donate2mpl"}}{\fldrslt{\ul
+donate
+}}}
+)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=6870"}}{\fldrslt{\ul
+nofish
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=6549"}}{\fldrslt{\ul
+planetnine
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=49553"}}{\fldrslt{\ul
+spk77
+}}}
+ ({\field{\*\fldinst{HYPERLINK "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"}}{\fldrslt{\ul
+donate
+}}}
+)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=58284"}}{\fldrslt{\ul
+X-Raym
+}}}
+ ({\field{\*\fldinst{HYPERLINK "http://extremraym.com/"}}{\fldrslt{\ul
+website
+}}}
+, {\field{\*\fldinst{HYPERLINK "http://www.extremraym.com/en/donation/"}}{\fldrslt{\ul
+donate
+}}}
+)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaTeam/ReaScripts is compatible with cfillion's {\field{\*\fldinst{HYPERLINK "https://reapack.com"}}{\fldrslt{\ul
+ReaPack
+}}}
+ package manager for REAPER.\line This repo is included by default in ReaPack, but if you need to reinstall it manually, copy and paste this URL in Extensions &gt; ReaPack &gt; Import a repository:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack/wiki"}}{\fldrslt{\ul
+ReaPack user guide
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Talk about this repository and ReaTeam in this thread on the REAPER forums:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=169127"}}{\fldrslt{\ul
+Developing thread
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/ReaScripts/fork"}}{\fldrslt{\ul
+Fork
+}}}
+ this repository in your GitHub account\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Add your lua/eel/python scripts in an appropriate category (directory)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Insert metadata at the top of the files (check out the {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Examples"}}{\fldrslt{\ul
+package examples
+}}}
+ and reapack-index's {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation"}}{\fldrslt{\ul
+packaging documentation
+}}}
+)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Send a pull request here, done!\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaTeam Scripts Repository (included in ReaPack)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/JSFX"}}{\fldrslt{\ul
+ReaTeam/JSFX
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaPack compatible repositories (included in ReaPack)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/X-Raym/REAPER-ReaScripts"}}{\fldrslt{\ul
+X-Raym/REAPER-ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts"}}{\fldrslt{\ul
+mpl/ReaScripts
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaPack compatible repositories (not included in ReaPack)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/chtammik/chtammik_Reaper_Scripts"}}{\fldrslt{\ul
+chtammik/chtammik_Reaper_Scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/EUGEN27771/ReaScripts"}}{\fldrslt{\ul
+EUGEN27771/ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/fernsehmuell/reaper_scripts"}}{\fldrslt{\ul
+fernsehmuell/reaper_scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/mrlimbic/reascripts"}}{\fldrslt{\ul
+mrlimbic/reascripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/przemoc/REAPER-ReaScripts"}}{\fldrslt{\ul
+przemoc/REAPER-ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.extremraym.com/en/downloads/category/reascripts/"}}{\fldrslt{\ul
+X-Raym/ReaScripts-Premium
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/X-Raym/MIDI-Makey-Makey"}}{\fldrslt{\ul
+X-Raym/MIDI-Makey-Makey
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other repositories or packs not compatible with ReaPack\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/actonDev/Reaper-Scripts"}}{\fldrslt{\ul
+actonDev/Reaper-Scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ambisonictoolkit/atk-reaper"}}{\fldrslt{\ul
+ambisonictoolkit/atk-reaper
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/belangeo/cookdsp"}}{\fldrslt{\ul
+belangeo/cookdsp
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/GoranKovac/ReaScripts"}}{\fldrslt{\ul
+GoranKovac/ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/indiscipline/reaper_scripts"}}{\fldrslt{\ul
+indiscipline/reaper_scripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://stash.reaper.fm/v/26812/ReaScript-MIDI.zip"}}{\fldrslt{\ul
+kawaCat/ReaScript-M2BPack
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/kronihias/ambix"}}{\fldrslt{\ul
+kronihias/ambix
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Lazzle/ReaMIDI"}}{\fldrslt{\ul
+Lazzle/ReaMIDI
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/lossius/js-plugins"}}{\fldrslt{\ul
+lossius/js-plugins
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/me2beats/rea-me2"}}{\fldrslt{\ul
+me2beats/rea-me2
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelKlier/KolorEyesOSCSync"}}{\fldrslt{\ul
+MichaelKlier/KolorEyesOSCSync
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/nofishonfriday/ReaScripts"}}{\fldrslt{\ul
+nofishonfriday/ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/thenfour/ReaperScripts"}}{\fldrslt{\ul
+thenfour/ReaperScripts
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you want your repo to appear on this list, simply edit this file and send a pull request.\par}
 }
 ]]></description>
     <link rel="website" href="http://forum.cockos.com/member.php?u=7973">Argitoth</link>
