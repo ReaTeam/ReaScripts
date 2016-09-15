@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af56041410fe409f7c5e732ea34c646f69cf90ee" name="ReaTeam Scripts">
+<index version="1" commit="92c0da820796daca49f132063e9b9a88805c32d2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1112,6 +1112,29 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/236004db773ce00636b302475d7ed43cdc233e1c/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Zoom MIDI editor to 5 measures at mouse position.lua" type="script" desc="js_Zoom MIDI editor to 5 measures at mouse position.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the MIDI editor's active take is switched via the track list to a take that is out of view, the MIDI editor will automatically "Zoom to content". If the newly active MIDI take is very large, "Zoom to content" provides a nice overview of the entire item, so that the user can easily locate the relevant MIDI data. However, zooming in again can be a hassle.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is therefore intended to provide an easy, one-click action to reset the MIDI editor's zoom level, without requiring the user to change the note, time or loop selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Simply point the mouse to the appropriate position in the MIDI item and press the linked shortcut or mouse modifier.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the script's USER AREA, the user can change the number of measures that the script zooms to, and these modified scripts can be saved under different names and linked to different shortcuts or mouse modifiers.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Warning\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script temporarily changes the loop region, so it may be safer to avoid running the script during playback or recording.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=176878">Simple but useful MIDI editor tools</link>
+      </metadata>
+      <version name="1.0" author="juliansader" time="2016-09-15T20:25:49Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/92c0da820796daca49f132063e9b9a88805c32d2/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script" desc="Delete note under mouse cursor">
