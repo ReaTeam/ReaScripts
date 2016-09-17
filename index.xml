@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="92c0da820796daca49f132063e9b9a88805c32d2" name="ReaTeam Scripts">
+<index version="1" commit="f8ed84d6c557fe584f9d9dfb3b2f4250bb163dff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
       <version name="0.2014.9.10" time="2015-12-02T21:24:29Z">
@@ -1122,7 +1122,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When the MIDI editor's active take is switched via the track list to a take that is out of view, the MIDI editor will automatically "Zoom to content". If the newly active MIDI take is very large, "Zoom to content" provides a nice overview of the entire item, so that the user can easily locate the relevant MIDI data. However, zooming in again can be a hassle.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script is therefore intended to provide an easy, one-click action to reset the MIDI editor's zoom level, without requiring the user to change the note, time or loop selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is therefore intended to provide an easy, one-click action to zoom in, without requiring the user to change the note, time or loop selection.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Simply point the mouse to the appropriate position in the MIDI item and press the linked shortcut or mouse modifier.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In the script's USER AREA, the user can change the number of measures that the script zooms to, and these modified scripts can be saved under different names and linked to different shortcuts or mouse modifiers.\par}
@@ -1135,6 +1135,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.0" author="juliansader" time="2016-09-15T20:25:49Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
         <source main="true">https://github.com/ReaTeam/ReaScripts/raw/92c0da820796daca49f132063e9b9a88805c32d2/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
+      </version>
+      <version name="1.10" author="juliansader" time="2016-09-17T16:07:10Z">
+        <changelog><![CDATA[+ Zooming creates undo point]]></changelog>
+        <source main="true">https://github.com/ReaTeam/ReaScripts/raw/f8ed84d6c557fe584f9d9dfb3b2f4250bb163dff/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script" desc="Delete note under mouse cursor">
