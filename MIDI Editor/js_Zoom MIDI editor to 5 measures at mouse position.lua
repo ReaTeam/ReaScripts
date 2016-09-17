@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Zoom MIDI editor to 5 measures at mouse position.lua
-Version: 1.0
+Version: 1.10
 Author: juliansader
 Website:
   Simple but useful MIDI editor tools http://forum.cockos.com/showthread.php?t=176878
@@ -11,8 +11,8 @@ About:
   "Zoom to content" provides a nice overview of the entire item, so that the user can easily locate the 
   relevant MIDI data.  However, zooming in again can be a hassle. 
 
-  This script is therefore intended to provide an easy, one-click action to reset the MIDI editor's zoom 
-  level, without requiring the user to change the note, time or loop selection.
+  This script is therefore intended to provide an easy, one-click action to zoom in, without requiring 
+  the user to change the note, time or loop selection.
   
   # Instructions
   Simply point the mouse to the appropriate position in the MIDI item and press the linked shortcut 
@@ -31,6 +31,8 @@ About:
 Changelog:
   * v1.0 (2016-09-14)
     + Initial release
+  * v1.10 (2016-09-16)
+    + Zooming creates undo point
 ]]
 
 -- USER AREA
@@ -42,6 +44,8 @@ number_of_measures = 5
 --------------------------------------
 editor = reaper.MIDIEditor_GetActive()
 if editor ~= nil then
+    
+    reaper.Undo_BeginBlock2(0)
     
     -- Store any pre-existing loop range
     loopStart, loopEnd = reaper.GetSet_LoopTimeRange2(0, false, true, 0, 0, false)
@@ -68,4 +72,5 @@ if editor ~= nil then
     -- Reset the pre-existing loop range
     reaper.GetSet_LoopTimeRange2(0, true, true, loopStart, loopEnd, false)
     
+    reaper.Undo_EndBlock2(0, "Zoom to 5 measures at mouse position", -1)
 end
