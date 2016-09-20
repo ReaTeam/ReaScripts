@@ -1850,7 +1850,7 @@ Developing thread
 Fork
 }}}
  this repository in your GitHub account\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Add your lua/eel/python scripts in an appropriate category (directory)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Add your lua/eel/python scripts in an appropriate category (directory) using the naming convention {\f1 author_Script Name.type}\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Insert metadata at the top of the files (check out the {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Examples"}}{\fldrslt{\ul
 package examples
 }}}
