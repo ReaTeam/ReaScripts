@@ -39,6 +39,7 @@ Talk about this repository and ReaTeam in this thread on the REAPER forums:
 
 1. [Fork](https://github.com/ReaTeam/ReaScripts/fork) this repository in your GitHub account
 2. Add your lua/eel/python scripts in an appropriate category (directory)
+     using the naming convention `author_Script Name.type`
 3. Insert metadata at the top of the files (check out the
 [package examples](https://github.com/cfillion/reapack-index/wiki/Examples) and
 reapack-index's [packaging documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation))
