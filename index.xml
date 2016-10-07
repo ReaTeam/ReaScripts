@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="118875073a1e0ca4ab202ee6212729fca2ccfa13" name="ReaTeam Scripts">
+<index version="1" commit="3c930c4d2d1f7b63e7c3ae0db83d5544447e99bd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/118875073a1e0ca4ab202ee6212729fca2ccfa13/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2016-10-07T06:16:07Z">
+        <changelog><![CDATA[disable creation of undo point]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c930c4d2d1f7b63e7c3ae0db83d5544447e99bd/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
