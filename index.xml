@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3c930c4d2d1f7b63e7c3ae0db83d5544447e99bd" name="ReaTeam Scripts">
+<index version="1" commit="6c99cdaf8a1facf4b9c3bea1df4557e94c68b825" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1595,6 +1595,13 @@ https://github.com/cfillion/reascripts
 + rewrite drawing & scrolling code
 + wait at least one second before blinking the cursor]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bfdb4ee178087033c0a4ca7fa005c231dd53b43/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.1" author="cfillion" time="2016-10-07T06:24:44Z">
+        <changelog><![CDATA[+ fix auto-completion of exact matches
++ fix caret display in multiline input
++ improve how partially visible lines affect the scrollbar
++ remember docked state (use `gfx.dock(N)` to put in dock)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6c99cdaf8a1facf4b9c3bea1df4557e94c68b825/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
