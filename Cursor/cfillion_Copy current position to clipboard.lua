@@ -1,6 +1,7 @@
 -- @description Copy current cursor/playback position to clipboard
--- @version 1.0
+-- @version 1.0.1
 -- @author cfillion
+-- @changelog disable creation of undo point
 
 local FORMAT = -1
 
@@ -44,3 +45,4 @@ local function position()
 end
 
 copy(reaper.format_timestr_len(position(), '', 0, FORMAT))
+reaper.defer(function() end) -- disable creation of undo point
