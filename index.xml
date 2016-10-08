@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6c99cdaf8a1facf4b9c3bea1df4557e94c68b825" name="ReaTeam Scripts">
+<index version="1" commit="47168e1db8b06fc5b6df35196733d092f3f3fb5d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1602,6 +1602,13 @@ https://github.com/cfillion/reascripts
 + improve how partially visible lines affect the scrollbar
 + remember docked state (use `gfx.dock(N)` to put in dock)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6c99cdaf8a1facf4b9c3bea1df4557e94c68b825/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.2" author="cfillion" time="2016-10-08T00:15:15Z">
+        <changelog><![CDATA[+ fix formatting of zero-indexed table
++ fix formatting of zero-sized (yet non-empty) tables
++ override global 'print' function
++ use braces instead of non-lua brackets for tables with numeric indexes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/47168e1db8b06fc5b6df35196733d092f3f3fb5d/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
