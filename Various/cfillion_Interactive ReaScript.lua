@@ -1,10 +1,10 @@
--- @version 0.4.1
+-- @version 0.4.2
 -- @author cfillion
 -- @changelog
---   + fix auto-completion of exact matches
---   + fix caret display in multiline input
---   + improve how partially visible lines affect the scrollbar
---   + remember docked state (use `gfx.dock(N)` to put in dock)
+--   + fix formatting of zero-indexed table
+--   + fix formatting of zero-sized (yet non-empty) tables
+--   + override global 'print' function
+--   + use braces instead of non-lua brackets for tables with numeric indexes
 -- @description Interactive ReaScript (iReaScript)
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=177324
 -- @screenshot http://i.imgur.com/RrGfulR.gif
@@ -39,12 +39,12 @@
 --   Send patches at <https://github.com/cfillion/reascripts>.
 
 local string, table, math, os = string, table, math, os
-local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs
+local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v0.4 by cfillion',
+  BANNER = 'Interactive ReaScript v0.4.2 by cfillion',
   MARGIN = 3,
   MAXLINES = 2048,
   MAXDEPTH = 3, -- maximum array depth
@@ -96,6 +96,14 @@ local ireascript = {
 
   EXT_SECTION = 'cfillion_ireascript',
 }
+
+print = function(...)
+  for i=1,select('#', ...) do
+    if i > 1 then ireascript.push("\t") end
+    ireascript.format(select(i, ...))
+  end
+  ireascript.nl()
+end
 
 function ireascript.help()
   ireascript.resetFormat()
@@ -772,10 +780,10 @@ function ireascript.format(value)
   local t = type(value)
 
   if t == 'table' then
-    local i, array, last = 0, #value > 0, 0
+    local i, array, last = 0, true, 0
 
     for k,v in pairs(value) do
-      if tonumber(k) then
+      if type(k) == 'number' and k > 0 then
         i = i + (k - last) - 1
         last = k
       else
@@ -823,7 +831,7 @@ function ireascript.format(value)
 end
 
 function ireascript.formatArray(value, size)
-  ireascript.push('[')
+  ireascript.push('{')
 
   for i=1,size do
     local v = value[i]
@@ -843,7 +851,7 @@ function ireascript.formatArray(value, size)
   end
 
   ireascript.resetFormat()
-  ireascript.push(']')
+  ireascript.push('}')
 end
 
 function ireascript.formatTable(value, size)
