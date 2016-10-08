@@ -1879,7 +1879,10 @@ package examples
 packaging documentation
 }}}
 )\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Send a pull request here, done!\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Send a {\field{\*\fldinst{HYPERLINK "https://help.github.com/articles/creating-a-pull-request-from-a-fork/"}}{\fldrslt{\ul
+pull request
+}}}
+ here, done!\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaTeam Scripts Repository (included in ReaPack)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/JSFX"}}{\fldrslt{\ul
 ReaTeam/JSFX
