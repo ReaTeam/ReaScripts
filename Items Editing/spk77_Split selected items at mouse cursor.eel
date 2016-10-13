@@ -1,0 +1,21 @@
+/*
+   * ReaScript Name: Split selected items at mouse cursor
+   * EEL script for Cockos REAPER
+   * Screenshot: http://stash.reaper.fm/21586/Split%20at%20mouse%20cursor.gif
+   * Author: spk77
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+*/
+
+// http://forum.cockos.com/showthread.php?t=144828
+// Split selected items at mouse cursor (obey snapping, keep edit cursor position
+	
+Undo_BeginBlock();
+PreventUIRefresh(1);
+c_pos = GetCursorPosition();
+Main_OnCommand(40513,0); // move edit cursor to mouse cursor
+Main_OnCommand(40757,0); // split at edit cursor (no change selection)
+SetEditCurPos(c_pos, 0, 0);
+PreventUIRefresh(-1);
+Undo_EndBlock("Split selected items at mouse cursor",-1);
