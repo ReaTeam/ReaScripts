@@ -1,10 +1,7 @@
--- @version 0.4.2
+-- @version 0.4.3
 -- @author cfillion
 -- @changelog
---   + fix formatting of zero-indexed table
---   + fix formatting of zero-sized (yet non-empty) tables
---   + override global 'print' function
---   + use braces instead of non-lua brackets for tables with numeric indexes
+--   fix drawing of multiline input after code execution
 -- @description Interactive ReaScript (iReaScript)
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=177324
 -- @screenshot http://i.imgur.com/RrGfulR.gif
@@ -44,7 +41,7 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v0.4.2 by cfillion',
+  BANNER = 'Interactive ReaScript v0.4.3 by cfillion',
   MARGIN = 3,
   MAXLINES = 2048,
   MAXDEPTH = 3, -- maximum array depth
@@ -421,7 +418,7 @@ function ireascript.update()
     ireascript.wrappedBuffer = {lines=0}
     ireascript.from = {buffer=1}
   else
-    while #ireascript.wrappedBuffer >= ireascript.from.wrapped do
+    while #ireascript.wrappedBuffer > ireascript.from.wrapped do
       if ireascript.wrappedBuffer[#ireascript.wrappedBuffer] == ireascript.SG_NEWLINE then
         ireascript.wrappedBuffer.lines = ireascript.wrappedBuffer.lines - 1
       end
@@ -503,7 +500,7 @@ function ireascript.update()
     end
   end
 
-  ireascript.from = {buffer=#ireascript.buffer, wrapped=#ireascript.wrappedBuffer}
+  ireascript.from = {buffer=#ireascript.buffer + 1, wrapped=#ireascript.wrappedBuffer + 1}
 end
 
 function ireascript.loop()
@@ -617,7 +614,7 @@ function ireascript.backtrack()
   if ireascript.from and ireascript.from.buffer > bi then
     ireascript.from.buffer = bi
 
-    wi = #ireascript.wrappedBuffer
+    local wi = #ireascript.wrappedBuffer
     while wi > 0 do
       if ireascript.wrappedBuffer[wi] == ireascript.SG_BUFNEWLINE then
         break
@@ -632,6 +629,19 @@ end
 
 function ireascript.removeCaret()
   ireascript.buffer[#ireascript.buffer].caret = nil
+
+  local wi = #ireascript.wrappedBuffer
+  while wi > 0 do
+    local segment = ireascript.wrappedBuffer[wi]
+
+    if segment == ireascript.SG_BUFNEWLINE then
+      break
+    elseif type(segment) == 'table' then
+      segment.caret = nil
+    end
+
+    wi = wi - 1
+  end
 end
 
 function ireascript.removeUntil(buf, sep)
@@ -997,7 +1007,7 @@ function ireascript.complete()
   word = word:lower()
 
   for k, _ in pairs(source) do
-    test = k:lower()
+    local test = k:lower()
     if test:sub(1, word:len()) == word then
       matches[#matches + 1] = k
     end
