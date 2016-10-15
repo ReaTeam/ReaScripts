@@ -1,0 +1,993 @@
+//@description Utility to store, recall and navigate take and item comps
+//@version 1.0
+//@author James H Eure
+//@about
+//  # ReaL Item Comps
+//  more info and tutorial coming soon.
+//@changelog
+// + initial GuitHub release
+
+
+@import COMP gfx and string functions.eel
+
+function GetUserComp(title) ( GetUserInputs(title, 1, "alias", #compname) );
+
+function debug(proj,section)local(i,keyout,valout)
+(
+  #debugstr=""; 
+  i=0; //keyout=#; valOut=#;
+  while(EnumProjExtState(proj, section, i, keyOut=#, valOut=#) )  ( 
+  
+    
+      strcat(#debugstr,keyOut);
+      strcat(#debugstr,"  ");
+      strcat(#debugstr, valOut);
+      strcat(#debugstr,"\r\n \r\n");
+      //xlen=strlen(valout);
+      i+=1;
+      
+  ); 
+      
+  ShowConsoleMsg(#debugstr); 
+  //ShowConsoleMsg(#debugstr2); 
+);  
+
+function debugkeys()local(xlen,i,keyout,valout)
+(
+  #debugstr=""; 
+  i=0; keyout=#; valOut=#;
+  while(EnumProjExtState(proj, section, i, keyOut, valOut) )  (    
+    strcat(#debugstr,keyOut);
+    strcat(#debugstr,"\r\n \r\n");
+    i+=1;
+  );     
+  ShowConsoleMsg(#debugstr);  
+); 
+
+function debugNumberedStrings(list)local(i,dnum,done)
+(
+  i=0; 
+  list ? (
+    dnum=#;
+    while( !done )
+    (
+      strcat(dnum,i);
+      strcat(dnum,"\n");
+      i+=1;
+      !strlen(i) ? done=1;
+    );
+  ShowConsoleMsg(dnum);
+  );  
+); 
+
+function filterCompnamefromkey(str)local(i,temp)//returns number //94 is ^
+(
+  i=0;
+  while( i<strlen(str) ) (
+    str_getchar(str, i)==94 ? ( strncpy(temp=#,str,i); strcpy(str,temp);  );
+    i+=1;
+  ); 
+);
+
+//save=1 : save with prompt  //save=3 delete 
+function Save_Comp(save,compname)local(debug,reset,overwritealias,,ormessage,item,i,itemguidStringOut,
+  takeguidStringOut,out,take_name,keyout,fin,fins,fin_a,fin_d,fout,fouts,fout_a,fout_d,act_take,key,keyout,len,match,
+  mute,num_items,pos,proj,section,s_offs,valout,kill,killlist,temp)
+(
+  save ? (
+    proj=EnumProjects(-1, "");
+    section="ReaL_Comps";
+    !strcmp(compname,"debug") ? debug=1;
+    !strcmp(compname,"remove all comps") ? (  //removes all comps in project
+      MB("Delete all Comps in Project?", "Delete Comps", 1) == 1 ? (
+        SetProjExtState(proj, section, "", "");//reset
+        reset=1;  _global.COMPreset=1;
+      );  
+    );    
+    !debug && !reset ? (  
+      i=overwritealias=0; match=#;
+      while( EnumProjExtState(proj, section, i, keyout=#, valout=#)  )  ( //baloon is keyOut
+        strcpy(match,keyout);
+        filterCompnamefromkey(match);
+        !stricmp(match,compname) ? overwritealias=1;
+        i+=1;
+      ); 
+      num_items=CountSelectedMediaItems();//item count 
+      
+      deletecomp=0;
+      //overwrite / delete
+      overwritealias ? (
+        num_items ? (       
+          sprintf(ormessage,"Overwrite existing Comp \"%s\"?",compname);          
+        ):(
+          sprintf(ormessage,"Delete Comp \"%s\"?",compname);    deletecomp=1;      
+        ); 
+        save!=3 ? MB(ormessage, "Comp found", 1) == 1 ? Dodelete=1;
+        //overwrite  - Delete all item keys for this alias if "OK"  
+         Dodelete || save==3 ?  (
+          i=0;  match=#; #killlist="";//killlist=#;
+          while( EnumProjExtState(proj, section, i, keyout=#, valout=#) ) ( 
+            strcpy(match,keyout);
+            filterCompnamefromkey(match);  
+            !stricmp(match,compname)  ? (strcat(#killlist,Keyout); strcat(#killlist,"\n"); );      
+            i+=1; //keys_num=i;
+          );
+          kill=BreakNewlines_NumberedStrings(#killlist,0);
+          
+          i=0;
+          loop( kill,
+            SetProjExtState(proj,  section, i, "");
+            i+=1;
+          );  
+          
+          _global.COMPreset=1; // a check to refresh display? may not be needed
+         
+        );// You have to store the keys before deleting them. If 
+      );  //you delete them while enumerating them, the number changes - and you delete every other one.
+      
+      
+      //grouped item helper 
+      num_items == 1 ? ( 
+        item=GetSelectedMediaItem(0, 0);
+        belongs=GetMediaItemInfo_Value(item, "I_GROUPID");
+        belongs ? 
+          uinput=MB("Include all grouped items?", "Single item selected", 3); 
+        uinput==6 ? ( //yes
+          Main_OnCommand(40034,0); //select items in group
+          num_items=CountSelectedMediaItems();//recount
+        );
+      );    
+                
+      num_items && (!uinput || uinput==6 || uinput==7) ? (   
+                       
+        i=0;
+        #values=""; //my values are null 
+        loop(num_items,
+          item=GetSelectedMediaItem(0, i);
+          
+          act_take=GetActiveTake(item);
+         
+          extension_api("BR_GetMediaItemTakeGUID", act_take, takeguidStringOut=#);
+            //would like to replace this if possible!!!!!!!!!!!
+            //guidToString("gGUID", #destNeed64) ?                    
+         #Values+=takeguidStringOut;
+         #Values+="\n";                    
+          pos=GetMediaItemInfo_Value(item, "D_POSITION");//get position and...         
+          len=GetMediaItemInfo_Value(item, "D_LENGTH");
+          fin=GetMediaItemInfo_Value(item, "D_FADEINLEN");
+          fout=GetMediaItemInfo_Value(item, "D_FADEOUTLEN");
+          sprintf(temp=#,"position=%.10f  length=%.10f  fadein=%.10f  fadeout=%.10f  ",pos,len,fin,fout);
+         #Values+=temp;           
+          fin_a=GetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO");
+          fout_a=GetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO");
+          fins=GetMediaItemInfo_Value(item, "C_FADEINSHAPE");
+          fouts=GetMediaItemInfo_Value(item, "C_FADEOUTSHAPE"); 
+          sprintf(temp,"fadein_auto=%.10f  fadeout_auto=%.10f  fadein shape=%0i  fadeout shape=%0i  ",fin_a,fout_a,fins,fouts); 
+         #Values+=temp;   
+          fin_d=GetMediaItemInfo_Value(item, "D_FADEINDIR");
+          fout_d=GetMediaItemInfo_Value(item, "D_FADEOUTDIR");
+          s_offs=GetMediaItemTakeInfo_Value(act_take, "D_STARTOFFS");//and start offset
+          mute=GetMediaItemInfo_Value(item, "B_MUTE");
+          sprintf(temp,"fadein_dir=%.10f fadeout_dir=%.10f  Start Offset=%.10f  mute=%i",fin_d,fout_d,s_offs,mute);
+         #Values+=temp; 
+         
+          //GetTakeName(take_name=#, act_take);//do this in display only
+ 
+          sprintf(#compKey,"%s^ITEM%03i",compname,i);//make key
+          i+=1;
+          SetProjExtState(proj,section,#compKey,#Values);  
+          #Values="";
+          _global.COMPreset=1;
+        );
+      ):(
+      !deletecomp ? MB("Comp Not Saved", "No items Selected!", 0);  //alert if no items selected     
+      ); 
+    ):
+    debug ? debug(proj,section); 
+    debug=0;  
+  );
+);
+
+      
+function load_comp(load,compname)
+//local(adjpos,baloon,comperror,compfound,debug,fin,fins,fin_a,fin_d,
+//  fout,fouts,fout_a,fout_d,i,item,key,len,l_loads,mute,needle,needle0,nlen,pos,position,relative,
+//  relpos,sel,soffs,take,takeerror,valout,proj,section,takename)
+(
+  load ? ( 
+    
+    proj=EnumProjects(-1, "");
+    section="ReaL_Comps";
+    !strcmp(compname,"debug") ? debug=1:debug=0;
+    
+    
+    //selection logic adds !s to the comp name. remove, read it here (needed for individual actions and not the display)
+    nlen=strlen(compname);  
+    strcpy_substr(sel=#,compname, -2, 2);
+    !stricmp("!s",sel) ? ( 
+      select=1;
+      strncpy(compname,compname,nlen-2);
+    ):select=0;
+    
+    
+    //check to find key. compfound = number of comps found
+    i=compfound=0;
+    while( EnumProjExtState(proj, section, i, baloon=#) )  (
+      sprintf(needle=#,"%s^*",compname);
+      matchi(needle,baloon) ? compfound+=1;
+      i+=1;
+    );
+    
+    relative=_global.COMPSrelativeposition; //
+    
+    //throw error if not found
+    !strlen(compname) ? compfound=0;
+    sprintf(comperror=#,"Comp %s not found!",compname);
+    !debug && !compfound ? MB("Comp not found!", "Load Comp", 0);
+    
+    //if found and not debug mode  
+    !debug && compfound ? (
+      i=0;
+      select ? Main_OnCommand(40289,0); //unselect other items if select is on
+      loop( compfound,
+        sprintf(key=#,"%s^ITEM%03i",compname,i);        //
+        GetProjExtState(proj,  section, key, #retval); 
+        strlen(#retval) ? (   
+           match("%38s\n*",#retval,#takeGUIDString);
+           take=GetMediaItemTakeByGUID(0, #takeguidString);   
+           item=GetMediaItemTake_Item(take); 
+           itemnum=GetMediaItemInfo_Value(item, "IP_ITEMNUMBER");    
+           track=GetMediaItem_Track(item);//track                  
+           //sprintf(needle0=#,"%s^ITEM000",compname);// needed ?           
+           
+           //get first item position and offset others if relative is on
+           relative  ? (
+             match("*^ITEM000",key) ? (
+               pos=GetMediaItemInfo_Value(item,"D_POSITION");
+               match("*position=%f*",#retval,relpos);
+             ):(
+               match("*position=%f*",#retval,adjpos);
+               position=pos+(adjpos-relpos);
+               SetMediaItemInfo_Value(item, "D_POSITION",position);
+             ); 
+           );
+           
+           !relative ?
+           (                   
+             match("*position=%f*",#retval,pos);
+             SetMediaItemInfo_Value(item, "D_POSITION",pos);//set position and...
+           );  
+                 
+   
+           take ? SetActiveTake(take);     
+           takenumber=GetMediaItemTakeInfo_Value(take, "IP_TAKENUMBER");
+           //get take number for splits - may consider looping to find source instead
+           source=GetMediaItemTake_Source(take);//get take source - yep
+                      
+           //Set fade ins 
+            
+            match("*  fadein=%f*",#retval,fin);
+            SetMediaItemInfo_Value(item, "D_FADEINLEN",fin);
+            match("*  fadein_auto=%f*",#retval,fin_a);
+            SetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO",fin_a);           
+            match("*  fadein shape=%i*",#retval,fins);
+            SetMediaItemInfo_Value(item, "C_FADEINSHAPE",fins);           
+            match("*  fadein_dir=%f*",#retval,fin_d);
+            SetMediaItemInfo_Value(item, "D_FADEINDIR",fin_d);       
+            
+            //get start offset
+            match("*  Start Offset=%f*",#retval,soffs);//starting start offset 
+            match("*  length=%f*",#retval,len);//get length
+            
+            re_pos=GetMediaItemInfo_Value(item, "D_POSITION");//re-get position
+              
+             //check for post splits
+                 splits=0;
+                 n=i+1;
+                 !dosplits ? (  //always doing it till we make a preference to not do so. 
+                  i!=compfound ? ( //get this stuff unless it's the last comp
+                   sprintf(key=#,"%s^ITEM%03i",compname,n);  //get key for next item in comp      
+                   GetProjExtState(proj,  section, key, #retvaln); //get string                 
+                   match("%38s\n*",#retvaln,#takeGUIDStringn); //get next take guid
+                   taken=GetMediaItemTakeByGUID(0, #takeguidStringn); //get next take  
+                   itemn=GetMediaItemTake_Item(taken);//item  
+                   trackn=GetMediaItem_Track(itemn);//track
+                   itemnumn=GetMediaItemInfo_Value(itemn, "IP_ITEMNUMBER");//number                  
+                   track == trackn ? splits=itemnumn-itemnum-1;
+                   //track != trackn ? on_newtrack=1;  //on the same track?
+                  );
+                  
+                  itemscount=CountTrackMediaItems(track);
+                  (i==(compfound-1) && itemnum<itemscount)  ? ( 
+                    end_pos=re_pos+len;//get end position
+                    //start a while
+                    ei=1; foundend=0;
+                    while (!foundend) (
+                      itemn=GetTrackMediaItem(track, itemnum+ei);//get next item
+                      nstart_pos=GetMediaItemInfo_Value(itemn, "D_POSITION");//get start of next item                      
+                      end_pos < nstart_pos ? foundend=1;
+                      ei+=1;
+                    );  
+                    splits=ei-1; __lastsplits=splits;
+                   );
+                    
+                 //track == trackn ? (  //on the same track?
+                  splits ? (
+                    //splits=itemnumn-itemnum-1;               
+                    splits > 0 ? (                   
+                      __totalsplits+=1;//debugging info only
+                      totaloffset=0;
+                      si=0;
+                      loop( splits+1 ,
+                        item_ns=GetTrackMediaItem(track, itemnum+si);//which item
+                        stack_push(GetMediaItemInfo_Value(item_ns, "D_POSITION"));//push it real good
+                        __splitloopruns+=1; //debugging info only
+                        numtakes_ns=GetMediaItemNumTakes(item_ns);//get number of takes in the new item
+                        nsi=0; found=0;
+                        while (!found && nsi<=numtakes_ns) (
+                          take_nsi=GetMediaItemTake(item_ns, nsi);
+                          source_ns=GetMediaItemTake_Source(take_nsi);             
+                          source_ns==source ? ( 
+                            __finds+=1;
+                            found=1;
+                            takenumber_nsi=GetMediaItemTakeInfo_Value(take_nsi, "IP_TAKENUMBER");                           
+                          );
+                          nsi+=1;                         
+                        );                        
+                        SetMediaItemInfo_Value(item_ns, "I_CURTAKE",takenumber_nsi); 
+                        
+                        si==0 ? SetMediaItemTakeInfo_Value(take_ns, "D_STARTOFFS", soffs);
+                          si ? (
+                         //set lenth and start offs after first loop
+                           item_ns2=GetTrackMediaItem(track, itemnum+si-1);//pevious item item
+                           take_ns2=GetActiveTake(item_ns2);//Get the take
+                           SetMediaItemInfo_Value(item_ns2, "D_LENGTH",stack_peek()-stack_peek(1));//set length
+                           totaloffset+=(stack_peek()-stack_peek(1));//
+                           take_ns=GetActiveTake(item_ns);//Get the take
+                           SetMediaItemTakeInfo_Value(take_ns, "D_STARTOFFS", soffs+totaloffset);
+                           
+                         );
+                      //set mute and select state here
+                      SetMediaItemInfo_Value(item_ns, "B_MUTE", mute);  
+                      select ? SetMediaItemInfo_Value(item_ns, "B_UISEL", select);  
+                      
+                      //if last of splits, set fade out info
+                      si==(splits) ? ( 
+                        //fadeout info            
+                         match("*  fadeout=%f*",#retval,fout);
+                         SetMediaItemInfo_Value(item_ns, "D_FADEOUTLEN",fout);
+                         match("*  fadeout_auto=%f*",#retval,fout_a);
+                         SetMediaItemInfo_Value(item_ns, "D_FADEOUTLEN_AUTO",fout_a);
+                         match("*  fadeout shape=%i*",#retval,fouts);
+                         SetMediaItemInfo_Value(item_ns, "C_FADEOUTSHAPE",fouts);
+                         match("*  fadeout_dir=%f*",#retval,fout_d);
+                         SetMediaItemInfo_Value(item_ns, "D_FADEOUTDIR",fout_d);  
+                      );
+                      si+=1;
+                    );  
+                    loop ( splits+1 , stack_pop(););
+                  ); 
+                 );
+                );  
+                          
+               
+              
+           
+           !splits  ? ( 
+             
+             SetMediaItemInfo_Value(item, "D_LENGTH",len); 
+             
+             SetMediaItemTakeInfo_Value(take, "D_STARTOFFS", soffs);
+            //fadeout info            
+             match("*  fadeout=%f*",#retval,fout);
+             SetMediaItemInfo_Value(item, "D_FADEOUTLEN",fout);
+             match("*  fadeout_auto=%f*",#retval,fout_a);
+             SetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO",fout_a);
+             match("*  fadeout shape=%i*",#retval,fouts);
+             SetMediaItemInfo_Value(item, "C_FADEOUTSHAPE",fouts);
+             match("*  fadeout_dir=%f*",#retval,fout_d);
+             SetMediaItemInfo_Value(item, "D_FADEOUTDIR",fout_d); 
+             
+             match("*  mute=%i*",#retval,mute);
+             SetMediaItemInfo_Value(item, "B_MUTE", mute);  
+             
+           ); 
+           
+           select ? SetMediaItemInfo_Value(item, "B_UISEL", select);  
+           UpdateItemInProject(item);
+           
+           GetSetMediaItemTakeInfo_String(take, "P_NAME", takename=#,0);
+           sprintf(takeerror=#,"%s item%i take \"%s\" not found",compname,i,takename);
+           !take ? ReaScriptError(takeerror);
+           updatearrange();
+           l_loads+=1;
+           //relpos=0;
+         );// 
+         
+        i+=1;    
+      );
+    );
+    debug ? debug(proj,section); degug=0;
+    !l_loads ? MB("WARNING: comp not loaded or items not found", "Load Comp", 0); 
+  );
+  
+  l_loads;
+);
+
+function load_comp(load)
+( load_comp(load,#compname); );  
+
+
+//end comp functions needed for individual Save Load actions
+ 
+
+function ext_color(extname,key,default)local(temp,val,color)
+/*If "key" is not found, saves a key in reaper-extstate.ini defining "key" to default
+returns integer value of "key" stored in ext state.
+reaper-extstate.ini can be edited to "theme" the window
+useage:   text_color=ext_color("Ext name","text color",0x040404);
+*/
+(
+  HasExtState(extname, key) ? ( 
+    GetExtState(temp=#, extname, key); match("%i",temp,color); //setcolor(color); 
+  ):(
+    sprintf(val=#,"%i",default); SetExtState(extname, key, val, 1); //setcolor(default);
+    color=default;
+  );   
+  color; 
+);  
+
+
+function int_option(extname,key,default,newval,setnewval)local(getvalue,setvalue,value)
+// int  int_option("section", "key", int default, int newval, bool setnewval)
+//saves key in reaper-extstate.ini
+(
+  getvalue=#; setvalue=#;
+  !HasExtState(extname, key)  ? (
+    sprintf(setvalue,"%i",default);
+    SetExtState(extname, key, setvalue, 1);
+  ); 
+  setnewval ? (
+    sprintf(setvalue,"%i",newval); 
+    SetExtState(extname, key, setvalue, 1);
+    setnewval=0;
+  );
+  HasExtState(extname, key) ? ( 
+    GetExtState(getvalue, extname, key); match("%i",getvalue,value); 
+  ); 
+  value;
+);
+
+
+//need to move this gem into the library ;)
+function ActionBox(str,w,h)instance(trigger)
+(
+  trigger ? trigger=0;
+  gfx_a=1; 
+  edged_grad_h(gfx_x,gfx_y,w,h,field_color,6,.57,.4);
+  setcolor(text_color); gfx_a=.3; 
+  gfx_roundrect(gfx_x-1,gfx_y-1,w,h,2,0,1);
+  mouse_in_rect(gfx_x-1,gfx_y-1,w,h) ? (
+     setcolor(highlight2,1); gfx_roundrect(gfx_x,gfx_y,w-2,h-2,2,0,1);
+     mouse_click(1) ? trigger=1;
+  );   
+  gfx_a=.8;
+  gfx_x+=w/2; gfx_y+=h/2-(gfx_texth/2);
+  setcolor(text_color);
+  print_centerjust(str);
+  
+  trigger;
+); 
+
+function GetMediaItem_Comps(item)local(guidstringout,needle,i,baloon,keyout,find)
+//NOT IMPLEMENTED / BROKEN or INCOMPLETE
+//For filter 
+//gets a string of all keys for this item (newline seperated)
+(
+  
+  proj=EnumProjects(-1, "");
+  #section="ReaL_Comps";
+  //tension_api("BR_GetMediaItemGUID", item, guidStringOut=#);
+  //rintf(needle=#,"*%s*",guidStringOut);
+  i=find=0; //#compkeys="";
+  while(EnumProjExtState(proj, #section, i, keyOut=#, valOut=#) ) (
+    BreakNewlines_NumberedStrings_limit(valOut,0,1);//only first  break needed
+    take=GetMediaItemTakeByGUID(proj, 0);//string 0 is guid
+    compitem=GetMediaItemTake_Item(take);
+    compitem==item ? (
+      #compkeys+=keyout;    
+      #compkeys+="\n";      
+      find+=1;
+    );  
+    i+=1;
+  );
+  !find ? (strcpy(#compkeys,"no comps"); find=1);
+  find;
+);
+
+function GetCompsofTracks(proj)local(numtracks,i,ii,iii,track,numitems,item,take,compitem)
+(
+  numtracks=countselectedtracks(proj);
+  i=0;
+  strlen(#trackcompkeys) ? #trackcompkeys="";
+  loop (numtracks,    
+    track=GetSelectedTrack(proj, i);
+    numitems=CountTrackMediaItems(track);
+    ii=0;
+    loop(numitems,
+      item=GetTrackMediaItem(track, ii);
+      iii=0;
+      while(EnumProjExtState(proj, #section, iii, keyOut=#, valOut=#) ) (//enum ext state
+        match("*^ITEM000",keyout) ? ( //look only for item000's
+          BreakNewlines_NumberedStrings_limit(valOut,0,1);//only first  break needed
+          take=GetMediaItemTakeByGUID(proj, 0);//string 0 is guid
+          compitem=GetMediaItemTake_Item(take);
+          compitem==item ? ( 
+            filterCompnamefromkey(keyOut); 
+            strcat(#trackcompkeys,keyout); 
+            #trackcompkeys+=" ";//add space between cmop names
+          );  
+        );
+        iii+=1;
+      );  
+      ii+=1;
+    );
+  i+=1;
+  );
+);      
+
+//
+function GetAllComp_Takes_String2(dolist)local(i,compname,valout,keyout,nameret)
+(
+  dolist ? (
+    GetCompsofTracks(proj);
+    i=mempos=fi=autoinc=0;  compname=#;  #ListAllCompsAndTakes="";
+    sprintf(#needle,"*%s*",#filter);
+    
+    while(EnumProjExtState(proj, #section, i, #keyOut, valOut=#)  )  ( //enum listings
+      filterCompnamefromkey(#keyOut);  //filter to comp name 
+      sprintf(trackneedle=#,"*%s*",#keyout); 
+      trackfilter && match(trackneedle,#trackcompkeys) ? isontrack = 1:isontrack=0;
+      !trackfilter ? isontrack=1;
+   matchi(#needle,#keyout) && isontrack ? (     
+      stricmp(compname, #keyout) || (!fi && !match(keyout,"end\n")) ? (  //is this name different? and not first or last?          
+        strcpy(compname,#keyout);           //copy name to compname
+        strcat(#ListAllCompsAndTakes,#keyout);
+        strcat(#ListAllCompsAndTakes,"\n");
+        autoinc+=1;
+        mempos[]=1; mempos+=1;//flag comp 
+        
+      );
+      BreakNewlines_NumberedStrings_limit(valOut,0,1);//only first  break needed
+      //checks for updated take name 
+      take=GetMediaItemTakeByGUID(proj, 0);//string 0 is guid
+      GetTakeName(#nameret, take); //get take name
+      strcat(#ListAllCompsAndTakes,"$");//adds a character - denotes take
+      strcat(#ListAllCompsAndTakes,#nameret);//add take name
+      strcat(#ListAllCompsAndTakes,"\n");//add newline   
+      mempos[]=take;//store MediaItemtake in memory
+      mempos+=1;
+      fi+=1;  
+  );  
+  i+=1;      
+    );     
+  );  
+  fi; //return fi (number of states returned)
+);
+ 
+function SelectAllItemsInComp(compname)local(i,name,take,guid,item,keyout,valout)
+(
+    i=0;  //compname=#; 
+    Main_OnCommand( 40289 , 0);  //unselect all items 
+    while(EnumProjExtState(proj, #section, i, keyOut=#, valOut=#)  )  ( //enum listings 
+      //filter compname
+      strcpy(name=#,keyOut);
+      //filterCompnamefromkey(compname);
+      filterCompnamefromkey(name);
+      match(compname,name) ? (
+        //filter take GUID          
+        strcpy(guid=#,valout); FilterStringWithinBraces(guid,1);
+        take=extension_api("SNM_GetMediaItemTakeByGUID", proj, guid); 
+        item=GetMediaItemTake_Item(take);               
+        SetMediaItemSelected(item, 1);
+     );
+     i+=1;   
+  );
+); 
+
+function GetItem0_IGUIDs()
+local(i,guidOut,take,item,keyout,valout)
+(
+  i=0; #item0IGUIDs="";  
+  while(EnumProjExtState(proj, #section, i, keyOut=#, valOut=#)  )  ( //enum listings 
+    match("*^ITEM000",keyOut) ? ( //look only for item000's
+      BreakNewlines_NumberedStrings_limit(valOut,0,1);//only first  break needed
+      take=GetMediaItemTakeByGUID(proj, 0);//string 0 is guid
+      item=GetMediaItemTake_Item(take);
+      //extension_api("BR_GetMediaItemGUID", item, guidOut=#);
+      strcat(#item0IGUIDs,guidOut); strcat(#item0IGUIDs," ");
+      
+    );
+  i+=1;   
+  );     
+      
+);
+  
+function draw_compdisplay()
+local(bottomborder,boxw,init,color,temp,ww,hh,filter,filter_str,i,adjpos,apply,u)
+(
+  
+    #section="ReaL_Comps";
+    (GetCurrentProjectInLoadSave() && GetCurrentProjectInLoadSave()!=proj) 
+      || _global.COMPreset || EnumProjects(-1, "")!=proj || !init ? (
+      dolist=1;  runtimes+=1; proj=EnumProjects(-1, "");
+      );
+
+    
+//beginf load options  
+    //dockstate 
+    dockstate!=dcache ? dset=1;
+    dockstate=d.int_option(#section,"dockstate",1,dockstate,dset);
+    dcache=dockstate;
+    dockstate=gfx_dock(-1);
+    //x,y pos   hmmm?
+    //xset=x.int_option(#section,"xpos",0,xset,xset!=xsetcache);
+    //xsetcache=xset; 
+    //zoom scroll on selection change *value stored in -extstate.ini
+    Czoom ? ( zoom=2;);
+    Sview && !Czoom ? zoom=1;
+    !Czoom && !Sview ? zoom=0;
+    zoom=z.int_option(#section,"Zoom on selection Change",2,zoom,zoom != zcache);
+    zcache=zoom;
+    //edit cursor move *value stored in -extstate.ini
+    ec=ec.int_option(#section,"Move Edit Cursor on Selection Change",1,ec,ec!=eccache);
+    eccache=ec;
+    //select items on comp change *value stored in -extstate.ini
+    sel_on=so.int_option(#section,"select items on comp change",0,sel_on,sel_on!=selcache);
+    selcache=sel_on;
+    //store width and height ( docker overrides )
+    width=int_option(#section,"display_width",150,max(gfx_w,150),gfx_w!=wcache);
+    wcache=gfx_w;
+    height=int_option(#section,"display_height",500,gfx_h,gfx_h!=hcache);
+    wcache=gfx_h;
+    
+    //relative position *stored per-project - change does not persist without save
+    !init ? (  
+      GetProjEXTState(proj,"Real_Comps_RelativePositioning","=",#rel);
+      !strlen(#rel) ? (
+        SetProjEXTState(proj,"Real_Comps_RelativePositioning","=",1);
+        _global.COMPSrelativeposition=1; rel_pos=1;
+      ): rel_pos=rel;
+    );        
+    rel_pos!=relcache ? (
+      SetProjEXTState(proj,"Real_Comps_RelativePositioning","=",rel_pos);
+      _global.COMPSrelativeposition=rel_pos;
+      ); 
+    relcache=rel_pos;
+    //FIlter by selected tracks
+    trackfilter=tf.int_option(#section,"filter by selected tracks",0,trackfilter,trackfilter!=tfcache);
+    tfcache=trackfilter;    
+// endf load options    
+
+//beginf Dolist    
+    //redo list on change of states (various)
+    dolist || GetProjectStateChangeCount(proj)!=changecache || resetfilter || trackfilter!=tfcache ? (
+      GetAllComp_Takes_String2(1); 
+      u=0; loop( 1023, strcpy(u,""); u+=1; ); u=0; //null numbered strings
+      num_loop=BreakNewlines_NumberedStrings(#ListAllCompsAndTakes,0);//get number for loop      
+      resetfilter ? resetfilter=0; //force filter back
+      //listtimes+=1; //debugging count
+    );     
+    changecache=GetProjectStateChangeCount(proj);    
+//endf Dolist    
+   
+     
+//beginf make GUI    
+    //GUI Background
+    setcolor(background_color);   
+    gfx_rect(0,0,gfx_w,gfx_h);      
+    left=14;
+    right=gfx_w-15;
+    setcolor(field_color);
+    topborder=38;
+    options=1;
+    gfx_w < 300 ? (
+      bottomborder=gfx_h-86;
+      middle=right;
+    ):(
+      bottomborder=gfx_h-52;
+      middle=gfx_w/2;
+    );      
+    gfx_h < 360 ? (
+      bottomborder=gfx_h-20;
+      options=0;
+    );      
+    gfx_rect(5,topborder,gfx_w-10,bottomborder-topborder);
+    setcolor(outline_color);   
+    gfx_roundrect(5,topborder,gfx_w-10,bottomborder-topborder,0,0);
+    
+    //GUI Field
+    setcolor(text_color);    
+    gfx_setfont(2,"Microsoft San-serif",14);
+    gfx_y=45;
+    gfx_x=left;   
+    nextline=gfx_texth+4;   
+    fieldystart=(topborder);
+    fieldyend=fieldystart+(bottomborder-topborder);
+    fieldsize=((fieldyend-fieldystart)/nextline)|=0;
+    //mousewheel scroll   
+    mouse_wheel<mousewheelcache && string_start+fieldsize<line ? string_start+=1;
+    mouse_wheel>mousewheelcache && string_start>0 ? string_start-=1;
+    mousewheelcache=mouse_wheel;
+    gfx_y=topborder;
+    gfx_x=left; line=i=0; _flag=1000000; take_mempos=0;   
+    //debug.mouse_click_i(61) ? debugNumberedStrings(1);
+    
+    //GUI draw loop
+    loop( num_loop,      
+      !IsStringPrefix(i,"$") ? ( //is not a take? comp name
+        !_flag[i] ? _flag[i]=-1; //default to collapsed if flag null
+        collapse=_flag[i]; //collapse state from mem location
+        line+=1; //count lines in field
+        gfx_y < fieldyend-gfx_texth && string_start<=line   ? (  //are we inside the field?      
+          gfx_x=left;  //set x position
+          collapse==-1 ? gfx_roundrect(gfx_x-2,gfx_y+3,8,2,0,0); //collapse state icon
+          collapse==1 ? gfx_roundrect(gfx_x-2,gfx_y+3,8,8,0,0);  
+          gfx_setfont(3,"Microsoft San-serif",18);   //bigger font for the fakie button   
+          collapse=draw_leftjust_toggle("  ",collapse,-1,1);//fakie string
+          _flag[i]=collapse;//put collapsed state into mem location
+        );       
+        gfx_setfont(2,"Microsoft San-serif",14);
+        gfx_y<fieldyend-gfx_texth && string_start<=line   ? (  //Is in field andabove start line?      
+          gfx_x=left+16; //string draw location
+          
+          mousein_texth(txt_w(i)+8)  ? ( //highlight on mouse over
+            setcolor(highlight1);
+            gfx_rect(gfx_x,gfx_y,txt_w(i)+8,gfx_texth);
+            setcolor(text_color);
+            
+            strcpy(#CompApply,i); //copy number string to a named string or all hell breaks loose!
+            
+            mouse_click(2) ? (      
+                  rmenu=gfx_showmenu("Apply Comp|Rename Comp|Overwrite comp|Delete Comp " );
+                  rmenu == 3 ? Save_Comp(1,#CompApply);
+                  //delete
+                  rmenu == 4 ? ( Main_OnCommand( 40289 , 0); Save_Comp(1,#CompApply);); //unselect all items and save (prompts)
+                  rmenu == 1 ?  ( 
+                    sel_on ? SelectAllItemsInComp(#CompApply);
+                    load_comp(1,#CompApply);
+                    zoom == 1 ? Main_OnCommand(NamedCommandLookup("_S&M_SCROLL_ITEM"),0);// scroll to view            
+                    zoom == 2 ? ( 
+                      Main_OnCommand(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS"),0);            
+                      !GetToggleCommandState(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS")) ? 
+                        Main_OnCommand(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS"),0);//zoom to items
+                    );          
+                    ec ? Main_OnCommand(41173,0); //move edit cursor
+                  );
+                  rmenu==2 ? (                 
+                    load_comp(1,#CompApply); 
+                    SelectAllItemsInComp(#CompApply);
+                    Save_Comp(GetUserComp("Save New or Reset Comp"),#compname);
+                    stricmp(#CompApply,#Compname) ? (
+                     Main_OnCommand( 40289 , 0); 
+                     Save_Comp(3,#CompApply);            
+                    );               
+                  );                   
+          ); 
+        
+        
+            mouse_click(10) ?  (   //Shift Right Click Selection                   
+              SelectAllItemsInComp(i);//select all items in comp on r-click      
+              zoom == 1 ? Main_OnCommand(NamedCommandLookup("_S&M_SCROLL_ITEM"),0);// scroll to view            
+              zoom == 2 ? ( Main_OnCommand(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS"),0);            
+                !GetToggleCommandState(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS")) ? 
+                  Main_OnCommand(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS"),0);//zoom to items
+              );          
+              ec ? Main_OnCommand(41173,0); //move edit cursor
+            );        
+          );
+          
+          //double click on comp name to apply
+          apply=print_leftjust_xon_dbl(i,apply,1); //draw comp name
+          
+          apply ? (  //apply comp           
+            load_comp(apply,#CompApply); apply=0;
+            sel_on ? SelectAllItemsInComp(#CompApply);
+            zoom == 1 ? Main_OnCommand(NamedCommandLookup("_S&M_SCROLL_ITEM"),0);// scroll to view            
+            zoom == 2 ? ( 
+              Main_OnCommand(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS"),0);            
+              !GetToggleCommandState(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS")) ? 
+                Main_OnCommand(NamedCommandLookup("_SWS_TOGZOOMHORIZ_ITEMS"),0);//zoom to items  
+            );
+            ec ? Main_OnCommand(41173,0); //move edit cursor
+          );
+          cr(); //to next y
+          gfx_x=left+12;   //indent for takes         
+        );
+      );
+      //take names       
+      IsStringPrefix(i,"$")   ? (  //is take?
+      
+      collapse==1 ? (  //if open        
+        take=take_mempos[i]; //get MediaItemTake from mem position
+        item=GetMediaItemTake_Item(take); //get item of take
+        line+=1; //line count
+        gfx_y < fieldyend-gfx_texth && string_start<=line  ? ( //are we in field and above start line
+          gfx_x=left+20;          
+          //higlight - clickable                      
+          GetMediaItemInfo_Value(item, "B_UISEL") ? ( //draw box if selected
+            boxw=12;
+            setcolor(0xD8D8D8); gfx_rect(gfx_x-16,gfx_y,boxw,gfx_texth-2); 
+            setcolor(0x999999); gfx_roundrect(gfx_x-16,gfx_y,boxw,gfx_texth-2,0,0);
+          );            
+          setcolor(text_color); 
+          GetActiveTake(item)==take ? gfx_circle(gfx_x-10,gfx_y+6,1,1,1); //draw dot if active          
+          strcpy_from(#takename,i,1); //take name (removes '$')
+          mousein_texth(txt_w(take_n)+8)   ? ( //highlight on mouse over
+            setcolor(highlight1);
+            gfx_rect(gfx_x,gfx_y,txt_w(take_n)+8,gfx_texth);
+            setcolor(text_color);  
+            //Select item on L click                       
+            mouse_click(1)  ? (            
+            //Main_OnCommand( 40289 , 0);  //unselect all items        
+              SetMediaItemSelected(item, 1); //select item
+              ec ?  Main_OnCommand(41173,0); //move editor cursor
+              zoom == 1 ? Main_OnCommand(NamedCommandLookup("_S&M_SCROLL_ITEM"),0);// scroll to view                       
+            );
+            mouse_click(2)  ? (            
+              Main_OnCommand( 40289 , 0);  //unselect all items        
+              SetMediaItemSelected(item, 1); //select item
+              ec ?  Main_OnCommand(41173,0);  //move editor cursor
+              zoom == 1 ? Main_OnCommand(NamedCommandLookup("_S&M_SCROLL_ITEM"),0);// scroll to view                       
+            );  
+            //set active take to this take        
+            mouse_dblclick(1) ? (
+              SetActiveTake(take); //set active
+              Main_OnCommand( 40289 , 0);  //unselect all items        
+              SetMediaItemSelected(item, 1);  //select item            
+            );               
+          );       
+          draw_leftjust(#takename);//draw name string
+          cr(); //to next line y
+        ); 
+      );                
+      );      
+   i+=1;   
+   );  
+    
+    
+    //GUI header
+    //filter box
+    gfx_setfont(1,"Microsoft San-serif",16);   
+    gfx_y=5; gfx_x=5;   
+    draw_leftjust("Filter:"); gfx_x+=6;
+    text_field(#filter,(gfx_w-50)/txt_w("0"),field_color);
+    strcmp(#fcache,#filter) ? resetfilter=1;
+    strcpy(#fcache,#filter);
+    //clear
+    gfx_setfont(1,"Microsoft San-serif",12);    
+    gfx_x=6; gfx_y=topborder-14;
+    f.ActionBox("clear",30,12) ? ( #filter=""; setfilter=1;);
+    //track filter
+    gfx_w > 124 ? #seltrackon="Selected Tracks:":#seltrackon="Sel.Tracks:";
+    gfx_w > 200 ? #seltrackon="Filter by Selected Tracks:";   
+    gfx_x+=22; 
+    draw_leftjust(#seltrackon);
+    gfx_x+=2; gfx_y+=1;
+    Trackfilter=Xbox(trackfilter);    
+    //auto name to first selected track if track filter is on
+    trackfilter  ? (
+      GetSetMediaTrackInfo_String(GetSelectedTrack(proj, 0), "P_NAME", #trackName, 0);
+      !strlen(#trackName) ? #trackName="COMP";
+      sprintf(#autoname,"%s %s %02i",#trackName,#filter,autoinc+1);
+    ):(
+     strlen(#filter) ? #autoname_pre=#filter:#autoname_pre="COMP";
+     sprintf(#autoname,"%s %02i",#autoname_pre,autoinc+1);
+    );   
+      
+      
+    //Footer
+    oy4=gfx_h-gfx_texth-8;
+    oy3=oy4-gfx_texth*1.25;
+    oy2=oy3-gfx_texth*1.25;
+    oy1=oy2-gfx_texth*1.25;
+    
+    gfx_y=bottomborder+4; gfx_x=6; 
+    s.ActionBox("New Comp",50,12) ?
+      Save_Comp(GetUserComp("Save New or Reset Comp"),#compname)
+     :strcpy(#compname,#autoname);
+    gfx_x+=30; sprintf(#autoname,"\" %s \"",#autoname);
+    draw_leftjust(#autoname);
+    //options    
+    options ? (     
+      gfx_setfont(2,"Microsoft San-serif",12);   
+         
+      gfx_x=right-45; gfx_y=oy4;
+      draw_rightjust("Scroll View");
+      gfx_x+=2; gfx_y+=1;
+      Sview=Xbox(Sview);
+      gfx_x+=20; gfx_y-=1;
+      
+      gfx_x=right;
+      draw_rightjust("Zoom");
+      gfx_x+=2; gfx_y+=1;
+      Czoom=Xbox(Czoom);
+      
+      Czoom ? zoom=2;
+      Sview && !Czoom ? zoom=1;
+      !Czoom && !Sview ? zoom=0;
+      
+      gfx_w < 300 ? (
+        gfx_y=oy3; gfx_x=middle;
+      ):(
+        gfx_y=oy4; gfx_x=right-108;    
+      );
+      draw_rightjust("Move Cursor");
+      gfx_x+=2; gfx_y+=1;
+      ec=Xbox(ec);
+      
+      gfx_y-=1;
+      gfx_x-=txt_w("Move Cursor")+24;
+      draw_rightjust("On Selection:");
+      gfx_x+=6; 
+      
+      gfx_w < 300 ? gfx_y=oy2:gfx_y=oy3;
+      gfx_x=right; 
+      draw_rightjust("Relative Positioning:");
+      gfx_x+=2; gfx_y+=1;
+      rel_pos=Xbox(rel_pos);
+      
+      gfx_w < 300 ? (
+        gfx_y=oy1;
+        gfx_x=middle;        
+      ):(
+        gfx_y=oy3;
+        gfx_x-=txt_w("Relative Positioning:")+30;
+      ); 
+      draw_rightjust("Select on Comp change:"); 
+      gfx_x+=2; gfx_y+=1;
+      sel_on=Xbox(sel_on);
+    );// end options
+//endf make GUI    
+    
+    //
+    dolist=0; init=1;    
+    ww=gfx_w; hh=gfx_h;
+    gfx_update();
+    
+    get_action_context("",_AsectionID,_AcmdID,"","","");
+    SetToggleCommandState(_AsectionID,_AcmdID, 1);
+        
+    
+    gfx_getchar() >= 0  ? defer("draw_compdisplay()");    
+);    
+
+       
+proj=EnumProjects(-1, "");
+#section="ReaL_Comps";
+dockstate=int_option(#section,"dockstate",1,0,0);
+width=int_option(#section,"display_width",130,0,0);
+height=int_option(#section,"display_height",500,0,0);
+x=int_option(#section,"xpos",120,0,0);
+y=int_option(#section,"ypos",120,0,0);
+gfx_init("Item Comps       ", width, height ,dockstate, x, y);
+gfx_setfont(1,"Microsoft San-serif",14);     
+background_color=ext_color(#section,"background color",0xBBBFBF);     
+field_color=ext_color(#section,"field color",0xDCDEDE); 
+outline_color=ext_color(#section,"outline color",0x969696);    
+text_color=ext_color(#section,"text color",0x040404);
+highlight1=ext_color(#section,"highlight1",0x9696BB); 
+highlight2=ext_color(#section,"highlight2",0xF0C000);              
+       
+draw_compdisplay();
+
+       //debugNumberedStrings();
+       //!CTdebug ? ( ShowConsoleMsg(#ListAllCompsAndTakes); CTdebug=1;);
+       
+       atexit(
+         "SetToggleCommandState(_AsectionID,_AcmdID, 0);
+         RefreshToolbar2(_AsectionID,_AcmdID)"
+       );     
+                
+       
+       
