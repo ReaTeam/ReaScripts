@@ -1,6 +1,9 @@
 //@description gfx and string library for use with COMPS Display
 //@version 1.0
 //@author James H Eure
+//@provides [no main]
+
+
 
 
 //beginf color functions 
@@ -576,7 +579,7 @@ function __print_mouse_dblclick (cap)local(i,ii,sp)//to create a double click tr
 function print_leftjust_xon_dbl(string,var,onstate)
 (
   print_leftjust(string);
-  !_gfx_drag && mouse_in_rect(gfx_x,gfx_y,txt_w(string),gfx_texth) && __print_mouse_dblclick (1) && var!=onstate ? var=onstate;  
+  !_gfx_drag && mouse_in_rect(gfx_x,gfx_y,txt_w(string),gfx_texth) && __print_mouse_dblclick (1) && var!=onstate ? var=onstate; 
   
   var;  
 );  
@@ -881,6 +884,5 @@ function Xbox(var,str)
   var=Xbox(var);draw_leftjust(str);var;
 );
  
-
 
 
