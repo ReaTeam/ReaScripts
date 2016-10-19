@@ -7,7 +7,7 @@
 //@changelog
 // + initial GuitHub release
 
-@import gfx and string functions.eel
+@import JamesHE_gfx and string functions.eel
 
 function GetUserComp(title) (  GetUserInputs(title, 1, "Comp name,extrawidth=120" , #compname);  );
 
