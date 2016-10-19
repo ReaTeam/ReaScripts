@@ -1,0 +1,892 @@
+//@description gfx and string library 
+//@version 1.0
+//@author James H Eure
+//@provides [nomain] .
+
+
+
+
+//beginf color functions 
+function setcolor(hex)
+  ( gfx_r= ((hex>>16)&255)/255; gfx_g= ((hex>>8)&255)/255; gfx_b= (hex>>0&255)/255;  );
+function setcolor(hex,a)
+  ( setcolor(hex); gfx_a=a/255; );  
+function setcolor(r,g,b) 
+  ( gfx_r=r/255; gfx_g=g/255; gfx_b=b/255; );
+function setcolor(r,g,b,a)
+  ( setcolor(r,g,b); gfx_a=a/255 );
+  
+function pack_rgb()
+  (!gfx_b?gfx_b+=.001;(((gfx_b*255)+(gfx_g*255)*256+(gfx_r*255)*65536)););
+function pack_rgb(r,g,b)
+  (!b?b+=.001;( (b*255) + (g*255)*256 + (r*255)*65536);); 
+function unpack_r(pack)
+  (((pack>>16)&255)/255);
+function unpack_g(pack)
+  (((pack>>8)&255)/255);
+function unpack_b(pack)
+  ((((pack&255))/255));
+function unpack_rgb() local(r,g,b)
+  (gfx_r=unpack_r(pack_rgb()); gfx_g=unpack_g(pack_rgb()); gfx_b=unpack_b(pack_rgb()); );
+//endf
+
+//beginf x,y                                                                              
+function xymask(x,y)
+  ( x+y*max(gfx_w,gfx_h); ); //used in was_drag, etc
+function _xy(x,y)  //sets gfx_x, gfx_y. returns a packed value 
+  ( gfx_x=x; gfx_y=y; xymask(x,y));
+function _gfx_sizecache()
+ (_gfx_sizecache=gfx_w+gfx_h*256; _gfx_sizecache;);
+function return_gfxsize()
+ (gfx_w+gfx_h*256;);   
+  
+//unfinished outline for a xywh table  
+function __init_xywh(ux,uy,uw,uh)//instance(x,y,w,h,init)
+  ( !this..init  ? (this..x=ux; this..y=uy; this..w=uw; this..h=uh; this..init=1;); );
+function _init_xywh(ux,uy,uw,uh)instance(x,y,w,h,init)
+  ( !init  ? (x=ux; y=uy; w=uw; h=uh; init=1;); );  
+//endf                                                                                                      
+
+//beginf MOUSE                                           
+function mouse_in_rect(x,y,w,h)//return 1 if yes, 0 if no
+  (  mouse_x > x && mouse_x < (x+w) && mouse_y > y && mouse_y < (y+h)  ? 1 : 0; );//
+//When using with mouse_in_rect, click areas must not overlap.
+// to have an overlaping area use _instance version, or create a function specific version
+// i.e. __xon_mouse_click(cap) and __toggle_mouse_click(cap) can be used on the same object
+function mouse_click(cap)local(i) 
+  (mouse_cap == cap ? i+=1: i=0; i == 1 ? 1 : 0;);
+function mouse_dblclick (cap)local(i,ii)//to create a double click trigger
+  (mouse_cap==cap && !_gfx_drag ? (i+=1; i==1 ? ii+=5): (i=0; ii > 0 ? ii-=1); ii >= 6 ? 1:0;);
+function mouse_dblclick (cap,speed)local(i,ii)//sets speed
+  (mouse_cap==cap ? (i+=1; i==1 ? ii+=speed): (i=0; ii > 0 ? ii-=1); ii >= speed+1 ? 1:0;);
+  
+  
+function mouse_click_i(cap)instance(i) 
+  (mouse_cap == cap ? i+=1: i=0; i == 1 ? 1 : 0;);
+function mouse_dblclick_i (cap)instance(i,ii)//to create a double click trigger
+  (mouse_cap==cap && !_gfx_drag ? (i+=1; i==1 ? ii+=4): (i=0; ii > 0 ? ii-=1); ii >= 5 ? 1:0;);
+function mouse_dblclick_i (cap,speed)instance(i,ii)//sets speed
+  (mouse_cap==cap ? (i+=1; i==1 ? ii+=speed): (i=0; ii > 0 ? ii-=1); ii >= speed+1 ? 1:0;);  
+
+
+function mousein_texth(len)
+  ( mouse_in_rect(gfx_x,gfx_y,len,gfx_texth) ? 1:0 );  
+
+function __xon_mouse_click (cap)local(i)(mouse_cap == cap ? i+=1: i=0; i == 1 ? 1 : 0; );
+function __xon_mouse_dblclick (cap)local(i,ii,sp)
+(mousespeed ? sp=mousespeed: sp=6; mouse_cap==cap ? (i+=1; i==1 ? ii+=sp): (i=0; ii > 0 ? ii-=1); ii >= sp+1 ? (ii=0; 1):0;);
+
+function mouse_in_rect_xon(x,y,w,h,var,onstate,cap) 
+  (!_gfx_drag && mouse_in_rect(x,y,w,h) && __xon_mouse_click (cap) ? var!=onstate ? var=onstate; var);  
+  function mouse_in_rect_xon(x,y,w,h,var,onstate) (mouse_in_rect_xon(x,y,w,h,var,onstate,1)); 
+  function mouse_in_rect_xon_dbl(x,y,w,h,var,onstate,cap) (mouse_in_rect(x,y,w,h) && __xon_mouse_dblclick (cap) ? var!=onstate ? var=onstate; var);
+  function mouse_in_rect_xon_dbl(x,y,w,h,var,onstate)(mouse_in_rect_xon_dbl(x,y,w,h,var,onstate,1));
+
+function __toggle_mouseclick(cap)local(i)(mouse_cap == cap ? i+=1: i=0; i == 1 ? 1 : 0; );
+function __toggle_mouse_dblclick (cap)local(i,ii,sp) 
+  (  mousespeed ? sp=mousespeed: sp=6; mouse_cap==cap ? (i+=1; i==1 ? ii+=sp): (i=0; ii > 0 ? ii-=1); ii >= sp+1 ? (ii=0; 1):0;);
+function mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,cap)
+  (  !_gfx_drag && mouse_in_rect(x,y,w,h) && __toggle_mouseclick (cap) ? var==onstate ? var=offstate:var=onstate; var;);
+  function mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate) (mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,1));
+  function mouse_in_rect_toggle(x,y,w,h,var,cap)(mouse_in_rect_toggle(x,y,w,h,var,1,0,cap));
+  function mouse_in_rect_toggle(x,y,w,h,var) (mouse_in_rect_toggle(x,y,w,h,var,1,0,1));
+  function mouse_in_rect_toggle_dbl(x,y,w,h,var,onstate,offstate,cap)
+    (!_gfx_drag && mouse_in_rect(x,y,w,h) && __toggle_mouse_dblclick (cap) ? var==onstate ? var=offstate:var=onstate; var;);
+  function mouse_in_rect_toggle_dbl(x,y,w,h,var,onstate,offstate) (mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,1));
+  function mouse_in_rect_toggle_dbl(x,y,w,h,var,cap)(mouse_in_rect_toggle(x,y,w,h,var,1,0,cap));
+  function mouse_in_rect_toggle_dbl(x,y,w,h,var) (mouse_in_rect_toggle(x,y,w,h,var,1,0,1));  
+
+
+function mouse_in_string(str)local(w,h)
+(
+  gfx_measurestr(str,w,h);
+  mouse_in_rect(gfx_x,gfx_y,w,h);
+); 
+ 
+//subf MOUSE DRAG
+function __drag_xaxis(var,cap,inc,spd)local(t,cache_y,cache_x)//local drag cache
+  ( mouse_cap==cap && _gfx_drag==xymask(gfx_x,gfx_y)  ? (
+      mouse_x< cache_x ? t-=1;  t < -spd ? ( var-=inc; cache_x=mouse_x; t=0; );
+      mouse_x> cache_x ? t+=1;  t >  spd ? ( var+=inc; cache_x=mouse_x; t=0; );     
+      cache_y=mouse_y; cache_x=mouse_x;     
+    ); var;             
+  );
+  function __drag_xaxis(var,cap1,inc1,cap2,inc2,spd) 
+    ( mouse_cap == cap1 ? var=__drag_xaxis(var,cap1,inc1,spd); 
+      mouse_cap == cap2 ? var=__drag_xaxis(var,cap2,inc2,spd); var; 
+    );
+  
+   
+function __drag_yaxis(var,cap,inc,spd)local(t,cache_y,cache_x)
+  ( mouse_cap==cap && _gfx_drag==xymask(gfx_x,gfx_y)  ? (
+      mouse_y> cache_y ? t-=1; t < -spd ? ( var-=inc; cache_y=mouse_y; t=0; );
+      mouse_y< cache_y ? t+=1; t >  spd ? ( var+=inc; cache_y=mouse_y; t=0; );
+      cache_y=mouse_y; cache_x=mouse_x;      
+    );
+    var;             
+  );//
+function __drag_yaxis(var,cap1,inc1,cap2,inc2,spd)//2caps
+  (
+     mouse_cap == cap1 ? var=__drag_yaxis(var,cap1,inc1,spd); 
+     mouse_cap == cap2 ? var=__drag_yaxis(var,cap2,inc2,spd);
+     var;              
+  );
+
+
+
+
+  /*****************************************************************************************
+    Use with faders, etc. to prevent other elements from being modified if you drag over
+    another element.
+  *****************************************************************************************/   
+function was_not_was_drag(x,y,w,h,cap1,cap2)local(was_mouse)
+  (
+    //release wasclicked and wasmouse on button release   
+    _gfx_drag==xymask(x,y) && !mouse_cap  ? (_gfx_drag=0; was_mouse=0;);  
+    //if mouse is in box and wasmouse is 0, or if box was clicked, set wasmouse
+    ( mouse_in_rect(x,y,w,h) && was_mouse!=xymask(x,y) ) || _gfx_drag==xymask(x,y) ? was_mouse=xymask(x,y);
+    //if  wasmouse is set and if box is not clicked, set wasdrag
+    was_mouse==xymask(x,y) && !_gfx_drag && (mouse_click(cap1) || mouse_click(cap2))  ? _gfx_drag=xymask(x,y);
+    //reset was mouse
+    was_mouse==xymask(x,y) && !_gfx_drag ? was_mouse=0;  
+    //return packed xy val if clicked or if mouse on  
+    _gfx_drag==xymask(x,y) || (_gfx_drag && was_mouse==xymask(x,y)) ? xymask(x,y): 0;
+  );  
+  
+function was_not_was_drag(x,y,w,h,cap1)
+  (was_not_was_drag(x,y,w,h,cap1,cap1) 
+  );//
+
+//OLDER CLICKED VERSION may still be used in some text fields
+//Use with text inputboxes, etc to prevent other elements from being modifed while the box is active 
+function was_not_was_clicked(x,y,w,h,cap)local(was_mouse,rp)
+(
+  //!_gfx_clicked? rp=gfx_getchar(); //text overflow bug fix
+//set was_mouse (packed x,y) if mouse is in box and was_mouse is not already set                                                                                        
+  was_mouse == 0 &&  mouse_in_rect(x,y,w,h) ? was_mouse=xymask(x,y); 
+//set was_clicked if clicked     
+  was_mouse==xymask(x,y) && mouse_cap==cap ? _gfx_clicked=xymask(x,y);       
+//set packed xy val if clicked or if mouse is in box          
+  was_mouse==xymask(x,y)|| _gfx_clicked==xymask(x,y) ? was_mouse=xymask(x,y): was_mouse=0; 
+//release was_mouse so other boxes can be highlighted on mouse over
+  !(mouse_cap&3) ? was_mouse=0; 
+//return packed xy val if clicked or if mouse on   
+  was_mouse;  
+);
+
+function ___was_clicked(x,y,w,h,cap)local(was_mouse)
+  (
+    //release wasclicked and wasmouse on button release   
+    _gfx_clicked==xymask(x,y) && !mouse_cap  ? (_gfx_clicked=0; was_mouse=0;);  
+    //set was mouse to mask if mouse is in rectangle of is was clicked already set
+    ( mouse_in_rect(x,y,w,h) && was_mouse!=xymask(x,y) ) || _gfx_clicked==xymask(x,y) ? was_mouse=xymask(x,y);
+    //if  wasmouse is set and if box is not clicked, set wasclicked on click
+    was_mouse==xymask(x,y) && !_gfx_clicked &&  mouse_click(cap)   ? _gfx_clicked=xymask(x,y);
+    //reset was mouse
+    was_mouse==xymask(x,y) && !_gfx_clicked ? was_mouse=0;  
+    //return packed xy val if clicked or if mouse on  
+    _gfx_clicked==xymask(x,y) || (_gfx_clicked && was_mouse==xymask(x,y)) ? xymask(x,y): 0;
+  ); //assume cap 1
+function was_not_was_clicked(x,y,w,h) (was_not_was_clicked(x,y,w,h,1;) );
+
+
+/*
+  
+//for manual mouse in logic
+function was_not_was_drag(mouse_in)local(was_mouse)
+  (
+    //release wasclicked and wasmouse on button release   
+    !mouse_cap ? (_gfx_drag=0; was_mouse=0;);  
+    //if mouse is in box and wasmouse is !, or if box was clicked, set wasmouse
+    mouse_in  && (was_mouse!=xymask(gfx_x,gfx_y)) || _gfx_drag==xymask(gfx_x,gfx_y) ? 
+    was_mouse=xymask(gfx_x,gfx_y);
+    //if  wasmouse is set and if box is not clicked, set wasclicked
+    was_mouse==xymask(gfx_x,gfx_y)&& !_gfx_drag && mouse_click(1) ? _gfx_drag=xymask(gfx_x,gfx_y);  
+    was_mouse==xymask(gfx_x,gfx_y) && !_gfx_drag ? was_mouse=0;
+    //return packed xy val if clicked or if mouse on  
+    _gfx_drag==xymask(gfx_x,gfx_y) || (!_gfx_drag && was_mouse==xymask(gfx_x,gfx_y)) ? xymask(gfx_x,gfx_y): 0;
+  );//
+// 
+
+//***************************************************************************************global mouse drags**/  
+function __mouse()//global mouse cache  must call at end of @gfx
+  (_gfx_mousecache_y=mouse_y; _gfx_mousecache_x=mouse_x; 
+  );
+function drag_xaxis(var,xymask,cap,inc,spd)local(t)//global drag
+  ( mouse_cap==cap && _gfx_drag==xymask  ? (
+      mouse_x< _gfx_mousecache_x ? t-=1; 
+      t < -spd ? ( var-=inc; _gfx_mousecache_x=mouse_x; t=0; );
+      mouse_x> _gfx_mousecache_x ? t+=1;
+      t > spd ? (  var+=inc; _gfx_mousecache_x=mouse_x; t=0; );     
+    );
+    var;             
+  );//
+function drag_xaxis(var,xymask,cap1,inc1,cap2,inc2,spd)//2caps
+  (
+     mouse_cap == cap1 ? var=drag_xaxis(var,xymask,cap1,inc1,spd); 
+     mouse_cap == cap2 ? var=drag_xaxis(var,xymask,cap2,inc2,spd);
+     var;              
+  );//   
+function drag_yaxis(var,xymask,cap,inc,spd)local(t)
+  ( mouse_cap==cap && _gfx_drag==xymask  ? (
+      mouse_y> _gfx_mousecache_y ? t-=1; 
+      t < -spd ? ( var-=inc; _gfx_mousecache_y=mouse_y; t=0; );
+      mouse_y< _gfx_mousecache_y ? t+=1;
+      t > spd ? (  var+=inc; _gfx_mousecache_y=mouse_y; t=0; );     
+    );
+    var;             
+  );//
+function drag_yaxis(var,xymask,cap1,inc1,cap2,inc2,spd)//2caps
+  (
+     mouse_cap == cap1 ? var=drag_yaxis(var,xymask,cap1,inc1,spd); 
+     mouse_cap == cap2 ? var=drag_yaxis(var,xymask,cap2,inc2,spd);
+     var;              
+  );//
+
+//subf other mouse functions
+
+function mouse_countclick(cap)local(i)//used for delayed triggers i.e. mouse_countclick(1)==25? blah=blahblah;
+  (mouse_cap == cap ? i+=1 : i=0; i;
+  );// 
+function mouse_step(cap)local(i)//repeated delayed trigger, uses a default time of 6 for the steps
+  (mouse_cap == cap ? (i+=1; i>6 ? i=0 ): i=0; i == 1 ? 1 : 0;
+  );// 
+function mouse_step(cap,step)local(i)//defines step "speed"
+  (mouse_cap == cap ? (i+=1; i>step ? i=0 ): i=0; i == 1 ? 1 : 0;
+  );// 
+  
+//call at end of @gfx*/
+function _gfx_refresh_mouse_dblclick (cap)local(i,ii)
+  (mouse_cap==cap ? (i+=1; i==1 ? ii+=6): (i=0; ii > 0 ? ii-=1); ii >= 7 ? 1:0;);
+function _gfx_refresh() 
+  (_gfx_refresh?_gfx_refresh=0; !_gfx_drag && !_gfx_clicked && _gfx_refresh_mouse_dblclick (cap) ? _gfx_refresh=1; ); //use only for de-bugging, etc.
+
+ 
+//endf
+
+//beginf text functions 
+
+function cr() ( gfx_y+=gfx_texth; );  //Carriage return
+function cr(spacing) ( gfx_y+=gfx_texth+spacing);  //Carriage return
+
+
+//set _was_clicked to -1 @init (in the rare case you want to have an object at 0,0).  
+function init_was_clicked() local(init)
+  (!init ? (was_clicked=-1; init=1); );  
+  
+function max_char(max_char)local(w,h)
+  (gfx_measurestr("0",w,h); w*max_char);  
+  
+function text_field(varstr,max_char,field_color)//text color is current color
+local(strw,strh,next,i,curoff,curoffw,strh,temp,pr,rp,_1st_click,x,y,set,ww,text_color,set)
+//instance(pr)
+(
+  set=0;
+  x=gfx_x; y=gfx_y; 
+  ww=max_char(max_char);
+  text_color=pack_rgb();//store current color for text
+  field_color >=0 ? (
+    setcolor(field_color);//set field color. -1 draws no box.
+    gfx_rect(x-2,y,ww+4,gfx_texth);
+  );  
+  setcolor(text_color);  
+  mouse_in_rect(x,y,ww,gfx_texth) && mouse_click(1) ? ( 
+    was_clicked=xymask(x,y);
+    //set=0;
+  );  
+//Field ACTIVE  !!!
+  was_clicked==xymask(x,y) ? ( 
+//define temp strings  
+     temp=#; curoff=#; 
+//at click set next to strlen         
+    _1st_click == 0 ? (next=strlen(varstr); _1st_click=1);
+//*validate all characters except backspace, ENTER, and arrows           
+    pr=gfx_getchar(0);                                                   
+     pr && (pr!=8 && pr!=1818584692 && pr!=1919379572 && pr!=13) ? ( 
+  //format input to temp  //append input to string  //reset next flag                         
+      sprintf(temp, "%c", pr);  strcat(varstr,temp); next=strlen(varstr);                                      
+    );    
+  /*backspace*/
+    pr == 8 ? ( 
+    //deincrement next //copy to self 
+      next=max(next-=1,0); strcpy_substr(varstr,varstr, 0, next);                
+    );       
+  /*left arrow*/
+    pr == 1818584692 ? (
+    //decrease next flag //copy string from next offset (last character) to (new)temp              
+      next=max(next-=1,0); strcpy_from(temp=#,varstr,next); 
+    //if cursor is already offset, append curoff to temp  //copy last character to curoff                            
+      strlen(curoff) ? strcat(temp,curoff); strcpy(curoff, temp); 
+    //copy string minus count back to self and reset next                                                                      
+      strcpy_substr(varstr,varstr, 0, next); next=strlen(varstr);         
+    ); 
+  /*right arrow*/
+    pr == 1919379572 ? ( 
+    //increment next (unless already at end of string)            
+      next=min(next+=1,strlen(varstr));
+    //if cursor is already offset, append 1st char of curoff to string    
+      strlen(curoff) ? strncat(varstr,curoff,1);
+    //if the string is not null, copy curroff to self minus 1st char                           
+      strlen(varstr) ? strcpy_from(curoff,curoff,1); 
+    //reset next             
+      next=strlen(varstr);
+    ); 
+  //measure string for cursor                                              
+    gfx_measurestr(varstr,strw,strh); strlen(varstr) == 0 ? strw=0;                            
+  //switching ~ every second, draw cursor     
+    i+=1; i == 30 ? i=0; i > 15 ? gfx_line(x+strw,y+2,x+strw,y+gfx_texth-2);
+  //print string                 
+    gfx_printf(varstr);
+  //and cursor offset string (if present)                                           
+    strlen(curoff) ? gfx_printf(curoff); 
+    
+    !mouse_in_rect(x,y,ww,gfx_texth) && mouse_cap ?  (
+      
+      was_clicked==xymask(x,y) ? (
+        was_clicked=-1;
+        set=1;
+      );  
+    );
+  /*ENTER*/  //exit on ENTER or click outside the box                      
+    pr == 13 || was_clicked!=xymask(x,y) || set ? (
+      !set ? set=1; 
+    //add curoffset string to string //clear the string
+      strcat(varstr,curoff); strncpy(curoff,curoff,0);   
+    //clear clicked values                             
+      _1st_click=0; was_clicked=-1;    
+                                    
+    );
+           
+  ):(   
+/*if box inactive*/
+    was_clicked==-1 ? rp=gfx_getchar(); //text overflow fix
+    gfx_printf(varstr);  
+    set;                                              
+  ); 
+  set;
+);
+
+// deprecated
+//NOTE!!!!!!!!!!!!!!!  need to update this one to use was_clicked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+//                                                                                                 
+function num_field(var,flen,format,varstr)//flen = "field length"
+//useage example:  this=text_field(this,txt_w("000"),"%i",_this=#);
+//the varstr input, even if a temporary string, prevents having to use instance()
+local(strw,strh,next,i,curoff,curoffw,strh,temp,pr,rp,_1st_click,m,x,y,__clicked)
+(
+  x=gfx_x; y=gfx_y; //m=mouse_in_rect(x,y,flen,gfx_texth);
+  //was_not_was_clicked(x,y,flen,gfx_texth);
+  mouse_in_rect(x,y,flen,gfx_texth) && mouse_cap==1 ? __clicked=xymask(x,y);
+//Field ACTIVE  !!!
+  __clicked==xymask(x,y) ? ( 
+//define temp strings  
+     temp=#; curoff=#; 
+//at click set next to strlen         
+    _1st_click == 0 ? (format!="%s" ? 
+      sprintf(varstr, format, var):
+      strcpy(varstr, var);
+    
+       next=strlen(varstr); _1st_click=1);
+//*validate only number inputs + space + decimal, x, comma, minus, A-F *            
+    pr=gfx_getchar(0);                                                   
+   (pr >= 48 && pr <= 57) || pr == 32 || pr==120 || (pr >=44 && pr <= 46) || (pr>=65 && pr <=70) ? ( 
+  //format input to temp  //append input to string  //reset next flag                         
+      sprintf(temp, "%c", pr);  strcat(varstr,temp);  next=strlen(varstr);                                      
+    );    
+  /*backspace*/
+    pr == 8 ? ( 
+    //deincrement next //copy to self 
+      next=max(next-=1,0); strcpy_substr(varstr,varstr, 0, next);                
+    );       
+  /*left arrow*/
+    pr == 1818584692 ? (
+    //decrease next flag //copy string from next offset (last character) to (new)temp              
+      next=max(next-=1,0); strcpy_from(temp=#,varstr,next); 
+    //if cursor is already offset, append curoff to temp  //copy last character to curoff                            
+      strlen(curoff) ? strcat(temp,curoff); strcpy(curoff, temp); 
+    //copy string minus count back to self and reset next                                                                      
+      strcpy_substr(varstr,varstr, 0, next); next=strlen(varstr);         
+    ); 
+  /*right arrow*/
+    pr == 1919379572 ? ( 
+    //increment next (unless already at end of string)            
+      next=min(next+=1,strlen(varstr));
+    //if cursor is already offset, append 1st char of curoff to string    
+      strlen(curoff) ? strncat(varstr,curoff,1);
+    //if the string is not null, copy curroff to self minus 1st char                           
+      strlen(varstr) ? strcpy_from(curoff,curoff,1); 
+    //reset next             
+      next=strlen(varstr);
+    ); 
+  //measure string for cursor                                              
+    gfx_measurestr(varstr,strw,strh); strlen(varstr) == 0 ? strw=0;                            
+  //switching ~ every second, draw cursor     
+    i+=1; i == 30 ? i=0; i > 15 ? gfx_line(gfx_x+strw,y+2,gfx_x+strw,y+strh-2);
+  //print string                 
+    gfx_printf(varstr);
+  //and cursor offset string (if present)                                           
+    strlen(curoff) ? gfx_printf(curoff); 
+  /*ENTER*/  //exit on ENTER or click outside the box                      
+    pr == 13 || ( !mouse_in_rect(x,y,flen,gfx_texth) && mouse_cap==1 ) ? (
+    //add curoffset string to string //clear the string
+      strcat(varstr,curoff);  strncpy(curoff,curoff,0);   
+    //clear clicked values                             
+      _1st_click=0; __clicked=0;
+    //only on ENTER format and set var to string   
+      pr==13 ? ( 
+          format=="%X" || format=="%s" ?  match(format,varstr,var): 
+          match("%f",varstr,var); //sprintf(varstr, format, var););
+          __clicked=0; 
+      );                                                      
+    );         
+  ):(   
+/*if box inactive*/
+  //format and set var to string (tracks external changes //print string
+    sprintf(varstr, format, var); gfx_printf(varstr);                                                
+  );
+  //!was_clicked ? rp=gfx_getchar(); //text overflow bug fix
+  //match(format,varstr,var); 
+  var;    
+);
+//                                                                                                    TEXT and STRING functions>
+
+function num_field_cr(var,flen,format,varstr)local(x)
+(
+  x=gfx_x;
+  num_field(var,flen,format,varstr);
+  gfx_x=x; cr();
+);
+//                                                                                                    TEXT and STRING functions>
+function get_txt_width(string)local(strw,strh)
+  ( gfx_measurestr(string,strw,strh); strw ); //
+function txt_w(string)local(strw,strh)//~shorter name~
+  ( gfx_measurestr(string,strw,strh); strw ); 
+
+///*print strings, left, center, just  -  gfx_x position retained
+function print_leftjust(string)local(_ox)
+  ( _ox=gfx_x; gfx_printf(string); gfx_x=_ox; );
+function print_rightjust(string)local(_ox)
+  ( _ox=gfx_x;  gfx_x=gfx_x-get_txt_width(string); 
+    gfx_printf(string); gfx_x=_ox; );
+function print_centerjust(string)local(_ox)
+  ( _ox=gfx_x; gfx_x=(gfx_x-(get_txt_width(string)/2));  
+      gfx_printf(string); gfx_x=_ox; );
+
+function draw_leftjust(string)
+  ( gfx_printf(string);  );
+function draw_rightjust(string)
+  ( gfx_x=gfx_x-get_txt_width(string); 
+    gfx_printf(string);  );
+function draw_centerjust(string)
+  ( gfx_x=(gfx_x-(get_txt_width(string)/2));  
+      gfx_printf(string);  );
+
+//                                                                                                    TEXT and STRING functions>
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Toggles variable between two values|
+function print_leftjust_toggle(string,var,onstate,offstate,cap)local(x,y,w,h,init)
+  (x=gfx_x;y=gfx_y;w=txt_w(string);h=gfx_texth;init=1; 
+  print_leftjust(string); var=mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,cap); var; );
+function print_leftjust_toggle(string,var,offstate,onstate)
+  (print_leftjust_toggle(string,var,offstate,onstate,1));
+
+function print_centerjust_toggle(string,var,onstate,offstate,cap)local(x,y,w,h,init)
+  (x=gfx_x-(txt_w(string)/2);y=gfx_y;w=txt_w(string);h=gfx_texth;  
+  print_centerjust(string); var=mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,cap); var; );
+function print_centerjust_toggle(string,var,onstate,offstate)
+  (print_centerjust_toggle(string,var,onstate,offstate,1));
+
+function print_rightjust_toggle(string,var,onstate,offstate,cap)local(x,y,w,h,init)
+  (x=gfx_x-txt_w(string);y=gfx_y;w=txt_w(string);h=gfx_texth;
+  print_rightjust(string);var=mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,cap); var;  );
+function print_rightjust_toggle(string,var,offstate,onstate)
+  (print_rightjust_toggle(string,var,offstate,onstate,1));
+  
+function draw_leftjust_toggle(string,var,onstate,offstate,cap)local(x,y,w,h,init)
+  (x=gfx_x;y=gfx_y;w=txt_w(string);h=gfx_texth;init=1; 
+  draw_leftjust(string); var=mouse_in_rect_toggle(x,y,w,h,var,onstate,offstate,cap); var; );
+function draw_leftjust_toggle(string,var,offstate,onstate)
+  (draw_leftjust_toggle(string,var,offstate,onstate,1));  
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ x-on ~ sets variable to value on mouse click|
+function print_leftjust_xon(string,var,onstate,cap)local(x,y,w,h)
+  (x=gfx_x;y=gfx_y;w=txt_w(string);h=gfx_texth;init=xymask(gfx_x,gfx_y); 
+  print_leftjust(string);var=mouse_in_rect_xon(x,y,w,h,var,onstate,cap);  var; );
+function print_leftjust_xon(string,var,onstate) 
+  (print_leftjust_xon(string,var,onstate,1));
+
+function print_centerjust_xon(string,var,onstate,cap)local(x,y,w,h)
+  (x=gfx_x-(txt_w(string)/2);y=gfx_y;w=txt_w(string);h=gfx_texth; 
+  print_centerjust(string); var=mouse_in_rect_xon(x,y,w,h,var,onstate,cap);  var; );
+function print_centerjust_xon(string,var,onstate)
+  (print_centerjust_xon(string,var,onstate,1));
+
+function print_rightjust_xon(string,var,onstate,cap)local(x,y,w,h)
+  (x=gfx_x-txt_w(string);y=gfx_y;w=txt_w(string);h=gfx_texth; 
+  print_rightjust(string); var=mouse_in_rect_xon(x,y,w,h,var,onstate,cap);  var; );
+function print_rightjust_xon(string,var,onstate)
+  (print_rightjust_xon(string,var,onstate,1));
+  
+function draw_leftjust_xon(string,var,onstate,cap)local(x,y,w,h)
+  (x=gfx_x;y=gfx_y;w=txt_w(string);h=gfx_texth;init=xymask(gfx_x,gfx_y); 
+  draw_leftjust(string);var=mouse_in_rect_xon(x,y,w,h,var,onstate,cap);  var; );
+function draw_leftjust_xon(string,var,onstate) 
+  (draw_leftjust_xon(string,var,onstate,1));
+
+function draw_centerjust_xon(string,var,onstate,cap)local(x,y,w,h)
+  (x=gfx_x-(txt_w(string)/2);y=gfx_y;w=txt_w(string);h=gfx_texth; 
+  draw_centerjust(string); var=mouse_in_rect_xon(x,y,w,h,var,onstate,cap);  var; );
+function draw_centerjust_xon(string,var,onstate)
+  (draw_centerjust_xon(string,var,onstate,1));
+
+function draw_rightjust_xon(string,var,onstate,cap)local(x,y,w,h)
+  (x=gfx_x-txt_w(string);y=gfx_y;w=txt_w(string);h=gfx_texth; 
+  draw_rightjust(string); var=mouse_in_rect_xon(x,y,w,h,var,onstate,cap);  var; );
+function draw_rightjust_xon(string,var,onstate)
+  (draw_rightjust_xon(string,var,onstate,1));  
+  
+/*
+function print_centerjust_toggle_or_y(string,var,onstate,offstate,cap1,ystate,cap2)//local(toggle)
+(
+  print_centerjust(string);
+  __mouse=mouse_in_rect(gfx_x-(txt_w(string)/2),gfx_y,txt_w(string),gfx_texth);
+  
+  !_gfx_drag && __mouse && mouse_click(cap1) ? (
+  var==offstate ? var=onstate:var=offstate;   
+  
+  ); var;
+  !_gfx_drag && __mouse && mouse_click(cap2) && this.y_var!=onstate ? this.y_var=onstate;
+  var;   
+);
+*/ 
+function print_dragable_string(string,var,inc)local(x,y,w,h)
+(
+  x=gfx_x;y=gfx_y;w=txt_w(string); h=gfx_texth; 
+  was_not_was_drag(x,y,w,h,1);
+  
+    var=__drag_xaxis(var,1,inc,0);  
+  //  !mouse_cap ? _gfx_drag=0;
+    print_leftjust(string);
+    
+    var; 
+);  
+
+
+
+function __print_mouse_dblclick (cap)local(i,ii,sp)//to create a double click trigger
+  (mousespeed ? sp=mousespeed: sp=6; mouse_cap==cap ? (i+=1; i==1 ? ii+=sp): (i=0; ii > 0 ? ii-=1); ii >= sp+1 ? (ii=0; 1):0;);
+ 
+function print_leftjust_xon_dbl(string,var,onstate)
+(
+  print_leftjust(string);
+  !_gfx_drag && mouse_in_rect(gfx_x,gfx_y,txt_w(string),gfx_texth) && __print_mouse_dblclick (1) && var!=onstate ? var=onstate; 
+  
+  var;  
+);  
+function print_centerjust_xon_dbl(string,var,onstate)
+(
+  print_centerjust(string);
+  !_gfx_drag && mouse_in_rect(gfx_x-txt_w(string)/2,gfx_y,txt_w(string),gfx_texth) && __print_mouse_dblclick (1) && var!=onstate ? var=onstate;  
+  
+  var;  
+); 
+function print_rightjust_xon_dbl(string,var,onstate)
+(
+  print_rightjust(string);
+  !_gfx_drag && mouse_in_rect(gfx_x-txt_w(string),gfx_y,txt_w(string),gfx_texth) && __print_mouse_dblclick (1) && var!=onstate ? var=onstate;  
+  
+  var;  
+); 
+
+function __draw_mouse_dblclick (cap)local(i,ii,sp)//to create a double click trigger
+  (mousespeed ? sp=mousespeed: sp=6; mouse_cap==cap ? (i+=1; i==1 ? ii+=sp): (i=0; ii > 0 ? ii-=1); ii >= sp+1 ? (ii=0; 1):0;);
+ 
+function draw_leftjust_xon_dbl(string,var,onstate)
+local(x,y)
+(
+  x=gfx_x;y=gfx_y;
+  draw_leftjust(string);
+  !_gfx_drag && mouse_in_rect(x,y,txt_w(string),gfx_texth) && __draw_mouse_dblclick (1) && var!=onstate ? var=onstate;  
+  
+  var;  
+);  
+function draw_centerjust_xon_dbl(string,var,onstate)
+local(x,y)
+(
+  x=gfx_x;y=gfx_y;
+  draw_centerjust(string);
+  !_gfx_drag && mouse_in_rect(x-txt_w(string)/2,y,txt_w(string),gfx_texth) && __draw_mouse_dblclick (1) && var!=onstate ? var=onstate;  
+  
+  var;  
+); 
+function draw_rightjust_xon_dbl(string,var,onstate)
+local(x,y)
+(
+  x=gfx_x;y=gfx_y;  
+  draw_rightjust(string);
+  !_gfx_drag && mouse_in_rect(x-txt_w(string),y,txt_w(string),gfx_texth) && __draw_mouse_dblclick (1) && var!=onstate ? var=onstate;  
+  
+  var;  
+); 
+//endf text functions
+
+//beginf string functions
+function IsStringPrefix(str,prefix)local(needle)
+//returns 1 is true, 0 if false
+(
+  sprintf(needle=#,"%s*",prefix);
+  match(needle,str) ? 1:0;
+);
+
+function BreakNewlines_NumberedStrings(str,start_strnum)local(offset,temp,i,init,breaks)
+(
+    i=offset=breaks=0;
+    strcpy(temp=#,str);
+    while( i<=strlen(str) ) (
+      str_getchar(str, i)==10  || i==strlen(str) ? (
+        start_strnum>=0 ? strcpy_substr(start_strnum,temp,offset,i-offset);
+        offset=i+1;
+        start_strnum+=1;
+        breaks+=1;
+      );
+      i+=1;      
+    );
+    breaks-1;       
+);
+
+function BreakNewlines_NumberedStrings_limit(str,start_strnum,limit)local(offset,temp,i,breaks)
+(
+  i=offset=breaks=0;
+  strcpy(temp=#,str);
+  while( i<=strlen(str) && breaks<=limit) (
+    str_getchar(str, i)==10 ? (
+      breaks!=limit ? strcpy_substr(start_strnum,temp,offset,i-offset):
+        strcpy_substr(start_strnum,temp,offset); 
+      offset=i+1;
+      start_strnum+=1;
+      breaks+=1;
+    );
+    i+=1;
+  );
+  breaks;    
+);
+
+function FilterStringToChar(str,char)local(i,temp)
+( 
+  i=0;
+  while( i<strlen(str) ) (
+    str_getchar(str, i)==char ? ( 
+      strncpy(temp=#,str,i); 
+      strcpy(str,temp);  
+    );
+    i+=1;
+  ); 
+);
+function FilterStringFromChar(str,char)local(i,temp)
+( 
+  i=0;
+  while( i<strlen(str) ) (
+    str_getchar(str, i)==char ? ( 
+      strcpy_from(temp=#,str,i); 
+      strcpy(str,temp);  
+    );
+    i+=1;
+  ); 
+);
+
+function FilterStringToPhrase(pstr,str)
+local(pi,i,found,ii,garbage,temp)
+(
+  pi=0;
+  pl=strlen(pstr);
+  loop(pl,
+    stack_push(str_getchar(pstr, pi));
+    pi!=pl ? pi+=1;
+  );
+  i=found=0;
+  while( i<strlen(str) && !found) (
+    str_getchar(str, i)==stack_peek(pi-1) && str_getchar(str, i+1)==stack_peek(pi-2) ? (
+    ii=0;
+    //testpeek=1;
+    loop(pi,
+      str_getchar(str, i+ii)==stack_peek(pi-1-ii) ? ii+=1;
+    );
+    ii==pi ? found=1; //testf=1;
+    ); 
+    i+=1; 
+  );
+  loop(pi, garbage=stack_pop(); ); //clean up stack     
+  found ?  (
+    strncpy(temp=#,str,i-1); 
+    strcpy(str,temp);  
+  );      
+);
+
+function FilterStringFromPhrase(pstr,str)
+local(pi,i,found,ii,garbage,temp)
+(
+  pi=0;
+  pl=strlen(pstr);
+  loop(pl,
+    stack_push(str_getchar(pstr, pi));
+    pi!=pl ? pi+=1;
+  );
+  i=found=0;
+  while( i<strlen(str) && !found) (
+    str_getchar(str, i)==stack_peek(pi-1) && str_getchar(str, i+1)==stack_peek(pi-2) ? (
+      ii=0;
+      //testpeek=1;
+      loop(pi,
+        str_getchar(str, i+ii)==stack_peek(pi-1-ii) ? ii+=1;
+      );
+      ii==pi ? found=1; //testf=1;
+    ); 
+    i+=1; 
+  );
+  loop(pi, garbage=stack_pop(); ); //clean up stack     
+  found ?  (
+    strcpy_from(temp=#,str,i-1); 
+    strcpy(str,temp);  
+  );      
+);
+
+function FilterStringWithinBraces(str,retain_braces)local(i,temp,offset,end)
+(
+  i=end=offset=0;
+  strcpy(temp=#,str);
+  while( i<=strlen(temp) && !end ) (
+    str_getchar(temp, i)==123 ? offset=i; 
+    str_getchar(temp, i)==125 ? end=i+1;
+    i+=1;  
+  );    
+  retain_braces ? strcpy_substr(str,temp,offset,end-offset):strcpy_substr(str,temp,offset+1,end-offset-2);
+);
+function FilterStringWithinParenthesis(str,retain_parenthesis)local(i,temp,offset,end)
+(
+  i=end=offset=0;
+  strcpy(temp=#,str);
+  while( i<=strlen(temp) && !end ) (
+    str_getchar(temp, i)==40 ? offset=i; 
+    str_getchar(temp, i)==41 ? end=i+1;
+    i+=1;  
+  );    
+  retain_parenthesis ? strcpy_substr(str,temp,offset,end-offset):strcpy_substr(str,temp,offset+1,end-offset-2);
+);  
+function FilterStringWithinBrackets(str,retain_brackets)local(i,temp,offset,end)
+(
+  i=end=offset=0;
+  strcpy(temp=#,str);
+  while( i<=strlen(temp) && !end ) (
+    str_getchar(temp, i)==91 ? offset=i; 
+    str_getchar(temp, i)==93 ? end=i+1;
+    i+=1;  
+  );    
+  retain_brackets ? strcpy_substr(str,temp,offset,end-offset):strcpy_substr(str,temp,offset+1,end-offset-2);
+);
+
+
+
+//beginf gradients
+
+function __backfill(x,y,w,h) local(a)
+(
+  a=gfx_a; setcolor(0,1); gfx_rect(x,y,w,h); gfx_a=a;
+);  
+
+function edged_grad_w(x,y,w,h,color,edgew,cntr_hl)
+  (
+  d=gfx_a;
+  setcolor(color);
+  edgew>=w/2? edgew=w/2-1;
+  gfx_gradrect(x,y,edgew,h,gfx_r,gfx_g,gfx_b,0.33,0,0,0,.66*d/edgew,0,0,0,0);//left edge
+  gfx_gradrect(x+w-edgew,y,edgew,h,gfx_r,gfx_g,gfx_b,1,0,0,0,-.66*d/edgew,0,0,0,0);//right edge
+  gfx_gradrect(x+edgew,y,(w-edgew*2)/2,h,gfx_r,gfx_g,gfx_b,1,0,0,0,cntr_hl*d/((w-edgew*d)/2),0,0,0,0);//left half
+  gfx_gradrect(x+w/2,y,1+(w-edgew*2)/2,h,gfx_r,gfx_g,gfx_b,cntr_hl+1,0,0,0,-cntr_hl*d/((w-edgew*d)/2),0,0,0,0);//right half
+  );
+function edged_grad_w(x,y,w,h,color,edgew,cntr_hl,cl)local(d)
+  (
+  cl*=w; 
+  cl=max(1,cl)|0;
+  d=gfx_a;
+  setcolor(color);
+  edgew>=w/2? edgew=w/2-1;
+  
+  gfx_gradrect(x,y,edgew,h,gfx_r,gfx_g,gfx_b,0.33,0,0,0,.66*d/edgew,0,0,0,0);//left edge
+  gfx_gradrect(x+w-edgew,y,edgew,h,gfx_r,gfx_g,gfx_b,1,0,0,0,-.66*d/edgew,0,0,0,0);//right edge  
+  gfx_gradrect(x+edgew,y,(cl-edgew),h,gfx_r,gfx_g,gfx_b,1,0,0,0,cntr_hl*d/(cl-edgew),0,0,0,0);//left half
+  gfx_gradrect(x+cl,y,(w-edgew-cl),h,gfx_r,gfx_g,gfx_b,cntr_hl+1,0,0,0,-cntr_hl*d/((w-cl)-(edgew)),0,0,0,0);//right half
+  );
+
+function edged_grad_w_backfill(x,y,w,h,color,edgew,cntr_hl,cl)local(a)
+  (__backfill(x,y,w,h); edged_grad_w(x,y,w,h,color,edgew,cntr_hl,cl); );
+ 
+function edged_grad_w_backfill(x,y,w,h,color,edgew,cntr_hl) 
+  (edged_grad_w_backfill(x,y,w,h,color,edgew,cntr_hl,w/2));  
+
+function edged_grad_h(x,y,w,h,color,edgew,cntr_hl)local(d,thy,hw,bhy,bey)//cntr_hl is saturation
+(
+  d=gfx_a;
+  setcolor(color);
+  //edgew>=h/2? edgew=h/2-1;
+  thy=y+edgew;//top half y
+  hw=(((h-edgew*2)+1)/2)|0;//top half width
+  bhy=thy+hw;//btm half y
+  bey=bhy+hw;//btm edge y
+  
+  gfx_gradrect(x,y,w,edgew,gfx_r,gfx_g,gfx_b,.33*d,0,0,0,0,0,0,0,.66*d/edgew);//top edge
+  
+  gfx_gradrect(x,thy,w,hw,gfx_r,gfx_g,gfx_b,1*d,0,0,0,0,0,0,0,(cntr_hl*d/((h-edgew*2)/2)));//top half
+  gfx_gradrect(x,bhy,w,hw,gfx_r,gfx_g,gfx_b,(cntr_hl+1)*d,0,0,0,0,0,0,0,-((cntr_hl*d)/((h-edgew*2)/2)));//btm half 
+  
+  gfx_gradrect(x,bey,w,edgew,gfx_r,gfx_g,gfx_b,1*d,0,0,0,0,0,0,0,-(.66*d/edgew));//bottom edge        
+  gfx_a=d;
+); 
+
+function edged_grad_h(x,y,w,h,color,edgew,cntr_hl,cl)local(d,thy,hw,bhy,bey)
+(
+  cl*=h;
+  cl|=0;
+  //cl=max(1,cl);
+  d=gfx_a;
+  color != -1 ? setcolor(color);
+  edgew>=h/2? edgew=h/2-1;
+  thy=y+edgew;//top half y
+  hw=(((h-edgew*2)+1)*cl) /2;//top half height
+  bhy=thy+hw;//btm half y
+  bey=bhy+hw;//btm edge y
+  
+  gfx_gradrect(x,y,w,edgew,gfx_r,gfx_g,gfx_b,0.33*d,0,0,0,0,0,0,0,.66*d/edgew);//top edge
+  
+  gfx_gradrect(x,y+edgew,w,(cl-edgew),gfx_r,gfx_g,gfx_b,1*d,0,0,0,0,0,0,0,(cntr_hl*d/(cl-edgew)));//top half
+  gfx_gradrect(x,y+cl,w,(h-cl)-edgew,gfx_r,gfx_g,gfx_b,(cntr_hl+1)*d,0,0,0,0,0,0,0,-(cntr_hl*d/(h-cl-edgew)));//btm half  
+    
+  gfx_gradrect(x,y+h-edgew,w,edgew,gfx_r,gfx_g,gfx_b,1*d,0,0,0,0,0,0,0,-(.66*d/edgew));//bottom edge        
+  gfx_a=d;
+); 
+
+
+//endf
+
+//beginf Faders, Knobs, Objects
+function Xbox(var)local(w,h)
+(
+  w=h=gfx_texth-4;
+  gfx_roundrect(gfx_x,gfx_y,w,h,0,0); 
+  var ? ( gfx_line(gfx_x,gfx_y,gfx_x+w,gfx_y+h);  gfx_line(gfx_x,gfx_y+w,gfx_x+w,gfx_y); );
+  mouse_in_rect(gfx_x,gfx_y,w,h) && __toggle_mouseclick(1) ? (
+    !var ? var=1:var=0;
+  );
+  gfx_x+=w+4; 
+  var;  
+); 
+function Xbox(var,str)
+(
+  var=Xbox(var);draw_leftjust(str);var;
+);
+ 
+
+
+
+
+
+
