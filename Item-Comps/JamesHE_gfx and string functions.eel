@@ -1,4 +1,4 @@
-//@description gfx and string library for use with COMPS Display
+//@description gfx and string library 
 //@version 1.0
 //@author James H Eure
 //@provides [no main]
@@ -884,5 +884,9 @@ function Xbox(var,str)
   var=Xbox(var);draw_leftjust(str);var;
 );
  
+
+
+
+
 
 
