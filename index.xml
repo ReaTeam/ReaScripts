@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d1c69feea5681a0b40f0395fdab6095fda794ff5" name="ReaTeam Scripts">
+<index version="1" commit="a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1687,6 +1687,27 @@ https://github.com/cfillion/reascripts
     <reapack name="HeDa_View Scroll Top.lua" type="script" desc="View Scroll Top">
       <version name="1.0" author="HeDa" time="2016-02-14T02:19:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7e9c4ed73ed3e9b0a3b15d363bc3db28a19db265/Various/HeDa_View%20Scroll%20Top.lua</source>
+      </version>
+    </reapack>
+    <reapack name="JamesHE_Comps Display.eel" type="script" desc="take and item comping">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaL Item Comps\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 more info and tutorial coming soon.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
+        <changelog><![CDATA[+ initial GuitHub release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_Comps%20Display.eel</source>
+      </version>
+    </reapack>
+    <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
+      <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
+        <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
       </version>
     </reapack>
     <reapack name="nofish_Realtime clock.lua" type="script" desc="nofish_Realtime clock">
