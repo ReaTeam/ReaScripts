@@ -72,7 +72,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
-- [JamesHEure/reascript](https://github.com/JamesHEure/Reascript)
+- [JamesHEure/Reascript](https://github.com/JamesHEure/Reascript)
 - [kawaCat/ReaScript-M2BPack](http://stash.reaper.fm/v/26812/ReaScript-MIDI.zip)
 - [kronihias/ambix](https://github.com/kronihias/ambix)
 - [Lazzle/ReaMIDI](https://github.com/Lazzle/ReaMIDI)
