@@ -1,0 +1,56 @@
+//@description Audition Takes 
+//@version 1.0
+//@author JamesHE
+//@about
+//  -Requires SWS installed
+//  -Create a time selection
+//  -select the items for which you wish to audition takes
+//  -run the script (play will start immediatly and an action marker will be added near the end of your loop
+//  -If you remove the time selection, or stop the transport, the Action marker will be removed
+ 
+function run()
+(
+ 
+GetSet_LoopTimeRange2(proj, 0, 1, startOut, endOut, 1); //get loop points
+
+looprange=(endout - startout);
+setcolor=ColortoNative(0,255,0); //why is this not working! good grief!
+
+looprange  > loopminimum ? (
+  repstate=GetSetRepeat(-1);
+  !repstate ? GetSetRepeat(2);//loop enable if needed
+  //make the action marker
+  !didplay ? index=AddProjectMarker2(proj, 0, endout-(GetOutputLatency()*2), rgnend, "!40125", -1, setcolor );
+  //play if not already playing or paused
+  !GetPlayStateEx(proj) && !didplay ? (    
+    SetEditCurPos2(proj, startout, 0, 0);//cursor to startout
+    Main_OnCommand(1007,0);  //hit play
+  );
+  didplay=1; 
+);  
+
+//defer until stop or time selection dissapears  
+GetPlayStateEx(proj) && (endout-startout) ? defer("run()");
+);
+
+
+//*//user feel free to adjust these
+loopminimum=1.5; 
+slack=(GetOutputLatency()*2); //might be trying to be too smart here haha
+
+
+proj=EnumProjects(-1,"");
+
+cmdid=NamedCommandLookup("_SWSMA_TOGGLE"); //get command id for sws toggle state
+actmarcache=GetToggleCommandState(cmdid); //store toggle state of action markers 
+!actmarcache ? Main_OnCommand(cmdid,0); //turn on action markers if needed
+repstatecache=GetSetRepeat(-1); //store toggle state of Repeat enabled
+
+run();
+
+//return states and remove marker at exit
+atexit( "
+         repstatecache!=GetSetRepeat(-1) ? GetSetRepeat(2);
+         actmarcache!=GetToggleCommandState(cmdid) ? Main_OnCommand(cmdid,0);
+         DeleteProjectMarker(proj, index, 0);" 
+      ); 
