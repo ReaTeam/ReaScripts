@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c" name="ReaTeam Scripts">
+<index version="1" commit="211f866e3b830415933012e3c95dbbdd64caa473" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1687,6 +1687,20 @@ https://github.com/cfillion/reascripts
     <reapack name="HeDa_View Scroll Top.lua" type="script" desc="View Scroll Top">
       <version name="1.0" author="HeDa" time="2016-02-14T02:19:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7e9c4ed73ed3e9b0a3b15d363bc3db28a19db265/Various/HeDa_View%20Scroll%20Top.lua</source>
+      </version>
+    </reapack>
+    <reapack name="JamesHE_Audition Takes of Selected items.eel" type="script" desc="Audition Takes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 -Create a time selection -select the items for which you wish to audition takes -run the script -play will start immediatly and an "audition" marker will be added near the end of your loop -Repeat will be enabled as needed -Drag the Marker if you need to adjust the timing of the take switching -If you have to drag the marker past an existing marker, you may need to Pause the transport to refind it -If you remove the time selection, or stop the transport, the Action marker will be removed and Repeat status is returned -The initial placement of the "audition" marker is dependant on your audio latency and Track Performance options (Media Buffering and Anticipative FX) -You can make adjustments to the script changing the values in the function "UserEditableValues"\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.01" author="JamesHE" time="2016-10-22T02:06:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/211f866e3b830415933012e3c95dbbdd64caa473/Various/JamesHE_Audition%20Takes%20of%20Selected%20items.eel</source>
       </version>
     </reapack>
     <reapack name="JamesHE_Comps Display.eel" type="script" desc="take and item comping">
