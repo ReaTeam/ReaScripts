@@ -1,0 +1,106 @@
+//@description Audition Takes 
+//@version 1.01
+//@author JamesHE
+//@about
+//  -Create a time selection
+//  -select the items for which you wish to audition takes
+//  -run the script 
+//  -play will start immediatly and an "audition" marker will be added near the end of your loop
+//  -Repeat will be enabled as needed
+//  -Drag the Marker if you need to adjust the timing of the take switching
+//  -If you have to drag the marker past an existing marker, you may need to Pause the transport to refind it
+//  -If you remove the time selection, or stop the transport, the Action marker will be removed and Repeat status is returned
+//  -The initial placement of the "audition" marker is dependant on your audio latency and Track Performance options (Media Buffering and Anticipative FX)
+//  -You can make adjustments to the script changing the values in the function "UserEditableValues"
+
+
+
+function UserEditableValues()
+(
+  //*//user feel free to adjust these
+  loopminimum=1.5;  //ignore loops less than this size
+  setcolor=ColorToNative(55,187,55)|0x1000000; //Almost anoyying green color ;) 
+  Mbuffvalue=1.2; //Default Media buffering is 1200ms
+  AfxValue=.2; //Default Anticipative FX Render Ahead is 200ms
+);
+ 
+function run()
+(
+  GetSet_LoopTimeRange2(proj, 0, 1, startOut, endOut, 1); //get loop points
+  
+  looprange=(endout - startout);
+  
+  looprange  > loopminimum ? (
+    
+    !didplay ? (
+      repstate=GetSetRepeat(-1);
+      !repstate ? GetSetRepeat(2);//loop enable if needed
+      //make the audition marker
+      index=AddProjectMarker2(proj, 0, endout-slack, rgnend, "auditioning takes", -1, setcolor );
+      needmarkeridx=1;      
+    );  
+    //play if not already playing or paused
+    !GetPlayStateEx(proj) && !didplay ? (    
+      SetEditCurPos2(proj, startout, 0, 0);//cursor to startout
+      Main_OnCommand(1007,0);  //hit play
+    );
+    didplay=1; 
+  );  
+  
+  //use the marker as "slack" position
+  //find the idx of the marker  
+  needmarkeridx ? ( 
+    i=0;
+    While(EnumProjectMarkers(i, "", posOut, "", "", indexnumberOut) ) (
+      indexnumberout==index ? ( idx=i; needmarkeridx=0; );
+      i+=1;
+    );  
+    
+ 
+);  
+
+  //forcemarker idx re-find with pause ~ may instead use a periodic check instead
+  GetPlayStateEx(proj)==2 ? needmarkeridx=1;
+  
+  
+  EnumProjectMarkers(idx, "", posOut, "", "",""); 
+  slack=endout-posOut; 
+  
+  
+  //!switchflag ? 
+  GetPlayPositionEx(proj)<=startout+max(slack,Mbuffvalue) ? switch=0;
+  GetPlayPositionEx(proj)>=endout-slack && !switch ? ( switch=1; switchFlag=1;  );
+  
+  switchFlag? ( Main_OnCommand(40125,0); switchflag=0; );
+  
+  
+  
+  
+  //defer until stop or time selection dissapears  
+  GetPlayStateEx(proj) && (endout-startout) ? defer("run()");
+
+);
+
+
+UserEditableValues();
+
+
+proj=EnumProjects(-1,"");
+//set offset for marker
+track= GetMediaItem_Track(GetSelectedMediaItem(proj, 0)); //get first track with items
+Mbuff=GetMediaTrackInfo_Value(track, "I_PERFFLAGS")&1; //is Media Buffering enabled?
+AFx=GetMediaTrackInfo_Value(track, "I_PERFFLAGS")&2; //is Anticipative FX enabled?
+perftiming=(Mbuffvalue*abs(Mbuff-1))+(AFxvalue*(abs(AFx-2))/2);
+slack=(GetOutputLatency()+ perftiming); //might be trying to be too smart here haha
+
+
+repstatecache=GetSetRepeat(-1); //store toggle state of Repeat enabled
+
+run();
+
+//return loop state and remove marker at exit
+atexit( "
+         repstatecache!=GetSetRepeat(-1) ? GetSetRepeat(2);
+         actmarcache!=GetToggleCommandState(cmdid) ? Main_OnCommand(cmdid,0);
+         DeleteProjectMarker(proj, index, 0);" 
+      ); 
