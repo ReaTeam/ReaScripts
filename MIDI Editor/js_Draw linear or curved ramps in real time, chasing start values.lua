@@ -85,7 +85,7 @@ About:
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
   * v2.10 (2016-10-23)
     + Header updated to ReaPack v1.1 format.
-    + Chasing will only match CCs in active channel.
+    + Chasing only considers CCs in active channel.
 ]]
 
 -- USER AREA
@@ -357,7 +357,7 @@ function insertNewCCs(num)
     reaper.MIDI_Sort(take)
     _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)      
     
-    if true then --reaper.BR_GetMidiSourceLenPPQ(take) < (num + #tableIndices + #usedPPQs) then 
+    if reaper.BR_GetMidiSourceLenPPQ(take) < (num + #tableIndices + #usedPPQs) then 
         reaper.ShowMessageBox("Oops, the MIDI item is either too short or too crowded to draw proper ramps.", "ERROR", 0)
         return(false) 
     end
