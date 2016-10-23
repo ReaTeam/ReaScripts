@@ -28,8 +28,8 @@ About:
      per quarter note when drawing in CC lanes".)
   
   * The script does not change or delete existing events until execution 
-     ends, so there are no 'overshoot remnants' if the mouse movement 
-     overshoots the target endpoint.
+     ends, so there are no 'overshoot remnants' if the mouse movement overshoots 
+     the target endpoint.
   
   * The events in the newly inserted ramp are automatically selected and other
      events are deselected, which allows immediate further shaping of the ramp
@@ -119,7 +119,7 @@ local usedPPQsTableHasBeenSetup = false
 
 -----------------------------------------------------------------------------      
 -- General note:
--- REAPER's InsertCC functions 1) overwrites and delets existing CCs, 
+-- REAPER's InsertCC functions 1) overwrites and deletes existing CCs, 
 --    2) changes indices of existing CCs, 3) does not return the index of
 --    the newly inserted event, and 4) is very slow.  Therefore, this script 
 --    will not draw the ramp in real time by continuously *inserting* new CCs.  
