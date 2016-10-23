@@ -6,7 +6,7 @@ Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20i
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
 About:
-  #Description
+  # Description
   Draw linear or curved ramps of CC and pitchwheel events in real time, chasing start values.
              
   An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
@@ -27,15 +27,15 @@ About:
      are inserted at the density set in Preferences -> MIDI editor -> "Events 
      per quarter note when drawing in CC lanes".)
   
-  * The script does not change or delete existing events until execution ends,  
-     so there are no 'overshoot remnants' if the mouse movement overshoots 
-     the target endpoint.
+  * The script does not change or delete existing events until execution 
+     ends, so there are no 'overshoot remnants' if the mouse movement 
+     overshoots the target endpoint.
   
   * The events in the newly inserted ramp are automatically selected and other
      events are deselected, which allows immediate further shaping of the ramp
      (using, for example, the 2-sided warp (and stretch) script).
 
-  #Instructions
+  # Instructions
   There are two ways in which this script can be run:  
   
   * First, the script can be linked to its own shortcut key.  In this case, 
