@@ -1,81 +1,91 @@
 --[[
- * ReaScript Name:  js_Draw linear or curved ramps in real time.lua
- * Description: Draw linear or curved ramps of CC and pitchwheel events in real time.
- *              An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
- *               1) If snap to grid is enabled in the MIDI editor, the endpoints of the 
- *                  ramp will snap to grid, allowing precise positioning of the ramp 
- *                  (allowing, for example, the insertion of a pitch riser at the
- *                  exact position of a note).
- *               2) By using the mousewheel, the shape of the ramp can be changed from 
- *                  linear to curved (allowing the easy insertion of parablic shapes).
- *               3) The script can optionally chase existing CC values, instead of 
- *                  starting at the mouse's vertical position.  This ensures that
- *                  CC values change smoothly. 
- *               4) The script inserts new CCs, instead of only editing existing CCs.  (CCs
- *                  are inserted at the density set in Preferences -> MIDI editor -> "Events 
- *                  per quarter note when drawing in CC lanes".)
- *               5) The script does not change or delete existing events until execution ends,  
- *                  so there are no 'overshoot remnants' if the mouse movement overshoots 
- *                  the target endpoint.
- *               6) The events in the newly inserted ramp are automatically selected and other
- *                  events are deselected, which allows immediate further shaping of the ramp
- *                  (using, for example, the 2-sided warp (and stretch) script).
- * Instructions:  There are two ways in which this script can be run:  
- *                  1) First, the script can be linked to its own shortcut key.  In this case, 
- *                        optionally, if drawing curved shapes are required, the script can 
- *                        also be linked to a mousewheel shortcut (alternatively, use the 
- *                        "1-sided warp (accelerate)" script after drawing the ramp.
- *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
- *                        can each be linked to a toolbar button.  
- *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
- *                        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
- *                        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
- *                     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
- *                        and this selected (armed) script can then be run by using the shortcut for the 
- *                        aforementioned "js_Run..." script.
- *                     For further instructions - please refer to the "js_Run..." script.                 
- *
- *                To enable chasing of existing CC values, set the "doBackChase" and/or
- *                    "doForwardChase" parameters in the USER AREA at the beginning of the script to "true".
- *
- *                Since this function is a user script, the way it responds to shortcut keys and 
- *                    mouse buttons is opposite to that of REAPER's built-in mouse actions 
- *                    with mouse modifiers:  To run the script, press the shortcut key *once* 
- *                    to start the script and then move the mouse or mousewheel *without* 
- *                    pressing any mouse buttons.  Press the shortcut key again once to 
- *                    stop the script.  
- *                (The first time that the script is stopped, REAPER will pop up a dialog box 
- *                    asking whether to terminate or restart the script.  Select "Terminate"
- *                    and "Remember my answer for this script".)
- *
- * Screenshot: 
- * Notes: 
- * Category: 
- * Author: juliansader
- * Licence: GPL v3
- * Forum Thread: 
- * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 2.0
- * REAPER: 5.20
- * Extensions: SWS/S&M 2.8.3
-]]
+ReaScript name: js_Draw linear or curved ramps in real time.lua
+Version: 2.10
+Author: juliansader
+Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
+Website: http://forum.cockos.com/showthread.php?t=176878
+Extensions:  SWS/S&M 2.8.3 or later
+About:
+  # Description
+  Draw linear or curved ramps of CC and pitchwheel events in real time, chasing start values.
+             
+  An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
+  
+  * If snap to grid is enabled in the MIDI editor, the endpoints of the 
+     ramp will snap to grid, allowing precise positioning of the ramp 
+     (allowing, for example, the insertion of a pitch riser at the
+     exact position of a note).
+  
+  * By using the mousewheel, the shape of the ramp can be changed from 
+     linear to curved (allowing the easy insertion of parablic shapes).
+  
+  * The script can optionally chase existing CC values, instead of 
+     starting at the mouse's vertical position.  This ensures that
+     CC values change smoothly. 
+  
+  * The script inserts new CCs, instead of only editing existing CCs.  (CCs
+     are inserted at the density set in Preferences -> MIDI editor -> "Events 
+     per quarter note when drawing in CC lanes".)
+  
+  * The script does not change or delete existing events until execution 
+     ends, so there are no 'overshoot remnants' if the mouse movement overshoots 
+     the target endpoint.
+  
+  * The events in the newly inserted ramp are automatically selected and other
+     events are deselected, which allows immediate further shaping of the ramp
+     (using, for example, the 2-sided warp (and stretch) script).
+
+  # Instructions
+  There are two ways in which this script can be run:  
+  
+  * First, the script can be linked to its own shortcut key.  In this case, 
+      optionally, if drawing curved shapes are required, the script can 
+      also be linked to a mousewheel shortcut (alternatively, use the 
+      "1-sided warp (accelerate)" script after drawing the ramp.
+
+  * Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+      can each be linked to a toolbar button.  
+      In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+      Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+        and this selected (armed) script can then be run by using the shortcut for the 
+        aforementioned "js_Run..." script.
+     For further instructions - please refer to the "js_Run..." script.                 
+
+  To disable chasing of existing CC values, set the "doBackChase" and/or
+   "doForwardChase" parameters in the USER AREA at the beginning of the script to "false".
  
+  Since this function is a user script, the way it responds to shortcut keys and 
+    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+    with mouse modifiers:  To run the script, press the shortcut key *once* 
+    to start the script and then move the mouse or mousewheel *without* 
+    pressing any mouse buttons.  Press the shortcut key again once to 
+    stop the script.  
+
+  (The first time that the script is stopped, REAPER will pop up a dialog box 
+    asking whether to terminate or restart the script.  Select "Terminate"
+    and "Remember my answer for this script".)
+]] 
 
 --[[
- Changelog:
- * v1.0 (2016-05-05)
+  Changelog:
+  * v1.0 (2016-05-05)
     + Initial Release
- * v1.1 (2016-05-18)
+  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
     + Improved speed and responsiveness
- * v1.11 (2016-05-29)
+  * v1.11 (2016-05-29)
     + Script does not fail when "Zoom dependent" CC density is selected in Preferences
     + If linked to a menu button, script will toggle button state to indicate activation/termination
- * v1.12 (2016-06-02)
+  * v1.12 (2016-06-02)
     + Few tweaks to improve appearance of real-time ramp when using very low CC density
- * v2.0 (2016-07-04)
+  * v2.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
+  * v2.10 (2016-10-23)
+    + Header updated to ReaPack v1.1 format.
+    + Chasing will only match CCs in active channel.
 ]]
 
 -- USER AREA
@@ -109,7 +119,7 @@ local usedPPQsTableHasBeenSetup = false
 
 -----------------------------------------------------------------------------      
 -- General note:
--- REAPER's InsertCC functions 1) overwrites and delets existing CCs, 
+-- REAPER's InsertCC functions 1) overwrites and deletes existing CCs, 
 --    2) changes indices of existing CCs, 3) does not return the index of
 --    the newly inserted event, and 4) is very slow.  Therefore, this script 
 --    will not draw the ramp in real time by continuously *inserting* new CCs.  
@@ -130,6 +140,7 @@ function loop_trackMouseMovement()
     
     if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
         
+    -- Has mouse been moved?
     if SWS283 == true then
         _, _, mouseCClane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
     else 
@@ -347,8 +358,8 @@ function insertNewCCs(num)
     _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)      
     
     if reaper.BR_GetMidiSourceLenPPQ(take) < (num + #tableIndices + #usedPPQs) then 
-        reaper.ShowConsoleMsg("Oops, the MIDI item is either too short or too crowded to draw proper ramps")
-        return(0) 
+        reaper.ShowMessageBox("Oops, the MIDI item is either too short or too crowded to draw proper ramps.", "ERROR", 0)
+        return(false) 
     end
 
         
@@ -629,7 +640,7 @@ function main()
     if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
     if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
     if SWS283 ~= SWS283again then
-        reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
+        reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
         return(0)
     end
     
@@ -753,44 +764,48 @@ function main()
         chaseMSBfound = false
         chaseLSBfound = false
         while (f < ccevtcnt and chaseForwardFound == false) do
-            _, _, _, ppqpos, chanmsg, _, msg2, msg3 = reaper.MIDI_GetCC(take, f)
+            _, _, _, ppqpos, chanmsg, channel, msg2, msg3 = reaper.MIDI_GetCC(take, f)
         
-            if laneType == CC7BIT and chanmsg == 176 and msg2 == mouseLane then
-               nextValue = msg3
-               chaseForwardFound = true 
-            
-            --[[
-            -- Chasing can be slow if there is no LSB and the search therefore iterates through every event.
-            -- It may therefore be quicker to only look for MSB.            
-            elseif laneType == CC14BIT and chanmsg == 176 and msg2 == mouseLane-256 then
-                nextValue = msg3<<7
-                chaseForwardFound = true 
-            ]]
-                  
-            elseif laneType == CC14BIT then
-                if chanmsg == 176 and msg2 == mouseLane-256 and chaseMSBfound == false then
-                    nextMSB = msg3
-                    nextValue = msg3<<7 -- If no LSB is found, this MSB will be used as chased value
-                    chaseMSBfound = true
-                elseif chanmsg == 176 and msg2 == mouseLane-224 and chaseLSBfound == false then
-                    nextLSB = msg3
-                    chaseLSBfound = true
-                end
-                if chaseMSBfound == true and chaseLSBfound == true then 
-                    nextValue = (nextMSB<<7) + nextLSB
+            if channel == defaultChannel then -- ignore CCs in other channels
+                   
+                if laneType == CC7BIT and chanmsg == 176 and msg2 == mouseLane then
+                   nextValue = msg3
+                   chaseForwardFound = true 
+                
+                --[[
+                -- Chasing can be slow if there is no LSB and the search therefore iterates through every event.
+                -- It may therefore be quicker to only look for MSB.            
+                elseif laneType == CC14BIT and chanmsg == 176 and msg2 == mouseLane-256 then
+                    nextValue = msg3<<7
                     chaseForwardFound = true 
-                end
-            
-            elseif laneType == PITCH and chanmsg == 224 then
-                nextValue = (msg3<<7) + msg2
-                chaseForwardFound = true
-            
-            elseif laneType == CHANPRESSURE and chanmsg == 208 then
-                nextValue = msg2
-                chaseForwardFound = true   
-                                 
-            end -- if ... <= mouseLane and mouseLane <= ... and msg2 == ...
+                ]]
+                      
+                elseif laneType == CC14BIT then
+                    if chanmsg == 176 and msg2 == mouseLane-256 and chaseMSBfound == false then
+                        nextMSB = msg3
+                        nextValue = msg3<<7 -- If no LSB is found, this MSB will be used as chased value
+                        chaseMSBfound = true
+                    elseif chanmsg == 176 and msg2 == mouseLane-224 and chaseLSBfound == false then
+                        nextLSB = msg3
+                        chaseLSBfound = true
+                    end
+                    if chaseMSBfound == true and chaseLSBfound == true then 
+                        nextValue = (nextMSB<<7) + nextLSB
+                        chaseForwardFound = true 
+                    end
+                
+                elseif laneType == PITCH and chanmsg == 224 then
+                    nextValue = (msg3<<7) + msg2
+                    chaseForwardFound = true
+                
+                elseif laneType == CHANPRESSURE and chanmsg == 208 then
+                    nextValue = msg2
+                    chaseForwardFound = true   
+                                     
+                end -- if ... <= mouseLane and mouseLane <= ... and msg2 == ...
 
+            end -- if channel == defaultChannel
+            
             f = f + 1
         end -- while (i < ccevtcnt and chaseForwardFound == false)
 
@@ -825,44 +840,48 @@ function main()
         chaseMSBfound = false
         chaseLSBfound = false
         while (b >= 0 and chaseBackFound == false) do
-            _, _, _, ppqpos, chanmsg, _, msg2, msg3 = reaper.MIDI_GetCC(take, b)
+            _, _, _, ppqpos, chanmsg, channel, msg2, msg3 = reaper.MIDI_GetCC(take, b)
         
-            if laneType == CC7BIT and chanmsg==176 and msg2 == mouseLane then
-                lastValue = msg3
-                chaseBackFound = true
-
-            --[[  
-            -- Chasing can be slow if there is no LSB and the search therefore iterates through every event.
-            -- It may therefore be quicker to only look for MSB.
-            elseif laneType == CC14BIT and chanmsg == 176 and msg2 == mouseLane-256 then
-                lastValue = msg3<<7
-                chaseBackFound = true             
-            ]]             
-
-            elseif laneType == CC14BIT then
-                if chanmsg==176 and msg2 == mouseLane-256 and chaseMSBfound == false then
-                    lastValue = msg3<<7 -- If no LSB is found, this MSB will be used as chased value
-                    lastMSB = msg3
-                    chaseMSBfound = true
-                elseif chanmsg==176 and msg2 == mouseLane-224 and chaseLSBfound == false then
-                    lastLSB = msg3
-                    chaseLSBfound = true
-                end
-                if chaseMSBfound == true and chaseLSBfound == true then 
-                    lastValue = (lastMSB<<7) + lastLSB
-                    chaseBackFound = true 
-                end
-                  
-            elseif laneType == PITCH and chanmsg == 224 then
-                lastValue = (msg3<<7) + msg2
-                chaseBackFound = true
+            if channel == defaultChannel then -- ignore CCs in other channels
             
-            elseif laneType == CHANPRESSURE and chanmsg == 208 then
-                lastValue = msg2
-                chaseBackFound = true                
-                 
-            end -- if ... <= mouseLane and mouseLane <= ... and msg2 == ...
+                if laneType == CC7BIT and chanmsg==176 and msg2 == mouseLane then
+                    lastValue = msg3
+                    chaseBackFound = true
+    
+                --[[  
+                -- Chasing can be slow if there is no LSB and the search therefore iterates through every event.
+                -- It may therefore be quicker to only look for MSB.
+                elseif laneType == CC14BIT and chanmsg == 176 and msg2 == mouseLane-256 then
+                    lastValue = msg3<<7
+                    chaseBackFound = true             
+                ]]             
+    
+                elseif laneType == CC14BIT then
+                    if chanmsg==176 and msg2 == mouseLane-256 and chaseMSBfound == false then
+                        lastValue = msg3<<7 -- If no LSB is found, this MSB will be used as chased value
+                        lastMSB = msg3
+                        chaseMSBfound = true
+                    elseif chanmsg==176 and msg2 == mouseLane-224 and chaseLSBfound == false then
+                        lastLSB = msg3
+                        chaseLSBfound = true
+                    end
+                    if chaseMSBfound == true and chaseLSBfound == true then 
+                        lastValue = (lastMSB<<7) + lastLSB
+                        chaseBackFound = true 
+                    end
+                      
+                elseif laneType == PITCH and chanmsg == 224 then
+                    lastValue = (msg3<<7) + msg2
+                    chaseBackFound = true
+                
+                elseif laneType == CHANPRESSURE and chanmsg == 208 then
+                    lastValue = msg2
+                    chaseBackFound = true                
+                     
+                end -- if ... <= mouseLane and mouseLane <= ... and msg2 == ...
 
+            end -- if channel == defaultChannel
+            
             b = b - 1
         end -- while (i >= 0 and chaseBackFound == false)
     end -- if doBackChase == true 
