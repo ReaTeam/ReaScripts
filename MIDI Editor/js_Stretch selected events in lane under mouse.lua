@@ -26,16 +26,22 @@ About:
      aforementioned "js_Run..." script.
     For further instructions - please refer to the "js_Run..." script. 
   
-   To use, 1) Select the MIDI events to be stretched,  
-           2) Position the mouse in the CC lane (or in the notes area or velocity lane in the case of notes)
-           3) To stretch events on the left (using the rightmost event as anchor), position the mouse to left of the 
-              midpoint of the events' time range.  
-              To stretch events on the right, position the mouse to the right of the midpoint of the events' time range.
-           4) Press the shortcut key.
-           5) Move mouse left or right to change the extent of stretching.
-           6) To exit, move mouse out of CC lane, or press shortcut key again.
+    To use, 
+    1) Select the MIDI events to be stretched. 
+
+    2) Position the mouse in the CC lane (or in the notes area or velocity lane in the case of notes).
+    
+    3) To stretch events on the left (using the rightmost event as anchor), position the mouse to left of the 
+      midpoint of the events' time range.  
+      To stretch events on the right, position the mouse to the right of the midpoint of the events' time range.
+      
+    4) Press the shortcut key.
+    
+    5) Move mouse left or right to change the extent of stretching.
+    
+    6) To exit, move mouse out of CC lane, or press shortcut key again.
   
-   Note: Since this function is a user script, the way it responds to shortcut keys and 
+    Note: Since this function is a user script, the way it responds to shortcut keys and 
        mouse buttons is opposite to that of REAPER's built-in mouse actions 
        with mouse modifiers:  To run the script, press the shortcut key *once* 
        to start the script and then move the mouse *without* pressing any 
