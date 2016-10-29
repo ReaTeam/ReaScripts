@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9f7df2f618495ea438f498d53e04883cf5755f4b" name="ReaTeam Scripts">
+<index version="1" commit="6cd9562b309fec7a01f8d7c15ab9ac0d742e2104" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -371,6 +371,12 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="Items Properties">
+    <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
+      <version name="1.0" author="IXix" time="2016-10-29T01:58:12Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6cd9562b309fec7a01f8d7c15ab9ac0d742e2104/Items%20Properties/IXix_delete%20selected%20items%20active%20take%20envelopes.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
       <version name="0.2015.7.5" time="2015-12-02T21:24:29Z">
         <changelog><![CDATA[(Bug fix) fade-in/fade-out curves weren't copied properly (5-July-15)]]></changelog>
