@@ -1,6 +1,6 @@
 --[[
  * ReaScript Name: Delete selected items active take envelopes
- * Author: IXIx
+ * Author: IXix
  * Link:
       Forum http://forum.cockos.com/showthread.php?t=179032
  * Licence: GPL v3
