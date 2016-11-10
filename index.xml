@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6cd9562b309fec7a01f8d7c15ab9ac0d742e2104" name="ReaTeam Scripts">
+<index version="1" commit="1d87ddb63aaea7238b6505a2bf20303d2147b7b3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1496,6 +1496,14 @@ Made by Mordi, Jan 2016]]></changelog>
     <reapack name="cfillion_Explode selected tracks to mono tracks.lua" type="script">
       <version name="1.1" author="cfillion" time="2016-06-08T02:29:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/265c009d637beaadf376f715ebeb8c673a591381/Tracks%20Properties/cfillion_Explode%20selected%20tracks%20to%20mono%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Select destination tracks of selected tracks sends recursively.lua" type="script" desc="Select destination tracks of selected tracks sends recursively">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=183638">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2016-11-10T09:59:25Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d87ddb63aaea7238b6505a2bf20303d2147b7b3/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
