@@ -1,3 +1,4 @@
+-- @description Colour Swatch
 -- @version 1.61
 -- @author Airon
 -- @changelog

@@ -1,3 +1,4 @@
+-- @description Search selected notes in scale finder
 -- @version 1.1
 -- @author Mordi & AHmusic
 -- @changelog
