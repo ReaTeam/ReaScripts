@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Compress or expand selected CC or velocity events using mousewheel.lua
+ * ReaScript Name:  Compress or expand selected CC or velocity events using mousewheel
  * Description:  Compress or expand CC or velocity using mousewheel
  * Instructions:  There are two ways in which this script can be run:  
  *                  1) First, the script can be linked to its own shortcut key (such as "Ctrl+C"), in which case

@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Remove redundant CCs (from selected events in lane under mouse).lua
+ * ReaScript Name:  Remove redundant CCs (from selected events in lane under mouse)
  * Description:  Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.
  * Instructions:  In the USER AREA of the script (below the changelog), the user can customize the following options:
  *                (It may be useful to link different versions of the script to different shortcuts.)

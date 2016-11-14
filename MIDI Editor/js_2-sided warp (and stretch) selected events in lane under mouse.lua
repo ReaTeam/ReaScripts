@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_2-sided warp (and stretch) selected events in lane under mouse.lua
+ * ReaScript Name:  2-sided warp (and stretch) selected events in lane under mouse
  * Description:  A simple script for warping and stretching the positions of MIDI events.
  *               The script only affects events in the MIDI editor lane under the mouse cursor.
  *               NB: Useful for changing a linear CC ramp into more complex logistic-type curves.

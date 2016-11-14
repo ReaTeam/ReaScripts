@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_MIDI Inspector.lua
+ReaScript name: MIDI Inspector
 Version: 0.95
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg

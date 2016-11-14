@@ -1,5 +1,5 @@
 --[[
-ReaScript name:  js_Stretch selected events in lane under mouse.lua
+ReaScript name:  Stretch selected events in lane under mouse
 Version: 2.10
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif

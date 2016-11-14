@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Propagate note names of last clicked track to all selected tracks.lua
+ReaScript name: Propagate note names of last clicked track to all selected tracks
 Version: 1.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=181276

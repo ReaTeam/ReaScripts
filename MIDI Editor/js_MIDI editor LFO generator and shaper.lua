@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name: js_MIDI editor LFO generator and shaper.lua
+ * ReaScript Name: MIDI editor LFO generator and shaper
  * Description: LFO generator and shaper - MIDI editor version
  *              Draw fancy LFO curves in REAPER's piano roll.
  * Instructions:  
