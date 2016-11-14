@@ -452,7 +452,7 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="MIDI Editor">
-    <reapack name="cfillion_Toggle MIDI Preview on Transport Change.lua" type="script">
+    <reapack name="cfillion_Toggle MIDI Preview on Transport Change.lua" type="script" desc="Toggle MIDI Preview on Transport Change.lua">
       <version name="1.1" author="cfillion" time="2016-06-05T01:28:45Z">
         <changelog><![CDATA[Fixed preview toggling when reopening the midi editor]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/473915a806cd9cb6e9e5ad075c8ba9f1b54fea7c/MIDI%20Editor/cfillion_Toggle%20MIDI%20Preview%20on%20Transport%20Change.lua</source>
