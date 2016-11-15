@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_1-sided warp (accelerate) selected events in lane under mouse.lua
+ * ReaScript Name:  1-sided warp (accelerate) selected events in lane under mouse
  * Description:  A simple script for warping the positions of MIDI events.
  *               The script only affects events in the MIDI editor lane under the mouse cursor.
  *               NB: Useful for changing a linear ramp into a parabolic (or other power) curve.

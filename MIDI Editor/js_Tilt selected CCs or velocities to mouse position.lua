@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Tilt selected CCs or velocities to mouse position.lua
+ * ReaScript Name:  Tilt selected CCs or velocities to mouse position
  * Description:  A simple script for linear tilting of selected events in the lane under mouse.  
  *               The endpoint events are tilted to the exact value of the mouse position,
  *                  so the script is useful for precise positioning of ramps and other CC shapes.

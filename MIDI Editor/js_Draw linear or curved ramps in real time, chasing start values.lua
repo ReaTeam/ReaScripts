@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Draw linear or curved ramps in real time, chasing start values.lua
+ReaScript name: Draw linear or curved ramps in real time, chasing start values
 Version: 2.10
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif

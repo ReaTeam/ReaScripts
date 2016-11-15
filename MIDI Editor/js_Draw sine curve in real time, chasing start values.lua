@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Draw sine curve in real time, chasing start values.lua
+ * ReaScript Name:  Draw sine curve in real time, chasing start values
  * Description: Draw sine-shped curves of CC and pitchwheel events in real time.
  *              An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
  *               1) If snap to grid is enabled in the MIDI editor, the endpoints of the 

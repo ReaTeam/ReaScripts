@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name: js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua
+ * ReaScript Name: Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel)
  * Description: This script helps to improve the UI by allowing js_ MIDI editing functions to be selected via toolbar buttons, 
  *                  similar to FL Studio and other DAWs.
  *              Any js_ script that edits the 'lane under mouse' and that has been linked to a toolbar button can be 

@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name: js_Envelope LFO generator and shaper.lua
+ * ReaScript Name: Envelope LFO generator and shaper
  * Description: LFO generator and shaper - Envelope version
  * Instructions:  
  *         DRAWING ENVELOPES

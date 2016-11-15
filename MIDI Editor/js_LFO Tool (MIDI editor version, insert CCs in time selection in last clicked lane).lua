@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name: js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua
+ * ReaScript Name: LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane)
  * Description: LFO generator and shaper - MIDI editor version
  *              Draw fancy LFO curves in REAPER's piano roll.
  * Instructions:  

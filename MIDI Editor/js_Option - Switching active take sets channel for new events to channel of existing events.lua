@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Option - Switching active take sets channel for new events to channel of existing events.lua
+ * ReaScript Name:  Option - Switching active take sets channel for new events to channel of existing events
  * Description: Inserting events in the wrong MIDI channel is an all-too-easy mistake to make, particularly after 
  *                  switching the active track. If this option is activated, the default MIDI channel for new events  
  *                  will automatically be set to the channel of existing MIDI events in the newly active track, 

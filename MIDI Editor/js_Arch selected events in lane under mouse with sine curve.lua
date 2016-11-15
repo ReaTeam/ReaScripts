@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Arch selected events in lane under mouse with sine curve.lua
+ * ReaScript Name:  Arch selected events in lane under mouse with sine curve
  * Description:  Arch selected CCs or velocities in lane under mouse towards mouse position, using a sine or sine power curve.
  *               The shape of the curve can be changed with the mousewheel.
  * Instructions:  There are two ways in which this script can be run:  

@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Trim selected notes by drawing a line with the mouse.lua
+ * ReaScript Name:  Trim selected notes by drawing a line with the mouse
  * Description:  Trims multiple selected notes by drawing a "cutting line" with the mouse in the MIDI editor piano roll.
  *               Notes that intersect the cutting line will be trimmed at the position of intersection.
  *               If snap-to-grid is enabled in the MIDI editor, the notes will be trimmed at the grid.

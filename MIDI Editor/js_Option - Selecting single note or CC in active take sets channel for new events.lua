@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Option - Selecting single note or CC in active take sets channel for new events.lua
+ * ReaScript Name:  Option - Selecting single note or CC in active take sets channel for new events
  * Description: Inserting events in the wrong channel is an all-too-easy mistake to make, particularly after 
  *                  switching the active track. With this new option, the user can switch to the correct 
  *                  channel by simply clicking a note or CC of the new track. 

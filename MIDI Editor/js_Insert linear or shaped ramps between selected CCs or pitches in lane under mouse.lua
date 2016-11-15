@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua
+ * ReaScript Name:  Insert linear or shaped ramps between selected CCs or pitches in lane under mouse
  * Description:   Useful for quickly adding ramps between 'nodes'.
  *                Useful for smoothing transitions between CCs that were drawn at low resolution.
  *
