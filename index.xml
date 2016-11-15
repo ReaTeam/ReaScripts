@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="682b3cc9ce9511ff8707e94fb694a0f66f777650" name="ReaTeam Scripts">
+<index version="1" commit="7a6f8a0154b45321cfdce153bdebcf478848ebbc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1507,6 +1507,10 @@ Made by Mordi, Jan 2016]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2016-11-10T09:59:25Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d87ddb63aaea7238b6505a2bf20303d2147b7b3/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2016-11-15T19:24:51Z">
+        <changelog><![CDATA[Disable undo point creation]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a6f8a0154b45321cfdce153bdebcf478848ebbc/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
