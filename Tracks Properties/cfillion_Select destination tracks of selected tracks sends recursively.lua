@@ -1,7 +1,8 @@
 -- @description Select destination tracks of selected tracks sends recursively
--- @version 1.0
+-- @version 1.0.1
 -- @author cfillion
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=183638
+-- @changelog Disable undo point creation
 
 local function highlight(track)
   for i=0,reaper.GetTrackNumSends(track, 0)-1 do
@@ -12,7 +13,11 @@ local function highlight(track)
   end
 end
 
-for i=0,reaper.CountSelectedTracks(0)-1 do
-  local track = reaper.GetSelectedTrack(0, i)
-  highlight(track)
+local function main()
+  for i=0,reaper.CountSelectedTracks(0)-1 do
+    local track = reaper.GetSelectedTrack(0, i)
+    highlight(track)
+  end
 end
+
+reaper.defer(main)
