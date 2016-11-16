@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7a6f8a0154b45321cfdce153bdebcf478848ebbc" name="ReaTeam Scripts">
+<index version="1" commit="d4a548a4c3f8bd20067f1c55ef33a36a2273aa0e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -573,6 +573,15 @@ added support for all track envelopes]]></changelog>
       <version name="1.11" author="juliansader" time="2016-08-15T05:56:48Z">
         <changelog><![CDATA[+ Trying to create header that is compatible with ReaPack 1.1]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/221d4280fbd29f2756fbdf6b03abb4fe048fa979/MIDI%20Editor/js_Deselect%20all%20events%20outside%20time%20selection%20(from%20all%20tracks).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Deselect all MIDI except in active channel of active take.lua" type="script" desc="js_Deselect all MIDI except in active channel of active take.lua">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2016-11-16T23:07:26Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d4a548a4c3f8bd20067f1c55ef33a36a2273aa0e/MIDI%20Editor/js_Deselect%20all%20MIDI%20except%20in%20active%20channel%20of%20active%20take.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time, chasing start values.lua" type="script" desc="js_Draw linear or curved ramps in real time, chasing start values.lua">
