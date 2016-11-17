@@ -341,6 +341,7 @@ for i = 0, 127 do -- initialize lanes for channels
 end
 
 offsetChange = 0 -- This variable will be used by the deleteOrUpdateOffset
+countRedundancies = 0
 
 --------------------------------------------------------------------------
 local function deleteOrUpdateOffset(line, selType, muted, offset, message)
@@ -409,6 +410,7 @@ local function deleteOrUpdateOffset(line, selType, muted, offset, message)
         
     ::skipChecks::
     if doDelete == true then
+        countRedundancies = countRedundancies + 1
         offsetChange = offsetChange + offset
         return("")
     else        
