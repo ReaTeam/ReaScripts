@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0130032264daeb89bbe65a3caa5a5279fc19c9c8" name="ReaTeam Scripts">
+<index version="1" commit="2c11323eb7c5e8cb480e5c1726f5188da4146bb6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1066,10 +1066,29 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="2.1" author="juliansader" time="2016-11-17T01:21:42Z">
         <changelog><![CDATA[+ Header and About info updated for ReaPack 1.1 format.
 + IMPROVED SPEED!]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0130032264daeb89bbe65a3caa5a5279fc19c9c8/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/38ab0fb13dc2f3f2a0a2ac054503c1a4419bfcf1/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
-    <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script" desc="Remove redundant CCs">
+    <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script" desc="js_Remove redundant CCs (from selected events in last clicked lane).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the USER AREA of the script (below the changelog), the user can customize the following options: (It may be useful to link different versions of the script to different shortcuts.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab lanes_from_which_to_remove: "all", "last clicked" or "under mouse"\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_from_14bit_CCs: Ignore LSB when comparing pitchwheel events\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab only_analyze_selected: Limit analysis and removal to selected events?\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab automatically_delete_muted_CCs: Muted CCs are inherently redundant\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab show_error_messages\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (* at present, the script does not work with 14-bit CC lanes)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+      </metadata>
       <version name="0.91" author="juliansader" time="2016-06-29T17:10:10Z">
         <changelog><![CDATA[+ The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
 + CC LANE: CCs will be removed from the last clicked CC lane (not from the lane under the mouse).
@@ -1078,8 +1097,32 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d620a8a41231c6b1eb93b8434f7cfc36810e69ab/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="0.95" author="juliansader" time="2016-11-17T01:28:57Z">
+        <changelog><![CDATA[+ Header and About info updated for ReaPack 1.1 format.
++ IMPROVED SPEED!]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e46fbe78690eb7f77f4733ed5a5bd5f33139153c/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
-    <reapack name="js_Remove redundant CCs.lua" type="script" desc="Remove redundant CCs">
+    <reapack name="js_Remove redundant CCs.lua" type="script" desc="js_Remove redundant CCs.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the USER AREA of the script (below the changelog), the user can customize the following options: (It may be useful to link different versions of the script to different shortcuts.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab lanes_from_which_to_remove: "all", "last clicked" or "under mouse"\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_from_14bit_CCs: Ignore LSB when comparing pitchwheel events\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab only_analyze_selected: Limit analysis and removal to selected events?\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab automatically_delete_muted_CCs: Muted CCs are inherently redundant\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab show_error_messages\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (* at present, the script does not work with 14-bit CC lanes)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+      </metadata>
       <version name="0.9" author="juliansader" time="2016-06-09T07:58:09Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/12e39007760f480b581e0461323088d0a912c113/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
@@ -1091,6 +1134,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + MUTED: Muted CCs will automatically be removed since they are inherently redundant.
 + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d620a8a41231c6b1eb93b8434f7cfc36810e69ab/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+      </version>
+      <version name="0.95" author="juliansader" time="2016-11-17T01:29:36Z">
+        <changelog><![CDATA[+ Header and About info updated for ReaPack 1.1 format.
++ IMPROVED SPEED!]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2c11323eb7c5e8cb480e5c1726f5188da4146bb6/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
     </reapack>
     <reapack name="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua" type="script" desc="js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua">
