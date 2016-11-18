@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2c11323eb7c5e8cb480e5c1726f5188da4146bb6" name="ReaTeam Scripts">
+<index version="1" commit="a72e937ec6fb46b21a609b6e9c2deaf365519c15" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1066,7 +1066,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="2.1" author="juliansader" time="2016-11-17T01:21:42Z">
         <changelog><![CDATA[+ Header and About info updated for ReaPack 1.1 format.
 + IMPROVED SPEED!]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/38ab0fb13dc2f3f2a0a2ac054503c1a4419bfcf1/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/095a7b679f6b740763a42f94e2287860f3f5f85f/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script" desc="js_Remove redundant CCs (from selected events in last clicked lane).lua">
@@ -1100,7 +1100,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="0.95" author="juliansader" time="2016-11-17T01:28:57Z">
         <changelog><![CDATA[+ Header and About info updated for ReaPack 1.1 format.
 + IMPROVED SPEED!]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e46fbe78690eb7f77f4733ed5a5bd5f33139153c/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a72e937ec6fb46b21a609b6e9c2deaf365519c15/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script" desc="js_Remove redundant CCs.lua">
@@ -1138,7 +1138,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="0.95" author="juliansader" time="2016-11-17T01:29:36Z">
         <changelog><![CDATA[+ Header and About info updated for ReaPack 1.1 format.
 + IMPROVED SPEED!]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2c11323eb7c5e8cb480e5c1726f5188da4146bb6/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/929c92ecbda8a48f4532d4f441a2b4f074e8dc33/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
     </reapack>
     <reapack name="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua" type="script" desc="js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua">
