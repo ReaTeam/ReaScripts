@@ -88,14 +88,14 @@ if posTakeMIDIend == nil then
 end
 
 -- Now find the very first MIDI message in the take's chunk.  This can be in standard format, extended format, of sysex format
-posFirstStandardEvent = chunkStr:find("\n[eE]m? %d+ %x%x %x%x %x%x[% %d]-\n", posTakeGUID)
-posFirstExtendedEvent = chunkStr:find("\n[xX]m? %d+ %d+ %x%x %x%x %x%x[% %d]-\n", posTakeGUID)
-posFirstSysex         = chunkStr:find("\n<[xX]m? %d+ %d+ .->\n[<xXeE]", posTakeGUID)
-if not posFirstExtendedEvent then posFirstExtendedEvent = math.huge end
-if not posFirstSysex then posFirstSysex = math.huge end
+posFirstStandardEvent = chunkStr:find("\n[eE]m? %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
+posFirstSysex         = chunkStr:sub(1,posFirstStandardEvent+2):find("\n<[xX]m? %-?%d+ %-?%d+.->\n[<xXeE]", posTakeGUID)
+if posFirstSysex == nil then posFirstSysex = posFirstStandardEvent end
+posFirstExtendedEvent = chunkStr:sub(1,posFirstSysex+2):find("\n[xX]m? %-?%d+ %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
+if posFirstExtendedEvent == nil then posFirstExtendedEvent = posFirstSysex end
 posFirstMIDIevent = math.min(posFirstStandardEvent, posFirstExtendedEvent, posFirstSysex)
 if posFirstMIDIevent >= posAllNotesOff then 
-    --reaper.ShowMessageBox("MIDI take is empty.", "ERROR", 0)
+    reaper.ShowMessageBox("MIDI take appears to be empty.", "ERROR", 0)
     -- MIDI take is empty, so nothing to deselect!
     return
 end        
@@ -121,8 +121,10 @@ local matchStringExtended = "\nx(m? %d+ %d+ %x[^"
                     .. string.lower(string.format("%x", defaultChannel))
                     .. "] %x%x %x%x)"
 
-thisTakeMIDIchunk = thisTakeMIDIchunk:gsub(matchStringStandard, "\nE%1")
-thisTakeMIDIchunk = thisTakeMIDIchunk:gsub(matchStringExtended, "\nX%1")
+thisTakeMIDIchunk = thisTakeMIDIchunk:gsub(matchStringStandard, "\nE%1") -- deselect standard events
+thisTakeMIDIchunk = thisTakeMIDIchunk:gsub(matchStringExtended, "\nX%1") -- deselect events in extended format
+thisTakeMIDIchunk = thisTakeMIDIchunk:gsub("\n<x(m? %-?%d+ %-?%d+)", "\n<X%1") -- sysex events do not carry channel info, and will all be deselected
+
 
 reaper.SetItemStateChunk(activeItem, chunkFirstPart .. thisTakeMIDIchunk .. chunkLastPart, false)
 
