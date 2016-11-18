@@ -216,9 +216,9 @@ end
 
 -- Now find the very first MIDI message in the take's chunk.  This can be in standard format, extended format, of sysex format
 posFirstStandardEvent = chunkStr:find("\n[eE]m? %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
-posFirstSysex         = chunkStr:sub(1,posFirstStandardEvent):find("\n<[xX]m? %-?%d+ %-?%d+ .->\n[<xXeE]", posTakeGUID)
+posFirstSysex         = chunkStr:sub(1,posFirstStandardEvent+2):find("\n<[xX]m? %-?%d+ %-?%d+.->\n[<xXeE]", posTakeGUID)
 if posFirstSysex == nil then posFirstSysex = posFirstStandardEvent end
-posFirstExtendedEvent = chunkStr:sub(1,posFirstSysex):find("\n[xX]m? %-?%d+ %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
+posFirstExtendedEvent = chunkStr:sub(1,posFirstSysex+2):find("\n[xX]m? %-?%d+ %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
 if posFirstExtendedEvent == nil then posFirstExtendedEvent = posFirstSysex end
 posFirstMIDIevent = math.min(posFirstStandardEvent, posFirstExtendedEvent, posFirstSysex)
 if posFirstMIDIevent >= posAllNotesOff then 
