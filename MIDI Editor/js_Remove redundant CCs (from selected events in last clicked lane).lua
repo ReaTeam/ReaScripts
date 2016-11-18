@@ -215,17 +215,17 @@ if posTakeMIDIend == nil then
 end
 
 -- Now find the very first MIDI message in the take's chunk.  This can be in standard format, extended format, of sysex format
-posFirstStandardEvent = chunkStr:find("\n[eE]m? %d+ %x%x %x%x %x%x[% %d]-\n", posTakeGUID)
-posFirstExtendedEvent = chunkStr:find("\n[xX]m? %d+ %d+ %x%x %x%x %x%x[% %d]-\n", posTakeGUID)
-posFirstSysex         = chunkStr:find("\n<[xX]m? %d+ %d+ .->\n[<xXeE]", posTakeGUID)
-if not posFirstExtendedEvent then posFirstExtendedEvent = math.huge end
-if not posFirstSysex then posFirstSysex = math.huge end
+posFirstStandardEvent = chunkStr:find("\n[eE]m? %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
+posFirstSysex         = chunkStr:sub(1,posFirstStandardEvent):find("\n<[xX]m? %-?%d+ %-?%d+ .->\n[<xXeE]", posTakeGUID)
+if posFirstSysex == nil then posFirstSysex = posFirstStandardEvent end
+posFirstExtendedEvent = chunkStr:sub(1,posFirstSysex):find("\n[xX]m? %-?%d+ %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
+if posFirstExtendedEvent == nil then posFirstExtendedEvent = posFirstSysex end
 posFirstMIDIevent = math.min(posFirstStandardEvent, posFirstExtendedEvent, posFirstSysex)
 if posFirstMIDIevent >= posAllNotesOff then 
-    --reaper.ShowMessageBox("MIDI take is empty.", "ERROR", 0)
+    reaper.ShowMessageBox("MIDI take appears to be empty.", "ERROR", 0)
     -- MIDI take is empty, so nothing to deselect!
     return
-end        
+end      
 
 -- To make all the search faster (and to prevent possible bugs)
 --    the item's state chunk will be divided into three parts, with the middle part
@@ -340,7 +340,7 @@ end -- function deleteOrUpdateOffset
 
 ------------------------------------------------------
 -- This single line iterates through all the MIDI data
-local thisTakeMIDIedited = thisTakeMIDIchunk:gsub("(\n(<?[xXeE])(m?) (%d+) ([% %x]+))", deleteOrUpdateOffset)
+local thisTakeMIDIedited = thisTakeMIDIchunk:gsub("(\n(<?[xXeE])(m?) (%d+) ([%-% %x]+))", deleteOrUpdateOffset)
     
 
 reaper.SetItemStateChunk(item, chunkFirstPart .. thisTakeMIDIedited .. chunkLastPart, false)
