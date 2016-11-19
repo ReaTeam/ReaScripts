@@ -7,7 +7,7 @@ Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
 About:
   # Description
-  Draw linear or curved ramps of CC and pitchwheel events in real time, chasing start values.
+  Draw linear or curved ramps of CC and pitchwheel events in real time (without chasing start values).
              
   An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
   
