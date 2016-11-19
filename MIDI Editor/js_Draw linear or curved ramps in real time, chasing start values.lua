@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw linear or curved ramps in real time, chasing start values.lua
-Version: 3.00
+Version: 3.01
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -98,6 +98,8 @@ About:
   * v3.00 (2016-11-18)
     + Option to skip redundant events.
     + IMPROVED, NEAR-NATIVE SPEED!  (Especially in items with >100000 MIDI events.)
+  * v3.01 (2016-11-19)
+    + Script works with takes in which first MIDI message is sysex.
 ]]
 
 -- USER AREA
@@ -114,11 +116,16 @@ About:
 
 -----------------------------------------------------------------
 -- Constants and variables
-local laneType
+--[[local laneType
 local CC7BIT = 0
 local CC14BIT = 1
 local PITCH = 2
 local CHANPRESSURE = 3
+]]
+local laneIsCC7BIT  = false
+local laneIsCC14BIT = false
+local laneIsPITCH   = false
+local laneIsCHPRESS = false
 
 local wheel = 0 
 
@@ -126,8 +133,9 @@ local chunkFirstPart = ""
 local thisTakeMIDIchunk = "" 
 
 local tableLine = {}
-local lineLeftPPQpos, lineLeftValue, lineRightPPQpos, lineRightValue, lineEndPPQpos --= 0,0,0,0,0
-local originalOffset
+local lineLeftPPQpos, lineLeftValue, lineRightPPQpos, lineRightValue, lineEndPPQpos
+local originalOffset, originalEventIsStandard, subStringForEorX, newOrigOffset
+local defaultChannel, defaultChanHex
 
 local mouseStartCCvalue, mouseStartLane, lineStartPPQpos
 local take, QNperGrid, PPQ, QNstart
@@ -166,7 +174,7 @@ local function loop_trackMouseMovement()
         local ti = table.insert
         local mf = math.floor
         
-        local mouseStartLane = mouseStartLane
+        local lane = mouseStartLane
         local skipRedundant = skipRedundant
         local PPperCC = PPperCC
     
@@ -183,10 +191,10 @@ local function loop_trackMouseMovement()
             if scriptVal == nil then scriptVal = 0 end
         reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
         
-        if scriptVal > 0 then wheel = wheel - 0.2
-        elseif scriptVal < 0 then wheel = wheel + 0.2
-        elseif val > 0 then wheel = wheel - 0.2
-        elseif val < 0 then wheel = wheel + 0.2
+        if scriptVal > 0 then wheel = wheel + 0.2
+        elseif scriptVal < 0 then wheel = wheel - 0.2
+        elseif val > 0 then wheel = wheel + 0.2
+        elseif val < 0 then wheel = wheel - 0.2
         end
 
         -- Get mouse new PPQ (horizontal) position
@@ -228,23 +236,22 @@ local function loop_trackMouseMovement()
             lineRightValue  = lineStartValue
         end    
                 
-        -- Clean previous tableLine
+        -- Clean previous tableLine.  All the new MIDI events will be stored in this table, and later concatenated into a single string.
         tableLine = {}
         local lastPPQpos = 0
         local offset = 0
-        local defaultChannelX = string.format("%1x", defaultChannel)
         
         
         -- Insert the leftmost endpoint (which is not necessarily a grid position)
-        if laneType == CC7BIT then
-            ti(tableLine, sf("\ne %i b%s %02x %02x", lineLeftPPQpos, defaultChannelX, mouseStartLane, lineLeftValue))
-        elseif laneType == PITCH then
-            ti(tableLine, sf("\ne %i e%s %02x %02x", lineLeftPPQpos, defaultChannelX, lineLeftValue&127, lineLeftValue>>7))
-        elseif laneType == CHANPRESSURE then
-            ti(tableLine, sf("\ne %i d%s %02x %02x", lineLeftPPQpos, defaultChannelX, lineLeftValue, 0))
-        else -- laneType == CC14BIT
-            ti(tableLine, sf("\ne %i b%s %02x %02x", lineLeftPPQpos, defaultChannelX, mouseStartLane-256, lineLeftValue>>7))
-            ti(tableLine, sf("\ne %i b%s %02x %02x", 0,              defaultChannelX, mouseStartLane-224, lineLeftValue&127))
+        if laneIsCC7BIT then
+            ti(tableLine, sf("\ne %i b%s %02x %02x", lineLeftPPQpos, defaultChanHex, lane, lineLeftValue))
+        elseif laneIsPITCH then
+            ti(tableLine, sf("\ne %i e%s %02x %02x", lineLeftPPQpos, defaultChanHex, lineLeftValue&127, lineLeftValue>>7))
+        elseif laneIsCHPRESS then
+            ti(tableLine, sf("\ne %i d%s %02x 00",   lineLeftPPQpos, defaultChanHex, lineLeftValue))
+        else -- laneIsCC14BIT
+            ti(tableLine, sf("\ne %i b%s %02x %02x", lineLeftPPQpos, defaultChanHex, lane-256, lineLeftValue>>7))
+            ti(tableLine, sf("\ne 0 b%s %02x %02x",                  defaultChanHex, lane-224, lineLeftValue&127))
         end
         local lastValue = lineLeftValue
         local lastPPQpos = lineLeftPPQpos
@@ -271,15 +278,15 @@ local function loop_trackMouseMovement()
             end
             
             if insertValue ~= lastValue or skipRedundant == false then
-                if laneType == CC7BIT then
-                    ti(tableLine, sf("\ne %i b%s %02x %02x", insertPPQpos-lastPPQpos, defaultChannelX, mouseStartLane, insertValue))
-                elseif laneType == PITCH then
-                    ti(tableLine, sf("\ne %i e%s %02x %02x", insertPPQpos-lastPPQpos, defaultChannelX, insertValue&127, insertValue>>7))
-                elseif laneType == CHANPRESSURE then
-                    ti(tableLine, sf("\ne %i d%s %02x %02x", insertPPQpos-lastPPQpos, defaultChannelX, insertValue, 0))
-                else -- laneType == CC14BIT
-                    ti(tableLine, sf("\ne %i b%s %02x %02x", insertPPQpos-lastPPQpos, defaultChannelX, mouseStartLane-256, insertValue>>7))
-                    ti(tableLine, sf("\ne %i b%s %02x %02x", 0,                       defaultChannelX, mouseStartLane-224, insertValue&127))
+                if laneIsCC7BIT then
+                    ti(tableLine, sf("\ne %i b%s %02x %02x", insertPPQpos-lastPPQpos, defaultChanHex, lane, insertValue))
+                elseif laneIsPITCH then
+                    ti(tableLine, sf("\ne %i e%s %02x %02x", insertPPQpos-lastPPQpos, defaultChanHex, insertValue&127, insertValue>>7))
+                elseif laneIsCHPRESS then
+                    ti(tableLine, sf("\ne %i d%s %02x 00",   insertPPQpos-lastPPQpos, defaultChanHex, insertValue))
+                else  -- laneIsCC14BIT
+                    ti(tableLine, sf("\ne %i b%s %02x %02x", insertPPQpos-lastPPQpos, defaultChanHex, lane-256, insertValue>>7))
+                    ti(tableLine, sf("\ne 0 b%s %02x %02x",                           defaultChanHex, lane-224, insertValue&127))
                 end
                 lastValue = insertValue
                 lastPPQpos = insertPPQpos
@@ -288,31 +295,44 @@ local function loop_trackMouseMovement()
         
         
         -- Insert the rightmost endpoint
-        if laneType == CC7BIT then
-            ti(tableLine, sf("\ne %i b%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChannelX, mouseStartLane, lineRightValue))
-        elseif laneType == PITCH then
-            ti(tableLine, sf("\ne %i e%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChannelX, lineRightValue&127, lineRightValue>>7))
-        elseif laneType == CHANPRESSURE then
-            ti(tableLine, sf("\ne %i d%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChannelX, lineRightValue, 0))
-        else -- laneType == CC14BIT
-            ti(tableLine, sf("\ne %i b%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChannelX, mouseStartLane-256, lineRightValue>>77))
-            ti(tableLine, sf("\ne %i b%s %02x %02x", 0,                          defaultChannelX, mouseStartLane-224, lineRightValue&127))
+        if laneIsCC7BIT then
+            ti(tableLine, sf("\ne %i b%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChanHex, lane, lineRightValue))
+        elseif laneIsPITCH then
+            ti(tableLine, sf("\ne %i e%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChanHex, lineRightValue&127, lineRightValue>>7))
+        elseif laneIsCHPRESS then
+            ti(tableLine, sf("\ne %i d%s %02x 00",   lineRightPPQpos-lastPPQpos, defaultChanHex, lineRightValue))
+        else -- laneIsCC14BIT
+            ti(tableLine, sf("\ne %i b%s %02x %02x", lineRightPPQpos-lastPPQpos, defaultChanHex, lane-256, lineRightValue>>7))
+            ti(tableLine, sf("\ne 0 b%s %02x %02x",                              defaultChanHex, lane-224, lineRightValue&127))
         end 
         
         
         -- Update the original first MIDI event's offset relative to the new events
-        local originalMIDInewOffset = originalOffset-lineRightPPQpos
-        if originalMIDInewOffset < 0 then originalMIDInewOffset = 4294967296 + originalMIDInewOffset end
-        --table.insert(tableLine, "") -- to ensure that a "\n" is added at the end
+        newOrigOffset = originalOffset-lineRightPPQpos
+        if newOrigOffset >= 0 then 
+        
+            if originalEventIsStandard then -- 32bit
+                newOrigOffset = sf("%i", newOrigOffset)
+            else -- x/X (such as sysex) uses 64bit
+                newOrigOffset = sf("%i 0", newOrigOffset) 
+            end
+        
+        else -- Re-format negative numbers into 32bit or 64bit unsigned integers
+            if originalEventIsStandard then 
+                newOrigOffset = sf("%i", (4294967296 + newOrigOffset))
+            else
+                newOrigOffset = sf("%i 4294967295", (4294967296 + newOrigOffset))
+            end
+        end
                 
         -- DRUMROLL... write the line into the MIDI chunk
         -- This also updates the offset of the original first MIDI event
         reaper.SetItemStateChunk(item, chunkFirstPart
                                     .. table.concat(tableLine) 
-                                    .. thisTakeMIDIchunk:gsub("%d+", string.format("%i", originalMIDInewOffset), 1)
+                                    .. thisTakeMIDIchunk:gsub(subStringForEorX, newOrigOffset, 1)
                                     , false)
         
-    end -- if details == "cc_lane" and mouseNewCClane == mouseStartLane and mouseNewCCvalue ~= -1
+    end -- if details == "cc_lane" and mouseNewCClane == lane and mouseNewCCvalue ~= -1
         
     -- Continuously loop the function
     reaper.runloop(loop_trackMouseMovement)
@@ -343,14 +363,14 @@ function exit()
                 
     -- Write nice, informative Undo strings
     if wheel == 0 then shapeStr = "linear" else shapeStr = "curved" end
-    if laneType == CC7BIT then
+    if laneIsCC7BIT then
         reaper.Undo_OnStateChange("Draw ("..shapeStr..") ramp in 7-bit CC lane ".. mouseStartLane, -1)
-    elseif laneType == CHANPRESSURE then
+    elseif laneIsCHPRESS then
         reaper.Undo_OnStateChange("Draw ("..shapeStr..") ramp in channel pressure lane", -1)
-    elseif laneType == CC14BIT then
+    elseif laneIsCC14BIT then
         reaper.Undo_OnStateChange("Draw ("..shapeStr..") ramp in 14 bit CC lanes ".. 
                                   tostring(mouseStartLane-256) .. "/" .. tostring(mouseStartLane-224))
-    elseif laneType == PITCH then
+    elseif laneIsPITCH then
         reaper.Undo_OnStateChange("Draw ("..shapeStr..") ramp in pitchwheel lane", -1)
     end   
 
@@ -368,7 +388,7 @@ function deleteExistingCCsInRange()
         -- The new ramp must overwrite existing events - but only if same type, channel and lane
         -- These deletions must be limited to the active take's MIDI (not any other take in the item)
         --    so must first find the endpoint of the active take's MIDI chunk.
-        -- REAPER's MIDI takes all (are supposed to) end with an All-Notes-Off message, "E offset B0 7B 00".
+        -- REAPER's MIDI takes all (are supposed to) end with an All-Notes-Off message, "E offset b0 7b 00".
         -- This line tries to find such a message (and that is not followed by another MIDI event)
         posAllNotesOff, _ = thisTakeMIDIchunk:find("\n[eE] %d+ [Bb]0 7[Bb] 00\n[^<xXeE]")
         if posAllNotesOff == nil then 
@@ -378,105 +398,140 @@ function deleteExistingCCsInRange()
         
         -- Define lots of local variables for the function that gsub will call to check every event and delete
         --    the overlapping ones.
-        local offsetChange = 0 -- This variable will be used by the deleteOrUpdateOffset
+        local offsetChange = 0 -- When an event is deleted, the offset of the next (remaining) event must be updated by this amount
         local newOffset = 0
-        local countRedundancies = 0
+        -- The gsub below will replace the *original* first MIDI event's offset with newOrigOffset (relative to the new data
+        --    that has been inserted in front of the original data in the string) 
+        --    before starting to search for overlaps.  So this is where the running PPQ pos starts counting.
+        -- The offset is replaced first, before deletion of overlaps, since the original first event may be deleted and then 
+        --    the pre-calculated new offset will not be valid any more.
         local runningPPQpos = lineRightPPQpos
+        -- I am not sure whether REAPER's MIDI always uses lowercase, so will compare with upper too.
         local defaultUpper = string.format("%1X", defaultChannel)
         local defaultLower = string.format("%1x", defaultChannel)
-        local offset, eventType, channel, msg2, msg3
         local laneStrUpper, laneStrLower, laneStrUpperLSB, laneStrLowerLSB
-        if laneType == CC7BIT then 
+        if laneIsCC7BIT then 
             laneStrUpper = string.format("%02X", mouseStartLane) 
             laneStrLower = string.format("%02x", mouseStartLane) 
-        elseif laneType == CC14BIT then
+        elseif laneIsCC14BIT then
             laneStrUpper = string.format("%02X", mouseStartLane-256) 
             laneStrLower = string.format("%02x", mouseStartLane-256) 
             laneStrUpperLSB = string.format("%02X", mouseStartLane-224) 
             laneStrLowerLSB = string.format("%02x", mouseStartLane-224)
         end
-        --------------------------------------------------------------------------
-        local function gsubHelperDelete(line, selType, offset, message)
-        
-            doDelete = false -- Will be changed if event must be deleted
+        -------------------------------------
+        local function gsubHelperDelete(line)
+           
+            local offset, offset1, offset2, eventType, channel, msg2, msg3
             
-            offset    = tonumber(offset, 10)
-            if offset > 4294967296/2 then offset = offset - 4294967296 end -- Offsets are stored as unsigned 32bit integers
-                        
+            local lineFormat = line:sub(1,1)
+            
+            if lineFormat == "E" or lineFormat == "e" then
+                offset1, eventType, channel, msg2, msg3 = line:match(" (%d+) (%x)(%x) (%x%x) (%x%x)")
+                if offset1 then
+                    offset1 = tonumber(offset1)
+                    if offset1 > 2147483647 then offset2 = 4294967295 else offset2 = 0 end
+                end
+            elseif lineFormat == "X" or lineFormat == "x" then
+                offset1, offset2, eventType, channel, msg2, msg3 = line:match(" (%d+) (%d+) (%x)(%x) (%x%x) (%x%x)")
+                offset1 = tonumber(offset1)
+                offset2 = tonumber(offset2)
+            elseif lineFormat == "<" then
+                offset1, offset2 = line:match(" (%d+) (%d+)")
+                offset1 = tonumber(offset1)
+                offset2 = tonumber(offset2)
+            end
+            
+            -- If sysex message line
+            if not offset1 then
+                return
+            end
+            
+            -- Convert from unsigned integer to normal number
+            if offset2 > 2147483647 then 
+                offset = offset1 + ((offset2-4294967296)<<32)
+            else 
+                offset = offset1 + (offset2<<32)
+            end
+                                    
             runningPPQpos = runningPPQpos + offset
             
-            if runningPPQpos >= lineLeftPPQpos and runningPPQpos <= lineRightPPQpos then
-            
-                if selType == "E" or selType == "e" then
-                    eventType, channel, msg2, msg3 = message:match("(%x)(%x) (%x%x) (%x%x)")
-                elseif selType == "x" or selType == "X" then
-                    eventType, channel, msg2, msg3 = message:match("%d+ (%x)(%x) (%x%x) (%x%x)")
-                else -- sysex
-                    goto skipChecks
-                end
-
-                -- If cannot parse, just return and skip                
-                if (not eventType) or (not channel) or (not msg2) or (not msg3) then
-                    goto skipChecks
-                end
-                
-                if laneType == CC7BIT then
-                    if (eventType == "b" or eventType == "B") 
+            -- Now check if event must be deleted
+            doDelete = false -- Will be changed if event must be deleted
+            if runningPPQpos >= lineLeftPPQpos and runningPPQpos <= lineRightPPQpos and lineFormat ~= "<" then
+                    
+                if laneIsCC7BIT 
+                    and (eventType == "b" or eventType == "B") 
                     and (deleteOnlyDrawChannel and (channel == defaultUpper or channel == defaultLower))
                     and (msg2 == laneStrUpper or msg2 == laneStrLower)
                     then
                         doDelete = true
-                    end
-                elseif laneType == PITCH then
-                    if (eventType == "e" or eventType == "E") 
+                    
+                elseif laneIsPITCH 
+                    and (eventType == "e" or eventType == "E") 
                     and (deleteOnlyDrawChannel and (channel == defaultUpper or channel == defaultLower))
                     then
                         doDelete = true
-                    end
-                elseif laneType == CHANPRESSURE then
-                    if (eventType == "d" or eventType == "d") 
+                    
+                elseif laneIsCHPRESS
+                    and (eventType == "d" or eventType == "d") 
                     and (deleteOnlyDrawChannel and (channel == defaultUpper or channel == defaultLower))
                     then
                         doDelete = true
-                    end
-                else -- laneType == CC14BIT
-                    if (eventType == "b" or eventType == "B") 
+                    
+                elseif laneIsCC14BIT
+                    and (eventType == "b" or eventType == "B") 
                     and (deleteOnlyDrawChannel and (channel == defaultUpper or channel == defaultLower))
                     and (msg2 == laneStrUpper or msg2 == laneStrLower or msg2 == laneStrUpperLSB or msg2 == laneStrLowerLSB)
                     then
                         doDelete = true
-                    end
                 end 
                 
             end -- if runningPPQpos >= lineLeftPPQpos and runningPPQpos <= lineRightPPQpos
                 
-            ::skipChecks::
             if doDelete == true then
                 offsetChange = offsetChange + offset
                 return("")
-            else        
+            elseif offsetChange == 0 then -- don't need to change anything
+                return
+            else 
                 newOffset = offset + offsetChange
                 offsetChange = 0
-                if newOffset < 0 then newOffset = 4294967296 + newOffset end
-                return line:gsub("%d+", newOffset, 1)
+                if lineFormat == "E" or lineFormat == "e" then
+                    if newOffset < 0 then newOffset = 4294967296 + newOffset end
+                    return line:gsub("%d+", string.format("%i", newOffset), 1)
+                else -- lineFormat == "<" or lineFormat == "X" or lineFormat == "x" then
+                    if newOffset < 0 then 
+                        offset1 = 4294967296 + newOffset
+                        offset2 = 4294967295
+                    else
+                        offset1 = newOffset
+                        offset2 = 0
+                    end
+                    return line:gsub(" %d+ %d+", string.format(" %i %i", offset1, offset2), 1)                    
+                end
             end
             
         end -- function gsubHelperDelete
         --------------------------------
         
         
-        -------------------------------------------------------------------------------------
-        -- Update the original first MIDI event's relative offset, and then search using gsub
-        local originalMIDInewOffset = originalOffset-lineRightPPQpos
-        if originalMIDInewOffset < 0 then originalMIDInewOffset = 4294967296 + originalMIDInewOffset end
-        reaper.SetItemStateChunk(item, chunkFirstPart
-                                    .. table.concat(tableLine) 
-                                    .. thisTakeMIDIchunk:sub(1,posAllNotesOff)
-                                                        :gsub("%d+", string.format("%i", originalMIDInewOffset), 1)
-                                                        :gsub("(\n(<?[xXeE])m? (%d+) ([%-% %x]+))", gsubHelperDelete) 
+        ------------------------------------------------------------------------------------               
+        -- This long line 
+        --    1) separates the take's MIDI data to prevent overspill, 
+        --    2) updates the offset of the original first MIDI event, 
+        --    3) deletes existing CC that overlaps the line's range (using gsub)
+        --    4) writes the new state chunk to REAPER.
+        -- (Using the newOrigOffset calculated in the runloop.)
+        
+        reaper.SetItemStateChunk(item, chunkFirstPart -- First part of original state chunk
+                                    .. table.concat(tableLine) -- All the new events in the line
+                                    .. thisTakeMIDIchunk:sub(1,posAllNotesOff) -- Only this take's (original) MIDI data
+                                                        :gsub(subStringForEorX, newOrigOffset, 1) -- Replace original first offset with new offset relative to lineRightPPQpos
+                                                        :gsub("(.-\n)", gsubHelperDelete) -- Iterate through original MIDI events one-by-one, searching for overlaps.
                                     .. thisTakeMIDIchunk:sub(posAllNotesOff+1)
                                     , false)
-                                            
+                                                                   
     end -- if lineStartPPQpos ~= lineEndPPQpos     
                
 end -- function deleteExistingCCsInRange
@@ -606,14 +661,15 @@ end
 --     require somewhat different tweaks, these must often be 
 --     distinguished.   
 if 0 <= mouseStartLane and mouseStartLane <= 127 then -- CC, 7 bit (single lane)
-    laneType = CC7BIT
+    laneIsCC7BIT = true
 elseif mouseStartLane == 0x203 then -- Channel pressure
-    laneType = CHANPRESSURE
+    laneIsCHPRESS = true
 elseif 256 <= mouseStartLane and mouseStartLane <= 287 then -- CC, 14 bit (double lane)
-    laneType = CC14BIT
+    laneIsCC14BIT = true
 elseif mouseStartLane == 0x201 then
-    laneType = PITCH
+    laneIsPITCH = true
 else -- not a lane type in which a ramp can be drawn (sysex, velocity etc).
+    reaper.ShowMessageBox("This script will only work in the following MIDI lanes: \n* 7-bit CC, \n* 14-bit CC, \n* Channel Pressure and \n* Pitch.", "ERROR", 0)
     return(0)
 end
 
@@ -639,6 +695,7 @@ if deselectAllBeforeDrawing then reaper.MIDI_SelectAll(take, false) end
 -------------------------------------------------------------------
 -- Events will be inserted in the active channel of the active take
 defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+defaultChanHex = string.format("%x", defaultChannel)
 
 
 -----------------------------------------------------------------------------------------------
@@ -686,19 +743,21 @@ nextChasedValue = mouseStartCCvalue
 -- It can be very slow to search through all events from 0 to end, trying to find
 --    the CC values to chase.  The following section therefore uses a binary search 
 --    algorithm to quickly find CC events close to the mouse position.
+
 if doForwardChase or doBackChase then
 
-    reaper.MIDI_Sort(take)
+    local leftmostPPQpos, rightmostPPQpos
 
     _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)
     if ccevtcnt == 0 then
         doForwardChase = false
         doBackChase = false
     else
+        reaper.MIDI_Sort(take)
         _, _, _, leftmostPPQpos, _, _, _, _ = reaper.MIDI_GetCC(take, 0)
         _, _, _, rightmostPPQpos, _, _, _, _ = reaper.MIDI_GetCC(take, ccevtcnt-1)
     end
-        
+         
     -- Determine index from which to start forward chase 
     if doForwardChase == true then
        
@@ -733,19 +792,19 @@ if doForwardChase or doBackChase then
         
             if channel == defaultChannel then -- ignore CCs in other channels
                    
-                if laneType == CC7BIT and chanmsg == 176 and msg2 == mouseStartLane then
+                if laneIsCC7BIT and chanmsg == 176 and msg2 == mouseStartLane then
                    nextChasedValue = msg3
                    chaseForwardFound = true 
                 
                 --[[
                 -- Chasing can be slow if there is no LSB and the search therefore iterates through every event.
                 -- It may therefore be quicker to only look for MSB.            
-                elseif laneType == CC14BIT and chanmsg == 176 and msg2 == mouseStartLane-256 then
+                elseif laneIsCC14BIT and chanmsg == 176 and msg2 == mouseStartLane-256 then
                     nextChasedValue = msg3<<7
                     chaseForwardFound = true 
                 ]]
                       
-                elseif laneType == CC14BIT then
+                elseif laneIsCC14BIT then
                     if chanmsg == 176 and msg2 == mouseStartLane-256 and chaseMSBfound == false then
                         nextMSB = msg3
                         nextChasedValue = msg3<<7 -- If no LSB is found, this MSB will be used as chased value
@@ -759,11 +818,11 @@ if doForwardChase or doBackChase then
                         chaseForwardFound = true 
                     end
                 
-                elseif laneType == PITCH and chanmsg == 224 then
+                elseif laneIsPITCH and chanmsg == 224 then
                     nextChasedValue = (msg3<<7) + msg2
                     chaseForwardFound = true
                 
-                elseif laneType == CHANPRESSURE and chanmsg == 208 then
+                elseif laneIsCHPRESS and chanmsg == 208 then
                     nextChasedValue = msg2
                     chaseForwardFound = true   
                                      
@@ -809,19 +868,19 @@ if doForwardChase or doBackChase then
         
             if channel == defaultChannel then -- ignore CCs in other channels
             
-                if laneType == CC7BIT and chanmsg==176 and msg2 == mouseStartLane then
+                if laneIsCC7BIT and chanmsg==176 and msg2 == mouseStartLane then
                     lastChasedValue = msg3
                     chaseBackFound = true
     
                 --[[  
                 -- Chasing can be slow if there is no LSB and the search therefore iterates through every event.
                 -- It may therefore be quicker to only look for MSB.
-                elseif laneType == CC14BIT and chanmsg == 176 and msg2 == mouseStartLane-256 then
+                elseif laneIsCC14BIT and chanmsg == 176 and msg2 == mouseStartLane-256 then
                     lastChasedValue = msg3<<7
                     chaseBackFound = true             
                 ]]             
     
-                elseif laneType == CC14BIT then
+                elseif laneIsCC14BIT then
                     if chanmsg==176 and msg2 == mouseStartLane-256 and chaseMSBfound == false then
                         lastChasedValue = msg3<<7 -- If no LSB is found, this MSB will be used as chased value
                         lastMSB = msg3
@@ -835,11 +894,11 @@ if doForwardChase or doBackChase then
                         chaseBackFound = true 
                     end
                       
-                elseif laneType == PITCH and chanmsg == 224 then
+                elseif laneIsPITCH and chanmsg == 224 then
                     lastChasedValue = (msg3<<7) + msg2
                     chaseBackFound = true
                 
-                elseif laneType == CHANPRESSURE and chanmsg == 208 then
+                elseif laneIsCHPRESS and chanmsg == 208 then
                     lastChasedValue = msg2
                     chaseBackFound = true                
                      
@@ -902,9 +961,26 @@ thisTakeMIDIchunk = chunkStr:sub(posFirstMIDIevent)
 --local chunkLastPart = chunkStr:sub(posTakeMIDIend)
 
 -- The offset of the first original MIDI event will have to be updated for the new events.  Therefore store
---    the original value.  Remember that offsets are stored as unsigned 32bit integers.
-originalOffset = tonumber(thisTakeMIDIchunk:match("(%-?%d+)"))
-if originalOffset > 2147483647 then originalOffset = originalOffset - 4294967296 end -- 2147483647 = 2^31-1
+--    the original value.  Remember that offsets are stored as unsigned integers: e/E events as 32bit, and x/X
+--    events as 64bit.
+local firstEventType = thisTakeMIDIchunk:match("[xXeE]")
+if firstEventType == "E" or firstEventType == "e" then
+    originalEventIsStandard = true
+    subStringForEorX = "%d+" -- This is the string that string.gsub will later use to substitute the original offset 
+    originalOffset = tonumber(thisTakeMIDIchunk:match(" (%-?%d+) "))
+    if originalOffset > 2147483647 then originalOffset = originalOffset - 4294967296 end -- 2147483647 = 2^31-1
+else -- firstEventType == "X" or firstEventType == "x" then
+    originalEventIsStandard = false
+    subStringForEorX = "%d+ %d+"
+    local offset1, offset2 = thisTakeMIDIchunk:match(" (%-?%d+) (%-?%d+)")
+    offset1 = tonumber(offset1)
+    offset2 = tonumber(offset2)
+    if offset2 > 2147483647 then 
+        originalOffset = offset1 + ((offset2 - 4294967296)<<32) 
+    else
+        originalOffset = offset1 + (offset2<<32) 
+    end
+end
 
 
 -------------------------------------------------------------
