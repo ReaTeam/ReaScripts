@@ -107,8 +107,8 @@ About:
     --    a shortcut key.  In one version, chasing is set to true (for smooth ramping), while
     --    in the other it is set to false (for exact positioning at mouse position).  Remember
     --    that ramp endpoints can also easily be re-positioned using the Tilt script.
-    doBackChase = true
-    doForwardChase = true
+    doBackChase = false
+    doForwardChase = false
     
     skipRedundant = true
     deleteOnlyDrawChannel = true
