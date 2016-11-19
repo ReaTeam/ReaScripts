@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e90dd4bd2159f59c76fa0ff0c47ff743ace27e3" name="ReaTeam Scripts">
+<index version="1" commit="09c7c6e930659afaa496b5525759406e5a143f22" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -638,6 +638,10 @@ added support for all track envelopes]]></changelog>
 + IMPROVED, NEAR-NATIVE SPEED!  (Especially in items with >100000 MIDI events.)]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b983848066a884333fca8af00a5a1f30feef4799/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.01" author="juliansader" time="2016-11-19T23:46:31Z">
+        <changelog><![CDATA[+ Script works with takes in which first MIDI message is sysex.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/09c7c6e930659afaa496b5525759406e5a143f22/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -683,6 +687,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Option to skip redundant events.
 + IMPROVED, NEAR-NATIVE SPEED!  (Especially in items with >100000 MIDI events.)]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7e90dd4bd2159f59c76fa0ff0c47ff743ace27e3/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.01" author="juliansader" time="2016-11-19T23:44:46Z">
+        <changelog><![CDATA[+ Script works with takes in which first MIDI message is sysex.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4a8cccb16f00b90c1544419c43feebad4bdebb6f/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
