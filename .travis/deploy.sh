@@ -17,6 +17,7 @@ git remote add deploy 'git@github.com:ReaTeam/ReaScripts.git'
 
 git fetch --unshallow || true
 git checkout "$TRAVIS_BRANCH"
+git pull
 
 rvm $TRAVIS_RUBY_VERSION do reapack-index --commit
 
