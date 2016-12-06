@@ -15,25 +15,26 @@
 local ok, filter = reaper.GetUserInputs("Toggle track FX bypass by name", 1,
   "Toggle track FX bypass matching:,extrawidth=100", "")
 
-if ok and filter:len() > 0 then
-  reaper.Undo_BeginBlock()
-  
-  filter = filter:lower()
+if not ok or filter:len() < 1 then
+  reaper.defer(function() end) -- no undo point if nothing to do
+  return
+end
 
-  for ti=0,reaper.CountTracks()-1 do
-    local track = reaper.GetTrack(0, ti)
-    
-    for fi=0,reaper.TrackFX_GetCount(track)-1 do
-      local _, fxname = reaper.TrackFX_GetFXName(track, fi, '')
-      if fxname:lower():find(filter) then
-        reaper.TrackFX_SetEnabled(track, fi,
-          not reaper.TrackFX_GetEnabled(track, fi))
-      end
+filter = filter:lower()
+
+reaper.Undo_BeginBlock()
+
+for ti=0,reaper.CountTracks()-1 do
+  local track = reaper.GetTrack(0, ti)
+
+  for fi=0,reaper.TrackFX_GetCount(track)-1 do
+    local _, fxname = reaper.TrackFX_GetFXName(track, fi, '')
+    if fxname:lower():find(filter) then
+      reaper.TrackFX_SetEnabled(track, fi,
+        not reaper.TrackFX_GetEnabled(track, fi))
     end
   end
-  
-  reaper.Undo_EndBlock(
-    string.format("Toggle track FX bypass matching '%s'", filter), -1)
-else
-  reaper.defer(function() end) -- no undo point if nothing to do
 end
+
+reaper.Undo_EndBlock(
+  string.format("Toggle track FX bypass matching '%s'", filter), -1)
