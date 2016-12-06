@@ -1,7 +1,7 @@
 -- @description Toggle track FX bypass by name
 -- @version 1.0
 -- @author cfillion
--- @link http://forum.cockos.com/showthread.php?p=1766455
+-- @link http://forum.cockos.com/showthread.php?t=184623
 -- @screenshot
 --   Basic Usage http://i.imgur.com/ryIg1j9.gif
 --   Undo Points https://i.imgur.com/dtNwlsn.png
