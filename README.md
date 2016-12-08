@@ -38,13 +38,13 @@ Talk about this repository and ReaTeam in this thread on the REAPER forums:
 
 ## Contributing
 
-1. [Fork](https://github.com/ReaTeam/ReaScripts/fork) this repository in your GitHub account
-2. Add your lua/eel/python scripts in an appropriate category (directory)
-     using the naming convention `author_Script Name.type`
-3. Insert metadata at the top of the files (check out the
-[package examples](https://github.com/cfillion/reapack-index/wiki/Examples) and
-reapack-index's [packaging documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation))
-4. Send a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork/) here, done!
+Check out the [package examples](https://github.com/cfillion/reapack-index/wiki/Examples) and
+reapack-index's [packaging documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation).
+
+1. [Create](https://github.com/ReaTeam/ReaScripts/new/master) a file for your script named `Category Name/username_Name of the Script.lua` (or .eel, .py)
+2. Click on "Propose new file" and create a Pull Request
+3. Wait for a team member to validate the request (it should be quick)
+4. If everything is ok... it's done!
 
 ### Other ReaTeam Scripts Repository (included in ReaPack)
 
