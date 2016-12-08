@@ -2200,22 +2200,20 @@ Developing thread
 }}}
 \sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/ReaScripts/fork"}}{\fldrslt{\ul
-Fork
-}}}
- this repository in your GitHub account\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Add your lua/eel/python scripts in an appropriate category (directory) using the naming convention {\f1 author_Script Name.type}\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Insert metadata at the top of the files (check out the {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Examples"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 Check out the {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Examples"}}{\fldrslt{\ul
 package examples
 }}}
  and reapack-index's {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation"}}{\fldrslt{\ul
 packaging documentation
 }}}
-)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Send a {\field{\*\fldinst{HYPERLINK "https://help.github.com/articles/creating-a-pull-request-from-a-fork/"}}{\fldrslt{\ul
-pull request
+.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/ReaScripts/new/master"}}{\fldrslt{\ul
+Create
 }}}
- here, done!\sa180\par}
+ a file for your script named {\f1 Category Name/username_Name of the Script.lua} (or .eel, .py)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Click on "Propose new file" and create a Pull Request\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Wait for a team member to validate the request (it should be quick)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab If everything is ok... it's done!\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaTeam Scripts Repository (included in ReaPack)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/JSFX"}}{\fldrslt{\ul
 ReaTeam/JSFX
