@@ -1,7 +1,13 @@
--- @version 0.4.3
+-- @version 0.5
 -- @author cfillion
 -- @changelog
---   fix drawing of multiline input after code execution
+--   add Copy/Paste/Clear/Dock/Close actions to the right click context menu
+--   display errors using bold font
+--   document the built-in functions and variables in .help
+--   fix formatting of \t and \r in strings when they are followed by numbers
+--   implement (fix) display of empty lines
+--   remember window position, size and docked state
+--   store every return values in _ global variable
 -- @description Interactive ReaScript (iReaScript)
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=177324
 -- @screenshot http://i.imgur.com/RrGfulR.gif
@@ -41,7 +47,7 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v0.4.3 by cfillion',
+  BANNER = 'Interactive ReaScript v0.5 by cfillion',
   MARGIN = 3,
   MAXLINES = 2048,
   MAXDEPTH = 3, -- maximum array depth
@@ -70,6 +76,8 @@ local ireascript = {
   FONT_NORMAL = 1,
   FONT_BOLD = 2,
 
+  EMPTY_LINE_HEIGHT = 14,
+
   KEY_BACKSPACE = 8,
   KEY_CLEAR = 144,
   KEY_CTRLC = 3,
@@ -92,6 +100,8 @@ local ireascript = {
   KEY_UP = 30064,
 
   EXT_SECTION = 'cfillion_ireascript',
+  EXT_WINDOW_STATE = 'window_state',
+  EXT_LAST_DOCK = 'last_dock',
 }
 
 print = function(...)
@@ -103,23 +113,27 @@ print = function(...)
 end
 
 function ireascript.help()
+  function helpLine(name, desc, colWidth)
+    local spaces = string.rep(' ', (colWidth - name:len()) + 1)
+    ireascript.nl()
+    ireascript.highlightFormat()
+    ireascript.push(name)
+    ireascript.resetFormat()
+    ireascript.push(spaces .. desc)
+  end
+
   ireascript.resetFormat()
   ireascript.push('Built-in commands:')
-  ireascript.nl()
-
-  local colWidth = 8
 
   for i,command in ipairs(ireascript.BUILTIN) do
-    local spaces = string.rep(' ', colWidth - command.name:len())
-
-    ireascript.foreground = ireascript.COLOR_WHITE
-    ireascript.push(string.format('.%s', command.name))
-
-    ireascript.resetFormat()
-    ireascript.push(spaces .. command.desc)
-
-    ireascript.nl()
+    helpLine(string.format('.%s', command.name), command.desc, 7)
   end
+
+  ireascript.nl()
+  ireascript.nl()
+  ireascript.push('Built-in functions and variables:')
+  helpLine("print(...)", "Print any number of values", 11)
+  helpLine("_", "Last return value", 11)
 end
 
 function ireascript.clear(keepInput)
@@ -161,9 +175,9 @@ function ireascript.run()
   ireascript.history = {}
   ireascript.hindex = 0
   ireascript.lastMove = os.time()
+  ireascript.mouse_cap = 0
 
   ireascript.reset(true)
-  ireascript.restoreDockedState()
   ireascript.loop()
 end
 
@@ -191,7 +205,6 @@ function ireascript.keyboard()
 
   if char < 0 then
     -- bye bye!
-    ireascript.saveDockedState()
     return false
   end
 
@@ -220,8 +233,6 @@ function ireascript.keyboard()
     ireascript.removeCaret()
     ireascript.nl()
     ireascript.eval()
-    ireascript.input = ''
-    ireascript.hindex = 0
     ireascript.moveCaret(0)
   elseif char == ireascript.KEY_CTRLL then
     ireascript.clear(true)
@@ -310,6 +321,9 @@ function ireascript.draw(offset)
       if type(segment) == 'table' then
         lineHeight = math.max(lineHeight, segment.h)
       elseif segment == ireascript.SG_NEWLINE then
+        if lineHeight == 0 then
+          lineHeight = ireascript.EMPTY_LINE_HEIGHT
+        end
         break
       end
 
@@ -439,7 +453,9 @@ function ireascript.update()
       ireascript.wrappedBuffer[#ireascript.wrappedBuffer + 1] = segment
 
       if segment == ireascript.SG_NEWLINE then
-        ireascript.wrappedBuffer[#ireascript.wrappedBuffer + 1] = ireascript.SG_BUFNEWLINE
+        -- insert buffer newline marker before the display newline
+        table.insert(ireascript.wrappedBuffer,
+          #ireascript.wrappedBuffer, ireascript.SG_BUFNEWLINE)
         ireascript.wrappedBuffer.lines = ireascript.wrappedBuffer.lines + 1
         left = leftmost
       end
@@ -503,6 +519,40 @@ function ireascript.update()
   ireascript.from = {buffer=#ireascript.buffer + 1, wrapped=#ireascript.wrappedBuffer + 1}
 end
 
+function ireascript.contextMenu()
+  local dockState = gfx.dock(-1)
+  local dockFlag = ''
+  if dockState > 0 then dockFlag = '!' end
+
+  local menu = string.format(
+    'Copy (^C)|Paste (^V)||Clear (^L)||%sDock window|Close iReaScript (^D)',
+    dockFlag
+  )
+
+  local actions = {
+    ireascript.copy, ireascript.paste,
+    function() ireascript.clear(true) end,
+    function()
+      if dockState == 0 then
+        local lastDock = tonumber(reaper.GetExtState(
+          ireascript.EXT_SECTION, ireascript.EXT_LAST_DOCK))
+        if not lastDock or lastDock < 1 then lastDock = 1 end
+
+        gfx.dock(lastDock)
+      else
+        reaper.SetExtState(ireascript.EXT_SECTION, ireascript.EXT_LAST_DOCK,
+          tostring(dockState), true)
+        gfx.dock(0)
+      end
+    end,
+    ireascript.exit,
+  }
+
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local index = gfx.showmenu(menu)
+  if actions[index] then actions[index]() end
+end
+
 function ireascript.loop()
   if ireascript.keyboard() then
     reaper.defer(ireascript.loop)
@@ -518,6 +568,14 @@ function ireascript.loop()
     end
 
     gfx.mouse_wheel = 0
+  end
+
+  if gfx.mouse_cap ~= ireascript.mouse_cap then
+    if gfx.mouse_cap & 2 == 0 and ireascript.mouse_cap & 2 == 2 then
+      ireascript.contextMenu()
+    end
+
+    ireascript.mouse_cap = gfx.mouse_cap
   end
 
   if ireascript.wrappedBuffer.w ~= gfx.w then
@@ -541,6 +599,12 @@ function ireascript.errorFormat()
   ireascript.font = ireascript.FONT_BOLD
   ireascript.foreground = ireascript.COLOR_WHITE
   ireascript.background = ireascript.COLOR_RED
+end
+
+function ireascript.highlightFormat()
+  ireascript.font = ireascript.FONT_BOLD
+  ireascript.foreground = ireascript.COLOR_WHITE
+  ireascript.background = ireascript.COLOR_BLACK
 end
 
 function ireascript.nl()
@@ -728,8 +792,13 @@ function ireascript.eval()
     end
   end
 
-  ireascript.nl()
   table.insert(ireascript.history, 1, ireascript.input)
+  ireascript.hindex = 0
+  ireascript.input = ''
+
+  if ireascript.prepend:len() == 0 then
+    ireascript.nl()
+  end
 end
 
 function ireascript.code()
@@ -763,11 +832,11 @@ function ireascript.lua(code)
   end)
 
   if ok then
-    _ = values[1]
-
     if #values <= 1 then
+      _ = values[1]
       ireascript.format(values[1])
     else
+      _ = values
       ireascript.format(values)
     end
 
@@ -833,8 +902,8 @@ function ireascript.format(value)
     ireascript.foreground = ireascript.COLOR_GREEN
     value = string.format('%q', value):
       gsub("\\\n", '\\n'):
-      gsub('\\13', '\\r'):
-      gsub("\\9", '\\t')
+      gsub('\\0*13', '\\r'):
+      gsub("\\0*9", '\\t')
   end
 
   ireascript.push(tostring(value))
@@ -973,7 +1042,6 @@ function ireascript.paste()
         ireascript.removeCaret()
         ireascript.nl()
         ireascript.eval()
-        ireascript.input = ''
         ireascript.moveCaret(0)
       end
 
@@ -1082,24 +1150,35 @@ function ireascript.contains(table, val)
   return false
 end
 
-function ireascript.restoreDockedState()
-  local docked_state = tonumber(reaper.GetExtState(
-    ireascript.EXT_SECTION, 'docked_state'))
+function previousWindowState()
+  local state = tostring(reaper.GetExtState(
+    ireascript.EXT_SECTION, ireascript.EXT_WINDOW_STATE))
+  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
+end
 
-  if docked_state then
-    gfx.dock(docked_state)
+function saveWindowState()
+  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
+  local w, h = gfx.w, gfx.h
+  if dockState > 0 then
+    w, h = previousWindowState()
   end
+
+  reaper.SetExtState(ireascript.EXT_SECTION, ireascript.EXT_WINDOW_STATE,
+    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
 end
 
-function ireascript.saveDockedState()
-  local docked_state = gfx.dock(-1)
-  reaper.SetExtState(ireascript.EXT_SECTION,
-    'docked_state', tostring(docked_state), true)
+local w, h, dockState, x, y = previousWindowState()
+
+if w then
+  gfx.init(ireascript.TITLE, w, h, dockState, x, y)
+else
+  gfx.init(ireascript.TITLE, 550, 350)
 end
 
-gfx.init(ireascript.TITLE, 550, 350)
 gfx.setfont(ireascript.FONT_NORMAL, 'Courier', 14)
-gfx.setfont(ireascript.FONT_BOLD, 'Courier', 14, 'b')
+gfx.setfont(ireascript.FONT_BOLD, 'Courier', 14, string.byte('b'))
 
 -- GO!!
 ireascript.run()
+
+reaper.atexit(saveWindowState)
