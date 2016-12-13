@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="07d98e5487876c4159e5614941618c64ae2400e4" name="ReaTeam Scripts">
+<index version="1" commit="ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1894,6 +1894,16 @@ https://github.com/cfillion/reascripts
       <version name="0.4.3" author="cfillion" time="2016-10-14T04:18:29Z">
         <changelog><![CDATA[fix drawing of multiline input after code execution]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c396e3ec5ee15e112466183a75de2b6b4a7758/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.5" author="cfillion" time="2016-12-13T03:26:51Z">
+        <changelog><![CDATA[add Copy/Paste/Clear/Dock/Close actions to the right click context menu
+display errors using bold font
+document the built-in functions and variables in .help
+fix formatting of \t and \r in strings when they are followed by numbers
+implement (fix) display of empty lines
+remember window position, size and docked state
+store every return values in _ global variable]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
