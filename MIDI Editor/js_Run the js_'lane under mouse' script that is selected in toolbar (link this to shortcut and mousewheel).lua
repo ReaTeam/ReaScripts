@@ -69,11 +69,14 @@
 
 -------------------------------------------
 function loop_trackMousewheelAndExitState()
+
+    -- Are other scripts already quitting?  Then this script can also quit.
     status = reaper.GetExtState("js_Mouse actions", "Status")
     if status == "" or status == nil or status == "Quitting" or status == "Must quit" then 
         return
     end
     
+    -- Broadcast mousewheel movement for other js_MIDI scripts
     isNew,_,_,_,_,_,val = reaper.get_action_context()
     if isNew == true then
         reaper.SetExtState("js_Mouse actions", "Mousewheel", tostring(val), false)
@@ -82,10 +85,14 @@ function loop_trackMousewheelAndExitState()
     reaper.defer(loop_trackMousewheelAndExitState)
 end
 
----------------
-function exit()
+
+-----------------
+function onexit()
+    -- When this script is terminated (usually by pressing its keyabord shortcut a second time), 
+    --    it must signal any js_MIDI scripts that it launched to quit.
     reaper.SetExtState("js_Mouse actions", "Status", "Must quit", false)
 end
+
 
 ---------------------------------------------------------
 -- Here the code execution starts
@@ -101,7 +108,8 @@ if editor == nil then return end
 -- Have any js_MIDI script been selected?
 if reaper.HasExtState("js_Mouse actions", "Armed commandID") == false then return end
 
--- Test whether the stored commandID is usable
+-- Test whether the stored commandID is usable (integer number)
+-- If not, something went wrong, so simply delete.
 armedCommandID = tonumber(reaper.GetExtState("js_Mouse actions", "Armed commandID"))
 if type(armedCommandID) ~= "number" or armedCommandID%1 ~= 0 then
     reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
@@ -149,6 +157,6 @@ if retval ~= true then
     -- reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
     return(false)
 else
-    reaper.atexit(exit)
+    reaper.atexit(onexit)
     loop_trackMousewheelAndExitState()
 end
