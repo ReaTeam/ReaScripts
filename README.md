@@ -24,7 +24,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 
 ReaTeam/ReaScripts is compatible with cfillion's [ReaPack](https://reapack.com) package manager for REAPER.  
 This repo is included by default in ReaPack, but if you need to reinstall it manually,
-copy and paste this URL in Extensions &gt; ReaPack &gt; Import a repository:
+copy and paste this URL in Extensions > ReaPack > Import a repository:
  
 ```
 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
