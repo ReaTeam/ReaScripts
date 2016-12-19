@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="014a91c2c95cb41031f8dd2ca5c1727e3c187bed" name="ReaTeam Scripts">
+<index version="1" commit="eebdcf7c0f56d18aabd229ae0850f613ceff7456" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -464,6 +464,35 @@ added support for all track envelopes]]></changelog>
       </version>
     </reapack>
     <reapack name="js_1-sided warp (accelerate) selected events in lane under mouse.lua" type="script" desc="js_1-sided warp (accelerate) selected events in lane under mouse.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A Lua script for warping the positions of MIDI events. The script only affects events in the MIDI editor lane under the mouse cursor.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for changing a linear ramp into a parabolic (or other power) curve.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for accelerating a series of evenly spaced notes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for changing the curve shape of LFOs.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select the target events that will be warped (either notes, velocities, CCs, pitchwheel, channelpressure, text or sysex)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Position mouse over the target area (in the case of notes, either the notes area or the bvelocity lane)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab Press the shortcut key\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Move mouse left/right to warp the selected events' positions, or up/down to warp the values. (This is simiilar to REAPER's "move in one direction only" mouse modifiers.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse movement is not detected accurately (perhaps due to retina display or jerky mouse), the setting "MouseMovementResolution" in the User Area can be increased.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 the responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key. In this case, optionally, if drawing curved shapes are required, the script can also be linked to a mousewheel shortcut (alternatively, use the "1-sided warp (accelerate)" script after drawing the ramp.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Warning\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will run in the inline MIDI editor, but if there are any overlapping notes in the take, these may transform into extended notes.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif</link>
+      </metadata>
       <version name="1.1" author="juliansader" time="2016-05-25T09:24:15Z">
         <changelog><![CDATA[+ Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0937755929d71fe678018c4f57815104097c7325/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
@@ -480,6 +509,14 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/af56041410fe409f7c5e732ea34c646f69cf90ee/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="3.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Header (Description and Instructions) updated to ReaPack 1.1 format.
++ Script will also run in inline MIDI editor.
++ Warping can now also be vertical (i.e. values instead of positions), depending on initial mouse movement.
++ Vastly improved speed when working in items with hundreds of thousands of events.
++ Requires REAPER v5.30 or later.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
@@ -583,6 +620,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/433596ded85612775d31dcde013e94b9334682ad/MIDI%20Editor/js_Deselect%20all%20MIDI%20except%20in%20active%20channel%20of%20active%20take.lua</source>
       </version>
+      <version name="1.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Faster execution, using REAPER v5.30's new API functions.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Deselect%20all%20MIDI%20except%20in%20active%20channel%20of%20active%20take.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time, chasing start values.lua" type="script" desc="js_Draw linear or curved ramps in real time, chasing start values.lua">
       <metadata>
@@ -598,15 +639,16 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events are deselected, which allows immediate further shaping of the ramp (using, for example, the 2-sided warp (and stretch) script).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key. In this case, optionally, if drawing curved shapes are required, the script can also be linked to a mousewheel shortcut (alternatively, use the "1-sided warp (accelerate)" script after drawing the ramp.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doBackChase" and/or "doForwardChase" parameters in the USER AREA at the beginning of the script to "false".\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of all MIDI before drawing, set the "deselectAllBeforeDrawing" parameter in the USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As an alternative to deselecting only in the target lane, all MIDI in all editable takes can be deselected before drawing, by setting the deselectAllBeforeDrawing parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
 }
@@ -642,6 +684,10 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Script works with takes in which first MIDI message is sysex.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/09c7c6e930659afaa496b5525759406e5a143f22/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.10" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed, using new API functions of REAPER v5.30. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -657,15 +703,16 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events are deselected, which allows immediate further shaping of the ramp (using, for example, the 2-sided warp (and stretch) script).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key. In this case, optionally, if drawing curved shapes are required, the script can also be linked to a mousewheel shortcut (alternatively, use the "1-sided warp (accelerate)" script after drawing the ramp.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doBackChase" and/or "doForwardChase" parameters in the USER AREA at the beginning of the script to "false".\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of all MIDI before drawing, set the "deselectAllBeforeDrawing" parameter in the USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As an alternative to deselecting only in the target lane, all MIDI in all editable takes can be deselected before drawing, by setting the deselectAllBeforeDrawing parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
 }
@@ -692,19 +739,91 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Script works with takes in which first MIDI message is sysex.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4a8cccb16f00b90c1544419c43feebad4bdebb6f/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
+      <version name="3.10" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed, using new API functions of REAPER v5.30. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw sine or warped sine ramps of CC and pitchwheel events in real time, chasing start values.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An improvement over REAPER's built-in "Linear ramp CC events" mouse action:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By using the mousewheel, the shape of the ramp can be changed from linear to curved (allowing the easy insertion of parablic shapes).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key. In this case, optionally, if drawing curved shapes are required, the script can also be linked to a mousewheel shortcut (alternatively, use the "1-sided warp (accelerate)" script after drawing the ramp.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As an alternative to deselecting only in the target lane, all MIDI in all editable takes can be deselected before drawing, by setting the deselectAllBeforeDrawing parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif</link>
+      </metadata>
       <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.10" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed, using new API functions of REAPER v5.30. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw sine or warped sine ramps of CC and pitchwheel events in real time (without chasing start values).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An improvement over REAPER's built-in "Linear ramp CC events" mouse action:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By using the mousewheel, the shape of the ramp can be changed from linear to curved (allowing the easy insertion of parablic shapes).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key. In this case, optionally, if drawing curved shapes are required, the script can also be linked to a mousewheel shortcut (alternatively, use the "1-sided warp (accelerate)" script after drawing the ramp.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As an alternative to deselecting only in the target lane, all MIDI in all editable takes can be deselected before drawing, by setting the deselectAllBeforeDrawing parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif</link>
+      </metadata>
       <version name="2.0" author="juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.10" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed, using new API functions of REAPER v5.30. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="Fit all selected events to time selection">
@@ -857,10 +976,7 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default colors of the GUI, as well as the default size, can be customized in the script's USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING!\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Prior to REAPER v5.24, the actions for changing the default channel for new events ("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate the MIDI editor's event filter (as set in the Filter window). Changing the default channel via this script (or by running the actions directly) may therefore make some notes of CCs invisible.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Website\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 http://forum.cockos.com/showthread.php?t=176878\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, particularly if the take contains many thousands of MIDI events. The GUI therefore provides a "Pause" checkbox, which will pause the realtime updating.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -903,6 +1019,11 @@ Note Properties or Text/Sysex windows instead.
 ticks are not precisely aligned with the project beats.  (As discussed in t=181211.)]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/84d29a8660e0b8043747d07bd13f69593fbef125/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
+      <version name="1.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed, using new API functions of REAPER v5.30.
++ The script requires REAPER v5.30.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
       <metadata>
@@ -933,11 +1054,24 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=172782&amp;page=25</link>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Selects all notes IN ALL TRACKS that have customized notation display lengths or positions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If only notes in the active take need to be selected, a faster version of this script is "js_Notation - Select all notes (in active take) that have customized display lengths or positions.lua"\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
       </metadata>
       <version name="1.0" author="juliansader" time="2016-08-14T20:59:35Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/65913073c76a21ece09685bcd492e953e5c3b1db/MIDI%20Editor/js_Notation%20-%20Select%20all%20notes%20that%20have%20customized%20display%20lengths%20or%20positions.lua</source>
+      </version>
+      <version name="2.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Faster execution, using REAPER v5.30's new API functions.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Notation%20-%20Select%20all%20notes%20that%20have%20customized%20display%20lengths%20or%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Set beaming of selected notes to custom rhythm.lua" type="script" desc="js_Notation - Set beaming of selected notes to custom rhythm (using grid as margin).lua">
@@ -1082,15 +1216,12 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Removes redundant events from selected CCs in the lane under mouse with a single click.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In the USER AREA of the script (below the changelog), the user can customize the following options: (It may be useful to link different versions of the script to different shortcuts.)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab lanes_from_which_to_remove: "all", "last clicked" or "under mouse"\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_from_14bit_CCs: Ignore LSB when comparing pitchwheel events\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab only_analyze_selected: Limit analysis and removal to selected events?\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab automatically_delete_muted_CCs: Muted CCs are inherently redundant\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab show_error_messages\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (* at present, the script does not work with 14-bit CC lanes)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_of_pitch: Ignore LSB when comparing pitchwheel events\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: If lanes_from_which_to_remove == "all", each 7-bit lane of 14-bit CCs will be analyzed separately. This will ensure maximum efficiency in removal of redundant events, but may cause 14-bit CCs to 'disappear' since MSB and LSB parts may be deleted separately.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
@@ -1119,6 +1250,12 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + IMPROVED SPEED!]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/dd49db0a985b17f14be2ebf31c35226cb442b52e/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="3.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed.
++ Works in 14-bit CC lanes.
++ Requires REAPER v5.30.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in last clicked lane).lua" type="script" desc="js_Remove redundant CCs (from selected events in last clicked lane).lua">
       <metadata>
@@ -1127,15 +1264,18 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Removes redundant events from selected CCs in last clicked lane with a single click.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In the USER AREA of the script (below the changelog), the user can customize the following options: (It may be useful to link different versions of the script to different shortcuts.)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab lanes_from_which_to_remove: "all", "last clicked" or "under mouse"\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_from_14bit_CCs: Ignore LSB when comparing pitchwheel events\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab only_analyze_selected: Limit analysis and removal to selected events?\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab automatically_delete_muted_CCs: Muted CCs are inherently redundant\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab show_error_messages\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (* at present, the script does not work with 14-bit CC lanes)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_of_pitch: Ignore LSB when comparing pitchwheel events\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: If lanes_from_which_to_remove == "all", each 7-bit lane of 14-bit CCs will be analyzed separately. This will ensure maximum efficiency in removal of redundant events, but may cause 14-bit CCs to 'disappear' since MSB and LSB parts may be deleted separately.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 For further instructions - please refer to the "js_Run..." script.\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -1153,6 +1293,12 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + IMPROVED SPEED!]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9e41a92e5bf20e8bd669954ce53c735e65f1205e/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="3.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed.
++ Works in 14-bit CC lanes.
++ Requires REAPER v5.30.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Remove%20redundant%20CCs%20(from%20selected%20events%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
     <reapack name="js_Remove redundant CCs.lua" type="script" desc="js_Remove redundant CCs.lua">
       <metadata>
@@ -1161,15 +1307,18 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Removes redundant events from selected CCs in 7-bit CC, pitchwheel, channel pressure and program select lanes with a single click.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In the USER AREA of the script (below the changelog), the user can customize the following options: (It may be useful to link different versions of the script to different shortcuts.)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab lanes_from_which_to_remove: "all", "last clicked" or "under mouse"\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_from_14bit_CCs: Ignore LSB when comparing pitchwheel events\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab only_analyze_selected: Limit analysis and removal to selected events?\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab automatically_delete_muted_CCs: Muted CCs are inherently redundant\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab show_error_messages\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (* at present, the script does not work with 14-bit CC lanes)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ignore_LSB_of_pitch: Ignore LSB when comparing pitchwheel events\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: If lanes_from_which_to_remove == "all", each 7-bit lane of 14-bit CCs will be analyzed separately. This will ensure maximum efficiency in removal of redundant events, but may cause 14-bit CCs to 'disappear' since MSB and LSB parts may be deleted separately.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 For further instructions - please refer to the "js_Run..." script.\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -1191,12 +1340,18 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + IMPROVED SPEED!]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7b7256eb07718493f28d007b967dca5004526ba7/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
+      <version name="3.00" author="juliansader" time="2016-12-19T16:01:15Z">
+        <changelog><![CDATA[+ Improved speed.
++ Works in 14-bit CC lanes.
++ Requires REAPER v5.30.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua" type="script" desc="js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua">
       <version name="1.0" author="juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ Initial release.
 + Description and instructions are included inside script - please read with REAPER's built-in script editor.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="js_Select and deselect MIDI notes by step pattern.lua" type="script" desc="js_Select and deselect MIDI notes by step pattern.lua">
