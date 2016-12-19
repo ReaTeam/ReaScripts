@@ -1,4 +1,4 @@
--- @description Randomize pan of selected takes
+-- @description Randomize active takes pan in selected items
 -- @version 0.1
 -- @author Nagasaki45
 
