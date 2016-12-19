@@ -2236,7 +2236,7 @@ donate
 {\pard \ql \f0 \sa180 \li0 \fi0 ReaTeam/ReaScripts is compatible with cfillion's {\field{\*\fldinst{HYPERLINK "https://reapack.com"}}{\fldrslt{\ul
 ReaPack
 }}}
- package manager for REAPER.\line This repo is included by default in ReaPack, but if you need to reinstall it manually, copy and paste this URL in Extensions &gt; ReaPack &gt; Import a repository:\par}
+ package manager for REAPER.\line This repo is included by default in ReaPack, but if you need to reinstall it manually, copy and paste this URL in Extensions > ReaPack > Import a repository:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack/wiki"}}{\fldrslt{\ul
 ReaPack user guide
