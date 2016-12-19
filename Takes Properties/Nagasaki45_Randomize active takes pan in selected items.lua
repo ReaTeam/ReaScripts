@@ -1,5 +1,6 @@
--- @description Randomize pan of selected items
+-- @description Randomize pan of selected takes
 -- @version 0.1
+-- @author Nagasaki45
 
 selected_item_count = reaper.CountSelectedMediaItems(0)
 for i = 0, selected_item_count - 1 do
