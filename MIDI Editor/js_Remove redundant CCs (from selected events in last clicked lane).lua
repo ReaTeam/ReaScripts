@@ -1,12 +1,12 @@
 --[[
-ReaScript name: js_Remove redundant CCs (from selected events in last clicked lane).lua
-Version: 0.95
+Reascript name:  js_Remove redundant CCs (from selected events in last clicked lane).lua
+Version: 3.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions: SWS/S&M 2.8.3 or 2.8.7
 About:
   # Description
-  Remove redundant events from 7-bit CC, pitchwheel or channel pressure lanes with a single click.
+  Removes redundant events from selected CCs in last clicked lane with a single click.
 
   # Instructions
   In the USER AREA of the script (below the changelog), the user can customize the following options:
@@ -14,15 +14,28 @@ About:
     
     - lanes_from_which_to_remove:  "all", "last clicked" or "under mouse"
     
-    - ignore_LSB_from_14bit_CCs:  Ignore LSB when comparing pitchwheel events
-    
-    - only_analyze_selected:  Limit analysis and removal to selected events?
-    
-    - automatically_delete_muted_CCs: Muted CCs are inherently redundant
-    
-    - show_error_messages
+    - ignore_LSB_of_pitch:  Ignore LSB when comparing pitchwheel events
   
-  (* at present, the script does not work with 14-bit CC lanes)
+  NOTE: If lanes_from_which_to_remove == "all", each 7-bit lane of 14-bit CCs will be analyzed separately. 
+        This will ensure maximum efficiency in removal of redundant events, but may cause 14-bit CCs to 'disappear' 
+        since MSB and LSB parts may be deleted separately.
+        
+  There are two ways in which this script can be run:  
+  
+    1) First, the script can be linked to its own shortcut key.
+  
+    2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+          can each be linked to a toolbar button.  
+       
+       In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+          accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+          script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+       
+       Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+          and this selected (armed) script can then be run by using the shortcut for the 
+          aforementioned "js_Run..." script.
+       
+       For further instructions - please refer to the "js_Run..." script. 
 ]]
 
 --[[
@@ -35,326 +48,603 @@ About:
     + SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
     + MUTED: Muted CCs will automatically be removed since they are inherently redundant.
     + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.
-  * v0.95 (2016-11-16)
+  * v2.0 (2016-07-04)
+    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
+    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
+  * v2.1 (2016-11-16)
     + Header and About info updated for ReaPack 1.1 format.
     + IMPROVED SPEED!
+  * v3.00 (2016-12-16)
+    + Improved speed.
+    + Works in 14-bit CC lanes.
+    + Requires REAPER v5.30.
 ]]
 
 -- USER AREA:
 -- (Settings that the user can customize)
 
-lanes_from_which_to_remove = "last clicked" -- "all", "last clicked" or "under mouse"
-ignore_LSB_from_14bit_CCs  = true -- Ignore LSB when comparing pitchwheel events
-only_analyze_selected = true -- Limit analysis and removal to selected events?
-automatically_delete_muted_CCs = true -- Muted CCs are inherently redundant
-show_error_messages = true
+lanes_from_which_to_remove = "all" --"last clicked" -- "all", "last clicked" or "under mouse". 
 
--- ask_confirmation_before_deletion -- not used yet in this version
+ignore_LSB_of_pitch  = true -- Ignore LSB when comparing pitchwheel events 
 
 -- End of USER AREA
------------------------------------------------------------------
+-----------------------------------------------------------------  
 
 
------------------------------------------------------------------
--- Function to show error messages if show_error_messages == true
-function showErrorMsg(errorMsg)
-    if show_error_messages == true and type(errorMsg) == "string" then
-        reaper.ShowMessageBox(errorMsg 
-                              .. "\n\n"
-                              .. "(To suppress future non-critical error messages, set 'show_error_messages' to 'false' in the USER AREA near the beginning of the script.)",
-                              "ERROR", 0)    
+------------------------------------------------------------------------------------------------
+-- Set this script as the armed command that will be called by "js_Run the js action..." script.
+-- This function is only relevant if lanes_from_which_to_remove = "under mouse".
+function setAsNewArmedToolbarAction()
+
+    local tablePrevIDs, prevCommandIDs, prevSeparatorPos, nextSeparatorPos, prevID
+    
+    _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
+    if sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1 then
+        return(false)
     end
-end  
-
-
+    
+    tablePrevIDs = {}
+    
+    reaper.SetToggleCommandState(sectionID, ownCommandID, 1)
+    reaper.RefreshToolbar2(sectionID, ownCommandID)
+    
+    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
+        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
+        if type(prevCommandIDs) ~= "string" then
+            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
+        else
+            prevSeparatorPos = 0
+            repeat
+                nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
+                if nextSeparatorPos ~= nil then
+                    prevID = tonumber(prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1))
+                    -- Is the stored number a valid (integer) commandID, and not own ID?
+                    if type(prevID) == "number" and prevID%1 == 0 and prevID ~= ownCommandID then
+                        table.insert(tablePrevIDs, prevID)
+                    end
+                    prevSeparatorPos = nextSeparatorPos
+                end
+            until nextSeparatorPos == nil
+            for i = 1, #tablePrevIDs do
+                reaper.SetToggleCommandState(sectionID, tablePrevIDs[i], 0)
+                reaper.RefreshToolbar2(sectionID, tablePrevIDs[i])
+            end
+        end
+    end
+    
+    prevCommandIDs = tostring(ownCommandID) .. "|"
+    for i = 1, #tablePrevIDs do
+        prevCommandIDs = prevCommandIDs .. tostring(tablePrevIDs[i]) .. "|"
+    end
+    reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
+    
+    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
+end
+ 
+ 
 -----------------------------
 -- Code execution starts here
-
--- Various constants
-local CCmsg = 11
-local PITCHmsg = 14
-local CHANPRESSmsg = 13
-
-local PITCHlane = 0x201
-local CHANPRESSlane = 0x203
+-----------------------------
+-- function main()
 
 local editor, take, targetLane
+    
+local countRedundancies = 0 -- The undo point will be informative, giving the number of redundant CCs deleted
 
--- Trying a trick to prevent creation of new undo state 
---     if code does not reach own Undo_BeginBlock
+local s_unpack = string.unpack
+local s_pack   = string.pack
+
+
+-- To prevent REAPER from automatically creating an undo point, even if code does not reach own Undo_BeginBlock
+--    simply defer any function.
 function noUndo()
 end
 reaper.defer(noUndo)
 
+-- This script does not run a loop in the background, so it can simply delete
+--    the extstate.  The other js functions do so in the exit() function.
+reaper.DeleteExtState("js_Mouse actions", "Status", true)
+
 -- Test whether user customizable parameters are usable
-if lanes_from_which_to_remove ~= "under mouse" 
-and lanes_from_which_to_remove ~= "last clicked" 
-and lanes_from_which_to_remove ~= "all" then
+if not (lanes_from_which_to_remove == "under mouse" 
+        or lanes_from_which_to_remove == "last clicked" 
+        or lanes_from_which_to_remove == "all") then
     reaper.ShowMessageBox('The setting lanes_from_which_to_remove can only take on the values "under mouse", "last clicked" or "all".', "ERROR", 0)
     return(false) end
-if type(ignore_LSB_from_14bit_CCs) ~= "boolean" then
-    reaper.ShowMessageBox("The setting 'ignore_LSB_from_14bit_CCs' can only take on the values 'true' or 'false'.", "ERROR", 0)
+if type(ignore_LSB_of_pitch) ~= "boolean" then
+    reaper.ShowMessageBox("The setting 'ignore_LSB_of_pitch' can only take on the values 'true' or 'false'.", "ERROR", 0)
     return(false) end
-if type(only_analyze_selected) ~= "boolean" then
-    reaper.ShowMessageBox("The setting 'only_analyze_selected' can only take on the values 'true' or 'false'.", "ERROR", 0)
-    return(false) end
-if type(automatically_delete_muted_CCs) ~= "boolean" then
+--[[if type(automatically_delete_muted_CCs) ~= "boolean" then
     reaper.ShowMessageBox("The setting 'automatically_delete_muted_CCs' can only take on the values 'true' or 'false'.", "ERROR", 0)
-    return(false) end
-if type(show_error_messages) ~= "boolean" then    
-    reaper.ShowMessageBox("The setting 'show_error_messages' can only take on the values 'true' or 'false'.", "ERROR", 0)
-    return(false) end    
-    
--- Test whether a MIDI editor and an active take are in fact available
+    return(false) end   ]]
+
+-- Check whether the required version of REAPER is available
+if not reaper.APIExists("MIDI_GetAllEvts") then
+    reaper.ShowMessageBox("This script requires REAPER v5.30 or higher.", "ERROR", 0)
+    return(false) 
+end
+
+-- Check whether an editor and take are available (NOT inline) 
 editor = reaper.MIDIEditor_GetActive()
 if editor == nil then 
-    showErrorMsg("No active MIDI editor found.")
+    reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
     return(false)
 end
 take = reaper.MIDIEditor_GetTake(editor)
-if take == nil then 
-    showErrorMsg("No active take in MIDI editor.")
+if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
+    reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
     return(false)
 end
 
--- Try to get lane info
+-----------------------------------------------------------------------------------------------
+-- The following sections do two things:
+--    * Gets the target CC lane (either last clicked or under mouse)
+--    * If the script is in "under mouse" mode, and if the script is called from a toolbar, 
+--      it arms the script as the default js_Run function, but does not run the script further.
+--      If the mouse is positioned over a CC lane, the script is run.
+
 if lanes_from_which_to_remove == "last clicked" then
 
     targetLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")
     if targetLane == -1 then
-        showErrorMsg("No clicked lane found in MIDI editor.\n\n"
+        reaper.ShowMessageBox("No clicked lane found in MIDI editor.\n\n"
                     .."(Hint: To remove CCs from the lane under the mouse instead of the last clicked lane, "
-                    .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'under mouse'.)")
-        return(false)
-    elseif not ((0 <= targetLane and targetLane <= 127) or targetLane == PITCHlane or targetLane == CHANPRESSlane) then
-        showErrorMsg("This script only works in 7-bit CC lanes, pitchwheel or channel pressure lanes."
-                    .."(Note: The choice of method for removing redundancies from 14-bit CC lanes will depend on the user's intent: "
-                    .."For example, LSB information can be removed by simply deleting the CCs in the LSB lane.)")
+                    .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'under mouse'.)", "ERROR", 0)
         return(false)
     end
     
 elseif lanes_from_which_to_remove == "under mouse" then
-
-    _, _, currentDetails = reaper.BR_GetMouseCursorContext()
-    if not (currentDetails == "cc_lane" or currentDetails == "cc_selector") then 
-        showErrorMsg("Mouse is not over a CC lane.\n\n"
-                   .."(Hint: To remove CCs from the last clicked lane instead of the lane under the mouse, "
-                   .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'last clicked'.)")
-        return(false)
+    -- Check whether SWS is available
+    if not reaper.APIExists("BR_GetMouseCursorContext") then
+        reaper.ShowMessageBox("In order to find the CC lane 'under mouse', the script requires the SWS/S&M extension."
+                              .."\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+        return(false) 
     end
-    
-    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
     -- https://github.com/Jeff0S/sws/issues/783
     -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
     _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
     if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
     if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
     if SWS283 ~= SWS283again then
-        reaper.ShowConsoleMsg("\n\nERROR:\nCould not determine compatible SWS version.\n")
+        reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
         return(false)
     end
-    
     if SWS283 == true then
-        _, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        isInline, _, laneUnderMouse, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
     else 
-        _, _, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+        _, isInline, _, laneUnderMouse, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
     end
-    
-    if targetLane == -1 then
-        showErrorMsg("Could not determine lane under mouse.")
+    -- If window == "unknown", assume to be called from floating toolbar
+    -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+    if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+        setAsNewArmedToolbarAction() --************************IMPORTANT*****************************
+        return(0) 
+    elseif not (details == "cc_lane" or details == "cc_selector") then 
+        reaper.ShowMessageBox("Mouse is not over a CC lane.\n\n"
+                   .."(Hint: To remove CCs from the last clicked lane instead of the lane under the mouse, "
+                   .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'last clicked'.)"
+                   , "ERROR", 0)
         return(false)
-    elseif not ((0 <= targetLane and targetLane <= 127) or targetLane == PITCHlane or targetLane == CHANPRESSlane) then
-        showErrorMsg("This script only works in 7-bit CC lanes, pitchwheel or channel pressure lanes.\n\n"
-                    .."(Note: The choice of method for removing redundancies from 14-bit CC lanes will depend on the user's intent: "
-                    .."For example, LSB information can be removed by simply deleting the CCs in the LSB lane.)")
+    end
+        
+    if laneUnderMouse == -1 then
+        reaper.ShowMessageBox("Could not determine lane under mouse.", "ERROR", 0)
         return(false)
-    end    
-    
+    else
+        targetLane = laneUnderMouse
+    end         
 end
 
-
--- Tests done and everything seems OK, so script can go ahead.  Start Undo block before doing MIDI_Sort.
-reaper.Undo_BeginBlock()
+-- Note that if lanes_from_which_to_remove == "all", each 7-bit part of 14-bit CCs will be analyzed separately,
+if lanes_from_which_to_remove == "all" then
+    laneIsALLCC, laneIsPITCH, laneIsPROGRAM, laneIsCHPRESS = true, true, true, true
+else
+    if 0 <= targetLane and targetLane <= 127 then -- CC, 7 bit (single lane)
+        laneIsCC7BIT = true   
+    elseif targetLane == 0x201 then
+        laneIsPITCH = true 
+    elseif targetLane == 0x202 then
+        laneIsPROGRAM = true
+    elseif targetLane == 0x203 then -- Channel pressure
+        laneIsCHPRESS = true
+    elseif 256 <= targetLane and targetLane <= 287 then -- CC, 14 bit (double lane)
+        laneIsCC14BIT = true
+    else -- not a lane type in which script can be used.
+        reaper.ShowMessageBox("This script only works in the following lanes:\n * 7-bit CC lanes,\n * 14-bit CC lanes,\n * Pitchwheel,\n * Channel pressure or \n * Program select.\n\n"
+                    .."(Note: The choice of method for removing redundancies from 14-bit CC lanes will depend on the user's intent: "
+                    .."For example, LSB information can be removed by simply deleting the CCs in the LSB lane.)"
+                    , "ERROR", 0)
+        return(false)
+    end
+end
 
 
 ----------------------------------------------------------------------------------------------
 -- OK, now time to delete events within the active take
 -- This script does not use the standard MIDI API functions such as MIDI_DeleteCC, since these
 --    functions are far too slow when dealing with thousands of events.
--- Instead, this script will directly edit the raw MIDI data in the take's "state chunk".
--- More info on the formats can be found at 
+-- Instead, this script will directly edit the raw MIDI data, using new API functions provided
+--    in REAPER v5.30.
 
-local guidString, gotChunkOK, chunkStr, _, posTakeGUID, posAllNotesOff, posTakeMIDIend, posFirstStandardEvent, 
-      posFirstExtendedEvent, posFirstSysex, posFirstMIDIevent
+local haveAlreadyCorrectedOverlaps = false
+::startAgain::
 
--- To find redundancies, all the MIDI data must be in proper sequence
-reaper.MIDI_Sort(take)
+local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
 
--- All the MIDI data of all the takes in the item is stored within the "state chunk"
-item = reaper.GetMediaItemTake_Item(take)
-gotChunkOK, chunkStr = reaper.GetItemStateChunk(item, "", false)
-if not gotChunkOK then
-    reaper.ShowMessageBox("Could not access the item's state chunk.", "ERROR", 0)
-    return
-end
+if not gotAllOK then
+    reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
+    return false 
+else
 
--- Use the take's GUID to find the beginning of the take's data within the state chunk of the entire item
-guidString = reaper.BR_GetMediaItemTakeGUID(take)
-_, posTakeGUID = chunkStr:find(guidString, 1, true)
-if type(posTakeGUID) ~= "number" then
-    reaper.ShowMessageBox("Could not find the take's GUID string within the state chunk.", "ERROR", 0)
-    return
-end
-
--- REAPER's MIDI takes all end with an All-Notes-Off message, "E offset B0 7B 00".
--- This line tries to find such a message (that is not followed by another MIDI event)
-posAllNotesOff, posTakeMIDIend = chunkStr:find("\n[eE] %d+ [Bb]0 7[Bb] 00\n[^<xXeE]", posTakeGUID)
-if posTakeMIDIend == nil then 
-    reaper.ShowMessageBox("No end-of-take MIDI message found.", "ERROR", 0)
-    return
-end
-
--- Now find the very first MIDI message in the take's chunk.  This can be in standard format, extended format, of sysex format
-posFirstStandardEvent = chunkStr:find("\n[eE]m? %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
-posFirstSysex         = chunkStr:sub(1,posFirstStandardEvent+2):find("\n<[xX]m? %-?%d+ %-?%d+.->\n[<xXeE]", posTakeGUID)
-if posFirstSysex == nil then posFirstSysex = posFirstStandardEvent end
-posFirstExtendedEvent = chunkStr:sub(1,posFirstSysex+2):find("\n[xX]m? %-?%d+ %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
-if posFirstExtendedEvent == nil then posFirstExtendedEvent = posFirstSysex end
-posFirstMIDIevent = math.min(posFirstStandardEvent, posFirstExtendedEvent, posFirstSysex)
-if posFirstMIDIevent >= posAllNotesOff then 
-    reaper.ShowMessageBox("MIDI take appears to be empty.", "ERROR", 0)
-    -- MIDI take is empty, so nothing to deselect!
-    return
-end      
-
--- To make all the search faster (and to prevent possible bugs)
---    the item's state chunk will be divided into three parts, with the middle part
---    exclusively the take's raw MIDI.
-local chunkFirstPart = chunkStr:sub(1, posFirstMIDIevent-1)
-local thisTakeMIDIchunk = chunkStr:sub(posFirstMIDIevent, posTakeMIDIend-1)
-local chunkLastPart = chunkStr:sub(posTakeMIDIend)
-
-
------------------------------------------------------------------------------------
--- OK, got the raw MIDI data, now iterate through all MIDI.
--- This code uses the Lua function string.gsub to iterate through the MIDI events, 
---    and at each step the "substitute" function is called to check the MIDI event.  
--- If the event is redundant, it is deleted by simply substituting an empty string.
--- Also crucial is that the MIDI offsets must be correctly maintained: When a MIDI
---    event is deleted, its offset will be added to the next remaining event's
---    offset.
-
-
--- Initialize tables
-local tableLast = {} -- table with last values for each CC type and channel
-tableLast.pitch = {}
-for c = 0, 15 do -- initialize channels for MSB and LSB
-    tableLast.pitch[c] = {}
-end
-tableLast.chanpress = {}
-tableLast.CC = {}
-for i = 0, 127 do -- initialize lanes for channels
-    tableLast.CC[i] = {}
-end
-
-offsetChange = 0 -- This variable will be used by the deleteOrUpdateOffset
-countRedundancies = 0
-
---------------------------------------------------------------------------
-local function deleteOrUpdateOffset(line, selType, muted, offset, message)
-
-    local doDelete = false
-    local eventType, channel, msg2, msg3
-
-    if only_analyze_selected == true and (selType == "E" or selType == "X") then
-        goto skipChecks 
-    elseif selType == "e" or selType == "E" then
-        eventType, channel, msg2, msg3 = message:match("(%x)(%x) (%x%x) (%x%x)")
-    elseif selType == "x" or selType == "X" then
-        eventType, channel, msg2, msg3 = message:match("%d+ (%x)(%x) (%x%x) (%x%x)")
-    else -- Sysex
-        goto skipChecks
+    -----------------------------------------------------------------------------------
+    -- OK, got the raw MIDI data, so start setting up variable and table.          
+  
+    -- Initialize tables of last values
+    local tableLastCC = {} -- table with last values for each CC type and channel
+    local tableLastPitch = {}
+    local tableLastChPress = {}
+    local tableLastProgram = {}
+    local tableCC14BITvaluesMSB = {} -- In case of 14-bit CCs, a table that indicates whether next CC in pair (at specific channel and PPQ) must be deleted
+    local tableCC14BITvaluesLSB = {}
+    local tableRemoveCC14BIT = {} -- Must the 14-bit CC at this channel and position be removed?
+    for chan = 0, 15 do -- initialize channels for MSB and LSB
+        tableLastCC[chan] = {}
+        tableLastPitch[chan] = {}
+        tableCC14BITvaluesMSB[chan] = {}
+        tableCC14BITvaluesLSB[chan] = {}
+        tableRemoveCC14BIT[chan] = {}
     end    
-        
-    if muted == "m" then muted = true else muted = false end
-    offset    = tonumber(offset, 10)
-    eventType = tonumber(eventType, 16)
-    channel   = tonumber(channel, 16)
-    msg2      = tonumber(msg2, 16)
-    msg3      = tonumber(msg3, 16)
-    if (not offset) or (not eventType) or (not channel) or (not msg2) or (not msg3) then
-        reaper.ShowMessageBox("Parsing of state chunk MIDI data failed.", "ERROR", 0)
-        return false
-    end
-        
-    if (lanes_from_which_to_remove == "all" and
-       (eventType == CCmsg or eventType == PITCHmsg or eventType == CHANPRESSmsg))
-    or (lanes_from_which_to_remove ~= "all" and 
-       ( (targetLane == msg2 and eventType == CCmsg) 
-         or (targetLane == PITCHlane and eventType == PITCHmsg)
-         or (targetLane == CHANPRESSlane and eventType == CHANPRESSmsg)))
-    then
-        if muted == true and automatically_delete_muted_CCs == true then
-            doDelete = true
-            
-        elseif eventType == PITCHmsg then 
-            if (ignore_LSB_from_14bit_CCs == true and msg3 == tableLast.pitch[channel].MSB)
-            or (ignore_LSB_from_14bit_CCs == false and msg3 == tableLast.pitch[channel].MSB and msg2 == tableLast.pitch[channel].LSB)
-            then
-                doDelete = true
-            else
-                tableLast.pitch[channel].MSB = msg3 
-                tableLast.pitch[channel].LSB = msg2
-            end
-            
-        elseif eventType == CHANPRESSmsg then
-            if tableLast.chanpress[channel] == msg2 then
-                doDelete = true
-            else
-                tableLast.chanpress[channel] = msg2
-            end
-            
-        elseif eventType == CCmsg then
-            if tableLast.CC[msg2][channel] == msg3 then
-                doDelete = true
-            else
-                tableLast.CC[msg2][channel] = msg3
-            end
-            
-        end
-            
-    end
-        
-    ::skipChecks::
-    if doDelete == true then
-        countRedundancies = countRedundancies + 1
-        offsetChange = offsetChange + offset
-        return("")
-    else        
-        newOffset = tostring(offset + offsetChange)
-        offsetChange = 0
-        return line:gsub("%d+", newOffset, 1)
-    end
-end -- function deleteOrUpdateOffset
-
-
-------------------------------------------------------
--- This single line iterates through all the MIDI data
-local thisTakeMIDIedited = thisTakeMIDIchunk:gsub("(\n(<?[xXeE])(m?) (%d+) ([%-% %x]+))", deleteOrUpdateOffset)
     
+    -- The non-redundant events will temporarily be stored in this table, before being concatenated into a new MIDIstring
+    local tableRemainingEvents = {}
+    local r = 0 -- Index in table. Inserting using myTable[r]=x is much faster than table.insert(myTable, x) 
 
-reaper.SetItemStateChunk(item, chunkFirstPart .. thisTakeMIDIedited .. chunkLastPart, false)
+    ------------------------------------
+    -- Start iterating through all MIDI.
+    -- It is crucial that the MIDI offsets be correctly maintained: When a MIDI
+    --    event is deleted, its offset will be added to the next remaining event's
+    --    offset.
+    
+    local offset, flags, msg
+    local prevPos, nextPos, unchangedPos = 1, 1, 1
+    local runningPPQpos, lastRemainPPQpos = 0, 0
+    
+    local MIDIlen = MIDIstring:len()
+    while nextPos < MIDIlen do
+    
+        local mustDelete = false
+        prevPos = nextPos
+        offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, nextPos)
+        
+        -- Check for unsorted MIDI
+        if offset < 0 and not (#tableRemainingEvents == 0 and countRedundancies == 0) then   
+            -- Try to sort MIDI by running one of the MIDI editor's native editing actions.
+            if not haveAlreadyCorrectedOverlaps then
+                reaper.Undo_BeginBlock2(0)
+                if isInline then
+                    reaper.MIDI_Sort(take)
+                else
+                    reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert selection in active take
+                    reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert back to original selection
+                end
+                reaper.Undo_EndBlock2(0, "Correcting unsorted MIDI data", 4)
+                haveAlreadyCorrectedOverlaps = true
+                goto startAgain
+            else -- haveAlreadyCorrectedOverlaps == true
+                reaper.ShowMessageBox("Unsorted MIDI data has been detected."
+                                      .. "\n\nThe script has tried to sort the data, but was unsuccessful."
+                                      .. "\n\nSorting of the MIDI can usually be induced by any simple editing action, such as selecting a note."
+                                      , "ERROR", 0)
+                return false
+            end
+        end
+        
+        -- offset OK, so can update runningPPQpos
+        runningPPQpos = runningPPQpos + offset
+    
+        if flags&1==1 then -- bit 1 of flags gives selection status
+                
+            local eventType = msg:byte(1)>>4
+            local channel   = msg:byte(1)&0x0F
+            local msg2      = msg:byte(2)
+            local msg3      = msg:byte(3) -- Channel pressure and Program select do not have 3 bytes, so will be nil
+                        
+            -- 7-bit and 14-bit CCs
+            if eventType == 11 then
+            
+                if laneIsALLCC then
+                    if msg3 == tableLastCC[channel][msg2]
+                    --or (flags&2 == 2 and automatically_delete_muted_CCs == true) 
+                    then
+                        mustDelete = true
+                    else
+                        -- Check whether there are any other CC events on the same PPQ position, later in MIDI string
+                        local evPos = nextPos -- Start search at position of next event in MIDI string
+                        local evOffset, evFlags, evMsg
+                        ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
+                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                            if evOffset == 0 then -- Still on same PPQ position
+                                if evFlags&1 == 1 -- Selected
+                                and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
+                                and evMsg:byte(2) == msg2 -- And same lane
+                                then
+                                    -- Found matching CC on same PPQ position
+                                    mustDelete = true
+                                    goto completedSearching
+                                end
+                                goto onSamePPQpos
+                            else -- offset > 0, so no other CC event found on same PPQ position, 
+                                tableLastCC[channel][msg2] = msg3
+                                --goto completedSearching 
+                            end
+                        ::completedSearching::
+                    end
+                
+                elseif laneIsCC7BIT then
+                    if msg2 == targetLane then
+                        if tableLastCC[channel] == msg3 -- If laneIsCC7BIT, no need to differentiate between lanes. Faster table access.
+                        --or (flags&2 == 2 and automatically_delete_muted_CCs == true) 
+                        then
+                            mustDelete = true
+                        else
+                            -- Check whether there are any other CC events on the same PPQ position, later in MIDI string
+                            local evPos = nextPos -- Start search at position of next event in MIDI string
+                            local evOffset, evFlags, evMsg
+                            ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if evFlags&1 == 1 -- Selected
+                                    and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
+                                    and evMsg:byte(2) == msg2 -- And same lane
+                                    then
+                                        -- Found matching CC event on same PPQ position
+                                        mustDelete = true
+                                        goto completedSearching
+                                    end
+                                    goto onSamePPQpos
+                                else -- offset > 0, so no other CC event found on same PPQ position, 
+                                    tableLastCC[channel] = msg3
+                                    --goto completedSearching 
+                                end
+                            ::completedSearching::
+                        end
+                    end
+                    
+                elseif laneIsCC14BIT then
+                
+                    if msg2 == targetLane-256 or msg2 == targetLane-224 then
+                    
+                        -- Has the (final) 14-bit CC value for this PPQ position already been calculated?
+                        -- If not, calculate it, and check backward redundancy.
+                        --if tableCC14BITvaluesMSB[channel][runningPPQpos] == nil and tableCC14BITvaluesLSB[channel][runningPPQpos] == nil then
+                        if tableRemoveCC14BIT[channel][runningPPQpos] == nil then
+                            if msg2 == targetLane-256 then
+                                tableCC14BITvaluesMSB[channel][runningPPQpos] = msg3
+                                tableCC14BITvaluesLSB[channel][runningPPQpos] = tableLastCC[channel][targetLane-224]
+                            else
+                                tableCC14BITvaluesMSB[channel][runningPPQpos] = tableLastCC[channel][targetLane-256]
+                                tableCC14BITvaluesLSB[channel][runningPPQpos] = msg3
+                            end
+                            -- Check whether there are any other CC events on the same PPQ position, later in MIDI string
+                            local evPos = nextPos -- Start search at position of next event in MIDI string
+                            local evOffset, evFlags, evMsg
+                            repeat -- repeat until an offset is found > 0, or a match is found
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if evFlags&1 == 1
+                                    and evMsg:byte(1)  == (0xB0 | channel) 
+                                    --and (flags&2 == 0 or automatically_delete_muted_CCs == false)
+                                    then -- Match event type and channel
+                                        if evMsg:byte(2) == targetLane-256 then -- MSB lane
+                                            tableCC14BITvaluesMSB[channel][runningPPQpos] = evMsg:byte(3)
+                                        elseif evMsg:byte(2) == targetLane-224 then -- LSB lane
+                                            tableCC14BITvaluesLSB[channel][runningPPQpos] = evMsg:byte(3)
+                                        end
+                                    end
+                                end
+                            until evOffset ~= 0
+                            
+                            -- Now check whether the *final* 14-bit CC at this PPQ position and channel is backward redundant
+                            if (tableCC14BITvaluesMSB[channel][runningPPQpos] == tableLastCC[channel][targetLane-256]
+                            and tableCC14BITvaluesLSB[channel][runningPPQpos] == tableLastCC[channel][targetLane-224])
+                            then
+                                -- If redudant, remove all CCs in this channel and PPQ position
+                                tableRemoveCC14BIT[channel][runningPPQpos] = true
+                            else
+                                tableLastCC[channel][targetLane-256] = tableCC14BITvaluesMSB[channel][runningPPQpos]
+                                tableLastCC[channel][targetLane-224] = tableCC14BITvaluesLSB[channel][runningPPQpos]
+                                tableRemoveCC14BIT[channel][runningPPQpos] = false
+                            end
+                        end
+                        
+                        -- OK, so we've already analyzed the (final) 14-bit CC values for this PPQ position
+                        -- Is this 14-bit CC backward redundant?
+                        if tableRemoveCC14BIT[channel][runningPPQpos] == true 
+                        --or (flags&2 == 2 and automatically_delete_muted_CCs == true)
+                            then
+                            mustDelete = true
+                            
+                        -- Check forward redundancy
+                        else                            
+                            -- Check whether there are any other CC events on the same PPQ position, later in MIDI string
+                            local evPos = nextPos -- Start search at position of next event in MIDI string
+                            local evOffset, evFlags, evMsg
+                            ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if evFlags&1 == 1 -- Selected
+                                    and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
+                                    and evMsg:byte(2) == msg2 -- And same lane
+                                    then
+                                        -- Found matching CC event on same PPQ position
+                                        mustDelete = true
+                                        goto completedSearching
+                                    end 
+                                    goto onSamePPQpos
+                                end
+                            ::completedSearching::
+                        end
+                    
+                    end -- if msg2 == targetLane-256 or msg2 == targetLane-224        
+                          
+                end -- if laneIsALLCC / laneIsCC7BIT / laneIsCC14BIT then                
 
-
--------------------------------------------
-if lanes_from_which_to_remove == "all" then
-    reaper.Undo_EndBlock("Removed ".. tostring(countRedundancies) .. " redundant events from all lanes", -1)    
-else -- lanes_from_which_to_remove ~= "all" then
-    if (0 <= targetLane and targetLane <= 127) then
-        reaper.Undo_EndBlock("Removed ".. tostring(countRedundancies) .. " redundant events from 7-bit CC lane " .. tostring(targetLane), -1) 
-    elseif targetLane == PITCHlane then
-        reaper.Undo_EndBlock("Removed ".. tostring(countRedundancies) .. " redundant events from pitchwheel lane", -1) 
-    elseif targetLane == CHANPRESSlane then
-        reaper.Undo_EndBlock("Removed ".. tostring(countRedundancies) .. " redundant events from channel pressure lane", -1)  
+            -- Pitchwheel
+            elseif eventType == 14 then 
+                if laneIsPITCH then
+                    if (ignore_LSB_of_pitch == true and msg3 == tableLastPitch[channel].MSB)
+                    or (ignore_LSB_of_pitch == false and msg3 == tableLastPitch[channel].MSB and msg2 == tableLastPitch[channel].LSB)
+                    --or (flags&2 == 2 and automatically_delete_muted_CCs == true)
+                    then
+                        mustDelete = true
+                    else
+                        -- Check whether there are any other pitch events on the same PPQ position, later in MIDI string
+                        local evPos = nextPos -- Start search at position of next event in MIDI string
+                        local evOffset, evFlags, evMsg
+                        ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
+                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                            if evOffset == 0 then -- Still on same PPQ position
+                                if evFlags&1 == 1 -- Selected
+                                and evMsg:byte(1) == (0xE0 | channel) then -- Match Pitch event type and channel
+                                    -- Found pitch event on same PPQ position
+                                    mustDelete = true
+                                    goto completedSearching
+                                end
+                                goto onSamePPQpos
+                            else -- No other pitch event found on same PPQ position, 
+                                tableLastPitch[channel].MSB = msg3 
+                                tableLastPitch[channel].LSB = msg2
+                                --goto completedSearching 
+                            end
+                        ::completedSearching::
+                    end
+                end
+                
+            -- Channel pressure
+            elseif eventType == 13 then
+                if laneIsCHPRESS then
+                    if tableLastChPress[channel] == msg2
+                    --or (flags&2 == 2 and automatically_delete_muted_CCs == true)
+                    then
+                        mustDelete = true
+                    else
+                        -- Check whether there are any other channel pressure events on the same PPQ position, later in MIDI string
+                        local evPos = nextPos -- Start search at position of next event in MIDI string
+                        local evOffset, evFlags, evMsg
+                        ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
+                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                            if evOffset == 0 then -- Still on same PPQ position
+                                if evFlags&1 == 1 -- Selected
+                                and evMsg:byte(1)  == (0xD0 | channel) then -- Match event type and channel
+                                    -- Found channel pressure event on same PPQ position
+                                    mustDelete = true
+                                    goto completedSearching
+                                end
+                                goto onSamePPQpos
+                            else -- offset > 0, so no other channel pressure event found on same PPQ position, 
+                                tableLastChPress[channel] = msg2
+                                --goto completedSearching 
+                            end
+                        ::completedSearching::
+                    end
+                end
+                                    
+            -- Program select
+            elseif eventType == 12 then
+                if laneIsPROGRAM then
+                    if tableLastProgram[channel] == msg2
+                    --or (flags&2 == 2 and automatically_delete_muted_CCs == true)
+                    then
+                        mustDelete = true
+                    else
+                        -- Check whether there are any other channel pressure events on the same PPQ position, later in MIDI string
+                        local evPos = nextPos -- Start search at position of next event in MIDI string
+                        local evOffset, evFlags, evMsg
+                        ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
+                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                            if evOffset == 0 then -- Still on same PPQ position
+                                if evFlags&1 == 1 -- Selected
+                                and evMsg:byte(1)  == (0xC0 | channel) then -- Match event type and channel
+                                    -- Found channel pressure event on same PPQ position
+                                    mustDelete = true
+                                    goto completedSearching
+                                end
+                                goto onSamePPQpos
+                            else -- offset > 0, so no other channel pressure event found on same PPQ position, 
+                                tableLastProgram[channel] = msg2
+                                --goto completedSearching 
+                            end
+                        ::completedSearching::
+                    end
+                end
+                           
+            end -- if eventType ==
+                
+        end -- if only_analyze_selected == false or flags&1==1
+     
+        -------------------------------------------------------------
+        -- Store events in tables (with updated offsets if necessary)
+        if mustDelete then
+            countRedundancies = countRedundancies + 1
+            -- The chain of unchanged remaining events is broken, so write to tableRemainingEvents
+            if unchangedPos < prevPos then
+                r = r + 1
+                tableRemainingEvents[r] = MIDIstring:sub(unchangedPos, prevPos-1)
+            end
+            unchangedPos = nextPos
+            mustUpdateNextOffset = true
+            
+        -- The offset of a remaining event only needs to be changed if it follows an extracted event.
+        elseif mustUpdateNextOffset then
+            r = r + 1
+            tableRemainingEvents[r] = s_pack("i4Bs4", runningPPQpos-lastRemainPPQpos, flags, msg)
+            lastRemainPPQpos = runningPPQpos
+            unchangedPos = nextPos
+            mustUpdateNextOffset = false
+            
+        -- If remaining events that is preceded by other remaining events, postpone writing to table
+        else
+            lastRemainPPQpos = runningPPQpos
+        end -- if mustDelete / mustUpdateNextOffset
+            
+    end -- while nextPos < MIDIlen
+         
+    -- Reached end of MIDIstring. Write the last remaining events to table
+    if unchangedPos < MIDIlen then
+        r = r + 1
+        tableRemainingEvents[r] = MIDIstring:sub(unchangedPos)
+    end   
+  
+    -------------------------------------------------------------------------------
+    -- Finally, (perhaps) going to make some changes to the take. Start Undo block.
+    --reaper.Undo_BeginBlock2(0)
+    if countRedundancies ~= 0 then
+        reaper.MIDI_SetAllEvts(take, table.concat(tableRemainingEvents))
     end
-end
+    
+    ---------------------------------------
+    -- Create nice, informative undo points
+    -- Unfo point that are limited to items, such as Undo_OnStateChange_Item or Undo_EndBlock with flag=4
+    --    are much faster than undo point that include everything, which happens when flag=-1 is used.
+    item = reaper.GetMediaItemTake_Item(take)
+    if lanes_from_which_to_remove == "all" then
+        reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from all lanes", item) 
+    else -- lanes_from_which_to_remove ~= "all" then
+        if laneIsCC7BIT then
+            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from 7-bit CC lane " .. tostring(targetLane), item) 
+        elseif laneIsPITCH then
+            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from pitchwheel lane", item) 
+        elseif laneIsCHPRESS then
+            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from channel pressure lane", item) 
+        elseif laneIsPROGRAM then
+            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from program select lane", item)         
+        elseif laneIsCC14BIT then
+            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from 14-bit CC lane " .. tostring(targetLane-256).."/"..tostring(targetLane-224), item)
+        end
+    end
+    
+end -- if gotAllOK
+
+

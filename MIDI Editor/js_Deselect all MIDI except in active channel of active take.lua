@@ -1,131 +1,126 @@
 --[[
 ReaScript name: js_Deselect all MIDI except in active channel of active take.lua
-Version: 0.90
+Version: 1.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
+REAPER version: 5.30
 ]]
- 
+
 --[[
   Changelog:
   * v0.90 (2016-11-16)
     + Initial beta release
+  * v1.00 (2016-12-04)
+    + Faster execution, using REAPER v5.30's new API functions.
 ]]
 
------------------------------------------------------------------
+----------------------------------------------------------------------------
 --function main() 
 
-editor = reaper.MIDIEditor_GetActive()
+-- This script will do the following:
+--    1) Download the raw MIDI data of the active take, using MIDI_GetAllEvts, and edit this to deselect all except in the active channel
+--    2) Deselect all events in all editable takes in the MIDI editor, using the built-in Action "Unselect all".  (This is much faster
+--      than iterating through all takes and using ReaScript to deselect the events.
+--    3) Upload the edited raw MIDI data of the active take, which re-selects those events that remained selected in step 1.
+
+-- Little trick to prevent REAPER from automatically creating an undo point:
+--    simply 'defer' any function.
+--[[function preventUndo()
+end
+reaper.defer(preventUndo)
+]]
+-- Check whether the required version of REAPER is available
+if not reaper.APIExists("MIDI_GetAllEvts") then
+    reaper.ShowMessageBox("This script requires REAPER v5.30 or higher.", "ERROR", 0)
+    return(false) 
+end
+
+-- Check whether an active MIDI editor is available
+local editor = reaper.MIDIEditor_GetActive()
 if editor == nil then 
     reaper.ShowMessageBox("Could not find any active MIDI editors.", "ERROR", 0)
     return
 end
 
-activeTake = reaper.MIDIEditor_GetTake(editor)
+-- Check whether an active take is available - note the GetTake is buggy and may return a non-nil but invalid pointer, so must check validity.
+local activeTake = reaper.MIDIEditor_GetTake(editor)
 if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then 
     reaper.ShowMessageBox("Could not find any active take.", "ERROR", 0)
     return
 end
 
-activeItem = reaper.GetMediaItemTake_Item(activeTake)
-
-reaper.Undo_BeginBlock()
-
-----------------------------------------------------------------------
--- First, iterate through all items and takes in the entire project
---    and deselect all MIDI event in all take *except* the active take    
-numItems = reaper.CountMediaItems(0)
-for i=0, numItems-1 do 
-
-    curItem = reaper.GetMediaItem(0, i)
-    if reaper.ValidatePtr2(0, curItem, "MediaItem*") then 
-    
-        numTakes = reaper.CountTakes(curItem)  
-        for t=0, numTakes-1 do 
-        
-            curTake = reaper.GetTake(curItem, t)    
-            if reaper.ValidatePtr2(0, curTake, "MediaItem_Take*") and not (curTake == activeTake) then -- Skip active take
-                
-                -- Deselect all events in one shot.
-                reaper.MIDI_SelectAll(curTake, false)               
-              
-            end -- if reaper.ValidatePtr2(0, curItem, "MediaItem_Take*") and reaper.TakeIsMIDI(curTake)
-        end -- for t=0, numTakes-1
-    end -- if reaper.ValidatePtr2(0, curItem, "MediaItem*")
-end -- for i=0, numItems-1
-
----------------------------------------------------------------------
--- OK, now time to selectively deselect events within the active take
+local activeChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+ 
 -- This script does not use the standard MIDI API functions such as MIDI_SetCC, since these
 --    functions are far too slow when dealing with thousands of events.
--- Instead, this script will directly edit the raw MIDI data in the take's "state chunk".
--- More info on the formats can be found at 
+-- Instead, REAPER v5.30 introduced new API functions for fast, mass edits of MIDI:
+--    MIDI_GetAllEvts and MIDI_SetAllEvts.
+local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(activeTake, "")
 
-local guidString, gotChunkOK, chunkStr, _, posTakeGUID, posAllNotesOff, posTakeMIDIend, posFirstStandardEvent, 
-      posFirstExtendedEvent, posFirstSysex, posFirstMIDIevent
+if not gotAllOK then
+    
+    reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data of the active take.", "ERROR", 0)
+    return false 
 
-guidString = reaper.BR_GetMediaItemTakeGUID(activeTake)
+else
 
--- All the MIDI data of all the takes in the item is stored within the "state chunk"
-gotChunkOK, chunkStr = reaper.GetItemStateChunk(activeItem, "", false)
-if not gotChunkOK then
-    reaper.ShowMessageBox("Could not access the item's state chunk.", "ERROR", 0)
-    return
+    local MIDIlen = MIDIstring:len()
+    
+    local tableEvents = {} -- All events will be stored in this table until they are concatened again
+    local t = 0 -- Count index in table.  It is faster to use tableEvents[t] = ... than table.insert(...
+    local mustDeselect = false
+    local s_unpack = string.unpack
+    local s_pack   = string.pack
+    
+    -- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
+    --    Instead, only changed (i.e. deselected) events will be re-packed and inserted individually, while unchanged events
+    --    will be inserted as bulk blocks of unchanged sub-strings.
+    local nextPos, prevPos, unchangedPos = 1, 1, 1 -- unchangedPos is starting position of block of unchanged MIDI.
+    
+    while nextPos <= MIDIlen do
+           
+        local offset, flags, msg
+        
+        prevPos = nextPos
+        offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
+        
+        mustDeselect = false
+        if flags&1 == 1 then -- First bit in flags is selection status
+            -- Sysex and meta events do not carry channel info, so will always be deselected
+            -- No need to worry about selected notes with notation: REAPER's notation text events are always unselected, even if the corresponding note is selected.
+            if (msg:byte(1))&0xF0 == 0xF0 then
+                mustDeselect = true
+            -- Non-sysex, non-meta events always include channel in lowest 'nibble' of status byte
+            elseif (msg:byte(1))&0x0F ~= activeChannel then
+                mustDeselect = true
+            end
+        end
+        
+        if mustDeselect then
+            if unchangedPos < prevPos then
+                t = t + 1
+                tableEvents[t] = MIDIstring:sub(unchangedPos, prevPos-1)
+            end
+            t = t + 1
+            tableEvents[t] = s_pack("i4Bs4", offset, flags&0xFE, msg)
+            unchangedPos = nextPos
+        end        
+    end
+    
+    -- Ieration complete.  Write the last block of remaining events to table.
+    t = t + 1
+    tableEvents[t] = MIDIstring:sub(unchangedPos)
+    
+    -----------------------------------------------------------------------
+    -- Finally, going to make changes to the project, so create undo block.
+    reaper.Undo_BeginBlock2(0)
+    -- Deselect all MIDI in editable takes
+    reaper.MIDIEditor_OnCommand(editor, 40214) -- Edit: Unselect all
+    -- Upload new MIDI string into active take
+    reaper.MIDI_SetAllEvts(activeTake, table.concat(tableEvents))
+    -- Use flag=4 to limit undo to items, which is much faster than unnecessarily including everything
+    reaper.Undo_EndBlock2(0, "Deselect all MIDI except in active channel of active take", 4)
+    
 end
 
--- Use the take's GUID to find the beginning of the take's data within the state chunk of the entire item
-_, posTakeGUID = chunkStr:find(guidString, 1, true)
-if type(posTakeGUID) ~= "number" then
-    reaper.ShowMessageBox("Could not find the take's GUID string within the state chunk.", "ERROR", 0)
-    return
-end
 
--- REAPER's MIDI takes all end with an All-Notes-Off message, E offset B0 7B 00.
--- This line tries to find such a message (that is not followed by another MIDI event)
-posAllNotesOff, posTakeMIDIend = chunkStr:find("\n[eE] %d+ [Bb]0 7[Bb] 00\n[^<xXeE]", posTakeGUID)
-if posTakeMIDIend == nil then 
-    reaper.ShowMessageBox("No end-of-take MIDI message found.", "ERROR", 0)
-    return
-end
-
--- Now find the very first MIDI message in the take's chunk.  This can be in standard format, extended format, of sysex format
-posFirstStandardEvent = chunkStr:find("\n[eE]m? %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
-posFirstSysex         = chunkStr:sub(1,posFirstStandardEvent+2):find("\n<[xX]m? %-?%d+ %-?%d+.->\n[<xXeE]", posTakeGUID)
-if posFirstSysex == nil then posFirstSysex = posFirstStandardEvent end
-posFirstExtendedEvent = chunkStr:sub(1,posFirstSysex+2):find("\n[xX]m? %-?%d+ %-?%d+ %x%x %x%x %x%x[%-% %d]-\n", posTakeGUID)
-if posFirstExtendedEvent == nil then posFirstExtendedEvent = posFirstSysex end
-posFirstMIDIevent = math.min(posFirstStandardEvent, posFirstExtendedEvent, posFirstSysex)
-if posFirstMIDIevent >= posAllNotesOff then 
-    reaper.ShowMessageBox("MIDI take appears to be empty.", "ERROR", 0)
-    -- MIDI take is empty, so nothing to deselect!
-    return
-end        
-
--- To make all the search faster (and to prevent possible bugs)
---    the item's state chunk will be divided into three parts, with the middle part
---    exclusively the take's raw MIDI.
-local chunkFirstPart = chunkStr:sub(1, posFirstMIDIevent-1)
-local thisTakeMIDIchunk = chunkStr:sub(posFirstMIDIevent, posTakeMIDIend-1)
-local chunkLastPart = chunkStr:sub(posTakeMIDIend)
-
--- At long last, time to get the channel info and deselect
-defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
-defaultUpper = string.upper(string.format("%x", defaultChannel)) 
-defaultLower = string.lower(string.format("%x", defaultChannel))
-
-local matchStringStandard = "\ne(m? %d+ %x[^" 
-                    .. string.upper(string.format("%x", defaultChannel)) 
-                    .. string.lower(string.format("%x", defaultChannel))
-                    .. "] %x%x %x%x)"
-local matchStringExtended = "\nx(m? %d+ %d+ %x[^" 
-                    .. string.upper(string.format("%x", defaultChannel)) 
-                    .. string.lower(string.format("%x", defaultChannel))
-                    .. "] %x%x %x%x)"
-
-thisTakeMIDIchunk = thisTakeMIDIchunk:gsub(matchStringStandard, "\nE%1") -- deselect standard events
-thisTakeMIDIchunk = thisTakeMIDIchunk:gsub(matchStringExtended, "\nX%1") -- deselect events in extended format
-thisTakeMIDIchunk = thisTakeMIDIchunk:gsub("\n<x(m? %-?%d+ %-?%d+)", "\n<X%1") -- sysex events do not carry channel info, and will all be deselected
-
-
-reaper.SetItemStateChunk(activeItem, chunkFirstPart .. thisTakeMIDIchunk .. chunkLastPart, false)
-
-reaper.Undo_EndBlock("Deselect all MIDI except in active channel of active take", -1)
