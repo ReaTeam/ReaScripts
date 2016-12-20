@@ -10,8 +10,8 @@
 --   # Toggle track FX bypass by name
 --
 --   This script asks for a string to match against all track FX in the current
---   project. The search is case insensitive. Bypass is toggled for all matching
---   FXs. Undo points are consolidated into one.
+--   project, matching tracks or selected tracks. The search is case insensitive.
+--   Bypass is toggled for all matching FXs. Undo points are consolidated into one.
 
 if not reaper.GetTrackName then
   -- for REAPER prior to v5.30 (native GetTrackName returns "Track N" when it's empty)
