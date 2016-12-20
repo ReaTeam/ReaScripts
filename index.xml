@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f6f95774d1eb7da2405d64c57910249e4e6c7a98" name="ReaTeam Scripts">
+<index version="1" commit="2b1b16931fe34695bda7e333a2f5489f31000f11" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -516,7 +516,7 @@ added support for all track envelopes]]></changelog>
 + Warping can now also be vertical (i.e. values instead of positions), depending on initial mouse movement.
 + Vastly improved speed when working in items with hundreds of thousands of events.
 + Requires REAPER v5.30 or later.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eebdcf7c0f56d18aabd229ae0850f613ceff7456/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2b1b16931fe34695bda7e333a2f5489f31000f11/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
@@ -1482,23 +1482,16 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A script for stretching MIDI events in the MIDI editor. The script only affects events in the MIDI editor lane that is under the mouse cursor. If snap to grid is enabled, the rightmost event will snap to grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A script for stretching MIDI events in the MIDI editor. The script can either stretch event positions (horizontally) or values (vertically), depending on the mouse position. The script only affects events in the MIDI editor lane that is under the mouse cursor. If snap to grid is enabled, the stretch position will snap to grid.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To use, 1) Select the MIDI events to be stretched,\line 2) Position the mouse in the CC lane (or in the notes area or velocity lane in the case of notes) 3) To stretch the leftmost events (using the rightmost event as anchor), position the mouse to left of the events' time range.\line To stretch events on the right, position the mouse to the right of the events' time range. To stretch vertically, position mouse closer to the middle of the time range. 4) Press the shortcut key. 5) Move mouse left or right if stretching horizontally, or up or down if stretching vertically. 6) To exit, move mouse out of CC lane, or press shortcut key again.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\par}
-{\pard \ql \f0 \sa180 \li360 \fi0 To use,\par}
-{\pard \ql \f0 \sa180 \li720 \fi-360 1)\tx360\tab Select the MIDI events to be stretched.\par}
-{\pard \ql \f0 \sa180 \li720 \fi-360 2)\tx360\tab Position the mouse in the CC lane (or in the notes area or velocity lane in the case of notes).\par}
-{\pard \ql \f0 \sa180 \li720 \fi-360 3)\tx360\tab To stretch events on the left (using the rightmost event as anchor), position the mouse to left of the midpoint of the events' time range.\line To stretch events on the right, position the mouse to the right of the midpoint of the events' time range.\par}
-{\pard \ql \f0 \sa180 \li720 \fi-360 4)\tx360\tab Press the shortcut key.\par}
-{\pard \ql \f0 \sa180 \li720 \fi-360 5)\tx360\tab Move mouse left or right to change the extent of stretching.\par}
-{\pard \ql \f0 \sa180 \li720 \fi-360 6)\tx360\tab To exit, move mouse out of CC lane, or press shortcut key again.\sa180\par}
-{\pard \ql \f0 \sa180 \li360 \fi0 Note: Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\line In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut). Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script. For further instructions - please refer to the "js_Run..." script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Warning\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 As with any script that involves moving or stretching notes, the user should take care that there are no overlapping notes, both when starting and when terminating the script, since such notes may lead to various artefacts.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script can be set to perform a safety check for overlapping notes. To activate the safety check, set the doCheckNoteOverlaps variable to "true" in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will run in the inline MIDI editor, but if there are any overlapping notes in the take, these may transform into extended notes.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -1527,6 +1520,13 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + Notes can now be reversed, similar to CCs.
 + New feature: Events can now be stretched either from the left or from the right.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/91f2f42a48f2b32c8d52017c20328226431ac7a8/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="3.00" author="juliansader" time="2016-12-20T11:59:46Z">
+        <changelog><![CDATA[+ Depending on mouse position, can now also stretch event values vertically.
++ Script will also run in inline MIDI editor.
++ Vastly improved speed, especially when working in items with hundreds of thousands of events.
++ Requires REAPER v5.30 or later.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2b1b16931fe34695bda7e333a2f5489f31000f11/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
