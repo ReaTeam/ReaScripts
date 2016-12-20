@@ -115,6 +115,7 @@ About:
 --    will need to be updated in each cycle relative to the PPQ positions of the edited events.
 local MIDIstring 
 local remainMIDIstring
+local remainMIDIstringSub5
 local remainOffset 
 local newRemainOffset -- the updated offset of the non-edited events
 
@@ -142,7 +143,7 @@ local includeNoteOffsInPPQrange = true -- Should origPPQrange and origPPQrightmo
 -- As the edited MIDI events' new values are calculated, each event wil be assmebled into a short string and stored in the tableEditedMIDI table.
 -- When the calculations are done, the entire table will be concatenated into a single string, then inserted 
 --    at the beginning of remainMIDIstring (while updating the relative offset of the first event in remainMIDIstring, 
---`   and loaded into REAPER as the new state chunk.
+--    and loaded into REAPER as the new state chunk.
 local tableEditedMIDI = {}
  
 -- Starting values and position of mouse 
@@ -193,20 +194,28 @@ local _, take, editor, isInline
 -- I am not sure that declaring functions local really helps to speed things up...
 local s_unpack = string.unpack
 local s_pack   = string.pack
-local t_insert = table.insert
+local t_insert = table.insert -- myTable[i] = X is actually much faster than t_insert(myTable, X)
 local m_floor  = math.floor
 
   
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
 -- The function that will be 'deferred' to run continuously
--- There are two bottlenecks that impede the speed of this function:
+-- There are three bottlenecks that impede the speed of this function:
 --    Minor: reaper.BR_GetMouseCursorContext(), which must unfortunately unavoidably be called before 
 --           reaper.BR_GetMouseCursorContext_MIDI(), and which (surprisingly) gets much slower as the 
 --           number of MIDI events in the take increases.
---    Major: reaper.SetItemState, which is much slower than even GetMouseCursorContext.
+--           ** This script will therefore apply a nifty trick to speed up this function:  using
+--           MIDI_SetAllEvts, the take will be cleared of all MIDI before running BR_...! **
+--    Minor: MIDI_SetAllEvts (when filled with hundreds of thousands of events) is not fast - but is 
+--           infinitely better than the standard API functions such as MIDI_SetCC.
+--    Major: Updating the MIDI editor between defer cycles is by far the slowest part of the whole process.
+--           The more events in visible and editable takes, the slower the updating.  MIDI_SetAllEvts
+--           seems to get slowed down more than REAPER's native Actions such as Invert Selection.
+--           If, in the future, the REAPER API provides a way to toggle take visibility in the editor,
+--           it may be helpful to temporarily make all non-active takes invisible. 
 -- The Lua script parts of this function - even if it calculates thousands of events per cycle,
---    make up only a small fraction of the execution time,
+--    make up only a small fraction of the execution time.
 local function loop_trackMouseMovement()
 
     -------------------------------------------------------------------------------------------
@@ -419,7 +428,7 @@ local function loop_trackMouseMovement()
     newRemainOffset = remainOffset-lastPPQpos
     reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
                                   .. s_pack("i4", newRemainOffset)
-                                  .. remainMIDIstring)
+                                  .. remainMIDIstringSub5)
   
     if isInline then reaper.UpdateArrange() end
 
@@ -433,33 +442,22 @@ end -- loop_trackMouseMovement()
 
 --############################################################################################
 ----------------------------------------------------------------------------------------------
-function exit()
+function onexit()
     
     -- Remember that the take was cleared before calling BR_GetMouseCursorContext
     --    So upload MIDI again.
     reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
                                   .. s_pack("i4", newRemainOffset)
-                                  .. remainMIDIstring)
+                                  .. remainMIDIstringSub5)
                                   
     -- Calls to native actions such as "Invert selection" via OnCommand must be placed
     --    within explicit undo blocks, otherwise they will create their own undo points.
     -- Strangely, in the current v5.30, undo blocks are interrupted as soon as the 
     --    atexit-defined function is called.  *This is probably a bug.*  
-    -- Therefore must start a new undo block within this exit function.  Fortunately, 
+    -- Therefore must start a new undo block within this onexit function.  Fortunately, 
     --    this undo point seems to undo the entire defered script, not only the stuff that
-    --    happens within this exit function.
-    reaper.Undo_BeginBlock2(0)
-    
-    -- Communicate with the js_Run.. script that this script is exiting
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
-    
-    -- Deactivate toolbar button (if it has been toggled)
-    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
-        then
-        reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
-        reaper.RefreshToolbar2(sectionID, cmdID)
-    end
+    --    happens within this onexit function.
+    reaper.Undo_BeginBlock2(0)    
     
     -- MIDI_Sort is buggy when dealing with overlapping notes, 
     --    causing infinitely extended notes or zero-length notes.
@@ -471,6 +469,17 @@ function exit()
         reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert selection in active take
         reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert back to original selection
     end
+    
+    -- Communicate with the js_Run.. script that this script is exiting
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
+    -- Deactivate toolbar button (if it has been toggled)
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
+        and (prevToggleState == 0 or prevToggleState == 1) 
+        then
+        reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end    
                 
     -- Write nice, informative Undo strings
     if warpLEFTRIGHT then 
@@ -515,7 +524,7 @@ function exit()
         end   
     end
     reaper.Undo_EndBlock2(0, undoString, 4) -- flag=4 limits undo to item info, and is much faster than including everything with flag=-1
-end -- function exit
+end -- function onexit
 
 
 
@@ -727,7 +736,7 @@ function parseAndExtractTargetMIDI()
             
             runningPPQpos = runningPPQpos + offset
           
-            --[[ Check flag as simple test if parsing is still going OK
+            -- Check flag as simple test if parsing is still going OK
             if flags&252 ~= 0 then -- 252 = binary 11111100.
                 reaper.ShowMessageBox("The MIDI data uses an unknown format that could not be parsed."
                                       .. "\n\nPlease report the problem in the thread http://forum.cockos.com/showthread.php?t=176878:"
@@ -735,7 +744,7 @@ function parseAndExtractTargetMIDI()
                                       , "ERROR", 0)
                 return false
             end
-            
+            --[[
             -- Check for unsorted MIDI
             if offset < 0 and not (#tableRemainingEvents == 0 and #tablePPQs == 0) then   
                 -- Try to sort MIDI by running one of the MIDI editor's native editing actions.
@@ -998,10 +1007,7 @@ function parseAndExtractTargetMIDI()
             r = r + 1
             tableRemainingEvents[r] = MIDIstring:sub(unchangedPos) 
         end
-    
-        numMsg = #tablePPQs
-        numRemain = #tableRemainingEvents
-        
+            
         ----------------------------------------------------------------------------
         -- The entire MIDI string has been parsed.  Now check that everything is OK. 
         local lastEvent = tableRemainingEvents[#tableRemainingEvents]:sub(-12)
@@ -1016,7 +1022,8 @@ function parseAndExtractTargetMIDI()
         
         if #tablePPQs == 0 then -- Nothing to extract, so don't need to concatenate tableRemainingEvents
             remainOffset = s_unpack("i4", MIDIstring, 1)
-            remainMIDIstring = MIDIstring:sub(5)
+            remainMIDIstring = MIDIstring
+            remainMIDIstringSub5 = MIDIstring:sub(5)
             return true 
         end         
 
@@ -1061,7 +1068,7 @@ function parseAndExtractTargetMIDI()
         end
         
         -- Calculate original event value ranges and extremes
-        if laneIsTEXT or laneIsSYSEX then
+        if laneIsTEXT or laneIsSYSEX or laneIsBANKPROG then
             origValueRange = -1
         else
             origValueMin = math.huge
@@ -1082,7 +1089,8 @@ function parseAndExtractTargetMIDI()
         --    since this offset will be updated relative to the edited events' positions during each cycle.
         -- (The edited events will be inserted in the string before all the remaining events.)
         AllNotesOffPPQpos = runningPPQpos
-        remainMIDIstring = table.concat(tableRemainingEvents):sub(5) 
+        remainMIDIstring = table.concat(tableRemainingEvents)
+        remainMIDIstringSub5 = remainMIDIstring:sub(5)
         remainOffset = s_unpack("i4", tableRemainingEvents[1])
         return true
         
@@ -1152,7 +1160,7 @@ end
 -- function main()
 
 -- Start with a trick to avoid automatically creating undo states if nothing actually happened
--- Undo_OnStateChange will only be used if reaper.atexit(exit) has been executed
+-- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
 function avoidUndo()
 end
 reaper.defer(avoidUndo)
@@ -1193,6 +1201,9 @@ elseif not(segment == "notes" or details == "cc_lane") then
                           .. "This script edits the MIDI events in the part of the MIDI editor that is under the mouse, "
                           .. "so the mouse should be positioned over either a CC lane or the notes area of an active MIDI editor.", "ERROR", 0)
     return(false) 
+else
+    -- Communicate with the js_Run.. script that a script is running
+    reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
 end
 
 -----------------------------------------------------------------------------------------
@@ -1293,20 +1304,6 @@ else -- not a lane type in which script can be used.
     return(0)
 end
 
-
----------------------------------------------------------------------------
--- OK, tests passed, and it seems like this script will do something, 
---    so toggle button (if any) and define atexit with its Undo statements,
---    before making any changes to the MIDI.
-reaper.atexit(exit)
-
-_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
-    reaper.SetToggleCommandState(sectionID, cmdID, 1)
-    reaper.RefreshToolbar2(sectionID, cmdID)
-end
-
 -------------------------------------------------------------------------------
 -- MIDI_Sort is buggy when dealing with overlapping notes, 
 --    causing infinitely extended notes or zero-length notes.
@@ -1315,8 +1312,8 @@ end
 -- However, native actions that are called with OnCommand create their own undo points, 
 --    unless they are within explicit undo blocks bookended by Undo_BeginBlock and Undo_EndBlock.
 -- And there is yet another problem: exiting via an atexit-defined function such as this script's
---    "exit" function interrupts all undo blocks.  Therefore native actions should rather
---    note be called before entering the exit function.
+--    "onexit" function interrupts all undo blocks.  Therefore native actions should rather
+--    note be called before entering the onexit function.
 -- This script will therefore NOT sort the MIDI, and will instead check for negative offsets
 --    while parsing.  (This is in any case faster than unneccesary sorting.)
 --reaper.MIDIEditor_OnCommand(editor, 40659) -- Correct overlapping notes
@@ -1369,9 +1366,22 @@ if not parseAndExtractTargetMIDI() then
     return(false)
 end
 
-if #tablePPQs == 0 or (#tablePPQs == 1 and not laneIsNOTES) then -- Single notes can be stretched, but not single CCs
+if #tablePPQs < 2 or (#tablePPQs < 3 and not laneIsNOTES) then -- Two notes can be warped, but not two CCs
     reaper.ShowMessageBox("Could not find a sufficient number of selected events in the target lane.", "ERROR", 0)
     return(false)
+end
+
+---------------------------------------------------------------------------
+-- OK, tests passed, and it seems like this script will do something, 
+--    so toggle button (if any) and define atexit with its Undo statements,
+--    before making any changes to the MIDI.
+reaper.atexit(onexit)
+
+_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
+    reaper.SetToggleCommandState(sectionID, cmdID, 1)
+    reaper.RefreshToolbar2(sectionID, cmdID)
 end
 
 ----------------------------------------------------------------------
