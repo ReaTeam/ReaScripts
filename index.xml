@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eebdcf7c0f56d18aabd229ae0850f613ceff7456" name="ReaTeam Scripts">
+<index version="1" commit="4bcd10559ca899076a663314b28443797909433f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1184,9 +1184,29 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       </version>
     </reapack>
     <reapack name="js_Option - Selecting single note or CC in active take sets channel for new events.lua" type="script" desc="js_Option - Selecting single note or CC in active take sets channel for new events.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserting events in the wrong channel is an all-too-easy mistake to make, particularly after switching the active track. With this new option, the user can switch to the correct channel by simply clicking a note or CC of the new track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is intended to be similar to the built-in action "Option: Drawing or selecting a note sets the new note length" (but for channel instead of note length).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: This script causes the following artefacts: ~ If an event in a {\i new} channel is selected by left-clicking on the event, the event can not be edited immediately; instead, the mouse button must be released first. (This can be a useful indicator that the active channel has been changed.) ~ While this script is running, it may interact with the manual settings of the MIDI editor's channel filter dropdown menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script can be linked to a toolbar button for easy starting and stopping. While activated, the toolbar button will light up. (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)Screenshot:\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=178256</link>
+      </metadata>
       <version name="1.0" author="juliansader" time="2016-07-17T14:49:58Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ea6cb0acbef9d70cd60b855b54703c13eaf94e55/MIDI%20Editor/js_Option%20-%20Selecting%20single%20note%20or%20CC%20in%20active%20take%20sets%20channel%20for%20new%20events.lua</source>
+      </version>
+      <version name="2.00" author="juliansader" time="2016-12-20T01:23:26Z">
+        <changelog><![CDATA[+ Improved speed and responsiveness.
++ Requires REAPER v5.30.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4bcd10559ca899076a663314b28443797909433f/MIDI%20Editor/js_Option%20-%20Selecting%20single%20note%20or%20CC%20in%20active%20take%20sets%20channel%20for%20new%20events.lua</source>
       </version>
     </reapack>
     <reapack name="js_Option - Switching active take sets channel for new events to channel of existing events.lua" type="script" desc="js_Option - Switching active take sets channel for new events to channel of existing events.lua">
