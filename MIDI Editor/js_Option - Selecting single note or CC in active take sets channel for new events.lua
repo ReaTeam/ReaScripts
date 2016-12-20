@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Option - Selecting single note or CC in active take sets channel for new events.lua
-Version: 2.00
+Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=178256
 About:
@@ -29,18 +29,17 @@ About:
  
 --[[
  Changelog:
- * v1.0 (2016-07-15)
+  * v1.0 (2016-07-15)
     + Initial release
- * v2.00 (2016-12-19)
+  * v2.00 (2016-12-19)
     + Improved speed and responsiveness.
     + Requires REAPER v5.30.
+  * v2.10 (2016-12-20)
+    + Even better speed and responsiveness.
 ]]
 
-local prevChannel = 0
-
-local matchCCorNote = string.char(91,1,3,93,91,2,3,93,0,0,0,91,0x90,45,0xDF,93) -- [13][23]000[0x90-0xDF]
-local matchNoteOn   = string.char(91,1,3,93,     3,   0,0,0,91,0x90,45,0x9F,93) -- [13]3000[0x90-0x9F]
-local matchCC       = string.char(91,1,3,93,91,2,3,93,0,0,0,91,0xB0,45,0x9F,93) -- [13][23]000[0xB0-0x9F]
+local prevTake, prevHash
+local matchNoteOn = string.char(91,1,3,93,3,0,0,0,91,0x90,45,0x9F,93,46,91,94,0,93) -- [13]3000[0x90-0x9F].[^0]
 
 ---------------
 function exit()
@@ -52,7 +51,13 @@ function exit()
     end
 end -- function exit
 
-----------------------------
+------------------------------------------------------------------------------------------------
+-- This function will use a combination of REAPER's standard API (MIDI_EnumSelCC and MIDI_GetCC)
+--    and the new API of v5.30 (MIDI_GetAllEvts).
+-- For getting the info of only a few events, EnumSelCC and GetCC is very fast, whereas 
+--    EnumSelNotes and GetNote is very slow.  GetAllEvts is in-between.
+-- To optimize speed, the CC functions will therefore be used first of all, and only if no CCs or more than one CC
+--    is found, will GetAllEvts be used.
 function loopGetSetChannel()
 
     local editor = reaper.MIDIEditor_GetActive()
@@ -61,53 +66,48 @@ function loopGetSetChannel()
         local take = reaper.MIDIEditor_GetTake(editor)
         if reaper.ValidatePtr(take, "MediaItem_Take*") then
         
-            local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
-            if gotAllOK then
+            local hashOK, hash = reaper.MIDI_GetHash(take, false, "")
+            if take ~= prevTake or hash ~= prevHash then
             
-                local newChannel = nil
-                -- Note: Why use MIDIstring:byte instead of returning the short sub-string as the third value of string.find?
-                --    Because string.find's sub-string extraction is surprisingly slow.
-                local pos1 = MIDIstring:find(matchCCorNote, 1)
-                if not pos1 then -- Found no selected (and non-muted) notes or CCs
-                    -- nothing   
-                    
-                -- Notes take precedence, so if note, ignore CCs and only check whether there is more than one note selected
-                -- Why do notes take precedence?  Because if "CC selection follows note selection" is switched on,
-                --    selecting a single note may automatically select many CCs.
-                elseif MIDIstring:byte(pos1+5)&0xF0 == 0x90 then -- Note-On?
-                    local pos2 = MIDIstring:find(matchNoteOn, pos1+1)
-                    if not pos2 then -- found only one selected note, so use channel
-                        newChannel = MIDIstring:byte(pos1+5)&0x0F
-                    end
-                    
-                -- Got CC, but still check whether any notes are selected
+                prevTake = take
+                prevHash = hash
+                local newChannel, CC1, CC2, _
+                
+                -- If no CCs are selected, then CC1 == -1 and CC2 == nil.  
+                -- If more than one CCs are selected, CC1 > -1 and CC2 > -1.
+                -- If precisely one CC is selected, CC1 > -1 and CC2 == -1. 
+                CC1 = reaper.MIDI_EnumSelCC(take, -1)
+                if CC1 ~= -1 then
+                    CC2 = reaper.MIDI_EnumSelCC(take, CC1)
+                end
+                
+                if CC2 == -1 then
+                    _, _, _, _, _, newChannel, _, _ = reaper.MIDI_GetCC(take, CC1)
                 else
-                    -- Check whether there are any selected notes
-                    local pos2 = MIDIstring:find(matchNoteOn, pos1+1)
-                    if pos2 then -- Got one selected note, check whether more than one
-                        local pos3 = MIDIstring:find(matchNoteOn, pos2+1)
-                        if not pos3 then -- Couldn't find more than one note
-                            newChannel = MIDIstring:byte(pos2+5)&0x0F
-                        end
-                    -- No selected notes, so check whether only one selected CC
-                    else
-                        pos2 = MIDIstring:find(matchCC, pos1+1)
-                        if not pos2 then -- Only one selected CC, so use channel
-                            newChannel = MIDIstring:byte(pos1+5)&0x0F
+                    -- Search for notes using new MIDI_GetAllEVts function.
+                    local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+                    if gotAllOK then 
+                        local posNote1 = MIDIstring:find(matchNoteOn, 1)
+                        if posNote1 then
+                            local posNote2 = MIDIstring:find(matchNoteOn, posNote1+1)
+                            if not posNote2 then
+                                newChannel = MIDIstring:byte(posNote1+5)&0x0F
+                            end
                         end
                     end
                 end
-                
+                        
                 if newChannel then
                     local defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
                     if newChannel ~= defaultChannel then
                         reaper.MIDIEditor_OnCommand(editor, 40482+newChannel)
                     end
                 end
-          
-            end -- if gotAllOK
+                
+            end -- if take ~= pevTake or hash ~= prevHash
         end -- if reaper.ValidatePtr(take, "MediaItem_Take*")
-    end
+    end -- if editor ~= nil
+
     reaper.runloop(loopGetSetChannel)
 end -- function loop GetSetChannel
 
