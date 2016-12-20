@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4bcd10559ca899076a663314b28443797909433f" name="ReaTeam Scripts">
+<index version="1" commit="b349630dffe77d1dfb0aefd0abb1425697c6fef6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1842,11 +1842,15 @@ Made by Mordi, Jan 2016]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=184623</link>
-        <link rel="screenshot" href="http://i.imgur.com/ryIg1j9.gif">Basic Usage</link>
+        <link rel="screenshot" href="https://i.imgur.com/jVgwbi3.gif">Basic Usage</link>
         <link rel="screenshot" href="https://i.imgur.com/dtNwlsn.png">Undo Points</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2016-12-06T05:01:57Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/07d98e5487876c4159e5614941618c64ae2400e4/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2016-12-20T07:34:24Z">
+        <changelog><![CDATA[Add track filter feature (by name or selection)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b349630dffe77d1dfb0aefd0abb1425697c6fef6/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
