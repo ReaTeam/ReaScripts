@@ -1,6 +1,7 @@
+-- @description Move first character of active takes name to end (on selected items)
 -- @version 1.0
 -- @author Mordi
--- @changelog
+-- @about
 --  This script will take the first character in the name of
 --  the active take of the selected items and move it to the end
 --  of the name.

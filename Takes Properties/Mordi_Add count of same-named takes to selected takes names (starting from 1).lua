@@ -1,6 +1,7 @@
+-- @description Add count of same-named takes to selected takes names (starting from 1)
 -- @version 1.0
 -- @author Mordi
--- @changelog
+-- @about
 --  This script works the same way as the $namecount rendering wildcard.
 --  It takes all selected takes and counts the ones that are named the same,
 --  adding the increasing count to the take name.
