@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a98bbece9ada92cb9c03a5c49301a0ccb37c8ece" name="ReaTeam Scripts">
+<index version="1" commit="9905277302b7d6ebc7661ef8348d41a7d4c0d695" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1748,26 +1748,50 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%205%20bypass%20for%20selected%20items.lua</source>
       </version>
     </reapack>
-    <reapack name="Mordi_Add count of same-named takes to selected takes names (starting from 1).lua" type="script">
+    <reapack name="Mordi_Add count of same-named takes to selected takes names (starting from 1).lua" type="script" desc="Add count of same-named takes to selected takes names (starting from 1)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script works the same way as the $namecount rendering wildcard. It takes all selected takes and counts the ones that are named the same, adding the increasing count to the take name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It will be formatted like this: "takename_1"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made by Mordi, Dec 2016\par}
+}
+]]></description>
+      </metadata>
       <version name="1.0" author="Mordi" time="2016-12-23T21:46:36Z">
-        <changelog><![CDATA[This script works the same way as the $namecount rendering wildcard.
-It takes all selected takes and counts the ones that are named the same,
-adding the increasing count to the take name.
-
-It will be formatted like this: "takename_1"
-
-Made by Mordi, Dec 2016]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e61d1218a3dfb74ef3bf40e5b19c5a5ed75a7590/Takes%20Properties/Mordi_Add%20count%20of%20same-named%20takes%20to%20selected%20takes%20names%20(starting%20from%201).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9905277302b7d6ebc7661ef8348d41a7d4c0d695/Takes%20Properties/Mordi_Add%20count%20of%20same-named%20takes%20to%20selected%20takes%20names%20(starting%20from%201).lua</source>
       </version>
     </reapack>
-    <reapack name="Mordi_Move first character of active takes name to end (on selected items).lua" type="script">
-      <version name="1.0" author="Mordi" time="2016-12-23T18:26:44Z">
-        <changelog><![CDATA[This script will take the first character in the name of
-the active take of the selected items and move it to the end
-of the name.
+    <reapack name="Mordi_Move first character of active takes name to end (on selected items).lua" type="script" desc="Move first character of active takes name to end (on selected items)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
 
-Made by Mordi, Dec 2016]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f253b37696cac3124bc632990b8b3cd006f5f567/Takes%20Properties/Mordi_Move%20first%20character%20of%20active%20takes%20name%20to%20end%20(on%20selected%20items).lua</source>
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will take the first character in the name of the active take of the selected items and move it to the end of the name.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made by Mordi, Dec 2016\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2016-12-23T18:26:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9905277302b7d6ebc7661ef8348d41a7d4c0d695/Takes%20Properties/Mordi_Move%20first%20character%20of%20active%20takes%20name%20to%20end%20(on%20selected%20items).lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Set selected items active takes name to track name.lua" type="script" desc="Set selected items active takes name to track name">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will take the selected items' active take and rename it to whatever the track it is on is called.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made by Mordi, Dec 2016\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2016-12-24T10:36:07Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9905277302b7d6ebc7661ef8348d41a7d4c0d695/Takes%20Properties/Mordi_Set%20selected%20items%20active%20takes%20name%20to%20track%20name.lua</source>
       </version>
     </reapack>
     <reapack name="Nagasaki45_Randomize active takes pan in selected items.lua" type="script" desc="Randomize active takes pan in selected items">
