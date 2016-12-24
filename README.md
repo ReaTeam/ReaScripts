@@ -12,6 +12,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 - [HeDa](http://forum.cockos.com/member.php?u=47822) ([donate](https://www.patreon.com/heda?ty=h))
 - [JamesHEure](http://forum.cockos.com/member.php?u=3734)
 - [juliansader](http://forum.cockos.com/member.php?u=14710)
+- [Lokasenna]([forum](http://forum.cockos.com/member.php?u=10417), [donate](https://paypal.me/Lokasenna))
 - [mordi](http://forum.cockos.com/member.php?u=91120)
 - [mpl](http://forum.cockos.com/member.php?u=70694) ([donate](https://www.paypal.me/donate2mpl))
 - [Nagasaki45](https://github.com/Nagasaki45) ([website](http://www.tomgurion.me/))
