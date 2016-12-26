@@ -15,7 +15,7 @@
 	  track settings are required in order to preview notes:
 		a) Record-armed.
 		b) Monitoring.
-		c) Receiving input from channel 0 of the Virtual MIDI Keyboard.
+		c) Receiving input from the Virtual MIDI Keyboard (any channel).
 		
   * Screenshot: 
   * Notes: 
@@ -25,13 +25,18 @@
   * Licence: GPL v3
   * Forum Thread: 
   * Forum Thread URL: http://forum.cockos.com/showthread.php?t=185358
-  * Version: 4.0
+  * Version: 5.0
   * REAPER: 5.0
   * Extensions: None
 ]]
  
 --[[
  * Changelog:
+ * v5.0 (2016-12-26)
+	+ Added "all notes off" button
+	+ Chord tooltips now display extended intervals as '^2' rather than '13',
+	  just to make things more readable
+	+ Fixed a few minor bugs, fiddled with the GUI a bit
  * v4.0 (2016-12-26)
  	+ Initial ReaPack release
 --]]
@@ -2081,8 +2086,8 @@ function GUI.Button:draw()
 	GUI.font(4)	
 	
 	local str_w, str_h = gfx.measurestr(self.caption)
-	gfx.x = x + 2 * state + ((w - str_w) / 2) - 2
-	gfx.y = y + 2 * state + ((h - str_h) / 2) - 2
+	gfx.x = x + 2 * state + ((w - str_w) / 2)-- - 2
+	gfx.y = y + 2 * state + ((h - str_h) / 2)-- - 2
 	gfx.drawstr(self.caption)
 	
 end
@@ -2722,12 +2727,12 @@ GUI.x, GUI.y, GUI.w, GUI.h = -48, 0, 800, 600
 GUI.anchor, GUI.corner = "mouse", "T"
 
 GUI.fonts[1] = {"Calibri", 32}
-GUI.fonts[2] = {"Calibri", 26}
-GUI.fonts[3] = {"Calibri", 18}
-GUI.fonts[4] = {"Calibri", 18}
+GUI.fonts[2] = {"Calibri", 20}
+GUI.fonts[3] = {"Calibri", 16}
+GUI.fonts[4] = {"Calibri", 16}
 
 -- For track monitoring warning
-GUI.fonts[5] = {"Calibri", 18, "bi"}
+GUI.fonts[5] = {"Calibri", 16, "bi"}
 
 -- For the reascale label
 GUI.fonts[6] = {"Calibri", 18, "b"}
@@ -2983,6 +2988,13 @@ local function play_scale(dir)
 end
 
 
+-- Clear all current and pending notes
+local function notes_off()
+	notes_pending = {}
+	reaper.Main_OnCommand(40345, 0)
+end
+
+
 --[[	Classes and parameters
 	(see comments in LS GUI.lua for more thorough documentation)
 	
@@ -3014,9 +3026,9 @@ GUI.elms_bottom = {
 }
 GUI.elms = {
 	div = GUI.Frame:new(				line_x, 0, 4, 2000, true, true),		
-	lbl_key = GUI.Label:new(			line_x + 24, 8, "C", 0, 1),
-	lbl_scale = GUI.Label:new(			line_x + 48, 8, "blah", 0, 1),
-	lbl_reascale = GUI.Label:new(		8, 16, "( no .reascale loaded )", 0, 6),
+	lbl_key = GUI.Label:new(			line_x + 24, 6, "C", 0, 1),
+	lbl_scale = GUI.Label:new(			line_x + 48, 6, "blah", 0, 1),
+	lbl_reascale = GUI.Label:new(		8, 12, "( no .reascale loaded )", 0, 6),
 	lbl_clickplay = GUI.Label:new(		line_x + 200, 500, clickplay_str, 0, 4),
 	mnu_key = GUI.Menubox:new(			0, -24, 0, 0, "", "C,C#/Db,D,D#/Eb,E,F,F#/Gb,G,G#/Ab,A,A#/Bb,B", 0),
 	mnu_scale = GUI.Menubox:new(		0, -24, 0, 0, "", "-no scale-", 0),
@@ -3029,6 +3041,7 @@ GUI.elms = {
 	lbl_play_scale = GUI.Label:new(		44, 200, "Play current scale:", 1, 3),
 	btn_play_up = GUI.Button:new(		102, 226, 84, 20, "Ascending", play_scale, 1),
 	btn_play_dn = GUI.Button:new(		10, 226, 84, 20, "Descending", play_scale, -1),
+	btn_notes_off = GUI.Button:new(		54, 252, 88, 20, "All notes off", notes_off),
 
 }
 GUI.elms_top = {}
@@ -3183,13 +3196,13 @@ local function update_buttons()
 		local x_offset = (w + btn_space_h) * (i - 1)
 	
 		-- Create a label for the column
-		GUI.font(3)
+		GUI.font(2)
 
 		local lbl_caption = root_arr[(scale_arr[i] + key) % 12]
 		local lbl_w, lbl_h = gfx.measurestr(lbl_caption)
 		local lbl_x = x + x_offset + ((w - lbl_w) / 2)				
 		
-		GUI.elms["lbl_chords_"..i] = GUI.Label:new(lbl_x, y - lbl_h - 2, lbl_caption, 1, 3)
+		GUI.elms["lbl_chords_"..i] = GUI.Label:new(lbl_x, y - lbl_h - 4, lbl_caption, 1, 2)
 		
 		local row = 1
 		local num_chords = 0
@@ -3230,12 +3243,13 @@ local function update_buttons()
 		end
 		
 		most_chords = math.max(num_chords,most_chords)
-		
-		if most_chords == 0 then
-			GUI.elms.lbl_no_chords = GUI.Label:new(line_x + 48, 150, " -- no legal chords -- ", 0, 3)
-		end
-		
+
 	end
+
+	if most_chords == 0 then
+		GUI.elms.lbl_no_chords = GUI.Label:new(line_x + 48, 150, " -- no legal chords -- ", 0, 3)
+	end	
+	
 end
 
 
@@ -3341,6 +3355,20 @@ local function Main()
 		end
 	end
 	
+--[[
+	-- See if the user pressed a shortcut key
+	local char = GUI.char
+	if char ~= 0 then
+		
+		-- X --> All notes off
+		if char == string.byte("x") then 
+			
+			notes_pending = {}
+			reaper.Main_OnCommand(40345, 0)
+		end
+		
+	end
+]]--
 
 	-- Button array tooltips
 	if tooltip_btn then
@@ -3359,7 +3387,7 @@ local function Main()
 			GUI.font(4)
 			local str_w, __ = gfx.measurestr(tooltip_btn.tooltip)
 			local new_x = (GUI.cur_w - str_w - line_x) / 2 + line_x
-			GUI.elms.tooltip = GUI.Label:new(new_x, 48, tooltip_btn.tooltip, 0, 4)
+			GUI.elms.tooltip = GUI.Label:new(new_x, 50, tooltip_btn.tooltip, 0, 4)
 
 			
 		else
@@ -3530,7 +3558,10 @@ local function Main()
 	if GUI.resized then
 		
 		local min_w = (btn_template[3] + btn_space_h) * 7 + 22 + line_x
-		local min_h = btn_template[2] + (most_chords * (btn_template[4] + btn_space_v)) + 160
+		local min_h_a = btn_template[2] + (most_chords * (btn_template[4] + btn_space_v)) + 140
+		local min_h_b = GUI.elms.btn_notes_off.y + GUI.elms.btn_notes_off.h + 8
+		
+		local min_h = math.max(min_h_a, min_h_b)
 		
 		if GUI.cur_w < min_w or GUI.cur_h < min_h then
 			local new_w = math.max(GUI.cur_w, min_w)
