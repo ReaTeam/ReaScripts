@@ -63,6 +63,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
 - [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
+- [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
@@ -81,7 +82,6 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [lossius/js-plugins](https://github.com/lossius/js-plugins)
 - [me2beats/rea-me2](https://github.com/me2beats/rea-me2)
 - [MichaelKlier/KolorEyesOSCSync](https://github.com/MichaelKlier/KolorEyesOSCSync)
-- [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
 - [thenfour/ReaperScripts](https://github.com/thenfour/ReaperScripts)
 
 If you want your repo to appear on this list, simply edit this file and send a pull request.
