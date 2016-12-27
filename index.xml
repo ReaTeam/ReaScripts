@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9905277302b7d6ebc7661ef8348d41a7d4c0d695" name="ReaTeam Scripts">
+<index version="1" commit="e04d7b02ce2ef92a54954ca46ba63fe52bc187f0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -286,11 +286,6 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="Mordi &amp; spk77" time="2016-06-26T17:32:59Z">
         <changelog><![CDATA[+ Changed script to only work on selected items.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c2dbb59ba8a7a4bfaf0499a944b9bf1e3bdc40e3/Items%20Editing/Mordi_spk77_Sort%20items%20by%20length.lua</source>
-      </version>
-    </reapack>
-    <reapack name="nofish_Delete muted items from item selection.lua" type="script" desc="Delete muted items from item selection">
-      <version name="1.0" time="2015-12-02T21:24:29Z" author="nofish">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/nofish_Delete%20muted%20items%20from%20item%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy items and store positions.eel" type="script" desc="Copy items and store positions">
@@ -1940,18 +1935,6 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2dac1e58556e9e562b26de1551dcaf4ebd4a550/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
       </version>
     </reapack>
-    <reapack name="nofish_Dynamic mixer (for use with toolbar button).lua" type="script" desc="Dynamic mixer (for use with toolbar button)">
-      <version name="1.02" time="2015-12-02T21:24:29Z">
-        <changelog><![CDATA[September 30 2015
-nofish:
-+ script can be assigned to a toolbar button (lights when active), press again to exit
-+ MCP track view is restored on exit (thanks spk77)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/nofish_Dynamic%20mixer%20(for%20use%20with%20toolbar%20button).lua</source>
-      </version>
-      <version name="1.0" author="nofish" time="2015-12-03T07:38:56Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/nofish_Dynamic%20mixer%20(for%20use%20with%20toolbar%20button).lua</source>
-      </version>
-    </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
       <version name="0.2015.4.25" time="2015-12-02T21:24:29Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Tracks%20Properties/spk77_Adjust%20all%20receive%20volumes%20on%20selected%20track%20by%20x%20dB.eel</source>
@@ -2259,26 +2242,6 @@ store every return values in _ global variable]]></changelog>
     <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
       <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
-      </version>
-    </reapack>
-    <reapack name="nofish_Realtime clock.lua" type="script" desc="nofish_Realtime clock">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 displays a small clock window see http://forum.cockos.com/showthread.php?t=165884\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="nofish" time="2016-09-12T00:43:46Z">
-        <changelog><![CDATA[+ Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/910260e7dfe71834a28a7dc5fe7ece4395adf430/Various/nofish_Realtime%20clock.lua</source>
-      </version>
-    </reapack>
-    <reapack name="nofish_Show tracknames in console.lua" type="script" desc="Show tracknames in console">
-      <version name="1.0" time="2015-12-02T21:24:29Z" author="nofish">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/nofish_Show%20tracknames%20in%20console.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
