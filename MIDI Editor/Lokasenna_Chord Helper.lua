@@ -1,45 +1,36 @@
 --[[
-  * ReaScript Name: Chord Helper
-  * Description: Provides a selection of chords that can be built from a given scale
-  * Instructions: 
-  
-	- Select a .reascale at the top-left.
-	- Select a key scale at the top-center.
-	- A list of "legal" chords for the current scale is generated.
-	- Chords can be played directly, or inserted into the MIDI editor using
-	  the editor's note settings.
-	- Other options include different chord sets, playing chords as arpeggios
-	  (can't insert notes as arpeggios yet), and playing the current scale.
-	  
-	- IMPORTANT: Due to limitations with Reaper's scripting API, the following
-	  track settings are required in order to preview notes:
-		a) Record-armed.
-		b) Monitoring.
-		c) Receiving input from the Virtual MIDI Keyboard (any channel).
-		
-  * Screenshot: 
-  * Notes: 
-  * Category: MIDI Editor
-  * Author: Lokasenna
-  * Author URI:  http://forum.cockos.com/member.php?u=10417
-  * Licence: GPL v3
-  * Forum Thread: 
-  * Forum Thread URL: http://forum.cockos.com/showthread.php?t=185358
-  * Version: 5.0
-  * REAPER: 5.0
-  * Extensions: None
-]]
- 
---[[
- * Changelog:
- * v5.0 (2016-12-26)
-	+ Added "all notes off" button
-	+ Chord tooltips now display extended intervals as '^2' rather than '13',
-	  just to make things more readable
-	+ Fixed a few minor bugs, fiddled with the GUI a bit
- * v4.0 (2016-12-26)
- 	+ Initial ReaPack release
+Description: Chord Helper
+Version: 5.0
+Author: Lokasenna
+Changelog:
+  Added "all notes off" button
+  Chord tooltips now display extended intervals as '^2' rather than '13',
+    just to make things more readable
+  Fixed a few minor bugs, fiddled with the GUI a bit
+Links:
+  Forum Thread http://forum.cockos.com/showthread.php?t=185358
+  Lokasenna's Website http://forum.cockos.com/member.php?u=10417
+About: 
+  # Chord Helper
+
+  Provides a selection of chords than can be built from a given scale.
+
+  - Select a .reascale at the top-left.
+  - Select a key scale at the top-center.
+  - A list of "legal" chords for the current scale is generated.
+  - Chords can be played directly, or inserted into the MIDI editor using
+    the editor's note settings.
+  - Other options include different chord sets, playing chords as arpeggios
+    (can't insert notes as arpeggios yet), and playing the current scale.
+   
+  - IMPORTANT: Due to limitations with Reaper's scripting API, the following
+    track settings are required in order to preview notes:
+    1. Record-armed.
+    2. Monitoring.
+    3. Receiving input from the Virtual MIDI Keyboard (any channel).
 --]]
+
+-- Licensed under the GNU GPL v3
 	
 
 ---- Libraries added with Lokasenna's Script Compiler ----
