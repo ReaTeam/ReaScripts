@@ -1,36 +1,49 @@
 --[[
 Description: Chord Helper
-Version: 5.0
+Version: 6.0
 Author: Lokasenna
+Donation: https://paypal.me/Lokasenna
 Changelog:
-  Added "all notes off" button
-  Chord tooltips now display extended intervals as '^2' rather than '13',
-    just to make things more readable
-  Fixed a few minor bugs, fiddled with the GUI a bit
+	Can now cycle through modes of the current scale
+	Revised chord sets
 Links:
-  Forum Thread http://forum.cockos.com/showthread.php?t=185358
-  Lokasenna's Website http://forum.cockos.com/member.php?u=10417
+	Forum Thread http://forum.cockos.com/showthread.php?t=185358
+	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
-  # Chord Helper
+	# Chord Helper
 
-  Provides a selection of chords than can be built from a given scale.
+	Provides a selection of chords than can be built from a given scale.
 
-  - Select a .reascale at the top-left.
-  - Select a key scale at the top-center.
-  - A list of "legal" chords for the current scale is generated.
-  - Chords can be played directly, or inserted into the MIDI editor using
-    the editor's note settings.
-  - Other options include different chord sets, playing chords as arpeggios
-    (can't insert notes as arpeggios yet), and playing the current scale.
+	- Select a .reascale at the top-left.
+	- Select a key scale at the top-center.
+	- A list of "legal" chords for the current scale is generated.
+	- Chords can be played directly, or inserted into the MIDI editor using
+	the editor's note settings.
+	- Other options include different chord sets, playing chords as arpeggios
+	(can't insert notes as arpeggios yet), and playing the current scale.
    
-  - IMPORTANT: Due to limitations with Reaper's scripting API, the following
-    track settings are required in order to preview notes:
-    1. Record-armed.
-    2. Monitoring.
-    3. Receiving input from the Virtual MIDI Keyboard (any channel).
+	- IMPORTANT: Due to limitations with Reaper's scripting API, the following
+	track settings are required in order to preview notes:
+	1. Record-armed.
+	2. Monitoring.
+	3. Receiving input from the Virtual MIDI Keyboard (any channel).
 --]]
 
 -- Licensed under the GNU GPL v3
+ 
+--[[
+Change history:
+6.0 (2016-12-28)
+	Can now cycle through modes of the current scale
+	Revised chord sets
+5.0 (2016-12-26)
+	Added "all notes off" button
+	Chord tooltips now display extended intervals as '^2' rather than '13',
+	just to make things more readable
+	Fixed a few minor bugs, fiddled with the GUI a bit
+4.0 (2016-12-26)
+	Initial ReaPack release
+--]]
 	
 
 ---- Libraries added with Lokasenna's Script Compiler ----
@@ -2734,10 +2747,10 @@ local root_arr = {[0] = "C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A",
 local notes_str = "5,4,3,2"
 local oct_str = "9,8,7,6,5,4,3,2,1,0"
 local inv_str = "2,1,0"
-local chords_str = "Diads,Basic Triads,More"
-local chords_arr = {
+local chords_str = "Intervals,Basic,More"
+local chords_arr = { 
 	{
-		-- Diads
+		-- Intervals
 		A_min2 =	{0, 1},
 		B_maj2 =	{0, 2},
 		C_min3 =	{0, 3},
@@ -2752,10 +2765,15 @@ local chords_arr = {
 		L_oct =		{0, 12},
 	},
 	{
-		-- Basic Triads
+		-- Basic
 		A_maj =		{0, 4, 7},
-		B_min =		{0, 3, 7},
-		C_dim =		{0, 3, 6},
+		B_maj7 =	{0, 4, 7, 11},
+		C_min =		{0, 3, 7},
+		D_min7 =	{0, 3, 7, 10},
+		E__7 =		{0, 4, 7, 10},
+		F_dim =		{0, 3, 6},
+		G_m7b5 =	{0, 3, 6, 10},
+		
 	},
 	{
 		-- More
@@ -2766,11 +2784,12 @@ local chords_arr = {
 		E__7 =		{0, 4, 7, 10},		
 		F_dim =		{0, 3, 6},
 		G_dim7 =	{0, 3, 6, 9},		
-		H_aug = 	{0, 4, 8},		
-		I_sus2 =	{0, 2, 7},
-		J_sus4 =	{0, 5, 7},		
-		K_sus9 =	{0, 7, 14},
-		L_add9 = 	{0, 4, 7, 14},
+		H_m7b5 = 	{0, 3, 6, 10},		
+		I_aug = 	{0, 4, 8},		
+		J_sus2 =	{0, 2, 7},
+		K_sus4 =	{0, 5, 7},		
+		L_sus9 =	{0, 7, 14},
+		M_add9 = 	{0, 4, 7, 14},
 	},
 }
 		
@@ -2845,6 +2864,33 @@ local reascale_arr = {{["pre"] = 0, ["name"] = "-no scale-", ["scale"] = 0}}
 local mnu_scale_arr = {[0] = 0, 0, 0}
 
 
+local function convert_reascale(scale)
+	
+	-- Size = number of non-zero values in the scale
+	local __, size = string.gsub(scale, "[^0]", "")
+		
+	local scale_arr = {[0] = 0}
+	for i = 1, size do
+
+		scale_arr[i] = string.find(scale, "[^0]", scale_arr[i-1] + 1)
+		
+		-- Span three octaves so we can still use extended chords on the 7th degree
+		scale_arr[i + size] = scale_arr[i] + 12
+		scale_arr[i + (2 * size)] = scale_arr[i] + 24
+		
+	end
+	
+	-- Adjust the values so that root = 0
+	for i = 1, #scale_arr do
+		scale_arr[i] = scale_arr[i] - 1
+	end
+	
+	return scale_arr, size
+	
+end
+
+
+
 -- Browse for a new .reascale, parse it, and save it
 local function get_reascale(startup)
 
@@ -2873,7 +2919,7 @@ local function get_reascale(startup)
 				
 		for line in file:lines() do
 		
-			local line_pre, line_name, line_scale = ""
+			local line_pre, line_name, line_scale, line_size
 			
 			-- We don't care about commented lines
 			if line:sub(1, 1) ~= "#" then
@@ -2881,9 +2927,10 @@ local function get_reascale(startup)
 				line_pre = line:match("^(-?%d+)") or ""
 				line_name = line:match("\"(.+)\"") or ""
 				line_scale = line:match("%d*$") or ""
+				line_scale, line_size = convert_reascale(line_scale)
 			
 				if line_pre ~= "" then
-					reascale_arr[i] = {["pre"] = tonumber(line_pre), ["name"] = line_name, ["scale"] = line_scale}
+					reascale_arr[i] = {["pre"] = tonumber(line_pre), ["name"] = line_name, ["scale"] = line_scale, ["size"] = line_size}
 					i = i + 1
 				end
 			end	
@@ -2986,6 +3033,91 @@ local function notes_off()
 end
 
 
+local function find_modes(dir, key_trans)
+	
+	-- Get current scale pattern
+	local temp_scale = {table.unpack(scale_arr, 1, scale_size)}
+
+	-- Shift key to next degree as per dir
+	if key_trans then
+		local key_adj = dir > 0 and temp_scale[2] or temp_scale[scale_size]
+		key_num = (key_num + key_adj) % 12
+	end
+	
+	-- Cycle the scale values in an appropriate direction
+	if dir == 1 then
+
+		table.insert(temp_scale, temp_scale[1] + 12)
+		table.remove(temp_scale, 1)
+		
+	else	
+	
+		table.insert(temp_scale, 1, temp_scale[scale_size] - 12)
+		table.remove(temp_scale, scale_size + 1)
+			
+	end
+		
+	-- Zero out the scale values w.r.t the new root
+	local scale_adj = temp_scale[1]
+	for deg, val in pairs(temp_scale) do
+		temp_scale[deg] = val - scale_adj		
+	end
+	
+
+	-- Search reascale_arr for a matching pattern	
+	local scale_found = false
+	local temp_concat = table.concat(temp_scale, " ")
+
+	for num, arr in ipairs(reascale_arr) do
+		--GUI.Msg(num)
+		local temp_arr = {table.unpack(arr.scale, 1, scale_size)}
+		local arr_concat = table.concat(temp_arr, " ")
+		--GUI.Msg(arr_concat)
+		if table.concat(temp_arr, " ") == temp_concat then
+			--GUI.Msg("num = "..num.." | "..table.concat(temp_arr, " "))
+			scale_found = num
+			--GUI.Msg("found "..arr.name)
+			break
+		end
+	end
+	
+	if scale_found then
+		scale_num = scale_found
+	else
+
+		local arr = reascale_arr[scale_num]
+		local name = arr.name
+		
+		-- If it was already a synthetic scale, just add to the existing prefix
+		local suff = arr.suff and (dir + arr.suff) or dir
+	
+		-- Fill out two extra octaves of the scale, for extended chords
+		for i = 1, scale_size do
+
+			-- Span three octaves so we can still use extended chords on the 7th degree
+			temp_scale[i + scale_size] = temp_scale[i] + 12
+			temp_scale[i + (2 * scale_size)] = temp_scale[i] + 24
+			
+		end
+		
+		table.insert(reascale_arr, {["pre"] = "", ["name"] = name, ["scale"] = temp_scale, ["size"] = scale_size, ["suff"] = suff})
+
+		scale_num = #reascale_arr
+		-- Add this scale to the end of the menu
+		-- Rework at some point to insert next to the original sale?
+		--GUI.elms.mnu_scale.optarray = mnu_scale_arr
+		--GUI.elms.mnu_scale.numopts = #mnu_scale_arr
+
+
+	end
+		-- If exists, set to that scale
+		
+		-- If not, synthesize one and add e.g. "[-1]" to the end	
+	
+end
+
+
+
 --[[	Classes and parameters
 	(see comments in LS GUI.lua for more thorough documentation)
 	
@@ -3029,10 +3161,21 @@ GUI.elms = {
 	mnu_chords =	GUI.Menubox:new(	88, 96, 100, 20, "Chord Set:", chords_str, 4),
 	chk_follow =	GUI.Checklist:new(	8, 48, 130, 20, "", "Sync w/ editor", 0),
 	mnu_chord_arp =	GUI.Menubox:new(   	88, 148, 100, 20, "Arpeggio:","None,Ascending,Descending", 4),
-	lbl_play_scale = GUI.Label:new(		44, 200, "Play current scale:", 1, 3),
+	lbl_play_scale = GUI.Label:new(		44, 202, "Play current scale:", 1, 3),
 	btn_play_up = GUI.Button:new(		102, 226, 84, 20, "Ascending", play_scale, 1),
 	btn_play_dn = GUI.Button:new(		10, 226, 84, 20, "Descending", play_scale, -1),
 	btn_notes_off = GUI.Button:new(		54, 252, 88, 20, "All notes off", notes_off),
+
+	lbl_modes = GUI.Label:new(			80, 306, "Modes:", 1, 3),
+	
+	lbl_modes_key = GUI.Label:new(		91, 332, "Rel", 0, 3),
+	btn_modes_key_dn = GUI.Button:new(	56, 330, 20, 20, "-", find_modes, -1, true),
+	btn_modes_key_up = GUI.Button:new(	124, 330, 20, 20, "+", find_modes, 1, true),
+	
+	lbl_modes_scale = GUI.Label:new(	86, 358, "Para", 0, 3),
+	btn_modes_scale_dn = GUI.Button:new(56, 356, 20, 20, "-", find_modes, -1),
+	btn_modes_scale_up = GUI.Button:new(124, 356, 20, 20, "+", find_modes, 1),	
+
 
 }
 GUI.elms_top = {}
@@ -3312,18 +3455,8 @@ local function check_track_armed()
 end
 
 
-local function Main()
+local function update_MIDI_queue()
 	
-	
-	-- See if the MIDI editor is open
-	if not reaper.MIDIEditor_GetActive() then
-		GUI.quit = true
-		reaper.Main_OnCommand(40345, 0)
-		return 0
-	end
-		
-	check_track_armed()
-		
 	-- Check if any pending notes are ready
 	local time = reaper.time_precise()
 	for note, stamp in pairs(notes_pending) do
@@ -3345,7 +3478,24 @@ local function Main()
 		
 		end
 	end
+end
+
+
+
+local function Main()
 	
+	
+	-- See if the MIDI editor is open
+	if not reaper.MIDIEditor_GetActive() then
+		GUI.quit = true
+		reaper.Main_OnCommand(40345, 0)
+		return 0
+	end
+		
+	check_track_armed()
+	
+	update_MIDI_queue()
+
 --[[
 	-- See if the user pressed a shortcut key
 	local char = GUI.char
@@ -3403,6 +3553,8 @@ local function Main()
 		__, cur_scale = reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", "")
 	else
 		cur_key = key_num
+		--GUI.Msg(scale_num.." / "..#reascale_arr)
+		if scale_num > #reascale_arr then scale_num = 1 end
 		cur_name = reascale_arr[scale_num].name
 		cur_scale = reascale_arr[scale_num].scale
 	end
@@ -3417,13 +3569,21 @@ local function Main()
 	end
 
 	
-	if key ~= cur_key or scale ~= cur_scale or chords ~= cur_chords then
+	if key ~= cur_key 
+	or table.concat(scale_arr, " ") ~= table.concat(cur_scale, " ") 
+	or chords ~= cur_chords then
 		
 		key = cur_key
-		scale = cur_scale
 		scale_name = cur_name
 		chords = cur_chords
+
+		if synced then
+			scale_arr, scale_size = convert_reascale(cur_scale)
+		else
+			scale_arr, scale_size = reascale_arr[scale_num].scale, reascale_arr[scale_num].size
+		end
 		
+	
 		reaper.SetExtState(GUI.name, "current scale", scale_num, 1)
 		reaper.SetExtState(GUI.name, "current key", key, 1)
 		
@@ -3434,18 +3594,35 @@ local function Main()
 				GUI.elms_bottom[key] = nil
 			end
 		end
-		
+
 	
 		-- Update the scale label's caption
-		local str = root_arr[key].." "..scale_name
-		
 		GUI.Val("lbl_key", root_arr[key])
 		GUI.Val("lbl_scale", scale_name)
+	
+
+		-- Adjust the scale label and suffix to follow the key label's width
+		GUI.font(GUI.elms.lbl_key.font)
+		GUI.elms.lbl_key.w, GUI.elms.lbl_key.h = gfx.measurestr(GUI.Val("lbl_key").." ")	
+		GUI.elms.lbl_scale.x = GUI.elms.lbl_key.x + GUI.elms.lbl_key.w
+		GUI.elms.lbl_scale.w, GUI.elms.lbl_scale.h = gfx.measurestr(GUI.Val("lbl_scale"))
+--[[
+--		Label		x y		caption		shadow	font
+		GUI.elms.scale_suff = not scale_arr.suff and nil
+							  or GUI.Label:new(GUI.elms.lbl_scale.x + GUI.elms.lbl_scale.w + 4, GUI.elms.lbl_scale.y, scale_arr.suff, 0, 4)
+]]--
+		local suff = reascale_arr[scale_num].suff
+		if suff then
+			local x, y = GUI.elms.lbl_scale.x + GUI.elms.lbl_scale.w + 4, GUI.elms.lbl_scale.y
+			GUI.elms.scale_suff = GUI.Label:new(x, y, string.format("%d", suff), 0, 2)
+		else
+			GUI.elms.scale_suff = nil
+		end
 		
+		--[[
 		-- Size = number of non-zero values in the scale
 		__, scale_size = string.gsub(scale, "[^0]", "")
-		
-		
+			
 		scale_arr = {[0] = 0}
 		for i = 1, scale_size do
 
@@ -3462,7 +3639,7 @@ local function Main()
 		for i = 1, #scale_arr do
 			scale_arr[i] = scale_arr[i] - 1
 		end
-		
+		]]--
 		
 		-- Load the chord set to check against
 		local chord_set = chords_arr[chords]
@@ -3483,7 +3660,7 @@ local function Main()
 					
 					-- Add the root note for this degree
 					note = note + scale_arr[i]
-					for j = 0, #scale_arr do
+					for j = 1, #scale_arr do
 						
 						if scale_arr[j] == note then
 							exist_count = exist_count + 1
@@ -3513,14 +3690,14 @@ local function Main()
 			gfx.quit()
 			gfx.init(GUI.name, new_w, new_h, 0, x, y)
 			GUI.cur_w, GUI.cur_h = new_w, new_h
+			
+			GUI.resized = true
 		end
-
-		GUI.resized = true
 	end
 
 
 	-- If the mouse is over the key, scale, or reascale labels,
-	-- hightlight it so they can tell it's clickable
+	-- highlight it so they can tell it's clickable
 	local x, y = GUI.mouse.x, GUI.mouse.y
 	if not synced then
 		
@@ -3550,7 +3727,7 @@ local function Main()
 		
 		local min_w = (btn_template[3] + btn_space_h) * 7 + 22 + line_x
 		local min_h_a = btn_template[2] + (most_chords * (btn_template[4] + btn_space_v)) + 140
-		local min_h_b = GUI.elms.btn_notes_off.y + GUI.elms.btn_notes_off.h + 8
+		local min_h_b = GUI.elms.btn_modes_scale_dn.y + GUI.elms.btn_modes_scale_dn.h + 8
 		
 		local min_h = math.max(min_h_a, min_h_b)
 		
@@ -3577,14 +3754,6 @@ local function Main()
 		GUI.mouse.uptime = os.clock()
 				
 
-		-- Adjust the scale label to follow the key label's width
-		local max_w = GUI.elms.chk_follow.x - 16 - line_x
-		local cur_w = 0
-		
-		GUI.font(GUI.elms.lbl_key.font)
-		GUI.elms.lbl_key.w, GUI.elms.lbl_key.h = gfx.measurestr(GUI.Val("lbl_key").." ")	
-		GUI.elms.lbl_scale.x = GUI.elms.lbl_key.x + GUI.elms.lbl_key.w
-		
 		-- Center the instruction and no-chord labels below the buttons
 		if GUI.elms.lbl_no_chords then
 			local str = GUI.Val("lbl_no_chords")
