@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="db8969ae47c6bb7693d1b501e3d801393c03f3e9" name="ReaTeam Scripts">
+<index version="1" commit="63efc989d4e7ef7d346b44e75c4dfc34e0a3622c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1634,7 +1634,7 @@ Fixed a few minor bugs, fiddled with the GUI a bit]]></changelog>
       <version name="6.0" author="Lokasenna" time="2016-12-28T23:54:31Z">
         <changelog><![CDATA[Can now cycle through modes of the current scale
 Revised chord sets]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/db8969ae47c6bb7693d1b501e3d801393c03f3e9/MIDI%20Editor/Lokasenna_Chord%20Helper.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/63efc989d4e7ef7d346b44e75c4dfc34e0a3622c/MIDI%20Editor/Lokasenna_Chord%20Helper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete note under mouse cursor.lua" type="script" desc="Delete note under mouse cursor">
