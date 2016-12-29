@@ -1,10 +1,10 @@
 --[[
 Description: Chord Helper
-Version: 6.0.1
+Version: 6.0.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fixes
+	Added SWS to header information
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=185358
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -26,6 +26,8 @@ About:
 	1. Record-armed.
 	2. Monitoring.
 	3. Receiving input from the Virtual MIDI Keyboard (any channel).
+Extensions: 
+	SWS/S&M 2.8.3	
 --]]
 
 -- Licensed under the GNU GPL v3
