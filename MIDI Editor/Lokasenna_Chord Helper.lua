@@ -2849,8 +2849,12 @@ Shift-click to insert a chord using the editor's note settings.
 Double-click any empty space to reset the chord highlights.]]
 
 
-
---"Click to preview, shift + click to insert using current grid settings.\nDouble-click any empty space to clear the chord highlights."
+-- Warning label if the track isn't able to preview
+local warning_str =
+[[To preview notes, the track must be armed, monitoring, and receiving
+input from the Virtual MIDI Keyboard (or All Inputs). 
+Double-click here to change those settings.
+]]
 
 
 -- MIDI defaults
@@ -2860,7 +2864,7 @@ local vel = 0
 -- Are we snapping to the MIDI editor?
 local synced = false
 
-local reascale_arr = {{["pre"] = 0, ["name"] = "-no scale-", ["scale"] = 0}}
+local reascale_arr = {{["pre"] = 0, ["name"] = "-no scale-", ["scale"] = {}, ["size"] = 0}}
 local mnu_scale_arr = {[0] = 0, 0, 0}
 
 
@@ -3143,7 +3147,7 @@ end
 	
 	
 ]]--
-GUI.elms_bg = { bg = GUI.Frame:new(			0, 0, GUI.w, GUI.h, false, false, "none", 0) }
+GUI.elms_bg = { bg = GUI.Frame:new(		0, 0, GUI.w, GUI.h, false, false, "none", 0) }
 GUI.elms_bottom = {
 	frm_tooltip = GUI.Frame:new(		line_x, 46, 2000, 24, false, true, "elm_bg", 0),
 }
@@ -3152,7 +3156,7 @@ GUI.elms = {
 	lbl_key = GUI.Label:new(			line_x + 24, 6, "C", 0, 1),
 	lbl_scale = GUI.Label:new(			line_x + 48, 6, "blah", 0, 1),
 	lbl_reascale = GUI.Label:new(		8, 12, "( no .reascale loaded )", 0, 6),
-	lbl_clickplay = GUI.Label:new(		line_x + 200, 500, clickplay_str, 0, 4),
+	lbl_clickplay = GUI.Label:new(		line_x + 16, 500, clickplay_str, 0, 4),
 	mnu_key = GUI.Menubox:new(			0, -24, 0, 0, "", "C,C#/Db,D,D#/Eb,E,F,F#/Gb,G,G#/Ab,A,A#/Bb,B", 0),
 	mnu_scale = GUI.Menubox:new(		0, -24, 0, 0, "", "-no scale-", 0),
 	--mnu_num_notes = GUI.Menubox:new(	84, 48, 128, 20, "Notes", notes_str, 4),
@@ -3421,9 +3425,8 @@ local function check_track_armed()
 	local monitor = reaper.GetMediaTrackInfo_Value(cur_track, "I_RECMON")
 	
 	local track_armed = input >= 6080 and input <= 6096 and arm == 1 and monitor > 0
-	
-	if not track_armed then
 
+	if not track_armed then
 		GUI.font(5)
 		local str1 = "Unable to preview notes: Track must be armed, monitoring,"
 		local str2 = "and set to receive input from the Virtual MIDI Keyboard."
@@ -3449,7 +3452,6 @@ local function check_track_armed()
 		
 		-- Set the color back so none of the other elements' text is written in red
 		GUI.color("txt")
-		
 	end
 	
 end
@@ -3514,17 +3516,7 @@ local function Main()
 	-- Button array tooltips
 	if tooltip_btn then
 		if GUI.IsInside(tooltip_btn, GUI.mouse.x, GUI.mouse.y) then
-			--[[
-			if time >= (tooltip_time + 0.200) and tooltip_active == false then
-				local _, x, y, _, _ = gfx.dock(-1,0,0,0,0)
-				-- Tooltip at the button
-				--x, y = x + tooltip_btn.x + tooltip_btn.w, y + tooltip_btn.y + tooltip_btn.h
-				-- Tooltip at top-right
-				x, y = x + GUI.cur_w - 150, y + GUI.title_height
-				reaper.TrackCtl_SetToolTip(tooltip_btn.tooltip, x, y, true)
-				tooltip_active = true
-			end
-			]]--
+
 			GUI.font(4)
 			local str_w, __ = gfx.measurestr(tooltip_btn.tooltip)
 			local new_x = (GUI.cur_w - str_w - line_x) / 2 + line_x
@@ -3550,7 +3542,7 @@ local function Main()
 	
 	if cur_synced then
 		__, cur_key, __, cur_name = reaper.MIDI_GetScale(cur_take, 0, 0, "")
-		__, cur_scale = reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", "")
+		cur_scale, __ = convert_reascale(reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", ""))
 	else
 		cur_key = key_num
 		--GUI.Msg(scale_num.." / "..#reascale_arr)
@@ -3559,7 +3551,6 @@ local function Main()
 		cur_scale = reascale_arr[scale_num].scale
 	end
 	
-	
 	-- Update our sync state, and fade out the scale
 	-- text if we're synced to the MIDI editor			
 	if synced ~= cur_synced then
@@ -3567,6 +3558,10 @@ local function Main()
 		GUI.elms.lbl_key.color = synced and "gray" or "txt"
 		GUI.elms.lbl_scale.color = synced and "gray" or "txt"
 	end
+	
+	--GUI.Msg("scale_num = "..scale_num)
+	--GUI.Msg("scale_arr = "..table.concat(scale_arr, " "))
+	--GUI.Msg("cur_scale = "..table.concat(cur_scale, " "))
 
 	
 	if key ~= cur_key 
@@ -3578,7 +3573,8 @@ local function Main()
 		chords = cur_chords
 
 		if synced then
-			scale_arr, scale_size = convert_reascale(cur_scale)
+			scale_arr, scale_size = cur_scale, #cur_scale
+			-- scale_arr, scale_size = convert_reascale(cur_scale)
 		else
 			scale_arr, scale_size = reascale_arr[scale_num].scale, reascale_arr[scale_num].size
 		end
@@ -3770,7 +3766,7 @@ local function Main()
 			local str_w, str_h = gfx.measurestr(str)
 		
 			--GUI.elms.lbl_clickplay.x = (GUI.cur_w - line_x - str_w) / 2 + line_x
-			GUI.elms.lbl_clickplay.x = line_x + 16
+			--GUI.elms.lbl_clickplay.x = line_x + 16
 			GUI.elms.lbl_clickplay.y = btn_template[2] + (most_chords * (btn_template[4] + btn_space_v) + 6)
 		end
 		
