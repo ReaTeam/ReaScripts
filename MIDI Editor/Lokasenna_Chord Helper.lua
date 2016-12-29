@@ -1,11 +1,10 @@
 --[[
 Description: Chord Helper
-Version: 6.0
+Version: 6.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Can now cycle through modes of the current scale
-	Revised chord sets
+	Bug fixes
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=185358
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -31,20 +30,6 @@ About:
 
 -- Licensed under the GNU GPL v3
  
---[[
-Change history:
-6.0 (2016-12-28)
-	Can now cycle through modes of the current scale
-	Revised chord sets
-5.0 (2016-12-26)
-	Added "all notes off" button
-	Chord tooltips now display extended intervals as '^2' rather than '13',
-	just to make things more readable
-	Fixed a few minor bugs, fiddled with the GUI a bit
-4.0 (2016-12-26)
-	Initial ReaPack release
---]]
-	
 
 ---- Libraries added with Lokasenna's Script Compiler ----
 
