@@ -3168,13 +3168,13 @@ GUI.elms = {
 
 	lbl_modes = GUI.Label:new(			80, 306, "Modes:", 1, 3),
 	
-	lbl_modes_key = GUI.Label:new(		91, 332, "Rel", 0, 3),
-	btn_modes_key_dn = GUI.Button:new(	56, 330, 20, 20, "-", find_modes, -1, true),
-	btn_modes_key_up = GUI.Button:new(	124, 330, 20, 20, "+", find_modes, 1, true),
+	lbl_modes_key = GUI.Label:new(		78, 332, "Relative", 0, 3),
+	btn_modes_key_dn = GUI.Button:new(	48, 330, 20, 20, "-", find_modes, -1, true),
+	btn_modes_key_up = GUI.Button:new(	132, 330, 20, 20, "+", find_modes, 1, true),
 	
-	lbl_modes_scale = GUI.Label:new(	86, 358, "Para", 0, 3),
-	btn_modes_scale_dn = GUI.Button:new(56, 356, 20, 20, "-", find_modes, -1),
-	btn_modes_scale_up = GUI.Button:new(124, 356, 20, 20, "+", find_modes, 1),	
+	lbl_modes_scale = GUI.Label:new(	78, 358, "Parallel", 0, 3),
+	btn_modes_scale_dn = GUI.Button:new(48, 356, 20, 20, "-", find_modes, -1),
+	btn_modes_scale_up = GUI.Button:new(132, 356, 20, 20, "+", find_modes, 1),	
 
 
 }
