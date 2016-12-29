@@ -3613,8 +3613,9 @@ local function Main()
 ]]--
 		local suff = reascale_arr[scale_num].suff
 		if suff then
+			if suff > 0 then suff = "+"..suff end
 			local x, y = GUI.elms.lbl_scale.x + GUI.elms.lbl_scale.w + 4, GUI.elms.lbl_scale.y
-			GUI.elms.scale_suff = GUI.Label:new(x, y, string.format("%d", suff), 0, 2)
+			GUI.elms.scale_suff = GUI.Label:new(x, y, suff, 0, 2)
 		else
 			GUI.elms.scale_suff = nil
 		end
