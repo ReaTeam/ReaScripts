@@ -1,10 +1,10 @@
 --[[
 Description: Chord Helper
-Version: 6.0.3
+Version: 6.0.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fixed some crashes if no .reascale is loaded
+	Bug fixes, now attempts to get a .reascale from Reaper on first startup
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=185358
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -2871,7 +2871,7 @@ local mnu_scale_arr = {[0] = 0, 0, 0}
 
 local function convert_reascale(scale)
 	
-	if not scale then return {0}, 1 end
+	if not scale or type(scale) == "boolean" then return {0}, 1 end
 	
 	-- Size = number of non-zero values in the scale
 	local __, size = string.gsub(scale, "[^0]", "")
@@ -2905,7 +2905,11 @@ local function get_reascale(startup)
 
 	-- Get a file to work with
 	if startup then
-		file_path = reaper.GetExtState(GUI.name, "current reascale") or ""
+		file_path = reaper.GetExtState(GUI.name, "current reascale")
+		if file_path == "" then 
+			__, file_path = reaper.BR_Win32_GetPrivateProfileString("reaper", "reascale_fn", "", ini_file)
+			GUI.Msg("from ini: "..file_path)
+		end
 	else
 		__, file_path = reaper.GetUserFileNameForRead("", "Choose a .reascale file", ".reascale")
 		reaper.SetExtState(GUI.name, "current reascale", file_path, 1)
@@ -2923,7 +2927,7 @@ local function get_reascale(startup)
 		reascale_arr = {}
 		
 		local i = 1
-				
+		
 		for line in file:lines() do
 		
 			local line_pre, line_name, line_scale, line_size
@@ -3537,14 +3541,15 @@ local function Main()
 	
 	
 	-- See if the key, scale, or chord set have changed
-	local cur_key, cur_name, cur_scale, cur_chords = "", "", "", GUI.Val("mnu_chords")
+	local cur_key, cur_name, cur_scale, cur_size, cur_chords = "", "", "", "", GUI.Val("mnu_chords")
 	
 	keysnap = reaper.MIDIEditor_GetSetting_int(cur_wnd, "scale_enabled")
 	local cur_synced = (GUI.Val("chk_follow")[1] == true and keysnap == 1)
 	
 	if cur_synced then
 		__, cur_key, __, cur_name = reaper.MIDI_GetScale(cur_take, 0, 0, "")
-		cur_scale, __ = convert_reascale(reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", ""))
+		__, scale_str = reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", "")
+		cur_scale, cur_size = convert_reascale(scale_str)
 	else
 		cur_key = key_num
 		--GUI.Msg(scale_num.." / "..#reascale_arr)
@@ -3575,7 +3580,7 @@ local function Main()
 		chords = cur_chords
 
 		if synced then
-			scale_arr, scale_size = cur_scale, #cur_scale
+			scale_arr, scale_size = cur_scale, cur_size
 			-- scale_arr, scale_size = convert_reascale(cur_scale)
 		else
 			scale_arr, scale_size = reascale_arr[scale_num].scale, reascale_arr[scale_num].size
