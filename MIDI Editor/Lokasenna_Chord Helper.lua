@@ -4,7 +4,6 @@ Version: 6.0.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fixes, now attempts to get a .reascale from Reaper on first startup
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=185358
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -2908,7 +2907,9 @@ local function get_reascale(startup)
 		file_path = reaper.GetExtState(GUI.name, "current reascale")
 		if file_path == "" then 
 			__, file_path = reaper.BR_Win32_GetPrivateProfileString("reaper", "reascale_fn", "", ini_file)
-			GUI.Msg("from ini: "..file_path)
+			if file_path ~= "" then
+				reaper.SetExtState(GUI.name, "current reascale", file_path, 1)
+			end
 		end
 	else
 		__, file_path = reaper.GetUserFileNameForRead("", "Choose a .reascale file", ".reascale")
