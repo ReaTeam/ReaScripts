@@ -1,10 +1,10 @@
 --[[
 Description: Chord Helper
-Version: 6.0.2
+Version: 6.0.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added SWS to header information
+	Fixed some crashes if no .reascale is loaded
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=185358
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -12,7 +12,7 @@ About:
 	# Chord Helper
 
 	Provides a selection of chords than can be built from a given scale.
-
+	
 	- Select a .reascale at the top-left.
 	- Select a key scale at the top-center.
 	- A list of "legal" chords for the current scale is generated.
@@ -99,7 +99,7 @@ local function GUI_table ()
 
 local GUI = {}
 
-GUI.version = "beta 4"
+GUI.version = "beta 5"
 
 
 	---- Keyboard constants ----
@@ -367,6 +367,8 @@ GUI.ordinal = function (num)
 end
 
 
+
+	---- Color and drawing functions ----
 
 -- Take 8-bit RGB values and return the combined integer
 -- (equal to hex colors of the form 0xRRGGBB)
@@ -685,17 +687,23 @@ GUI.Main = function ()
 	-- Update each element's state, starting from the top down.
 		-- This is very important, so that lower elements don't
 		-- "steal" the mouse.
-	for key, elm in pairs(GUI.elms_top) do
-		GUI.Update(elm)
+	if GUI.elms_top then
+		for key, elm in pairs(GUI.elms_top) do
+			GUI.Update(elm)
+		end
 	end
 	for key, elm in pairs(GUI.elms) do
 		GUI.Update(elm)
 	end
-	for key, elm in pairs(GUI.elms_bottom) do
-		GUI.Update(elm)
-	end	
-	for key, elm in pairs(GUI.elms_bg) do
-		GUI.Update(elm)
+	if GUI.elms_bottom then
+		for key, elm in pairs(GUI.elms_bottom) do
+			GUI.Update(elm)
+		end	
+	end
+	if GUI.elms_bg then
+		for key, elm in pairs(GUI.elms_bg) do
+			GUI.Update(elm)
+		end
 	end
 	
 	-- If the user gave us a function to run, check to see if it needs to be run again, and do so.
@@ -712,16 +720,19 @@ GUI.Main = function ()
 	end
 	
 	-- Redraw all of the elements, starting from the bottom up.
-	for key, elm in pairs(GUI.elms_bottom) do
-		elm:draw()
+	if GUI.elms_bottom then
+		for key, elm in pairs(GUI.elms_bottom) do
+			elm:draw()
+		end
 	end
 	for key, elm in pairs(GUI.elms) do
 		elm:draw()
 	end
-	for key, elm in pairs(GUI.elms_top) do
-		elm:draw()
+	if GUI.elms_top then
+		for key, elm in pairs(GUI.elms_top) do
+			elm:draw()
+		end
 	end
-
 	
 	GUI.Draw_Version()
 	
@@ -863,7 +874,9 @@ end
 
 -- Display the version number
 GUI.Draw_Version = function ()
-	
+
+	if not GUI.version then return 0 end
+
 	local str = "built with Lokasenna_GUI "..GUI.version
 	
 	gfx.setfont(1, "Arial", 12, 105)
@@ -2132,7 +2145,8 @@ function GUI.Button:onmouseover() end
 --[[	Textbox class. Adapted from schwa's example code.
 	
 	---- User parameters ----
-x, y, w, h		Coordinates of tep-left corner, width, height
+x, y, w, h		Coordinates of top-left corner, width, height
+caption			Text to display to the left of the textbox
 pad				Padding between the left side and first character.
 
 	
@@ -2857,6 +2871,8 @@ local mnu_scale_arr = {[0] = 0, 0, 0}
 
 local function convert_reascale(scale)
 	
+	if not scale then return {0}, 1 end
+	
 	-- Size = number of non-zero values in the scale
 	local __, size = string.gsub(scale, "[^0]", "")
 		
@@ -3026,6 +3042,8 @@ end
 
 local function find_modes(dir, key_trans)
 	
+	if most_chords == 0 then return 0 end
+	
 	-- Get current scale pattern
 	local temp_scale = {table.unpack(scale_arr, 1, scale_size)}
 
@@ -3095,15 +3113,12 @@ local function find_modes(dir, key_trans)
 
 		scale_num = #reascale_arr
 		-- Add this scale to the end of the menu
-		-- Rework at some point to insert next to the original sale?
+		-- Rework at some point to insert next to the original scale?
 		--GUI.elms.mnu_scale.optarray = mnu_scale_arr
 		--GUI.elms.mnu_scale.numopts = #mnu_scale_arr
 
 
 	end
-		-- If exists, set to that scale
-		
-		-- If not, synthesize one and add e.g. "[-1]" to the end	
 	
 end
 
