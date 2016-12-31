@@ -1,6 +1,6 @@
 --[[
 Description: Chord Helper
-Version: 6.0.4
+Version: 6.0.5
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
