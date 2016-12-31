@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4d9ea0e4c93f721670a063907be6ad658fef305f" name="ReaTeam Scripts">
+<index version="1" commit="5ff67b62d3a581b37c28f1c8967b5b93acf87e0b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -406,6 +406,14 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="Markers">
+    <reapack name="cfillion_Insert regions at markers and vice versa in time selection.lua" type="script" desc="Insert regions at markers and vice versa in time selection">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=185577</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2016-12-31T01:36:26Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5ff67b62d3a581b37c28f1c8967b5b93acf87e0b/Markers/cfillion_Insert%20regions%20at%20markers%20and%20vice%20versa%20in%20time%20selection.lua</source>
+      </version>
+    </reapack>
     <reapack name="daxliniere_Live recording take commenter.lua" type="script" desc="Live recording take commenter">
       <metadata>
         <link rel="screenshot">https://www.dropbox.com/s/kp329zcy6jhrumf/TakeCommenterDemo1.gif?dl=1</link>
