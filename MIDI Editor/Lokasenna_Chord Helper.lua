@@ -1,9 +1,11 @@
 --[[
 Description: Chord Helper
-Version: 6.0.5
+Version: 7.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
+	Can insert notes as arpeggios
+	Velocity slider. Set to 0 to use the MIDI editor's velocity.
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=185358
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -24,7 +26,7 @@ About:
 	track settings are required in order to preview notes:
 	1. Record-armed.
 	2. Monitoring.
-	3. Receiving input from the Virtual MIDI Keyboard (any channel).
+	3. Receiving input from the Virtual MIDI Keyboard or All MIDI Inputs (any channel).
 Extensions: 
 	SWS/S&M 2.8.3	
 --]]
@@ -1113,7 +1115,10 @@ end
 function GUI.Slider:val(newval)
 
 	if newval then
-		self.retval = newval
+		self.curstep = newval
+		self.curval = self.curstep / self.steps
+		self.retval = GUI.round((((self.max - self.min) / self.steps) * self.curstep) + self.min)
+		--self.retval = newval
 	else
 		return self.retval
 	end
@@ -2845,7 +2850,6 @@ local most_chords = 0
 local clickplay_str = 
 [[Click to preview a chord using the editor's note settings.
 Shift-click to insert a chord using the editor's note settings.
-                     (no arpeggios yet)
 Double-click any empty space to reset the chord highlights.]]
 
 
@@ -2998,7 +3002,9 @@ local function play_scale(dir)
 	local offset = ( (GUI.elms.mnu_octave.numopts - GUI.Val("mnu_octave") + 1) * 12) + key	
 	
 	chan = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_chan")
-	vel = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 	
+	
+	local user_vel = GUI.Val("sldr_velocity")
+	vel = user_vel > 0 and user_vel or reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 	
 
 	-- Get note length ***IN QN***
 	local grid_len, __, note_len = reaper.MIDI_GetGrid(cur_take)
@@ -3162,7 +3168,7 @@ GUI.elms = {
 	div = GUI.Frame:new(				line_x, 0, 4, 2000, true, true),		
 	lbl_key = GUI.Label:new(			line_x + 24, 6, "C", 0, 1),
 	lbl_scale = GUI.Label:new(			line_x + 48, 6, "blah", 0, 1),
-	lbl_reascale = GUI.Label:new(		8, 12, "( no .reascale loaded )", 0, 6),
+	lbl_reascale = GUI.Label:new(		8, 14, "( no .reascale loaded )", 0, 6),
 	lbl_clickplay = GUI.Label:new(		line_x + 16, 500, clickplay_str, 0, 4),
 	mnu_key = GUI.Menubox:new(			0, -24, 0, 0, "", "C,C#/Db,D,D#/Eb,E,F,F#/Gb,G,G#/Ab,A,A#/Bb,B", 0),
 	mnu_scale = GUI.Menubox:new(		0, -24, 0, 0, "", "-no scale-", 0),
@@ -3172,21 +3178,26 @@ GUI.elms = {
 	mnu_chords =	GUI.Menubox:new(	88, 96, 100, 20, "Chord Set:", chords_str, 4),
 	chk_follow =	GUI.Checklist:new(	8, 48, 130, 20, "", "Sync w/ editor", 0),
 	mnu_chord_arp =	GUI.Menubox:new(   	88, 148, 100, 20, "Arpeggio:","None,Ascending,Descending", 4),
-	lbl_play_scale = GUI.Label:new(		44, 202, "Play current scale:", 1, 3),
-	btn_play_up = GUI.Button:new(		102, 226, 84, 20, "Ascending", play_scale, 1),
-	btn_play_dn = GUI.Button:new(		10, 226, 84, 20, "Descending", play_scale, -1),
-	btn_notes_off = GUI.Button:new(		54, 252, 88, 20, "All notes off", notes_off),
 
-	lbl_modes = GUI.Label:new(			80, 306, "Modes:", 1, 3),
-	
-	lbl_modes_key = GUI.Label:new(		78, 332, "Relative", 0, 3),
-	btn_modes_key_dn = GUI.Button:new(	48, 330, 20, 20, "-", find_modes, -1, true),
-	btn_modes_key_up = GUI.Button:new(	132, 330, 20, 20, "+", find_modes, 1, true),
-	
-	lbl_modes_scale = GUI.Label:new(	78, 358, "Parallel", 0, 3),
-	btn_modes_scale_dn = GUI.Button:new(48, 356, 20, 20, "-", find_modes, -1),
-	btn_modes_scale_up = GUI.Button:new(132, 356, 20, 20, "+", find_modes, 1),	
+	lbl_velocity = GUI.Label:new(		37, 176, "Velocity:", 1, 3),
+	sldr_velocity = GUI.Slider:new(		92, 180, 92, "", 0, 127, 128, 0),
 
+	lbl_play_scale = GUI.Label:new(		63, 228, "Preview scale", 1, 3),
+	
+	btn_play_up = GUI.Button:new(		152, 226, 20, 20, "+", play_scale, 1),
+	btn_play_dn = GUI.Button:new(		28, 226, 20, 20, "-", play_scale, -1),
+
+	--lbl_modes = GUI.Label:new(			80, 306, "Modes:", 1, 3),
+	
+	lbl_modes_key = GUI.Label:new(		59, 280, "Relative modes", 1, 3),
+	btn_modes_key_dn = GUI.Button:new(	28, 278, 20, 20, "-", find_modes, -1, true),
+	btn_modes_key_up = GUI.Button:new(	152, 278, 20, 20, "+", find_modes, 1, true),
+	
+	lbl_modes_scale = GUI.Label:new(	59, 306, "Parallel modes", 1, 3),
+	btn_modes_scale_dn = GUI.Button:new(28, 304, 20, 20, "-", find_modes, -1),
+	btn_modes_scale_up = GUI.Button:new(152, 304, 20, 20, "+", find_modes, 1),	
+
+	btn_notes_off = GUI.Button:new(		54, 356, 88, 20, "All notes off", notes_off),
 
 }
 GUI.elms_top = {}
@@ -3195,6 +3206,7 @@ GUI.elms_top = {}
 --GUI.Val("mnu_inversion", 3)
 GUI.Val("mnu_octave", 6)
 GUI.Val("mnu_chords", 3)
+GUI.Val("sldr_velocity", 128)
 
 
 -- Clear all chord highlights
@@ -3262,10 +3274,14 @@ local function btn_click(deg, chord, btn)
 	
 	local end_ppq = reaper.MIDI_GetPPQPosFromProjQN(cur_take, cursor_QN + len_QN)
 	
+	local len_ppq = end_ppq - cursor_ppq
+	
 	-- Get note offset for key and octave
 	local offset = ( (GUI.elms.mnu_octave.numopts - GUI.Val("mnu_octave") + 1) * 12) + key
 	chan = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_chan")
-	vel = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 
+	
+	local user_vel = GUI.Val("sldr_velocity")
+	vel = user_vel > 0 and user_vel or reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 
 	
 	local shift = GUI.mouse.cap&8==8
 	local QN_length = 60 / reaper.Master_GetTempo()	
@@ -3285,14 +3301,25 @@ local function btn_click(deg, chord, btn)
 		arp_dir = -1
 	end
 	
+	reaper.Undo_BeginBlock()
+	
 	-- Insert notes, send Note Ons, and store the current time
 	if shift then reaper.MIDI_SelectAll(cur_take, 0) end
-	for name, note in pairs(chords_legal[deg][chord]) do
+	for name, note in ipairs(chords_legal[deg][chord]) do
 
 		note = offset + scale_arr[deg] + note
 		
 		if shift then
-			reaper.MIDI_InsertNote(cur_take, 1, 0, cursor_ppq, end_ppq, chan, note, vel, 1)
+			local note_ppq_a, note_ppq_b = cursor_ppq, end_ppq
+			if arp_dir ~= 0 then
+				note_ppq_a = note_ppq_a + (arp_start * len_ppq)
+				note_ppq_b = note_ppq_b + (arp_start * len_ppq)
+			end	
+				
+			--local note_ppq_a = arp_dir == 0 and cursor_ppq or	(cursor_ppq + (arp_start * len_ppq))
+			--local note_ppq_b = arp_dir == 0 and end_ppq or		(note_ppq_a + len_ppq)
+			reaper.MIDI_InsertNote(cur_take, 1, 0, note_ppq_a, note_ppq_b, chan, note, vel, 1)
+			
 		end
 		
 		local time_adj = arp_start * len_QN * QN_length
@@ -3304,7 +3331,15 @@ local function btn_click(deg, chord, btn)
 	end
 	
 	reaper.MIDI_Sort(cur_take)
-	if shift then reaper.ApplyNudge(0, 0, 6, 15, len_QN / 4, 0, 0) end
+	
+	-- Move the cursor over if we inserted notes/arps
+	if shift then 
+		local num_nudge = arp == 1 and 1 or #chords_legal[deg][chord]
+		local amt_nudge = num_nudge * len_QN / 4
+		reaper.ApplyNudge(0, 0, 6, 15, amt_nudge, 0, 0) 
+	end
+	
+	reaper.Undo_EndBlock("Inserted notes from Chord Helper", -1)
 	
 end
 
@@ -3541,6 +3576,10 @@ local function Main()
 	end
 	
 	
+	-- Update the Velocity slider's value readout if necessary
+	GUI.elms.sldr_velocity.output = GUI.Val("sldr_velocity") == 0 and "Use editor's velocity" or nil
+
+		
 	-- See if the key, scale, or chord set have changed
 	local cur_key, cur_name, cur_scale, cur_size, cur_chords = "", "", "", "", GUI.Val("mnu_chords")
 	
