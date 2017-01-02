@@ -1,9 +1,10 @@
 --[[
 Description: Duplicate selected notes (diatonic)...
-Version: 1.0
+Version: 1.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
+	Ignores notes outside of the scale instead of crashing
 Links:
 Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -1094,7 +1095,10 @@ end
 function GUI.Slider:val(newval)
 
 	if newval then
-		self.retval = newval
+		self.curstep = newval
+		self.curval = self.curstep / self.steps
+		self.retval = GUI.round((((self.max - self.min) / self.steps) * self.curstep) + self.min)
+		--self.retval = newval
 	else
 		return self.retval
 	end
@@ -2808,20 +2812,24 @@ local function dup_notes()
 				end
 			end
 			
-			local deg_new = deg_o + deg
-			local oct_adj = deg > 0 and (math.modf((deg_new - 1) / size)) or (math.modf(deg_new / size))
-			if deg_new < 1 then
-				oct_adj = oct_adj - 1
-			end
+			if deg_o then
 			
-			-- Convert the degree to a value within the scale
-			deg_new =  (deg_new - 1) % size + 1
-			
-			local note_adj = scale_arr[deg_new] - scale_arr[deg_o] + 12 * oct_adj
+				local deg_new = deg_o + deg
+				local oct_adj = deg > 0 and (math.modf((deg_new - 1) / size)) or (math.modf(deg_new / size))
+				if deg_new < 1 then
+					oct_adj = oct_adj - 1
+				end
+				
+				-- Convert the degree to a value within the scale
+				deg_new =  (deg_new - 1) % size + 1
+				
+				local note_adj = scale_arr[deg_new] - scale_arr[deg_o] + 12 * oct_adj
 
-			sel_notes[i][6] = sel_notes[i][6] + note_adj
-			local sel, mute, start, _end, chan, pitch, vel = table.unpack(sel_notes[i])
-			reaper.MIDI_InsertNote(cur_take, sel, mute, start, _end, chan, pitch, vel, true)
+				sel_notes[i][6] = sel_notes[i][6] + note_adj
+				local sel, mute, start, _end, chan, pitch, vel = table.unpack(sel_notes[i])
+				reaper.MIDI_InsertNote(cur_take, sel, mute, start, _end, chan, pitch, vel, true)
+				
+			end
 		end
 		
 		reaper.MIDI_Sort(cur_take)
