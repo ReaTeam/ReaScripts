@@ -1,10 +1,10 @@
 --[[
 Description: Duplicate selected notes (diatonic)...
-Version: 1.0.1
+Version: 1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Ignores notes outside of the scale instead of crashing
+	Offers users a choice of how to harmonize notes that aren't in the scale
 Links:
 Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -80,7 +80,7 @@ local function GUI_table ()
 
 local GUI = {}
 
-GUI.version = "beta 5"
+GUI.version = "beta 6"
 
 
 	---- Keyboard constants ----
@@ -499,8 +499,8 @@ end
 GUI.IsInside = function (elm, x, y)
 	
 	local inside = 
-		x >= elm.x and x < (elm.x + elm.w) and 
-		y >= elm.y and y < (elm.y + elm.h)
+			x >= elm.x and x < (elm.x + elm.w) and 
+			y >= elm.y and y < (elm.y + elm.h)
 		
 	return inside
 	
@@ -587,7 +587,20 @@ end
 
 	---- Our main functions ----
 	
+GUI.update_elms_list = function ()
 	
+	local z_table = {}
+	for i = 1, 10 do z_table[i] = {} end
+	-- Make a list of elms tiers to use for updating/drawing
+	for key, __ in pairs(GUI.elms) do
+		local z = GUI.elms[key].z or 5
+		table.insert(z_table[z], key)
+	end
+	
+	GUI.elm_list = z_table
+	
+end
+
 
 
 GUI.Init = function ()
@@ -638,6 +651,11 @@ GUI.Init = function ()
 		col[1], col[2], col[3], col[4] = col[1] / 255, col[2] / 255, col[3] / 255, col[4] / 255
 	end
 	
+	GUI.update_elms_list()
+	
+	if not GUI.elms_hide then GUI.elms_hide = {} end
+	if not GUI.elms_freeze then GUI.elms_freeze = {} end
+	
 	if GUI.Exit then reaper.atexit(GUI.Exit) end
 
 end
@@ -668,26 +686,18 @@ GUI.Main = function ()
 	-- Update each element's state, starting from the top down.
 		-- This is very important, so that lower elements don't
 		-- "steal" the mouse.
-	if GUI.elms_top then
-		for key, elm in pairs(GUI.elms_top) do
-			GUI.Update(elm)
+	GUI.update_elms_list()
+
+	for i = 1, 10 do
+		if not GUI.elms_hide[i] and not GUI.elms_freeze[i] then
+			for __, elm in pairs(GUI.elm_list[i]) do
+				GUI.Update(GUI.elms[elm])
+			end
 		end
 	end
-	for key, elm in pairs(GUI.elms) do
-		GUI.Update(elm)
-	end
-	if GUI.elms_bottom then
-		for key, elm in pairs(GUI.elms_bottom) do
-			GUI.Update(elm)
-		end	
-	end
-	if GUI.elms_bg then
-		for key, elm in pairs(GUI.elms_bg) do
-			GUI.Update(elm)
-		end
-	end
-	
+
 	-- If the user gave us a function to run, check to see if it needs to be run again, and do so.
+	-- 
 	if GUI.func then
 		
 		GUI.freq = GUI.freq or 1
@@ -701,20 +711,16 @@ GUI.Main = function ()
 	end
 	
 	-- Redraw all of the elements, starting from the bottom up.
-	if GUI.elms_bottom then
-		for key, elm in pairs(GUI.elms_bottom) do
-			elm:draw()
+	GUI.update_elms_list()
+
+	for i = 10, 1, -1 do
+		if not GUI.elms_hide[i] then
+			for __, elm in pairs(GUI.elm_list[i]) do
+				if not GUI.elms[elm] then GUI.Msg(elm.." doesn't exist?") end
+				GUI.elms[elm]:draw()
+			end
 		end
 	end
-	for key, elm in pairs(GUI.elms) do
-		elm:draw()
-	end
-	if GUI.elms_top then
-		for key, elm in pairs(GUI.elms_top) do
-			elm:draw()
-		end
-	end
-	
 	GUI.Draw_Version()
 	
 	gfx.update()
@@ -751,7 +757,7 @@ GUI.Update = function (elm)
 			end
 			
 			-- Double clicked?
-			if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.15 then
+			if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
 				elm:ondoubleclick()
 			end
 		
@@ -793,7 +799,7 @@ GUI.Update = function (elm)
 			end
 			
 			-- Double clicked?
-			if GUI.mouse.r_uptime and os.clock() - GUI.mouse.r_uptime < 0.15 then
+			if GUI.mouse.r_uptime and os.clock() - GUI.mouse.r_uptime < 0.20 then
 				elm:onr_doubleclick()
 			end
 		
@@ -883,19 +889,31 @@ end
 --[[	Label class.
 	
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.
 x, y			Coordinates of top-left corner
 caption			Label text
 shadow			(1) Draw a shadow
 font			Which of the GUI's font values to use
 	
+	
+Additional parameters
+color			Use one of the GUI.colors keys to override the standard text color
+fade			Pops up text with a fadeout effect. Call like so:
+				
+					GUI.elms.lbl_blah.fade = { 2, reaper.time_precise(), "lbl_blah"}
+											time (s)
+														time stamp
+																		element name
 ]]--
 -- Label - New
 GUI.Label = {}
-function GUI.Label:new(x, y, caption, shadow, font)
+function GUI.Label:new(z, x, y, caption, shadow, font)
 	
 	local label = {}	
 	
 	label.type = "Label"
+	
+	label.z = z
 	
 	label.x, label.y = x, y
 	
@@ -922,6 +940,24 @@ function GUI.Label:draw()
 		
 	GUI.font(self.font)
 	GUI.color(self.color or "txt")
+	
+	if self.fade then
+		
+		-- Seconds for fade effect, roughly
+		local fade_len = self.fade[1]
+		
+		local diff = (reaper.time_precise() - self.fade[2]) / fade_len
+		diff = math.floor(diff * 1000) / 1000
+		diff = diff * diff * diff
+		diff = diff * diff * diff
+		local a = 1 - (gfx.a * (diff))
+		--GUI.Msg("a = "..a)
+		if a < 0.05 then
+			GUI.elms[self.fade[3]] = nil
+			return 0 
+		end
+		gfx.set(gfx.r, gfx.g, gfx.b, a)
+	end
 	
 	gfx.x, gfx.y = x, y
 	
@@ -968,6 +1004,7 @@ function GUI.Label:ontype() end
 --[[	Slider class.
 
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.	
 x, y, w			Coordinates of top-left corner, width. Height is fixed.
 caption			Label / question
 min, max		Minimum and maximum slider values
@@ -980,10 +1017,12 @@ ticks			Display ticks or not. **Currently does nothing**
 
 -- Slider - New
 GUI.Slider = {}
-function GUI.Slider:new(x, y, w, caption, min, max, steps, default, ticks)
+function GUI.Slider:new(z, x, y, w, caption, min, max, steps, default, ticks)
 	
 	local Slider = {}
 	Slider.type = "Slider"
+	
+	Slider.z = z
 	
 	Slider.x, Slider.y, Slider.w, Slider.h = x, y, w, 8
 
@@ -1188,6 +1227,7 @@ function GUI.Slider:onmouseover() end
 --[[	Range class
 	
 		---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.		
 x, y, w			Coordinates of top-left corner, width. Height is fixed.
 caption			Label / question
 min, max		Minimum and maximum slider values
@@ -1199,10 +1239,12 @@ ticks			Display ticks or not. **Currently does nothing**
 	
 ]]--
 GUI.Range = {}
-function GUI.Range:new(x, y, w, caption, min, max, steps, default_a, default_b)
+function GUI.Range:new(z, x, y, w, caption, min, max, steps, default_a, default_b)
 	
 	local Range = {}
 	Range.type = "Range"
+	
+	Range.z = z
 	
 	Range.x, Range.y, Range.w, Range.h = x, y, w, 8
 
@@ -1449,6 +1491,7 @@ function GUI.Range:onmouseover() end
 --[[	Knob class.
 
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.	
 x, y, w			Coordinates of top-left corner, width. Height is fixed.
 caption			Label / question
 min, max		Minimum and maximum slider values
@@ -1460,10 +1503,12 @@ ticks			(1) display tick marks, (0) no tick marks
 
 -- Knob - New.
 GUI.Knob = {}
-function GUI.Knob:new(x, y, w, caption, min, max, steps, default, ticks)
+function GUI.Knob:new(z, x, y, w, caption, min, max, steps, default, ticks)
 	
 	local Knob = {}
 	Knob.type = "Knob"
+	
+	Knob.z = z
 	
 	Knob.x, Knob.y, Knob.w, Knob.h = x, y, w, w
 
@@ -1674,6 +1719,7 @@ function GUI.Knob:onmouseover() end
 --[[	Radio class. Adapted from eugen2777's simple GUI template.
 
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.	
 x, y, w, h		Coordinates of top-left corner, width, overall height *including caption*
 caption			Title / question
 opts			String separated by commas, just like for GetUserInputs().
@@ -1684,10 +1730,12 @@ pad				Padding between the caption and each option
 
 -- Radio - New.
 GUI.Radio = {}
-function GUI.Radio:new(x, y, w, h, caption, opts, pad)
+function GUI.Radio:new(z, x, y, w, h, caption, opts, pad)
 	
 	local opt_lst = {}
 	opt_lst.type = "Radio"
+	
+	opt_lst.z = z
 	
 	opt_lst.x, opt_lst.y, opt_lst.w, opt_lst.h = x, y, w, h
 
@@ -1854,6 +1902,7 @@ function GUI.Radio:onmouseover() end
 --[[	Checklist class. Adapted from eugen2777's simple GUI template.
 
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.	
 x, y, w, h		Coordinates of top-left corner, width, overall height *including caption*
 caption			Title / question
 opts			String separated by commas, just like for GetUserInputs().
@@ -1865,10 +1914,12 @@ pad				Padding between the caption and each option
 
 -- Checklist - New
 GUI.Checklist = {}
-function GUI.Checklist:new(x, y, w, h, caption, opts, pad)
+function GUI.Checklist:new(z, x, y, w, h, caption, opts, pad)
 	
 	local chk = {}
 	chk.type = "Checklist"
+	
+	chk.z = z
 	
 	chk.x, chk.y, chk.w, chk.h = x, y, w, h
 
@@ -2015,6 +2066,7 @@ function GUI.Checklist:onmouseover() end
 --[[	Button class. Adapted from eugen2777's simple GUI template.
 
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.
 x, y, w, h		Coordinates of top-left corner, width, height
 caption			Label / question
 func			Function to perform when clicked
@@ -2027,14 +2079,18 @@ r_params		If provided, any parameters to pass to that function
 
 -- Button - New
 GUI.Button = {}
-function GUI.Button:new(x, y, w, h, caption, func, ...)
+function GUI.Button:new(z, x, y, w, h, caption, func, ...)
 
 	local Button = {}
 	Button.type = "Button"
 	
+	Button.z = z
+	
 	Button.x, Button.y, Button.w, Button.h = x, y, w, h
 
 	Button.caption = caption
+	
+	Button.font = 4
 	
 	Button.func = func or function () end
 	Button.params = {...}
@@ -2071,7 +2127,7 @@ function GUI.Button:draw()
 	
 	-- Draw the caption
 	GUI.color("txt")
-	GUI.font(4)	
+	GUI.font(self.font)	
 	
 	local str_w, str_h = gfx.measurestr(self.caption)
 	gfx.x = x + 2 * state + ((w - str_w) / 2)-- - 2
@@ -2114,6 +2170,19 @@ function GUI.Button:onmouser_up()
 	end
 end
 
+
+-- Button - Execute function
+-- Used for allowing hotkeys to press a button
+function GUI.Button:exec(r)
+	
+	if r then
+		self.r_func(table.unpack(self.r_params))
+	else
+		self.func(table.unpack(self.params))
+	end
+	
+end
+
 -- Button - Unused methods.
 function GUI.Button:val() end
 function GUI.Button:onwheel() end
@@ -2129,6 +2198,7 @@ function GUI.Button:onmouseover() end
 --[[	Textbox class. Adapted from schwa's example code.
 	
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.
 x, y, w, h		Coordinates of top-left corner, width, height
 caption			Text to display to the left of the textbox
 pad				Padding between the left side and first character.
@@ -2138,10 +2208,12 @@ pad				Padding between the left side and first character.
 
 -- Textbox - New
 GUI.Textbox = {}
-function GUI.Textbox:new(x, y, w, h, caption, pad)
+function GUI.Textbox:new(z, x, y, w, h, caption, pad)
 	
 	local txt = {}
 	txt.type = "Textbox"
+	
+	txt.z = z
 	
 	txt.x, txt.y, txt.w, txt.h = x, y, w, h
 
@@ -2393,6 +2465,7 @@ function GUI.Textbox:onmouseover() end
 --[[	MenuBox class
 	
 	---- User parameters ----
+z				Element depth, used for hiding and disabling layers. 1 is the highest.
 x, y, w, h		Coordinates of top-left corner, width, overall height *including caption*
 caption			Title / question
 opts			String separated by commas, just like for GetUserInputs().
@@ -2401,10 +2474,12 @@ pad				Padding between the caption and each option
 	
 ]]--
 GUI.Menubox = {}
-function GUI.Menubox:new(x, y, w, h, caption, opts, pad)
+function GUI.Menubox:new(z, x, y, w, h, caption, opts, pad)
 	
 	local menu = {}
 	menu.type = "Menubox"
+	
+	menu.z = z
 	
 	menu.x, menu.y, menu.w, menu.h = x, y, w, h
 
@@ -2559,10 +2634,12 @@ function GUI.Menubox:onmouseover() end
 	
 ]]--
 GUI.Frame = {}
-function GUI.Frame:new(x, y, w, h, shadow, fill, color, round)
+function GUI.Frame:new(z, x, y, w, h, shadow, fill, color, round)
 	
 	local Frame = {}
 	Frame.type = "Frame"
+	
+	Frame.z = z
 	
 	Frame.x, Frame.y, Frame.w, Frame.h = x, y, w, h
 	
@@ -2633,10 +2710,12 @@ function GUI.Frame:onmouseover() end
 	
 ]]--
 GUI.Tabframe = {}
-function GUI.Tabframe:new(x, y, w, h, tabs) 
+function GUI.Tabframe:new(z, x, y, w, h, tabs) 
 	
 	local tab = {}
 	tab.type = "Tabframe"
+	
+	tab.z = z
 	
 	tab.x, tab.y, tab.w, tab.h = x, y, w, h
 	
@@ -2739,36 +2818,100 @@ local interval_str = interval_arr[1][1]
 for i = 2, #interval_arr do
 	interval_str = interval_str..","..interval_arr[i][1]
 end
+
+local root_arr = {[0] = "C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A","A#/Bb","B"}
+
+local scale_arr = {}
+local chrom_notes = {}
+
+local size, deg
+
+local cur_wnd, cur_take
+
+-- Are we in "waiting for the user to press Go" mode, or
+-- "working through the list of nondiatonic notes" mode?
+local chrom_mode = false
+local last_num_chroms = 0
+
+local up_arrow = "[↑]"
+local dn_arrow = "[↓]"
+
+	
+local function harmonize_note(MIDI_note)	
+	local pitch_class = (MIDI_note + 12) % 12
+	local deg_o
+	
+	for j = 1, size do
+		if pitch_class == scale_arr[j] then
+			deg_o = j
+			break
+		end
+	end
+
+	
+	if deg_o then
+	
+		local deg_new = deg_o + deg
+		local oct_adj = deg > 0 and (math.modf((deg_new - 1) / size)) or (math.modf(deg_new / size))
+		if deg_new < 1 then
+			oct_adj = oct_adj - 1
+		end
+		
+		-- Convert the degree to a value within the scale
+		deg_new =  (deg_new - 1) % size + 1
+		
+		local note_adj = scale_arr[deg_new] - scale_arr[deg_o] + 12 * oct_adj
+		
+		return MIDI_note + note_adj
+	
+	else return -1
+	
+	end
 	
 	
+end
+
+
+local function chrom_toggle(chrom)
+	
+	GUI.elms_hide[5] = chrom
+	GUI.elms_hide[3] = not chrom
+	
+	chrom_mode = chrom
+	
+end
+
+
 local function dup_notes()
 	
-	local cur_wnd = reaper.MIDIEditor_GetActive()
+	cur_wnd = reaper.MIDIEditor_GetActive()
 	if not cur_wnd then
 		reaper.ShowMessageBox( "This script needs an active MIDI editor.", "No MIDI editor found", 0)
 		return 0
 	end
-	local cur_take = reaper.MIDIEditor_GetTake(cur_wnd)
+	cur_take = reaper.MIDIEditor_GetTake(cur_wnd)
 	local val = interval_arr[GUI.Val("mnu_intervals")][2]
 		
 	-- Parse the text to get a scale degree
-	local deg = math.floor(tonumber(val) or 0) or nil
+	deg = math.floor(tonumber(val) or 0) or nil
 	local __, scale_str = reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", "")
-	local __, size = string.gsub(scale_str, "[^0]", "")
-	
+	__, size = string.gsub(scale_str, "[^0]", "")
+
 	if not deg or deg == -1 or deg == 1 then
 		return 0
 	else
 
 		reaper.Undo_BeginBlock()
+		
+		chrom_notes = {}
 
 		-- Parse the scale string into something useful
 		-- Size = number of non-zero values in the scale
 		local __, scale_str = reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", "")
 
-		local __, size = string.gsub(scale_str, "[^0]", "")
+		__, size = string.gsub(scale_str, "[^0]", "")
 			
-		local scale_arr = {[0] = 0}
+		scale_arr = {[0] = 0}
 		for i = 1, size do
 			scale_arr[i] = string.find(scale_str, "[^0]", scale_arr[i-1] + 1)
 		end
@@ -2799,36 +2942,20 @@ local function dup_notes()
 		
 		reaper.MIDI_SelectAll(cur_take, false)
 		
+		
 		-- For each note in the array, calculate a pitch offset and duplicate it
 		for i = 1, #sel_notes do
 							
-			local pitch_class = (sel_notes[i][6] + 12) % 12
-			local deg_o
+			local new_note = harmonize_note(sel_notes[i][6])
 			
-			for j = 1, size do
-				if pitch_class == scale_arr[j] then
-					deg_o = j
-					break
-				end
-			end
-			
-			if deg_o then
-			
-				local deg_new = deg_o + deg
-				local oct_adj = deg > 0 and (math.modf((deg_new - 1) / size)) or (math.modf(deg_new / size))
-				if deg_new < 1 then
-					oct_adj = oct_adj - 1
-				end
-				
-				-- Convert the degree to a value within the scale
-				deg_new =  (deg_new - 1) % size + 1
-				
-				local note_adj = scale_arr[deg_new] - scale_arr[deg_o] + 12 * oct_adj
-
-				sel_notes[i][6] = sel_notes[i][6] + note_adj
+			if new_note ~= -1 then
+				sel_notes[i][6] = new_note
+							
 				local sel, mute, start, _end, chan, pitch, vel = table.unpack(sel_notes[i])
 				reaper.MIDI_InsertNote(cur_take, sel, mute, start, _end, chan, pitch, vel, true)
-				
+			
+			else
+				table.insert(chrom_notes, sel_notes[i])
 			end
 		end
 		
@@ -2836,18 +2963,147 @@ local function dup_notes()
 		
 		reaper.Undo_EndBlock("Duplicate selected notes "..interval_arr[GUI.Val("mnu_intervals")][1].." diatonically", -1)
 		
-	end
+	end	
 end	
+
+
+local function get_harm_opts(cur_note)
 	
+	cur_note = (cur_note + 12) % 12
+	
+	local note_up, note_dn
+	for i = 1, #scale_arr do
+		
+		if scale_arr[i] > cur_note then
+			note_dn = scale_arr[i-1]
+			note_up = scale_arr[i]
+			
+			break
+		end
+	end
+	
+	local adj_up = note_up - cur_note
+	local adj_dn = note_dn - cur_note
+		
+	return adj_dn, adj_up		
+	
+end
+
+
+local function chrom_harm(new_note)
+	
+	if new_note ~= -1 then
+		
+		chrom_notes[1][6] = new_note
+		
+		local sel, mute, start, _end, chan, pitch, vel = table.unpack(chrom_notes[1])
+		reaper.MIDI_InsertNote(cur_take, sel, mute, start, _end, chan, pitch, vel, true)
+		
+		table.remove(chrom_notes, 1)		
+
+	end
+
+end
+
+local function chrom_skip()
+	if #chrom_notes > 0 then table.remove(chrom_notes, 1) end
+end
+
+local function goto_chrom()
+	
+	local time = reaper.MIDI_GetProjTimeFromPPQPos(cur_take, chrom_notes[1][3] )
+	reaper.SetEditCurPos2(0, time, true, true)
+	
+end
+
+
 
 GUI.elms = {
-	lbl_duplicate = GUI.Label:new(4, 4, "Duplicate selected notes", 0, 4),
-	mnu_intervals = GUI.Menubox:new(64, 4, 140, 18, "", interval_str, 4), 
-	btn_go = GUI.Button:new(4, 26, 64, 22, "Go", dup_notes),
-	lbl_semitones = GUI.Label:new(4, 4, "diatonically.", 1, 4),
+	lbl_duplicate = GUI.Label:new(		5,	8, 4, "Duplicate selected notes", 0, 4),
+	mnu_intervals = GUI.Menubox:new(	5,	60, 4, 140, 18, "", interval_str, 4), 
+	btn_go = GUI.Button:new(			5,	4, 28, 64, 20, "Go", dup_notes),
+	lbl_semitones = GUI.Label:new(		5,	4, 4, "diatonically.", 1, 4),
+	
+	lbl_num_chrom = GUI.Label:new(		3,	8, 4, "", 1, 4),
+	btn_harm_up = GUI.Button:new(		3,	32, 28, 80, 20, "↑", chrom_harm, 1),
+	btn_harm_dn = GUI.Button:new(		3,	168, 28, 80, 20, "↓", chrom_harm, -1),
+	btn_skip = GUI.Button:new(			3,  100, 28, 80, 20, "[S]kip", chrom_skip),	
+	btn_goto = GUI.Button:new(			3,	200, 28, 80, 20, "[G]o to", goto_chrom),
 }
 
+GUI.elms_hide = {[3] = true}
+
 GUI.Val("mnu_intervals", 11)
+
+
+
+
+local function Main()
+	
+	if #chrom_notes > 0 then chrom_toggle(true) end
+	
+	if chrom_mode then
+		
+		if #chrom_notes == 0 then 
+			chrom_toggle(false) 
+			return 0
+		end
+		
+		local cur_num_chroms = #chrom_notes
+		
+		if cur_num_chroms == 0 then
+			return 0
+		elseif cur_num_chroms ~= last_num_chroms then
+			last_num_chroms = cur_num_chroms
+			
+			local cur_note = chrom_notes[1][6]
+
+			-- Get the two harmony choices as MIDI note numbers
+			local adj_dn, adj_up = get_harm_opts(cur_note)
+			local note_dn, note_up = harmonize_note(cur_note + adj_dn), harmonize_note(cur_note + adj_up)
+
+			-- The two buttons will now pass their MIDI note to the insert function
+			GUI.elms.btn_harm_up.params = {note_up}
+			GUI.elms.btn_harm_dn.params = {note_dn}
+
+			GUI.elms.btn_harm_up.caption = up_arrow..root_arr[(note_up + 12) % 12]
+			GUI.elms.btn_harm_dn.caption = dn_arrow..root_arr[(note_dn + 12) % 12]
+			
+			-- Update time stamp label for the current note
+			local start_ppq = chrom_notes[1][3]
+			
+			local time_str = reaper.MIDI_GetProjTimeFromPPQPos(cur_take, start_ppq)
+			local beats_str, bars_str = reaper.TimeMap2_timeToBeats(0, time_str)
+			
+			
+			local h = math.modf(time_str / 3600)
+			local m = math.modf((time_str - h * 3600) / 60)
+			local s = time_str - h * 3600 - m * 60
+			
+			time_str = string.format("%d:%02d:%2.3f", h, m, s)
+
+			local bars_str = bars_str + 1
+			local beats_str = math.floor(beats_str * 100) / 100 + 1
+			
+			local name_cur = root_arr[(cur_note + 12) % 12]
+			
+			local name_str = "Harmonize "..name_cur.." at beat "..bars_str.."."..beats_str.." / "..time_str.."s as:"
+			GUI.Val("lbl_num_chrom", name_str)
+
+		end
+		
+		-- See if the user pressed one of our hotkeys
+		local char = GUI.char
+		if 		char == GUI.chars.UP 	then GUI.elms.btn_harm_up:exec()
+		elseif	char == GUI.chars.DOWN 	then GUI.elms.btn_harm_dn:exec()
+		elseif	char == string.byte("s") then GUI.elms.btn_skip:exec()
+		elseif	char == string.byte("g") then GUI.elms.btn_goto:exec()
+		end
+		
+		
+	end	
+end
+
 
 GUI.version = nil
 GUI.Init()
@@ -2857,14 +3113,23 @@ local str_w_a, __ = gfx.measurestr(GUI.Val("lbl_duplicate"))
 local str_w_b, __ = gfx.measurestr(GUI.Val("lbl_semitones"))
 local __, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
 
-GUI.elms.mnu_intervals.x = 4 + str_w_a + 4
+GUI.elms.mnu_intervals.x = 8 + str_w_a + 4
 GUI.elms.lbl_semitones.x = GUI.elms.mnu_intervals.x + GUI.elms.mnu_intervals.w + 4
 local new_w = GUI.elms.lbl_semitones.x + str_w_b + 4
 
 GUI.elms.btn_go.x = (new_w - GUI.elms.btn_go.w) / 2
+GUI.elms.btn_skip.x = new_w / 2
+GUI.elms.btn_harm_dn.x = GUI.elms.btn_skip.x - GUI.elms.btn_skip.w - 4
+GUI.elms.btn_harm_up.x = GUI.elms.btn_harm_dn.x - GUI.elms.btn_harm_dn.w - 4
+GUI.elms.btn_goto.x = GUI.elms.btn_skip.x + GUI.elms.btn_skip.w + 4
+--GUI.elms.btn_harm_up.x = GUI.elms.btn_skip.x - GUI.elms.btn_harm_up.w - 4
+--GUI.elms.btn_harm_dn.x = GUI.elms.btn_skip.x + GUI.elms.btn_skip.w + 4
 
 gfx.quit()
 gfx.init(GUI.name, new_w, h, 0, x, y)
 GUI.cur_w = new_w
+
+GUI.func = Main
+GUI.freq = 0
 
 GUI.Main()
