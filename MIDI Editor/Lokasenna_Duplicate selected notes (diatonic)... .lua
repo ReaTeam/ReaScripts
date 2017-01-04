@@ -1,14 +1,15 @@
 --[[
 Description: Duplicate selected notes (diatonic)...
-Version: 1.1
+Version: 1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Offers users a choice of how to harmonize notes that aren't in the scale
+	Saves original cursor position and jumps back to it after finishing
+	GUI tweaks
 Links:
 Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
-	Duplicates the selected notes up or down a specified interval diatonically
+	Duplicates the selected notes up or down a specified interval, diatonically
 Extensions: 
 --]]
 
@@ -2836,6 +2837,9 @@ local last_num_chroms = 0
 local up_arrow = "[↑]"
 local dn_arrow = "[↓]"
 
+-- For storing the original position while we jump around
+local cursor_pos
+
 	
 local function harmonize_note(MIDI_note)	
 	local pitch_class = (MIDI_note + 12) % 12
@@ -2891,6 +2895,8 @@ local function dup_notes()
 	end
 	cur_take = reaper.MIDIEditor_GetTake(cur_wnd)
 	local val = interval_arr[GUI.Val("mnu_intervals")][2]
+	
+	cursor_pos = reaper.GetCursorPosition()
 		
 	-- Parse the text to get a scale degree
 	deg = math.floor(tonumber(val) or 0) or nil
@@ -3011,8 +3017,7 @@ end
 
 local function goto_chrom()
 	
-	local time = reaper.MIDI_GetProjTimeFromPPQPos(cur_take, chrom_notes[1][3] )
-	reaper.SetEditCurPos2(0, time, true, true)
+
 	
 end
 
@@ -3021,14 +3026,14 @@ end
 GUI.elms = {
 	lbl_duplicate = GUI.Label:new(		5,	8, 4, "Duplicate selected notes", 0, 4),
 	mnu_intervals = GUI.Menubox:new(	5,	60, 4, 140, 18, "", interval_str, 4), 
-	btn_go = GUI.Button:new(			5,	4, 28, 64, 20, "Go", dup_notes),
+	btn_go = GUI.Button:new(			5,	4, 28, 80, 20, "Go", dup_notes),
 	lbl_semitones = GUI.Label:new(		5,	4, 4, "diatonically.", 1, 4),
 	
 	lbl_num_chrom = GUI.Label:new(		3,	8, 4, "", 1, 4),
-	btn_harm_up = GUI.Button:new(		3,	32, 28, 80, 20, "↑", chrom_harm, 1),
-	btn_harm_dn = GUI.Button:new(		3,	168, 28, 80, 20, "↓", chrom_harm, -1),
-	btn_skip = GUI.Button:new(			3,  100, 28, 80, 20, "[S]kip", chrom_skip),	
-	btn_goto = GUI.Button:new(			3,	200, 28, 80, 20, "[G]o to", goto_chrom),
+	btn_harm_dn = GUI.Button:new(		3,	0, 28, 80, 20, "↓", chrom_harm, -1),	
+	btn_harm_up = GUI.Button:new(		3,	0, 28, 80, 20, "↑", chrom_harm, 1),
+	btn_skip = GUI.Button:new(			3,  0, 28, 80, 20, "[S]kip", chrom_skip),	
+
 }
 
 GUI.elms_hide = {[3] = true}
@@ -3040,12 +3045,16 @@ GUI.Val("mnu_intervals", 11)
 
 local function Main()
 	
-	if #chrom_notes > 0 then chrom_toggle(true) end
+	if #chrom_notes > 0 and not chrom_mode then chrom_toggle(true) end
 	
 	if chrom_mode then
 		
 		if #chrom_notes == 0 then 
 			chrom_toggle(false) 
+			
+			-- Jump back to where the user was originally
+			reaper.SetEditCurPos2(0, cursor_pos, true, true)
+			
 			return 0
 		end
 		
@@ -3089,6 +3098,10 @@ local function Main()
 			
 			local name_str = "Harmonize "..name_cur.." at beat "..bars_str.."."..beats_str.." / "..time_str.."s as:"
 			GUI.Val("lbl_num_chrom", name_str)
+			
+			-- Jump to the current note so we can see the context
+			local time = reaper.MIDI_GetProjTimeFromPPQPos(cur_take, chrom_notes[1][3] )
+			reaper.SetEditCurPos2(0, time, true, true)
 
 		end
 		
@@ -3118,12 +3131,10 @@ GUI.elms.lbl_semitones.x = GUI.elms.mnu_intervals.x + GUI.elms.mnu_intervals.w +
 local new_w = GUI.elms.lbl_semitones.x + str_w_b + 4
 
 GUI.elms.btn_go.x = (new_w - GUI.elms.btn_go.w) / 2
-GUI.elms.btn_skip.x = new_w / 2
-GUI.elms.btn_harm_dn.x = GUI.elms.btn_skip.x - GUI.elms.btn_skip.w - 4
-GUI.elms.btn_harm_up.x = GUI.elms.btn_harm_dn.x - GUI.elms.btn_harm_dn.w - 4
-GUI.elms.btn_goto.x = GUI.elms.btn_skip.x + GUI.elms.btn_skip.w + 4
---GUI.elms.btn_harm_up.x = GUI.elms.btn_skip.x - GUI.elms.btn_harm_up.w - 4
---GUI.elms.btn_harm_dn.x = GUI.elms.btn_skip.x + GUI.elms.btn_skip.w + 4
+GUI.elms.btn_harm_up.x = GUI.elms.btn_go.x
+GUI.elms.btn_skip.x = GUI.elms.btn_harm_up.x + GUI.elms.btn_harm_up.w + 4
+GUI.elms.btn_harm_dn.x = GUI.elms.btn_harm_up.x - GUI.elms.btn_harm_dn.w - 4
+
 
 gfx.quit()
 gfx.init(GUI.name, new_w, h, 0, x, y)
