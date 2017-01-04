@@ -1716,6 +1716,10 @@ Revised to match the diatonic version of this script]]></changelog>
 GUI tweaks]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/17f7c3a09354536f8530621ab02eb082260874b2/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
       </version>
+      <version name="1.1" author="Lokasenna" time="2017-01-03T16:40:08Z">
+        <changelog><![CDATA[Offers users a choice of how to harmonize notes that aren't in the scale]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/79b9ffcb6c517913ba500988a906e9960b4a5a84/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Mute all notes outside the current scale.lua" type="script" desc="Mute all notes outside the current scale">
       <metadata>
