@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="17f7c3a09354536f8530621ab02eb082260874b2" name="ReaTeam Scripts">
+<index version="1" commit="4f34d02614399a582a1b5e82b80b5e4deabe6c6f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -354,6 +354,26 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="IXix" time="2016-10-29T01:58:12Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6cd9562b309fec7a01f8d7c15ab9ac0d742e2104/Items%20Properties/IXix_delete%20selected%20items%20active%20take%20envelopes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Toggle item under mouse cursor's image between notes and background.lua" type="script" desc="Toggle item under mouse cursor's image between notes and background">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-05T22:47:13Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f34d02614399a582a1b5e82b80b5e4deabe6c6f/Items%20Properties/Lokasenna_Toggle%20item%20under%20mouse%20cursor's%20image%20between%20notes%20and%20background.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Toggle selected item's image between notes and background.lua" type="script" desc="Toggle selected item's image between notes and background">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-05T22:47:13Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f34d02614399a582a1b5e82b80b5e4deabe6c6f/Items%20Properties/Lokasenna_Toggle%20selected%20item's%20image%20between%20notes%20and%20background.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
