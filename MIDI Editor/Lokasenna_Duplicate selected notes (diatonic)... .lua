@@ -1,11 +1,10 @@
 --[[
 Description: Duplicate selected notes (diatonic)...
-Version: 1.2
+Version: 1.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Saves original cursor position and jumps back to it after finishing
-	GUI tweaks
+	Bug fix; it was always using C as the scale's root
 Links:
 Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -2791,6 +2790,9 @@ GUI.name = "Duplicate selected notes (diatonic)..."
 GUI.x, GUI.y, GUI.w, GUI.h = -48, 0, 250, 56
 GUI.anchor, GUI.corner = "mouse", "C"
 
+
+local deg = 1
+
 local interval_arr = {
 	{"up an eleventh", 11},
 	{"up a tenth", 10},
@@ -2825,7 +2827,7 @@ local root_arr = {[0] = "C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A",
 local scale_arr = {}
 local chrom_notes = {}
 
-local size, deg
+local size, deg, key = 0, 0, 0
 
 local cur_wnd, cur_take
 
@@ -2842,7 +2844,9 @@ local cursor_pos
 
 	
 local function harmonize_note(MIDI_note)	
-	local pitch_class = (MIDI_note + 12) % 12
+	
+	-- Subtract "key" so the rest of the math can just work with a scale root of 0
+	local pitch_class = (MIDI_note + 12 - key) % 12
 	local deg_o
 	
 	for j = 1, size do
@@ -2897,11 +2901,13 @@ local function dup_notes()
 	local val = interval_arr[GUI.Val("mnu_intervals")][2]
 	
 	cursor_pos = reaper.GetCursorPosition()
-		
-	-- Parse the text to get a scale degree
-	deg = math.floor(tonumber(val) or 0) or nil
+	
+	__, key, __, __ = reaper.MIDI_GetScale(cur_take, 0, 0, "")
 	local __, scale_str = reaper.MIDIEditor_GetSetting_str(cur_wnd, "scale", "")
 	__, size = string.gsub(scale_str, "[^0]", "")
+		
+	-- Parse the menu text to get a scale degree
+	deg = math.floor(tonumber(val) or 0) or nil
 
 	if not deg or deg == -1 or deg == 1 then
 		return 0
@@ -2951,7 +2957,8 @@ local function dup_notes()
 		
 		-- For each note in the array, calculate a pitch offset and duplicate it
 		for i = 1, #sel_notes do
-							
+			
+			-- Offsetting for the Key
 			local new_note = harmonize_note(sel_notes[i][6])
 			
 			if new_note ~= -1 then
@@ -2975,8 +2982,9 @@ end
 
 local function get_harm_opts(cur_note)
 	
-	cur_note = (cur_note + 12) % 12
-	
+	-- Subtract "key" so the math can be based on a root of 0
+	cur_note = (cur_note + 12 - key) % 12
+
 	local note_up, note_dn
 	for i = 1, #scale_arr do
 		
@@ -2987,6 +2995,9 @@ local function get_harm_opts(cur_note)
 			break
 		end
 	end
+	
+	if not note_dn then note_dn = scale_arr[#scale_arr] end
+	if not note_up then note_up = 12 end
 	
 	local adj_up = note_up - cur_note
 	local adj_dn = note_dn - cur_note
