@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7efe3f6023b88c37251bd0c00364fbd08847e9b0" name="ReaTeam Scripts">
+<index version="1" commit="9f0fbeefa520cdbb5dda8b3f33e6cd06d1e20f74" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1759,6 +1759,10 @@ GUI tweaks]]></changelog>
       <version name="1.3" author="Lokasenna" time="2017-01-07T00:10:33Z">
         <changelog><![CDATA[Bug fix; it was always using C as the scale's root]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/827912a3bafa263dbd12a6c5c0723b267b577d10/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
+      </version>
+      <version name="1.3.1" author="Lokasenna" time="2017-01-07T14:53:22Z">
+        <changelog><![CDATA[Bug fix; it was always using C as the scale's root]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9f0fbeefa520cdbb5dda8b3f33e6cd06d1e20f74/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Mute all notes outside the current scale.lua" type="script" desc="Mute all notes outside the current scale">
