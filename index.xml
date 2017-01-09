@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fa61effeb89a415c1fc365ac43c4c0b30441a29c" name="ReaTeam Scripts">
+<index version="1" commit="e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1711,7 +1711,7 @@ Velocity slider. Set to 0 to use the MIDI editor's velocity.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5f4c65866be4cc4df2b66edfc43f1c63554ae8c4/MIDI%20Editor/Lokasenna_Delete%20selected%20notes%20outside%20the%20current%20scale.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes (chromatic)... .lua" type="script" desc="Duplicate selected notes (chromatic)...">
+    <reapack name="Lokasenna_Duplicate selected notes chromatically.lua" type="script" desc="Duplicate selected notes chromatically...">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -1723,13 +1723,34 @@ Velocity slider. Set to 0 to use the MIDI editor's velocity.]]></changelog>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
-      <version name="1.0.1" author="Lokasenna" time="2017-01-01T18:28:21Z">
-        <changelog><![CDATA[Added Undo statements
-Revised to match the diatonic version of this script]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/898d3e24caca95292650275366b2b2353bd904a3/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(chromatic)...%20.lua</source>
+      <version name="1.5" author="Lokasenna" time="2017-01-09T02:30:26Z">
+        <changelog><![CDATA[Reworked the script to include individual actions]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 1 semitone.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%201%20semitone.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 10 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%2010%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 11 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%2011%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 2 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%202%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 3 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%203%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 4 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%204%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 5 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%205%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 6 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%206%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 7 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%207%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 8 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%208%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes down 9 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20down%209%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 1 semitone.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%201%20semitone.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 10 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%2010%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 11 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%2011%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 2 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%202%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 3 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%203%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 4 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%204%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 5 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%205%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 6 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%206%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 7 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%207%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 8 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%208%20semitones.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes chromatically/Lokasenna_Duplicate selected notes up 9 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20chromatically/Lokasenna_Duplicate%20selected%20notes%20up%209%20semitones.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes (diatonic)... .lua" type="script" desc="Duplicate selected notes (diatonic)...">
+    <reapack name="Lokasenna_Duplicate selected notes diatonically.lua" type="script" desc="Duplicate selected notes diatonically...">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -1738,35 +1759,32 @@ Revised to match the diatonic version of this script]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes up or down a specified interval, diatonically\par}
 }
 ]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-01T18:28:21Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/898d3e24caca95292650275366b2b2353bd904a3/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
-      </version>
-      <version name="1.0.1" author="Lokasenna" time="2017-01-02T03:19:12Z">
-        <changelog><![CDATA[Ignores notes outside of the scale instead of crashing]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2143940472c169a3d1077eca8e07a3643a854c40/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
-      </version>
-      <version name="1.2" author="Lokasenna" time="2017-01-04T01:20:25Z">
-        <changelog><![CDATA[Saves original cursor position and jumps back to it after finishing
-GUI tweaks]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/17f7c3a09354536f8530621ab02eb082260874b2/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
-      </version>
-      <version name="1.1" author="Lokasenna" time="2017-01-03T16:40:08Z">
-        <changelog><![CDATA[Offers users a choice of how to harmonize notes that aren't in the scale]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/79b9ffcb6c517913ba500988a906e9960b4a5a84/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
-      </version>
-      <version name="1.3" author="Lokasenna" time="2017-01-07T00:10:33Z">
-        <changelog><![CDATA[Bug fix; it was always using C as the scale's root]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/827912a3bafa263dbd12a6c5c0723b267b577d10/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
-      </version>
-      <version name="1.3.1" author="Lokasenna" time="2017-01-07T14:53:22Z">
-        <changelog><![CDATA[Bug fix; it was always using C as the scale's root]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9f0fbeefa520cdbb5dda8b3f33e6cd06d1e20f74/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
-      </version>
-      <version name="1.3.2" author="Lokasenna" time="2017-01-07T20:12:17Z">
-        <changelog><![CDATA[Bug fix; it was always using C as the scale's root]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fa61effeb89a415c1fc365ac43c4c0b30441a29c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20(diatonic)...%20.lua</source>
+      <version name="1.5" author="Lokasenna" time="2017-01-09T02:30:26Z">
+        <changelog><![CDATA[Reworked the script to include individual actions]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a fifth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20fifth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a fourth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20fourth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a ninth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20ninth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a second diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20second%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a seventh diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20seventh%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a sixth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20sixth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a tenth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20tenth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down a third diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20a%20third%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down an eighth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20an%20eighth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes down an eleventh diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20down%20an%20eleventh%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a fifth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20fifth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a fourth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20fourth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a ninth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20ninth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a second diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20second%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a seventh diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20seventh%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a sixth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20sixth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a tenth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20tenth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up a third diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20a%20third%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up an eighth diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20an%20eighth%20diatonically.lua</source>
+        <source main="midi_editor" file="Lokasenna_Duplicate selected notes diatonically/Lokasenna_Duplicate selected notes up an eleventh diatonically.lua">https://github.com/ReaTeam/ReaScripts/raw/e4af7703d5a0dd7c0e4b02ba43635fa2f4ad848c/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20diatonically/Lokasenna_Duplicate%20selected%20notes%20up%20an%20eleventh%20diatonically.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Mute all notes outside the current scale.lua" type="script" desc="Mute all notes outside the current scale">
@@ -1910,506 +1928,6 @@ Made by Mordi, Jan 2016]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Split%20selected%20takes%20to%20MIDI%20notes%20boundaries.eel</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="MIDI Editor/Lokasenna_Duplicate selected notes at ___ intervals">
-    <reapack name="Lokasenna_Duplicate selected notes down 1 semitone.lua" type="script" desc="Duplicate selected notes down 1 semitone">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%201%20semitone.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 10 semitones.lua" type="script" desc="Duplicate selected notes down 10 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%2010%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 11 semitones.lua" type="script" desc="Duplicate selected notes down 11 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%2011%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 2 semitones.lua" type="script" desc="Duplicate selected notes down 2 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%202%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 3 semitones.lua" type="script" desc="Duplicate selected notes down 3 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%203%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 4 semitones.lua" type="script" desc="Duplicate selected notes down 4 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%204%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 5 semitones.lua" type="script" desc="Duplicate selected notes down 5 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%205%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 6 semitones.lua" type="script" desc="Duplicate selected notes down 6 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%206%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 7 semitones.lua" type="script" desc="Duplicate selected notes down 7 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%207%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 8 semitones.lua" type="script" desc="Duplicate selected notes down 8 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%208%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down 9 semitones.lua" type="script" desc="Duplicate selected notes down 9 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%209%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a fifth diatonically.lua" type="script" desc="Duplicate selected notes down a fifth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20fifth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a fourth diatonically.lua" type="script" desc="Duplicate selected notes down a fourth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20fourth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a ninth diatonically.lua" type="script" desc="Duplicate selected notes down a ninth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20ninth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a second diatonically.lua" type="script" desc="Duplicate selected notes down a second diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20second%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a seventh diatonically.lua" type="script" desc="Duplicate selected notes down a seventh diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20seventh%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a sixth diatonically.lua" type="script" desc="Duplicate selected notes down a sixth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20sixth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a tenth diatonically.lua" type="script" desc="Duplicate selected notes down a tenth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20tenth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down a third diatonically.lua" type="script" desc="Duplicate selected notes down a third diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20a%20third%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down an eighth diatonically.lua" type="script" desc="Duplicate selected notes down an eighth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20an%20eighth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes down an eleventh diatonically.lua" type="script" desc="Duplicate selected notes down an eleventh diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20down%20an%20eleventh%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 1 semitone.lua" type="script" desc="Duplicate selected notes up 1 semitone">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%201%20semitone.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 10 semitones.lua" type="script" desc="Duplicate selected notes up 10 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%2010%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 11 semitones.lua" type="script" desc="Duplicate selected notes up 11 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%2011%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 2 semitones.lua" type="script" desc="Duplicate selected notes up 2 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%202%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 3 semitones.lua" type="script" desc="Duplicate selected notes up 3 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%203%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 4 semitones.lua" type="script" desc="Duplicate selected notes up 4 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%204%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 5 semitones.lua" type="script" desc="Duplicate selected notes up 5 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%205%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 6 semitones.lua" type="script" desc="Duplicate selected notes up 6 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%206%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 7 semitones.lua" type="script" desc="Duplicate selected notes up 7 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%207%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 8 semitones.lua" type="script" desc="Duplicate selected notes up 8 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%208%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up 9 semitones.lua" type="script" desc="Duplicate selected notes up 9 semitones">
-      <metadata>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-06T18:44:34Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0abd986004819794f017401103d47eb937a8fc01/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%209%20semitones.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a fifth diatonically.lua" type="script" desc="Duplicate selected notes up a fifth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20fifth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a fourth diatonically.lua" type="script" desc="Duplicate selected notes up a fourth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20fourth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a ninth diatonically.lua" type="script" desc="Duplicate selected notes up a ninth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20ninth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a second diatonically.lua" type="script" desc="Duplicate selected notes up a second diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20second%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a seventh diatonically.lua" type="script" desc="Duplicate selected notes up a seventh diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20seventh%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a sixth diatonically.lua" type="script" desc="Duplicate selected notes up a sixth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20sixth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a tenth diatonically.lua" type="script" desc="Duplicate selected notes up a tenth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20tenth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up a third diatonically.lua" type="script" desc="Duplicate selected notes up a third diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20a%20third%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up an eighth diatonically.lua" type="script" desc="Duplicate selected notes up an eighth diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20an%20eighth%20diatonically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Duplicate selected notes up an eleventh diatonically.lua" type="script" desc="Duplicate selected notes up an eleventh diatonically">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Duplicates the selected notes at a given scale degree, asking the user what to do if it encounters notes outside the scale\par}
-}
-]]></description>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-01-07T00:46:46Z">
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7efe3f6023b88c37251bd0c00364fbd08847e9b0/MIDI%20Editor/Lokasenna_Duplicate%20selected%20notes%20at%20___%20intervals/Lokasenna_Duplicate%20selected%20notes%20up%20an%20eleventh%20diatonically.lua</source>
       </version>
     </reapack>
   </category>
