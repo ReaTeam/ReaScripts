@@ -1,12 +1,13 @@
 --[[
 Reascript name:  js_Remove redundant CCs (from selected events in lane under mouse).lua
-Version: 3.00
+Version: 3.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
-Extensions: SWS/S&M 2.8.3 or 2.8.7
+Extensions: SWS/S&M 2.8.3 or later
+REAPER version: 5.32 or later
 About:
   # Description
-  Removes redundant events from selected CCs in the lane under mouse with a single click.
+  Removes redundant events from selected CCs in 7-bit CC, pitchwheel, channel pressure and program select lanes with a single click.
 
   # Instructions
   In the USER AREA of the script (below the changelog), the user can customize the following options:
@@ -15,6 +16,8 @@ About:
     - lanes_from_which_to_remove:  "all", "last clicked" or "under mouse"
     
     - ignore_LSB_of_pitch:  Ignore LSB when comparing pitchwheel events
+    
+    - only_analyze_selected_events:  Ignore unselected events in the target lane
   
   NOTE: If lanes_from_which_to_remove == "all", each 7-bit lane of 14-bit CCs will be analyzed separately. 
         This will ensure maximum efficiency in removal of redundant events, but may cause 14-bit CCs to 'disappear' 
@@ -58,14 +61,19 @@ About:
     + Improved speed.
     + Works in 14-bit CC lanes.
     + Requires REAPER v5.30.
+  * v3.10 (2017-01-09)
+    + Requires REAPER 5.32.
+    + Option to analyze all events or only selected events.
 ]]
 
 -- USER AREA:
 -- (Settings that the user can customize)
 
-lanes_from_which_to_remove = "under mouse" --"last clicked" -- "all", "last clicked" or "under mouse". 
+local lanes_from_which_to_remove = "under mouse" --"last clicked" -- "all", "last clicked" or "under mouse". 
 
-ignore_LSB_of_pitch  = true -- Ignore LSB when comparing pitchwheel events 
+local ignore_LSB_of_pitch = true -- Ignore LSB when comparing pitchwheel events 
+
+local only_analyze_selected_events = true -- true or false
 
 -- End of USER AREA
 -----------------------------------------------------------------  
@@ -154,14 +162,20 @@ if not (lanes_from_which_to_remove == "under mouse"
 if type(ignore_LSB_of_pitch) ~= "boolean" then
     reaper.ShowMessageBox("The setting 'ignore_LSB_of_pitch' can only take on the values 'true' or 'false'.", "ERROR", 0)
     return(false) end
+if type(only_analyze_selected_events) ~= "boolean" then
+    reaper.ShowMessageBox("The setting 'only_analyze_selected_events' can only take on the values 'true' or 'false'.", "ERROR", 0)
+    return(false) end
 --[[if type(automatically_delete_muted_CCs) ~= "boolean" then
     reaper.ShowMessageBox("The setting 'automatically_delete_muted_CCs' can only take on the values 'true' or 'false'.", "ERROR", 0)
     return(false) end   ]]
 
 -- Check whether the required version of REAPER is available
-if not reaper.APIExists("MIDI_GetAllEvts") then
-    reaper.ShowMessageBox("This script requires REAPER v5.30 or higher.", "ERROR", 0)
-    return(false) 
+version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
+if version == nil or version < 5.32 then
+    reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                          .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                          , "ERROR", 0)
+    return(false)  
 end
 
 -- Check whether an editor and take are available (NOT inline) 
@@ -260,14 +274,23 @@ else
     end
 end
 
+-----------------------------------------------------------------------------------
+-- The source length will be saved and then checked again at the end of the script,
+--    to ensure that no inadvertent shifts in PPQ positions happened.
+sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
 
 ----------------------------------------------------------------------------------------------
--- OK, now time to delete events within the active take
+-- OK, now time to delete events within the active take.
 -- This script does not use the standard MIDI API functions such as MIDI_DeleteCC, since these
 --    functions are far too slow when dealing with thousands of events.
 -- Instead, this script will directly edit the raw MIDI data, using new API functions provided
 --    in REAPER v5.30.
 
+-- Note that there are TWO types of redundant events:
+--    * Events at the same PPQ position:  Only the last event in the MIDI string will kept.
+--    * Events that follow each other with the same values:  Only the first event will be kept.
+
+-- If unsorted MIDI is detected, MIDI_Sort will be called, and the parsing function will restart.
 local haveAlreadyCorrectedOverlaps = false
 ::startAgain::
 
@@ -319,17 +342,10 @@ else
         offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, nextPos)
         
         -- Check for unsorted MIDI
-        if offset < 0 and not (#tableRemainingEvents == 0 and countRedundancies == 0) then   
+        if offset < 0 and prevPos > 1 then   
             -- Try to sort MIDI by running one of the MIDI editor's native editing actions.
             if not haveAlreadyCorrectedOverlaps then
-                reaper.Undo_BeginBlock2(0)
-                if isInline then
-                    reaper.MIDI_Sort(take)
-                else
-                    reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert selection in active take
-                    reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert back to original selection
-                end
-                reaper.Undo_EndBlock2(0, "Correcting unsorted MIDI data", 4)
+                reaper.MIDI_Sort(take)
                 haveAlreadyCorrectedOverlaps = true
                 goto startAgain
             else -- haveAlreadyCorrectedOverlaps == true
@@ -344,7 +360,9 @@ else
         -- offset OK, so can update runningPPQpos
         runningPPQpos = runningPPQpos + offset
     
-        if flags&1==1 then -- bit 1 of flags gives selection status
+        -- Bit 1 of flags gives selection status.
+        -- Messages of length 0 are used to change PPQ without adding any MIDI events.
+        if msg:len() ~= 0 and (flags&1==1 or only_analyze_selected_events==false) then 
                 
             local eventType = msg:byte(1)>>4
             local channel   = msg:byte(1)&0x0F
@@ -364,20 +382,24 @@ else
                         local evPos = nextPos -- Start search at position of next event in MIDI string
                         local evOffset, evFlags, evMsg
                         ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
-                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
-                            if evOffset == 0 then -- Still on same PPQ position
-                                if evFlags&1 == 1 -- Selected
-                                and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
-                                and evMsg:byte(2) == msg2 -- And same lane
-                                then
-                                    -- Found matching CC on same PPQ position
-                                    mustDelete = true
-                                    goto completedSearching
+                            if evPos >= MIDIlen then 
+                                goto completedSearching
+                            else
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if (evFlags&1 == 1 or only_analyze_selected_events==false) -- Selected
+                                    and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
+                                    and evMsg:byte(2) == msg2 -- And same lane
+                                    then
+                                        -- Found matching CC on same PPQ position
+                                        mustDelete = true
+                                        goto completedSearching
+                                    end
+                                    goto onSamePPQpos
+                                else -- offset > 0, so no other CC event found on same PPQ position, 
+                                    tableLastCC[channel][msg2] = msg3
+                                    --goto completedSearching 
                                 end
-                                goto onSamePPQpos
-                            else -- offset > 0, so no other CC event found on same PPQ position, 
-                                tableLastCC[channel][msg2] = msg3
-                                --goto completedSearching 
                             end
                         ::completedSearching::
                     end
@@ -393,20 +415,24 @@ else
                             local evPos = nextPos -- Start search at position of next event in MIDI string
                             local evOffset, evFlags, evMsg
                             ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
-                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
-                                if evOffset == 0 then -- Still on same PPQ position
-                                    if evFlags&1 == 1 -- Selected
-                                    and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
-                                    and evMsg:byte(2) == msg2 -- And same lane
-                                    then
-                                        -- Found matching CC event on same PPQ position
-                                        mustDelete = true
-                                        goto completedSearching
+                                if evPos >= MIDIlen then 
+                                    goto completedSearching
+                                else
+                                    evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                    if evOffset == 0 then -- Still on same PPQ position
+                                        if (evFlags&1 == 1 or only_analyze_selected_events==false) -- Selected
+                                        and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
+                                        and evMsg:byte(2) == msg2 -- And same lane
+                                        then
+                                            -- Found matching CC event on same PPQ position
+                                            mustDelete = true
+                                            goto completedSearching
+                                        end
+                                        goto onSamePPQpos
+                                    else -- offset > 0, so no other CC event found on same PPQ position, 
+                                        tableLastCC[channel] = msg3
+                                        --goto completedSearching 
                                     end
-                                    goto onSamePPQpos
-                                else -- offset > 0, so no other CC event found on same PPQ position, 
-                                    tableLastCC[channel] = msg3
-                                    --goto completedSearching 
                                 end
                             ::completedSearching::
                         end
@@ -431,9 +457,10 @@ else
                             local evPos = nextPos -- Start search at position of next event in MIDI string
                             local evOffset, evFlags, evMsg
                             repeat -- repeat until an offset is found > 0, or a match is found
+                                if evPos >= MIDIlen then break end
                                 evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
                                 if evOffset == 0 then -- Still on same PPQ position
-                                    if evFlags&1 == 1
+                                    if (evFlags&1 == 1 or only_analyze_selected_events==false)
                                     and evMsg:byte(1)  == (0xB0 | channel) 
                                     --and (flags&2 == 0 or automatically_delete_muted_CCs == false)
                                     then -- Match event type and channel
@@ -472,17 +499,21 @@ else
                             local evPos = nextPos -- Start search at position of next event in MIDI string
                             local evOffset, evFlags, evMsg
                             ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
-                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
-                                if evOffset == 0 then -- Still on same PPQ position
-                                    if evFlags&1 == 1 -- Selected
-                                    and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
-                                    and evMsg:byte(2) == msg2 -- And same lane
-                                    then
-                                        -- Found matching CC event on same PPQ position
-                                        mustDelete = true
-                                        goto completedSearching
-                                    end 
-                                    goto onSamePPQpos
+                                if evPos >= MIDIlen then 
+                                    goto completedSearching
+                                else
+                                    evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                    if evOffset == 0 then -- Still on same PPQ position
+                                        if (evFlags&1 == 1 or only_analyze_selected_events==false) -- Selected
+                                        and evMsg:byte(1)  == (0xB0 | channel) -- Match event type and channel
+                                        and evMsg:byte(2) == msg2 -- And same lane
+                                        then
+                                            -- Found matching CC event on same PPQ position
+                                            mustDelete = true
+                                            goto completedSearching
+                                        end 
+                                        goto onSamePPQpos
+                                    end
                                 end
                             ::completedSearching::
                         end
@@ -504,19 +535,23 @@ else
                         local evPos = nextPos -- Start search at position of next event in MIDI string
                         local evOffset, evFlags, evMsg
                         ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
-                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
-                            if evOffset == 0 then -- Still on same PPQ position
-                                if evFlags&1 == 1 -- Selected
-                                and evMsg:byte(1) == (0xE0 | channel) then -- Match Pitch event type and channel
-                                    -- Found pitch event on same PPQ position
-                                    mustDelete = true
-                                    goto completedSearching
+                            if evPos >= MIDIlen then 
+                                goto completedSearching
+                            else
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if (evFlags&1 == 1 or only_analyze_selected_events==false) -- Selected
+                                    and evMsg:byte(1) == (0xE0 | channel) then -- Match Pitch event type and channel
+                                        -- Found pitch event on same PPQ position
+                                        mustDelete = true
+                                        goto completedSearching
+                                    end
+                                    goto onSamePPQpos
+                                else -- No other pitch event found on same PPQ position, 
+                                    tableLastPitch[channel].MSB = msg3 
+                                    tableLastPitch[channel].LSB = msg2
+                                    --goto completedSearching 
                                 end
-                                goto onSamePPQpos
-                            else -- No other pitch event found on same PPQ position, 
-                                tableLastPitch[channel].MSB = msg3 
-                                tableLastPitch[channel].LSB = msg2
-                                --goto completedSearching 
                             end
                         ::completedSearching::
                     end
@@ -534,18 +569,22 @@ else
                         local evPos = nextPos -- Start search at position of next event in MIDI string
                         local evOffset, evFlags, evMsg
                         ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
-                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
-                            if evOffset == 0 then -- Still on same PPQ position
-                                if evFlags&1 == 1 -- Selected
-                                and evMsg:byte(1)  == (0xD0 | channel) then -- Match event type and channel
-                                    -- Found channel pressure event on same PPQ position
-                                    mustDelete = true
-                                    goto completedSearching
+                            if evPos >= MIDIlen then 
+                                goto completedSearching
+                            else
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if (evFlags&1 == 1 or only_analyze_selected_events==false) -- Selected
+                                    and evMsg:byte(1)  == (0xD0 | channel) then -- Match event type and channel
+                                        -- Found channel pressure event on same PPQ position
+                                        mustDelete = true
+                                        goto completedSearching
+                                    end
+                                    goto onSamePPQpos
+                                else -- offset > 0, so no other channel pressure event found on same PPQ position, 
+                                    tableLastChPress[channel] = msg2
+                                    --goto completedSearching 
                                 end
-                                goto onSamePPQpos
-                            else -- offset > 0, so no other channel pressure event found on same PPQ position, 
-                                tableLastChPress[channel] = msg2
-                                --goto completedSearching 
                             end
                         ::completedSearching::
                     end
@@ -563,18 +602,22 @@ else
                         local evPos = nextPos -- Start search at position of next event in MIDI string
                         local evOffset, evFlags, evMsg
                         ::onSamePPQpos:: -- repeat until an offset is found > 0, or a match is found
-                            evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
-                            if evOffset == 0 then -- Still on same PPQ position
-                                if evFlags&1 == 1 -- Selected
-                                and evMsg:byte(1)  == (0xC0 | channel) then -- Match event type and channel
-                                    -- Found channel pressure event on same PPQ position
-                                    mustDelete = true
-                                    goto completedSearching
+                            if evPos >= MIDIlen then 
+                                goto completedSearching
+                            else
+                                evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                                if evOffset == 0 then -- Still on same PPQ position
+                                    if (evFlags&1 == 1 or only_analyze_selected_events==false) -- Selected
+                                    and evMsg:byte(1)  == (0xC0 | channel) then -- Match event type and channel
+                                        -- Found channel pressure event on same PPQ position
+                                        mustDelete = true
+                                        goto completedSearching
+                                    end
+                                    goto onSamePPQpos
+                                else -- offset > 0, so no other channel pressure event found on same PPQ position, 
+                                    tableLastProgram[channel] = msg2
+                                    --goto completedSearching 
                                 end
-                                goto onSamePPQpos
-                            else -- offset > 0, so no other channel pressure event found on same PPQ position, 
-                                tableLastProgram[channel] = msg2
-                                --goto completedSearching 
                             end
                         ::completedSearching::
                     end
@@ -612,17 +655,17 @@ else
     end -- while nextPos < MIDIlen
          
     -- Reached end of MIDIstring. Write the last remaining events to table
-    if unchangedPos < MIDIlen then
+    --if unchangedPos < MIDIlen then
         r = r + 1
         tableRemainingEvents[r] = MIDIstring:sub(unchangedPos)
-    end   
+    --end   
   
     -------------------------------------------------------------------------------
     -- Finally, (perhaps) going to make some changes to the take. Start Undo block.
     --reaper.Undo_BeginBlock2(0)
     if countRedundancies ~= 0 then
         reaper.MIDI_SetAllEvts(take, table.concat(tableRemainingEvents))
-    end
+    end    
     
     ---------------------------------------
     -- Create nice, informative undo points
@@ -630,20 +673,36 @@ else
     --    are much faster than undo point that include everything, which happens when flag=-1 is used.
     item = reaper.GetMediaItemTake_Item(take)
     if lanes_from_which_to_remove == "all" then
-        reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from all lanes", item) 
+        undoString = "Removed ".. tostring(countRedundancies) .. " redundant events from all lanes"
     else -- lanes_from_which_to_remove ~= "all" then
         if laneIsCC7BIT then
-            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from 7-bit CC lane " .. tostring(targetLane), item) 
+            undoString = "Removed ".. tostring(countRedundancies) .. " redundant events from 7-bit CC lane " .. tostring(targetLane)
         elseif laneIsPITCH then
-            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from pitchwheel lane", item) 
+            undoString = "Removed ".. tostring(countRedundancies) .. " redundant events from pitchwheel lane"
         elseif laneIsCHPRESS then
-            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from channel pressure lane", item) 
+            undoString = "Removed ".. tostring(countRedundancies) .. " redundant events from channel pressure lane"
         elseif laneIsPROGRAM then
-            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from program select lane", item)         
+            undoString = "Removed ".. tostring(countRedundancies) .. " redundant events from program select lane"
         elseif laneIsCC14BIT then
-            reaper.Undo_OnStateChange_Item(0, "Removed ".. tostring(countRedundancies) .. " redundant events from 14-bit CC lane " .. tostring(targetLane-256).."/"..tostring(targetLane-224), item)
+            undoString = "Removed ".. tostring(countRedundancies) .. " redundant events from 14-bit CC lane " .. tostring(targetLane-256).."/"..tostring(targetLane-224)
         end
     end
+    
+    ----------------------------------------------------------------
+    -- Checked that no inadvertent shifts in PPQ positions occurred.
+    if not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
+        reaper.MIDI_SetAllEvts(take, MIDIstring) -- Restore original MIDI
+        reaper.ShowMessageBox("The script has detected inadvertent shifts in the PPQ positions of unedited events."
+                              .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
+                              .. "\n\nPlease report the bug in the following forum thread:"
+                              .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
+                              .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
+        undoString = "FAILED: Remove redundant events"
+    end
+    
+    -----------
+    -- The End!
+    reaper.Undo_OnStateChange_Item(0, undoString, item)
     
 end -- if gotAllOK
 
