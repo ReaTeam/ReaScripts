@@ -13,8 +13,9 @@ About:
   LFO generator and shaper - MIDI editor version
   
   Draw fancy LFO curves in REAPER's piano roll.
-  
-  This version applies the LFO to existing events -- velocities or CCs -- in the lane under mouse.
+
+  This version of the script inserts new CCs under selected notes in the lane under the mouse, 
+  using the same channels as the notes above (after removing any pre-existing CCs in the same time range and channels).
   
   # Instructions
   
