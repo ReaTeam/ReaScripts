@@ -14,7 +14,7 @@ About:
   
   Draw fancy LFO curves in REAPER's piano roll.
   
-  This version applies the LFO to existing events -- velocities or CCs -- in the lane under mouse.
+  This version of the script applies the LFO to existing events -- velocities or CCs -- in the lane under the mouse.
   
   # Instructions
   
