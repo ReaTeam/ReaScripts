@@ -1,9 +1,9 @@
 --[[
-ReaScript name: Script: js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua
+ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua
 Version: v2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
-Screenshot: http://stash.reaper.fm/27716/LFO%20tool%20-%20MIDI%20editor%20%28default%29%20-%20Copy.gif
+Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
 REAPER version: v5.32 or later
 Extensions: None required
 Donation: https://www.paypal.me/juliansader
@@ -104,7 +104,7 @@ About:
     --    If "time", script can be linked to a mouse modifier such as double-click.
     -- It may suit workflow to save three versions of the script: one for each of the versions. 
     --    selection.
-    selectionToUse = "time" 
+    selectionToUse = "existing" 
     
     -- Lane in which to insert LFO: either "under mouse" or "last clicked"
     -- "last clicked" has the advantage that the script can be run from a toolbar button, 
