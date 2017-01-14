@@ -3003,23 +3003,35 @@ end
 if couldNotParseLane then
     if selectionToUse == "existing" then
         if laneToUse == "under mouse" then
-            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes:"
+            reaper.ShowMessageBox("The lane under mouse is not usable."
+                         .. "\n\nSince the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes when the script starts:"
                          .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.", "ERROR", 0)
+                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
+                         , "ERROR", 0)
         else
-            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
+            reaper.ShowMessageBox("The last clicked lane is not usable."
+                         .. "\n\nSince the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
                          .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."     
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.", "ERROR", 0)
+                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
+                         , "ERROR", 0)    
         end
     else
         if laneToUse == "under mouse" then
-            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes:"
+            reaper.ShowMessageBox("The lane under mouse is not usable."
+                         .. "\n\nSince the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes when the script starts:"
                          .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.", "ERROR", 0)
+                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
+                         , "ERROR", 0)        
         else
-            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
+            reaper.ShowMessageBox("The last clicked lane is not useable."
+                         .. "\n\nSince the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
                          .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."     
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.", "ERROR", 0)
+                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
+                         , "ERROR", 0)     
         end  
     end          
     return(false)
