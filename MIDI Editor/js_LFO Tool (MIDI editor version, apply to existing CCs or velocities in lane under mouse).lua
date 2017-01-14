@@ -5,7 +5,7 @@ Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
 REAPER version: v5.32 or later
-Extensions: None required
+Extensions: SWS/S&M v2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 About:
   # Description
