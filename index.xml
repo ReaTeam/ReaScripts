@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9e9a4d69ad74651aa75d224ffef9fa089406a64e" name="ReaTeam Scripts">
+<index version="1" commit="0b9204f01c989465c558ffeb4cc6042bd3cddacc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -934,7 +934,7 @@ added support for all track envelopes]]></changelog>
 + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
 + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
 + Requires REAPER v5.32 or later.  ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2030522a1b2ef6b28f1c1e47a2aa12235457066c/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b12f70e5b9f6a3bc3b04f49bcc14555e65da8cf6/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
@@ -985,7 +985,7 @@ added support for all track envelopes]]></changelog>
 + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
 + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
 + Requires REAPER v5.32 or later.  ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c125fe308553c8a737b3334afe88d043942669ca/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e1c90cf22b2de40fc5ff10a50ac1fc59d9b0662d/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
@@ -1040,7 +1040,7 @@ added support for all track envelopes]]></changelog>
 + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
 + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
 + Requires REAPER v5.32 or later.  ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a7fdac4a93fc6cb75c7b04cf6b874c3dfeac82ee/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b75e3003911b0c1e0a4426ef66d4be46cbcb11a0/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
@@ -1095,7 +1095,7 @@ added support for all track envelopes]]></changelog>
 + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
 + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
 + Requires REAPER v5.32 or later.  ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/77c365c33fcca2203ed19b4fa4b8cfcac9151375/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/13b2db6e70111b9f01ef376a493bdcad1d3c7793/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
@@ -1150,7 +1150,7 @@ added support for all track envelopes]]></changelog>
 + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
 + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
 + Requires REAPER v5.32 or later.  ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9e9a4d69ad74651aa75d224ffef9fa089406a64e/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/dafa3564e30a110892b1486e2b07c11c685cefd6/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
@@ -1205,7 +1205,7 @@ added support for all track envelopes]]></changelog>
 + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
 + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
 + Requires REAPER v5.32 or later.  ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/30363aabe39cf29312ff96c051dd9efa68f42f19/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0b9204f01c989465c558ffeb4cc6042bd3cddacc/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
