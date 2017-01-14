@@ -14,7 +14,8 @@ About:
   
   Draw fancy LFO curves in REAPER's piano roll.
   
-  This version applies the LFO to existing events -- velocities or CCs -- in the lane under mouse.
+  This version of the script fills the time selection with new CCs in the last clicked lane, 
+  using the MIDI editor's active channel (after removing any pre-existing CCs in the same time range and channel).
   
   # Instructions
   
