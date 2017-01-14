@@ -2881,7 +2881,8 @@ if laneToUse == "under mouse" then
     end 
     window, segment, details = reaper.BR_GetMouseCursorContext()
     if not (segment == "notes" or segment == "cc_lane") then
-        reaper.ShowMessageBox('If the "lane_to_use" setting is "under mouse", the mouse must be positioned over a CC lane of a MIDI editor.', "ERROR", 0)
+        reaper.ShowMessageBox('The mouse is not correctly positioned.'
+                              .. '\n\nIf the "lane_to_use" setting is "under mouse", the mouse must be positioned over a CC lane of a MIDI editor when the script starts.', "ERROR", 0)
         return(false)
     end
     -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
