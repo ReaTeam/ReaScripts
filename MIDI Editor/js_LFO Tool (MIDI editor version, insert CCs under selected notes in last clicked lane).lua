@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua
-Version: v2.00
+Version: 2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif
@@ -14,7 +14,8 @@ About:
   
   Draw fancy LFO curves in REAPER's piano roll.
   
-  This version applies the LFO to existing events -- velocities or CCs -- in the lane under mouse.
+  This version of the script inserts new CCs under selected notes in last clicked lane 
+  (after removing any pre-existing CCs in the same time range and channel).
   
   # Instructions
   
