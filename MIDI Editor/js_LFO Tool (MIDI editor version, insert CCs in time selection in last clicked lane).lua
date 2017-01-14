@@ -1,5 +1,5 @@
 --[[
-ReaScript name: Script: js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua
+ReaScript name: js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua
 Version: v2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
