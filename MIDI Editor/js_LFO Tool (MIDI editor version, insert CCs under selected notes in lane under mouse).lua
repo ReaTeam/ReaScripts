@@ -1,54 +1,80 @@
 --[[
- * ReaScript Name: js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua
- * Description: LFO generator and shaper - MIDI editor version
- *              Draw fancy LFO curves in REAPER's piano roll.
- * Instructions:  
- *         DRAWING ENVELOPES
- *         Leftclick in open space in the envelope drawing area to add an envelope node.
- *         Shift + Leftdrag to add multiple envelope nodes.
- *         Alt + Leftclick (or -drag) to delete nodes.
- *         Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.
- *         Move mousewheel while mouse hovers above node for fine adjustment.
- * 
- *         Use a Ctrl modifier to edit all nodes simultaneously:
- *         Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.
- *         Ctrl + Rightclick to enter a precise custom value for all nodes.
- *         Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.
- *
- *         VALUE AND TIME DISPLAY
- *         The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.
- *         Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.
- *
- *         LOADING AND SAVING CURVES
- *         Right-click (outside envelope area) to open the Save/Load/Delete curve menu.
- *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
- *                           
- *         FURTHER CUSTOMIZATION
- *         Further customization is possible - see the instructions in the script's USER AREA.
- *         This include:
- *         - Easily adding custom LFO shapes.
- *         - Specifying the resolution of LFO shapes' phase steps.
- *         - Specifying the resolution of the mousewheel fine adjustment.
- *         - Changing interface colors.
- *         - Changing the default curve name.
- *         etc...      
- * 
- * Screenshot: 
- * Notes: 
- * Category: 
- * Author: Xenakios / juliansader
- * Licence: GPL v3
- * Forum Thread:
- * Forum Thread URL: http://forum.cockos.com/showthread.php?t=177437
- * Version: 1.04
- * REAPER: 5.20
- * Extensions: SWS/S&M 2.8.3
+ReaScript name: Script: js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua
+Version: v2.00
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=177437
+Screenshot: http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif
+REAPER version: v5.32 or later
+Extensions: None required
+Donation: https://www.paypal.me/juliansader
+About:
+  # Description
+  
+  LFO generator and shaper - MIDI editor version
+  
+  Draw fancy LFO curves in REAPER's piano roll.
+  
+  This version applies the LFO to existing events -- velocities or CCs -- in the lane under mouse.
+  
+  # Instructions
+  
+  DRAWING ENVELOPES
+  
+  Leftclick in open space in the envelope drawing area to add an envelope node.
+  
+  Shift + Leftdrag to add multiple envelope nodes.
+  
+  Alt + Leftclick (or -drag) to delete nodes.
+  
+  Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.
+  
+  Move mousewheel while mouse hovers above node for fine adjustment.
+  
+  Use a Ctrl modifier to edit all nodes simultaneously:
+  
+  Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.
+  
+  Ctrl + Rightclick to enter a precise custom value for all nodes.
+  
+  Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.
+  
+  The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.
+  
+
+  VALUE AND TIME DISPLAY
+  
+  The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.
+  
+  Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.
+  
+
+  LOADING AND SAVING CURVES
+  
+  Right-click (outside envelope area) to open the Save/Load/Delete curve menu.
+  
+  One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
+  
+                    
+  FURTHER CUSTOMIZATION
+  
+  Further customization is possible - see the instructions in the script's USER AREA.
+  
+  This include:
+  - Easily adding custom LFO shapes.
+  - Specifying the resolution of LFO shapes' phase steps.
+  - Specifying the resolution of the mousewheel fine adjustment.
+  - Changing interface colors.
+  - Changing the default curve name.
+  - etc...      
 ]]
 
 --[[
- Changelog:
- * v1.04 (2016-06-23)
-    + User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.
+  Changelog:
+  v2.00 (2017-01-15)
+    + Much faster execution in large takes with hundreds aof thousands of events.
+    + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
+    + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
+    + Requires REAPER v5.32 or later.  
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -73,10 +99,10 @@
     shadows         = true  
     
     -- Which area should be filled with CCs?
-    -- "notes" to fill areas underneath selected notes, or "time" for time selection
+    -- "notes" to fill areas underneath selected notes, "time" for time selection,
+    --    or "existing" to apply the LFO to existing selected events (which may be velocities).
     --    If "time", script can be linked to a mouse modifier such as double-click.
-    -- It may suit workflow to save two versions of the script: one that can be used to 
-    --    insert CCs underneath selected notes, and one that inserts an LFO in the time 
+    -- It may suit workflow to save three versions of the script: one for each of the versions. 
     --    selection.
     selectionToUse = "notes" 
     
@@ -92,16 +118,7 @@
     --    By changing this name and saving as new script, different default curves can be 
     --    linked to different shortcut keys.
     defaultCurveName = "default" 
-    
-    -- Should the script show error messages in REAPER's console?  
-    --    Set to true or false.
-    verbose = true
-    
-    -- If set to false, CCs in channels other than the LFO's channel will not be deleted.
-    -- NOTE: If selectionToUse == "notes", the newly inserted CCs will have the same channel 
-    --    as the note under which they are inserted. 
-    deleteOnlyDrawChannel = true
-    
+            
     -- How fine should the mousewheel adjustment be? (Between 0 and 1.)
     -- 0 would result in no fine adjustment, while 1 would result in immediate jumps to
     --    minimum or maximum values.
@@ -208,14 +225,42 @@ shape_function[MwMwMw] = function(cnt)
   if cnt % 8 == 7 then return 8, false, 0, 1, false end
 end
 
----------------------------------------------
--- Some global constants used in Julian's mod
+
+
+--#######################################################################################
+-----------------------------------------------------------------------------------------
+
+--[[ General notes:
+
+Readability of script:
+Reader beware! There is lots of cruft remaining in this script since it is an unfinished 
+    script that was later hacked and modded.
+
+Speed:
+REAPER's MIDI API functions such as InsertCC and SetCC are very slow if the active take contains 
+    hundreds of thousands of MIDI events.  
+Therefore, this script will not use these functions, and will instead directly access the item's 
+    raw MIDI stream via new functions that were introduced in v5.30: GetAllEvts and SetAllEvts.
+Parsing of the MIDI stream can be relatively straightforward, but to improve speed even
+    further, this script will use several 'tricks', which will unfortunately also make the 
+    parsing function, parseAndExtractTargetMIDI, quite complicated.
+    
+Sorting:
+Prior to v5.32, sorting of MIDI events, either by MIDI_Sort or by other functions such as MIDI_SetNote
+    (with sort=true) was endlessly buggy (http://forum.cockos.com/showthread.php?t=184459
+    is one of many threads).  In particular, it often mutated overlapping notes or unsorted notes into
+    infinitely extende notes.
+Finally, in v5.32, these bugs were (seemingly) all fixed.  This new version of the script will therefore
+    use the MIDI_Sort function (instead of calling a MIDI editor action via OnCommand to induce sorting).
+]]
+
+
 shapeSelected = 6 -- Starting shape
-sliderHeight = 28
+GUIelementHeight = 28 -- Height of the GUI elements
 borderWidth = 10
 envHeight = 190
 initXsize = 209 --300 -- Initial sizes for the GUI
-initYsize = borderWidth + sliderHeight*11 + envHeight + 45
+initYsize = borderWidth + GUIelementHeight*11 + envHeight + 45
 envYpos = initYsize - envHeight - 30
 
 hotpointRateDisplayType = "period note length" -- "frequency" or "period note length"
@@ -247,6 +292,8 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\n  * Ctrl + Rightclick to enter a precise custom value for all nodes."
          .."\n\n  * Ctrl + Mousewheel for fine adjustment of all nodes simultaneously."
          
+         .."\n\nThe keyboard shortcuts 'a', 'c' and 'r' can be used to switch the envelope view between Amplitude, Center and Rate."
+         
          .."\n\nVALUE AND TIME DISPLAY:"
          .."\n\nThe precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node." 
          .."\n\nRightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected."
@@ -267,11 +314,6 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n  * Changing the default curve name."
          .."\netc..." 
                  
--- laneTypes         
-CC7BIT = 0
-CHANPRESSURE = 1
-PITCH = 2
-CC14BIT = 3
 
 -- mouse_cap values
 NOTHING = 0
@@ -283,18 +325,101 @@ ALTKEY = 16
 WINKEY = 32
 MIDDLEBUTTON = 64
 
--- For 7-bit lanes, will later be divided by 128
-minv = 0
-maxv = 16383
----------------------------------------------
 
-------------------------------------------------------------------------
--- Reader beware: there is lots of cruft remaining in this script
---    since it is an unfinished script that was later hacked and modded.
+-- The raw MIDI data will be stored in the string.  While parsing the string, targeted events (the
+--    ones that will be edited) will be removed from the string.
+-- The offset of the first event will be stored separately - not in remainMIDIstring - since this offset 
+--    will need to be updated in each cycle relative to the PPQ positions of the edited events.
+local MIDIstring -- The original raw MIDI
+local remainMIDIstring -- The MIDI that remained after extracting selected events in the target lane
+local remainMIDIstringSub5 -- The MIDI that remained, except the very first offset
+local remainOffset -- The very first offset of the remaining events
+local newRemainOffset -- At each cycle, the very first offset must be updated relative to the edited MIDI. NOTE: In scripts that do not change the positions of events, this will not actually be necessary.
 
-egsliders={}
+-- When the info of the targeted events is extracted - or when the new CCs are inserted -- the info will be stored in several tables.
+local tableMsg = {}
+local tableMsgLSB = {}
+local tableMsgNoteOff = {}
+local tableValues = {} -- CC values, 14bit CC combined values, note velocities
+local tablePPQs = {}
+local tableChannels = {}
+local tableFlags = {}
+local tableFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
+local tablePitches = {} -- This table will only be filled if laneIsVELOCITY
+local tableNoteLengths = {}
+local tableNotation = {} -- Will only contain entries at those indices where the notes have notation
 
-notevalues={{1,8,"32nd"},
+-- The original value and PPQ ranges of selected events in the target lane will be summarized in:
+local origPPQleftmost, origPPQrightmost, origPPQrange
+local includeNoteOffsInPPQrange = false -- ***** Should origPPQrange and origPPQrightmost take note-offs into account? Set this flag to true for scripts that stretch or warp note lengths. *****
+
+-- As the edited MIDI events' new values are calculated, each event wil be assmebled into a short string and stored in the tableEditedMIDI table.
+-- When the calculations are done, the entire table will be concatenated into a single string, then inserted 
+--    at the beginning of remainMIDIstring (while updating the relative offset of the first event in remainMIDIstring, 
+--    and loaded into REAPER as the new state chunk.
+local tableEditedMIDI = {}
+
+-- Is the editor inline?  Only applicable if laneToUse == "under mouse"
+local isInline
+ 
+-- Starting values and position of mouse 
+-- targetLane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
+--    0x202=program, 0x203=channel pressure, 0x204=bank/program select, 
+--    0x205=text, 0x206=sysex, 0x207=off velocity)
+local window, segment, details -- given by the SWS function reaper.BR_GetMouseCursorContext()
+local targetLane
+local laneIsCC7BIT    = false
+local laneIsCC14BIT   = false
+local laneIsPITCH     = false
+local laneIsPROGRAM   = false
+local laneIsBANKPROG  = false
+local laneIsCHPRESS   = false
+local laneIsVELOCITY  = false
+local laneIsOFFVEL    = false
+local laneIsPIANOROLL = false
+local laneIsNOTES     = false -- Includes laneIsPIANOROLL, laneIsVELOCITY and laneIsOFFVEL
+local laneIsSYSEX     = false
+local laneIsTEXT      = false
+local laneMinValue, laneMaxValue -- The minimum and maximum values in the target lane
+
+-- Time selection into which the LFO nodes will be placed
+local timeSelectStart, timeSelectEnd -- The actual project time selection
+local time_start, time_end -- The start and end times of the target events (which is not the same as the time selection, unless selectionToUse = "time")
+
+-- REAPER preferences and settings that will affect the drawing of new events in take
+local defaultChannel -- In case new MIDI events will be inserted, what is the default channel?
+local CCperQN -- CC density resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
+
+-- CCs will be inserted at the grid resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
+-- These variables will be useful to calculate each event's PPQ position.
+local takeStartQN -- = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+local PPperCC -- ticks per CC ** not necessarily an integer **
+local PPQ -- ticks per quarter note
+local QNperCC -- = 1/CCperQN
+
+-- The source length when the script begins will be checked against the source length when the script ends,
+--    to ensure that the script did not inadvertently shift the positions of non-target events.
+local AllNotesOffString -- = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
+local sourceLengthTicks -- = reaper.BR_GetMidiSourceLenPPQ(take)
+local loopStartPPQpos -- Start of loop iteration under mouse
+
+-- Some internal stuff that will be used to set up everything
+local _, item, take, editor
+
+-- I am not sure that declaring functions local really helps to speed things up...
+local s_unpack = string.unpack
+local s_pack   = string.pack
+local t_insert = table.insert -- myTable[i] = X is actually much faster than t_insert(myTable, X)
+local m_floor  = math.floor
+local m_cos    = math.cos
+local m_pi     = math.pi
+
+-- The table of GUI objects, including buttons and sliders
+local tableGUIelements={}
+
+local tableNodes = {}
+
+local notevalues={{1,8,"32nd"},
             {1,5,"16th quintuplet"},
             {1,4,"16th"},
             {1,3,"8th triplet"},
@@ -306,8 +431,16 @@ notevalues={{1,8,"32nd"},
             {4,2,"Half"},
             {4,1,"Whole"}}
             
-use_note_rates=false            
+use_note_rates=false         
+   
 
+
+---------------------------------------------------------------
+-- Julian's mod: these new "make_" functions are basically just 
+--    copies of the original "make_slider" function, but with
+--    new "type".  Irrelevant stuff such as slider.envelope were left
+--    untouched in case there is a reference to these stuff in the
+--    rest of the code. 
 function make_slider(x,y,w,h,val,name,valcb)
   slider={}
   slider.x=function() return x end
@@ -330,12 +463,6 @@ function make_slider(x,y,w,h,val,name,valcb)
   return slider
 end
 
----------------------------------------------------------------
--- Julian's mod: these new "make_" functions are basically just 
---    copies of the original "make_slider" function, but with
---    new "type".  Irrelevant stuff such as slider.envelope were left
---    untouched in case there is a reference to these stuff in the
---    rest of the code. 
 function make_radiobutton(x,y,w,h,val,name,valcb)
   slider={}
   slider.x=function() return x end
@@ -441,7 +568,7 @@ function bound_value(minval, val, maxval)
 end
 
 function quantize_value(val, numsteps)
-    stepSize = math.floor(0.5 + (maxv-minv)/numsteps)
+    stepSize = math.floor(0.5 + (laneMaxValue-laneMinValue)/numsteps)
     return(stepSize * math.floor(0.5 + val/stepSize))
     --return 1.0/numsteps*math.floor(val*numsteps)
 end
@@ -507,7 +634,7 @@ function slider_to_string(slid)
     end
 end
 
-function draw_slider(slid)
+function drawGUIobject(slid) 
     if slid.type == "Slider" then
         local imgw = 32
         local imgh = 25
@@ -539,7 +666,7 @@ function draw_slider(slid)
         end
         stringw,stringh = gfx.measurestr(slid.name)
         ampw,amph = gfx.measurestr("Amplitude")
-        if slid.name == egsliders[100].name then
+        if slid.name == tableGUIelements[100].name then
             --local stringw,stringh = gfx.measurestr("Amplitude")
             if shadows == true then
                 setColor({0,0,0,1})
@@ -674,21 +801,21 @@ function draw_envelope(env,enabled)
             -- Must calculate the hotpoint time and rate displays
             local timeAtNode
             if type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                if egsliders[slidNum_timebase].value == 1 then -- Timebase == Beats
+                if tableGUIelements[GUIelement_TIMEBASE].value == 1 then -- Timebase == Beats
                     local timeStartQN = reaper.TimeMap_timeToQN(time_start)
                     local timeEndQN = reaper.TimeMap_timeToQN(time_end)
                     timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + envpoint[1]*(timeEndQN-timeStartQN))
                 else
                     timeAtNode = time_start + envpoint[1]*(time_end - time_start)
                 end
-            else -- Just in case no envelope selected, or update() has not yet been run, or something.
+            else -- Just in case no envelope selected, or loop_GetInputsAndUpdate() has not yet been run, or something.
                 timeAtNode = 0
             end
             
             -- If Rate envelope, display either period or frequency above hotpoint
             if env.name == "Rate" then
                 
-                if egsliders[slidNum_timebase].value >= 0.5 and hotpointRateDisplayType == "period note length" then
+                if tableGUIelements[GUIelement_TIMEBASE].value >= 0.5 and hotpointRateDisplayType == "period note length" then
                     local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
                     local pointRateInverse = 1.0/pointRate
                     if pointRateInverse == math.floor(pointRateInverse) then hotString = string.format("%i", tostring(pointRateInverse))
@@ -696,12 +823,12 @@ function draw_envelope(env,enabled)
                     elseif pointRate > 1 then hotString = "1/" .. string.format("%.3f", tostring(pointRate))
                     else hotString = string.format("%.3f", tostring(pointRateInverse))
                     end
-                elseif egsliders[slidNum_timebase].value >= 0.5 and hotpointRateDisplayType == "frequency" then
+                elseif tableGUIelements[GUIelement_TIMEBASE].value >= 0.5 and hotpointRateDisplayType == "frequency" then
                     local bpm = getBPM(timeAtNode)
                     local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
                     local pointFreq = (1.0/240) * pointRate * bpm
                     hotString = string.format("%.3f", tostring(pointFreq)) .. "Hz"
-                elseif egsliders[slidNum_timebase].value < 0.5 and hotpointRateDisplayType == "period note length" then
+                elseif tableGUIelements[GUIelement_TIMEBASE].value < 0.5 and hotpointRateDisplayType == "period note length" then
                     local bpm = getBPM(timeAtNode)
                     local pointFreq = timeBaseMin + (timeBaseMax-timeBaseMin)*(envpoint[2]^2)
                     local pointRate = (1.0/bpm) * pointFreq * 240 -- oscillations/sec * sec/min * min/beat * beats/wholenote
@@ -711,18 +838,18 @@ function draw_envelope(env,enabled)
                     elseif pointRate > 1 then hotString = "1/" .. string.format("%.3f", tostring(pointRate))
                     else hotString = string.format("%.3f", tostring(pointRateInverse))
                     end
-                elseif egsliders[slidNum_timebase].value < 0.5 and hotpointRateDisplayType == "frequency" then -- hotpointRateDisplayType == "frequency"
+                elseif tableGUIelements[GUIelement_TIMEBASE].value < 0.5 and hotpointRateDisplayType == "frequency" then -- hotpointRateDisplayType == "frequency"
                     local pointFreq = timeBaseMin+((timeBaseMax-timeBaseMin)*(envpoint[2])^2.0)
                     hotString = string.format("%.3f", tostring(pointFreq)) .. "Hz"
                 end
                 hotString = "R =" .. hotString
                 
             -- If Amplitude or Center, display value scaled to actual envelope range.
-            -- (The BRenvMaxValue and BRenvMinValue variables are calculated in the update() function.)
+            -- (The laneMaxValue and laneMinValue variables are calculated in the loop_GetInputsAndUpdate() function.)
             elseif env.name == "Amplitude" then
-                hotString = "A =" .. string.format("%.0f", tostring(envpoint[2]*0.5*(BRenvMaxValue-BRenvMinValue)))
+                hotString = "A =" .. string.format("%.0f", tostring(envpoint[2]*0.5*(laneMaxValue-laneMinValue)))
             else -- env.name == "Center"
-                hotString = "C =" .. string.format("%.0f", tostring(BRenvMinValue + envpoint[2]*(BRenvMaxValue-BRenvMinValue)))
+                hotString = "C =" .. string.format("%.0f", tostring(laneMinValue + envpoint[2]*(laneMaxValue-laneMinValue)))
             end
             
             if hotpointTimeDisplayType >= -1 and hotpointTimeDisplayType <=5 then
@@ -795,7 +922,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- The important function that generates the nodes
-function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip)
+function generateNodes(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip)
 
     math.randomseed(1)
        
@@ -849,7 +976,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
     repeat
         time_to_interp = (1.0/timeseldur)*(time-gen_time_start) --!!time_start
 
-        freq_norm_to_use = get_env_interpolated_value(egsliders[1].envelope,time_to_interp, rateInterpolationType)
+        freq_norm_to_use = get_env_interpolated_value(tableGUIelements[1].envelope,time_to_interp, rateInterpolationType)
         if ratemode < 0.5 then
             -- Timebase is time, so step size in seconds
             nextNodeStepSize = (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
@@ -921,13 +1048,13 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
             
             --if time_to_interp<0.0 or time_to_interp>1.0 then
             --  reaper.ShowConsoleMsg(time_to_interp.." ") end
-            amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp, "linear")
+            amp_to_use = get_env_interpolated_value(tableGUIelements[2].envelope,time_to_interp, "linear")
             --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
             val=0.5+(0.5*amp_to_use*fade_gain)*val
-            local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp, "linear")
-            local rangea=maxv-minv
-            val=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
-            local z=(2*math.random()-1)*randomness*(maxv-minv)/2
+            local center_to_use=get_env_interpolated_value(tableGUIelements[3].envelope,time_to_interp, "linear")
+            local rangea=laneMaxValue-laneMinValue
+            val=laneMinValue+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
+            local z=(2*math.random()-1)*randomness*(laneMaxValue-laneMinValue)/2
             val=val+z
             local tilt_ramp = (time - gen_time_start) / (timeseldur) --!!1.0/(gen_time_end-time_start) * (time-time_start)
             local tilt_amount = -1.0+2.0*tilt
@@ -942,7 +1069,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
             end]]
             
                       
-            val=bound_value(minv,val,maxv)
+            val=bound_value(laneMinValue,val,laneMaxValue)
             --val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
             local tension = segshape*pointTension  
             
@@ -963,12 +1090,12 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
             
             if linearJump == true then
                 oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
-                oppositeVal=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
+                oppositeVal=laneMinValue+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
                 oppositeVal=oppositeVal-z
                 --[[if quansteps ~= 1 then
                     val=quantize_value(val,3 + math.ceil(quansteps*125))
                 end]]
-                oppositeVal=bound_value(minv,oppositeVal,maxv)
+                oppositeVal=bound_value(laneMinValue,oppositeVal,laneMaxValue)
                 local tension = segshape*pointTension
                 table.insert(tableNodes, {PPQ = insPPQ, 
                                    value = val, 
@@ -998,45 +1125,37 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
     
     --reaper.Envelope_SortPoints(env)
     --tableNodes:sort(sortPPQ)
-    
 end
 
 function exit()
     gfx.quit()
+    
+    -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
+    --    causing infinitely extended notes or zero-length notes.
+    -- Fortunately, these bugs were seemingly all fixed in v5.32.
+    reaper.MIDI_Sort(take)  
+    
+    -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
+    if not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
+        reaper.MIDI_SetAllEvts(take, origMIDIstring) -- Restore original MIDI
+        reaper.ShowMessageBox("The script has detected inadvertent shifts in the PPQ positions of unedited events."
+                              .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
+                              .. "\n\nPlease report the bug in the following forum thread:"
+                              .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
+                              .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
+    end
+        
+    if isInline then reaper.UpdateArrange() end  
     
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
         reaper.SetToggleCommandState(sectionID, cmdID, 0)
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
     
-    --[[    
-    if laneType == CC7BIT then
-        reaper.Undo_OnStateChange("LFO tool: 7-bit CC lane ".. clickedLane, -1)
-    elseif laneType == CHANPRESSURE then
-        reaper.Undo_OnStateChange("LFO tool: channel pressure", -1)
-    elseif laneType == CC14BIT then
-        reaper.Undo_OnStateChange("LFO tool: 14 bit CC lanes ".. 
-                                  tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224))
-    elseif laneType == PITCH then
-        reaper.Undo_OnStateChange("LFO tool: pitchwheel", -1)
-    end
-    ]]
-    reaper.Undo_OnStateChange("LFO tool: ".. clickedLaneString, -1)
+    reaper.Undo_OnStateChange_Item(0, "LFO tool: ".. targetLaneString, item)
 end -- function exit() 
 
 ----------------------
-
-
--------------------------------
-function showErrorMsg(errorMsg)
-    if verbose == true and type(errorMsg) == "string" then
-        reaper.ShowConsoleMsg("\n\nERROR:\n" 
-                              .. errorMsg 
-                              .. "\n\n"
-                              .. "(To prevent future error messages, set 'verbose' to 'false' in the USER AREA near the beginning of the script.)"
-                              .. "\n\n")
-    end
-end -- showErrorMsg(errorMsg)
 
 
 function getBPM(projtime)
@@ -1057,7 +1176,7 @@ already_added_pt=false
 already_removed_pt=false
 last_mouse_cap=0
 
-function update()
+function loop_GetInputsAndUpdate()
 
     ---------------------------------------------------------------------------
     -- First, go through several tests to detect whether the script should exit
@@ -1067,22 +1186,32 @@ function update()
         return(0)
     end 
     
-    -- 2) The LFO Tool automatically quits if the time selection, the note selection, or the last clicked lane changes, 
-    --    which prepares the editor to insert a new LFO.
+    -- 2) The LFO Tool automatically quits if either of the following changes:
+    --    * editor, 
+    --    * active take, 
+    --    * time selection, 
+    --    * last clicked lane.
+    --    This prepares the editor to insert a new LFO.
     --    (Clicking in the piano roll to select new notes changes the "last clicked lane".)
-    local newEditor = reaper.MIDIEditor_GetActive()
-    if newEditor ~= editor then return(0) end
-    local newTake = reaper.MIDIEditor_GetTake(newEditor)
-    if newTake ~= take then return(0) end
-    
-    if laneToUse == "last clicked" then
-        newClickedLane = reaper.MIDIEditor_GetSetting_int(newEditor, "last_clicked_cc_lane")   
-        if newClickedLane ~= clickedLane then
-            return(0)
+    if not isInline then
+        local newEditor = reaper.MIDIEditor_GetActive()
+        if newEditor ~= editor then return(0) end
+        
+        local newTake = reaper.MIDIEditor_GetTake(newEditor)
+        if newTake ~= take then return(0) end
+        
+        if laneToUse == "last clicked" then
+            local newtargetLane = reaper.MIDIEditor_GetSetting_int(newEditor, "last_clicked_cc_lane")   
+            if newtargetLane == -1 then newtargetLane = 0x200 end
+            if newtargetLane ~= targetLane then
+                return(0)
+            end
         end
     end
+    
+    
     --if selectionToUse == "time" then
-        time_start_new, time_end_new = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
+        local time_start_new, time_end_new = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
         if time_start_new ~= timeSelectStart or time_end_new ~= timeSelectEnd then 
             return(0) 
         end
@@ -1116,11 +1245,11 @@ function update()
     
     -- Iterate through all the buttons and sliders in the GUI  
     local dogenerate=false
-    for key,tempcontrol in pairs(egsliders) do
+    for key,tempcontrol in pairs(tableGUIelements) do
     
       --if key>=200 and tempcontrol.type=="Button" then reaper.ShowConsoleMsg(tostring(tempcontrol).." ") end
       if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
-      or (key == slidNum_env and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
+      or (key == GUIelement_env and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
       --get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)>0) -- Envelope gets captured if on hotbutton, even if outside rectangle
       then
           if gfx.mouse_cap==LEFTBUTTON and captured_control==nil then
@@ -1139,20 +1268,36 @@ function update()
               end
             end
             if menuresult==2 then
-              egsliders[100].envelope=tempcontrol.envelope
-              egsliders[100].name=tempcontrol.name
+              tableGUIelements[100].envelope=tempcontrol.envelope
+              tableGUIelements[100].name=tempcontrol.name
             end
           end
           ]]
         
             -- Click on Rate/Center/Amplitude buttons to change envelope type
-            if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
-                egsliders[100].envelope=tempcontrol.envelope
-                egsliders[100].name=tempcontrol.name
+            --[[if char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
+                tableGUIelements[100].envelope=tempcontrol.envelope
+                tableGUIelements[100].name=tempcontrol.name
                 firstClick = false
                 dogenerate = true
-            end   
-        
+            end ]]
+            if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
+                tableGUIelements[100].envelope=tableGUIelements[GUIelement_RATE].envelope
+                tableGUIelements[100].name=tableGUIelements[GUIelement_RATE].name -- = tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
+                tableGUIelements[100].envelope=tableGUIelements[GUIelement_CENTER].envelope
+                tableGUIelements[100].name=tableGUIelements[GUIelement_CENTER].name -- = tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
+                tableGUIelements[100].envelope=tableGUIelements[GUIelement_AMPLITUDE].envelope
+                tableGUIelements[100].name=tableGUIelements[GUIelement_AMPLITUDE].name -- tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            end
+            
             -- Enable or disable Real-time copy-to-CC
             if gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
             and firstClick == true
@@ -1369,7 +1514,7 @@ function update()
                       until retval == false or userFreqFound == true
                   end
                     
-                  if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
+                  if userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       for i = 1, #tempcontrol.envelope do
                           local bpm = getBPM(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
@@ -1377,19 +1522,19 @@ function update()
                           tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       end
                       dogenerate = true
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
+                  elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 then
                       local normalizedValue = ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)
                       for i = 1, #tempcontrol.envelope do
                           tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
                       end
                       dogenerate = true
-                  elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
+                  elseif userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 then
                       local normalizedValue = ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)
                       for i = 1, #tempcontrol.envelope do
                           tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
                       end
                       dogenerate = true
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
+                  elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       for i = 1, #tempcontrol.envelope do
                           local timeStartQN = reaper.TimeMap_timeToQN(time_start)
@@ -1442,19 +1587,19 @@ function update()
                       until retval == false or userFreqFound == true
                   end
                   
-                  if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
+                  if userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       local bpm = getBPM(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
                       local userFreq = (1.0/240.0) * userNote * bpm
                       tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       dogenerate = true                                            
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
+                  elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 then
                       tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       dogenerate = true
-                  elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
+                  elseif userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 then
                       tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       dogenerate = true
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
+                  elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       local timeStartQN = reaper.TimeMap_timeToQN(time_start)
                       local timeEndQN = reaper.TimeMap_timeToQN(time_end)
@@ -1511,7 +1656,7 @@ function update()
               --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
           end
           if captured_control.type=="Slider" then
-              if captured_control.envelope==egsliders[100].envelope then 
+              if captured_control.envelope==tableGUIelements[100].envelope then 
                    env_enabled=captured_control.env_enabled
               end
               local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
@@ -1524,19 +1669,19 @@ function update()
           end
       end -- if captured_control~=nil
       
-      draw_slider(tempcontrol)
+      drawGUIobject(tempcontrol)
       draw_envelope(tempcontrol,env_enabled)
-    end -- for key,tempcontrol in pairs(egsliders)
+    end -- for key,tempcontrol in pairs(tableGUIelements)
   
   ---------------------------------------------
   -- If right-click, show save/load/delete menu
   -- (But not if in envelope drawing area)
   if gfx.mouse_cap == RIGHTBUTTON and not is_in_rect(gfx.mouse_x,
                                                      gfx.mouse_y,
-                                                     0, --egsliders[100].x(),
-                                                     egsliders[100].y(),
-                                                     gfx.w, --egsliders[100].w(),
-                                                     gfx.h - egsliders[100].y()) --egsliders[100].h()) 
+                                                     0, --tableGUIelements[100].x(),
+                                                     tableGUIelements[100].y(),
+                                                     gfx.w, --tableGUIelements[100].w(),
+                                                     gfx.h - tableGUIelements[100].y()) --tableGUIelements[100].h()) 
                                                      then
         
         --reaper.DeleteExtState("LFO generator", "savedCurves", true) -- delete the ExtState
@@ -1581,19 +1726,19 @@ function update()
         elseif (gotSavedNames == true and menuSel == 2 + 2*#savedNames)
             or (gotSavedNames == false and menuSel == 4)
             then
-            egsliders[slidNum_rate].envelope = {{0,0.5}, {1,0.5}}
-            egsliders[slidNum_amp].envelope = {{0,0.5}, {1,0.5}}
-            egsliders[slidNum_center].envelope = {{0,0.5}, {1,0.5}}
+            tableGUIelements[GUIelement_RATE].envelope = {{0,0.5}, {1,0.5}}
+            tableGUIelements[GUIelement_AMPLITUDE].envelope = {{0,0.5}, {1,0.5}}
+            tableGUIelements[GUIelement_CENTER].envelope = {{0,0.5}, {1,0.5}}
             dogenerate = true
             
             -------------------------------------------------------
             -- Draw the newly loaded envelope
-            if egsliders[100].name == egsliders[1].name then -- "Rate"
-                egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[1])
-            elseif egsliders[100].name == egsliders[2].name then -- "Amplitude"
-                egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[2])
+            if tableGUIelements[100].name == tableGUIelements[1].name then -- "Rate"
+                tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[1])
+            elseif tableGUIelements[100].name == tableGUIelements[2].name then -- "Amplitude"
+                tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[2])
             else -- "Center"
-                egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[3])
+                tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[3])
             end
             
         ------------------------
@@ -1606,33 +1751,33 @@ function update()
             if retval ~= false then
                 saveString = curveName
                 for i = 0, 10 do
-                    if egsliders[i] == nil then -- skip
-                    elseif egsliders[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(shapeSelected)
-                    --elseif egsliders[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(egsliders[i].enabled) 
-                    elseif egsliders[i].name == "Phase step" then saveString = saveString .. ",Phase step," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Randomness" then saveString = saveString .. ",Randomness," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Quant steps" then saveString = saveString .. ",Quant steps," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Bezier shape" then saveString = saveString .. ",Bezier shape," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Fade in duration" then saveString = saveString .. ",Fade in duration," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Fade out duration" then saveString = saveString .. ",Fade out duration," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Timebase?" then saveString = saveString .. ",Timebase?," .. tostring(egsliders[i].value)
-                    elseif egsliders[i].name == "Rate" then 
-                        saveString = saveString .. ",Rate,"  .. tostring(#egsliders[i].envelope)
-                        for p = 1, #egsliders[i].envelope do
-                            saveString = saveString .. "," .. tostring(egsliders[i].envelope[p][1]) .. "," 
-                                                           .. tostring(egsliders[i].envelope[p][2])
+                    if tableGUIelements[i] == nil then -- skip
+                    elseif tableGUIelements[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(shapeSelected)
+                    --elseif tableGUIelements[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(tableGUIelements[i].enabled) 
+                    elseif tableGUIelements[i].name == "Phase step" then saveString = saveString .. ",Phase step," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Randomness" then saveString = saveString .. ",Randomness," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Quant steps" then saveString = saveString .. ",Quant steps," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Bezier shape" then saveString = saveString .. ",Bezier shape," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Fade in duration" then saveString = saveString .. ",Fade in duration," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Fade out duration" then saveString = saveString .. ",Fade out duration," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Timebase?" then saveString = saveString .. ",Timebase?," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Rate" then 
+                        saveString = saveString .. ",Rate,"  .. tostring(#tableGUIelements[i].envelope)
+                        for p = 1, #tableGUIelements[i].envelope do
+                            saveString = saveString .. "," .. tostring(tableGUIelements[i].envelope[p][1]) .. "," 
+                                                           .. tostring(tableGUIelements[i].envelope[p][2])
                         end
-                    elseif egsliders[i].name == "Center" then 
-                        saveString = saveString .. ",Center,"  .. tostring(#egsliders[i].envelope)
-                        for p = 1, #egsliders[i].envelope do
-                            saveString = saveString .. "," .. tostring(egsliders[i].envelope[p][1]) .. "," 
-                                                           .. tostring(egsliders[i].envelope[p][2])
+                    elseif tableGUIelements[i].name == "Center" then 
+                        saveString = saveString .. ",Center,"  .. tostring(#tableGUIelements[i].envelope)
+                        for p = 1, #tableGUIelements[i].envelope do
+                            saveString = saveString .. "," .. tostring(tableGUIelements[i].envelope[p][1]) .. "," 
+                                                           .. tostring(tableGUIelements[i].envelope[p][2])
                         end
-                    elseif egsliders[i].name == "Amplitude" then 
-                        saveString = saveString .. ",Amplitude,"  .. tostring(#egsliders[i].envelope)
-                        for p = 1, #egsliders[i].envelope do
-                            saveString = saveString .. "," .. tostring(egsliders[i].envelope[p][1]) .. "," 
-                                                           .. tostring(egsliders[i].envelope[p][2])
+                    elseif tableGUIelements[i].name == "Amplitude" then 
+                        saveString = saveString .. ",Amplitude,"  .. tostring(#tableGUIelements[i].envelope)
+                        for p = 1, #tableGUIelements[i].envelope do
+                            saveString = saveString .. "," .. tostring(tableGUIelements[i].envelope[p][1]) .. "," 
+                                                           .. tostring(tableGUIelements[i].envelope[p][2])
                         end
                     end
                 end -- for i = 0, 11
@@ -1680,90 +1825,218 @@ function update()
     
     
     if dogenerate==true then
-        generateAndDisplay()      
+        callGenerateNodesThenUpdateEvents()      
     end -- if dogenerate==true
     
     last_mouse_cap=gfx.mouse_cap
     gfx.update()
-    reaper.defer(update)
-end
+    reaper.defer(loop_GetInputsAndUpdate)
+end 
 
 --------------------------------
 
-function generateAndDisplay()
-      generate(egsliders[1].value, -- freq
-             egsliders[2].value, -- amp
-             egsliders[3].value, -- center
-             egsliders[4].value, -- phase
-             egsliders[5].value, -- randomness
-             egsliders[6].value, -- quansteps
-             egsliders[7].value, -- tilt
-             egsliders[8].value, -- fadindur
-             egsliders[9].value, -- fadoutdur
-             egsliders[10].value, -- timebase (aka ratemode)
+function callGenerateNodesThenUpdateEvents()
+      generateNodes(tableGUIelements[1].value, -- freq
+             tableGUIelements[2].value, -- amp
+             tableGUIelements[3].value, -- center
+             tableGUIelements[4].value, -- phase
+             tableGUIelements[5].value, -- randomness
+             tableGUIelements[6].value, -- quansteps
+             tableGUIelements[7].value, -- tilt
+             tableGUIelements[8].value, -- fadindur
+             tableGUIelements[9].value, -- fadoutdur
+             tableGUIelements[10].value, -- timebase (aka ratemode)
              clip) 
       was_changed=true
     
     -- Draw the envelope in CC lane
-    drawCCsBetweenNodes()
+    updateEventValuesAndUploadIntoTake()
 end
 
-------------------------------
-function drawCCsBetweenNodes()
-    i = 1
-    for n = 1, #tableNodes-1 do
-        while i <= #tableCC and tableCC[i].PPQ < tableNodes[n+1].PPQ do
-            -- Interpolate value of CC between nodes
-            if tableNodes[n].shape == 0 then -- Linear
-                CCvalue = tableNodes[n].value + ((tableCC[i].PPQ - tableNodes[n].PPQ)/(tableNodes[n+1].PPQ - tableNodes[n].PPQ))*(tableNodes[n+1].value - tableNodes[n].value)
-            elseif tableNodes[n].shape == 1 then -- Square
-                CCvalue = tableNodes[n].value
-            elseif tableNodes[n].shape >= 2 and tableNodes[n].shape < 3 then -- Sine
-                local piMin = (tableNodes[n].shape - 2)*math.pi
-                local piRefVal = math.cos(piMin)+1
-                local piFrac  = piMin + (tableCC[i].PPQ-tableNodes[n].PPQ)/(tableNodes[n+1].PPQ-tableNodes[n].PPQ)*(math.pi - piMin)
-                local cosFrac = 1-(math.cos(piFrac)+1)/piRefVal
-                CCvalue = tableNodes[n].value + cosFrac*(tableNodes[n+1].value-tableNodes[n].value)
-            elseif tableNodes[n].shape >= 3 and tableNodes[n].shape < 4 then -- Inverse parabolic
-                local minVal = 1 - (tableNodes[n].shape - 4)
-                local fracVal = minVal*(tableCC[i].PPQ-tableNodes[n+1].PPQ)/(tableNodes[n].PPQ-tableNodes[n+1].PPQ)
-                local refVal = minVal^3
-                local normFrac = (fracVal^3)/refVal
-                CCvalue = tableNodes[n+1].value + normFrac*(tableNodes[n].value - tableNodes[n+1].value)            
-            elseif tableNodes[n].shape >= 4 and tableNodes[n].shape < 5 then -- Parabolic
-                local minVal = tableNodes[n].shape - 4
-                local fracVal = minVal + (tableCC[i].PPQ-tableNodes[n].PPQ)/(tableNodes[n+1].PPQ-tableNodes[n].PPQ)*(1 - minVal)
-                local refVal = 1 - minVal^3
-                local normFrac = 1 - (1-fracVal^3)/refVal
-                CCvalue = tableNodes[n].value + normFrac*(tableNodes[n+1].value - tableNodes[n].value)
-            else -- if tableNodes[n].shape == 5 then -- Bézier
-                CCvalue = tableNodes[n].value
-            end
-            
-            if egsliders[slidNum_quant].value ~= 1 then
-                CCvalue=quantize_value(CCvalue, 3 + math.ceil(125*egsliders[slidNum_quant].value))
-            end
-            CCvalue = math.max(minv, math.min(maxv, math.floor(CCvalue+0.5)))
-            
-            -- SetCC to the new value
-            if laneType == CC7BIT then
-                reaper.MIDI_SetCC(take, tableCC[i].index, nil, nil, nil, nil, nil, nil, CCvalue>>7, true)
-            elseif laneType == CC14BIT then
-                reaper.MIDI_SetCC(take, tableCC[i].index, nil, nil, nil, nil, nil, nil, CCvalue>>7, true)
-                reaper.MIDI_SetCC(take, tableCCLSB[i].index, nil, nil, tableCC[i].PPQ, nil, nil, nil, CCvalue&127, true)
-            elseif laneType == PITCH then
-                reaper.MIDI_SetCC(take, tableCC[i].index, nil, nil, nil, nil, nil, CCvalue&127, CCvalue>>7, true)
-            else -- if laneType == CHANPRESSURE then
-                reaper.MIDI_SetCC(take, tableCC[i].index, nil, nil, nil, nil, nil, CCvalue>>7, nil, true)
-            end
-            
-            i = i + 1
-            
-        end -- while tableCC[i].PPQ < tableNodes[n].PPQ and i <= #tableCC
-    
-    end -- for n = 1, #tableNodes-1 
+------------------------------------------------------------
+-- NOTE: This function requires all the tables to be sorted!
+function updateEventValuesAndUploadIntoTake() 
 
-end -- function drawCCsBetweenNodes()
+    local mustQuantize = false
+    local quantStepSize
+    if tableGUIelements[GUIelement_QUANTSTEPS].value ~= 1 then 
+        mustQuantize = true 
+        local numQuantSteps = 3 + math.ceil(125*tableGUIelements[GUIelement_QUANTSTEPS].value)
+        quantStepSize = m_floor(0.5 + (laneMaxValue-laneMinValue)/numQuantSteps)
+    end
+
+    local tableEditedMIDI = {} -- Clean previous tableEditedMIDI
+    local c = 0 -- Count index inside tableEditedMIDI - strangely, this is faster than using table.insert or even #tableEditedMIDI+1
+    
+    local offset = 0
+    local lastPPQpos = 0
+    
+    local i = 1 -- index in tablePPQs and other event tables
+    
+    for n = 1, #tableNodes-1 do
+        while i <= #tablePPQs and tablePPQs[i] < tableNodes[n+1].PPQ do
+            local newValue
+            if tablePPQs[i] >= tableNodes[n].PPQ and tablePPQs[i] < tableNodes[n+1].PPQ then
+                if tableNodes[n].shape == 0 then -- Linear
+                    newValue = tableNodes[n].value + ((tablePPQs[i] - tableNodes[n].PPQ)/(tableNodes[n+1].PPQ - tableNodes[n].PPQ))*(tableNodes[n+1].value - tableNodes[n].value)
+                elseif tableNodes[n].shape == 1 then -- Square
+                    newValue = tableNodes[n].value
+                elseif tableNodes[n].shape >= 2 and tableNodes[n].shape < 3 then -- Sine
+                    local piMin = (tableNodes[n].shape - 2)*m_pi
+                    local piRefVal = m_cos(piMin)+1
+                    local piFrac  = piMin + (tablePPQs[i]-tableNodes[n].PPQ)/(tableNodes[n+1].PPQ-tableNodes[n].PPQ)*(m_pi - piMin)
+                    local cosFrac = 1-(m_cos(piFrac)+1)/piRefVal
+                    newValue = tableNodes[n].value + cosFrac*(tableNodes[n+1].value-tableNodes[n].value)
+                elseif tableNodes[n].shape >= 3 and tableNodes[n].shape < 4 then -- Inverse parabolic
+                    local minVal = 1 - (tableNodes[n].shape - 4)
+                    local fracVal = minVal*(tablePPQs[i]-tableNodes[n+1].PPQ)/(tableNodes[n].PPQ-tableNodes[n+1].PPQ)
+                    local refVal = minVal^3
+                    local normFrac = (fracVal^3)/refVal
+                    newValue = tableNodes[n+1].value + normFrac*(tableNodes[n].value - tableNodes[n+1].value)            
+                elseif tableNodes[n].shape >= 4 and tableNodes[n].shape < 5 then -- Parabolic
+                    local minVal = tableNodes[n].shape - 4
+                    local fracVal = minVal + (tablePPQs[i]-tableNodes[n].PPQ)/(tableNodes[n+1].PPQ-tableNodes[n].PPQ)*(1 - minVal)
+                    local refVal = 1 - minVal^3
+                    local normFrac = 1 - (1-fracVal^3)/refVal
+                    newValue = tableNodes[n].value + normFrac*(tableNodes[n+1].value - tableNodes[n].value)
+                else -- if tableNodes[n].shape == 5 then -- Bézier
+                    newValue = tableNodes[n].value
+                end                
+                
+                if mustQuantize then
+                    newValue = quantStepSize * m_floor(0.5 + newValue/quantStepSize)
+                end
+                
+                if newValue < laneMinValue then newValue = laneMinValue
+                elseif newValue > laneMaxValue then newValue = laneMaxValue
+                else newValue = m_floor(newValue+0.5)
+                end
+                
+                offset = tablePPQs[i]-lastPPQpos
+                lastPPQpos = tablePPQs[i]
+                
+                if laneIsCC7BIT then
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], targetLane, newValue)
+                elseif laneIsPITCH then
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], newValue&127, newValue>>7)
+                elseif laneIsCC14BIT then
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], targetLane-256, newValue>>7)
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", 0     , tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], targetLane-224, newValue&127)
+                elseif laneIsVELOCITY then
+                    -- Insert note-on
+                    c = c + 1 
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0x90 | tableChannels[i], tablePitches[i], newValue) 
+                    -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
+                    if tableNotation[i] then
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tableFlags[i]&0xFE, tableNotation[i])
+                    end
+                    -- Insert note-off
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", tableNoteLengths[i], tableFlags[i], 3, 0x80 | tableChannels[i], tablePitches[i], 0)
+                    lastPPQpos = lastPPQpos + tableNoteLengths[i]
+                elseif laneIsCHPRESS then
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
+                elseif laneIsPROGRAM then
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
+                end -- if laneIsCC7BIT / laneIsCC14BIT / ...
+            i = i + 1
+            end -- if tablePPQs[i] >= tableNodes[n].PPQ and tablePPQs[i] < tableNodes[n+1].PPQ then
+        end -- while i <= #tablePPQs and tablePPQs[i] < tableNodes[n+1].PPQ do
+    end -- for n = 1, #tableNodes-1 do
+    
+    -----------------------------------------------------------
+    -- DRUMROLL... write the edited events into the MIDI chunk!
+    -- This also updates the offset of the first event in remainMIDIstring relative to the PPQ position of the last event in tableEditedMIDI
+    newRemainOffset = remainOffset-lastPPQpos
+    reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
+                                  .. s_pack("i4", newRemainOffset)
+                                  .. remainMIDIstringSub5)
+    
+    if isInline then reaper.UpdateArrange() end
+
+end -- function updateEventValuesAndUploadIntoTake()
+
+
+-----------------------------------
+function parseNotesAndInsertCCs()
+
+    local tableNoteOns = {}
+    for flags = 0, 3 do
+        tableNoteOns[flags] = {}
+        for chan = 0, 15 do
+            tableNoteOns[flags][chan] = {}
+        end
+    end
+    local stringPos = 1
+    local runningPPQpos = 0
+    local MIDIlen = origMIDIstring:len()
+    local offset, flags, msg, msg1, eventType, channel, pitch
+    while stringPos < MIDIlen do
+        offset, flags, msg, stringPos = s_unpack("i4Bs4", origMIDIstring, stringPos)
+        runningPPQpos = runningPPQpos + offset
+        if flags&1==1 and msg:len() == 3 then
+            msg1 = msg:byte(1)
+            eventType = msg1>>4
+            channel   = msg1&0x0F
+            if eventType == 9 and msg:byte(3) ~= 0 then -- Note-ons
+                tableNoteOns[flags][channel][msg:byte(2)] = runningPPQpos
+            elseif eventType == 8 or (eventType == 9 and msg:byte(3) == 0) then -- Note-offs
+                pitch = msg:byte(2)
+                if tableNoteOns[flags][channel][pitch] then
+                    if tableNoteOns[flags][channel][pitch] < runningPPQpos then
+                        deleteCCs(tableNoteOns[flags][channel][pitch], runningPPQpos, channel)
+                        insertNewCCs(tableNoteOns[flags][channel][pitch], runningPPQpos, channel)
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Sort tablePPQs and tableChannels
+    local tableIndices = {}
+    for i = 1, #tablePPQs do
+        tableIndices[i] = i
+    end
+    local function sortPPQ(a, b)
+        if tablePPQs[a] < tablePPQs[b] then 
+            return true 
+        elseif tablePPQs[a] == tablePPQs[b] then
+            if tableChannels[a] < tableChannels[b] then
+                return true
+            end
+        end
+    end
+    table.sort(tableIndices, sortPPQ)
+    local tempTablePPQs = {}
+    local tempTableChannels = {}
+    for i = 1, #tablePPQs do
+        tempTablePPQs[i] = tablePPQs[tableIndices[i]]
+        tempTableChannels[i] = tableChannels[tableIndices[i]]
+    end
+    local p = 0
+    tablePPQs = nil
+    tableChannels = nil
+    tablePPQs = {}
+    tableChannels = {}
+    for i = 1, #tempTablePPQs do
+        if tempTablePPQs[i] ~= tempTablePPQs[i+1] or tempTableChannels[i] ~= tempTableChannels[i+1] then
+            p = p + 1
+            tablePPQs[p] = tempTablePPQs[i]
+            tableChannels[p] = tempTableChannels[i]
+        end
+    end        
+    
+    remainMIDIstringSub5  = remainMIDIstring:sub(5)-- The MIDI that remained, except the very first offset
+    remainOffset = s_unpack("i4", remainMIDIstring, 1) -- The very first offset of the remaining events                          
+end
+
 
 --------------------------
 function getSavedCurvesAndNames()
@@ -1794,9 +2067,10 @@ function getSavedCurvesAndNames()
         end
         
         if #savedNames == 0 or #savedNames ~= #savedCurves then
-            reaper.ShowConsoleMsg("\n\nThe saved curves appear to have been corrupted."
+            reaper.ShowMessageBox("\n\nThe saved curves appear to have been corrupted."
                                   .. "\n\nThe saved curves can be edited (and perhaps recovered) manually, or they can all be deleted by running the following command in a script:"
-                                  .. "\nreaper.DeleteExtState(\"LFO generator\", \"savedCurves\", true)")
+                                  .. "\nreaper.DeleteExtState(\"LFO generator\", \"savedCurves\", true)"
+                                  , "ERROR", 0)
             savedCurves = nil
             savedNames = nil
             return(false)
@@ -1828,7 +2102,7 @@ function loadCurve(curveNum)
         
         curveName = nextStr()
         -- For compatibility with previous version that only has timebase=time, timebase is set to 0 by default
-        egsliders[slidNum_timebase].value = 0
+        tableGUIelements[GUIelement_TIMEBASE].value = 0
         
         for i = 0, 11 do
             --reaper.ShowConsoleMsg("\nsliderName = ")
@@ -1836,63 +2110,63 @@ function loadCurve(curveNum)
             if sliderName  == "LFO shape?" then shapeSelected = tonumber(nextStr())
             --[[elseif sliderName == "Real-time copy to CC?" then 
                 if nextStr() == "true" then
-                    egsliders[slidNum_copyCC].enabled = true
+                    tableGUIelements[GUIelement_copyCC].enabled = true
                 else
-                    egsliders[slidNum_copyCC].enabled = false
+                    tableGUIelements[GUIelement_copyCC].enabled = false
                 end]]
-            elseif sliderName == "Phase step" then egsliders[slidNum_phase].value = tonumber(nextStr())
-            elseif sliderName == "Randomness" then egsliders[slidNum_random].value = tonumber(nextStr())
-            elseif sliderName == "Quant steps" then egsliders[slidNum_quant].value = tonumber(nextStr())
-            elseif sliderName == "Bezier shape" then egsliders[slidNum_Bezier].value = tonumber(nextStr())
-            elseif sliderName == "Fade in duration" then egsliders[slidNum_fadein].value = tonumber(nextStr())
-            elseif sliderName == "Fade out duration" then egsliders[slidNum_fadeout].value = tonumber(nextStr())
-            elseif sliderName == "Timebase?" then egsliders[slidNum_timebase].value = tonumber(nextStr())
+            elseif sliderName == "Phase step" then tableGUIelements[GUIelement_PHASE].value = tonumber(nextStr())
+            elseif sliderName == "Randomness" then tableGUIelements[GUIelement_RANDOMNESS].value = tonumber(nextStr())
+            elseif sliderName == "Quant steps" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
+            elseif sliderName == "Bezier shape" then tableGUIelements[GUIelement_BEZIERSHAPE].value = tonumber(nextStr())
+            elseif sliderName == "Fade in duration" then tableGUIelements[GUIelement_FADEIN].value = tonumber(nextStr())
+            elseif sliderName == "Fade out duration" then tableGUIelements[GUIelement_FADEOUT].value = tonumber(nextStr())
+            elseif sliderName == "Timebase?" then tableGUIelements[GUIelement_TIMEBASE].value = tonumber(nextStr())
             elseif sliderName == "Rate" then 
-                egsliders[slidNum_rate].envelope = nil
-                egsliders[slidNum_rate].envelope = {}
+                tableGUIelements[GUIelement_RATE].envelope = nil
+                tableGUIelements[GUIelement_RATE].envelope = {}
                 for p = 1, tonumber(nextStr()) do
-                    egsliders[slidNum_rate].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
+                    tableGUIelements[GUIelement_RATE].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
                 end
             elseif sliderName == "Center" then 
-                egsliders[slidNum_center].envelope = nil
-                egsliders[slidNum_center].envelope = {}
+                tableGUIelements[GUIelement_CENTER].envelope = nil
+                tableGUIelements[GUIelement_CENTER].envelope = {}
                 for p = 1, tonumber(nextStr()) do
-                    egsliders[slidNum_center].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
+                    tableGUIelements[GUIelement_CENTER].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
                 end
             elseif sliderName == "Amplitude" then 
-                egsliders[slidNum_amp].envelope = nil
-                egsliders[slidNum_amp].envelope = {}
+                tableGUIelements[GUIelement_AMPLITUDE].envelope = nil
+                tableGUIelements[GUIelement_AMPLITUDE].envelope = {}
                 for p = 1, tonumber(nextStr()) do
-                    egsliders[slidNum_amp].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
+                    tableGUIelements[GUIelement_AMPLITUDE].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
                 end
             end
         end -- for i = 0, 11 
         
         -------------------------------------------------------
         -- Draw the newly loaded envelope
-        if egsliders[100].name == egsliders[1].name then -- "Rate"
-            egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[1])
-        elseif egsliders[100].name == egsliders[2].name then -- "Amplitude"
-            egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[2])
+        if tableGUIelements[100].name == tableGUIelements[1].name then -- "Rate"
+            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[1])
+        elseif tableGUIelements[100].name == tableGUIelements[2].name then -- "Amplitude"
+            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[2])
         else -- "Center"
-            egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight, egsliders[3])
+            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[3])
         end
         
-        generate(egsliders[1].value, -- freq
-               egsliders[2].value, -- amp
-               egsliders[3].value, -- center
-               egsliders[4].value, -- phase
-               egsliders[5].value, -- randomness
-               egsliders[6].value, -- quansteps
-               egsliders[7].value, -- tilt
-               egsliders[8].value, -- fadindur
-               egsliders[9].value, -- fadoutdur
-               egsliders[10].value, -- timebase (aka ratemode)
+        generateNodes(tableGUIelements[1].value, -- freq
+               tableGUIelements[2].value, -- amp
+               tableGUIelements[3].value, -- center
+               tableGUIelements[4].value, -- phase
+               tableGUIelements[5].value, -- randomness
+               tableGUIelements[6].value, -- quansteps
+               tableGUIelements[7].value, -- tilt
+               tableGUIelements[8].value, -- fadindur
+               tableGUIelements[9].value, -- fadoutdur
+               tableGUIelements[10].value, -- timebase (aka ratemode)
                clip)
                was_changed=true
                               
        -- Draw the envelope in CC lane
-       drawCCsBetweenNodes()
+       updateEventValuesAndUploadIntoTake()
         
     end -- savedCurves ~= nil and #savedCurves ~= nil and
 
@@ -1902,50 +2176,39 @@ end -- loadCurve()
 ---------------------------------------------
 function constructNewGUI()
 
-    --[[
-    if laneType == CC7BIT then
-        titleString = "LFO: CC ".. tostring(clickedLane)
-    elseif laneType == CHANPRESSURE then
-        titleString = "LFO: Chan pressure"
-    elseif laneType == CC14BIT then
-        titleString = "LFO: CC ".. tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224)
-    elseif laneType == PITCH then
-        titleString = "LFO: Pitch"
-    end
-    ]]
     gfx.quit()
-    gfx.init("LFO: ".. clickedLaneString, initXsize, initYsize,0)
+    gfx.init("LFO: ".. targetLaneString, initXsize, initYsize,0)
     gfx.setfont(1,"Ariel", 15)
     
-    egsliders[1]=make_radiobutton(borderWidth,borderWidth,0,0,0.5,"Rate", function(nx) end)
-    slidNum_rate = 1
-    egsliders[2]=make_radiobutton(borderWidth,borderWidth+sliderHeight*1,0,0,0.5,"Amplitude",function(nx) end)
-    slidNum_amp = 2
-    egsliders[3]=make_radiobutton(borderWidth,borderWidth+sliderHeight*2,0,0,0.5,"Center",function(nx) end)
-    slidNum_center = 3
-    egsliders[10]=make_question(borderWidth,borderWidth+sliderHeight*3,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
-    slidNum_timebase = 10
-    egsliders[0]=make_menubutton(borderWidth,borderWidth+sliderHeight*4,0,0,0.0,"LFO shape?",function(nx) end)
-    slidNum_shape = 0
-    --egsliders[11]=make_question(borderWidth,borderWidth+sliderHeight*5,0,0,0.0,"Real-time copy to CC?",function(nx) end, "Enabled", "Disabled")
-    --slidNum_copyCC = 11
+    tableGUIelements[1]=make_radiobutton(borderWidth,borderWidth,0,0,0.5,"Rate", function(nx) end)
+    GUIelement_RATE = 1
+    tableGUIelements[2]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*1,0,0,0.5,"Amplitude",function(nx) end)
+    GUIelement_AMPLITUDE = 2
+    tableGUIelements[3]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*2,0,0,0.5,"Center",function(nx) end)
+    GUIelement_CENTER = 3
+    tableGUIelements[10]=make_question(borderWidth,borderWidth+GUIelementHeight*3,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
+    GUIelement_TIMEBASE = 10
+    tableGUIelements[0]=make_menubutton(borderWidth,borderWidth+GUIelementHeight*4,0,0,0.0,"LFO shape?",function(nx) end)
+    GUIelement_shape = 0
+    --tableGUIelements[11]=make_question(borderWidth,borderWidth+GUIelementHeight*5,0,0,0.0,"Real-time copy to CC?",function(nx) end, "Enabled", "Disabled")
+    --GUIelement_copyCC = 11
     -- The following slider was originally named "Phase"
-    egsliders[4]=make_slider(borderWidth,borderWidth+sliderHeight*5,0,0,0.0,"Phase step",function(nx) end)
-    slidNum_phase = 4
-    egsliders[5]=make_slider(borderWidth,borderWidth+sliderHeight*6,0,0,0.0,"Randomness",function(nx) end)
-    slidNum_random = 5
-    egsliders[6]=make_slider(borderWidth,borderWidth+sliderHeight*7,0,0,1.0,"Quant steps",function(nx) end)
-    slidNum_quant = 6
-    egsliders[7]=make_slider(borderWidth,borderWidth+sliderHeight*8,0,0,0.7,"Bezier shape",function(nx) end)
-    slidNum_Bezier = 7
-    egsliders[8]=make_slider(borderWidth,borderWidth+sliderHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
-    slidNum_fadein = 8
-    egsliders[9]=make_slider(borderWidth,borderWidth+sliderHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
-    slidNum_fadeout = 9
-    egsliders[100]=make_envelope(borderWidth, envYpos, 0, envHeight,egsliders[1]) --315-30
-    slidNum_env = 100
+    tableGUIelements[4]=make_slider(borderWidth,borderWidth+GUIelementHeight*5,0,0,0.0,"Phase step",function(nx) end)
+    GUIelement_PHASE = 4
+    tableGUIelements[5]=make_slider(borderWidth,borderWidth+GUIelementHeight*6,0,0,0.0,"Randomness",function(nx) end)
+    GUIelement_RANDOMNESS = 5
+    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quant steps",function(nx) end)
+    GUIelement_QUANTSTEPS = 6
+    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.7,"Bezier shape",function(nx) end)
+    GUIelement_BEZIERSHAPE = 7
+    tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
+    GUIelement_FADEIN = 8
+    tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
+    GUIelement_FADEOUT = 9
+    tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight,tableGUIelements[1]) --315-30
+    GUIelement_env = 100
       
-    --[[for key,tempcontrol in pairs(egsliders) do
+    --[[for key,tempcontrol in pairs(tableGUIelements) do
       reaper.ShowConsoleMsg(key.." "..tempcontrol.type.." "..tempcontrol.name.."\n")
     end]]
     
@@ -1954,397 +2217,897 @@ end -- constructNewGUI()
 ------------------------
 
 
+--####################################################################################
+--------------------------------------------------------------------------------------
+function parseAndExtractTargetMIDI()
+    
+    -- If unsorted MIDI is encountered, the function will try to correct it by calling 
+    --    "Invert selection" twice, which should invoke the MIDI editor's built-in sorting
+    --    algorithm.  This is more reliable than the buggy MIDI_Sort(take) API function.
+    -- This will only be tried once, so use flag.
+    local haveAlreadyCorrectedOverlaps = false
+    
+    MIDIstring = origMIDIstring
+    
+    -- Start again here if sorting was done.
+    ::startAgain::
+    
+    if gotAllOK then
+    
+        local MIDIlen = MIDIstring:len()
+        
+        -- These functions are fast, but require complicated parsing of the MIDI string.
+        -- The following tables with temporarily store data while parsing:
+        local tableNoteOns = {} -- Store note-on position and pitch while waiting for the next note-off, to calculate note length
+        local tableTempNotation = {} -- Store notation text while waiting for a note-on with matching position, pitch and channel
+        local tableCCMSB = {} -- While waiting for matching LSB of 14-bit CC
+        local tableCCLSB = {} -- While waiting for matching MSB of 14-bit CC
+        for flags = 0, 3 do
+            tableNoteOns[flags] = {}
+            for chan = 0, 15 do
+                tableNoteOns[flags][chan] = {}
+                for pitch = 0, 127 do
+                    tableNoteOns[flags][chan][pitch] = {}
+                end
+            end
+        end
+        for chan = 0, 15 do
+            tableTempNotation[chan] = {}
+            tableCCMSB[chan] = {}
+            tableCCLSB[chan] = {}
+            for pitch = 0, 127 do
+                tableTempNotation[chan][pitch] = {}
+            end
+        end
+        
+        -- The abstracted info of targeted MIDI events (that will be edited) will be will be stored in
+        --    several new tables such as tablePPQs and tableValues.
+        -- Clean up these tables in case starting again after sorting.
+        --tableMsg = {}
+        --tableMsgLSB = {}
+        --tableMsgNoteOffs = {}
+        --tableValues = {} -- CC values, 14bit CC combined values, note velocities
+        tablePPQs = {}
+        tableChannels = {}
+        tableFlags = {}
+        tableFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
+        tablePitches = {} -- This table will only be filled if laneIsVELOCITY / laneIsPIANOROLL / laneIsOFFVEL / laneIsNOTES
+        tableNoteLengths = {}
+        tableNotation = {} -- Will only contain entries at those indices where the notes have notation
+        
+        -- The MIDI strings of non-targeted events will temnporarily be stored in a table, tableRemainingEvents[],
+        --    and once all MIDI data have been parsed, this table (which excludes the strings of targeted events)
+        --    will be concatenated into remainMIDIstring.
+        local tableRemainingEvents = {}    
+         
+        local runningPPQpos = 0 -- The MIDI string only provides the relative offsets of each event, sp the actual PPQ positions must be calculated by iterating through all events and adding their offsets
+        local lastRemainPPQpos = 0 -- PPQ position of last event that was *not* targeted, and therefore stored in tableRemainingEvents.
+                
+        local prevPos, nextPos, unchangedPos = 1, 1, 1 -- Keep record of position within MIDIstring. unchangedPos is position from which unchanged events van be copied in bulk.
+        local c = 0 -- Count index inside tables - strangely, this is faster than using table.insert or even #table+1
+        local r = 0 -- Count inside tableRemainingEvents
+        local offset, flags, msg -- MIDI data that will be unpacked for each event
+        
+        ---------------------------------------------------------------
+        -- This loop will iterate through the MIDI data, event-by-event
+        -- In the case of unselected events, only their offsets are relevant, in order to update runningPPQpos.
+        -- Selected events will be checked in more detail, to find those in the target lane.
+        --
+        -- The exception is notation events: Notation 'text events' for selected noted are unfortunately not also selected. 
+        --    So relevant notation text events can only be found by checking each and every notation event.
+        -- If note positions are not changed, then do not need to extract notation, since MIDI_Sort will eventually put notes and notation together again.
+        --
+        -- Should this parser check for unsorted MIDI?  This would depend on the function of the script. 
+        -- Scripts such as "Remove redundant CCs" will only work on sorted MIDI.  For others, sorting is not relevant.
+        -- Note that even in sorted MIDI, the first event can have an negative offset if its position is to the left of the item start.
+        -- As discussed in the introduction, MIDI sorting entails several problems.  This script will therefore avoid sorting until it exits, and
+        --    will instead notify the user, in the rare case that unsorted MIDI is deteced.  (Checking for negative offsets is also faster than unneccesary sorting.)
+        
+           
+            
+        -- This function will try two main things to make execution faster:
+        --    * First, an upper bound for positions of the targeted events in MIDIstring must be found. 
+        --      If such an upper bound can be found, the parser does not need to parse beyond this point,
+        --      and the remaining later part of MIDIstring can be stored as is.
+        --    * Second, events that are not changed (i.e. not extracted or offset changed) will not be 
+        --      inserted individually into tableRemainingEvents, using string.pack.  Instead, they will be 
+        --      inserted as blocks of multiple events, copied directly from MIDIstring.  By so doing, the 
+        --      number of table writes are lowered, the speed of table.concat is improved, and string.sub
+        --      can be used instead of string.pack.
+        
+        -----------------------------------------------------------------------------------------------------
+        -- To get an upper limit for the positions of targeted events in MIDIstring, string.find will be used
+        --    to find the posision of the last targeted event in MIDIstring (NB, the *string* posision, not 
+        --    the PPQ position.  string.find will search backwards from the end of MIDIstring, using Lua's 
+        --    string patterns to ensure that all possible targeted events would be matched.  
+        --    (It is possible, though unlikely, that a non-targeted events might also be matched, but this is 
+        --    not a problem, since it would simply raise the upper limit.  Parsing would be a bit slower, 
+        --    but since all targeted events would still be included in below the upper limit, parsing will 
+        --    still be accurate.
+        
+        -- But what happens if one of the characters in the MIDI string is a "magic character"
+        --    of Lua's string patterns?  The magic characters are: ^$()%.[]*+-?)
+        -- The byte values for these characters are:
+        -- % = 0x25
+        -- . = 0x2e
+        -- ^ = 0x5e
+        -- ? = 0x3f
+        -- [ = 0x5b 
+        -- ] = 0x5d
+        -- + = 0x2b
+        -- - = 0x2d
+        -- ) = 0x29
+        -- ( = 0x28
+        -- Fortunately, these byte values fall outside the range of (most of the) values in the match string:
+        --    * MIDI status bytes > 0x80
+        --    * Message lengths <= 3
+        -- The only problem is msg2 (MIDI byte 2), which can range from 0 to 0xEF.
+        -- These bytes must therefore be compared to the above list, and prefixed with a "%" where necessary. gsub will be used.
+        -- (It is probably only strictly necessary to prefix % to "%" and ".", but won't hurt to prefix to all of the above.)
+        local matchStrReversed, firstTargetPosReversed = "", 0
+        --[[if laneIsBANKPROG then
+        
+            local MIDIrev = MIDIstring:reverse()
+            local matchProgStrRev = table.concat({"[",string.char(0xC0),"-",string.char(0xCF),"]",
+                                                      string.pack("I4", 2):reverse(),
+                                                  "[",string.char(0x01, 0x03),"]"})
+            local msg2string = string.char(0, 32):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0")
+            local matchBankStrRev = table.concat({"[",msg2string,"]",
+                                                  "[",string.char(0xB0),"-",string.char(0xBF),"]", 
+                                                      string.pack("I4", 3):reverse(),
+                                                  "[",string.char(0x01, 0x03),"]"})
+            firstTargetPosReversedProg = MIDIrev:find(matchProgStrRev)
+            firstTargetPosReversedBank = MIDIrev:find(matchBankStrRev)
+            if firstTargetPosReversedProg and firstTargetPosReversedBank then 
+                firstTargetPosReversed = math.min(MIDIlen-firstTargetPosReversedProg, MIDIlen-firstTargetPosReversedBank)
+            elseif firstTargetPosReversedProg then firstTargetPosReversed = firstTargetPosReversedProg
+            elseif firstTargetPosReversedBank then firstTargetPosReversed = firstTargetPosReversedBank
+            end
+                  
+        else ]]
+            if laneIsCC7BIT then 
+                local msg2string = string.char(targetLane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0") -- Replace magic characters.
+                matchStrReversed = table.concat({"[",msg2string,"]",
+                                                       "[",string.char(0xB0),"-",string.char(0xBF),"]", 
+                                                           string.pack("I4", 3):reverse(),
+                                                       "[",string.char(0x01, 0x03),"]"})    
+            elseif laneIsPITCH then
+                matchStrReversed = table.concat({"[",string.char(0xE0),"-",string.char(0xEF),"]",
+                                                           string.pack("I4", 3):reverse(),
+                                                       "[",string.char(0x01, 0x03),"]"})
+            elseif laneIsNOTES then
+                matchStrReversed = table.concat({"[",string.char(0x80),"-",string.char(0x9F),"]", -- Note-offs and note-ons in all channels.
+                                                           string.pack("I4", 3):reverse(),
+                                                       "[",string.char(0x01, 0x03),"]"})
+            elseif laneIsCHPRESS then
+                matchStrReversed = table.concat({"[",string.char(0xD0),"-",string.char(0xDF),"]",
+                                                           string.pack("I4", 2):reverse(),
+                                                       "[",string.char(0x01, 0x03),"]"})                                      
+            elseif laneIsCC14BIT then
+                local MSBlane = targetLane - 256
+                local LSBlane = targetLane - 224
+                local msg2string = string.char(MSBlane, LSBlane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0")
+                matchStrReversed = table.concat({"[",msg2string,"]",
+                                                       "[",string.char(0xB0),"-",string.char(0xBF),"]", 
+                                                           string.pack("I4", 3):reverse(),
+                                                       "[",string.char(0x01, 0x03),"]"})  
+            elseif laneIsSYSEX then
+                matchStrReversed = table.concat({string.char(0xF0), 
+                                                       "....",
+                                                       "[",string.char(0x01, 0x03),"]"})
+            elseif laneIsTEXT then
+                matchStrReversed = table.concat({"[",string.char(0x01),"-",string.char(0x09),"]",
+                                                            string.char(0xFF), 
+                                                            "....",
+                                                       "[", string.char(0x01, 0x03),"]"})                                                
+            elseif laneIsPROGRAM then
+                matchStrReversed = table.concat({"[",string.char(0xC0),"-",string.char(0xCF),"]",
+                                                           string.pack("I4", 2):reverse(),
+                                                       "[",string.char(0x01, 0x03),"]"})                      
+            end
+        
+            firstTargetPosReversed = MIDIstring:reverse():find(matchStrReversed) -- Search backwards by using reversed string. 
+        --end
+        
+        if firstTargetPosReversed then 
+            lastTargetStrPos = MIDIlen - firstTargetPosReversed 
+        else -- Found no targeted events
+            lastTargetStrPos = 0
+        end    
+        
+        ---------------------------------------------------------------------------------------------
+        -- OK, got an upper limit.  Not iterate through MIDIstring, until the upper limit is reached.
+        while nextPos < lastTargetStrPos do
+           
+            local mustExtract = false
+            local offset, flags, msg
+            
+            prevPos = nextPos
+            offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
+          
+            -- Check flag as simple test if parsing is still going OK
+            if flags&252 ~= 0 then -- 252 = binary 11111100.
+                reaper.ShowMessageBox("The MIDI data uses an unknown format that could not be parsed."
+                                      .. "\n\nPlease report the problem in the thread http://forum.cockos.com/showthread.php?t=176878:"
+                                      .. "\nFlags = " .. string.format("%02x", flags)
+                                      , "ERROR", 0)
+                return false
+            end
+            
+            -- Check for unsorted MIDI
+            if offset < 0 and prevPos > 1 then   
+                -- The bugs in MIDI_Sort have been fixed in REAPER v5.32, so it should be save to use this function.
+                if not haveAlreadyCorrectedOverlaps then
+                    reaper.MIDI_Sort(take)
+                    gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+                    haveAlreadyCorrectedOverlaps = true
+                    goto startAgain
+                else -- haveAlreadyCorrectedOverlaps == true
+                    reaper.ShowMessageBox("Unsorted MIDI data has been detected."
+                                          .. "\n\nThe script has tried to sort the data, but was unsuccessful."
+                                          .. "\n\nSorting of the MIDI can usually be induced by any simple editing action, such as selecting a note."
+                                          , "ERROR", 0)
+                    return false
+                end
+            end         
+            
+            runningPPQpos = runningPPQpos + offset                 
+
+            -- Only analyze *selected* events - as well as notation text events (which are always unselected)
+            if flags&1 == 1 and msg:len() >= 2 then -- bit 1: selected                
+                    
+                if laneIsCC7BIT then if msg:byte(2) == targetLane and (msg:byte(1))>>4 == 11
+                then
+                    mustExtract = true
+                    c = c + 1 
+                    --tableValues[c] = msg:byte(3)
+                    tablePPQs[c] = runningPPQpos
+                    tableChannels[c] = msg:byte(1)&0x0F
+                    tableFlags[c] = flags
+                    --tableMsg[c] = msg
+                    end 
+                                    
+                elseif laneIsPITCH then if (msg:byte(1))>>4 == 14
+                then
+                    mustExtract = true 
+                    c = c + 1
+                    --tableValues[c] = (msg:byte(3)<<7) + msg:byte(2)
+                    tablePPQs[c] = runningPPQpos
+                    tableChannels[c] = msg:byte(1)&0x0F
+                    tableFlags[c] = flags 
+                    --tableMsg[c] = msg        
+                    end                           
+                                        
+                elseif laneIsCC14BIT then 
+                    if msg:byte(2) == targetLane-224 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the LSB lane
+                    then
+                        mustExtract = true
+                        local channel = msg:byte(1)&0x0F
+                        -- Has a corresponding LSB value already been saved?  If so, combine and save in tableValues.
+                        if tableCCMSB[channel][runningPPQpos] then
+                            c = c + 1
+                            --tableValues[c] = (((tableCCMSB[channel][runningPPQpos].message):byte(3))<<7) + msg:byte(3)
+                            tablePPQs[c] = runningPPQpos
+                            tableFlags[c] = tableCCMSB[channel][runningPPQpos].flags -- The MSB determines muting
+                            tableFlagsLSB[c] = flags
+                            tableChannels[c] = channel
+                            --tableMsg[c] = tableCCMSB[channel][runningPPQpos].message
+                            --tableMsgLSB[c] = msg
+                            tableCCMSB[channel][runningPPQpos] = nil -- delete record
+                        else
+                            tableCCLSB[channel][runningPPQpos] = {message = msg, flags = flags}
+                        end
+                            
+                    elseif msg:byte(2) == targetLane-256 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the MSB lane
+                    then
+                        mustExtract = true
+                        local channel = msg:byte(1)&0x0F
+                        -- Has a corresponding LSB value already been saved?  If so, combine and save in tableValues.
+                        if tableCCLSB[channel][runningPPQpos] then
+                            c = c + 1
+                            --tableValues[c] = (msg:byte(3)<<7) + (tableCCLSB[channel][runningPPQpos].message):byte(3)
+                            tablePPQs[c] = runningPPQpos
+                            tableFlags[c] = flags
+                            tableChannels[c] = channel
+                            tableFlagsLSB[c] = tableCCLSB[channel][runningPPQpos].flags
+                            --tableMsg[c] = msg
+                            --tableMsgLSB[c] = tableCCLSB[channel][runningPPQpos].message
+                            tableCCLSB[channel][runningPPQpos] = nil -- delete record
+                        else
+                            tableCCMSB[channel][runningPPQpos] = {message = msg, flags = flags}
+                        end
+                    end
+                  
+                -- Note-Offs
+                elseif laneIsNOTES then 
+                    if ((msg:byte(1))>>4 == 8 or (msg:byte(3) == 0 and (msg:byte(1))>>4 == 9))
+                    then
+                        local channel = msg:byte(1)&0x0F
+                        local msg2 = msg:byte(2)
+                        -- Check whether there was a note-on on this channel and pitch.
+                        if not tableNoteOns[flags][channel][msg2].index then
+                            reaper.ShowMessageBox("There appears to be orphan note-offs (probably caused by overlapping notes or unsorted MIDI data) in the active takes."
+                                                  .. "\n\nIn particular, at position " 
+                                                  .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, runningPPQpos), "", 1)
+                                                  .. "\n\nPlease remove these before retrying the script."
+                                                  .. "\n\n"
+                                                  , "ERROR", 0)
+                            return false
+                        else
+                            mustExtract = true
+                            tableNoteLengths[tableNoteOns[flags][channel][msg2].index] = runningPPQpos - tableNoteOns[flags][channel][msg2].PPQ
+                            --tableMsgNoteOff[tableNoteOns[flags][channel][msg2].index] = msg
+                            tableNoteOns[flags][channel][msg2] = {} -- Reset this channel and pitch
+                        end
+                                                                    
+                    -- Note-Ons
+                    elseif (msg:byte(1))>>4 == 9 -- and msg3 > 0
+                    then
+                        local channel = msg:byte(1)&0x0F
+                        local msg2 = msg:byte(2)
+                        if tableNoteOns[flags][channel][msg2].index then
+                            reaper.ShowMessageBox("There appears to be overlapping notes among the selected notes."
+                                                  .. "\n\nIn particular, at position " 
+                                                  .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, runningPPQpos), "", 1)
+                                                  .. "\n\nThe action 'Correct overlapping notes' can be used to correct overlapping notes in the active take."
+                                                  , "ERROR", 0)
+                            return false
+                        else
+                            mustExtract = true
+                            c = c + 1
+                            --tableMsg[c] = msg
+                            --tableValues[c] = msg:byte(3)
+                            tablePPQs[c] = runningPPQpos
+                            tablePitches[c] = msg2
+                            tableChannels[c] = channel
+                            tableFlags[c] = flags
+                            -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
+                            tableNotation[c] = tableTempNotation[channel][msg2][runningPPQpos]
+                            -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
+                            tableNoteOns[flags][channel][msg2] = {PPQ = runningPPQpos, index = #tablePPQs}
+                        end  
+                    end
+  
+                    
+                elseif laneIsPROGRAM then if (msg:byte(1))>>4 == 12
+                then
+                    mustExtract = true
+                    c = c + 1
+                    --tableValues[c] = msg:byte(2)
+                    tablePPQs[c] = runningPPQpos
+                    tableChannels[c] = msg:byte(1)&0x0F
+                    tableFlags[c] = flags
+                    --tableMsg[c] = msg
+                    end
+                    
+                elseif laneIsCHPRESS then if (msg:byte(1))>>4 == 13
+                then
+                    mustExtract = true
+                    c = c + 1
+                    --tableValues[c] = msg:byte(2)
+                    tablePPQs[c] = runningPPQpos
+                    tableChannels[c] = msg:byte(1)&0x0F
+                    tableFlags[c] = flags
+                    --tableMsg[c] = msg
+                    end
+                    
+                end  
+                
+            end -- if laneIsCC7BIT / CC14BIT / PITCH etc    
+            
+            -- Check notation text events
+            if laneIsNOTES 
+            and msg:byte(1) == 0xFF -- MIDI text event
+            and msg:byte(2) == 0x0F -- REAPER's notation event type
+            then
+                -- REAPER v5.32 changed the order of note-ons and notation events. So must search backwards as well as forward.
+                local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ") 
+                if notationChannel then
+                    notationChannel = tonumber(notationChannel)
+                    notationPitch   = tonumber(notationPitch)
+                    -- First, backwards through notes that have already been parsed.
+                    for i = #tablePPQs, 1, -1 do
+                        if tablePPQs[i] ~= runningPPQpos then 
+                            break -- Go on to forward search
+                        else
+                            if tableChannels[i] == notationChannel
+                            and tablePitches[i] == notationPitch
+                            then
+                                tableNotation[i] = msg
+                                mustExtract = true
+                                goto completedNotationSearch
+                            end
+                        end
+                    end
+                    -- Search forward through following events, looking for a selected note that match the channel and pitch
+                    local evPos = nextPos -- Start search at position of nmext event in MIDI string
+                    local evOffset, evFlags, evMsg
+                    repeat -- repeat until an offset is found > 0
+                        evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
+                        if evOffset == 0 then 
+                            if evFlags&1 == 1 -- Only match *selected* events
+                            and evMsg:byte(1) == 0x90 | notationChannel -- Match note-ons and channel
+                            and evMsg:byte(2) == notationPitch -- Match pitch
+                            and evMsg:byte(3) ~= 0 -- Note-ons with velocity == 0 are actually note-offs
+                            then
+                                -- Store this notation text with unique key so that future selected notes can find their matching notation
+                                tableTempNotation[notationChannel][notationPitch][runningPPQpos] = msg
+                                mustExtract = true
+                                goto completedNotationSearch
+                            end
+                        end
+                    until evOffset ~= 0
+                    ::completedNotationSearch::
+                end   
+            end    
+                    
+                            
+            --------------------------------------------------------------------------
+            -- So what must be done with the MIDI event?  Stored as non-targeted event 
+            --    in tableRemainingEvents?  Or update offset?
+            if mustExtract then
+                -- The chain of unchanged events is broken, so write to tableRemainingEvents
+                if unchangedPos < prevPos then
+                    r = r + 1
+                    tableRemainingEvents[r] = MIDIstring:sub(unchangedPos, prevPos-1)
+                end
+                unchangedPos = nextPos
+                mustUpdateNextOffset = true
+            elseif mustUpdateNextOffset then
+                r = r + 1
+                tableRemainingEvents[r] = s_pack("i4Bs4", runningPPQpos-lastRemainPPQpos, flags, msg)
+                lastRemainPPQpos = runningPPQpos
+                unchangedPos = nextPos
+                mustUpdateNextOffset = false
+            else
+                lastRemainPPQpos = runningPPQpos
+            end
+    
+        end -- while    
+        
+        
+        -- Now insert all the events to the right of the targets as one bulk
+        if mustUpdateNextOffset then
+            offset = s_unpack("i4", MIDIstring, nextPos)
+            runningPPQpos = runningPPQpos + offset
+            r = r + 1
+            tableRemainingEvents[r] = s_pack("i4", runningPPQpos - lastRemainPPQpos) .. MIDIstring:sub(nextPos+4) 
+        else
+            r = r + 1
+            tableRemainingEvents[r] = MIDIstring:sub(unchangedPos) 
+        end
+            
+        ----------------------------------------------------------------------------
+        -- The entire MIDI string has been parsed.  Now check that everything is OK. 
+        --[[local lastEvent = tableRemainingEvents[#tableRemainingEvents]:sub(-12)
+        if tableRemainingEvents[#tableRemainingEvents]:byte(-2) ~= 0x7B
+        or (tableRemainingEvents[#tableRemainingEvents]:byte(-3))&0xF0 ~= 0xB0
+        then
+            reaper.ShowMessageBox("No All-Notes-Off MIDI message was found at the end of the take."
+                                  .. "\n\nThis may indicate a parsing error in script, or an error in the take."
+                                  , "ERROR", 0)
+            return false
+        end ]]          
+        
+        if #tablePPQs == 0 then -- Nothing to extract, so don't need to concatenate tableRemainingEvents
+            remainOffset = s_unpack("i4", MIDIstring, 1)
+            remainMIDIstring = MIDIstring
+            remainMIDIstringSub5 = MIDIstring:sub(5)
+            return true 
+        end         
+
+        
+        -- Now check that the number of LSB and MSB events were nicely balanced. If they are, these tables should be empty
+        if laneIsCC14BIT then
+            for chan = 0, 15 do
+                for key, value in pairs(tableCCLSB[chan]) do
+                    reaper.ShowMessageBox("There appears to be selected CCs in the LSB lane that do not have corresponding CCs in the MSB lane."
+                                          .. "\n\nThe script does not know whether these CCs should be included in the edits, so please deselect these before retrying the script.", "ERROR", 0)
+                    return false
+                end
+                for key, value in pairs(tableCCMSB[chan]) do
+                    reaper.ShowMessageBox("There appears to be selected CCs in the MSB lane that do not have corresponding CCs in the LSB lane."
+                                          .. "\n\nThe script does not know whether these CCs should be included in the edits, so please deselect these before retrying the script.", "ERROR", 0)
+                    return false
+                end
+            end
+        end    
+            
+        -- Check that every note-on had a corresponding note-off
+        if (laneIsNOTES) and #tableNoteLengths ~= #tablePPQs then
+            reaper.ShowMessageBox("There appears to be an imbalanced number of note-ons and note-offs.", "ERROR", 0)
+            return false 
+        end
+        
+        -- Calculate original PPQ ranges and extremes
+        -- * THIS ASSUMES THAT THE MIDI DATA IS SORTED *
+        if includeNoteOffsInPPQrange and laneIsNOTES then
+            origPPQleftmost  = tablePPQs[1]
+            origPPQrightmost = tablePPQs[#tablePPQs] -- temporary
+            local noteEndPPQ
+            for i = 1, #tablePPQs do
+                noteEndPPQ = tablePPQs[i] + tableNoteLengths[i]
+                if noteEndPPQ > origPPQrightmost then origPPQrightmost = noteEndPPQ end
+            end
+            origPPQrange = origPPQrightmost - origPPQleftmost
+        else
+            origPPQleftmost  = tablePPQs[1]
+            origPPQrightmost = tablePPQs[#tablePPQs]
+            origPPQrange     = origPPQrightmost - origPPQleftmost
+        end                    
+        
+        ------------------------
+        -- Fiinally, return true
+        -- When concatenating tableRemainingEvents, leave out the first remaining event's offset (first 4 bytes), 
+        --    since this offset will be updated relative to the edited events' positions during each cycle.
+        -- (The edited events will be inserted in the string before all the remaining events.)
+        remainMIDIstring = table.concat(tableRemainingEvents)
+        remainMIDIstringSub5 = remainMIDIstring:sub(5)
+        remainOffset = s_unpack("i4", remainMIDIstring, 1)
+        return true
+        
+    else -- if not gotAllOK
+        reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
+        return false 
+    end
+
+end
+
+
+
 ---------------------------------------
 
-function insertNewCCs(take, insertChannel, PPQstart, PPQend)
+function deleteCCs(PPQstart, PPQend, channel) 
+    -- The remaining events and the newly assembled events will be stored in these table
+    local tableRemainingEvents = {}
+    local r = 0
+    local stringPos = 1
+    local runningPPQpos = 0
+    local MIDIlen = remainMIDIstring:len()
+    local offset, flags, msg, mustDelete
+    while stringPos < MIDIlen do
+        mustDelete = false
+        offset, flags, msg, stringPos = s_unpack("i4Bs4", remainMIDIstring, stringPos)
+        runningPPQpos = runningPPQpos + offset
+        if runningPPQpos >= PPQstart and runningPPQpos < PPQend then
+            if laneIsCC7BIT       then if msg:byte(1) == (0xB0 | channel) and msg:byte(2) == targetLane then mustDelete = true end
+            elseif laneIsPITCH    then if msg:byte(1) == (0xE0 | channel) then mustDelete = true end
+            elseif laneIsCC14BIT  then if msg:byte(1) == (0xB0 | channel) and (msg:byte(2) == targetLane-224 or msg:byte(2) == targetLane-256) then mustDelete = true end
+            elseif laneIsPROGRAM  then if msg:byte(1) == (0xC0 | channel) then mustDelete = true end
+            elseif laneIsCHPRESS  then if msg:byte(1) == (0xD0 | channel) then mustDelete = true end
+            end         
+        end 
+        
+        if mustDelete then
+            r = r + 1
+            tableRemainingEvents[r] = s_pack("i4Bs4", offset, flags, "")
+        else
+            r = r + 1
+            tableRemainingEvents[r] = s_pack("i4Bs4", offset, flags, msg)
+        end
+    end
+    remainMIDIstring = table.concat(tableRemainingEvents)
+end
 
- -- Delete all CCs in time selection (in last clicked lane and in channel)
-        -- Use binary search to find event close to rightmost edge of ramp
-        reaper.MIDI_Sort(take)
-        _, _, ccevtcnt, _ = reaper.MIDI_CountEvts(take)        
-        rightIndex = ccevtcnt-1
-        leftIndex = 0
-        while (rightIndex-leftIndex)>1 do
-            middleIndex = math.ceil((rightIndex+leftIndex)/2)
-            _, _, _, middlePPQpos, _, _, _, _ = reaper.MIDI_GetCC(take, middleIndex)
-            if middlePPQpos > PPQend then
-                rightIndex = middleIndex
-            else -- middlePPQpos <= startingPPQpos
-                leftIndex = middleIndex
-            end     
-        end -- while (rightIndex-leftIndex)>1
+
+-- This function ADDS items to tablePPQs and other tables.
+function insertNewCCs(PPQstart, PPQend, channel)
+    
+    -- Get first insert position at CC density 'grid'
+    local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, PPQstart)
+    local firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
+    if math.floor(firstCCinsertPPQpos+0.5) <= PPQstart then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
+    
+    -- PPQend is actually beyond time selection, so "-1" to prevent insert at PPQend
+    i = #tablePPQs
+    for p = firstCCinsertPPQpos, PPQend-1, PPperCC do
+        local insertPPQpos = math.floor(p + 0.5)      
+        i = i + 1
+        tablePPQs[i] = insertPPQpos
+        tableChannels[i] = channel
+        tableFlags[i] = 1
+        tableFlagsLSB[i] = 1
+    end
         
-        -- Now delete events original events between the two endpoints.
-        for i = rightIndex, 0, -1 do   
-            _, selected, _, ppqpos, chanmsg, chan, msg2, _ = reaper.MIDI_GetCC(take, i)
-            if ppqpos < PPQstart then
-                break -- Once below range of selected events, no need to search further
-            elseif ppqpos < PPQend
-            and (deleteOnlyDrawChannel == false or (deleteOnlyDrawChannel == true and chan == insertChannel)) -- same channel
-            and (   (laneType == CC7BIT and chanmsg == 176 and msg2 == clickedLane) 
-                 or (laneType == PITCH and chanmsg == 224)
-                 or (laneType == CHANPRESSURE and chanmsg == 208)
-                 or (laneType == CC14BIT and chanmsg == 176 and msg2 == clickedLane-256)
-                 or (laneType == CC14BIT and chanmsg == 176 and msg2 == clickedLane-224)
-                )
-            then
-                reaper.MIDI_DeleteCC(take, i)
-            end -- elseif
-        end -- for i = rightIndex, 0, -1
-        
-        -----------------------------------------------------------------
-        -- Insert new (selected) CCs at CC density grid in time selection
-        -- Insert endpoints at time_start and time_end
-        
-        insertValue = 8000
-        
-        if laneType == CC7BIT then
-            reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, insertChannel, clickedLane, insertValue>>7)
-        elseif laneType == PITCH then
-            reaper.MIDI_InsertCC(take, true, false, PPQstart, 224, insertChannel, insertValue&127, insertValue>>7)
-        elseif laneType == CHANPRESSURE then
-            reaper.MIDI_InsertCC(take, true, false, PPQstart, 208, insertChannel, insertValue>>7, 0)
-        else -- laneType == CC14BIT
-            reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, insertChannel, clickedLane-256, insertValue>>7)
-            reaper.MIDI_InsertCC(take, true, false, PPQstart, 176, insertChannel, clickedLane-224, insertValue&127)
-        end
-        
-        --[[ In the new versions of this tool, a CC is not inserted at the very end of the time selection,
-        --     since this CC actually falls outside the time selection.
-        if laneType == CC7BIT then
-            reaper.MIDI_InsertCC(take, true, false, PPQend, 176, insertChannel, clickedLane, insertValue>>7)
-        elseif laneType == PITCH then
-            reaper.MIDI_InsertCC(take, true, false, PPQend, 224, insertChannel, insertValue&127, insertValue>>7)
-        elseif laneType == CHANPRESSURE then
-            reaper.MIDI_InsertCC(take, true, false, PPQend, 208, insertChannel, insertValue>>7, 0)
-        else -- laneType == CC14BIT
-            reaper.MIDI_InsertCC(take, true, false, PPQend, 176, insertChannel, clickedLane-256, insertValue>>7)
-            reaper.MIDI_InsertCC(take, true, false, PPQend, 176, insertChannel, clickedLane-224, insertValue&127)
-        end          
-        ]]
-        
-        -- Get first insert position at CC density 'grid'
-        local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, PPQstart)
-        firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
-        if math.floor(firstCCinsertPPQpos+0.5) <= PPQstart then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
-        
-        -- PPQend is actually beyond time selection, so "-1" to prevent insert at PPQend
-        for p = firstCCinsertPPQpos, PPQend-1, PPperCC do
-            insertPPQpos = math.floor(p + 0.5)      
-            --if insertPPQpos ~= PPQstart and insertPPQpos ~= PPQend then
-                if laneType == CC7BIT then
-                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, insertChannel, clickedLane, insertValue>>7)
-                elseif laneType == PITCH then
-                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 224, insertChannel, insertValue&127, insertValue>>7)
-                elseif laneType == CHANPRESSURE then
-                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 208, insertChannel, insertValue>>7, 0)
-                else -- laneType == CC14BIT
-                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, insertChannel, clickedLane-256, insertValue>>7)
-                    reaper.MIDI_InsertCC(take, true, false, insertPPQpos, 176, insertChannel, clickedLane-224, insertValue&127)
-                end
-            --end
-        end
-        
-end -- insertNewCCs(startPPQ, endPPQ)
+end -- insertNewCCs(startPPQ, endPPQ, channel)
 
 -------------------------------------
 
+--############################################################################################
+----------------------------------------------------------------------------------------------
+-- HERE CODE EXECUTION STARTS
 
----------------------------------------------
--- Main 
-
-function newTimeAndCCs()
+-- function main()
+ 
    
-    if type(verbose) ~= "boolean" then 
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' of 'false'.\n") return(false) end
-    if laneToUse ~= "last clicked" and laneToUse ~= "under mouse" then 
-        reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "laneToUse" must be either "last clicked" or "under mouse".\n') return(false) end
-    if selectionToUse ~= "time" and selectionToUse ~= "notes" then 
-        reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "selectionToUse" must be either "time" or "notes".\n') return(false) end
-    if type(defaultCurveName) ~= "string" then
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'defaultCurveName' must be a string.\n") return(false) end
-    if type(deleteOnlyDrawChannel) ~= "boolean" then
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'deleteOnlyDrawChannel' must be either 'true' of 'false'.\n") return(false) end
-    if type(backgroundColor) ~= "table" 
-        or type(foregroundColor) ~= "table" 
-        or type(textColor) ~= "table" 
-        or type(buttonColor) ~= "table" 
-        or type(hotbuttonColor) ~= "table"
-        or #backgroundColor ~= 4 
-        or #foregroundColor ~= 4 
-        or #textColor ~= 4 
-        or #buttonColor ~= 4 
-        or #hotbuttonColor ~= 4 
-        then
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe custom interface colors must each be a table of four values between 0 and 1.\n") 
-        return(false) 
-        end
-    if type(shadows) ~= "boolean" then 
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'shadows' must be either 'true' of 'false'.\n") return(false) end
-    if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'fineAdjust' must be a number between 0 and 1.\n") return(false) end
-    if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
-        reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'phaseStepsDefault' must be a positive multiple of 4.\n") return(false) end
-        
-    
-    editor = reaper.MIDIEditor_GetActive()
-    if editor == nil then showErrorMsg("No active MIDI editor found.") return(false) end
-    take = reaper.MIDIEditor_GetTake(editor)
-    if take == nil then showErrorMsg("No active take found in MIDI editor.") return(false) end
+-- Start with a trick to avoid automatically creating undo states if nothing actually happened
+-- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
+function avoidUndo()
+end
+reaper.defer(avoidUndo)
 
-    -- LFO Tool can only work in channels that use continuous data.
-    -- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
-    --     require somewhat different tweaks, these must often be 
-    --     distinguished.
-    if laneToUse == "under mouse" then
-        window, segment, details = reaper.BR_GetMouseCursorContext()
-        if details ~= "cc_lane" then showErrorMsg("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over either "
-                                                  .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
-                                                  .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.")
-            return(false) 
-        end
-                       
-        -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
-        -- https://github.com/Jeff0S/sws/issues/783
-        -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-        _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-        if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-        if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-        if SWS283 ~= SWS283again then
-            showErrorMsg("Could not determine compatible SWS version")
-            return(false)
-        end
-        
-        if SWS283 == true then
-            _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
-        else 
-            _, _, _, mouseLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
-        end
-        
-        clickedLane = mouseLane
-    else
-        clickedLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")   
+------------------------------------------------
+-- Check whether user-defined values are usable.
+--[[if type(verbose) ~= "boolean" then 
+    reaper.ShowMessageBox("The setting 'verbose' must be either 'true' of 'false'.", "ERROR", 0) return(false) end]]
+if laneToUse ~= "last clicked" and laneToUse ~= "under mouse" then 
+    reaper.ShowMessageBox('The setting "laneToUse" must be either "last clicked" or "under mouse".', "ERROR", 0) return(false) end
+if selectionToUse ~= "time" and selectionToUse ~= "notes" and selectionToUse ~= "existing" then 
+    reaper.ShowMessageBox('The setting "selectionToUse" must be either "time", "notes" or "existing".', "ERROR", 0) return(false) end
+if type(defaultCurveName) ~= "string" then
+    reaper.ShowMessageBox("The setting 'defaultCurveName' must be a string.", "ERROR", 0) return(false) end
+--[[if type(deleteOnlyDrawChannel) ~= "boolean" then
+    reaper.ShowMessageBox("The setting 'deleteOnlyDrawChannel' must be either 'true' of 'false'.", "ERROR", 0) return(false) end]]
+if type(backgroundColor) ~= "table" 
+    or type(foregroundColor) ~= "table" 
+    or type(textColor) ~= "table" 
+    or type(buttonColor) ~= "table" 
+    or type(hotbuttonColor) ~= "table"
+    or #backgroundColor ~= 4 
+    or #foregroundColor ~= 4 
+    or #textColor ~= 4 
+    or #buttonColor ~= 4 
+    or #hotbuttonColor ~= 4 
+    then
+    reaper.ShowMessageBox("The custom interface colors must each be a table of four values between 0 and 1.", "ERROR", 0) 
+    return(false) 
     end
+if type(shadows) ~= "boolean" then 
+    reaper.ShowMessageBox("The setting 'shadows' must be either 'true' of 'false'.", "ERROR", 0) return(false) end
+if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
+    reaper.ShowMessageBox("The setting 'fineAdjust' must be a number between 0 and 1.", "ERROR", 0) return(false) end
+if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
+    reaper.ShowMessageBox("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) 
+end
     
-    if type(clickedLane) ~= "number" then
-        if laneToUse == "under mouse" then
-            showErrorMsg("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over either "
-                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.")
-                         
-            showErrorMsg("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be either "
-                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.")
-        end
-        return(false)
-    elseif 0 <= clickedLane and clickedLane <= 127 then -- CC, 7 bit (single lane)
-        laneType = CC7BIT
-    elseif clickedLane == 0x203 then -- Channel pressure
-        laneType = CHANPRESSURE
-    elseif 256 <= clickedLane and clickedLane <= 287 then -- CC, 14 bit (double lane)
-        laneType = CC14BIT
-    elseif clickedLane == 0x201 then
-        laneType = PITCH
-    else -- not a lane type in which a ramp can be drawn (sysex, velocity etc).
-        if laneToUse == "under mouse" then
-            showErrorMsg("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over either "
-                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.")
-        else                         
-            showErrorMsg("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be either "
-                         .. "a 7-bit CC lane, a 14-bit CC lane, pitchwheel or channel pressure."
-                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.")
-        end
+    
+-------------------------------------------------------------
+-- Check whether the required version of REAPER is available.
+version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
+if version == nil or version < 5.32 then
+    reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                          .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                          , "ERROR", 0)
+    return(false)
+end
+
+
+------------------------------------------------------
+-- If laneToUse == "under mouse" then SWS is required.
+if laneToUse == "under mouse" then
+    if not reaper.APIExists("BR_GetMouseCursorContext") then
+        reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+        return(false) 
+    end 
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    if not (segment == "notes" or segment == "cc_lane") then
+        reaper.ShowMessageBox('If the "lane_to_use" setting is "under mouse", the mouse must be positioned over a CC lane of a MIDI editor.', "ERROR", 0)
         return(false)
     end
-    
-    if laneToUse == "under mouse" then
-        if laneType == CC7BIT then clickedLaneString = "CC " .. tostring(clickedLane)
-        elseif laneType == CHANPRESSURE then clickedLaneString = "Channel pressure"
-        elseif laneType == CC14BIT then clickedLaneString = "CC ".. tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224) .. " 14-bit"
-        elseif laneType == PITCH then clickedLaneString = "Pitchwheel"
+    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
+    -- https://github.com/Jeff0S/sws/issues/783
+    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+    _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
+    if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
+    if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
+    if SWS283 ~= SWS283again then
+        reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
+        return(false)
+    end
+    if SWS283 == true then
+        isInline, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    else 
+        _, isInline, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    end 
+end
+
+
+---------------------
+-- Get take and item.
+if laneToUse == "under mouse" and isInline then
+    take = reaper.BR_GetMouseCursorContext_Take()
+else
+    editor = reaper.MIDIEditor_GetActive()
+    if editor == nil then 
+        reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
+        return(false)
+    end
+    take = reaper.MIDIEditor_GetTake(editor)
+end
+if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
+    reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
+    return(false)
+end
+item = reaper.GetMediaItemTake_Item(take)  
+if not reaper.ValidatePtr(item, "MediaItem*") then 
+    reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
+    return(false)
+end
+
+
+----------------------------------------------------------------------
+-- If new CCs have to be inserted, they wil be inserted at the default
+--    grid resolution as set in Preferences -> MIDI editor 
+--    -> "Events per quarter note when drawing in CC lanes".
+-- Don't go above 128/QN or below 4/QN.
+-- Calculate the ticks per CC density.
+takeStartQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, takeStartQN+1)
+CCperQN = math.floor(reaper.SNM_GetIntConfigVar("midiCCdensity", 32) + 0.5)
+CCperQN = math.min(128, math.max(4, math.abs(CCperQN))) -- If user selected "Zoom dependent", CCperQN < 0
+PPperCC = PPQ/CCperQN
+QNperCC = 1/CCperQN
+
+
+------------------------------------------------------------------------------
+-- The source length will be saved and checked again at the end of the script, 
+--    to check that no inadvertent shifts in PPQ position happened.
+sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
+
+
+-------------------------------------------------------------------
+-- Events will be inserted in the active channel of the active take
+if isInline then
+    defaultChannel = 0
+else
+    defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+end
+
+
+-------------------------------------------------------------------
+-- The LFO Tool can only work in channels that use continuous data.
+-- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
+--     require somewhat different tweaks, these must often be 
+--     distinguished.
+if laneToUse == "under mouse" then
+    -- targetLane has already been retrieved above...        
+else
+    targetLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")
+    -- MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane") only works on CC lanes,
+    --    so if no CC lane, assume that user last clicked in notea area.
+    if targetLane == -1 then targetLane = 0x200 end  
+end
+
+if segment == "notes" and selectionToUse == "existing" then
+    laneIsVELOCITY, laneIsNOTES = true, true
+    laneMaxValue = 127
+    laneMinValue = 1     
+elseif type(targetLane) ~= "number" then
+    couldNotParseLane = true
+elseif 0 <= targetLane and targetLane <= 127 then -- CC, 7 bit (single lane)
+    laneIsCC7BIT = true
+    laneMaxValue = 127
+    laneMinValue = 0
+elseif targetLane == 0x203 then -- Channel pressure
+    laneIsCHPRESS = true
+    laneMaxValue = 127
+    laneMinValue = 0
+elseif 256 <= targetLane and targetLane <= 287 then -- CC, 14 bit (double lane)
+    laneIsCC14BIT = true
+    laneMaxValue = 16383
+    laneMinValue = 0
+elseif targetLane == 0x201 then
+    laneIsPITCH = true
+    laneMaxValue = 16383
+    laneMinValue = 0
+elseif targetLane == 0x200 and selectionToUse == "existing" then
+    laneIsVELOCITY, laneIsNOTES = true, true
+    laneMaxValue = 127
+    laneMinValue = 1 
+else 
+    couldNotParseLane = true -- not a lane type in which a ramp can be drawn (sysex, velocity etc).
+end
+
+-- If laneToUse == "existing", then velocity lane can be used.
+-- So the error messages must be slightly different.
+if couldNotParseLane then
+    if selectionToUse == "existing" then
+        if laneToUse == "under mouse" then
+            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes:"
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.", "ERROR", 0)
+        else
+            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."     
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.", "ERROR", 0)
         end
     else
-        _, clickedLaneString = reaper.MIDIEditor_GetSetting_str(editor, "last_clicked_cc_lane", "")    
-        if 256 <= clickedLane and clickedLane <= 287 then
-            clickedLaneString = "CC ".. tostring(clickedLane-256) .. "/" .. tostring(clickedLane-224) .. " 14-bit"
-        elseif type(clickedLaneString) ~= "string" or clickedLaneString == "" then
-            clickedLaneString = "CC ".. tostring(clickedLane)
-        end
-    end
-     
-    -- Test whether there is actually a time span in which to draw LFO
-    timeSelectStart, timeSelectEnd = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
-    if selectionToUse == "time" then
-        if type(timeSelectStart) ~= "number"
+        if laneToUse == "under mouse" then
+            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes:"
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'last clicked' in the script's USER AREA.", "ERROR", 0)
+        else
+            reaper.ShowMessageBox("Since the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."     
+                         .. "\n\nThe 'laneToUse' setting can be changed to 'under mouse' in the script's USER AREA.", "ERROR", 0)
+        end  
+    end          
+    return(false)
+end
+
+
+----------------------------------------------------------
+-- Get a nice lane description to use use as window title.
+if laneIsCC7BIT        then targetLaneString = "CC " .. tostring(targetLane)
+elseif laneIsCHPRESS   then targetLaneString = "Channel pressure"
+elseif laneIsCC14BIT   then targetLaneString = "CC ".. tostring(targetLane-256) .. "/" .. tostring(targetLane-224) .. " 14-bit"
+elseif laneIsPITCH     then targetLaneString = "Pitchwheel"
+elseif laneIsVELOCITY  then targetLaneString = "Velocity"
+end
+ 
+
+--------------------------------------------------------------------------
+-- REAPER v5.30 introduced new API functions for fast, mass edits of MIDI:
+--    MIDI_GetAllEvts and MIDI_SetAllEvts.
+gotAllOK, origMIDIstring = reaper.MIDI_GetAllEvts(take, "")
+if not gotAllOK then
+    reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
+    return false 
+end
+remainMIDIstring = origMIDIstring -- remainMIDIstring may change after MIDI_Sort, deletion etc, but origMIDIstring will remain. In case of errors, origMIDIstring will return the take to its original state.
+
+
+-----------------------------------------------------------------------------------
+-- OK, most of the tests are completed and script can start making changes to take, 
+--    so activate menu button, if relevant, and define atexit
+_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+    reaper.SetToggleCommandState(sectionID, cmdID, 1)
+    reaper.RefreshToolbar2(sectionID, cmdID)
+end    
+reaper.atexit(exit)
+
+
+-------------------------------------------------------------------
+-- Test whether there is actually a time span in which to draw LFO.
+-- (Remember to later correct PPQ positions for looped takes.)
+timeSelectStart, timeSelectEnd = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)    
+if selectionToUse == "time" then
+    if type(timeSelectStart) ~= "number"
         or type(timeSelectEnd) ~= "number"
         or timeSelectEnd<=timeSelectStart 
-        or reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectStart) < 0
-        or reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectEnd) < 0
         then 
-            showErrorMsg("A time range must be selected (within the active item's own time range).")
-            return(false) 
-        end
-    else -- selectionToUse == "notes"
-        if reaper.MIDI_EnumSelNotes(take, -1) ==  -1 then -- no notes selected
-            showErrorMsg("No selected notes found in active take.")
-            return(false) 
-        end 
+        reaper.ShowMessageBox("A time range must be selected (within the active item's own time range).", "ERROR", 0)
+        return(false) 
     end
-            
-    -- OK, tests completed and script can start, so activate menu button, if relevant, and define atexit
-    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-        reaper.SetToggleCommandState(sectionID, cmdID, 1)
-        reaper.RefreshToolbar2(sectionID, cmdID)
-    end    
-    reaper.atexit(exit)
-    
-    -- First, Get the default grid resolution as set in Preferences -> 
-    --    MIDI editor -> "Events per quarter note when drawing in CC lanes"
-    --    and calculate PPQ per CC density
-    takeStartQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-    PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, takeStartQN+1)
-    density = math.floor(reaper.SNM_GetIntConfigVar("midiCCdensity", 32))
-    density = math.floor(math.min(128, math.max(4, math.abs(density)))) -- If user selected "Zoom dependent", density < 0
-    PPperCC = PPQ/density
-    QNperCC = 1/density
-    
-    -- The Amplitude and Center displays above the hot node will use these variables:
-    if laneType == CC7BIT or laneType == CHANPRESSURE then
-        BRenvMaxValue = 127 -- The names of these variables will make sense in the envelope version of the script...
-        BRenvMinValue = 0
-    else
-        BRenvMaxValue = 16383
-        BRenvMinValue = 0
+    -- Find PPQ positions of time selection and calculate corrected values (relative to first iteration) if take is looped
+    local timeSelPPQstart = reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectStart)
+    local timeSelPPQend = reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectEnd) -- May be changed later if rightmost event is not a note
+    PPQofLoopStart = (timeSelPPQstart//sourceLengthTicks)*sourceLengthTicks
+    if not (PPQofLoopStart == ((timeSelPPQend-1)//sourceLengthTicks)*sourceLengthTicks) then
+        reaper.ShowMessageBox("The selected time range should fall within a single loop iteration.", "ERROR", 0)
+        return(false) 
     end
-        
-    -------------------------------------------------------------
-    -- Now, draw the new CCs in the time/note selection.  
-    --    The new CCs will be selected, but all other MIDI data
-    --    (except selected notes, if selectionToUse == "notes") 
-    --    will be deselected.  This enables further manipulation
-    --    of the CCs by other scripts.
-    --
-    -- There is not a "lane uder mouse" equivalent of the built-in function
-    --    "Unselect all CC events in last clicked lane".  Therefore is "lane under mouse"
-    --    is used, all MIDI events must be deselected, or a custom deselect function must be coded.
-    
-    if selectionToUse == "time" then
-        if laneToUse == "under mouse" then
-            reaper.MIDI_SelectAll(take, false)
-        else
-            reaper.MIDIEditor_OnCommand(editor, 40669) -- Unselect all CC events in last clicked lane 
-        end
-        --reaper.MIDIEditor_OnCommand(editor, 40747) -- Select all CC events in time selection (in last clicked CC lane)
-        --reaper.MIDIEditor_OnCommand(editor, reaper.NamedCommandLookup("_BR_ME_DEL_SE_EVENTS_LAST_LANE")) -- Delete selected events in last clicked lane        
-        time_start = timeSelectStart
-        time_end = timeSelectEnd
-        insertNewCCs(take, reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan"), 
-                           reaper.MIDI_GetPPQPosFromProjTime(take, time_start), 
-                           reaper.MIDI_GetPPQPosFromProjTime(take, time_end))
-    else -- selectionToUse == "notes"
-        -- If "Unselect all CC events in last clicked lane" is used rather than "SelectAll(take, false)"
-        --    then it is not really necessary to store the selected notes in a table before unselecting.
-        local tableSelectedNotes = {}
-        local tempFirstPPQ = math.huge
-        local tempLastPPQ = 0
-        selectedNoteIndex = reaper.MIDI_EnumSelNotes(take, -1)
-        while (selectedNoteIndex ~= -1) do
-            _, _, _, notePPQstart, notePPQend, noteChannel, _, _ = reaper.MIDI_GetNote(take, selectedNoteIndex)
-            table.insert(tableSelectedNotes, {noteIndex = selectedNoteIndex, 
-                                              notePPQstart = notePPQstart, 
-                                              notePPQend = notePPQend, 
-                                              noteChannel = noteChannel})
-            if notePPQstart < tempFirstPPQ then tempFirstPPQ = notePPQstart end
-            if notePPQend > tempLastPPQ then tempLastPPQ = notePPQend end
-            selectedNoteIndex = reaper.MIDI_EnumSelNotes(take, selectedNoteIndex)
-        end
-        time_start = reaper.MIDI_GetProjTimeFromPPQPos(take, tempFirstPPQ)
-        time_end = reaper.MIDI_GetProjTimeFromPPQPos(take, tempLastPPQ)
-        
-        -- Make sure the notes are sorted
-        function sortPPQstart(a,b)
-            if a.notePPQstart < b.notePPQstart then return(true) else return(false) end
-        end
-        table.sort(tableSelectedNotes,sortPPQstart)
-        
-        -- Should all MIDI be unselected, or only the CC events in the last clicked lane?
-        if laneToUse == "under mouse" then
-            reaper.MIDI_SelectAll(take, false)        
-        else
-            reaper.MIDIEditor_OnCommand(editor, 40669) -- Unselect all CC events in last clicked lane 
-        end
-        for i = 1, #tableSelectedNotes do
-            reaper.MIDI_SetNote(take, tableSelectedNotes[i].noteIndex, true, nil, nil, nil, nil, nil, nil, true)
-            insertNewCCs(take, tableSelectedNotes[i].noteChannel, 
-                               tableSelectedNotes[i].notePPQstart, 
-                               tableSelectedNotes[i].notePPQend)
-        end
+    timeSelPPQstart = timeSelPPQstart - PPQofLoopStart
+    timeSelPPQend   = timeSelPPQend - PPQofLoopStart
+    time_start = reaper.MIDI_GetProjTimeFromPPQPos(take, timeSelPPQstart)
+    time_end = reaper.MIDI_GetProjTimeFromPPQPos(take, timeSelPPQend)
+    deleteCCs(timeSelPPQstart, timeSelPPQend, defaultChannel)
+    insertNewCCs(timeSelPPQstart, timeSelPPQend, defaultChannel)
+    remainMIDIstringSub5  = remainMIDIstring:sub(5)-- The MIDI that remained, except the very first offset
+    remainOffset = s_unpack("i4", remainMIDIstring, 1) -- The very first offset of the remaining events
 
+elseif selectionToUse == "notes" then
+    parseNotesAndInsertCCs()
+    if #tablePPQs < 3 or origPPQrange == 0 then
+        reaper.ShowMessageBox("Could not find selected notes of sufficient length.", "ERROR", 0)
+        return(false)
     end
-           
-    reaper.MIDI_Sort(take)
-    
-    -----------------------------------------------------------
-    -- Get indices of the newly inserted CCs and store in table
-    tableCC = nil
-    tableCCLSB = nil
-    tableCC = {}
-    tableCCLSB = {}
-    local ppqpos, chanmsg, msg2
-    
-    -- If "SelectAll(take, false)" was used, the events in the ramp are the only selected 
-    --    ones in take, so no need to check event types.
-    -- But if "Unselect all CC events in last clicked lane" was used, the lane must be checked.
-    if laneType ~= CC14BIT then
-        selCCindex = reaper.MIDI_EnumSelCC(take, -1)
-        while (selCCindex ~= -1) do
-            _, _, _, ppqpos, chanmsg, _, msg2, _ = reaper.MIDI_GetCC(take, selCCindex)
-            if (laneType == CC7BIT and chanmsg == 176 and msg2 == clickedLane)
-            or (laneType == PITCH and chanmsg == 224)
-            or (laneType == CHANPRESSURE and chanmsg == 208) then
-                table.insert(tableCC, {index = selCCindex,
-                                      PPQ = ppqpos})
-            end
-            selCCindex = reaper.MIDI_EnumSelCC(take, selCCindex)
-        end
-    else -- When 14-bit CC, must distinguish between MSB and LSB events
-        selCCindex = reaper.MIDI_EnumSelCC(take, -1)
-        while (selCCindex ~= -1) do
-            _, _, _, ppqpos, chanmsg, _, msg2, _ = reaper.MIDI_GetCC(take, selCCindex)
-            if chanmsg == 176 and msg2 == clickedLane-256 then
-                table.insert(tableCC, {index = selCCindex,
-                                       PPQ = ppqpos})
-            elseif chanmsg == 176 and msg2 == clickedLane-224 then
-                table.insert(tableCCLSB, {index = selCCindex,
-                                          PPQ = ppqpos})
-            end
-            selCCindex = reaper.MIDI_EnumSelCC(take, selCCindex)
-        end
-        if #tableCC ~= #tableCCLSB then
-            reaper.ShowConsoleMsg("Something went wrong while writing 14-bit CCs")
-            return(false)
-        end
-    end
-    
-    ----------------------------------
-    -- Make sure the tables are sorted
-    function sortPPQ(a,b)
-        if a.PPQ < b.PPQ then return(true) else return(false) end
-    end
-    table.sort(tableCC,sortPPQ)
-    if laneType == CC14BIT then
-        table.sort(tableCCLSB, sortPPQ)
-    end
-    
-        
-end -- newTimeAndCCs()
+    time_start = reaper.MIDI_GetProjTimeFromPPQPos(take, tablePPQs[1])
+    time_end = reaper.MIDI_GetProjTimeFromPPQPos(take, tablePPQs[#tablePPQs])    
 
--------------------------
--- Get the script started
-
-if newTimeAndCCs() == false then return(0) end
+else -- selectionToUse == "existing"
+    if not parseAndExtractTargetMIDI() then
+        return(false)
+    end        
+    if #tablePPQs < 3 or origPPQrange == 0 then
+        reaper.ShowMessageBox("Could not find a sufficient number of selected events in the target lane.", "ERROR", 0)
+        return(false)
+    end
+    time_start = reaper.MIDI_GetProjTimeFromPPQPos(take, tablePPQs[1])
+    time_end = reaper.MIDI_GetProjTimeFromPPQPos(take, tablePPQs[#tablePPQs])
+end        
+                
 
 constructNewGUI()
 
@@ -2360,8 +3123,8 @@ if getSavedCurvesAndNames() ~= false then
 end
 
 -- Generate the first version of the envelope nodes and draw the CCs between
-generateAndDisplay()
-update()
+callGenerateNodesThenUpdateEvents()
+loop_GetInputsAndUpdate()
 
 --[[ Archive of changelog
  * v0.1
@@ -2410,5 +3173,6 @@ update()
     + Added "Reset curve" option in Save/Load menu.
     + Added optional display of hotpoint time position (in any of REAPER's time formats).
     + Improved sensitivity of nodes at edges of envelope drawing area.
-
-]] 
+ * v1.04 (2016-06-23)
+    + User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.
+]]
