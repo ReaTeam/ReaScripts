@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="62eed99300301a02b885f838e392301ca0a09235" name="ReaTeam Scripts">
+<index version="1" commit="5e163e76ff2945c087f9e97940c87ebf950f9c09" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -886,75 +886,326 @@ added support for all track envelopes]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
+    <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This version of the script applies the LFO to existing events -- velocities or CCs -- in the lane under the mouse.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="2.00" author="juliansader" time="2017-01-14T06:37:43Z">
+        <changelog><![CDATA[+ Much faster execution in large takes with hundreds of thousands of events.
++ Keyboard shortcuts "a", "c" and "r" to switch GUI views.
++ LFO can be applied to existing events - including velocities - instead of inserting new CCs.
++ Requires REAPER v5.32 or later.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1aa3eaaa9b674b22bbbee2c04f29ac2c34ea0bbd/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This version applies the LFO to existing events -- velocities or CCs -- in the last clicked lane.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="2.00" author="juliansader" time="2017-01-14T06:37:33Z">
+        <changelog><![CDATA[+ Much faster execution in large takes with hundreds of thousands of events.
++ Keyboard shortcuts "a", "c" and "r" to switch GUI views.
++ LFO can be applied to existing events - including velocities - instead of inserting new CCs.
++ Requires REAPER v5.32 or later.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/815e2e5f4797e53a6fa0f3d5509ac15b6072ca54/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
+    </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This version of the script fills the time selection with new CCs in the lane under the mouse, using the MIDI editor's active channel (after removing any pre-existing CCs in the same time range and channel).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/27716/LFO%20tool%20-%20MIDI%20editor%20%28default%29%20-%20Copy.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.00" author="juliansader" time="2017-01-14T06:37:25Z">
+        <changelog><![CDATA[+ Much faster execution in large takes with hundreds of thousands of events.
++ Keyboard shortcuts "a", "c" and "r" to switch GUI views.
++ LFO can be applied to existing events - including velocities - instead of inserting new CCs.
++ Requires REAPER v5.32 or later.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1f2913ce042f188436946b693f2f589b4da3c246/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This version of the script fills the time selection with new CCs in the last clicked lane, using the MIDI editor's active channel (after removing any pre-existing CCs in the same time range and channel).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/27716/LFO%20tool%20-%20MIDI%20editor%20%28default%29%20-%20Copy.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="2.00" author="juliansader" time="2017-01-14T06:37:16Z">
+        <changelog><![CDATA[+ Much faster execution in large takes with hundreds of thousands of events.
++ Keyboard shortcuts "a", "c" and "r" to switch GUI views.
++ LFO can be applied to existing events - including velocities - instead of inserting new CCs.
++ Requires REAPER v5.32 or later.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d1545759a069a757b4572b25ce0e809a6420918b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This version of the script inserts new CCs under selected notes in the lane under the mouse, using the same channels as the notes above (after removing any pre-existing CCs in the same time range and channels).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.00" author="juliansader" time="2017-01-14T06:37:06Z">
+        <changelog><![CDATA[+ Much faster execution in large takes with hundreds of thousands of events.
++ Keyboard shortcuts "a", "c" and "r" to switch GUI views.
++ LFO can be applied to existing events - including velocities - instead of inserting new CCs.
++ Requires REAPER v5.32 or later.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/22bc51beb658d5ab73ee43b1b21e7194e7fdd5f7/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This version of the script inserts new CCs under selected notes in the last clicked lane, using the same channels as the notes above (after removing any pre-existing CCs in the same time range and channels).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
         <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/031309d443d5c4145d2a8d7fad37acbafa14b31f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
-    </reapack>
-    <reapack name="js_MIDI editor LFO generator and shaper.lua" type="script" desc="js_MIDI editor LFO generator and shaper.lua">
-      <version name="0.991" author="Xenakios (modded by juliansader)" time="2016-05-29T18:37:54Z">
-        <changelog><![CDATA[+ Script does not fail when "Zoom dependent" CC density is selected in Preferences]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5d9109e166759110fabe9bc3bdec4d2da9eab466/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="0.995" author="Xenakios (modded by juliansader)" time="2016-06-07T12:07:18Z">
-        <changelog><![CDATA[+ New option to draw LFO underneath selected notes, instead of in time selection.
-+ New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
-+ Esc closes GUI.
-+ More extensive help and error messages.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/81b0283eb48dbb0d5ceb9e2c67ddd2de99be56af/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="0.996" author="Xenakios (modded by juliansader)" time="2016-06-13T01:41:18Z">
-        <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
-+ Rightclick in envelope area to set the LFO period to precise note lengths.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b582fb429f4eae1648801e927efd4c04bf29ba9/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="0.997" author="Xenakios (modded by juliansader)" time="2016-06-13T06:33:57Z">
-        <changelog><![CDATA[+ Mousewheel can be used for super fine adjustment of node values.
-+ Rightclick in envelope area to set the LFO period to precise note lengths.
-+ Envelope value displayed above hotpoint.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/045d266bacbcc9e60f5e6a4ea5f3139d843c1a71/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="0.998" author="Xenakios (modded by juliansader)" time="2016-06-13T17:13:21Z">
-        <changelog><![CDATA[+ Changed interpolation between nodes from linear to parabolic.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/345eea82a70bb13b12e5ce4a524a28925d8324df/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="0.999" author="Xenakios / juliansader" time="2016-06-13T19:00:13Z">
-        <changelog><![CDATA[+ Changed Rate interpolation between nodes from linear to parabolic.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e3f555d0f14482a1d89d39fdb3d9dcbbd08838e5/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="0.9999" author="Xenakios / juliansader" time="2016-06-15T22:00:39Z">
-        <changelog><![CDATA[+ Timebase: Beats option]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/85712e09f412121c9ad8885a28ff335da58db513/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="1.03" author="Xenakios / juliansader" time="2016-06-18T08:26:33Z">
-        <changelog><![CDATA[+ Fixed regression in fade out.
-+ Added "Reset curve" option in Save/Load menu.
-+ Added optional display of hotpoint time position (in any of REAPER's time formats).
-+ Improved sensitivity of nodes at edges of envelope drawing area.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/6a3adc893012b06712932021f6c1407d840aad43/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
-      </version>
-      <version name="1.04" author="Xenakios / juliansader" time="2016-06-23T10:21:09Z">
-        <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f514afed9317362b86b4e351a16ea3f194b68ebe/MIDI%20Editor/js_MIDI%20editor%20LFO%20generator%20and%20shaper.lua</source>
+      <version name="2.00" author="juliansader" time="2017-01-14T06:45:56Z">
+        <changelog><![CDATA[+ Much faster execution in large takes with hundreds of thousands of events.
++ Keyboard shortcuts "a", "c" and "r" to switch GUI views.
++ LFO can be applied to existing events - including velocities - instead of inserting new CCs.
++ Requires REAPER v5.32 or later.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5e163e76ff2945c087f9e97940c87ebf950f9c09/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
