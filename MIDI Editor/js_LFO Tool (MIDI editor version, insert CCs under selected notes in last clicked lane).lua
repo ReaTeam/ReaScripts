@@ -14,8 +14,8 @@ About:
   
   Draw fancy LFO curves in REAPER's piano roll.
   
-  This version of the script inserts new CCs under selected notes in last clicked lane 
-  (after removing any pre-existing CCs in the same time range and channel).
+  This version of the script inserts new CCs under selected notes in the last clicked lane, 
+  using the same channels as the notes above (after removing any pre-existing CCs in the same time range and channels).
   
   # Instructions
   
