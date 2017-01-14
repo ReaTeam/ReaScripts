@@ -1,11 +1,11 @@
 --[[
-ReaScript name: Script: js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua
+ReaScript name: js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua
 Version: v2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif
 REAPER version: v5.32 or later
-Extensions: None required
+Extensions: SWS/S&M v2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 About:
   # Description
