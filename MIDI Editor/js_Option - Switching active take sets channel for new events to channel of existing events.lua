@@ -1,49 +1,55 @@
 --[[
- * ReaScript Name:  js_Option - Switching active take sets channel for new events to channel of existing events.lua
- * Description: Inserting events in the wrong MIDI channel is an all-too-easy mistake to make, particularly after 
- *                  switching the active track. If this option is activated, the default MIDI channel for new events  
- *                  will automatically be set to the channel of existing MIDI events in the newly active track, 
- *                  whenever the active take is switched. 
- *              If the existing MIDI events in the track use more than one channel, the default channel will be set
- *                  one of these channels, usually - but not always - the channel of the very first event in the take.
- *
- *              To find the channel, the script will first search through the newly active take itself to find
- *                  MIDI events with usable channel info.  If no such MIDI events are found (for example
- *                  if the take is empty) the script will search through other takes in the same track.
- *              If no MIDI events are found anywhere in the track, the script will check whether the track 
- *                  has any MIDI sends, and will use the MIDI send channel of the sends, if any.
- *              (Therefore, by setting a MIDI send channel before drawing new MIDI events in the track, the send
- *                  channel will act as the default channel for MIDI events in the track.) 
- *                
- * Instructions: This script can be linked to a toolbar button for easy starting and stopping.
- *               While activated, the toolbar button will light up.
- *               (The first time that the script is stopped, REAPER will pop up a dialog box 
- *                    asking whether to terminate or restart the script.  Select "Terminate"
- *                    and "Remember my answer for this script".)
- * Screenshot: 
- * Notes: 
- * Category: 
- * Author: juliansader
- * Licence: GPL v3
- * Forum Thread: 
- * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878, http://forum.cockos.com/showthread.php?t=178256
- * Version: 1.11
- * REAPER: 5.20
- * Extensions: 
+ReaScript name:  js_Option - Switching active take sets channel for new events to channel of existing events.lua
+Version: 1.12
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=178256
+Donation: https://www.paypal.me/juliansader
+About:
+  # Description
+  
+  Inserting events in the wrong MIDI channel is an all-too-easy mistake to make, particularly after 
+       switching the active track. If this option is activated, the default MIDI channel for new events  
+       will automatically be set to the channel of existing MIDI events in the newly active track, 
+       whenever the active take is switched.
+        
+   If the existing MIDI events in the track use more than one channel, the default channel will be set
+       one of these channels, usually - but not always - the channel of the very first event in the take.
+
+   To find the channel, the script will first search through the newly active take itself to find
+       MIDI events with usable channel info.  If no such MIDI events are found (for example
+       if the take is empty) the script will search through other takes in the same track.
+   
+   If no MIDI events are found anywhere in the track, the script will check whether the track 
+       has any MIDI sends, and will use the MIDI send channel of the sends, if any.
+   
+   (Therefore, by setting a MIDI send channel before drawing new MIDI events in the track, the send
+       channel will act as the default channel for MIDI events in the track.) 
+               
+  # Instructions
+  
+  This script can be linked to a toolbar button for easy starting and stopping.
+  
+  While activated, the toolbar button will light up.
+  
+  (The first time that the script is stopped, REAPER will pop up a dialog box 
+       asking whether to terminate or restart the script.  Select "Terminate"
+       and "Remember my answer for this script".) 
 ]]
  
 --[[
  Changelog:
- * v1.0 (2016-07-15)
+  * v1.0 (2016-07-15)
     + Initial release
- * v1.01 (2016-07-17)
+  * v1.01 (2016-07-17)
     + Additional tests to verify REAPER's channel values
- * v1.10 (2016-07-18)
+  * v1.10 (2016-07-18)
     + Compatible with multi-item tracks
     + Use MIDI send channel as default channel if no MIDI events are found
- * v1.11 (2016-07-22)
+  * v1.11 (2016-07-22)
     + Implement workaround for bug in MIDIEditor_GetTake
     + Prevent sysex messages from confusing channel detector
+  * v1.12 (2017-01-16)
+    + Header updated to ReaPack 1.1 format.
 ]]
 
 tableTakes = {} -- The active take of each MIDI editor will be stored in this table
