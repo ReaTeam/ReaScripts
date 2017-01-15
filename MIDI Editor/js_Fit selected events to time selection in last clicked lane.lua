@@ -1,72 +1,37 @@
 --[[
- * ReaScript Name:  Fit selected events in last clicked lane to time selection
- * Description:  Move and stretch selected events (notes, CCs, pitchwheel, sysex, etc) to fit precisely into time selection.
- *               The script only affects events in the MIDI editor lane that has been clicked last.
- *               The script is particularly useful for precisely positioning CC curves underneath notes (after running
- *                    "Edit: Set time selection to selected notes").
- *
- * Instructions:  The script can be linked to a shortcut key or a menu button, or it can be included in the 
- *                    CC lane context menu.
- *                In the script's USER AREA (below the Changelog), the user can customize the following settings:
- *                    - lane_to_use: "last clicked" or "under mouse"
- *                    - move_rightmost_event_to: "next-to-last PPQ", "closest CC grid", "exact PPQ"
- *                    - verbose: "true" or "false" to show error messages when, for example, there are no selected events.
- *
- *                In the case of notes, the rightmost note's "note off" event will be moved to the exact time point 
- *                    of the end of the time selection.  In the case of other events however, moving the rightmost 
- *                    event to the exact endpoint will mean that event actually falls outside the time selection.  The 
- *                    script therefore offers three alternatives: 
- *                    - "exact PPQ": move the rightmost event to the exact PPQ of the time selection endpoint, which 
- *                                   means that the event will fall outside the time selection.
- *                    - "next-to-last PPQ": move the rightmost event to the very last PPQ *inside* the time selection.
- *                    - "closest CC grid": move the rightmost event to the closest PPQ inside the time selection 
- *                                         that falls on the grid set in REAPER's
- *                                         Preferences -> MIDI editor -> Events per quarter note when drawing in CC lanes.
- *
- *                Note that the "Stretch events" script can be used to further tweak the positions of the events.
- *
- *                WARNING: Moving notes onto existing notes in the time selection may confuse REAPER, 
- *                    leading to artefacts such as endless notes.
- *
- * Screenshot: 
- * Notes: 
- * Category: 
- * Author: juliansader
- * Licence: GPL v3
- * Forum Thread: 
- * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 1.0
- * REAPER: 5.20
- * Extensions: SWS/S&M 2.8.3
+ReaScript name:  js_Fit all selected events to time selection in last clicked lane.lua
+Version: 2.00
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=176878
+REAPER version: 5.32 or later
+Donation: https://www.paypal.me/juliansader
+About:
+  # Description
+  
+  Move and stretch selected events in the last clicked lane (notes, sysex, pitchwheel, CCs etc) to fit precisely into time selection.
+  
+  # Instructions
+  
+  The script can be linked to a shortcut key or toolbar button, or it can be included in the CC lane context menu.
 ]]
- 
+
 --[[
  Changelog:
- * v1.0 (2016-06-11)
+  * v1.0 (2016-06-11)
     + Initial Release
+  * v2.00 (2017-01-10)
+    + Much faster execution when working in large tracks with hundreds of thousands of MIDI events.
+    + Script will work in looped takes.
+    + Requires REAPER v5.32 or later.
 ]]
+
 
 -- USER AREA --------------------------
 -- Settings that the user can customize
     
-    move_rightmost_event_to = "next-to-last PPQ" -- "closest CC grid", "exact PPQ" or "next-to-last PPQ"
-    lane_to_use = "last clicked" -- "last clicked" or "under mouse"
-    verbose = true -- "true" or "false"
+    lane_to_use = "last clicked" -- "all", "last clicked" or "under mouse"
 
 -- End of USER AREA -------------------
-
-
--------------------------------
-function showErrorMsg(errorMsg)
-    if verbose == true and type(errorMsg) == "string" then
-        reaper.ShowConsoleMsg("\n\nERROR:\n" 
-                              .. errorMsg 
-                              .. "\n\n"
-                              .. "(To prevent future error messages, set 'verbose' to 'false' in the USER AREA near the beginning of the script.)"
-                              .. "\n\n")
-    end
-end -- showErrorMsg(errorMsg)
------------------------------
 
 
 -----------------------------------------------------------------------------------------------------------
@@ -74,58 +39,62 @@ end -- showErrorMsg(errorMsg)
     -- Define variables as local to improve speed.
     -- However, this script is rather quick and simple, so probably not necessary.
     -- Keeping variables global makes debugging easier.
-    local window, segment, editor, take, details, targetLane, QNperGrid, mouseQNpos, 
-          events, count, eventIndex, eventPPQpos, msg, msg1, msg2, eventType,
-          tempFirstPPQ, tempLastPPQ, firstPPQpos, lastPPQpos, density,
-          timeSelectStart, timeSelectEnd, destEndPPQ, destStartPPQ,
-          eventsStartPPQ, eventsEndPPQ
-    ]]      
     
-    -- Trick to prevent REAPER from automatically creating an undo point
+    local window, segment, editor, take, timeSelectStart, timeSelectEnd, 
+          eventsStartPPQ, eventsEndPPQ, notesEndPPQ, stretchFactor    
+    ]]
+    -- Simply calling the defer function is a 'trick' to prevent REAPER from automatically creating an undo point
     function avoidUndo()
     end
     reaper.defer(avoidUndo)
     
-    -- Test whether user settings are usable
-    if not (type(verbose) == "boolean")
-        then reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'verbose' must be either 'true' of 'false'.\n") return(false) end
-    if not (lane_to_use == "last clicked" or lane_to_use == "under mouse")  
-        then reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "lane_to_use" must be either "last clicked" or "under mouse".\n') return(false) end
-    if not (move_rightmost_event_to == "closest CC grid" or move_rightmost_event_to == "exact PPQ" or move_rightmost_event_to == "next-to-last PPQ")  
-        then reaper.ShowConsoleMsg('\n\nERROR: \nThe setting "move_rightmost_event_to" must be either "closest CC grid", "exact PPQ" or "next-to-last PPQ".\n') return(false) end
+    --------------------------------------------------------
+    -- Check whether required version of REAPER is available
+    version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
+    if version == nil or version < 5.32 then
+        reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                              .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                              , "ERROR", 0)
+        return(false) 
+    end
+
     
-    -- Mouse must be positioned in MIDI editor
+    ------------------------------------
+    -- Find editor, active take and item
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil 
-        then showErrorMsg("No active MIDI editor found.") return(false) end
+        then reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0) 
+        return(false) 
+    end
     take = reaper.MIDIEditor_GetTake(editor)
     if take == nil 
-        then showErrorMsg("No active take found in MIDI editor.") return(false) end
-
-    -- Is there a usable time selection?
-    timeSelectStart, timeSelectEnd = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
-    if type(timeSelectStart) ~= "number"
-        or type(timeSelectEnd) ~= "number"
-        or timeSelectEnd<=timeSelectStart 
-        or reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectStart) < 0
-        or reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectEnd) < 0
-        then 
-        showErrorMsg("A time range must be selected (within the active item's own time range).")
+        then reaper.ShowMessageBox("No active take found in MIDI editor.", "ERROR", 0) 
         return(false) 
-    else 
-        destStartPPQ = reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectStart)
-        destEndPPQ = reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectEnd) -- May be changed later by "move_rightmost_event_to" setting
     end
-            
-    -- Get target lane 
-    if lane_to_use == "under mouse" then
+    item = reaper.GetMediaItemTake_Item(take)
+    if not reaper.ValidatePtr(item, "MediaItem*") then 
+        reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
+        return(false)
+    end
     
-        window, segment, details = reaper.BR_GetMouseCursorContext()
-        if lane_to_use == "under mouse" and not (details == "cc_lane" or details == "cc_selector" or segment == "notes") 
-            then showErrorMsg('If lane_to_use == "under mouse", the mouse must be positioned over a CC lane or over the piano roll of an active MIDI editor.') return(false) 
-        end
+    
+    -------------------------------
+    -- Determine the target lane(s)
+    if lane_to_use == "all" then
+        laneIsALL = true    
+    else
+        if lane_to_use == "under mouse" then
         
-        if details == "cc_lane" or details == "cc_selector" then 
+            if not reaper.APIExists("BR_GetMouseCursorContext") then
+                reaper.ShowMessageBox('To use the "under mouse" option, this script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.', "ERROR", 0)
+                return(false) 
+            end
+            
+            window, segment, details = reaper.BR_GetMouseCursorContext()
+            if not (segment == "notes" or details == "cc_lane") then
+                reaper.ShowMessageBox('Mouse is not correctly positioned.\n\nIf the "lane_to_use" parameter is set to "under mouse", the mouse must be positioned over either a CC lane or the notes area of a MIDI editor', "ERROR", 0)
+                return(false) 
+            end
             -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI()"
             -- https://github.com/Jeff0S/sws/issues/783
             -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
@@ -133,201 +102,267 @@ end -- showErrorMsg(errorMsg)
             if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
             if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
             if SWS283 ~= SWS283again then
-                reaper.ShowConsoleMsg("\n\nERROR:\nCould not determine compatible SWS version.\n\n")
+                reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
                 return(false)
             end
-            
+                
             if SWS283 == true then
                 _, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
             else 
                 _, _, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
+            end        
+                    
+        elseif lane_to_use == "last clicked" then
+            targetLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane") 
+            if targetLane == -1 then
+                reaper.ShowMessageBox('Could not determine the last clicked CC lane', "ERROR", 0)
+                return(false) 
             end
+            
+        else
+            reaper.ShowMessageBox('The setting "lane_to_use" must be either "all", "last clicked" or "under mouse".', "ERROR", 0) 
+            return(false)
         end
         
-    else -- lane_to_use == "last clicked"
-        targetLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane") 
+        -- Change targetLane into a more readable format
+        if segment == "notes" then
+            laneIsPIANOROLL, laneIsNOTES = true, true
+        elseif 0 <= targetLane and targetLane <= 127 then -- CC, 7 bit (single lane)
+            laneIsCC7BIT = true
+        elseif targetLane == 0x200 then
+            laneIsVELOCITY, laneIsNOTES = true, true   
+        elseif targetLane == 0x201 then
+            laneIsPITCH = true
+        elseif targetLane == 0x202 then
+            laneIsPROGRAM = true
+        elseif targetLane == 0x203 then
+            laneIsCHPRESS = true
+        elseif targetLane == 0x204 then
+            laneIsBANKPROG = true
+        elseif 256 <= targetLane and targetLane <= 287 then -- CC, 14 bit (double lane)
+            laneIsCC14BIT = true
+        elseif targetLane == 0x205 then
+            laneIsTEXT = true
+        elseif targetLane == 0x206 then
+            laneIsSYSEX = true
+        elseif targetLane == 0x207 then
+            laneIsOFFVEL, laneIsNOTES = true, true
+        else -- not a lane type in which script can be used.
+            reaper.ShowMessageBox('In the "This script will work in the following MIDI lanes: \n* 7-bit CC, \n* 14-bit CC, \n* Velocity, \n* Channel Pressure, \n* Pitch, \n* Program select,\n* Bank/Program,\n* Text or Sysex,\n* or in the "notes area" of the piano roll.', "ERROR", 0)
+            return(0)
+        end        
     end
+    
+    
+    ------------------------------------------------------------------------------
+    -- The source length will be saved and checked again at the end of the script, 
+    --    to check that no inadvertent shifts in PPQ position happened.
+    sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
 
-    -- Assume that if target CC lane could not be determined, the intended target is notes 
-    -- Alternatively:    
-    --  then showErrorMsg("The target lane could not be determined.") return(false) end 
-    if type(targetLane) ~= "number" or targetLane < 0 or targetLane > 0x207 then 
-        targetLane = -1 
-        segment = "notes" 
-    end  
-           
-    
-    --------------------------------------------------------------------
-    -- Find selected events in target lane.
-    -- sysex and text events are weird, so use different "Get" function
-    --
-    -- targetLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
-    -- 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
-    -- 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)"
-    --
-    -- eventType is the MIDI event type: 11=CC, 14=pitchbend, etc
-    
-    reaper.MIDI_Sort(take)
-    
-    events = {} -- All selected events in lane will be stored in an array
-    eventsStartPPQ = math.huge
-    eventsEndPPQ = 0
-    
-    -- Note events can actually be found using MIDI_GetEvt, but this script will use MIDI_GetNote in case
-    --    the latter is more reliable
-    if segment == "notes" or targetLane == 0x200 or targetLane == 0x207 then -- Velocity, off-velocity, or piano roll
-    
-        noteIndex = reaper.MIDI_EnumSelNotes(take, -1)
-        while(noteIndex ~= -1) do
-            
-            _, _, _, startppqpos, endppqpos, _, _, _ = reaper.MIDI_GetNote(take, noteIndex)
-            table.insert(events, {index = noteIndex,
-                                  PPQstart = startppqpos,
-                                  PPQend = endppqpos})
-            if startppqpos < eventsStartPPQ then eventsStartPPQ = startppqpos end
-            if endppqpos > eventsEndPPQ then eventsEndPPQ = endppqpos end     
-            
-            noteIndex = reaper.MIDI_EnumSelNotes(take, noteIndex)
-        end
-    
-    elseif targetLane == 0x206 or targetLane == 0x205 then -- sysex and text events
-        
-        eventIndex = reaper.MIDI_EnumSelTextSysexEvts(take, -1)
-        while(eventIndex ~= -1) do
-            _, _, _, eventPPQpos, eventType, msg = reaper.MIDI_GetTextSysexEvt(take, eventIndex)
-            if (targetLane == 0x206 and eventType == -1) -- only sysex
-            or (targetLane == 0x205 and eventType ~= -1) -- only text events
-                then
-                table.insert(events, {index = eventIndex,
-                                      PPQ = eventPPQpos,
-                                      msg = msg,
-                                      type = 0xF})
-                if eventPPQpos < eventsStartPPQ then eventsStartPPQ = eventPPQpos end
-                if eventPPQpos > eventsEndPPQ then eventsEndPPQ = eventPPQpos end
-            end
-            eventIndex = reaper.MIDI_EnumSelTextSysexEvts(take, eventIndex)
-        end
-        
-    else  -- all other event types that are not sysex or text
-    
-        eventIndex = reaper.MIDI_EnumSelEvts(take, -1)
-        while(eventIndex ~= -1) do
-        
-            _, _, _, eventPPQpos, msg = reaper.MIDI_GetEvt(take, eventIndex, true, true, 0, "")
-            msg1=tonumber(string.byte(msg:sub(1,1)))
-            msg2=tonumber(string.byte(msg:sub(2,2)))
-            eventType = msg1>>4 -- eventType is CC (11), pitch (14), etc...
-    
-            -- Now, select only event types that correspond to targetLane:
-            if (0 <= targetLane and targetLane <= 127 -- CC, 7 bit (single lane)
-                and msg2 == targetLane and eventType == 11)
-            or (256 <= targetLane and targetLane <= 287 -- CC, 14 bit (double lane)
-                and (msg2 == targetLane-256 or msg2 == targetLane-224) and eventType ==11) -- event can be from either MSB or LSB lane
-            --or ((targetLane == 0x200 or targetLane == 0x207) -- Velocity or off-velocity
-            --    and (eventType == 9 or eventType == 8)) -- note on or note off
-            or (targetLane == 0x201 and eventType == 14) -- pitch
-            or (targetLane == 0x202 and eventType == 12) -- program select
-            or (targetLane == 0x203 and eventType == 13) -- channel pressure (after-touch)
-            or (targetLane == 0x204 and eventType == 12) -- Bank/Program select - Program select
-            or (targetLane == 0x204 and eventType == 11 and msg2 == 0) -- Bank/Program select - Bank select MSB
-            or (targetLane == 0x204 and eventType == 11 and msg2 == 32) -- Bank/Program select - Bank select LSB
-            then
-                table.insert(events, {index = eventIndex,
-                                      PPQ = eventPPQpos,
-                                      --QN = reaper.MIDI_GetProjQNFromPPQPos(take, eventPPQpos),
-                                      msg = msg,
-                                      type = eventType})
-                if eventPPQpos < eventsStartPPQ then eventsStartPPQ = eventPPQpos end
-                if eventPPQpos > eventsEndPPQ then eventsEndPPQ = eventPPQpos end
-            end
-            eventIndex = reaper.MIDI_EnumSelEvts(take, eventIndex)
-        end
-    end        
-    
-    --------------------------------------------------------------------------------------------------------
-    -- If move_rightmost_event_to == "closest CC grid", we must go through several steps to find the closest 
-    --     grid position immediately before (to the left of) the time selection endpoint.
-    if not (segment == "notes" or targetLane == 0x200 or targetLane == 0x207) -- NOT velocity or off-velocity
-        and move_rightmost_event_to == "closest CC grid"
-        then
-        density = math.abs(reaper.SNM_GetIntConfigVar("midiCCdensity", 64)) -- Get the default grid resolution as set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
-        --density = math.floor(math.max(4, math.min(128, math.abs(density))))
-        destEndPPQ = reaper.MIDI_GetPPQPosFromProjQN(take, math.floor(density*reaper.MIDI_GetProjQNFromPPQPos(take, destEndPPQ-1))/density)
-    elseif not (segment == "notes" or targetLane == 0x200 or targetLane == 0x207) -- NOT velocity or off-velocity
-        and move_rightmost_event_to == "next-to-last PPQ"
-        then
-        destEndPPQ = destEndPPQ-1
-    end                          
-    
-    if destEndPPQ <= destStartPPQ then
-        reaper.showErrorMsg("Time selection is too short.")
-        return(false)
-    end  
-    
-    -----------------------------------------------------------------------------------
-    -- Do the selected events have a usable time range?  Then can define stretch factor
-    if (#events == 0) then 
-        showErrorMsg("No selected events found in target lane.")
+
+    ------------------------------------
+    -- Is there a usable time selection?
+    timeSelectStart, timeSelectEnd = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
+    if type(timeSelectStart) ~= "number"
+        or type(timeSelectEnd) ~= "number"
+        or timeSelectEnd<=timeSelectStart 
+        then 
+        reaper.ShowMessageBox("A time range must be selected (within the active item's own time range).", "ERROR", 0)
         return(false) 
     end
+    -- Find PPQ positions of time selection and calculate corrected values (relative to first iteration) if take is looped
+    destPPQstart_Uncorrected = reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectStart)
+    destPPQend_Uncorrected = reaper.MIDI_GetPPQPosFromProjTime(take, timeSelectEnd) -- May be changed later if rightmost event is not a note
+    PPQofLoopStart = (destPPQstart_Uncorrected//sourceLengthTicks)*sourceLengthTicks
+    if not (PPQofLoopStart == ((destPPQend_Uncorrected-1)//sourceLengthTicks)*sourceLengthTicks) then
+        reaper.ShowMessageBox("The selected time range fall within a single loop iteration.", "ERROR", 0)
+        return(false) 
+    end
+    local destPPQstart = math.ceil(destPPQstart_Uncorrected - PPQofLoopStart)
+    destPPQend_Unrounded = destPPQend_Uncorrected - PPQofLoopStart -- destPPQend will be rounded later
     
-    if eventsEndPPQ < eventsStartPPQ then
-        showErrorMsg("Could not determine time range of selected events.")
-        return(false)
-    elseif eventsEndPPQ == eventsStartPPQ then
-        stretchFactor = 1 -- Value doesn't really matter, as long as it is not infinite
-    else 
-        stretchFactor = (destEndPPQ - destStartPPQ) / (eventsEndPPQ - eventsStartPPQ)
-    end 
+    
+    --------------------------------------------------------------------------------------------
+    -- Now, find all targeted selected events, extract their info and determine their PPQ range.    
+    reaper.MIDI_Sort(take)
+    
+    local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+    
+    -- The info of selected events will be stored in these tables until theu are re-assembled at their new positions
+    local tableMsg = {}
+    local tablePPQs = {}
+    local tableFlags = {}
+    
+    -- The remaining events and the newly assembled events will be stored in these table
+    local tableRemainingEvents = {}
+    
+    -- The moved events will be re-assembled in this table
+    local tableMovedEvents = {}
+    
+    -- Indices inside tables
+    local r = 0
+    local t = 0
+    
+    local MIDIlen = MIDIstring:len()
+    local stringPos = 1
+    local runningPPQpos = 0    
+    local lastNoteOffPPQpos = -math.huge
+    
+    while stringPos < MIDIlen do
+    
+        local mustExtract = false
+        local offset, flags, msg
+        offset, flags, msg, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos)
+        runningPPQpos = runningPPQpos + offset
         
-    --------------------------------------------------------------------
-    -- OK, tests done so things will start to happen.  Start undo block.
-    reaper.Undo_BeginBlock()            
+        -- Find selected events in the target lane(s)
+        if flags&1 == 1 then
+            if laneIsALL then
+                mustExtract = true
+            elseif msg:len() > 1 then
+                if laneIsCC7BIT       then if msg:byte(1)>>4 == 11 and msg:byte(2) == targetLane then mustExtract = true end
+                elseif laneIsPITCH    then if msg:byte(1)>>4 == 14 then mustExtract = true end
+                elseif laneIsCC14BIT  then if msg:byte(1)>>4 == 11 and (msg:byte(2) == targetLane-224 or msg:byte(2) == targetLane-256) then mustExtract = true end
+                elseif laneIsNOTES    then if msg:byte(1)>>4 == 8 or msg:byte(1)>>4 == 9 then mustExtract = true end
+                elseif laneIsPROGRAM  then if msg:byte(1)>>4 == 12 then mustExtract = true end
+                elseif laneIsCHPRESS  then if msg:byte(1)>>4 == 13 then mustExtract = true end
+                elseif laneIsBANKPROG then if msg:byte(1)>>4 == 12 or (msg:byte(1)>>4 == 11 and (msg:byte(2) == 0 or msg:byte(2) == 32)) then mustExtract = true end
+                elseif laneIsTEXT     then if msg:byte(1)    == 0xFF and not (msg2 == 0x0F) then mustExtract = true end
+                elseif laneIsSYSEX    then if msg:byte(1)>>4 == 0xF and not (msg:byte(1) == 0xFF) then mustExtract = true end
+                end
+            end            
+        end
+        
+        -- Notation events are unfortunately not selected, even if the matching note-on is selected
+        if (laneIsALL or laneIsNOTES)
+        and msg:byte(1) == 0xFF -- MIDI text event
+        and msg:byte(2) == 0x0F -- REAPER's notation event type
+        then            
+            -- REAPER v5.32 changed the order of note-ons and notation events. So must search backwards as well as forward.
+            local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ") 
+            if notationChannel then
+                notationChannel = tonumber(notationChannel)
+                notationPitch   = tonumber(notationPitch)
+                -- First, backwards through notes that have already been parsed.
+                for i = #tablePPQs, 1, -1 do
+                    if tablePPQs[i] ~= runningPPQpos then 
+                        break -- Go on to forward search
+                    else
+                        if tableMsg[i]:byte(1) == 0x90 | notationChannel
+                        and tableMsg[i]:byte(2) == notationPitch
+                        then
+                            mustExtract = true
+                            goto completedNotationSearch
+                        end
+                    end
+                end
+                -- Search forward through following events, looking for a selected note that match the channel and pitch
+                -- (Probably not necessary in v5.32 or later, but just in case...)
+                local evPos = nextPos -- Start search at position of nmext event in MIDI string
+                local evOffset, evFlags, evMsg
+                repeat -- repeat until an offset is found > 0
+                    evOffset, evFlags, evMsg, evPos = string.unpack("i4Bs4", MIDIstring, evPos)
+                    if evOffset == 0 then 
+                        if evFlags&1 == 1 -- Only match *selected* events
+                        and evMsg:byte(1) == 0x90 | notationChannel -- Match note-ons and channel
+                        and evMsg:byte(2) == notationPitch -- Match pitch
+                        and evMsg:byte(3) ~= 0 -- Note-ons with velocity == 0 are actually note-offs
+                        then
+                            mustExtract = true
+                            goto completedNotationSearch
+                        end
+                    end
+                until evOffset ~= 0
+                ::completedNotationSearch::
+            end   
+        end 
+        
+        if mustExtract then
+            -- Store this event's info
+            t = t + 1
+            tableMsg[t] = msg
+            tablePPQs[t] = runningPPQpos
+            tableFlags[t] = flags
+            -- Replace with empty event (which simply changes offset)
+            r = r + 1
+            tableRemainingEvents[r] = string.pack("i4Bs4", offset, flags, "")
+        else
+            r = r + 1
+            tableRemainingEvents[r] = string.pack("i4Bs4", offset, flags, msg)
+        end
+        
+    end
     
-    --------------------------------------------
-    -- Move and stretch events to time selection
-    if targetLane == 0x205 or targetLane == 0x206 then
-        for i = 1, #events do
-            reaper.MIDI_SetTextSysexEvt(take, events[i].index, nil, nil, destStartPPQ + stretchFactor*(events[i].PPQ-eventsStartPPQ), nil, events[i].msg, true)
-        end
-    elseif targetLane == 0x200 or targetLane == 0x207 or segment == "notes" then
-        for i = 1, #events do
-            reaper.MIDI_SetNote(take, events[i].index, nil, nil, destStartPPQ + stretchFactor*(events[i].PPQstart-eventsStartPPQ), destStartPPQ + stretchFactor*(events[i].PPQend-eventsStartPPQ), nil, nil, nil, true)
-        end
-    else
-        for i = 1, #events do
-            reaper.MIDI_SetEvt(take, events[i].index, nil, nil, destStartPPQ + stretchFactor*(events[i].PPQ-eventsStartPPQ), events[i].msg, true)
+    
+    -----------------------
+    -- Determine PPQ ranges
+    if #tablePPQs == 0 then return end
+    
+    local eventsPPQstart = tablePPQs[1]
+    local eventsPPQrange = tablePPQs[#tablePPQs] - eventsPPQstart
+    
+    
+    ------------------------------------------------------------------------------------------------
+    -- If the rightmost selected event is a CC or sysex, not a note, the events must be stretched to 
+    --     destPPQend - 1 to ensure that all events fall inside the time selection.
+    -- (Events that fall on the exact PPQ of the time selection endpoint actually falls outside the
+    --     time selection.)
+    -- If the rightmost event is a note, the note end will fall exactly on destPPQend. 
+    -- Take into account however, that the time selection does not necessarily fall exactly on a PPQ position.
+    for i = #tablePPQs, 1, -1 do
+        if tablePPQs[i] < tablePPQs[#tablePPQs] then 
+            break
+        elseif not (tableMsg[i]:len() == 3 and (tableMsg[i]:byte(1)>>4 == 8 or (tableMsg[i]:byte(1) == 9 and tableMsg[i]:byte(3) == 0))) then
+            selectedEventsEndIncludesSomethingElseThanNoteOff = true
         end
     end
-
-    reaper.MIDI_Sort(take)
-
-    -- End and clean-up
-    if segment == "notes" or targetLane == 0x200 or targetLane == 0x207 then -- Velocity or off-velocity
-        undoString = "Fit events to time selection: Notes"
-    elseif type(targetLane) ~= "number" then 
-        undoString = "Fit events to time selection"
-    elseif targetLane == 0x206 then
-        undoString = "Fit events to time selection: Sysex"
-    elseif targetLane == 0x205 then
-        undoString = "Fit events to time selection: Text events"
-    elseif 0 <= targetLane and targetLane <= 127 then -- CC, 7 bit (single lane)
-        undoString = "Fit events to time selection: 7 bit CC, lane ".. tostring(targetLane)
-    elseif 256 <= targetLane and targetLane <= 287 then -- CC, 14 bit (double lane)
-        undoString = "Fit events to time selection: 14 bit CC, lanes ".. tostring(targetLane-256) .. "/" .. tostring(targetLane-224)
-    elseif targetLane == 0x201 then -- pitch
-        undoString = "Fit events to time selection: Pitchwheel"
-    elseif targetLane == 0x202 then -- program select
-        undoString = "Fit events to time selection: Program Select"
-    elseif targetLane == 0x203 then -- channel pressure (after-touch)
-        undoString = "Fit events to time selection: Channel Pressure"
-    elseif targetLane == 0x204 then -- Bank/Program select - Program select
-        undoString = "Fit events to time selection: Bank/Program Select"
-    else              
-        undoString = "Fit events to time selection"
-    end -- if targetLane ==
+    if selectedEventsEndIncludesSomethingElseThanNoteOff then destPPQend = math.ceil(destPPQend_Unrounded-1) else destPPQend = math.floor(destPPQend_Unrounded) end
     
-    reaper.Undo_EndBlock(undoString, -1)
+    
+    -----------------------------------------------------------------------
+    -- Calculate the factor by which the event positions will be stretched.
+    local stretchFactor
+    if eventsPPQrange == 0 then
+        stretchFactor = 1 -- Value doesn't really matter, as long as it is not infinite
+    else 
+        stretchFactor = (destPPQend - destPPQstart) / eventsPPQrange 
+    end 
+    
+    
+    -----------------------------------------------------------------------         
+    -- Re-assemble the selected events into a table with their new offsets.
+    local lastPPQpos = 0
+    for i = 1, #tablePPQs do
+        local newPPQpos = math.floor(destPPQstart + (tablePPQs[i]-eventsPPQstart)*stretchFactor + 0.5)
+        tableMovedEvents[i] = string.pack("i4Bs4", newPPQpos-lastPPQpos, tableFlags[i], tableMsg[i])
+        lastPPQpos = newPPQpos
+    end
+    
+    
+    ----------------------------------------------------------------------------------------------
+    -- Upload everything into the take, using an empty event to "reset" offset between the tables.
+    reaper.MIDI_SetAllEvts(take, table.concat(tableMovedEvents)
+                                 .. string.pack("i4Bs4", -lastPPQpos, 0, "")
+                                 .. table.concat(tableRemainingEvents))
+    
+    reaper.MIDI_Sort(take)
+    
+    
+    ---------------------------------------------------------------------------------------
+    -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
+    if not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
+        reaper.MIDI_SetAllEvts(take, MIDIstring) -- Restore original MIDI
+        reaper.ShowMessageBox("The script has detected inadvertent shifts in the PPQ positions of unedited events."
+                              .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
+                              .. "\n\nPlease report the bug in the following forum thread:"
+                              .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
+                              .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
+    end
+
+
+    -------------------
+    -- End and clean-up
+    reaper.Undo_OnStateChange_Item(0, "Fit all selected events to time selection in lane under mouse", item)
 
 --end -- end main()
 

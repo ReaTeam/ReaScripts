@@ -5,21 +5,24 @@ Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/28189/Select%20MIDI%20notes%20by%20step%20pattern.gif
 Extensions: SWS not required.
+Donation: https://www.paypal.me/juliansader
 About:
   # Description
+  
   This script selects and deselects notes, based on a step pattern that the user can draw in a GUI.
-
+  
   For example, the pattern can be drawn to select notes 1, 3 and 4 in a six-step pattern.
-
+  
   The length of the pattern as well as the steps that will be selected are determined by the user. (The maximum pattern length is 99 steps.)
-
+  
   Notes that start within one grid length of each other are regarded as one unit (e.g. chord or glissando), and will be selected/deselected together.
 
   # Instructions
+  
   First, select the note on which the step pattern must be applied. (Of course, some of these notes will later be deselected by the script.)
-
+  
   Then, run the script and draw the desired pattern - the note selection will be updated in real time.
-
+  
   When you need to work with a new set of notes, simply click the "Load new set of notes" text.  
   
   If no notes are selected when the script is started, or if the indices of the notes in the take change 
@@ -28,7 +31,9 @@ About:
     
   To draw patterns that are longer than the initial size of the GUI, simply widen the GUI.
       
-  HINT: This script works well with the "js_Deselect all notes outside time selection (from all 
+  # HINT
+  
+  This script works well with the "js_Deselect all notes outside time selection (from all 
       takes).lua" script.  Use the piano roll keys to select all notes in a range of pitches, and
       then run the Deselect script to limit the note selection to the time selection.
 ]]
@@ -41,7 +46,7 @@ About:
     + Compatible with projects that use a PPQ different from 960
   * v0.95 (2016-10-25)
     + Updated header and "About" info to ReaPack 1.1 format.
-    + Notes that start exactly one grid unit apart are not regarded as one unit/chord/glissando.
+    + Notes that start exactly one grid unit apart, are not regarded as one unit/chord/glissando.
 ]]
 
 

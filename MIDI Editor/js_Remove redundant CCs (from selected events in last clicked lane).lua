@@ -5,40 +5,43 @@ Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions: SWS/S&M 2.8.3 or later
 REAPER version: 5.32 or later
+Donation: https://www.paypal.me/juliansader
 About:
   # Description
+  
   Removes redundant events from selected CCs in 7-bit CC, pitchwheel, channel pressure and program select lanes with a single click.
 
   # Instructions
+
   In the USER AREA of the script (below the changelog), the user can customize the following options:
   (It may be useful to link different versions of the script to different shortcuts.)
-    
-    - lanes_from_which_to_remove:  "all", "last clicked" or "under mouse"
-    
-    - ignore_LSB_of_pitch:  Ignore LSB when comparing pitchwheel events
-    
-    - only_analyze_selected_events:  Ignore unselected events in the target lane
   
+  - lanes_from_which_to_remove:  "all", "last clicked" or "under mouse"
+  
+  - ignore_LSB_of_pitch:  Ignore LSB when comparing pitchwheel events
+  
+  - only_analyze_selected_events:  Ignore unselected events in the target lane
+
   NOTE: If lanes_from_which_to_remove == "all", each 7-bit lane of 14-bit CCs will be analyzed separately. 
         This will ensure maximum efficiency in removal of redundant events, but may cause 14-bit CCs to 'disappear' 
         since MSB and LSB parts may be deleted separately.
         
   There are two ways in which this script can be run:  
   
-    1) First, the script can be linked to its own shortcut key.
+  1) First, the script can be linked to its own shortcut key.
   
-    2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
           can each be linked to a toolbar button.  
-       
-       In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+
+     - In this case, each script need not be linked to its own shortcut key.  Instead, only the 
           accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
           script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
-       
-       Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+
+     - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
           and this selected (armed) script can then be run by using the shortcut for the 
           aforementioned "js_Run..." script.
-       
-       For further instructions - please refer to the "js_Run..." script. 
+
+     - For further instructions - please refer to the "js_Run..." script. 
 ]]
 
 --[[
