@@ -62,6 +62,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
+- [geraintluff/jsfx](https://github.com/geraintluff/jsfx)
 - [kawaCat/ReaScript-M2BPack](https://bitbucket.org/kawaCat/reascript-m2bpack/wiki/Home)
 - [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
 - [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
