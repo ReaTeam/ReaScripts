@@ -1,53 +1,75 @@
 --[[
- * ReaScript Name: js_Envelope LFO generator and shaper.lua
- * Description: LFO generator and shaper - Envelope version
- * Instructions:  
- *         DRAWING ENVELOPES
- *         Leftclick in open space in the envelope drawing area to add an envelope node.
- *         Shift + Leftdrag to add multiple envelope nodes.
- *         Alt + Leftclick (or -drag) to delete nodes.
- *         Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.
- *         Move mousewheel while mouse hovers above node for fine adjustment.
- * 
- *         Use a Ctrl modifier to edit all nodes simultaneously:
- *         Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.
- *         Ctrl + Rightclick to enter a precise custom value for all nodes.
- *         Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.
- *
- *         VALUE AND TIME DISPLAY
- *         The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.
- *         Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.
- *
- *         LOADING AND SAVING CURVES
- *         Right-click (outside envelope area) to open the Save/Load/Delete curve menu.
- *         One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
- *                           
- *         FURTHER CUSTOMIZATION
- *         Further customization is possible - see the instructions in the script's USER AREA.
- *         This include:
- *         - Easily adding custom LFO shapes.
- *         - Specifying the resolution of LFO shapes' phase steps.         
- *         - Changing interface colors.
- *         - Changing the default curve name.
- *         - Specify the resolution of the mousewheel fine adjustment.
- *         etc... 
- *
- * Screenshot: 
- * Notes: 
- * Category: 
- * Author: Xenakios / juliansader
- * Licence: GPL v3
- * Forum Thread:
- * Forum Thread URL: http://forum.cockos.com/showthread.php?t=153348&page=5
- * Version: 1.04
- * REAPER: 5.20
- * Extensions: SWS/S&M 2.8.3
-]]
+ReaScript name: js_Envelope LFO generator and shaper.lua
+Version: 1.10
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=177437
+Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
+Donation: https://www.paypal.me/juliansader
+About:
+  # Description
+  
+  LFO generator and shaper - Automation envelope version.
+  
+  Draw fancy LFO curves in REAPER's automation envelopes.
+    
+  # Instructions
+  
+  DRAWING ENVELOPES
+  
+  Leftclick in open space in the envelope drawing area to add an envelope node.
+  
+  Shift + Leftdrag to add multiple envelope nodes.
+  
+  Alt + Leftclick (or -drag) to delete nodes.
+  
+  Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.
+  
+  Move mousewheel while mouse hovers above node for fine adjustment.
+  
+  Use a Ctrl modifier to edit all nodes simultaneously:
+  
+  Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.
+  
+  Ctrl + Rightclick to enter a precise custom value for all nodes.
+  
+  Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.
+  
+  The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.
+  
 
+  VALUE AND TIME DISPLAY
+  
+  The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.
+  
+  Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.
+  
+
+  LOADING AND SAVING CURVES
+  
+  Right-click (outside envelope area) to open the Save/Load/Delete curve menu.
+  
+  One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
+  
+                    
+  FURTHER CUSTOMIZATION
+  
+  Further customization is possible - see the instructions in the script's USER AREA.
+  
+  This include:
+  - Easily adding custom LFO shapes.
+  - Specifying the resolution of LFO shapes' phase steps.
+  - Specifying the resolution of the mousewheel fine adjustment.
+  - Changing interface colors.
+  - Changing the default curve name.
+  - etc...      
+]]
 --[[
- Changelog:
- * v1.04 (2016-06-23)
+  Changelog:
+  * v1.04 (2016-06-23)
     + User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.
+  * v1.10 (2017-01-18)    
+    + Header info updated to ReaPack 1.1 format.
+    + Keyboard shortcuts "a", "c" and "r" for quick switching between GUI views.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -762,6 +784,30 @@ function get_env_interpolated_value(env,x,curveType)
   return 0.0
 end
 
+
+function convert_tempo_env_to_TempoTimeSigMarkers()
+    local tableTempoPoints = {}
+    local totalNumberOfPoints = reaper.CountEnvelopePoints(env)
+    
+    local closestPointBeforeOrAtStart = reaper.GetEnvelopePointByTime(env, time_start - timeOffset)
+    for i = closestPointBeforeOrAtStart, totalNumberOfPoints do
+        local pointOK, timeOut, valueOut, _, _, _ = reaper.GetEnvelopePoint(env, i)
+        if pointOK == true and timeOut > time_end - timeOffset then
+            break 
+        elseif pointOK == true and timeOut <= time_end - timeOffset then
+            table.insert(tableTempoPoints, {time=timeOut, value=valueOut})
+            --reaper.ShowConsoleMsg(valueOut .. "\n")
+        end
+    end
+    
+    for i = 1, #tableTempoPoints do
+        reaper.SetTempoTimeSigMarker(0, -1, tableTempoPoints[i].time, -1, -1, tableTempoPoints[i].value, 0, 0, true)
+    end
+    
+    reaper.UpdateArrange()
+end -- function convert_tempo_env_to_TempoTimeSigMarkers
+
+
 function sort_envelope(env)
   table.sort(env,function(a,b) return a[1]<b[1] end)
 end
@@ -1136,6 +1182,9 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
   reaper.Envelope_SortPoints(env)
   reaper.UpdateArrange()
+    
+  --local envNameOK, envName = reaper.GetEnvelopeName(env, "")
+  --if envNameOK and envName == "Tempo map" then convert_tempo_env_to_TempoTimeSigMarkers() end
 end
 
 ----------------------------------------------------------
@@ -1246,12 +1295,28 @@ function update()
           ]]
         
             -- Click on Rate/Center/Amplitude buttons to change envelope type
-            if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
+            --[[if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
                 egsliders[100].envelope=tempcontrol.envelope
                 egsliders[100].name=tempcontrol.name
                 firstClick = false
                 dogenerate = true
-            end   
+            end   ]]
+            if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
+                egsliders[100].envelope=egsliders[slidNum_rate].envelope
+                egsliders[100].name=egsliders[slidNum_rate].name -- = tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
+                egsliders[100].envelope=egsliders[slidNum_center].envelope
+                egsliders[100].name=egsliders[slidNum_center].name -- = tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
+                egsliders[100].envelope=egsliders[slidNum_amp].envelope
+                egsliders[100].name=egsliders[slidNum_amp].name -- tempcontrol.name
+                firstClick = false
+                dogenerate = true
+            end
         
             -- Enable or disable Real-time copy-to-CC
             if gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
