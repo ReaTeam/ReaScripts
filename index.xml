@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a69980d8ec3b664f956bea0a884b42ae681fa373" name="ReaTeam Scripts">
+<index version="1" commit="30166753b3c20ac101df61a0d7b19c20232192cb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3328,18 +3328,20 @@ store every return values in _ global variable]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song Switcher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The purpose of this script is to quickly switch between songs in a single project during live shows. It is a replacement for the slow SWS Snapshots (visibility + mute).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name". This script will mute and hide all songs except for the current one. Other tracks/folders are left untouched.\line This script works best with REAPER settings "Do not process muted tracks" and "Track mute fade" enabled.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name". This script will mute and hide all songs except for the current one. Other tracks/folders are left untouched.\line This script works best with REAPER settings "{\b Do not process muted tracks}" and "{\b Track mute fade}" enabled.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The following actions are included:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher.lua}: This is the main script. It must be open to use the others.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (previous).lua}: Goes to the previous song\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (next).lua}: Goes to the next song\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (reset).lua}: Rebuilds the song list\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=181159">Forum Thread</link>
         <link rel="screenshot" href="http://i.imgur.com/4xPMV9J.gif">Docked Mode</link>
         <link rel="screenshot" href="https://i.imgur.com/KOP2yK3.png">Windowed Mode</link>
-        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=T3DEWBQJAV7WL&amp;lc=CA&amp;item_name=ReaScript:%20Song%20Switcher&amp;no_note=0&amp;cn=Custom%20message&amp;no_shipping=1&amp;currency_code=CAD&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted</link>
+        <link rel="screenshot" href="https://i.imgur.com/8NOddMK.png">Web Interface</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2016-09-06T23:07:07Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e61b24746de1ea829c1751f0d3c44cd7fddf0fb/Various/cfillion_Song%20Switcher.lua</source>
@@ -3355,6 +3357,17 @@ store every return values in _ global variable]]></changelog>
         <source main="main" file="cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher%20(next).lua</source>
         <source main="main" file="cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher%20(reset).lua</source>
+      </version>
+      <version name="1.2" author="cfillion" time="2017-01-18T06:40:04Z">
+        <changelog><![CDATA[create a new web browser interface (requires REAPER v5.30+)
+improve how the previous docking state is saved
+remember window size and position
+seek to the first item in the song's children tracks [p=1743149]]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher.lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script" desc="AutoSend MIDI of selected track to a specific track">
