@@ -1,16 +1,20 @@
 -- @description Song Switcher
--- @version 1.1
+-- @version 1.2
 -- @changelog
---   + add onswitch setting (no action, seek, seek+stop) [p=1742908]
---   + exit filter mode if empty when pressing backspace
---   + reduce scrolling when there is enough space
+--   create a new web browser interface (requires REAPER v5.30+)
+--   improve how the previous docking state is saved
+--   remember window size and position
+--   seek to the first item in the song's children tracks [p=1743149]
 -- @author cfillion
--- @provides [main] cfillion_Song Switcher ({next,previous,reset}).lua
+-- @provides
+--   [main] cfillion_Song Switcher/*.lua
+--   [webinterface] cfillion_Song Switcher/song_switcher.html > song_switcher.html
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=181159
+-- @donation https://www.paypal.me/cfillion
 -- @screenshot
 --   Docked Mode http://i.imgur.com/4xPMV9J.gif
 --   Windowed Mode https://i.imgur.com/KOP2yK3.png
--- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T3DEWBQJAV7WL&lc=CA&item_name=ReaScript:%20Song%20Switcher&no_note=0&cn=Custom%20message&no_shipping=1&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
+--   Web Interface https://i.imgur.com/8NOddMK.png
 -- @about
 --   # Song Switcher
 --
@@ -23,8 +27,8 @@
 --   Each song must be in a top-level folder track named "#. Song Name".
 --   This script will mute and hide all songs except for the current one.
 --   Other tracks/folders are left untouched.  
---   This script works best with REAPER settings "Do not process muted tracks" and
---   "Track mute fade" enabled.
+--   This script works best with REAPER settings "**Do not process muted tracks**"
+--   and "**Track mute fade**" enabled.
 --
 --   The following actions are included:
 --
@@ -33,14 +37,78 @@
 --   - **cfillion_Song Switcher (previous).lua**: Goes to the previous song
 --   - **cfillion_Song Switcher (next).lua**: Goes to the next song
 --   - **cfillion_Song Switcher (reset).lua**: Rebuilds the song list
+--
+--   A web browser interface is also installed as **song_switcher.html** for
+--   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
+
+WINDOW_TITLE = 'Song Switcher'
+
+FONT_DEFAULT = 0
+FONT_LARGE = 1
+FONT_SMALL = 2
+FONT_HUGE = 3
+
+COLOR_WHITE = {255, 255, 255}
+COLOR_GRAY = {190, 190, 190}
+COLOR_BLACK = {0, 0, 0}
+COLOR_RED = {255, 0, 0}
+
+COLOR_NAME = COLOR_WHITE
+COLOR_FILTER = COLOR_WHITE
+COLOR_BORDER = COLOR_GRAY
+COLOR_BUTTON = COLOR_GRAY
+COLOR_HOVERBG = {30, 30, 30}
+COLOR_HOVERFG = COLOR_WHITE
+COLOR_ACTIVEBG = {124, 165, 215}
+COLOR_ACTIVEFG = COLOR_BLACK
+COLOR_DANGERBG = COLOR_RED
+COLOR_DANGERFG = COLOR_BLACK
+COLOR_HIGHLIGHTBG = {60, 90, 100}
+COLOR_HIGHLIGHTFG = COLOR_WHITE
+
+KEY_ESCAPE = 27
+KEY_SPACE = 32
+KEY_UP = 30064
+KEY_DOWN = 1685026670
+KEY_RIGHT = 1919379572
+KEY_LEFT = 1818584692
+KEY_INPUTRANGE_FIRST = 32
+KEY_INPUTRANGE_LAST = 125
+KEY_ENTER = 13
+KEY_BACKSPACE = 8
+KEY_CTRLU = 21
+KEY_CLEAR = 144
+KEY_PGUP = 1885828464
+KEY_PGDOWN = 1885824110
+KEY_MINUS = 45
+KEY_PLUS = 43
+KEY_STAR = 42
+KEY_F3 = 26163
+
+PADDING = 3
+MARGIN = 10
+HALF_MARGIN = 5
+LIST_START = 50
+
+EXT_SECTION = 'cfillion_song_switcher'
+EXT_SWITCH_MODE = 'onswitch'
+EXT_WINDOW_STATE = 'window_state'
+EXT_LAST_DOCK = 'last_dock'
+EXT_REL_MOVE = 'relative_move'
+EXT_RESET = 'reset'
+EXT_STATE = 'state'
+EXT_FILTER = 'filter'
+
+SWITCH_NOACTION = 0
+SWITCH_SEEK = 1
+SWITCH_SEEKSTOP = 2
 
 function loadTracks()
-  local size = reaper.GetNumTracks()
-  local songs, sIndex = {}, 0
+  local songs = {}
   local depth = 0
   local isSong = false
 
-  for index=0,size-1 do
+  for index=0,reaper.GetNumTracks()-1 do
     local track = reaper.GetTrack(0, index)
 
     local track_depth = reaper.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH')
@@ -49,16 +117,23 @@ function loadTracks()
       local _, name = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
 
       if name:find("%d+%.") then
-        sIndex = sIndex + 1
         isSong = true
 
-        songs[sIndex] = {name=name, folder=track, tracks={track}, tracks_size=1}
+        songs[#songs + 1] = {name=name, folder=track, tracks={track}, start=0}
       else
         isSong = false
       end
     elseif depth >= 1 and isSong then
-      songs[sIndex].tracks_size = songs[sIndex].tracks_size + 1
-      songs[sIndex].tracks[songs[sIndex].tracks_size] = track
+      local song = songs[#songs]
+      song.tracks[#song.tracks + 1] = track
+
+      local firstItem = reaper.GetTrackMediaItem(track, 0)
+      if firstItem then
+        local pos = reaper.GetMediaItemInfo_Value(firstItem, 'D_POSITION')
+        if song.start == 0 or song.start > pos then
+          song.start = pos
+        end
+      end
     end
 
     depth = depth + track_depth
@@ -125,8 +200,9 @@ function setCurrentIndex(index)
     setSongEnabled(songs[currentIndex], false)
   end
 
+  local song = songs[index]
   local disableOk = not invalid
-  local enableOk = setSongEnabled(songs[index], true)
+  local enableOk = setSongEnabled(song, true)
 
   if enableOk or disableOk then
     currentIndex = index
@@ -137,7 +213,7 @@ function setCurrentIndex(index)
       reaper.CSurf_OnStop()
     end
     if mode == SWITCH_SEEK or mode == SWITCH_SEEKSTOP then
-      reaper.CSurf_GoStart()
+      reaper.SetEditCurPos(song.start, true, true)
     end
   end
 
@@ -148,6 +224,7 @@ function setCurrentIndex(index)
 
   filterPrompt = false
   filterBuffer = ''
+  updateState();
 end
 
 function trySetCurrentIndex(index)
@@ -365,14 +442,18 @@ function dockButton()
   btn = textLine('dock', 0)
   btn.rect.w = btn.tw
 
-  dockState = gfx.dock(-1)
+  local dockState = gfx.dock(-1)
 
   if button(btn, dockState ~= 0, false, false) then
     if dockState == 0 then
-      if tonumber(restoreDockedState()) == 0 then
-        gfx.dock(1)
-      end
+      local lastDock = tonumber(reaper.GetExtState(EXT_SECTION,
+        EXT_LAST_DOCK))
+      if not lastDock or lastDock < 1 then lastDock = 1 end
+
+      gfx.dock(lastDock)
     else
+      reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK,
+        tostring(dockState), true)
       gfx.dock(0)
     end
   end
@@ -462,7 +543,6 @@ function keyboard()
 
   if input < 0 then
     -- bye bye!
-    saveDockedState()
     return false
   end
 
@@ -595,12 +675,6 @@ end
 function loop()
   execRemoteActions()
 
-  if gfx.dock(-1) > 0 then
-    -- workaround: REAPER does not seem to properly set getchar to -1
-    -- when closing a docked window
-    saveDockedState()
-  end
-
   local fullUI = gfx.h > LIST_START + MARGIN
 
   if fullUI then
@@ -650,7 +724,7 @@ function execRemoteActions()
     local move = tonumber(reaper.GetExtState(EXT_SECTION, EXT_REL_MOVE))
     reaper.DeleteExtState(EXT_SECTION, EXT_REL_MOVE, false);
 
-    if move ~= 0 then
+    if move then
       trySetCurrentIndex(currentIndex + move)
     end
   end
@@ -658,6 +732,17 @@ function execRemoteActions()
   if reaper.HasExtState(EXT_SECTION, EXT_RESET) then
     reaper.DeleteExtState(EXT_SECTION, EXT_RESET, false);
     reset()
+  end
+
+  if reaper.HasExtState(EXT_SECTION, EXT_FILTER) then
+    local filter = reaper.GetExtState(EXT_SECTION, EXT_FILTER)
+    reaper.DeleteExtState(EXT_SECTION, EXT_FILTER, false);
+
+    local index, _ = findSong(filter)
+
+    if index then
+      setCurrentIndex(index)
+    end
   end
 end
 
@@ -697,31 +782,40 @@ function reset()
   filterPrompt = false
   filterBuffer = ''
 
+  -- clear previous pending external commands
   reaper.DeleteExtState(EXT_SECTION, EXT_REL_MOVE, false)
   reaper.DeleteExtState(EXT_SECTION, EXT_RESET, false)
+  reaper.DeleteExtState(EXT_SECTION, EXT_FILTER, false)
 
   if activeCount == 1 then
     if visibleCount == 0 then
       currentIndex = activeIndex
       nextIndex = activeIndex
       scrollTo = activeIndex
+
+      updateState();
     else
       setCurrentIndex(activeIndex)
     end
+  else
+    updateState();
   end
 end
 
-function restoreDockedState()
-  local docked_state = tonumber(reaper.GetExtState(EXT_SECTION, EXT_DOCKED_STATE))
-
-  if docked_state then
-    gfx.dock(docked_state)
-    return docked_state
-  end
+function previousWindowState()
+  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
+  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
 end
 
-function saveDockedState()
-  reaper.SetExtState(EXT_SECTION, EXT_DOCKED_STATE, tostring(dockState), true)
+function saveWindowState()
+  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
+  local w, h = gfx.w, gfx.h
+  if dockState > 0 then
+    w, h = previousWindowState()
+  end
+
+  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
+    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
 end
 
 function getSwitchMode()
@@ -738,81 +832,47 @@ function setSwitchMode(mode)
   reaper.SetExtState(EXT_SECTION, EXT_SWITCH_MODE, tostring(mode), true)
 end
 
--- graphic initialization
-FONT_DEFAULT = 0
-FONT_LARGE = 1
-FONT_SMALL = 2
-FONT_HUGE = 3
+function updateState()
+  local currentName
+  if songs[currentIndex] then
+    currentName = songs[currentIndex].name
+  else
+    currentName = ''
+  end
 
-COLOR_WHITE = {255, 255, 255}
-COLOR_GRAY = {190, 190, 190}
-COLOR_BLACK = {0, 0, 0}
-COLOR_RED = {255, 0, 0}
+  local state = string.format("%d\t%d\t%s\t%s",
+    currentIndex, #songs, currentName, tostring(invalid)
+  )
+  reaper.SetExtState(EXT_SECTION, EXT_STATE, state, false)
+end
 
-COLOR_NAME = COLOR_WHITE
-COLOR_FILTER = COLOR_WHITE
-COLOR_BORDER = COLOR_GRAY
-COLOR_BUTTON = COLOR_GRAY
-COLOR_HOVERBG = {30, 30, 30}
-COLOR_HOVERFG = COLOR_WHITE
-COLOR_ACTIVEBG = {124, 165, 215}
-COLOR_ACTIVEFG = COLOR_BLACK
-COLOR_DANGERBG = COLOR_RED
-COLOR_DANGERFG = COLOR_BLACK
-COLOR_HIGHLIGHTBG = {60, 90, 100}
-COLOR_HIGHLIGHTFG = COLOR_WHITE
-
-KEY_ESCAPE = 27
-KEY_SPACE = 32
-KEY_UP = 30064
-KEY_DOWN = 1685026670
-KEY_RIGHT = 1919379572
-KEY_LEFT = 1818584692
-KEY_INPUTRANGE_FIRST = 32
-KEY_INPUTRANGE_LAST = 125
-KEY_ENTER = 13
-KEY_BACKSPACE = 8
-KEY_CTRLU = 21
-KEY_CLEAR = 144
-KEY_PGUP = 1885828464
-KEY_PGDOWN = 1885824110
-KEY_MINUS = 45
-KEY_PLUS = 43
-KEY_STAR = 42
-KEY_F3 = 26163
-
-PADDING = 3
-MARGIN = 10
-HALF_MARGIN = 5
-LIST_START = 50
-
-EXT_SECTION = 'cfillion_song_switcher'
-EXT_SWITCH_MODE = 'onswitch'
-EXT_DOCKED_STATE = 'docked_state'
-EXT_REL_MOVE = 'relative_move'
-EXT_RESET = 'reset'
-
-SWITCH_NOACTION = 0
-SWITCH_SEEK = 1
-SWITCH_SEEKSTOP = 2
-
+-- graphics initialization
 mouseState = 0
 mouseClick = false
 highlightTime = 0
 scrollTo = 0
-dockState = 0
 lastClick = 0
 isDoubleClick = false
+
+local w, h, dockState, x, y = previousWindowState()
+
+if w then
+  gfx.init(WINDOW_TITLE, w, h, dockState, x, y)
+else
+  gfx.init(WINDOW_TITLE, 500, 300)
+end
+
+gfx.setfont(FONT_HUGE, 'sans-serif', 36)
+gfx.setfont(FONT_LARGE, 'sans-serif', 28)
+gfx.setfont(FONT_SMALL, 'sans-serif', 13)
 
 -- other variable initializations in reset()
 reset()
 
-gfx.init('Song Switcher', 500, 300)
-gfx.setfont(FONT_HUGE, 'sans-serif', 36, 'b')
-gfx.setfont(FONT_LARGE, 'sans-serif', 28, 'b')
-gfx.setfont(FONT_SMALL, 'sans-serif', 13)
-
-restoreDockedState()
-
 -- GO!!
 loop()
+
+reaper.atexit(function()
+  saveWindowState()
+  reaper.DeleteExtState(EXT_SECTION, EXT_STATE, false)
+end)

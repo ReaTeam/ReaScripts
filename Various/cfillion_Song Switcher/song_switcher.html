@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<!-- This file is part of cfillion_Song Switcher.lua -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <title>Song Switcher Control</title>
+    <style>
+      html, body, .vlayout {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        background-color: black;
+        box-sizing: border-box;
+        color: white;
+        font-family: sans-serif;
+        font-size: 50px;
+        padding: 0 5% 0 5%;
+        text-align: center;
+
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+      }
+      div {
+        cursor: default;
+        padding: 10px;
+      }
+      .vlayout {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .hlayout {
+        align-items: center;
+        display: flex;
+      }
+      .vlayout, .hlayout, #controls, #song_box {
+        padding: 0;
+      }
+      #song_box {
+        flex-grow: 1;
+        word-wrap: break-word;
+
+        /* min-width fixes this flexbox overflow issue with word-wrap on firefox
+           https://bugzilla.mozilla.org/show_bug.cgi?id=1136818 */
+        min-width: 10px;
+      }
+      #song_box span {
+        display: block;
+      }
+      #song_box input {
+        background-color: #1e1e1e;
+        border-style: none;
+        color: inherit;
+        display: none;
+        font-size: inherit;
+        text-align: inherit;
+        width: 100%;
+      }
+      #song_box.edit span {
+        display: none;
+      }
+      #song_box.edit input {
+        display: block;
+      }
+      #prev, #next {
+        min-width: 50px;
+      }
+      .button:hover:not(.active) {
+        background-color: #1e1e1e;
+      }
+      .button:active:not(.active) {
+        background-color: #3c5a64;
+        color: inherit;
+      }
+      #play {
+        border: 1px white solid;
+        font-size: 0.7em;
+      }
+      #play.active {
+        background-color: #7ca5d7;
+        color: black;
+      }
+      noscript, .invalid {
+        background-color: red;
+      }
+      .hidden {
+        visibility: hidden;
+      }
+      #footer {
+        font-size: 12px;
+        margin-right: -5%;
+        text-align: right;
+      }
+      a {
+        color: #7ca5d7;
+      }
+      #reset {
+        color: red;
+      }
+    </style>
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div class="vlayout">
+      <div><!-- Top spacer --></div>
+
+      <noscript>Oops! Javascript is blocked or disabled.</noscript>
+
+      <div id="controls" class="hlayout">
+        <div id="prev" class="button">◀</div>
+
+        <div id="song_box">
+          <span id="title">## Awaiting data ##</span>
+          <input id="filter" type="text"/>
+        </div>
+
+        <div id="next" class="button">▶</div>
+      </div>
+
+      <div id="play" class="button">Play/Stop</div>
+
+    <div id="footer">
+      <a target="_blank" href="http://forum.cockos.com/showthread.php?t=181159">
+        Song Switcher Control</a> by cfillion
+    </div>
+    </div>
+
+    <script>
+      const EXT_SECTION = 'cfillion_song_switcher';
+      const EXT_STATE = 'state';
+      const EXT_REL_MOVE = 'relative_move';
+      const EXT_FILTER = 'filter';
+      const CMD_PLAY = 40044; // Transport: Play/stop
+      const CMD_PREV = makeSetExtState(EXT_REL_MOVE, '-1');
+      const CMD_NEXT = makeSetExtState(EXT_REL_MOVE, '1');
+      const CMD_UPDATE = ';TRANSPORT;GET/EXTSTATE/' + EXT_SECTION + '/' + EXT_STATE;
+
+      function setText(node, text) {
+        var textNode = node.lastChild;
+        if(textNode)
+          textNode.nodeValue = text;
+        else
+          node.appendChild(document.createTextNode(text));
+      }
+
+      function setClass(node, klass, enable) {
+        if(enable)
+          node.classList.add(klass);
+        else
+          node.classList.remove(klass);
+      }
+
+      function setVisible(node, visible) {
+        setClass(node, 'hidden', !visible);
+      }
+
+      function closeFilter() {
+        setClass(songBox, 'edit', false);
+        filter.value = '';
+        document.activeElement.blur(); // close android keyboard
+      };
+
+      function makeSetExtState(key, value) {
+        return 'SET/EXTSTATE/' + EXT_SECTION + '/' + key + '/' +
+          encodeURIComponent(value);
+      }
+
+      function send(cmd) {
+        req = new XMLHttpRequest;
+        req.onreadystatechange = function() {
+          if(req.readyState != XMLHttpRequest.DONE)
+            return;
+          else if(req.status == 200)
+            callback(req.responseText);
+          else
+            callback('EXTSTATE\t' + EXT_SECTION + '\t' + EXT_STATE + '\t\n');
+        }
+
+        req.open('GET', '/_/' + cmd + CMD_UPDATE, true);
+        req.send(null);
+      }
+
+      var ctrlBar = document.getElementById('controls');
+      var prevBtn = document.getElementById('prev');
+      var nextBtn = document.getElementById('next');
+      var playBtn = document.getElementById('play');
+      var songBox = document.getElementById('song_box');
+      var songName = document.getElementById('title');
+      var filter = document.getElementById('filter');
+
+      var lastTransport;
+      var lastState;
+
+      prevBtn.addEventListener('click', function() { send(CMD_PREV); });
+      nextBtn.addEventListener('click', function() { send(CMD_NEXT); });
+      playBtn.addEventListener('click', function() { send(CMD_PLAY); });
+      songName.addEventListener('click', function() {
+        setClass(songBox, 'edit', true);
+        filter.focus();
+      });
+      filter.addEventListener('blur', closeFilter);
+      filter.addEventListener('keypress', function(e) {
+        if(e.keyCode == 8 && !filter.value.length)
+          closeFilter();
+        else if(e.keyCode != 13)
+          return;
+
+        if(filter.value.length > 0)
+          send(makeSetExtState(EXT_FILTER, filter.value));
+
+        closeFilter();
+      });
+
+      (function fetch_loop() {
+        send('');
+        setTimeout(fetch_loop, 1000);
+      })();
+
+      function callback(response) {
+        var lines = response.split("\n");
+        for(var l = 0; l < lines.length - 1; l++) {
+          var tok = lines[l].split("\t");
+
+          switch(tok[0]) {
+          case 'TRANSPORT':
+            if(tok[1] != lastTransport) {
+              lastTransport = tok[1];
+              setClass(playBtn, 'active', tok[1] == '1');
+            }
+            break;
+          case 'EXTSTATE':
+            var ser = tok.join("\t");
+            if(tok[1] == EXT_SECTION && tok[2] == EXT_STATE && lastState != tok[3]) {
+              lastState = tok[3];
+              var state;
+
+              if(tok[3].length)
+                state = simple_unescape(tok[3]).split("\t");
+              else
+                state = [0, 0, '## No data from Song Switcher ##', 'true'];
+
+              setVisible(prevBtn, state[0] > 1);
+              setVisible(nextBtn, state[0] < state[1]);
+
+              setClass(ctrlBar, 'invalid', state[3] == 'true');
+
+              setText(songName, state[2] || '## No Song Selected ##');
+            }
+            break;
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
