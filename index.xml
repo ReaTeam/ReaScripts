@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="010b7a52af573a3fdae2447b7e67427cd108bd55" name="ReaTeam Scripts">
+<index version="1" commit="a5ca9f513b978f720cfc5408adc8664ccba57087" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -145,6 +145,47 @@
   </category>
   <category name="Envelopes">
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - Automation envelope version.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's automation envelopes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Move mousewheel while mouse hovers above node for fine adjustment.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use a Ctrl modifier to edit all nodes simultaneously:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Rightclick to enter a precise custom value for all nodes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 VALUE AND TIME DISPLAY\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of LFO shapes' phase steps.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Specifying the resolution of the mousewheel fine adjustment.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing interface colors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the default curve name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc...\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
+        <link rel="screenshot">http://stash.reaper.fm/27661/LFO%20shaper.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
       <version name="0.99" author="Xenakios (modded by juliansader)" time="2016-05-29T18:25:17Z">
         <changelog><![CDATA[+ The MIDI editor version now available!!
 + Envelope area now resizeable (allowing finer resolution).
@@ -199,6 +240,11 @@
       <version name="1.04" author="Xenakios / juliansader" time="2016-06-23T10:21:13Z">
         <changelog><![CDATA[+ User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5a28621e99fbe2164dd0fd90cc8397d2c576457d/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.10" author="juliansader" time="2017-01-18T22:23:21Z">
+        <changelog><![CDATA[+ Header info updated to ReaPack 1.1 format.
++ Keyboard shortcuts "a", "c" and "r" for quick switching between GUI views.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a5ca9f513b978f720cfc5408adc8664ccba57087/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
