@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30166753b3c20ac101df61a0d7b19c20232192cb" name="ReaTeam Scripts">
+<index version="1" commit="010b7a52af573a3fdae2447b7e67427cd108bd55" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -8,6 +8,114 @@
       <version name="1.0.1" author="cfillion" time="2016-10-07T06:16:07Z">
         <changelog><![CDATA[disable creation of undo point]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c930c4d2d1f7b63e7c3ae0db83d5544447e99bd/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor ahead five seconds.lua" type="script" desc="Move edit cursor ahead five seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20ahead%20five%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor ahead one minute.lua" type="script" desc="Move edit cursor ahead one minute">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20ahead%20one%20minute.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor ahead one second.lua" type="script" desc="Move edit cursor ahead one second">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20ahead%20one%20second.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor ahead ten seconds.lua" type="script" desc="Move edit cursor ahead ten seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20ahead%20ten%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor ahead thirty seconds.lua" type="script" desc="Move edit cursor ahead thirty seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20ahead%20thirty%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor ahead two seconds.lua" type="script" desc="Move edit cursor ahead two seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20ahead%20two%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor back five seconds.lua" type="script" desc="Move edit cursor back five seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20five%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor back one minute.lua" type="script" desc="Move edit cursor back one minute">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20one%20minute.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor back one second.lua" type="script" desc="Move edit cursor back one second">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20one%20second.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor back ten seconds.lua" type="script" desc="Move edit cursor back ten seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20ten%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor back thirty seconds.lua" type="script" desc="Move edit cursor back thirty seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20thirty%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor back two seconds.lua" type="script" desc="Move edit cursor back two seconds">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20two%20seconds.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
