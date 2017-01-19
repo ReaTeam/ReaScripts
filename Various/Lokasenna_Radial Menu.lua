@@ -1,11 +1,11 @@
 --[[
 Description: Radial Menu
-Version: 0.9
+Version: 1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 Links:
-	Forum Thread 
+	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Provides a circular "quick menu" for commonly-used actions, similar
@@ -32,25 +32,13 @@ About:
 		
 		- Press F1 to access color settings; all are RGBA, 0-255
 		
-	See the forum thread for further documentation.	
+	See the forum thread for further documentation, reporting bugs, etc.	
 	
 Extensions:
 --]]
 
 -- Licensed under the GNU GPL v3
 
-
---[[
-	Demonstrates how to implement and display a pop-up radial menu,
-	similar to what a lot of first-person shooters use to select weapons, etc.
-	
-	- Bind the script to a key
-	- Hold the key down, a window will open
-	- Use the mouse to choose menu options
-	- Let the key off, the window will close
-	
-	
-]]--
 
 local info = debug.getinfo(1,'S');
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
