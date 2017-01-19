@@ -1,9 +1,10 @@
 --[[
 Description: Radial Menu
-Version: 1.0
+Version: 1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
+	Bug fix
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -445,9 +446,10 @@ local function Main()
 				local cur_lbl, cur_act = mnu_arr[cur_depth][mnu_clicked].lbl, mnu_arr[cur_depth][mnu_clicked].act
 				local retval, retstr = reaper.GetUserInputs("Edit menu label", 2, "Label:,Action ID:", cur_lbl..","..cur_act)
 				
-				if ret_val then 
+				--Msg(tostring(retval))
+				if retval then 
 					local ret_lbl, ret_ID = string.match(retstr, "(.+),(.+)")
-
+					--Msg(ret_lbl.."  "..ret_ID)
 					mnu_arr[cur_depth][mnu_clicked].lbl = ret_lbl
 					mnu_arr[cur_depth][mnu_clicked].act = ret_ID
 				end
