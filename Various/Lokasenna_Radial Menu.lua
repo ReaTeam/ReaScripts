@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.2
+Version: 1.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -333,7 +333,8 @@ local function draw_mnu()
 		
 		if str ~= "" then
 		
-			local k = math.max(cur_depth - 1, 0)
+			--local k = math.max(cur_depth - 1, 0)
+			local k = 0
 			
 			--local fill =	((i + k) % #mnu_arr == mouse_mnu)
 			local fill = true
@@ -429,7 +430,7 @@ local function Main()
 	if mouse_mnu == (#mnu_arr[cur_depth] + 1) then mouse_mnu = 0 end
 	if mouse_r < 32 then mouse_mnu = -1 end
 	
-	local mnu_clicked = (mouse_mnu - cur_depth) % #mnu_arr
+	local mnu_clicked = mouse_mnu  % #mnu_arr
 	
 	if mouse_l_down then
 		
