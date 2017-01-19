@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.1
+Version: 1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -190,7 +190,7 @@ end
 -- (Same name and path as the script)
 local function save_menu()
 	
-	local file_name = script_path.."Lokasenna_radial menu demo settings.txt"
+	local file_name = script_path.."Lokasenna_Radial Menu.txt"
 	
 	local file = io.open(file_name, "w+") or nil
 	if not file then 
