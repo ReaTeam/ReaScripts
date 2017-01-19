@@ -83,6 +83,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [lossius/js-plugins](https://github.com/lossius/js-plugins)
 - [me2beats/rea-me2](https://github.com/me2beats/rea-me2)
 - [MichaelKlier/KolorEyesOSCSync](https://github.com/MichaelKlier/KolorEyesOSCSync)
+- [RCJacH/ReaScripts](https://github.com/RCJacH/ReaScripts/)
 - [thenfour/ReaperScripts](https://github.com/thenfour/ReaperScripts)
 
 If you want your repo to appear on this list, simply edit this file and send a pull request.
