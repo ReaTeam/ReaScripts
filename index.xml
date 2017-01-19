@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bd9c805ee0226caf62a844aec38444a16da5a6f9" name="ReaTeam Scripts">
+<index version="1" commit="fb80f535ca25232b283899983a577a3a198a872a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3625,6 +3625,10 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
       <version name="1.3" author="Lokasenna" time="2017-01-19T16:49:22Z">
         <changelog><![CDATA[Bug fix]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bd9c805ee0226caf62a844aec38444a16da5a6f9/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="1.4" author="Lokasenna" time="2017-01-19T19:08:41Z">
+        <changelog><![CDATA[Will now work with custom actions/scripts]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fb80f535ca25232b283899983a577a3a198a872a/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
