@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.3
+Version: 1.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -450,7 +450,9 @@ local function Main()
 				--Msg(tostring(retval))
 				if retval then 
 					local ret_lbl, ret_ID = string.match(retstr, "(.+),(.+)")
-					--Msg(ret_lbl.."  "..ret_ID)
+					if string.sub(ret_ID, 1, 1) == "_" then
+						ret_ID = reaper.NamedCommandLookup(ret_ID)
+					end
 					mnu_arr[cur_depth][mnu_clicked].lbl = ret_lbl
 					mnu_arr[cur_depth][mnu_clicked].act = ret_ID
 				end
