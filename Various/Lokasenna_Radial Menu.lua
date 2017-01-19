@@ -1,10 +1,10 @@
 --[[
 Description: Radial Menu
-Version: 1.4
+Version: 1.5
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Will now work with custom actions/scripts
+	Bug fixes
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -340,7 +340,7 @@ local function draw_mnu()
 			local fill = true
 			local color
 			
-			if (((i + k) % #mnu_arr) == mouse_mnu) then
+			if (((i + k) % (#mnu_arr[cur_depth] + 1)) == mouse_mnu) then
 				if mouse_l_down then
 					fill = false
 					color = col_main
@@ -373,10 +373,12 @@ local function draw_mnu()
 	-- Draw the guide rings
 	if cur_depth > 0 then
 		
+		local adj = 2 / #mnu_arr[0]
+		
 		for i = 0, #mnu_arr[0] do
 		
 			local fill =	(i + k) == cur_depth - 1
-			draw_ring_section(i + k, mnu_adj, ra, rb, ox, oy, 0.05, fill, col_main)
+			draw_ring_section(i + k, adj, ra, rb, ox, oy, 0.05, fill, col_main)
 
 		end
 	end
@@ -424,13 +426,12 @@ local function Main()
 	local mouse_angle, mouse_r = cart2polar(mouse_x, mouse_y, ox, oy)
 	
 	-- Figure out what option the mouse is over
-
 	if mouse_angle < 0 then mouse_angle = mouse_angle + 2 end	
 	mouse_mnu = math.floor(mouse_angle / mnu_adj + 0.5)
 	if mouse_mnu == (#mnu_arr[cur_depth] + 1) then mouse_mnu = 0 end
 	if mouse_r < 32 then mouse_mnu = -1 end
 	
-	local mnu_clicked = mouse_mnu  % #mnu_arr
+	local mnu_clicked = mouse_mnu  % (#mnu_arr[cur_depth] + 1)
 	
 	if mouse_l_down then
 		
@@ -455,6 +456,8 @@ local function Main()
 					end
 					mnu_arr[cur_depth][mnu_clicked].lbl = ret_lbl
 					mnu_arr[cur_depth][mnu_clicked].act = ret_ID
+					
+					save_menu()
 				end
 				
 				last_mouse_l_down = false
@@ -472,6 +475,7 @@ local function Main()
 			
 		else
 		
+			-- Msg("cur_depth = "..tostring(cur_depth).."mnu_clicked = "..tostring(mnu_clicked)
 			local act = mnu_arr[cur_depth][mnu_clicked].act
 			if act == "" then
 				--Msg("no action")
@@ -569,7 +573,7 @@ local function Main()
 	Otherwise, we keep going until the user lets go of the key
 ]]--	  
 
-	if gfx.getchar ~= -1 and (setup or key_down ~= 0 or (startup and diff < 0.6)) then
+	if gfx.getchar() ~= -1 and (setup or key_down ~= 0 or (startup and diff < 0.6)) then
 		reaper.defer(Main)
 	else
 		return 0
