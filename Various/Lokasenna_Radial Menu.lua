@@ -4,7 +4,7 @@ Version: 1.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fix
+	Will now work with custom actions/scripts
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
