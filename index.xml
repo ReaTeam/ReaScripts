@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a2ddb4442da319bc1a9a67e0b9cb279c25c557bf" name="ReaTeam Scripts">
+<index version="1" commit="c29a701329b5a410f6edf81fbbf32468b5cf2574" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3424,7 +3424,7 @@ REPL
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!&lt;command id&gt;, !!&lt;midi editor action&gt;)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
@@ -3512,7 +3512,7 @@ do not crash on clipboard read/write failure (eg. 32-bit windows)
 don't evaluate command/actions while in a lua block
 implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
 remove extra newline inserted when executing an empty command since v0.5]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a2ddb4442da319bc1a9a67e0b9cb279c25c557bf/Various/cfillion_Interactive%20ReaScript.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c29a701329b5a410f6edf81fbbf32468b5cf2574/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
