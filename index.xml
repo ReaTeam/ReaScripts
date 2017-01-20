@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6da823a688d26a7e86867e339a04d1b8bc9e263a" name="ReaTeam Scripts">
+<index version="1" commit="7cfd499c966039362eeceb8bedc3553b43312353" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -420,6 +420,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.3" author="Lokasenna" time="2017-01-20T18:03:36Z">
         <changelog><![CDATA[Wrong ReaPack category, whoops]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6da823a688d26a7e86867e339a04d1b8bc9e263a/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
+      </version>
+      <version name="1.4" author="Lokasenna" time="2017-01-20T20:34:38Z">
+        <changelog><![CDATA[Bug fix... again]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7cfd499c966039362eeceb8bedc3553b43312353/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Insert empty item for each selected track.lua" type="script" desc="Insert empty item for each selected track">
