@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="16c025d31309a0e945ea61004fd0c52cb9b80ebb" name="ReaTeam Scripts">
+<index version="1" commit="99be6f9fddaa8bc61d1105d5c42bb5d807eeaf3c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3021,6 +3021,14 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Regions">
+    <reapack name="cfillion_Nudge start or end of regions in time selection.lua" type="script" desc="Nudge start or end of regions in time selection">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=186689">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-01-20T17:44:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/99be6f9fddaa8bc61d1105d5c42bb5d807eeaf3c/Regions/cfillion_Nudge%20start%20or%20end%20of%20regions%20in%20time%20selection.lua</source>
+      </version>
+    </reapack>
     <reapack name="HeDa_RegionMatrixAutoTrack.lua" type="script" desc="Automatically assigns a track with a certain name to all Regions in the Region Render Matrix">
       <metadata>
         <link rel="website">https://reaper.hector-corcin.com</link>
