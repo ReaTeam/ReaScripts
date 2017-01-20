@@ -31,7 +31,7 @@
 --   - Pretty print return values
 --   - Scrolling
 --   - Text wrapping
---   - Run actions (!<command id>, !!<midi editor action>)
+--   - Run actions (!&lt;command id&gt;, !!&lt;midi editor action&gt;)
 --
 --   ## Known Issues/Limitations
 --
