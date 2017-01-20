@@ -1,12 +1,12 @@
 --[[
 Description: Fill selected MIDI item with notes...
-Version: 1.1
+Version: 1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Bug fix
 Links:
-	Forum Thread _________________________
+	Forum Thread http://forum.cockos.com/showthread.php?t=186665
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Allows you to quickly add a large quantity of notes to a MIDI item.
