@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7cfd499c966039362eeceb8bedc3553b43312353" name="ReaTeam Scripts">
+<index version="1" commit="339597b873f069fe7fe9117fc668afac1382e89c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3420,9 +3420,11 @@ REPL
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy/Paste from clipboard\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline input (functions, conditions...)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!, !!)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
@@ -3435,6 +3437,7 @@ https://github.com/cfillion/reascripts
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
         <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
       <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
         <changelog><![CDATA[Initial release]]></changelog>
@@ -3502,6 +3505,14 @@ implement (fix) display of empty lines
 remember window position, size and docked state
 store every return values in _ global variable]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.6" author="cfillion" time="2017-01-20T23:22:20Z">
+        <changelog><![CDATA[allow .clear to be recorded in the history
+do not crash on clipboard read/write failure (eg. 32-bit windows)
+don't evaluate command/actions while in a lua block
+implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
+remove extra newline inserted when executing an empty command since v0.5]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/339597b873f069fe7fe9117fc668afac1382e89c/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
