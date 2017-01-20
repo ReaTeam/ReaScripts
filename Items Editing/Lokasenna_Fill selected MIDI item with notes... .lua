@@ -1,10 +1,10 @@
 --[[
 Description: Fill selected MIDI item with notes...
-Version: 1.3
+Version: 1.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Wrong ReaPack category, whoops
+	Bug fix... again
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=186665
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -200,7 +200,7 @@ GUI.font = function (fnt)
 	]]--
 	
 	if string.find(GUI.OS, "OSX") then
-		font = math.floor(font * 0.8)
+		size = math.floor(size * 0.8)
 	end
 	
 	local flags = 0
