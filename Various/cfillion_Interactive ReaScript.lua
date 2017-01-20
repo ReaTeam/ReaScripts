@@ -1,15 +1,14 @@
--- @version 0.5
+-- @version 0.6
 -- @author cfillion
 -- @changelog
---   add Copy/Paste/Clear/Dock/Close actions to the right click context menu
---   display errors using bold font
---   document the built-in functions and variables in .help
---   fix formatting of \t and \r in strings when they are followed by numbers
---   implement (fix) display of empty lines
---   remember window position, size and docked state
---   store every return values in _ global variable
+--   allow .clear to be recorded in the history
+--   do not crash on clipboard read/write failure (eg. 32-bit windows)
+--   don't evaluate command/actions while in a lua block
+--   implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
+--   remove extra newline inserted when executing an empty command since v0.5
 -- @description Interactive ReaScript (iReaScript)
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=177324
+-- @donation https://www.paypal.me/cfillion
 -- @screenshot http://i.imgur.com/RrGfulR.gif
 -- @about
 --   # Interactive ReaScript (iReaScript)
@@ -28,9 +27,11 @@
 --   - Colored output
 --   - Copy/Paste from clipboard
 --   - Error catching
+--   - Multiline input (functions, conditions...)
 --   - Pretty print return values
 --   - Scrolling
 --   - Text wrapping
+--   - Run actions (!<command id>, !!<midi editor action>)
 --
 --   ## Known Issues/Limitations
 --
@@ -47,7 +48,7 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  BANNER = 'Interactive ReaScript v0.5 by cfillion',
+  BANNER = 'Interactive ReaScript v0.6 by cfillion',
   MARGIN = 3,
   MAXLINES = 2048,
   MAXDEPTH = 3, -- maximum array depth
@@ -56,7 +57,8 @@ local ireascript = {
   INDENT_THRESHOLD = 5,
   PROMPT = '> ',
   PROMPT_CONTINUE = '*> ',
-  PREFIX = '.',
+  CMD_PREFIX = '.',
+  ACTION_PREFIX = '!',
 
   COLOR_BLACK = {12, 12, 12},
   COLOR_BLUE = {88, 124, 212},
@@ -136,21 +138,11 @@ function ireascript.help()
   helpLine("_", "Last return value", 11)
 end
 
-function ireascript.clear(keepInput)
-  if not keepInput then
-    ireascript.input = ''
-    ireascript.caret = 0
-  end
-
-  ireascript.reset(false)
-  ireascript.update()
-end
-
 function ireascript.replay()
   local line = ireascript.history[1]
-  if line and line ~= ireascript.PREFIX then
+  if line and line ~= ireascript.CMD_PREFIX then
     ireascript.input = line
-    ireascript.eval()
+    ireascript.eval(true)
   else
     ireascript.errorFormat()
     ireascript.push('history is empty')
@@ -161,8 +153,27 @@ function ireascript.exit()
   gfx.quit()
 end
 
+function ireascript.reset(banner)
+  ireascript.buffer = {}
+  ireascript.lines = 0
+  ireascript.page = 0
+  ireascript.scroll = 0
+  ireascript.wrappedBuffer = {w = 0}
+  ireascript.from = nil
+
+  if banner then
+    ireascript.resetFormat()
+    ireascript.push(ireascript.BANNER)
+    ireascript.nl()
+    ireascript.push("Type Lua code, !ACTION or .help")
+    ireascript.nl()
+  end
+
+  ireascript.prompt()
+end
+
 ireascript.BUILTIN = {
-  {name='clear', desc="Clear the line buffer", func=ireascript.clear},
+  {name='clear', desc="Clear the line buffer", func=ireascript.reset},
   {name='exit', desc="Close iReaScript", func=ireascript.exit},
   {name='', desc="Repeat the last command", func=ireascript.replay},
   {name='help', desc="Print this help text", func=ireascript.help},
@@ -179,25 +190,6 @@ function ireascript.run()
 
   ireascript.reset(true)
   ireascript.loop()
-end
-
-function ireascript.reset(banner)
-  ireascript.buffer = {}
-  ireascript.lines = 0
-  ireascript.page = 0
-  ireascript.scroll = 0
-  ireascript.wrappedBuffer = {w = 0}
-  ireascript.from = nil
-
-  if banner then
-    ireascript.resetFormat()
-    ireascript.push(ireascript.BANNER)
-    ireascript.nl()
-    ireascript.push("Type Lua code or .help")
-    ireascript.nl()
-  end
-
-  ireascript.prompt()
 end
 
 function ireascript.keyboard()
@@ -235,7 +227,7 @@ function ireascript.keyboard()
     ireascript.eval()
     ireascript.moveCaret(0)
   elseif char == ireascript.KEY_CTRLL then
-    ireascript.clear(true)
+    ireascript.reset()
   elseif char == ireascript.KEY_CTRLD then
     ireascript.exit()
   elseif char == ireascript.KEY_HOME then
@@ -531,7 +523,7 @@ function ireascript.contextMenu()
 
   local actions = {
     ireascript.copy, ireascript.paste,
-    function() ireascript.clear(true) end,
+    function() ireascript.reset() end,
     function()
       if dockState == 0 then
         local lastDock = tonumber(reaper.GetExtState(
@@ -757,31 +749,16 @@ function ireascript.scrollTo(pos)
   ireascript.scroll = math.max(0, math.min(pos, max))
 end
 
-function ireascript.eval()
-  local prefixLength = ireascript.PREFIX:len()
-  if ireascript.input:sub(0, prefixLength) == ireascript.PREFIX then
-    local name = ireascript.input:sub(prefixLength + 1)
-    local match, lower = nil, name:lower()
+function ireascript.eval(nested)
+  local code = ireascript.code()
+  if code:len() < 1 then return end
 
-    for _,command in ipairs(ireascript.BUILTIN) do
-      if command.name == lower then
-        match = command
-        break
-      end
-    end
-
-    if match then
-      match.func()
-
-      if ireascript.input:len() == 0 then
-        return -- buffer got reset
-      end
-    else
-      ireascript.errorFormat()
-      ireascript.push(string.format("command not found: '%s'", name))
-    end
+  if code:sub(0, 1) == ireascript.CMD_PREFIX then
+    ireascript.execCommand(code:sub(2))
+  elseif code:sub(0, 1) == ireascript.ACTION_PREFIX then
+    ireascript.execAction(code:sub(2))
   else
-    local err = ireascript.lua(ireascript.code())
+    local err = ireascript.lua(code)
 
     if err then
       ireascript.errorFormat()
@@ -792,12 +769,57 @@ function ireascript.eval()
     end
   end
 
+  if nested then return end
+
   table.insert(ireascript.history, 1, ireascript.input)
   ireascript.hindex = 0
   ireascript.input = ''
 
-  if ireascript.prepend:len() == 0 then
+  if ireascript.lines == 0 then
+    -- buffer got reset (.clear)
+    ireascript.input = ''
+  elseif ireascript.prepend:len() == 0 then
     ireascript.nl()
+  end
+end
+
+function ireascript.execCommand(name)
+  local match, lower = nil, name:lower()
+
+  for _,command in ipairs(ireascript.BUILTIN) do
+    if command.name == lower then
+      match = command
+      break
+    end
+  end
+
+  if match then
+    match.func()
+  else
+    ireascript.errorFormat()
+    ireascript.push(string.format("command not found: '%s'", name))
+  end
+end
+
+function ireascript.execAction(name)
+  local midi = false
+
+  if name:sub(0, 1) == ireascript.ACTION_PREFIX then
+    name, midi = name:sub(2), true
+  end
+
+  local id = reaper.NamedCommandLookup(name)
+
+  if id > 0 then
+    if midi then
+      reaper.MIDIEditor_LastFocused_OnCommand(id, false)
+    else
+      reaper.Main_OnCommand(id, 0)
+    end
+    ireascript.format(id)
+  else
+    ireascript.errorFormat()
+    ireascript.push(string.format("action not found: '%s'", name))
   end
 end
 
@@ -810,8 +832,6 @@ function ireascript.code()
 end
 
 function ireascript.lua(code)
-  if code:len() < 1 then return end
-
   local scope = 'eval' -- arbitrary value to have consistent error messages
 
   local ok, values = xpcall(function()
@@ -843,7 +863,7 @@ function ireascript.lua(code)
     ireascript.prepend = ''
   else
     if values:sub(-5) == '<eof>' and ireascript.input:len() > 0 then
-      ireascript.prepend = ireascript.code()
+      ireascript.prepend = code
       return
     else
       ireascript.prepend = ''
@@ -1019,7 +1039,18 @@ function ireascript.copy()
     tool = 'clip'
   end
 
-  local proc = assert(io.popen(tool, 'w'))
+  local proc, error = io.popen(tool, 'w')
+
+  if not proc then
+    ireascript.removeCaret()
+    ireascript.nl()
+    ireascript.errorFormat()
+    ireascript.push(error)
+    ireascript.nl()
+    ireascript.prompt()
+    return
+  end
+
   proc:write(ireascript.code())
   proc:close()
 end
@@ -1033,7 +1064,19 @@ function ireascript.paste()
     tool = 'powershell -windowstyle hidden -Command Get-Clipboard'
   end
 
-  local proc, first = assert(io.popen(tool, 'r')), true
+  local first = true
+  local proc, error = io.popen(tool, 'r')
+
+  if not proc then
+    ireascript.removeCaret()
+    ireascript.nl()
+    ireascript.errorFormat()
+    ireascript.push(error)
+    ireascript.nl()
+    ireascript.prompt()
+    return
+  end
+
   for line in proc:lines() do
     if line:len() > 0 then
       if first then
