@@ -1,9 +1,12 @@
 --[[
 Description: Radial Menu
-Version: 1.5
+Version: 1.6
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
+	Buttons will light up if a toggleable action is On
+	Add a button in the center if you want (will prevent you from going back down a level though)
+	Reduced CPU usage
 	Bug fixes
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
@@ -49,12 +52,12 @@ local function Msg(str)
 end
 
 
-local name, w, h = "Radial Menu", 258, 258
+local name, w, h = "Radial Menu", 260, 260
 local x, y = reaper.GetMousePosition()
 x, y = x - (w / 2) - 8, y - (h / 2) - 30
 
 -- Global button dimensions
-local ra, rb, rc, rd = 48, 60, 64, (w - 2) / 2
+local ra, rb, rc, rd = 50, 60, 64, (w - 2) / 2
 local ox, oy = w / 2, h / 2
 
 -- We don't need a ton of precision
@@ -62,7 +65,13 @@ local pi = 3.1415927
 
 local col_main = {192, 192, 192, 255}
 local col_hover = {224, 224, 224, 255}
+local col_tog_on = {0, 192, 0, 255}
 local col_bg = {51, 51, 51, 255}
+
+
+-- Make the trig functions local because we're going to be using them a LOT
+local sin, cos, tan, asin, acos, atan, sqrt = math.sin, math.cos, math.tan, math.asin, math.acos, math.atan, math.sqrt
+
 
 -- Take 0-1 RGB values and return the combined integer
 -- (equal to 8-bit hex colors of the form 0xRRGGBB)
@@ -123,7 +132,7 @@ local function load_menu()
 		
 		for line in file:lines() do
 			
-			local i, j, lbl, act = string.match(line, "(%-?%d+)%s+(%-?%d+)%s+'(.+)'%s+'(.*)'")
+			local i, j, lbl, act = string.match(line, "(%-?%d+)%s+(%-?%d+)%s+'(.*)'%s+'(.*)'")
 			if i and j and lbl then
 				i, j = tonumber(i), tonumber(j)
 				if not load_arr[i] then 
@@ -207,10 +216,12 @@ local function save_menu()
 	local out_arr = {}
 	
 	for k1, v1 in pairs(mnu_arr) do
-		for k2, v2 in pairs(v1) do
-			--file_out:write(base_file_compiled[i].."\n")
-			local str = k1.."  "..k2.."  '"..v2.lbl.."'  '"..v2.act.."'"
-			table.insert(out_arr, str)
+		if v1 then
+			for k2, v2 in pairs(v1) do
+				--file_out:write(base_file_compiled[i].."\n")
+				local str = k1.."  "..k2.."  '"..v2.lbl.."'  '"..v2.act.."'"
+				table.insert(out_arr, str)
+			end
 		end
 	end
 	
@@ -233,10 +244,10 @@ end
 local mnu_adj 
 
 local cur_depth = 0
-local last_depth
+local last_depth = 0
 
 
-local mouse_x, mouse_y, mouse_mnu, key_down, downtime
+local mouse_x, mouse_y, mouse_mnu, key_down, downtime, mnu_clicked, last_mnu_clicked
 local startup = true
 local setup = false
 
@@ -250,8 +261,8 @@ local function cart2polar(x, y, ox, oy)
 	
 	local dx, dy = x - ox, y - oy
 	
-	local angle = math.atan(dy, dx) / pi
-	local r = math.sqrt(dx * dx + dy * dy)
+	local angle = atan(dy, dx) / pi
+	local r = sqrt(dx * dx + dy * dy)
 
 	return angle, r
 	
@@ -262,8 +273,8 @@ end
 local function polar2cart(angle, radius, ox, oy)
 	
 	local angle = angle * pi
-	local x = radius * math.cos(angle)
-	local y = radius * math.sin(angle)
+	local x = radius * cos(angle)
+	local y = radius * sin(angle)
 
 	
 	if ox and oy then x, y = x + ox, y + oy end
@@ -295,52 +306,49 @@ local function draw_ring_section(angle_c, width, r_in, r_out, ox, oy, pad, fill,
 	local angle_a, angle_b = (angle_c - 0.5 + pad) * width, (angle_c + 0.5 - pad) * width
 	
 	local ax1, ay1 = polar2cart(angle_a, r_in, ox, oy)
-	local ax2, ay2 = polar2cart(angle_a, r_out, ox, oy)
+	local ax2, ay2 = polar2cart(angle_a, r_out - 1, ox, oy)
 	local bx1, by1 = polar2cart(angle_b, r_in, ox, oy)
-	local bx2, by2 = polar2cart(angle_b, r_out, ox, oy)	
+	local bx2, by2 = polar2cart(angle_b, r_out - 1, ox, oy)	
 	
 	if color then setcolor(color) end
 	
-	gfx.line(ax1, ay1, ax2, ay2, 1)
-	gfx.line(bx1, by1, bx2, by2, 1)
+
 	
-	-- The arc functions don't use the correct reference angle,
-	-- so we have to add 0.5 rads to fix it
+	-- gfx.arc doesn't use the correct reference angle,
+	-- so we have to add 0.5 rads to compensate
 	angle_a = (angle_a + 0.5) * pi
 	angle_b = (angle_b + 0.5) * pi
-	gfx.arc(ox, oy, r_in, angle_a, angle_b, 1)
-	gfx.arc(ox, oy, r_out, angle_a, angle_b, 1)	
+	gfx.arc(ox, oy, r_in, angle_a_rads, angle_b_rads, 1)
+	gfx.arc(ox, oy, r_out, angle_a_rads, angle_b_rads, 1)	
+	
 	
 	if fill then
-		for j = r_in, r_out, 0.3 do
+		for j = r_in, r_out, 0.4 do
 			gfx.arc(ox, oy, j, angle_a, angle_b, 1)
 		end
 	end
-	
-	
-
 end
 
 
 -- Draw all of the menu options as segments of a ring
 local function draw_mnu()
 	
-	local k = math.max(cur_depth - 1, 0)
-	
+local k = math.max(cur_depth - 1, 0)	
+
 	for i = 0, #mnu_arr[cur_depth] do
 		
-		local str = mnu_arr[cur_depth][i]
-		
-		if str ~= "" then
+		local opt = mnu_arr[cur_depth][i]
+
+		if opt.lbl ~= "" then
 		
 			--local k = math.max(cur_depth - 1, 0)
-			local k = 0
+			--local k = 0
 			
 			--local fill =	((i + k) % #mnu_arr == mouse_mnu)
 			local fill = true
 			local color
 			
-			if (((i + k) % (#mnu_arr[cur_depth] + 1)) == mouse_mnu) then
+			if (((i + k) % (#mnu_arr[cur_depth] + 1)) == mnu_clicked) then
 				if mouse_l_down then
 					fill = false
 					color = col_main
@@ -351,15 +359,24 @@ local function draw_mnu()
 				color = col_main
 			end
 
+			if string.sub(opt.act, 1, 4) ~= "menu" and opt.act ~= "" then
+				local action = string.match(opt.act, "(%d+)")
+				local state = reaper.GetToggleCommandState(action)
+				if state ~= nil then
+					if state == 1 then 
+						color = col_tog_on
+					end
+				end
+			end  
 			
 	
-			draw_ring_section(i + k, mnu_adj, rc, rd, ox, oy, 0.05, fill, color)
+			draw_ring_section(i + k, mnu_adj, rc, rd, ox, oy, 0, fill, color)
 
 			if fill then setcolor(col_bg) end
 
 			-- Center the current option's text in the button
 			--Msg(cur_depth.." "..i)
-			local str = mnu_arr[cur_depth][i].lbl
+			local str = opt.lbl
 
 			local str_w, str_h = gfx.measurestr(str)
 			local cx, cy = polar2cart((i + k) * mnu_adj, rc + (rd - rc) / 2, ox, oy)
@@ -369,18 +386,55 @@ local function draw_mnu()
 		end
 
 	end	
-	
-	-- Draw the guide rings
+
+	-- Draw the guide button from the previous menu
 	if cur_depth > 0 then
 		
-		local adj = 2 / #mnu_arr[0]
+		local k = math.max(last_depth - 1, 0)
 		
-		for i = 0, #mnu_arr[0] do
+		--Msg(#mnu_arr[last_depth])
+		local adj = 2 / (#mnu_arr[last_depth] + 1)
+		
+		draw_ring_section(cur_depth - 1, adj, ra, rb, ox, oy, 0, true, col_main)
+		--[[
+		for i = 0, #mnu_arr[last_depth] do
 		
 			local fill =	(i + k) == cur_depth - 1
+			Msg("i + k = "..(i + k).."   cur_depth - 1 = "..(cur_depth - 1))
 			draw_ring_section(i + k, adj, ra, rb, ox, oy, 0.05, fill, col_main)
 
 		end
+		]]--
+
+	end
+	
+	-- Draw the center button if there is one
+	if mnu_arr[cur_depth][-1] and mnu_arr[cur_depth][-1].lbl ~= "" then
+		
+		local fill = true
+		local color
+		
+		if mnu_clicked == -1 then
+			if mouse_l_down then
+				fill = false
+				color = col_main
+			else
+				color = col_hover
+			end
+		else
+			color = col_main
+		end		
+		
+		setcolor(color)
+		gfx.circle(ox, oy, ra - 4, true, 1)
+		
+		if fill then setcolor(col_bg) end
+		local str = mnu_arr[cur_depth][-1].lbl
+
+		local str_w, str_h = gfx.measurestr(str)
+		gfx.x, gfx.y = ox - str_w / 2, oy - str_h / 2
+		gfx.drawstr(str)
+		
 	end
 end
 
@@ -393,9 +447,8 @@ local function Main()
 	mouse_l_down = mouse_cap&1==1
 	mouse_r_down = mouse_cap&2==2
 	
-	
 	mnu_adj = 2 / (#mnu_arr[cur_depth] + 1)
-	
+
 	--[[
 		'startup' is used as a bit of a cheat, to keep the window open
 		until the script is able to detect the key that was held down
@@ -429,11 +482,12 @@ local function Main()
 	if mouse_angle < 0 then mouse_angle = mouse_angle + 2 end	
 	mouse_mnu = math.floor(mouse_angle / mnu_adj + 0.5)
 	if mouse_mnu == (#mnu_arr[cur_depth] + 1) then mouse_mnu = 0 end
-	if mouse_r < 32 then mouse_mnu = -1 end
-	
-	local mnu_clicked = mouse_mnu  % (#mnu_arr[cur_depth] + 1)
+	mnu_clicked = mouse_mnu  % (#mnu_arr[cur_depth] + 1)
+	if mouse_r < ((cur_depth == 0 and mnu_arr[0][-1].lbl ~= "") and 48 or 16) then mnu_clicked = -1 end
 	
 	if mouse_l_down then
+		
+		if not last_mouse_l_down then last_mnu_clicked = -2 end
 		
 		last_mouse_l_down = true
 		
@@ -444,20 +498,27 @@ local function Main()
 			
 				-- User held down the mouse, so lets get their input and update the mnu item
 				-- retval, retvals_csv reaper.GetUserInputs( title, num_inputs, captions_csv, retvals_csv )
-
+				if not mnu_arr[cur_depth][mnu_clicked] then
+					mnu_arr[cur_depth][mnu_clicked] = {["lbl"] = "new", ["act"] = "0"}
+				end
 				local cur_lbl, cur_act = mnu_arr[cur_depth][mnu_clicked].lbl, mnu_arr[cur_depth][mnu_clicked].act
 				local retval, retstr = reaper.GetUserInputs("Edit menu label", 2, "Label:,Action ID:", cur_lbl..","..cur_act)
 				
 				--Msg(tostring(retval))
 				if retval then 
-					local ret_lbl, ret_ID = string.match(retstr, "(.+),(.+)")
+					Msg(retstr)
+					local ret_lbl, ret_ID = string.match(retstr, "([^,]+),([^,]+)")
+					Msg(ret_lbl.."  |  "..ret_ID)					
 					if string.sub(ret_ID, 1, 1) == "_" then
 						ret_ID = reaper.NamedCommandLookup(ret_ID)
 					end
+
 					mnu_arr[cur_depth][mnu_clicked].lbl = ret_lbl
 					mnu_arr[cur_depth][mnu_clicked].act = ret_ID
 					
 					save_menu()
+					
+					last_mnu_clicked = -2
 				end
 				
 				last_mouse_l_down = false
@@ -468,17 +529,18 @@ local function Main()
 		
 	elseif last_mouse_l_down then
 
-		--Msg("mouse_mnu = "..mouse_mnu.."  mnu_clicked = "..mnu_clicked)
-		
-		if mnu_clicked == -1 then
-			cur_depth = last_depth
+		if mnu_clicked == -1 and cur_depth ~= 0 then
+
+			cur_depth = 0
+			last_depth = 0
 			
-		else
+		elseif mnu_arr[cur_depth][mnu_clicked] then
 		
 			-- Msg("cur_depth = "..tostring(cur_depth).."mnu_clicked = "..tostring(mnu_clicked)
 			local act = mnu_arr[cur_depth][mnu_clicked].act
 			if act == "" then
 				--Msg("no action")
+				last_depth = 0
 				cur_depth = 0
 			elseif string.sub(act, 1, 4) == "menu" then
 				last_depth = cur_depth
@@ -512,9 +574,11 @@ local function Main()
 
 			cur_depth = 0
 		end
-]]--		
+]]--	
+		mnu_adj = 2 / (#mnu_arr[cur_depth] + 1)
 		down_time = nil
 		last_mouse_l_down = false
+		last_mnu_clicked = -2	
 	end
 	
 	if mouse_r_down then
@@ -523,29 +587,34 @@ local function Main()
 	
 		setup = not setup
 		last_mouse_r_down = false
+		last_mnu_clicked = -2		
 	end
 	
 
 	if setup then
-		
-		-- Let the user know if we're in setup mode
-		gfx.set(1, 1, 0.2, 1)
-		local str = "        SETUP      "
-		local str_w, str_h = gfx.measurestr(str)
-		local x, y = (gfx.w - str_w) / 2, (gfx.h - str_h) / 2 - (2 * str_h)
-		gfx.x, gfx.y = x, y
-		gfx.drawstr(str)
-		gfx.x, gfx.y = x, y + str_h
-		gfx.drawstr("F1: Set colors\nHold left button\nto edit")
-		
-		
+
+		if mnu_clicked ~= last_mnu_clicked then
+			-- Let the user know if we're in setup mode
+			gfx.set(1, 1, 0.2, 1)
+			local str = "SETUP"
+			local str_w, str_h = gfx.measurestr(str)
+			gfx.x, gfx.y = 2, 2
+			gfx.drawstr(str)
+				gfx.x, gfx.y = w - str_w - 2, 2
+			gfx.drawstr(str)
+			gfx.x, gfx.y = 2, h - str_h - 2
+			gfx.drawstr(str)
+			gfx.x, gfx.y = w - str_w - 2, h - str_h - 2
+			gfx.drawstr(str)
+		end
+
 		-- Check for F1, to open our generic settings
 		if gfx.getchar() == 26161 then
 		-- retval, retvals_csv reaper.GetUserInputs( title, num_inputs, captions_csv, retvals_csv )
 
 			local defstr = table.concat(col_main, " ")..","..table.concat(col_hover, " ")..","..table.concat(col_bg, " ")
 
-			local retval, retstr = reaper.GetUserInputs("Settings", 3, "Main RGBA (0 255):,Hover RGBA:,BG RGBA (requires a restart):,extrawidth=24", defstr)
+			local retval, retstr = reaper.GetUserInputs("Color Settings", 3, "Main RGBA (0 255):,Hover RGBA:,BG RGBA (requires a restart):,extrawidth=24", defstr)
 			
 			if retval then
 				
@@ -555,12 +624,20 @@ local function Main()
 				col_bg = {string.match(col_arr[3], "(%d+)%s+(%d+)%s+(%d+)%s+(%d+)")}
 			
 			end
+		
+		-- Use A and D to add and delete buttons to the current submenu
+		-- table.insert, mnu_arr[cur_depth][mnu_clicked] = nil?
+		--elseif gfx.getchar() == 
+		
 		end
 	
 	end
 
 	-- Draw all of the options
-	draw_mnu()	
+	if mnu_clicked ~= last_mnu_clicked then
+		draw_mnu()	
+		last_mnu_clicked = mnu_clicked
+	end
 
 	local diff = up_time and (reaper.time_precise() - up_time) or 0
 	
