@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.61
+Version: 1.65
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -483,7 +483,7 @@ local function Main()
 	mouse_mnu = math.floor(mouse_angle / mnu_adj + 0.5)
 	if mouse_mnu == (#mnu_arr[cur_depth] + 1) then mouse_mnu = 0 end
 	mnu_clicked = mouse_mnu  % (#mnu_arr[cur_depth] + 1)
-	if mouse_r < ((cur_depth == 0 and mnu_arr[0][-1].lbl ~= "") and 48 or 16) then mnu_clicked = -1 end
+	if mouse_r < ((mnu_arr[cur_depth][-1] and mnu_arr[cur_depth][-1].lbl ~= "")and 48 or 16) then mnu_clicked = -1 end
 	
 	if mouse_l_down then
 		
