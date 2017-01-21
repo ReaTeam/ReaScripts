@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3c03fbeb10940f76386d6e6d570f6f5251ba7b77" name="ReaTeam Scripts">
+<index version="1" commit="3ce2f2b9bb6ebbb34a91e9d399cb126f81b36d97" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3682,6 +3682,13 @@ Add a button in the center if you want (will prevent you from going back down a 
 Reduced CPU usage
 Bug fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c03fbeb10940f76386d6e6d570f6f5251ba7b77/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="1.61" author="Lokasenna" time="2017-01-21T16:27:20Z">
+        <changelog><![CDATA[Buttons will light up if a toggleable action is On
+Add a button in the center if you want (will prevent you from going back down a level though)
+Reduced CPU usage
+Bug fixes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3ce2f2b9bb6ebbb34a91e9d399cb126f81b36d97/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
