@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cc7ac785008e27d4d7a726cb1a0a45f2c26b14d7" name="ReaTeam Scripts">
+<index version="1" commit="991581fb004c95d758b09ff558b6f150ee89754a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -424,6 +424,22 @@ added support for all track envelopes]]></changelog>
       <version name="1.4" author="Lokasenna" time="2017-01-20T20:34:38Z">
         <changelog><![CDATA[Bug fix... again]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7cfd499c966039362eeceb8bedc3553b43312353/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Fill time selection with empty items.lua" type="script" desc="Fill time selection with empty items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Prompts the user for a number of items, and then fills the current time selection with that many empty MIDI items\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-22T22:22:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/991581fb004c95d758b09ff558b6f150ee89754a/Items%20Editing/Lokasenna_Fill%20time%20selection%20with%20empty%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Insert empty item for each selected track.lua" type="script" desc="Insert empty item for each selected track">
