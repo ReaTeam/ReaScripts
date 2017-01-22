@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4455bd87627d7ca480f2e95d66572fc44f5f8e73" name="ReaTeam Scripts">
+<index version="1" commit="cc7ac785008e27d4d7a726cb1a0a45f2c26b14d7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -617,6 +617,22 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="Daxliniere, Heda, Eugen2777, spk77" time="2016-05-24T09:23:18Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0b2b0387ec43b2ca14220347678c695ffc85b41/Markers/daxliniere_Live%20recording%20take%20commenter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Fill time selection with markers.lua" type="script" desc="Fill time selection with markers">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Prompts the user for a number of markers, and a color, then fills the current time selection with that many markers, equally-spaced.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-01-22T22:09:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc7ac785008e27d4d7a726cb1a0a45f2c26b14d7/Markers/Lokasenna_Fill%20time%20selection%20with%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Duplicate previous marker.lua" type="script" desc="Duplicate previous marker">
