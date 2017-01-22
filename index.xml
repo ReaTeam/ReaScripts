@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8515a6c23a516450cfb91df1e58ccfd211811585" name="ReaTeam Scripts">
+<index version="1" commit="4455bd87627d7ca480f2e95d66572fc44f5f8e73" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1040,7 +1040,7 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Allow drawing of ramp from a starting position on lane divider.
 + New option "neverSnapToGrid".
 + New option "defaultShapePower".]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8515a6c23a516450cfb91df1e58ccfd211811585/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4455bd87627d7ca480f2e95d66572fc44f5f8e73/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
@@ -1113,7 +1113,7 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Allow drawing of ramp from a starting position on lane divider.
 + New option "neverSnapToGrid".
 + New option "defaultShapePower".]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8515a6c23a516450cfb91df1e58ccfd211811585/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/723c99015e623210d2e6513e1e6fb8f4b2774f13/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
@@ -1172,7 +1172,7 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Allow drawing of ramp from a starting position on lane divider.
 + New option "neverSnapToGrid".
 + New option "defaultShapePower".]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8515a6c23a516450cfb91df1e58ccfd211811585/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/09f32d4deb0f0e60cdb297c069412595e7dd9266/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
@@ -1231,7 +1231,7 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Allow drawing of ramp from a starting position on lane divider.
 + New option "neverSnapToGrid".
 + New option "defaultShapePower".]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8515a6c23a516450cfb91df1e58ccfd211811585/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fc563ac48c30400be75c8a8f7629cf5f3364ee99/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
