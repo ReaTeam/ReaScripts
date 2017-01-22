@@ -75,6 +75,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [actonDev/Reaper-Scripts](https://github.com/actonDev/Reaper-Scripts)
 - [ambisonictoolkit/atk-reaper](https://github.com/ambisonictoolkit/atk-reaper)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
+- [berthu/ReaScripts](https://github.com/berthu/ReaScripts)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
 - [JamesHEure/Reascript](https://github.com/JamesHEure/Reascript)
