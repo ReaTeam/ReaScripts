@@ -136,7 +136,7 @@ About:
     local neverSnapToGrid = false -- true or false
     
     -- The shape of the ramp can be adjusted with the mousewheel while the script is running.
-    --    (And, of course, the shape can also be adjusted aferwards with the Warp script.)
+    --    (And, of course, the shape can also be adjusted afterwards, using the Warp scripts.)
     -- A third option is to set the default shape power here:  Use defaultShapePower = 1 for linear,
     --    2 for 'slow start' parabolic, and 0.5 for 'fast start' parabolic, etc.
     local defaultShapePower = 1 -- A non-negative number
