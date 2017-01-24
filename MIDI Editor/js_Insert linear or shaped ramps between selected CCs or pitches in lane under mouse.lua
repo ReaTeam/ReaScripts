@@ -47,30 +47,30 @@ About:
 
 --[[
  Changelog:
- * v1.0 (2016-05-15)
+  * v1.0 (2016-05-15)
     + Initial Release.
- * v1.1 (2016-05-18)
+  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3).
- * v1.11 (2016-05-29)
+  * v1.11 (2016-05-29)
     + Script does not fail when "Zoom dependent" CC density is selected in Preferences.
- * v1.12 (2016-06-08)
+  * v1.12 (2016-06-08)
     + New options in USER AREA to define default shape and/or to skip dialog box.
     + More extensive error messages.
- * v1.13 (2016-06-13)
+  * v1.13 (2016-06-13)
     + New shape, "sine".
- * v1.14 (2016-06-13)
+  * v1.14 (2016-06-13)
     + Fixed deletion bug when inserting 14bit CC ramps.
- * v2.0 (2016-07-04)
+  * v2.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
- * v3.00 (2016-12-25)
+  * v3.00 (2016-12-25)
     + Script will work in inline editor.
     + Script will work in looped takes.
     + Script will work with multiple channel (each channel will be ramped separately).
     + Much faster execution, particularly in takes with many thousands of MIDI events.
     + Requires REAPER v5.32 or later.
     + In velocity lane, will set velocities of existing notes to ramp from leftmost and rightmost notes.
-  * v3.01 (2016-01-20)
+  * v3.01 (2017-01-20)
     + Fixed bug when custom 'shape' is number.
 ]] 
 
