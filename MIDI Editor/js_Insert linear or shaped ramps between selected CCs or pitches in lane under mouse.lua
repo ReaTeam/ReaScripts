@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua
-Version: 3.00
+Version: 3.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: 
@@ -63,13 +63,15 @@ About:
  * v2.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
- * v3.00 (3016-12-25)
+ * v3.00 (2016-12-25)
     + Script will work in inline editor.
     + Script will work in looped takes.
     + Script will work with multiple channel (each channel will be ramped separately).
     + Much faster execution, particularly in takes with many thousands of MIDI events.
     + Requires REAPER v5.32 or later.
     + In velocity lane, will set velocities of existing notes to ramp from leftmost and rightmost notes.
+  * v3.01 (2016-01-20)
+    + Fixed bug when custom 'shape' is number.
 ]] 
 
 -- USER AREA
@@ -624,7 +626,7 @@ reaper.defer(avoidUndo)
 
 -------------------------------------------------------
 -- Test whether user customizable variables are usable.
-if not (shape == "sine" or shape == "s" or type(shape) ~= "number") or (type(shape)=="number" and shape <= 0) then 
+if not (shape == "sine" or shape == "s" or type(shape) == "number") or (type(shape)=="number" and shape <= 0) then 
     reaper.ShowMessageBox('The setting "shape" must either be "sine" or a number larger than 0.', "ERROR", 0) return(false) end
 if type(skipRedundantCCs) ~= "boolean" then 
     reaper.ShowMessageBox("The setting 'skipRedundantCCs' must be either 'true' of 'false'.", "ERROR", 0) return(false) end
