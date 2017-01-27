@@ -1,6 +1,6 @@
 --[[
 Description: Theory Helper
-Version: 1.1
+Version: 1.15
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -3768,50 +3768,50 @@ local function load_ext()
 	
 	local name = GUI.name
 	
-	if not reaper.HasExtState(name, "current key") then return 0 end	
+	if reaper.HasExtState(name, "current key") then	
 
-	key_new = tonumber(reaper.GetExtState(GUI.name, "current key"))
-	scale_num = tonumber(reaper.GetExtState(GUI.name, "current scale"))
-	reascale_path = reaper.GetExtState(GUI.name, "current reascale")	
-	
-	GUI.Val("tabs", tonumber(reaper.GetExtState(name, "last tab")))
-	
-	GUI.Val("sldr_velocity", tonumber(reaper.GetExtState(name, "MIDI velocity")))
-	GUI.Val("mnu_octave", tonumber(reaper.GetExtState(name, "MIDI octave")))
-	
-	local size_a, size_b = string.match(reaper.GetExtState(name, "search size"), "(%d+),(%d+)")
-	GUI.Val("rng_size", {tonumber(size_a), tonumber(size_b)})
-	
-	local search = reaper.GetExtState(name, "scale search")
-
-	local arr = {}
-	for i = 1, 12 do
+		key_new = tonumber(reaper.GetExtState(GUI.name, "current key"))
+		scale_num = tonumber(reaper.GetExtState(GUI.name, "current scale"))
+		reascale_path = reaper.GetExtState(GUI.name, "current reascale")	
 		
-		local val = string.sub(search, i, i)
+		GUI.Val("tabs", tonumber(reaper.GetExtState(name, "last tab")))
 		
-		arr[i] = (val == "1") and true or false
+		GUI.Val("sldr_velocity", tonumber(reaper.GetExtState(name, "MIDI velocity")))
+		GUI.Val("mnu_octave", tonumber(reaper.GetExtState(name, "MIDI octave")))
 		
-	end
-	GUI.Val("chk_search", arr)
-	
-	GUI.Val("mnu_chord_set", tonumber(reaper.GetExtState(name, "chord set")))
-	GUI.Val("mnu_chord_arp", tonumber(reaper.GetExtState(name, "arpeggio")))
-	
-	local harm_sldrs = reaper.GetExtState(name, "harmony sliders")
-	local i = 0
-	for val in string.gmatch(harm_sldrs, "[-]*%d+") do
+		local size_a, size_b = string.match(reaper.GetExtState(name, "search size"), "(%d+),(%d+)")
+		GUI.Val("rng_size", {tonumber(size_a), tonumber(size_b)})
+		
+		local search = reaper.GetExtState(name, "scale search")
 
-		GUI.Val("sldr_harm_"..i, tonumber(val))
-		i = i + 1
-	
-	end
-	
-	GUI.Val("mnu_harm_type", tonumber(reaper.GetExtState(name, "harmony type")))
+		local arr = {}
+		for i = 1, 12 do
+			
+			local val = string.sub(search, i, i)
+			
+			arr[i] = (val == "1") and true or false
+			
+		end
+		GUI.Val("chk_search", arr)
+		
+		GUI.Val("mnu_chord_set", tonumber(reaper.GetExtState(name, "chord set")))
+		GUI.Val("mnu_chord_arp", tonumber(reaper.GetExtState(name, "arpeggio")))
+		
+		local harm_sldrs = reaper.GetExtState(name, "harmony sliders")
+		local i = 0
+		for val in string.gmatch(harm_sldrs, "[-]*%d+") do
 
-	local sync = reaper.GetExtState(name, "sync with editor")
-	GUI.Val("chk_follow", {(sync == "true" and true or false)})
-	
-	
+			GUI.Val("sldr_harm_"..i, tonumber(val))
+			i = i + 1
+		
+		end
+		
+		GUI.Val("mnu_harm_type", tonumber(reaper.GetExtState(name, "harmony type")))
+
+		local sync = reaper.GetExtState(name, "sync with editor")
+		GUI.Val("chk_follow", {(sync == "true" and true or false)})
+		
+	end	
 	
 end
 
