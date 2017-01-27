@@ -1,6 +1,6 @@
 --[[
 Description: Theory Helper
-Version: 1.15
+Version: 1.16
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -3473,7 +3473,7 @@ GUI.colors.elm_fill_red = {192, 64, 64, 255}
 local root_arr = {[0] = "C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A","A#/Bb","B"}
 local oct_str = "9,8,7,6,5,4,3,2,1,0"
 
-local reascale_arr = {{["pre"] = 0, ["name"] = "-no scale-", ["scale"] = {}, ["size"] = 0}}
+local reascale_arr = {{["pre"] = 0, ["name"] = "Major", ["scale"] = {0, 2, 4, 5, 7, 9, 11}, ["size"] = 7}}
 local mnu_scale_arr = {[0] = 0, 0, 0}
 local reascale_path = ""
 
@@ -3780,6 +3780,7 @@ local function load_ext()
 		GUI.Val("mnu_octave", tonumber(reaper.GetExtState(name, "MIDI octave")))
 		
 		local size_a, size_b = string.match(reaper.GetExtState(name, "search size"), "(%d+),(%d+)")
+
 		GUI.Val("rng_size", {tonumber(size_a), tonumber(size_b)})
 		
 		local search = reaper.GetExtState(name, "scale search")
@@ -3983,7 +3984,7 @@ local function get_reascale(startup)
 		__, reascale_path = reaper.BR_Win32_GetPrivateProfileString("reaper", "reascale_fn", "", ini_file)
 	end
 
-	if not startup then
+	if reascale_path == "" or not startup then
 		__, reascale_path = reaper.GetUserFileNameForRead("", "Choose a .reascale file", ".reascale")
 	end
 	
@@ -4053,8 +4054,15 @@ local function get_reascale(startup)
 		GUI.elms.mnu_scale.numopts = #mnu_scale_arr
 		
 		if not startup then scale_num = 1 end
-		
+	
+	else
+	
+		reaper.ShowMessageBox( "This script needs a .reascale file to work with.", "No .reascale found", 0)
+		GUI.quit = true
+	
 	end	
+	
+	
 end
 
 
