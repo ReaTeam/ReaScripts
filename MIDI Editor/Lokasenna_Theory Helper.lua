@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.0
+Version: 1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release. Probably full of bugs.
+	Bug fixes.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -4763,7 +4763,7 @@ function harm_sel_notes()
 	for i = 1, #sel_notes do
 	
 		local pitch = sel_notes[i][6] 
-		local new_pitch = pitch + GUI.Val("sldr_harm_"..((pitch + 12) % 12))
+		local new_pitch = pitch + 11 - GUI.Val("sldr_harm_"..((pitch + 12) % 12))
 		
 		if new_pitch ~= pitch then
 			local sel, mute, start, _end, chan, pitch, vel = table.unpack(sel_notes[i])
@@ -5316,7 +5316,7 @@ local function btn_click(deg, chord, btn)
 	local offset = ( (GUI.elms.mnu_octave.numopts - GUI.Val("mnu_octave") + 1) * 12) + key
 	chan = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_chan")
 	
-	local user_vel = GUI.Val("sldr_velocity")
+	local user_vel = GUI.Val("sldr_velocity") - 1
 	vel = user_vel > 0 and user_vel or reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 
 	
 	local shift = GUI.mouse.cap&8==8
