@@ -86,7 +86,7 @@ thicknessPixels = 5
 
 -- Should the script only slice selected notes, or should it slice any note
 --    that intersects with the cutting line?
-onlySliceSelectedNotes = false -- true or false
+onlySliceSelectedNotes = true -- true or false
 
 -- End of USER AREA
 
