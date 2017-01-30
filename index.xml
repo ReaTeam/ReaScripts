@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30cbff82e60f5ed233b2873afa28b07915cefa82" name="ReaTeam Scripts">
+<index version="1" commit="1c603b4a231565c12169912fe5afa91b50d12edd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -738,6 +738,10 @@ added support for all track envelopes]]></changelog>
 + Script works in looped takes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_1-sided warp (accelerate) selected events in lane under mouse.lua">
       <metadata>
@@ -793,6 +797,10 @@ added support for all track envelopes]]></changelog>
 + Script works in looped takes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with linear or power curve.lua" type="script" desc="js_Arch selected events in lane under mouse with linear or power curve.lua">
       <metadata>
@@ -838,6 +846,10 @@ added support for all track envelopes]]></changelog>
 + Script works in inline editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
       </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toobar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with sine curve.lua" type="script" desc="js_Arch selected events in lane under mouse with sine curve.lua">
       <metadata>
@@ -882,6 +894,10 @@ added support for all track envelopes]]></changelog>
 + Script works in looped takes.
 + Script works in inline editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
+      </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script" desc="js_Compress or expand selected CC or velocity events using mousewheel.lua">
@@ -951,6 +967,10 @@ added support for all track envelopes]]></changelog>
 + Script works in inline editor.
 + Script works in looped takes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script" desc="js_Deselect all MIDI events outside time selection (from all tracks).lua">
@@ -1074,6 +1094,10 @@ added support for all track envelopes]]></changelog>
 + New option "defaultShapePower".]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4455bd87627d7ca480f2e95d66572fc44f5f8e73/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.21" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -1147,6 +1171,10 @@ added support for all track envelopes]]></changelog>
 + New option "defaultShapePower".]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/723c99015e623210d2e6513e1e6fb8f4b2774f13/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
+      <version name="3.21" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
       <metadata>
@@ -1206,6 +1234,10 @@ added support for all track envelopes]]></changelog>
 + New option "defaultShapePower".]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/09f32d4deb0f0e60cdb297c069412595e7dd9266/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.21" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
       <metadata>
@@ -1264,6 +1296,10 @@ added support for all track envelopes]]></changelog>
 + New option "neverSnapToGrid".
 + New option "defaultShapePower".]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fc563ac48c30400be75c8a8f7629cf5f3364ee99/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.21" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -1864,6 +1900,35 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Move all selected events in active take together with mouse position.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A script for moving all selected events (in active take) together. The events will follow mouse movement.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If snap-to-grad is enabled in the MIDI editor, the events will be moved to the closest grid position to the left.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab First, the script can be linked to its own shortcut key.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=184629</link>
+        <link rel="screenshot">http://stash.reaper.fm/29102/Move%20events%20to%20mouse%20position.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="1.01" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Move%20all%20selected%20events%20in%20active%20take%20together%20with%20mouse%20position.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -2429,6 +2494,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Improved handling of overlapping notes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/abda2690d98a399531fc8b9f6aec31f4ca4ea7b9/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
+      <version name="2.02" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Split selected notes by drawing a line with the mouse.lua" type="script" desc="js_Split selected notes by drawing a line with the mouse.lua">
       <metadata>
@@ -2491,6 +2560,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="2.01" author="juliansader" time="2017-01-30T05:10:02Z">
         <changelog><![CDATA[+ Improved handling of overlapping notes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/413e9661f7e2f9b3586a8d392a1ea3f1397b776e/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+      <version name="2.02" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script" desc="js_Stretch selected events in lane under mouse.lua">
@@ -2563,6 +2636,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + Script works in looped takes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
       <metadata>
@@ -2619,6 +2696,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + Script works in looped takes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
+      <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Trim notes by drawing a line with the mouse.lua" type="script" desc="js_Trim notes by drawing a line with the mouse.lua">
       <metadata>
@@ -2669,6 +2750,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Improved handling of overlapping notes.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/48f2fd5815c599047ef9d7374e21c20bb23f4f98/MIDI%20Editor/js_Trim%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
+      <version name="2.02" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Trim%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Trim selected notes by drawing a line with the mouse.lua" type="script" desc="js_Trim selected notes by drawing a line with the mouse.lua">
       <metadata>
@@ -2718,6 +2803,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="2.01" author="juliansader" time="2017-01-30T05:10:02Z">
         <changelog><![CDATA[+ Improved handling of overlapping notes.     ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/48f2fd5815c599047ef9d7374e21c20bb23f4f98/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+      <version name="2.02" author="juliansader" time="2017-01-30T08:24:06Z">
+        <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Zoom MIDI editor to 5 measures at mouse position.lua" type="script" desc="js_Zoom MIDI editor to 5 measures at mouse position.lua">
