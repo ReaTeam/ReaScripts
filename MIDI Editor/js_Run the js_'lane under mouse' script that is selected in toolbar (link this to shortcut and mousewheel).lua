@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua
-Version: 1.10
+Version: 1.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: 
@@ -74,6 +74,8 @@ About:
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
   v1.10 (2017-01-16)
     + Header updated to ReaPack 1.1 format.
+  v1.20 (2017-01-30)
+    + The mousewheel modifier that is linked to this script can now control any js "under mouse" script, even if that script was called from its own keyboard shortcut.
 ]]
 
 -------------------------------------------
@@ -114,58 +116,66 @@ if sectionID == nil or sectionID == -1 then return end
 editor = reaper.MIDIEditor_GetActive()
 if editor == nil then return end
 
--- Have any js_MIDI script been selected?
-if reaper.HasExtState("js_Mouse actions", "Armed commandID") == false then return end
+-- If one of the "under mouse" scripts is already running, don't call a new script, only broadcast mousewheel.
+-- (First reset the mousewheel state.)
+if reaper.GetExtState("js_Mouse actions", "Status") == "Running" then
 
--- Test whether the stored commandID is usable (integer number)
--- If not, something went wrong, so simply delete.
-armedCommandID = tonumber(reaper.GetExtState("js_Mouse actions", "Armed commandID"))
-if type(armedCommandID) ~= "number" or armedCommandID%1 ~= 0 then
-    reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
-    return
-end
-
--- Check whether the commandIDs of any previously selected js_MIDI scripts have been stored,
---    and make sure that their toolbar buttons have been deactivated.
--- (This step is not actually necessary, since the js_MIDI scripts themselves also
---    deactivate these buttons.   
-if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
-    prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
-    if type(prevCommandIDs) ~= "string" then
-        reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
-    else
-        tablePrevIDs = {}
-        prevSeparatorPos = 0
-        repeat
-            nextSeparatorPos = prevCommandIDs:find("|", prevSeparatorPos+1)
-            if nextSeparatorPos ~= nil then
-                prevID = prevCommandIDs:sub(prevSeparatorPos+1, nextSeparatorPos-1)
-                if type(prevID) == "number" and prevID%1 == 0 and prevID ~= armedCommandID then
-                    table.insert(tablePrevIDs, prevID) 
-                end
-                prevSeparatorPos = nextSeparatorPos
-            end
-        until nextSeparatorPos == nil
-        for i = 1, #tablePrevIDs do
-            reaper.SetToggleCommandState(sectionID, prevID, 0)
-            reaper.RefreshToolbar2(sectionID, prevID)
-        end
-    end
-end
-
--- Set the ExtStates to inform any js_MIDI script that it is running,
---    and reset the mousewheel ExtState.
-reaper.SetExtState("js_Mouse actions", "Status", "Calling armed", false)
-reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
-
-retval = reaper.MIDIEditor_LastFocused_OnCommand(armedCommandID, false)
--- Did anything go wrong when calling the armed commandID?
-if retval ~= true then
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
-    reaper.DeleteExtState("js_Mouse actions", "Mousewheel", true)
-    -- reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
-    return(false)
-else
+    reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
     reaper.atexit(onexit)
     loop_trackMousewheelAndExitState()
+    
+-- If no "under mouse" script is already running, call whichever script has been armed.
+else
+
+    -- Have any js_MIDI script been armed?
+    if reaper.HasExtState("js_Mouse actions", "Armed commandID") == false then 
+        return 
+    end
+    
+    -- Test whether the stored commandID is usable (integer number)
+    -- If not, something went wrong, so simply delete.
+    armedCommandID = tonumber(reaper.GetExtState("js_Mouse actions", "Armed commandID"))
+    if type(armedCommandID) ~= "number" or armedCommandID%1 ~= 0 then
+        reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
+        return
+    end
+    
+    -- Check whether the commandIDs of any previously selected js_MIDI scripts have been stored,
+    --    and make sure that their toolbar buttons have been deactivated.
+    -- (This step is not actually necessary, since the js_MIDI scripts themselves also
+    --    deactivate these buttons.   
+    if reaper.HasExtState("js_Mouse actions", "Previous commandIDs") then
+        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs")
+        if type(prevCommandIDs) ~= "string" then
+            reaper.DeleteExtState("js_Mouse actions", "Previous commandIDs", true)
+        else
+            for prevID in prevCommandIDs:gmatch("%d+") do
+                prevID = tonumber(prevID)
+                if prevID == armedCommandID then
+                    reaper.SetToggleCommandState(sectionID, prevID, 1)
+                    reaper.RefreshToolbar2(sectionID, prevID)
+                elseif prevID then
+                    reaper.SetToggleCommandState(sectionID, prevID, 0)
+                    reaper.RefreshToolbar2(sectionID, prevID)
+                end
+            end
+        end
+    end
+    
+    -- Set the ExtStates to inform any js_MIDI script that it is running,
+    --    and reset the mousewheel ExtState.
+    reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
+    reaper.SetExtState("js_Mouse actions", "Status", "Calling armed", false)
+
+    retval = reaper.MIDIEditor_LastFocused_OnCommand(armedCommandID, false)
+    -- Did anything go wrong when calling the armed commandID?
+    if retval ~= true then
+        reaper.DeleteExtState("js_Mouse actions", "Status", true)
+        reaper.DeleteExtState("js_Mouse actions", "Mousewheel", true)
+        -- reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
+        return(false)
+    else
+        reaper.atexit(onexit)
+        loop_trackMousewheelAndExitState()
+    end
 end

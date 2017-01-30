@@ -1,6 +1,6 @@
 --[[
 ReaScript Name:  js_Trim notes by drawing a line with the mouse.lua
-Version: 2.00
+Version: 2.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/28032/Trim%20notes.gif
@@ -72,6 +72,8 @@ About:
     + Script will work in inline editor.
     + Script will work in looped takes.
     + REAPER v5.32 or later is required.
+ * v2.01 (2017-01-30)
+    + Improved handling of overlapping notes.    
 ]]
 
 -- USER AREA
@@ -361,9 +363,11 @@ function onexit()
                     local channel = msg:byte(1)&0x0F
                     local pitch   = msg:byte(2)
                     if tableNoteOns[flags][channel][pitch] then
+                        reaper.MIDI_SetAllEvts(take, MIDIstring) -- Restore original MIDI                    
                         reaper.ShowMessageBox("The script has encountered overlapping notes."
                                               .. "\n\nSuch notes are not technically legal MIDI data, and their lengths can not be parsed.", "ERROR", 0)
-                        break
+                        undoString = "FAILED: Trim notes by drawing a line with the mouse"
+                        goto skipSetNewEvts
                     else
                         tableNoteOns[flags][channel][pitch] = {notePPQ = runningPPQpos, noteMsg = msg}
                     end
@@ -395,7 +399,6 @@ function onexit()
             tableEvents[t] = s_pack("i4Bs4", offset, flags, msg)
         end                  
     end
-    
 
     reaper.MIDI_SetAllEvts(take, table.concat(tableEvents))
     
@@ -406,7 +409,7 @@ function onexit()
         
     -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
     if not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
-        undoString = "FAILED: Split notes by drawing a line with the mouse"
+        undoString = "FAILED: Trim notes by drawing a line with the mouse"
         reaper.MIDI_SetAllEvts(take, MIDIstring) -- Restore original MIDI
         reaper.ShowMessageBox("The script has detected inadvertent shifts in the PPQ positions of unedited events."
                               .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
@@ -414,9 +417,12 @@ function onexit()
                               .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
                               .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
     else
-        undoString = "Split notes by drawing a line with the mouse"
+        undoString = "Trim notes by drawing a line with the mouse"
     end
-        
+            
+    ------------------
+    ::skipSetNewEvts::
+    
     if isInline then reaper.UpdateArrange() end  
     
     -- Communicate with the js_Run.. script that this script is exiting
