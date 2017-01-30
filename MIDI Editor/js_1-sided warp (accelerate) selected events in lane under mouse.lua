@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_1-sided warp (accelerate) selected events in lane under mouse.lua
-Version: 3.10
+Version: 3.11
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -80,6 +80,8 @@ About:
   * v3.10 (2016-12-30)
     + Updated for REAPER v5.32.
     + Script works in looped takes.
+  * v3.11 (2017-01-30)
+    + Improved reset of toolbar button.
 ]]
 
 
@@ -534,7 +536,7 @@ function onexit()
     
     -- Deactivate toolbar button (if it has been toggled)
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
+        and type(prevToggleState) == "number" 
         then
         reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)

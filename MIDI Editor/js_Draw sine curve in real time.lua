@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw sine curve in real time.lua
-Version: 3.20
+Version: 3.21
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -119,6 +119,8 @@ About:
     + Allow drawing of ramp from a starting position on lane divider.
     + New option "neverSnapToGrid".
     + New option "defaultShapePower".
+  * v3.21 (2017-01-30)
+    + Improved reset of toolbar button.
 ]]
 
 ----------------------------------------
@@ -133,7 +135,7 @@ About:
     
     -- Should the script follow the MIDI editor's snap-to-grid setting, or should the
     --    script ignore the snap-to-grid setting and never snap to the grid?
-    local neverSnapToGrid = false -- true or false
+    local neverSnapToGrid = true -- true or false
     
     -- The shape of the ramp can be adjusted with the mousewheel while the script is running.
     --    (And, of course, the shape can also be adjusted afterwards, using the Warp scripts.)
@@ -506,7 +508,7 @@ function onexit()
     
     -- Deactivate toolbar button (if it has been toggled)
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
+        and type(prevToggleState) == "number" 
         then
         reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)

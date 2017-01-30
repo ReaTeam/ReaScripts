@@ -1,6 +1,6 @@
 --[[
 ReaScript Name:  js_Trim selected notes by drawing a line with the mouse.lua
-Version: 2.01
+Version: 2.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/28032/Trim%20notes.gif
@@ -73,7 +73,10 @@ About:
     + Script will work in looped takes.
     + REAPER v5.32 or later is required.
  * v2.01 (2017-01-30)
-    + Improved handling of overlapping notes.     
+    + Improved handling of overlapping notes. 
+ * v2.02 (2017-01-30)
+    + Improved reset of toolbar button.
+     
 ]]
 
 -- USER AREA
@@ -430,7 +433,7 @@ function onexit()
     
     -- Deactivate toolbar button (if it has been toggled)
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
+        and type(prevToggleState) == "number" 
         then
         reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)

@@ -1,6 +1,6 @@
 --[[
 ReaScript Name:  js_Split notes by drawing a line with the mouse.lua
-Version: 2.01
+Version: 2.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27951/Split%20notes%20by%20drawing%20line%20with%20mouse.gif
@@ -74,6 +74,8 @@ About:
     + REAPER v5.32 or later is required.
  * v2.01 (2017-01-30)
     + Improved handling of overlapping notes.
+ * v2.02 (2017-01-30)
+    + Improved reset of toolbar button.
 ]]
 
 -- USER AREA
@@ -86,7 +88,7 @@ thicknessPixels = 5
 
 -- Should the script only slice selected notes, or should it slice any note
 --    that intersects with the cutting line?
-onlySliceSelectedNotes = false -- true or false
+onlySliceSelectedNotes = true -- true or false
 
 -- End of USER AREA
 
@@ -427,7 +429,7 @@ function onexit()
     
     -- Deactivate toolbar button (if it has been toggled)
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
+        and type(prevToggleState) == "number" 
         then
         reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)
