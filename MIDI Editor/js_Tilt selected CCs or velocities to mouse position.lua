@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Tilt selected CCs or velocities to mouse position.lua
-Version: 3.10
+Version: 3.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27605/Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position%20-%20Copy.gif
@@ -75,6 +75,8 @@ About:
     + Updated for REAPER v5.32.
     + Script works in inline editor.
     + Script works in looped takes.
+  * v3.11 (2017-01-30)
+    + Improved reset of toolbar button.
 ]]
 
 
@@ -442,7 +444,7 @@ function onexit()
     
     -- Deactivate toolbar button (if it has been toggled)
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
+        and type(prevToggleState) == "number" 
         then
         reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)
