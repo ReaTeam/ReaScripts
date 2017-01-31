@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4d4fe5348cafd16219060149f18999c58e7326c4" name="ReaTeam Scripts">
+<index version="1" commit="978e639a240165e74b4dd9f444726ff99623f0ab" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3807,6 +3807,10 @@ Add a button in the center if you want (will prevent you from going back down a 
 Reduced CPU usage
 Bug fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9f1097375b9f82611bc9297c329b1130389de98a/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="1.7" author="Lokasenna" time="2017-01-31T16:51:00Z">
+        <changelog><![CDATA[Bug fix: Scripts and custom actions didn't work after reloading them in the Action List]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/978e639a240165e74b4dd9f444726ff99623f0ab/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
