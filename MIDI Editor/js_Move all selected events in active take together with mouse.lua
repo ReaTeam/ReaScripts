@@ -1,31 +1,34 @@
 --[[
-ReaScript name:  js_Move all selected events in active take together with mouse.lua
-Version: 0.90
+ReaScript name: js_Move all selected events in active take together with mouse.lua
+Version: 1.01
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29102/Move%20events%20to%20mouse%20position.gif
 Website: http://forum.cockos.com/showthread.php?t=184629
-REAPER: v5.30 or later
+REAPER: v5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
+Donation: https://www.paypal.me/juliansader
 About:
   # Description
+
   A script for moving all selected events (in active take) together. The events will follow mouse movement.
   
   If snap-to-grad is enabled in the MIDI editor, the events will be moved to the closest grid position to the left.
 
   # Instructions             
+
   There are two ways in which this script can be run:  
   
   * First, the script can be linked to its own shortcut key.
   
   * Second, this script, together with other "js_" scripts that edit the "lane under mouse",
      can each be linked to a toolbar button.  
-    In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+    - In this case, each script need not be linked to its own shortcut key.  Instead, only the 
      accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
      script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
-    Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+    - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
      and this selected (armed) script can then be run by using the shortcut for the 
      aforementioned "js_Run..." script.
-    For further instructions - please refer to the "js_Run..." script.
+    - For further instructions - please refer to the "js_Run..." script.
   
    Note: Since this function is a user script, the way it responds to shortcut keys and 
        mouse buttons is opposite to that of REAPER's built-in mouse actions 
@@ -36,16 +39,18 @@ About:
    (The first time that the script is stopped, REAPER will pop up a dialog box 
        asking whether to terminate or restart the script.  Select "Terminate"
        and "Remember my answer for this script".)
-  
-  # Warning
-  The script will run in the inline MIDI editor, but if there are any overlapping notes in the take,
-  these may transform into extended notes.  
 ]]
 
 --[[
  Changelog:
   * v0.90 (2016-12-16)
     + Initial beta release
+  * v1.00 (2017-01-10)
+    + Updated for REAPER v5.32.
+    + Script will work in inline editor.
+    + Script will work in looped takes.
+  * v1.01 (2017-01-30)
+    + Improved reset of toolbar button.
 ]]
 
 ---------------------------------------
@@ -64,16 +69,6 @@ About:
 --    hundreds of thousands of MIDI events.  
 -- Therefore, this script will not use these functions, and will instead directly access the item's 
 --    raw MIDI stream via new functions that were introduced in v5.30: GetAllEvts and SetAllEvts.
-
--- Notes re sorting:
--- MIDI_Sort is not only slow, but also endlessly buggy (http://forum.cockos.com/showthread.php?t=184459
---    is one of many threads).  It is expecially dangerous if there are any overlapping notes.
--- It is actually faster to check for unsorted data during parsing.
--- This script will therefore try to avoid MIDI_Sort.  Since MIDI is supposed to be sorted,
---    no sorting will be done when the script starts, unless unsorted data is detected during parsing.
--- When the script exits, instead of using MIDI_Sort, the action "Invert selection" will be called 
---    (twice) using OnCommand.  This should induce the MIDI editor to sort the MIDI data.
---    (In the case of the inline editor, OnCommand is unfortunately not evailable, so MIDI_Sort must be used.)
 
 -- The raw MIDI data will be stored in two long strings: remainMIDIstring will contain the data
 --    of the non-selected events left behind, and selectdMIDIstring will contain the data of
@@ -95,14 +90,24 @@ local selectedMIDIPPQrange
  
 -- Starting values and position of mouse 
 local window, segment, details -- given by the SWS function reaper.BR_GetMouseCursorContext()
-local gridOrigPPQpos -- If snap-to-grid is enabled, these will give the closest grid PPQ to the left. (Swing is not implemented.)
 
 -- Tracking the new value and position of the mouse while the script is running
 local mouseNewPPQpos
-local gridNewPPQpos 
+local gridNewPPQpos
 
 -- REAPER preferences and settings that will affect the drawing of new events in take
 local isSnapEnabled = false -- Will be changed to true if snap-togrid is enabled in the editor
+
+-- The crucial function BR_GetMouseCursorContext gets slower and slower as the number of events in the take increases.
+-- Therefore, this script will speed up the function by 'clearing' the take of all MIDI *before* calling the function!
+-- To do so, MIDI_SetAllEvts will be run with no events except the All-Notes-Off message that should always terminate 
+--    the MIDI stream, and which marks the position of the end of the MIDI source.
+-- In addition, the source length when the script begins will be checked against the source length when the script ends,
+--    to ensure that the script did not inadvertently shift the positions of non-target events.
+local sourceLengthTicks -- = reaper.BR_GetMidiSourceLenPPQ(take)
+local AllNotesOffString -- = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
+local loopStartPPQpos -- Start of loop iteration under mouse
+local takeIsCleared = false
 
 -- Some internal stuff that will be used to set up everything
 local _, take, editor, isInline
@@ -122,29 +127,49 @@ local function loop_trackMouseMovement()
 
     -------------------------------------------------------------------------------------------
     -- The js_Run... script can communicate with and control the other js_ scripts via ExtState
-    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
-   
-    ---------------------------------------------------------------------------------
-    -- What must the script do if the mouse moves out of the notes are or CC lanes?
-    -- Per default, the script will terminate.  This is an easy way to ensure that 
-    --    the script does not continue to run indefinitely without the user realising.    
-    window, segment, details = reaper.BR_GetMouseCursorContext() 
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end   
+  
+    -------------------------------------------
+    -- Track the new mouse (vertical) position.
+    -- (Apparently, BR_GetMouseCursorContext must always precede the other BR_ context calls)
+    -- ***** Trick: BR_GetMouse... gets slower and slower as the number of events in the take increases.
+    --              Therefore, clean the take *before* calling the function!
+    takeIsCleared = true
+    reaper.MIDI_SetAllEvts(take, AllNotesOffString)
+    window, segment, details = reaper.BR_GetMouseCursorContext()  
+    
+    ----------------------------------------------------------------------------------
+    -- What must the script do if the mouse moves out of the 'notes area' or CC lanes?
+    -- Since this script is not lane-specific, it will not quit if the mouse moves out 
+    --    of the original, but only if it moves out of the notes//CC areas altogether.
+    -- This is an easy way to ensure that the script does not continue to run 
+    --    indefinitely without the user realising.  
     if not (segment == "notes" or details == "cc_lane") then
         return
     end
             
-    --------------------------------------------------------------
+    --------------------------------------------------------------------
     -- Get mouse new PPQ (horizontal) position
-    -- Prevent selected events from being moved out of item range.
-    mouseNewPPQpos = math.max(0, math.min(AllNotesOffPPQpos-selectedMIDIPPQrange-1, math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)))
-    if isSnapEnabled then
+    -- Prevent selected events from being moved out of looped take range.
+    mouseNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position())
+    mouseNewPPQpos = mouseNewPPQpos - loopStartPPQpos
+    -- Snap to grid, if enabled
+    if isInline then
+        local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseNewPPQpos)
+        local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
+        gridNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos)
+    elseif isSnapEnabled then
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
         local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
-        gridNewPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
+        gridNewPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN)
     -- Otherwise, destination PPQ is exact mouse position
     else 
         gridNewPPQpos = mouseNewPPQpos
     end -- if isSnapEnabled
+    if gridNewPPQpos < 0 then gridNewPPQpos = 0
+    elseif gridNewPPQpos > sourceLengthTicks-selectedMIDIPPQrange-1 then gridNewPPQpos = sourceLengthTicks-selectedMIDIPPQrange-1
+    else gridNewPPQpos = math.floor(gridNewPPQpos + 0.5)
+    end
 
     ---------------------------------------------------------------
     -- Calculate the new raw MIDI data, and write the tableRawMIDI!
@@ -154,7 +179,7 @@ local function loop_trackMouseMovement()
                               .. selectedMIDIstring
                               .. string.pack("i4", remainOffset - (gridNewPPQpos + selectedMIDIPPQrange))
                               .. remainMIDIstring)
-  
+    takeIsCleared = false   
     if isInline then reaper.UpdateArrange() end
 
     ---------------------------------------
@@ -168,39 +193,45 @@ end -- loop_trackMouseMovement()
 ----------------------------------------------------------------------------------------------
 function exit()
     
-    -- Calls to native actions such as "Invert selection" via OnCommand must be placed
-    --    within explicit undo blocks, otherwise they will create their own undo points.
-    -- Strangely, in the current v5.30, undo blocks are interrupted as soon as the 
-    --    atexit-defined function is called.  *This is probably a bug.*  
-    -- Therefore must start a new undo block within this exit function.  Fortunately, 
-    --    this undo point seems to undo the entire defered script, not only the stuff that
-    --    happens within this exit function.
-    reaper.Undo_BeginBlock()
+    -- Remember that the take was cleared before calling BR_GetMouseCursorContext
+    --    So upload MIDI again.
+    if takeIsCleared and gridNewPPQpos then
+        reaper.MIDI_SetAllEvts(take, string.pack("i4", gridNewPPQpos)
+                                  .. selectedMIDIstring
+                                  .. string.pack("i4", remainOffset - (gridNewPPQpos + selectedMIDIPPQrange))
+                                  .. remainMIDIstring)
+    end
+                                                                
+    -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
+    --    causing infinitely extended notes or zero-length notes.
+    -- Fortunately, these bugs were seemingly all fixed in v5.32.
+    reaper.MIDI_Sort(take)  
     
+    -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
+    if not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
+        reaper.MIDI_SetAllEvts(take, MIDIstring) -- Restore original MIDI
+        reaper.ShowMessageBox("The script has detected inadvertent shifts in the PPQ positions of unedited events."
+                              .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
+                              .. "\n\nPlease report the bug in the following forum thread:"
+                              .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
+                              .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
+    end
+        
+    if isInline then reaper.UpdateArrange() end
+        
     -- Communicate with the js_Run.. script that this script is exiting
     reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
     -- Deactivate toolbar button (if it has been toggled)
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 
-        and (prevToggleState == 0 or prevToggleState == 1) 
+        and type(prevToggleState) == "number" 
         then
         reaper.SetToggleCommandState(sectionID, cmdID, prevToggleState)
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
-    
-    -- MIDI_Sort is buggy when dealing with overlapping notes, 
-    --    causing infinitely extended notes or zero-length notes.
-    -- Even explicitly calling "Correct overlapping notes" before sorting does not avoid all bugs.
-    -- Calling "Invert selection" twice is a much more reliable way to sort MIDI.   
-    if isInline then
-        reaper.MIDI_Sort(take)
-    else
-        reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert selection in active take
-        reaper.MIDIEditor_OnCommand(editor, 40501) -- Invert back to original selection
-    end
                 
     -- End undo block
-    reaper.Undo_EndBlock("Move selected events in active take", -1)
+    reaper.Undo_OnStateChange_Item(0, "Move all selected events in active take", item)
        
 end -- function exit
 
@@ -226,6 +257,10 @@ end -- function exit
 --      can be used instead of string.pack.
 
 function parseAndExtractTargetMIDI()  
+    
+    local hasAlreadySortedMIDI = false
+    
+    ::parseStart::
     
     -- REAPER v5.30 introduced new API functions for fast, mass edits of MIDI:
     --    MIDI_GetAllEvts and MIDI_SetAllEvts.
@@ -273,13 +308,18 @@ function parseAndExtractTargetMIDI()
                 return false
             end            
             
-            -- Check for unsorted MIDI.  First event in take can have negative offset, even if sorted, if earlier than start of item.
-            if offset < 0 and not (#tableRemainingEvents == 0 and #tablePPQs == 0) then   
-                reaper.ShowMessageBox("Unsorted MIDI data has been detected."
-                                      .. "\n\nThe script has tried to sort the data, but was unsuccessful."
-                                      .. "\n\nSorting of the MIDI can usually be induced by any simple editing action, such as selecting a note."
-                                      , "ERROR", 0)
-                return false
+            -- Check for unsorted MIDI. First event in take can have negative offset, even if sorted, if earlier than start of item.
+            if offset < 0 and not (prevPos == 1) then   
+                if hasAlreadySortedMIDI then
+                    reaper.ShowMessageBox("Unsorted MIDI data has been detected. The script has tried to sort the MIDI, but failed"
+                                          .. "\n\nSorting of the MIDI can usually be induced by any simple editing action, such as selecting a note."
+                                          , "ERROR", 0)
+                    return false
+                else
+                    reaper.MIDI_Sort(take)
+                    hasAlreadySortedMIDI = true
+                    goto parseStart
+                end
             end                            
 
             -- Tests OK, so can update PPQ position
@@ -294,29 +334,45 @@ function parseAndExtractTargetMIDI()
             elseif msg:byte(1) == 0xFF -- MIDI text event
             and msg:byte(2) == 0x0F -- REAPER's MIDI text event type
             then
-                -- Search through following events, looking for a selected note that match the channel and pitch
+                -- REAPER v5.32 changed the order of note-ons and notation events. So must search backwards as well as forward.
                 local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ") 
                 if notationChannel then
                     notationChannel = tonumber(notationChannel)
                     notationPitch   = tonumber(notationPitch)
-                            
+                    local evFlags, evMsg
+                    local evOffset = offset -- The first event (searching backward) with offset ~= 0 must be the last event searched.
+                    -- First, backwards through notes that have already been parsed.
+                    for i = #tableExtractedEvents, 1, -1 do
+                        if evOffset ~= 0 then 
+                            break
+                        else
+                            evOffset, evFlags, evMsg = s_unpack("i4Bs4", tableExtractedEvents[i])
+                            if  evMsg:byte(1) == 0x90 | notationChannel
+                            and evMsg:byte(2) == notationPitch
+                            and evMsg:byte(3) ~= 0 -- Note-ons with velocity == 0 are actually note-offs
+                            then
+                                mustExtract = true
+                                goto completedNotationSearch
+                            end
+                        end
+                    end
+                    -- Search forward through following events, looking for a selected note that match the channel and pitch
                     local evPos = nextPos -- Start search at position of nmext event in MIDI string
-                    local evOffset, evFlags, evMsg
                     repeat -- repeat until an offset is found > 0
                         evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
                         if evOffset == 0 then 
                             if evFlags&1 == 1 -- Only match *selected* events
-                            and evMsg:byte(1) >> 4  == 9 -- Only match notes
-                            and evMsg:byte(1) & 0xF == notationChannel -- Match channel
-                            and evMsg:byte(2)       == notationPitch -- Match pitch
+                            and evMsg:byte(1) == 0x90 | notationChannel -- Match note-ons and channel
+                            and evMsg:byte(2) == notationPitch -- Match pitch
+                            and evMsg:byte(3) ~= 0 -- Note-ons with velocity == 0 are actually note-offs
                             then
-                                -- Matching *selected* note found - so extract this notation event
                                 mustExtract = true
-                                break
+                                goto completedNotationSearch
                             end
                         end
                     until evOffset ~= 0
-                end   
+                    ::completedNotationSearch::
+                end  
             end
                             
             -------------------------------------------------------------
@@ -461,8 +517,11 @@ reaper.defer(avoidUndo)
 
 ----------------------------------------------------------------------------
 -- Check whether SWS is available, as well as the required version of REAPER
-if not reaper.APIExists("MIDI_GetAllEvts") then
-    reaper.ShowMessageBox("This script requires REAPER v5.30 or higher.", "ERROR", 0)
+version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
+if version == nil or version < 5.32 then
+    reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                          .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                          , "ERROR", 0)
     return(false) 
 elseif not reaper.APIExists("BR_GetMouseCursorContext") then
     reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
@@ -484,6 +543,9 @@ elseif not(segment == "notes" or details == "cc_lane") then
                           .. "This selected events will follow the position of the mouse, "
                           .. "so the mouse should be positioned over either a CC lane or the notes area of an active MIDI editor.", "ERROR", 0)
     return(false) 
+else
+    -- Communicate with the js_Run.. script that a script is running
+    reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
 end
 
 -----------------------------------------------------------------------------------------
@@ -521,6 +583,39 @@ if not reaper.ValidatePtr(take, "MediaItem_Take*") then
     reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
     return(false)
 end
+item = reaper.GetMediaItemTake_Item(take)
+if not reaper.ValidatePtr(item, "MediaItem*") then 
+    reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
+    return(false)
+end
+
+------------------------------------------------------------------------------
+-- The source length will be saved and checked again at the end of the script, 
+--    to check that no inadvertent shifts in PPQ position happened.
+sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
+AllNotesOffString = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
+
+-----------------------------------------------------------------------------------------------
+-- Get the starting PPQ (horizontal) position of the mouse.  Must check whether snap is enabled.
+-- Also, contract to position within item, and then divide by source length to get position
+--    within first loop iteration.
+mouseOrigPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)
+local itemLengthTicks = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
+mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
+loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
+mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
+
+isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)  
+QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
+
+---------------------------------------------------------------------------------------
+-- Time to process the MIDI of the take!
+-- As mentioned above, this script does not use the standard MIDI API functions such as 
+--    MIDI_InsertCC, since these functions are far too slow when dealing with thousands 
+--    of events.
+if not parseAndExtractTargetMIDI() then
+    return(false) -- parseAndExtractTargetMIDI will display its own error messages, so no need to do that here.
+end
 
 ---------------------------------------------------------------------------
 -- OK, tests passed, and it seems like this script will do something, 
@@ -534,53 +629,6 @@ if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
     reaper.SetToggleCommandState(sectionID, cmdID, 1)
     reaper.RefreshToolbar2(sectionID, cmdID)
 end
-
--------------------------------------------------------------------------------
--- MIDI_Sort is buggy when dealing with overlapping notes, 
---    causing infinitely extended notes or zero-length notes.
--- Therefore explicitly call action "Correct overlapping notes" before sorting.
---    (Note that this action only affects the active take in the editor.)
--- However, native actions that are called with OnCommand create their own undo points, 
---    unless they are within explicit undo blocks bookended by Undo_BeginBlock and Undo_EndBlock.
--- And there is yet another problem: exiting via an atexit-defined function such as this script's
---    "exit" function interrupts all undo blocks.  Therefore native actions should rather
---    note be called before entering the exit function.
--- This script will therefore NOT sort the MIDI, and will instead check for negative offsets
---    while parsing.  (This is in any case faster than unneccesary sorting.)
---reaper.MIDIEditor_OnCommand(editor, 40659) -- Correct overlapping notes
---reaper.MIDI_Sort(take)
-
-------------------------------------------------------------------------------------------------
--- Get the starting PPQ (horizontal) position of the mouse.  Must check whether snap is enabled.
-mouseOrigPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5) -- Round to avoid fractional ticks
-isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
-startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
-
-if isSnapEnabled then
-    -- If snap is enabled, we must go through several steps to find the closest grid position
-    --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
-    -- !! Note that this script does not take swing into account when calculating the grid
-    -- First, calculate this take's PPQ:
-    -- Calculate position of grid immediately before mouse position
-    QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
-    local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
-    local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
-    gridOrigPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-else 
-    -- Otherwise, destination PPQ is exact mouse position
-    gridOrigPPQpos = mouseOrigPPQpos
-end   
-
----------------------------------------------------------------------------------------
--- Time to process the MIDI of the take!
--- As mentioned above, this script does not use the standard MIDI API functions such as 
---    MIDI_InsertCC, since these functions are far too slow when dealing with thousands 
---    of events.
-if not parseAndExtractTargetMIDI() then
-    return(false) -- parseAndExtractTargetMIDI will display its own error messages, so no need to do that here.
-end
-
 
 -------------------------------------------------------------
 -- Finally, start running the loop!
