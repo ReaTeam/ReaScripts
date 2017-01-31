@@ -1,13 +1,10 @@
 --[[
 Description: Radial Menu
-Version: 1.65
+Version: 1.7
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Buttons will light up if a toggleable action is On
-	Add a button in the center if you want (will prevent you from going back down a level though)
-	Reduced CPU usage
-	Bug fixes
+	Bug fix: Scripts and custom actions didn't work after reloading them in the Action List
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -502,18 +499,21 @@ local function Main()
 					mnu_arr[cur_depth][mnu_clicked] = {["lbl"] = "new", ["act"] = "0"}
 				end
 				local cur_lbl, cur_act = mnu_arr[cur_depth][mnu_clicked].lbl, mnu_arr[cur_depth][mnu_clicked].act
-				local retval, retstr = reaper.GetUserInputs("Edit menu label", 2, "Label:,Action ID:", cur_lbl..","..cur_act)
+				local retval, retstr = reaper.GetUserInputs("Edit menu label", 2, "Label:,Action ID:,extrawidth=32", cur_lbl..","..cur_act)
 				
 				--Msg(tostring(retval))
 				if retval then 
 
 					local ret_lbl, ret_ID = string.match(retstr, "([^,]+),([^,]+)")
 					if not ret_lbl or not ret_ID then ret_lbl, ret_ID = "", "" end
-					
+					--[[
+						Moving this into the on-click code because apparently custom actions
+						get a new ID when they're re-added to the Action List
+						
 					if string.sub(ret_ID, 1, 1) == "_" then
 						ret_ID = reaper.NamedCommandLookup(ret_ID)
 					end
-
+					]]--
 					mnu_arr[cur_depth][mnu_clicked].lbl = ret_lbl
 					mnu_arr[cur_depth][mnu_clicked].act = ret_ID
 					
@@ -552,6 +552,9 @@ local function Main()
 				--Msg("moving to menu "..cur_depth)
 			else
 				--Msg("attempting action "..act)
+				if string.sub(act, 1, 1) == "_" then
+					act = reaper.NamedCommandLookup(act)
+				end
 				reaper.Main_OnCommand(act, 0)
 				cur_depth = 0
 			end
