@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.8
+Version: 1.85
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -466,7 +466,52 @@ local function Main()
 		key_down = cur_char
 		
 		if key_down ~= 0 then
-			hold_char = key_down >= 97 and key_down or (key_down + 32)
+			--[[
+				
+				(I have no idea if the same values apply on a Mac)
+				
+				Need to narrow the range to the normal keyboard ASCII values:
+				
+				ASCII 'a' = 97
+				ASCII 'z' = 122
+				
+				1-26		Ctrl+			char + 96
+				65-90		Shift/Caps+		char + 32
+				257-282		Ctrl+Alt+		char - 160
+				321-346		Alt+			char - 224
+
+				gfx.mouse_cap values:
+				
+				4	Ctrl
+				8	Shift
+				16	Alt
+				32	Win
+				
+				For Ctrl+4 or Ctrl+]... I have no fucking clue short of individually
+				checking every possibility.
+			
+			]]--
+			local cap = gfx.mouse_cap
+			local adj = 0
+			if cap & 4 == 4 then			
+				if not (cap & 16 == 16) then
+					adj = adj + 96			-- Ctrl
+				else						
+					adj = adj - 160			-- Ctrl+Alt
+				end
+				--	No change				-- Ctrl+Shift
+				
+			elseif (cap & 16 == 16) then	
+				adj = adj - 224				-- Alt
+				
+				--  No change				-- Alt+Shift
+				
+			elseif cap & 8 == 8 then		
+				adj = adj + 32				-- Shift
+			end
+	
+			hold_char = key_down + adj
+			
 			startup = false
 		elseif not up_time then
 			up_time = reaper.time_precise()
