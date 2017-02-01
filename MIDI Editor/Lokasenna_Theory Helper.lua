@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.16
+Version: 1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fixes.
+	Hopefully fixed a couple of bugs that were crashing the script.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -224,14 +224,34 @@ GUI.font = function (fnt)
 end
 
 
+-- Start drawing with one of the colors from the table
 GUI.color = function (col)
-	gfx.set(table.unpack(GUI.colors[col]))
+
+	-- If we're given a table of color values, just pass it right along
+	if type(col) == "table" then
+
+		gfx.set(col[1], col[2], col[3], col[4] or 1)
+	else
+		gfx.set(table.unpack(GUI.colors[col]))
+	end	
+
 end
 
 
 
 -- Global shadow size, in pixels
 GUI.shadow_dist = 2
+
+--[[
+	How fast the caret in textboxes should blink, measured in GUI update loops.
+	
+	'16' looks like a fairly typical textbox caret.
+	
+	Because each On and Off redraws the textbox's Z layer, this can cause CPU issues
+	in scripts with lots of drawing to do. In that case, raising it to 24 or 32
+	will still look alright but require less redrawing.
+]]--
+GUI.txt_blink_rate = 16
 
 
 -- Draw the given string of the first color with a shadow 
@@ -875,15 +895,14 @@ GUI.Main = function ()
 	for i = 0, GUI.z_max do
 		if #GUI.elms_list[i] > 0 and not (GUI.elms_hide[i] or GUI.elms_freeze[i]) then
 			for __, elm in pairs(GUI.elms_list[i]) do
-				
-				--GUI.cur_elm = elm		-- What is this from?
+
 				GUI.Update(GUI.elms[elm])
-				if GUI.elm_updated then break end
+				--if GUI.elm_updated then break end
 				
 			end
 		end
 		
-		if GUI.elm_updated then break end
+		--if GUI.elm_updated then break end
 		
 	end
 
@@ -909,34 +928,63 @@ GUI.Main = function ()
 
 	local w, h = gfx.w, gfx.h
 
-	-- It seems to be more CPU-efficient to redraw everything on every loop
-	-- than to use "if redraw" logic to draw everything to a single buffer
-	-- and blit the whole thing.
+	--[[
+		Having everything draw to a single buffer is less efficient than having
+		separate buffers per Z, but it gets around the problem of text looking shitty
+		because it's been anti-aliased with a transparent background.
+	]]--
 
-	for i = GUI.z_max, 0, -1 do
-		if #GUI.elms_list[i] > 0 and not GUI.elms_hide[i] then
-			--*if GUI.redraw_z[i] then
-				
-				-- Set this before we redraw, so that elms can call a redraw themselves
-				-- e.g. Labels fading out
-				--*GUI.redraw_z[i] = false
-
-				--*gfx.setimgdim(i, -1, -1)
-				--*gfx.setimgdim(i, w, h)
-				--*gfx.dest = i
-				for __, elm in pairs(GUI.elms_list[i]) do
-					if not GUI.elms[elm] then GUI.Msg(elm.." doesn't exist?") end
-					GUI.elms[elm]:draw()
-				end
-
-				--*gfx.dest = -1
-			--*end
-						
-			--gfx.blit(source, scale, rotation[, srcx, srcy, srcw, srch, destx, desty, destw, desth, rotxoffs, rotyoffs] )
-			--*gfx.blit(i, 1, 0, 0, 0, w, h, 0, 0, w, h, 0, 0)
+	local need_redraw = false
+	if GUI.redraw_z[0] then
+		need_redraw = true
+	else
+		for z, b in pairs(GUI.redraw_z) do
+			if b == true then need_redraw = true end
 		end
 	end
-	GUI.Draw_Version()
+
+	if need_redraw then
+		
+		-- Clear the table before drawing so elements can force a redraw themselves
+		for z, v in pairs(GUI.redraw_z) do
+			GUI.redraw_z[z] = nil
+		end		
+		
+		gfx.dest = 0
+		gfx.setimgdim(0, -1, -1)
+		gfx.setimgdim(0, w, h)
+
+		GUI.color("wnd_bg")
+		gfx.rect(0, 0, w, h, 1)
+
+		for i = GUI.z_max, 0, -1 do
+			if #GUI.elms_list[i] > 0 and not GUI.elms_hide[i] then
+				--*if GUI.redraw_z[i] then
+					
+					-- Set this before we redraw, so that elms can call a redraw themselves
+					-- e.g. Labels fading out
+					--*GUI.redraw_z[i] = false
+
+					--*gfx.setimgdim(i, -1, -1)
+					--*gfx.setimgdim(i, w, h)
+					--*gfx.dest = i
+					for __, elm in pairs(GUI.elms_list[i]) do
+						if not GUI.elms[elm] then GUI.Msg(elm.." doesn't exist?") end
+						GUI.elms[elm]:draw()
+					end
+
+					--*gfx.dest = -1
+				--*end
+							
+				--gfx.blit(source, scale, rotation[, srcx, srcy, srcw, srch, destx, desty, destw, desth, rotxoffs, rotyoffs] )
+				--*gfx.blit(i, 1, 0, 0, 0, w, h, 0, 0, w, h, 0, 0)
+			end
+		end
+		GUI.Draw_Version()		
+		
+	end
+	gfx.dest = -1
+	gfx.blit(0, 1, 0, 0, 0, w, h, 0, 0, w, h, 0, 0)
 	
 	gfx.update()
 	
@@ -949,6 +997,15 @@ GUI.Update = function (elm)
 	local wheel = GUI.mouse.wheel
 	local inside = GUI.IsInside(elm, x, y)
 	
+	elm:onupdate()
+	
+	if GUI.elm_updated then
+		if elm.focus then
+			elm.focus = false
+			elm:lostfocus()
+		end
+		return 0
+	end
 
 	-- Left button click
 	if GUI.mouse.cap&1==1 then
@@ -1051,7 +1108,7 @@ GUI.Update = function (elm)
 	-- If the mouse is hovering over the element
 	if not GUI.mouse.down and not GUI.mouse.r_down and inside then
 		elm:onmouseover()
-		GUI.elm_updated = true
+		--GUI.elm_updated = true
 		elm.mouseover = true
 	else
 		elm.mouseover = false
@@ -1146,6 +1203,8 @@ function GUI.Element:onr_doubleclick() end
 function GUI.Element:onr_drag() end
 function GUI.Element:onwheel() end
 function GUI.Element:ontype() end
+function GUI.Element:onupdate() end
+function GUI.Element:lostfocus() end
 
 
 
@@ -2776,7 +2835,7 @@ function GUI.Textbox:draw()
 	if focus then
 		
 		-- ...but only for half of the blink cycle
-		if self.blink < 8 then
+		if self.show_caret then
 			
 			local caret_x = x + pad + gfx.measurestr(string.sub(text, 0, caret))
 
@@ -2785,10 +2844,7 @@ function GUI.Textbox:draw()
 			
 		end
 		
-		-- Increment the blink cycle
-		self.blink = (self.blink + 1) % 16
-		
-	GUI.redraw_z[self.z] = true
+	--GUI.redraw_z[self.z] = true
 		
 	end
 	
@@ -2928,6 +2984,25 @@ function GUI.Textbox:ontype()
 end
 
 
+-- Textbox - On Update (for making it blink)
+function GUI.Textbox:onupdate()
+	
+	if self.focus then
+	
+		if self.blink == 0 then
+			self.show_caret = true
+			GUI.redraw_z[self.z] = true
+		elseif self.blink == math.floor(GUI.txt_blink_rate / 2) then
+			self.show_caret = false
+			GUI.redraw_z[self.z] = true
+		end
+		self.blink = (self.blink + 1) % GUI.txt_blink_rate
+
+	end
+	
+end
+
+
 
 --[[	MenuBox class
 	
@@ -3059,16 +3134,25 @@ end
 
 -- Menubox - Mouse up
 function GUI.Menubox:onmouseup()
-	
+
 	local menu_str = ""
 	
 	for i = 1, self.numopts do
 		if i == self.curopt then menu_str = menu_str .. "!" end
-		menu_str = menu_str .. (type(self.optarray[i]) == "table" and self.optarray[i][1] or self.optarray[i]) .. "|"
+--[[
+		menu_str = menu_str .. ((type(self.optarray[i]) ~= "table") and self.optarray[i] or self.optarray[i][1]) .. "|"
+]]--
+		local new_str
+		if type(self.optarray[i]) == "table" then
+			new_str = tostring(self.optarray[i][1])
+		else
+			new_str = tostring(self.optarray[i])
+		end
+		
+		menu_str = menu_str .. new_str .. "|"
+
 	end
-	
-	--gfx.x = self.x
-	--gfx.y = self.y + self.h
+
 	gfx.x, gfx.y = GUI.mouse.x, GUI.mouse.y
 	
 	local curopt = gfx.showmenu(menu_str)
@@ -3278,6 +3362,7 @@ function GUI.Tabframe:val(newval)
 	
 	if newval then
 		self.state = newval
+		GUI.redraw_z[self.z] = true
 	else
 		return self.state
 	end
@@ -3339,7 +3424,7 @@ function GUI.Tabframe:draw()
 	local optarray = self.optarray
 
 	GUI.color("elm_bg")
-	gfx.rect(0, 0, gfx.w, h, true)
+	gfx.rect(x - 16, y, gfx.w, h, true)
 			
 	local x_adj, y_adj = table.unpack(dir == "h" and { (w + pad), 0 } or { 0, (h + pad) })
 	
@@ -3373,7 +3458,7 @@ end
 
 -- Tabframe - Mouse down.
 function GUI.Tabframe:onmousedown()
-			
+
 	--See which option it's on
 	local mouseopt = (self.dir == "h") and ((GUI.mouse.x - self.x) / self.w) or ((GUI.mouse.y - self.y) / self.h)
 	--local adj_y = self.y + self.capheight + self.pad
@@ -3385,6 +3470,7 @@ function GUI.Tabframe:onmousedown()
 	self.state = mouseopt
 
 	GUI.redraw_z[self.z] = true
+	
 end
 
 
@@ -5562,11 +5648,6 @@ local function Main()
 		else
 			scale_arr, scale_size = reascale_arr[scale_num].scale, reascale_arr[scale_num].size
 		end
-		
-	
-		reaper.SetExtState(GUI.name, "current scale", scale_num, 1)
-		reaper.SetExtState(GUI.name, "current key", key, 1)
-		
 
 		-- Clear last-clicked highlights
 		for key, value in pairs(GUI.elms) do
