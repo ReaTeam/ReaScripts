@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.7
+Version: 1.75
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -654,7 +654,7 @@ local function Main()
 	Otherwise, we keep going until the user lets go of the key
 ]]--	  
 
-	if gfx.getchar() ~= -1 and (setup or key_down ~= 0 or (startup and diff < 0.6)) then
+	if gfx.getchar() ~= -1 and (setup or key_down ~= 0 or (startup and diff < 0.75)) then
 		reaper.defer(Main)
 	else
 		return 0
