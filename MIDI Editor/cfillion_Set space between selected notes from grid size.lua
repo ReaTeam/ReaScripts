@@ -1,5 +1,6 @@
 -- @description Set space between selected notes from grid size
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Fix behavior when multiple notes are at the same position.
 -- @author cfillion
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=187255
 -- @donation https://www.paypal.me/cfillion
@@ -11,7 +12,7 @@ if not take or not reaper.ValidatePtr(take, 'MediaItem_Take*') then
 end
 
 local grid = reaper.MIDI_GetGrid(take)
-ni, last_end, changes = -1, nil, {}
+local ni, last_end, changes = -1, nil, {}
 
 while true do
   ni = reaper.MIDI_EnumSelNotes(take, ni)
@@ -47,7 +48,8 @@ end
 reaper.Undo_BeginBlock()
 
 for _,change in ipairs(changes) do
-  reaper.MIDI_SetNote(take, change.ni, nil, nil, change.newstart, change.newend, nil, nil, nil, nil)
+  reaper.MIDI_SetNote(take, change.ni, nil, nil,
+    change.newstart, change.newend, nil, nil, nil, true)
 end
 
 reaper.MIDI_Sort(take)
