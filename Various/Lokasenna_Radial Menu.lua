@@ -487,7 +487,7 @@ local function Main()
 				16	Alt
 				32	Win
 				
-				For Ctrl+4 or Ctrl+]... I have no fucking clue short of individually
+				For Shift+4 or Shift+], etc... I have no fucking clue short of individually
 				checking every possibility.
 			
 			]]--
