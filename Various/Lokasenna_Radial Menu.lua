@@ -15,6 +15,7 @@ About:
 	Instructions:
 	
 		- Bind the script to a key
+			^ Any key by itself, or any letter key with a modifier i.e. Shift+B, but not i.e. Shift+]
 		- Hold the key down, a window will open
 		- Use the mouse to choose menu options and click on actions
 		- Let the key go when you're done, and the window will close
