@@ -1,10 +1,10 @@
 --[[
 Description: Radial Menu
-Version: 1.75
+Version: 1.8
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fix: Scripts and custom actions didn't work after reloading them in the Action List
+	Bug fix: Some keys and/or having Caps turned on would cause issues
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -457,11 +457,16 @@ local function Main()
 		managed to start up, since that would leave the window open rather
 		than closing it
 	]]--
+	
+	--Msg(gfx.getchar())
+	cur_char = gfx.getchar()
+	
+	
 	if startup then
-		key_down = gfx.getchar()
+		key_down = cur_char
 		
 		if key_down ~= 0 then
-			hold_char = key_down 
+			hold_char = key_down >= 97 and key_down or (key_down + 32)
 			startup = false
 		elseif not up_time then
 			up_time = reaper.time_precise()
@@ -469,7 +474,7 @@ local function Main()
 		
 	else
 		key_down = gfx.getchar(hold_char)
-		
+
 	end
 
 	-- Where is the mouse in relation to the center of the window?
@@ -613,7 +618,7 @@ local function Main()
 		end
 
 		-- Check for F1, to open our generic settings
-		if gfx.getchar() == 26161 then
+		if cur_char == 26161 then
 		-- retval, retvals_csv reaper.GetUserInputs( title, num_inputs, captions_csv, retvals_csv )
 
 			local defstr = table.concat(col_main, " ")..","..table.concat(col_hover, " ")..","..table.concat(col_bg, " ")
@@ -646,15 +651,15 @@ local function Main()
 	local diff = up_time and (reaper.time_precise() - up_time) or 0
 	
 --[[
-	If 'up_time' manages to run longer than 0.6s, we'll close the script
+	If 'up_time' manages to run longer than 0.7s, we'll close the script
 	(0.6s is the shortest I could set it on my system without the window
 	closing and then opening again when Windows says "this key is still
-	being held down"
+	being held down", so we'll just bump it 0.7 to be safe)
 	
 	Otherwise, we keep going until the user lets go of the key
 ]]--	  
 
-	if gfx.getchar() ~= -1 and (setup or key_down ~= 0 or (startup and diff < 0.75)) then
+	if cur_char ~= -1 and (setup or key_down ~= 0 or (startup and diff < 0.7)) then
 		reaper.defer(Main)
 	else
 		return 0
