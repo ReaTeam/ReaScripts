@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="df6f010f88df27782472a39d3395fd721b3bbc50" name="ReaTeam Scripts">
+<index version="1" commit="2558a4f8cfcce27caf1eae57c8bab133c480287c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3641,6 +3641,12 @@ don't evaluate command/actions while in a lua block
 implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
 remove extra newline inserted when executing an empty command since v0.5]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c29a701329b5a410f6edf81fbbf32468b5cf2574/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.6.1" author="cfillion" time="2017-02-02T15:40:36Z">
+        <changelog><![CDATA[fix division by zero when wrapping lines starting with a zero-length character
+fix invisible \t (tabs) on windows
+fix ugly font on windows]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2558a4f8cfcce27caf1eae57c8bab133c480287c/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
