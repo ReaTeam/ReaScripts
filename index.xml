@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2558a4f8cfcce27caf1eae57c8bab133c480287c" name="ReaTeam Scripts">
+<index version="1" commit="ebddf942e64a1e4dbd7d7d9c3fc62847a1b6517d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3772,7 +3772,6 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides a circular "quick menu" for commonly-used actions, similar to how weapons are selected in many FPS games.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Instructions:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Bind the script to a key\line
-    ^ Any key by itself, or any letter key with a modifier i.e. Shift+B, but not i.e. Shift+]\line
 - Hold the key down, a window will open\line
 - Use the mouse to choose menu options and click on actions\line
 - Let the key go when you're done, and the window will close\line
@@ -3847,6 +3846,10 @@ Bug fixes]]></changelog>
       <version name="1.85" author="Lokasenna" time="2017-02-01T22:29:43Z">
         <changelog><![CDATA[Bug fix: Some keys and/or having Caps turned on would cause issues]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df6f010f88df27782472a39d3395fd721b3bbc50/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="1.9" author="Lokasenna" time="2017-02-04T03:09:25Z">
+        <changelog><![CDATA[Bug fix: Crashing when using SWS actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebddf942e64a1e4dbd7d7d9c3fc62847a1b6517d/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
