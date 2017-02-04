@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.9
+Version: 1.91
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -336,7 +336,7 @@ local k = math.max(cur_depth - 1, 0)
 		
 		local opt = mnu_arr[cur_depth][i]
 
-		if opt.lbl ~= "" then
+		if opt.lbl and opt.lbl ~= "" then
 		
 			--local k = math.max(cur_depth - 1, 0)
 			--local k = 0
@@ -356,7 +356,7 @@ local k = math.max(cur_depth - 1, 0)
 				color = col_main
 			end
 
-			if string.sub(opt.act, 1, 4) ~= "menu" and opt.act ~= "" then
+			if opt.act and string.sub(opt.act, 1, 4) ~= "menu" and opt.act ~= "" then
 				local act = opt.act --string.match(opt.act, "(%d+)")
 				if string.sub(act, 1, 1) == "_" then
 					act = reaper.NamedCommandLookup(act)
