@@ -1,10 +1,10 @@
 --[[
 Description: Radial Menu
-Version: 1.85
+Version: 1.9
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fix: Some keys and/or having Caps turned on would cause issues
+	Bug fix: Crashing when using SWS actions
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -15,7 +15,6 @@ About:
 	Instructions:
 	
 		- Bind the script to a key
-			^ Any key by itself, or any letter key with a modifier i.e. Shift+B, but not i.e. Shift+]
 		- Hold the key down, a window will open
 		- Use the mouse to choose menu options and click on actions
 		- Let the key go when you're done, and the window will close
@@ -358,8 +357,11 @@ local k = math.max(cur_depth - 1, 0)
 			end
 
 			if string.sub(opt.act, 1, 4) ~= "menu" and opt.act ~= "" then
-				local action = string.match(opt.act, "(%d+)")
-				local state = reaper.GetToggleCommandState(action)
+				local act = opt.act --string.match(opt.act, "(%d+)")
+				if string.sub(act, 1, 1) == "_" then
+					act = reaper.NamedCommandLookup(act)
+				end
+				local state = reaper.GetToggleCommandState(act)
 				if state ~= nil then
 					if state == 1 then 
 						color = col_tog_on
@@ -488,7 +490,7 @@ local function Main()
 				16	Alt
 				32	Win
 				
-				For Shift+4 or Shift+], etc... I have no fucking clue short of individually
+				For Ctrl+4 or Ctrl+]... I have no fucking clue short of individually
 				checking every possibility.
 			
 			]]--
