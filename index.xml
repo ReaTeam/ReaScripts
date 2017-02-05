@@ -3042,7 +3042,7 @@ Harmony\line
         <changelog><![CDATA[Bug fixes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/52a4a20c8d41a9c13bc9d18c1766bfc65e9c3845/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
       </version>
-      <version name="1.2" author="Lokasenna" time="2017-02-01T14:13:58Z">
+      <version name="1.20" author="Lokasenna" time="2017-02-01T14:13:58Z">
         <changelog><![CDATA[Hopefully fixed a couple of bugs that were crashing the script.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/bba3e23f4e07407f7ec29b78e10d08b79a26aa34/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
       </version>
