@@ -1,6 +1,6 @@
 --[[
 Description: Theory Helper
-Version: 1.2
+Version: 1.25
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -167,7 +167,7 @@ GUI.colors = {
 	txt = {192, 192, 192, 255},			-- Text
 	
 	shadow = {0, 0, 0, 102},			-- Shadow
-	
+	faded = {0, 0, 0, 64},
 	
 	-- Standard 16 colors
 	black = {0, 0, 0, 255},
@@ -356,13 +356,39 @@ GUI.open_file = function (path)
 end
 
 
--- Allows "for x, y in pairs(z) do" in alphabetical/numerical order
--- Copied from Programming In Lua, 19.3
+--[[
+	Allows "for x, y in pairs(z) do" in alphabetical/numerical order
+	Copied from Programming In Lua, 19.3
+	
+	Sorting function taken from: http://lua-users.org/wiki/SortedIteration
+	
+]]--
 GUI.kpairs = function (t, f)
+
+	--GUI.Msg("kpairs start")
+
+	if f == "full" then
+		f = function (op1, op2)
+			
+			local type1, type2 = type(op1), type(op2)
+			if type1 ~= type2 then --cmp by type
+				return type1 < type2
+			elseif type1 == "number" and type2 == "number"
+				or type1 == "string" and type2 == "string" then
+				return op1 < op2 --comp by default
+			elseif type1 == "boolean" and type2 == "boolean" then
+				return op1 == true
+			else
+				return tostring(op1) < tostring(op2) --cmp by address
+			end
+		end
+	end
 
 	local a = {}
 	for n in pairs(t) do table.insert(a, n) end
+	--GUI.Msg("kpairs sorting")
 	table.sort(a, f)
+	--GUI.Msg("kpairs sorted")
 	
 	local i = 0      -- iterator variable
 	local iter = function ()   -- iterator function
@@ -374,6 +400,8 @@ GUI.kpairs = function (t, f)
 		end
 		
 	end
+	
+	--GUI.Msg("kpairs end")
 	
 	return iter
 end
@@ -509,8 +537,15 @@ GUI.hsv2rgb = function (h, s, v, a)
 	
 end
 
+--[[
+	Returns the color for a given position on an HSV gradient between two colors
 
--- Return the color for a given position on an HSV gradient between two colors
+	col_a		Tables of {R, G, B[, A]}, values from 0-1
+	col_b
+	
+	pos			Position along the gradient, 0 = col_a, 1 = col_b
+
+]]--
 GUI.gradient = function (col_a, col_b, pos)
 	
 	local col_a = {GUI.rgb2hsv(table.unpack(col_a))}
@@ -1015,7 +1050,11 @@ GUI.Update = function (elm)
 
 			-- Was a different element clicked?
 			if not inside then 
-				elm.focus = false
+				if elm.focus then
+					elm.focus = false
+					elm:lostfocus()
+				end
+				return 0
 			else	
 	
 				GUI.mouse.down = true
@@ -1028,6 +1067,7 @@ GUI.Update = function (elm)
 				-- Double clicked?
 				if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
 					elm:ondoubleclick()
+					GUI.mouse.down = false
 					GUI.elm_updated = true
 				end				
 				
@@ -1188,7 +1228,9 @@ end
 
 function GUI.Element:onmouseover()
 	
-	if self.tooltip and not GUI.tooltip_elm then GUI.tooltip_elm = self end
+	if self.tooltip and not GUI.tooltip_elm then 
+		GUI.tooltip_elm = self 
+	end
 
 end
 
@@ -1647,8 +1689,7 @@ end
 
 -- Slider - Dragging
 function GUI.Slider:ondrag()
-	
-	-- If this works, I love this structure
+
 	local coord, lastcoord, size = 
 		table.unpack(self.dir == "h"
 					and {GUI.mouse.x, GUI.mouse.lx, self.w}
@@ -2279,7 +2320,7 @@ function GUI.Radio:draw()
 	
 	GUI.shadow(self.caption, "txt", "shadow")
 	
-	GUI.font(3)
+	GUI.font(self.font or 3)
 
 	-- Draw the options
 	GUI.color("txt")
@@ -2322,6 +2363,7 @@ end
 function GUI.Radio:val(newval)
 	
 	if newval then
+		self.retval = newval
 		self.state = newval
 		GUI.redraw_z[self.z] = true		
 	else
@@ -2405,7 +2447,7 @@ pad				Padding between the caption and each option
 
 -- Checklist - New
 GUI.Checklist = GUI.Element:new()
-function GUI.Checklist:new(z, x, y, caption, opts, dir, pad)
+function GUI.Checklist:new(z, x, y, w, h, caption, opts, dir, pad)
 	
 	local chk = {}
 	chk.type = "Checklist"
@@ -2694,6 +2736,12 @@ function GUI.Button:onmouseup()
 
 end
 
+function GUI.Button:ondoubleclick()
+	
+	self.state = 0
+	
+end
+
 
 -- Button - Right mouse up
 function GUI.Button:onmouser_up()
@@ -2863,6 +2911,13 @@ function GUI.Textbox:val(newval)
 end
 
 
+-- Textbox - Lost focus
+function GUI.Textbox:lostfocus()
+
+	GUI.redraw_z[self.z] = true
+	
+end
+
 -- Textbox - Get the closest character position to the mouse.
 function GUI.Textbox:getcaret()
 	
@@ -2962,6 +3017,8 @@ function GUI.Textbox:ontype()
 		
 	elseif char == GUI.chars.RETURN then
 		self.focus = false
+		self:lostfocus()
+		text = self.retval
 		
 	elseif char == GUI.chars.HOME then
 		self.caret = 0
@@ -3001,6 +3058,8 @@ function GUI.Textbox:onupdate()
 	end
 	
 end
+
+
 
 
 
@@ -3056,7 +3115,7 @@ function GUI.Menubox:draw()
 	
 	local caption = self.caption
 	local val = self.retval
-	local text = type(self.optarray[val]) == "table" 
+	local text = (type(self.optarray[val]) == "table")
 					and self.optarray[val][1] 
 					or self.optarray[val]
 
@@ -3152,11 +3211,14 @@ function GUI.Menubox:onmouseup()
 		menu_str = menu_str .. new_str .. "|"
 
 	end
+	
+	menu_str = string.sub(menu_str, 1, string.len(menu_str) - 1)
 
 	gfx.x, gfx.y = GUI.mouse.x, GUI.mouse.y
 	
 	local curopt = gfx.showmenu(menu_str)
 	if curopt ~= 0 then self.retval = curopt end
+
 	self.focus = false
 	
 	GUI.redraw_z[self.z] = true	
@@ -3362,6 +3424,9 @@ function GUI.Tabframe:val(newval)
 	
 	if newval then
 		self.state = newval
+		self.retval = self.state
+
+		self:update_sets()
 		GUI.redraw_z[self.z] = true
 	else
 		return self.state
@@ -4065,16 +4130,26 @@ end
 -- Browse for a new .reascale, parse it, and save it
 local function get_reascale(startup)
 
-	-- Get a file to work with
-	if reascale_path == "" then 
-		__, reascale_path = reaper.BR_Win32_GetPrivateProfileString("reaper", "reascale_fn", "", ini_file)
-	end
-
-	if reascale_path == "" or not startup then
-		__, reascale_path = reaper.GetUserFileNameForRead("", "Choose a .reascale file", ".reascale")
+	local file, err
+	if startup then
+		file, err = io.open(reascale_path)
+		if not file then
+			--GUI.Msg("error: "..tostring(err))
+			--GUI.Msg("checking .ini")
+			__, reascale_path = reaper.BR_Win32_GetPrivateProfileString("reaper", "reascale_fn", "", ini_file)
+			--GUI.Msg("got: "..tostring(reascale_path))
+			file, err = io.open(reascale_path)
+		end
 	end
 	
-	file = io.open(reascale_path) or nil
+	if not startup or not file then
+		--GUI.Msg("error: "..tostring(err))
+		--GUI.Msg("asking user")
+		__, reascale_path = reaper.GetUserFileNameForRead("", "Choose a .reascale file", ".reascale")
+		--GUI.Msg("got: "..tostring(reascale_path))
+		file, err = io.open(reascale_path)
+		if not file then GUI.Msg("error: "..tostring(err)) end
+	end
 	
 	if file then
 		
@@ -4301,32 +4376,6 @@ local function play_scale(dir)
 	end
 	
 	
-end
-
-
--- Toggle the help overlay. On (help = true) or off (help = false)
-local function toggle_help(help)
-	
-	for i = 5, 10 do
-		GUI.elms_freeze[i] = help
-	end
-	
-	for i = 1, 4 do
-		GUI.elms_hide[i] = not help
-	end
-	
-end
-
-
--- Proof of concept for a fade-out text effect, for instance "Inserted notes..."
-local function fade_label()
-	
-	GUI.font(1)
-	local str = "Fading..."
-	local str_w, str_h = gfx.measurestr(str)
-	GUI.elms.lbl_test_fade.x = (GUI.cur_w - str_w) / 2	
-	GUI.elms.lbl_test_fade:fade(2, 0, 18)
-		
 end
 
 
@@ -4995,11 +5044,11 @@ GUI.elms = {
 	frm_result = GUI.Frame:new(			10, line_x + 10, line_y + 120, 394, 88, false, true, "tab_bg", 4),
 	lbl_result = GUI.Label:new(			9,	line_x + 22, line_y + 128, "0 matches:", 1, 2),
 	mnu_result = GUI.Menubox:new(		9,	line_x + 128, line_y + 129, 256, 20, "", "scale A,scale B,scale C", 4),
-	chk_result = GUI.Checklist:new(		9,	line_x + 22, line_y + 178, "", table.concat(root_arr, ",", 0), "h", 12),
+	chk_result = GUI.Checklist:new(		9,	line_x + 22, line_y + 178, nil, nil, "", table.concat(root_arr, ",", 0), "h", 12),
 
 	frm_search = GUI.Frame:new(			10, line_x + 10, line_y + 254, 394, 86, false, true, "tab_bg", 4),
 	lbl_search = GUI.Label:new(			9,	line_x + 22, line_y + 260, "Search:", 1, 2),
-	chk_search = GUI.Checklist:new(		9,	line_x + 22, line_y + 310, "", table.concat(root_arr, ",", 0), "h", 12),
+	chk_search = GUI.Checklist:new(		9,	line_x + 22, line_y + 310, nil, nil, "", table.concat(root_arr, ",", 0), "h", 12),
 	
 	btn_copy = GUI.Button:new(			9,	line_x + 64, line_y + 220, 64, 20, "↓ Copy ↓", copy_result),
 
@@ -5042,7 +5091,7 @@ GUI.elms = {
 	---- Tab 4: Options ----
 
 	lbl_reascale = GUI.Label:new(		15,	16, line_y + 82, "( no .reascale loaded )", 0, 6),
-	chk_follow =	GUI.Checklist:new(	15,	20, line_y + 128, "", "Use MIDI editor's key snap scale\n       (Disables some options)", "v", 0),
+	chk_follow =	GUI.Checklist:new(	15,	20, line_y + 128, nil, nil, "", "Use MIDI editor's key snap scale\n       (Disables some options)", "v", 0),
 
 	lbl_velocity = GUI.Label:new(		15,	28, line_y + 192, "Velocity:", 1, 3),
 	sldr_velocity = GUI.Slider:new(		15,	83, line_y + 196, 92, "", 0, 127, 128, 1, "h"),
