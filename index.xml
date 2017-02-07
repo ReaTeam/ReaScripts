@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dbe96cba76a934635bbc5f9c9d659544a8a53e75" name="ReaTeam Scripts">
+<index version="1" commit="2723911cfd76970e99bc62ab1b1edcf92d2cef74" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3866,6 +3866,10 @@ Bug fixes]]></changelog>
       <version name="1.93" author="Lokasenna" time="2017-02-04T23:43:53Z">
         <changelog><![CDATA[Bug fix: Crashing when using SWS actions]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f20e96ea73371fc551a3af1b7db31bb8474d4d2f/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="1.94" author="Lokasenna" time="2017-02-07T16:32:41Z">
+        <changelog><![CDATA[Bug fix: Crashing when using SWS actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2723911cfd76970e99bc62ab1b1edcf92d2cef74/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
