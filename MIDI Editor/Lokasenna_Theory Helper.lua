@@ -4,7 +4,7 @@ Version: 1.25
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Hopefully fixed a couple of bugs that were crashing the script.
+	Bug fix: Getting the .reascale wasn't always working.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
