@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7a681ef7e72783f8a71239a23ccc67e9adefbc65" name="ReaTeam Scripts">
+<index version="1" commit="a34ee66a35e63fdc74cd449c954f91fedba2f4a5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3049,6 +3049,10 @@ Harmony\line
       <version name="1.20" author="Lokasenna" time="2017-02-01T14:13:58Z">
         <changelog><![CDATA[Hopefully fixed a couple of bugs that were crashing the script.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/bba3e23f4e07407f7ec29b78e10d08b79a26aa34/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.25" author="Lokasenna" time="2017-02-07T22:19:53Z">
+        <changelog><![CDATA[Bug fix: Getting the .reascale wasn't always working.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a34ee66a35e63fdc74cd449c954f91fedba2f4a5/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi-ahmusic_Search selected notes in scale finder.lua" type="script" desc="Search selected notes in scale finder">
