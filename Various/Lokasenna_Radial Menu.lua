@@ -1,10 +1,10 @@
 --[[
 Description: Radial Menu
-Version: 1.94
+Version: 1.95
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fix: Crashing when using SWS actions
+	Bug fix: Key bindings with modifiers don't want to work properly
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -505,7 +505,7 @@ local function Main()
 				
 				--  No change				-- Alt+Shift
 				
-			elseif cap & 8 == 8 then		
+			elseif cap & 8 == 8 or (key_down >= 65 and key_down <= 90) then		then		
 				adj = adj + 32				-- Shift
 			end
 	
