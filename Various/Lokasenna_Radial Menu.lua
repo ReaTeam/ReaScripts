@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.96
+Version: 1.97
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -361,7 +361,7 @@ local k = math.max(cur_depth - 1, 0)
 				if string.sub(act, 1, 1) == "_" then
 					act = reaper.NamedCommandLookup(act)
 				end
-				local state = (type(act) == "number" and act > 0) and reaper.GetToggleCommandState(act) or nil
+				local state = (tonumber(act) and tonumber(act) > 0) and reaper.GetToggleCommandState(act) or nil
 				if state == 1 then color = col_tog_on end
 			end  
 			
