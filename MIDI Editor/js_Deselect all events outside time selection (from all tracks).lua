@@ -1,9 +1,10 @@
 --[[
 ReaScript name: js_Deselect all MIDI events outside time selection (from all tracks).lua
-Version: 2.00
+Version: 2.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27595/Deselect%20all%20MIDI%20events%20outside%20time%20selection%20%28from%20all%20tracks%29%20-%20Copy.gif
+Donation: https://www.paypal.me/juliansader
 REAPER version: 5.30 or later
 Extensions required: -
 ]]
@@ -21,6 +22,8 @@ Extensions required: -
   * v2.00 (2016-12-24)
     + Much faster execution.
     + Requires REAPER v5.30.
+  * v2.01 (2017-02-08)
+    + Parse muted notes that overlap with non-muted notes.
 ]]
 
 
@@ -86,8 +89,11 @@ for i=0, numItems-1 do
                         --    If false, then remain selected.
                         --    If nil, then there is no running note (i.e. no preceding note-on that has ot already been matched to a note-off).
                         local tableDeselectNextNoteOff = {} 
-                        for chan = 0, 15 do
-                            tableDeselectNextNoteOff[chan] = {}
+                        for flags = 0, 3 do
+                            tableDeselectNextNoteOff[flags] = {}
+                            for chan = 0, 15 do
+                                tableDeselectNextNoteOff[flags][chan] = {}
+                            end
                         end
                                      
                         -- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
@@ -118,7 +124,7 @@ for i=0, numItems-1 do
                                                       .. '"\n\nUsually, making any edit to the take in the MIDI editor, even simply selecting a note, will induce the editor to re-sort the MIDI data - '
                                                       .. 'but look out for inadvertent changes to overlapping notes.'
                                                       , "ERROR", 0)
-                                reaper.Undo_EndBlock2(0, "INCOMPLETE: Deselect all MIDI events outside time selection (from all tracks)", 4)
+                                reaper.Undo_EndBlock2(0, "INCOMPLETE: Deselect all MIDI events outside time selection (from all tracks)", -1)
                                 return false
                             end
                             
@@ -133,11 +139,11 @@ for i=0, numItems-1 do
                                     local channel = msg:byte(1)&0x0F
                                     local pitch   = msg:byte(2)
                                     -- Was there a deselected note-on on this channel and pitch?
-                                    if tableDeselectNextNoteOff[channel][pitch] then
+                                    if tableDeselectNextNoteOff[flags][channel][pitch] then
                                         mustDeselect = true
                                     end
                                     -- Delete record, so that next note-on doesn't think it is an overlap.
-                                    tableDeselectNextNoteOff[channel][pitch] = nil
+                                    tableDeselectNextNoteOff[flags][channel][pitch] = nil
                                     
                                 -- Note-ons
                                 elseif eventType == 9 then -- and msg:byte(3) > 0
@@ -145,7 +151,7 @@ for i=0, numItems-1 do
                                     local pitch   = msg:byte(2)
                                     
                                     -- Check for note overlaps.  nil implies that no running note on this channel and pitch
-                                    if tableDeselectNextNoteOff[channel][pitch] ~= nil then
+                                    if tableDeselectNextNoteOff[flags][channel][pitch] ~= nil then
                                         local trackName, _ = reaper.GetTrackState(reaper.GetMediaItemTake_Track(curTake))
                                         reaper.ShowMessageBox('There appears to be overlapping notes among the selected notes. The lengths of such notes cannot be unambiguously determined by the script.'
                                                               .. '\n\nIn particular, at position:\n   '
@@ -161,12 +167,12 @@ for i=0, numItems-1 do
                                     end
                                     
                                     -- False means that the next matching selected note-off should not be deselected
-                                    tableDeselectNextNoteOff[channel][pitch] = false -- Temporary
+                                    tableDeselectNextNoteOff[flags][channel][pitch] = false -- Temporary - must still search ahead
                                     
-                                    -- Now check whether this note shoudl be deselected
+                                    -- Now check whether this note should be deselected
                                     if runningPPQpos >= timeSelEndPPQinTake then
                                         mustDeselect = true
-                                        tableDeselectNextNoteOff[channel][pitch] = true
+                                        tableDeselectNextNoteOff[flags][channel][pitch] = true
                                         
                                     elseif runningPPQpos < timeSelStartPPQinTake then
                                         -- Search ahead in MIDI data, looking for a matching note-off so that note length can be determined.
@@ -180,18 +186,18 @@ for i=0, numItems-1 do
                                             evOffset, evFlags, evMsg, evPos = s_unpack("i4Bs4", MIDIstring, evPos)
                                             -- Don't mind negative offsets of overlapping notes here - the other parts of the script will eventually detect them
                                             evPPQpos = evPPQpos + evOffset
-                                            if evFlags&1 == 1 
+                                            if evFlags == flags
                                             and (evMsg:sub(1,2) == matchChannelPitchNoteOff or (evMsg:sub(1,2) == matchChannelPitchNoteOn and evMsg:byte(3) == 0))
                                             then
                                                 if evPPQpos <= timeSelStartPPQinTake then
                                                     mustDeselect = true
-                                                    tableDeselectNextNoteOff[channel][pitch] = true
+                                                    tableDeselectNextNoteOff[flags][channel][pitch] = true
                                                 end
                                                 
                                                 -- If reached Note-off, whether mustDeselect or not, break out of loop
                                                 break
                                             end
-                                        until evPos >= MIDIlen -- If reached MIDIlen, then the note is an extended, infinite note                                                                      
+                                        until evPos >= MIDIlen-12 -- If reached MIDIlen, then the note is an extended, infinite note                                                                      
                                     end                            
                                                                         
                                 -- All other event types
