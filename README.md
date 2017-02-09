@@ -7,7 +7,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 
 - [Argitoth](http://forum.cockos.com/member.php?u=7973)
 - [Breeder](http://forum.cockos.com/member.php?u=27094)
-- [cfillion](http://forum.cockos.com/member.php?u=98780) ([website](http://cfillion.tk), [donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T3DEWBQJAV7WL&lc=CA&item_name=ReaScripts&no_note=0&cn=Custom%20message&no_shipping=1&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted))
+- [cfillion](http://forum.cockos.com/member.php?u=98780) ([website](https://cfillion.ca), [donate](https://www.paypal.me/cfillion))
 - [gofer](http://forum.cockos.com/member.php?u=9328)
 - [HeDa](http://forum.cockos.com/member.php?u=47822) ([donate](https://www.patreon.com/heda?ty=h))
 - [JamesHEure](http://forum.cockos.com/member.php?u=3734)
