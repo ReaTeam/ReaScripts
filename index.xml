@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="404d6e23d8ea10a16eb38fd6cd78092667a290c0" name="ReaTeam Scripts">
+<index version="1" commit="0421f9b54196fced24dd157cb1f7b9af21c7d887" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3404,6 +3404,15 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7bc709df5dbff69d45053136810469ff66bba6a/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
+    <reapack name="cfillion_Toggle visiblity of empty non-folder tracks.lua" type="script" desc="Toggle visiblity of empty non-folder tracks">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=187651">Forum Thread</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-02-09T04:14:35Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0421f9b54196fced24dd157cb1f7b9af21c7d887/Tracks%20Properties/cfillion_Toggle%20visiblity%20of%20empty%20non-folder%20tracks.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
       <version name="1.0" author="juliansader" time="2016-06-11T21:59:06Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
@@ -4012,10 +4021,10 @@ Breeder
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=98780"}}{\fldrslt{\ul
 cfillion
 }}}
- ({\field{\*\fldinst{HYPERLINK "http://cfillion.tk"}}{\fldrslt{\ul
+ ({\field{\*\fldinst{HYPERLINK "https://cfillion.ca"}}{\fldrslt{\ul
 website
 }}}
-, {\field{\*\fldinst{HYPERLINK "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T3DEWBQJAV7WL&lc=CA&item_name=ReaScripts&no_note=0&cn=Custom%20message&no_shipping=1&currency_code=CAD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"}}{\fldrslt{\ul
+, {\field{\*\fldinst{HYPERLINK "https://www.paypal.me/cfillion"}}{\fldrslt{\ul
 donate
 }}}
 )\par}
