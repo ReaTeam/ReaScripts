@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.25
+Version: 1.26
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fix: Getting the .reascale wasn't always working.
+	More bug fixes
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -3714,7 +3714,7 @@ local tooltips = {
 	[15] = "'Smart': Won't use passing tones for harmonies            'Literal': Will use all notes in the scale",
 	[16] = "Apply these settings to the sliders",
 	[17] = "Use the slider settings to create harmonized copies of all selected notes",
-	[18] = "Preview all selected notes with harmonies",
+	[18] = "Play through all selected notes with harmonies",
 	[19] = "The current .reascale file",
 	[20] = "Use the MIDI editor's current scale? (Requires that Key Snap be active in the MIDI editor)",
 	[21] = "MIDI velocity to use for previewing notes",
@@ -4214,7 +4214,11 @@ local function get_reascale(startup)
 		GUI.elms.mnu_scale.optarray = mnu_scale_arr
 		GUI.elms.mnu_scale.numopts = #mnu_scale_arr
 		
-		if not startup then scale_num = 1 end
+		if not startup then 
+			scale_num = 1 
+		else
+			scale_num = GUI.clamp(scale_num, 1, #reascale_arr)
+		end	
 	
 	else
 	
@@ -5082,7 +5086,7 @@ GUI.elms = {
 	
 	btn_harm_sel_notes = GUI.Button:new(12,	16, line_y + 220, 168, 20, "Harmonize selected notes", harm_sel_notes),
 	
-	btn_prev_sel_notes = GUI.Button:new(12, 16, line_y + 246, 168, 20, "Preview harmony w/ sel. notes", prev_sel_notes),
+	btn_prev_sel_notes = GUI.Button:new(12, 16, line_y + 246, 168, 20, "Preview w/ selected notes", prev_sel_notes),
 	
 	
 	
