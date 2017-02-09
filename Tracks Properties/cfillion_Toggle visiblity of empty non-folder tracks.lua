@@ -19,6 +19,7 @@ for ti=0,reaper.CountTracks()-1  do
   if fx_count + item_count + env_count + math.max(depth, 0) + is_armed == 0 then
     local mcpVis = reaper.GetMediaTrackInfo_Value(track, 'B_SHOWINMIXER')
     local tcpVis = reaper.GetMediaTrackInfo_Value(track, 'B_SHOWINMIXER')
+
     if mcpVis + tcpVis == 0 then
       setVisible = 1
     end
@@ -27,7 +28,7 @@ for ti=0,reaper.CountTracks()-1  do
   end
 end
 
-if #empty_tracks == 0 then return end
+if #empty_tracks == 0 then return reaper.defer(function() end) end
 
 reaper.Undo_BeginBlock()
 
