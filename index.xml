@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0421f9b54196fced24dd157cb1f7b9af21c7d887" name="ReaTeam Scripts">
+<index version="1" commit="379b77e168e248c759a41a6a7281dbbb6159a0a8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3915,6 +3915,24 @@ Bug fixes]]></changelog>
       <version name="1.98" author="Lokasenna" time="2017-02-08T18:51:22Z">
         <changelog><![CDATA[Bug fix: I'm an idiot]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/404d6e23d8ea10a16eb38fd6cd78092667a290c0/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Lokasenna_Run Lua script in debug mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Lets users open a compatible .lua script in debug mode, to assist in diagnosing errors, crashes, etc.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2017-02-09T16:31:29Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/379b77e168e248c759a41a6a7281dbbb6159a0a8/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
