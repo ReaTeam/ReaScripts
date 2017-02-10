@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="105ce6f3fb67c1d803c046f473397dd494de59f5" name="ReaTeam Scripts">
+<index version="1" commit="67e146f0d8c840a69d719113fb1a4e7f0fc94cc6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3921,6 +3921,24 @@ Bug fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/404d6e23d8ea10a16eb38fd6cd78092667a290c0/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
+    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Gets the last script that was run via 'Run Lua script in debug mode' and attempts to open it in debug mode again; a replacement for Reaper's native action 'ReaScript: Run last ReaScript (EEL or Lua)', since scripts can't get that filename from REAPER.ini directly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:40Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67e146f0d8c840a69d719113fb1a4e7f0fc94cc6/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Lokasenna_Run Lua script in debug mode">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -3937,6 +3955,10 @@ Bug fixes]]></changelog>
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2017-02-09T16:31:29Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/379b77e168e248c759a41a6a7281dbbb6159a0a8/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+      <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:23Z">
+        <changelog><![CDATA[Stores the last script to an ExtState; for companion script]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3bde81f8ccdc3be7c1aae4693437117ce36c47f4/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
