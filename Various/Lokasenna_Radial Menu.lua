@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.98
+Version: 1.99
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -329,8 +329,10 @@ end
 
 -- Draw all of the menu options as segments of a ring
 local function draw_mnu()
-	
-local k = math.max(cur_depth - 1, 0)	
+
+	local k = 0
+	--Disabled; rotating the menu was messing stuff up
+	--local k = math.max(cur_depth - 1, 0)	
 
 	for i = 0, #mnu_arr[cur_depth] do
 		
