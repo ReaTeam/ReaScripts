@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="33ddd3a0fe5e111d42d72748665c1489bb7e6a32" name="ReaTeam Scripts">
+<index version="1" commit="bb347d2c76807630c0c940fee0a28429826a65ad" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3923,6 +3923,10 @@ Bug fixes]]></changelog>
       <version name="1.99" author="Lokasenna" time="2017-02-10T13:02:57Z">
         <changelog><![CDATA[Bug fix: I'm an idiot]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/33ddd3a0fe5e111d42d72748665c1489bb7e6a32/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="1.100" author="Lokasenna" time="2017-02-10T13:26:39Z">
+        <changelog><![CDATA[Bug fix: I'm an idiot]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb347d2c76807630c0c940fee0a28429826a65ad/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
