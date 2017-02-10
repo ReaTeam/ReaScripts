@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu
-Version: 1.99
+Version: 1.100
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -607,6 +607,7 @@ local function Main()
 				if string.sub(act, 1, 1) == "_" then
 					act = reaper.NamedCommandLookup(act)
 				end
+				act = tonumber(act)
 				if type(act) == "number" and act > 0 then reaper.Main_OnCommand(act, 0) end
 				cur_depth = 0
 			end
