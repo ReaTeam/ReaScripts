@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.26
+Version: 1.27
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	More bug fixes
+	Check for SWS instead of crashing
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -96,6 +96,16 @@ GUI.version = "beta 8"
 
 -- Might want to know this
 GUI.OS = reaper.GetOS()
+
+-- Also might need to know this
+GUI.SWS_exists = function ()
+	
+	local exists = reaper.APIExists("BR_Win32_GetPrivateProfileString")
+	if not exists then reaper.ShowMessageBox( "This script requires the SWS extension.", "SWS not found", 0) end
+	return exists
+	
+end
+
 
 	---- Keyboard constants ----
 	
@@ -307,21 +317,48 @@ end
 
 
 -- Copy the contents of one table to another, since Lua can't do it natively
-GUI.table_copy = function (source)
+-- Provide a second table as 'base' to use it as the basis for copying, only
+-- bringing over keys from the source table that don't exist in the base
+GUI.table_copy = function (source, base, depth)
+	
+	-- Only needed for debug messaging
+	depth = ((not not depth) and (depth + 1)) or 0
+	
+	_=dm and GUI.Msg(string.rep("\t", depth).."copying table; base = "..tostring(base))
 	
 	if type(source) ~= "table" then return source end
 	
 	local meta = getmetatable(source)
-	local new = {}
+	local new = base or {}
 	for k, v in pairs(source) do
+		
+
+		
 		if type(v) == "table" then
-			new[k] = GUI.table_copy(v)
+			
+			--_=dm and GUI.Msg(string.rep("\t", depth + 1)..tostring(k).." is a table; recursing...")
+			
+			if base then
+				new[k] = GUI.table_copy(v, base[k], depth)
+			else
+				new[k] = GUI.table_copy(v, nil, depth)
+			end
+			
 		else
-			new[k] = v
+			if not base or (base and not new[k]) then 
+				_=dm and GUI.Msg(string.rep("\t", depth + 1)..tostring(k).." = "..tostring(v))		
+				new[k] = v
+			else
+				_=dm and GUI.Msg(string.rep("\t", depth + 1)..tostring(k).." already exists")
+			end
 		end
+		
+		--_=dm and GUI.Msg(string.rep("\t", depth).."done with "..tostring(k))
 	end
-	
 	setmetatable(new, meta)
+	
+	--_=dm and GUI.Msg(string.rep("\t", depth).."finished copying")
+	
 	return new
 	
 end
@@ -356,11 +393,31 @@ GUI.open_file = function (path)
 end
 
 
+-- 	Sorting function taken from: http://lua-users.org/wiki/SortedIteration
+GUI.full_sort = function (op1, op2)
+
+	if op1 == "0" then op1 = 0 end
+	if op2 == "0" then op2 = 0 end
+	local type1, type2 = type(op1), type(op2)
+	if type1 ~= type2 then --cmp by type
+		return type1 < type2
+	elseif type1 == "number" and type2 == "number"
+		or type1 == "string" and type2 == "string" then
+		return op1 < op2 --comp by default
+	elseif type1 == "boolean" and type2 == "boolean" then
+		return op1 == true
+	else
+		return tostring(op1) < tostring(op2) --cmp by address
+	end
+	
+end
+
+
 --[[
 	Allows "for x, y in pairs(z) do" in alphabetical/numerical order
 	Copied from Programming In Lua, 19.3
 	
-	Sorting function taken from: http://lua-users.org/wiki/SortedIteration
+	Call with f = "full" to use the full sorting function above
 	
 ]]--
 GUI.kpairs = function (t, f)
@@ -368,20 +425,7 @@ GUI.kpairs = function (t, f)
 	--GUI.Msg("kpairs start")
 
 	if f == "full" then
-		f = function (op1, op2)
-			
-			local type1, type2 = type(op1), type(op2)
-			if type1 ~= type2 then --cmp by type
-				return type1 < type2
-			elseif type1 == "number" and type2 == "number"
-				or type1 == "string" and type2 == "string" then
-				return op1 < op2 --comp by default
-			elseif type1 == "boolean" and type2 == "boolean" then
-				return op1 == true
-			else
-				return tostring(op1) < tostring(op2) --cmp by address
-			end
-		end
+		f = GUI.full_sort
 	end
 
 	local a = {}
@@ -484,6 +528,11 @@ GUI.rgb2hsv = function (r, g, b, a)
 	local max = math.max(r, g, b)
 	local min = math.min(r, g, b)
 	local chroma = max - min
+	
+	-- Dividing by zero is never a good idea
+	if chroma == 0 then
+		return 0, 0, max, (a or 1)
+	end
 	
 	local hue
 	if max == r then
@@ -691,6 +740,8 @@ end
 -- Are these coordinates inside the given element?
 GUI.IsInside = function (elm, x, y)
 
+	x, y = x or GUI.mouse.x, y or GUI.mouse.y
+
 	local inside = 
 			x >= elm.x and x < (elm.x + elm.w) and 
 			y >= elm.y and y < (elm.y + elm.h)
@@ -700,20 +751,6 @@ GUI.IsInside = function (elm, x, y)
 end
 
 
--- Make sure the window position is on-screen
-GUI.check_window_pos = function ()
-	
-	local x, y, w, h = GUI.x, GUI.y, GUI.w, GUI.h
-	local l, t, r, b = x, y, x + w, y + h
-	
-	local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
-	
-	if l < 0 then GUI.x = 0 end
-	if r > screen_w then GUI.x = (screen_w - w - 16) end
-	if t < 0 then GUI.y = 0 end
-	if b > screen_h then GUI.y = (screen_h - h - 40) end
-	
-end
 
 --[[
 Returns x,y coordinates for a window with the specified anchor position
@@ -735,6 +772,7 @@ If no anchor is specified, it will default to the top-left corner of the screen.
 GUI.get_window_pos = function (x, y, w, h, anchor, corner)
 
 	local ax, ay, aw, ah = 0, 0, 0 ,0
+		
 	local __, __, scr_w, scr_h = reaper.my_getViewport(x, y, x + w, y + h, x, y, x + w, y + h, 1)
 	
 	if anchor == "screen" then
@@ -763,6 +801,9 @@ GUI.get_window_pos = function (x, y, w, h, anchor, corner)
 	x = x + ax + cx
 	y = y + ay + cy
 	
+--[[
+	
+	Disabled until I can figure out the multi-monitor issue
 	
 	-- Make sure the window is entirely on-screen
 	local l, t, r, b = x, y, x + w, y + h
@@ -771,6 +812,7 @@ GUI.get_window_pos = function (x, y, w, h, anchor, corner)
 	if r > scr_w then x = (scr_w - w - 16) end
 	if t < 0 then y = 0 end
 	if b > scr_h then y = (scr_h - h - 40) end
+]]--	
 	
 	return x, y	
 	
@@ -779,16 +821,11 @@ end
 
 	---- Z-layer blitting ----
 
--- On each draw loop, only elements that are set to true in this table
--- will be fully redrawn; if false, it will just draw them from the buffer
+-- On each draw loop, only layers that are set to true in this table
+-- will be redrawn; if false, it will just copy them from the buffer
+-- Set [0] = true to redraw everything.
 GUI.redraw_z = {}
-GUI.redraw_all = function ()
-	
-	for k, v in pairs(GUI.redraw_z) do
-		GUI.redraw_z[k] = true
-	end
-	
-end
+
 
 
 	---- Our main functions ----
@@ -1747,6 +1784,20 @@ function GUI.Slider:onwheel()
 end
 
 
+-- Slider - Doubleclick
+function GUI.Slider:ondoubleclick()
+	
+	local steps = self.steps
+	local min = self.min
+	
+	self.curstep = self.default
+	self.curval = self.curstep / steps
+	self.retval = GUI.round(((self.max - min) / steps) * self.curstep + min)
+	
+	GUI.redraw_z[self.z] = true
+	
+end
+
 
 
 --[[	Range class
@@ -2021,6 +2072,28 @@ function GUI.Range:onwheel()
 
 end
 
+
+function GUI.Range:ondoubleclick()
+	
+--[[
+	self.curstep = self.default
+	self.curval = self.curstep / self.steps
+	self.retval = GUI.round(((self.max - self.min) / self.steps) * self.curstep + self.min)
+	
+	GUI.redraw_z[self.z] = true
+]]--
+
+	local steps = self.steps
+	local min, max = self.min, self.max
+
+	self.curstep_a, self.curstep_b = self.default_a, self.default_b
+	self.curval_a, self.curval_b = self.curstep_a / steps, self.curstep_b / steps
+	self.retval_a = GUI.round(((max - min) / steps) * self.curstep_a + min)
+	self.retval_b = GUI.round(((max - min) / steps) * self.curstep_b + min)
+	
+	GUI.redraw_z[self.z] = true
+	
+end
 
 
 --[[	Knob class.
@@ -2824,7 +2897,12 @@ function GUI.Textbox:draw()
 	local str_w, str_h = gfx.measurestr(caption)
 	gfx.x = x - str_w - pad
 	gfx.y = y + (h - str_h) / 2
-	GUI.shadow(caption, "txt", "shadow")
+	if self.shadow then 
+		GUI.shadow(caption, "txt", "shadow") 
+	else
+		GUI.color(self.color or "txt")
+		gfx.drawstr(caption)
+	end
 	
 	-- Draw the textbox frame, and make it brighter if focused.
 	
@@ -3591,6 +3669,8 @@ GUI = GUI_table()
 ----------------------------------------------------------------
 ---- End of libraries ----
 
+
+if not GUI.SWS_exists() then return 0 end
 
 GUI.name = "Lokasenna's Theory Helper"
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 600, 400
@@ -5790,7 +5870,7 @@ local function Main()
 			local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
 			gfx.quit()
 			gfx.init(GUI.name, new_w, new_h, 0, x, y)
-			GUI.redraw_all()
+			GUI.redraw_z[0] = true
 			GUI.cur_w, GUI.cur_h = new_w, new_h
 			
 			GUI.resized = true
@@ -5843,7 +5923,7 @@ local function Main()
 			local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
 			gfx.quit()
 			gfx.init(GUI.name, new_w, new_h, 0, x, y)
-			GUI.redraw_all()
+			GUI.redraw_z[0] = true
 		end
 		
 		GUI.elms.bg.w, GUI.elms.bg.h = gfx.w, gfx.h
