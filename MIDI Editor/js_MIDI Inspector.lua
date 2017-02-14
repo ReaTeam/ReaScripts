@@ -1,11 +1,10 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.00
+Version: 1.01
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
 REAPER version: 5.30
-Donation: https://www.paypal.me/juliansader
 About:
   # Description
   This script opens a GUI that shows important information about the active MIDI take, 
@@ -70,6 +69,8 @@ About:
   * v1.00 (2016-12-15)
     + Improved speed, using new API functions of REAPER v5.30.
     + The script requires REAPER v5.30.
+  * v1.01 (2017-02-14)
+    + Interpret note-ons with velocity=0 as note-offs.
 ]]
 
 -- USER AREA
@@ -94,77 +95,77 @@ initHeight = 408
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 
-tableTimeFormats = {[-1] = "Project default",
-                    [0] = "Time",
-                    [1] = "Measures.Beats.Time",
-                    [2] = "Measures.Beats",
-                    [3] = "Seconds",
-                    [4] = "Samples",
-                    [5] = "h:m:s:frames",
-                    [6] = "Measures:Beats:Ticks", -- This is how the MIDI editor's Properties window displays position (exept with . instead of :)
-                    [7] = "Ticks"}
+local tableTimeFormats = {[-1] = "Project default",
+                          [0] = "Time",
+                          [1] = "Measures.Beats.Time",
+                          [2] = "Measures.Beats",
+                          [3] = "Seconds",
+                          [4] = "Samples",
+                          [5] = "h:m:s:frames",
+                          [6] = "Measures:Beats:Ticks", -- This is how the MIDI editor's Properties window displays position (exept with . instead of :)
+                          [7] = "Ticks"}
     
-tableCCTypes = {[8] = "Note on",
-                [9] = "Note off",
-                [11] = "CC",
-                [12] = "Program select",
-                [13] = "Channel pressure",
-                [14] = "Pitch wheel"}
+local tableCCTypes = {[8] = "Note on",
+                      [9] = "Note off",
+                      [11] = "CC",
+                      [12] = "Program select",
+                      [13] = "Channel pressure",
+                      [14] = "Pitch wheel"}
 
-tableCCLanes = {[0] = "Bank Select MSB",
-                [1] = "Mod Wheel MSB",
-                [2] = "Breath MSB",
-                [4] = "Foot Pedal MSB",
-                [5] = "Portamento MSB",
-                [6] = "Data Entry MSB",
-                [7] = "Volume MSB",
-                [8] = "Balance MSB",
-                [10] = "Pan MSB",
-                [11] = "Expression MSB",
-                [12] = "Control 1 MSB",
-                [13] = "Control 2 MSB",
-                [32] = "Bank Select LSB",
-                [33] = "Mod Wheel LSB",
-                [34] = "Breath LSB",
-                [36] = "Foot Pedal LSB",
-                [37] = "Portamento LSB",
-                [38] = "Data Entry LSB",
-                [39] = "Volume LSB",
-                [40] = "Balance LSB",
-                [42] = "Pan LSB",
-                [43] = "Expression LSB",
-                [64] = "Sustain Pedal (on/off)",
-                [65] = "Portamento (on/off)",
-                [66] = "Sostenuto (on/off)",
-                [67] = "Soft Pedal (on/off)",
-                [68] = "Legato Pedal (on/off)",
-                [69] = "Hold Pedal 2 (on/off)",
-                [70] = "Sound Variation",
-                [71] = "Timbre Content",
-                [72] = "Release Time",
-                [73] = "Attack Time",
-                [74] = "Brightness",
-                [84] = "Portamento Control",
-                [91] = "External FX Depth",
-                [92] = "Tremolo Depth",
-                [93] = "Chorus Depth",
-                [94] = "Detune Depth",
-                [95] = "Phaser Depth",
-                [96] = "Data Increment",
-                [97] = "Data Decrement"}
+local tableCCLanes = {[0] = "Bank Select MSB",
+                      [1] = "Mod Wheel MSB",
+                      [2] = "Breath MSB",
+                      [4] = "Foot Pedal MSB",
+                      [5] = "Portamento MSB",
+                      [6] = "Data Entry MSB",
+                      [7] = "Volume MSB",
+                      [8] = "Balance MSB",
+                      [10] = "Pan MSB",
+                      [11] = "Expression MSB",
+                      [12] = "Control 1 MSB",
+                      [13] = "Control 2 MSB",
+                      [32] = "Bank Select LSB",
+                      [33] = "Mod Wheel LSB",
+                      [34] = "Breath LSB",
+                      [36] = "Foot Pedal LSB",
+                      [37] = "Portamento LSB",
+                      [38] = "Data Entry LSB",
+                      [39] = "Volume LSB",
+                      [40] = "Balance LSB",
+                      [42] = "Pan LSB",
+                      [43] = "Expression LSB",
+                      [64] = "Sustain Pedal (on/off)",
+                      [65] = "Portamento (on/off)",
+                      [66] = "Sostenuto (on/off)",
+                      [67] = "Soft Pedal (on/off)",
+                      [68] = "Legato Pedal (on/off)",
+                      [69] = "Hold Pedal 2 (on/off)",
+                      [70] = "Sound Variation",
+                      [71] = "Timbre Content",
+                      [72] = "Release Time",
+                      [73] = "Attack Time",
+                      [74] = "Brightness",
+                      [84] = "Portamento Control",
+                      [91] = "External FX Depth",
+                      [92] = "Tremolo Depth",
+                      [93] = "Chorus Depth",
+                      [94] = "Detune Depth",
+                      [95] = "Phaser Depth",
+                      [96] = "Data Increment",
+                      [97] = "Data Decrement"}
                 
-notePositionString = ""
-noteChannelString = ""
-notePitchString = ""
-noteVelocityString = ""
-noteLengthString = ""
-ccTypeString = ""
-ccLaneString = ""
-ccPositionString = ""
-ccChannelString = ""
-ccValueString = ""
-countSelCCs = 0
-countSelNotes = 0
+local notePositionString = ""
+local noteChannelString = ""
+local notePitchString = ""
+local noteVelocityString = ""
+local noteLengthString = ""
+local ccTypeString = ""
+local ccLaneString = ""
+local ccPositionString = ""
+local ccChannelString = ""
+local ccValueString = ""
+local countSelCCs = 0
+local countSelNotes = 0
 
 
 ---------------
@@ -178,7 +179,7 @@ function exit()
 end -- function exit
 
 -----------------------------
-function setColor(colorTable)
+local function setColor(colorTable)
     gfx.r = colorTable[1]
     gfx.g = colorTable[2]
     gfx.b = colorTable[3]
@@ -186,7 +187,7 @@ function setColor(colorTable)
 end -- function setColor
 
 -------------------------
-function drawWhiteBlock()
+local function drawWhiteBlock()
     local r = gfx.r; g = gfx.g; b = gfx.b; a = gfx.a
     setColor(blockColor) --{1,1,1,1})
     --gfx.x = gfx.x - 2
@@ -196,13 +197,13 @@ function drawWhiteBlock()
 end -- function drawWhiteBlock
 
 ---------------------------
-function pitchString(pitch)
+local function pitchString(pitch)
     local pitchNames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
     return tostring(pitchNames[(pitch%12)+1])..tostring(pitch//12 - 1)
 end -- function pitchString
 
 -------------------
-function timeStr(take, ppq, format)
+local function timeStr(take, ppq, format)
     -- format_timestr_pos returns strings that are not in the same format as 
     --    how the MIDI editor's Properties window displays position.
     -- Therefore extra format options were added.
@@ -608,14 +609,14 @@ function loopMIDIInspector()
                         offset, flags, msg, nextPos = string.unpack("i4Bs4", MIDIstring, nextPos)
                         runningPPQpos = runningPPQpos + offset
                         
-                        if flags&1 == 1 then -- selected
+                        if flags&1 == 1 and msg:len() ~= 0 then -- selected, and skip empty events
                             
                             local eventType = msg:byte(1)>>4
                             local channel   = msg:byte(1)&0xF
                             local msg2      = msg:byte(2)
                             local msg3      = msg:byte(3)
                                
-                            if eventType == 9 then -- note-on
+                            if eventType == 9 and msg3 ~= 0 then -- note-on
                                 -- Check for overlaps
                                 if tableNoteOns[channel][msg2] then foundOverlaps = true end        
                                 countSelNotes = countSelNotes + 1
@@ -630,7 +631,7 @@ function loopMIDIInspector()
                                 -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
                                 tableNoteOns[channel][msg2] = runningPPQpos
                                   
-                            elseif eventType == 8 then -- Note-off
+                            elseif eventType == 8 or eventType == 9 then -- Note-off
                                 -- Check whether there was a note-on on this channel and pitch.
                                 if tableNoteOns[channel][msg2] then
                                     local noteLength = runningPPQpos - tableNoteOns[channel][msg2]
