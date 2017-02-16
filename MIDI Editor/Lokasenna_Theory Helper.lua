@@ -1,6 +1,6 @@
 --[[
 Description: Theory Helper
-Version: 1.28
+Version: 1.29
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -1108,13 +1108,21 @@ GUI.Main = function ()
 	--GUI.mouse.down = false
 	--GUI.mouse.r_down = false
 
+--[[
+	Update each element's state, starting from the top down.
+	
+	This is very important, so that lower elements don't
+	"steal" the mouse.
+	
+	This will also delete any elements that have their z set to -1
 
-	-- Update each element's state, starting from the top down.
-		-- This is very important, so that lower elements don't
-		-- "steal" the mouse.
-	-- This will also delete any elements that have their z set to -1
-		-- Handy for something like Label:fade if you just want to remove
-		-- the faded element entirely
+	Handy for something like Label:fade if you just want to remove
+	the faded element entirely
+	
+	*Avoid adding/removing elements in the middle of the Update
+	loop; use this instead to have them automatically cleaned up*	
+	
+]]--
 	GUI.update_elms_list()
 	
 	-- We'll use this to shorten each elm's update loop if the user did something
@@ -5605,7 +5613,7 @@ function GUI.elms.bg:ondoubleclick()
 
 	for key, val in pairs(GUI.elms) do
 		if string.find(key, "high_") then
-			GUI.elms[key] = nil
+			GUI.elms[key].z = -1
 		end
 	end	
 
