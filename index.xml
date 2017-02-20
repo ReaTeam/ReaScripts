@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f69e2938e8e8b502ed9e3cc3a3a2d37c2f40dc7" name="ReaTeam Scripts">
+<index version="1" commit="b009516a050c47dcfc49eb9a5e44b1fd7196787b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -393,6 +393,12 @@ added support for all track envelopes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
       </version>
     </reapack>
+    <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
+      <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b009516a050c47dcfc49eb9a5e44b1fd7196787b/Items%20Editing/beaunus_Name%20item%20takes%20by%20last%20marker%20to%20cut%20item.lua</source>
+      </version>
+    </reapack>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
@@ -633,6 +639,12 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="Markers">
+    <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
+      <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b009516a050c47dcfc49eb9a5e44b1fd7196787b/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Insert regions at markers and vice versa in time selection.lua" type="script" desc="Insert regions at markers and vice versa in time selection">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=185577</link>
