@@ -1,13 +1,15 @@
 --[[
-  * ReaScript Name: Name item takes by last marker to cut item
-  * Description:    Names item takes according to the name of the marker that
-  *                 is the last marker to cut the items.
-  * Instructions:   - Select items
-  *                 - Run the script
-  * Author: beaunus
-  * Licence: GPL v3
-  * REAPER: 5.0
-  * Version: 1.0
+ReaScript Name: Name item takes by last marker to cut item
+About:
+  Names item takes according to the name of the marker that is the last marker
+  to cut the items.
+Instructions:
+  - Select items
+  - Run the script
+Author: beaunus
+Licence: GPL v3
+REAPER: 5.0
+Version: 1.0
 ]]
 
 --[[
@@ -33,6 +35,6 @@ for i = 0, num_selected_items - 1 do
   markeridx, regionidx = reaper.GetLastMarkerAndCurRegion(0, item_end_position)
   retval, isrgn, pos, rgnend, marker_name = reaper.EnumProjectMarkers(markeridx)
 
-    -- Apply new name
+  -- Apply new name
   reaper.GetSetMediaItemTakeInfo_String(take, 'P_NAME', marker_name, true)
 end
