@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b009516a050c47dcfc49eb9a5e44b1fd7196787b" name="ReaTeam Scripts">
+<index version="1" commit="1b7d7b29bea3e6f351e98c140dfea2863f223f83" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -394,9 +394,21 @@ added support for all track envelopes]]></changelog>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Names item takes according to the name of the marker that is the last marker to cut the items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Instructions:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run the script\sa180\par}
+}
+]]></description>
+      </metadata>
       <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b009516a050c47dcfc49eb9a5e44b1fd7196787b/Items%20Editing/beaunus_Name%20item%20takes%20by%20last%20marker%20to%20cut%20item.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Items%20Editing/beaunus_Name%20item%20takes%20by%20last%20marker%20to%20cut%20item.lua</source>
       </version>
     </reapack>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
@@ -640,9 +652,21 @@ added support for all track envelopes]]></changelog>
   </category>
   <category name="Markers">
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Looks through the lyrics in an item and adds a marker at each lyric.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Instructions:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run the script\sa180\par}
+}
+]]></description>
+      </metadata>
       <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b009516a050c47dcfc49eb9a5e44b1fd7196787b/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Insert regions at markers and vice versa in time selection.lua" type="script" desc="Insert regions at markers and vice versa in time selection">
