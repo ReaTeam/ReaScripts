@@ -1,6 +1,8 @@
+# pylint: disable=trailing-whitespace
+# pylint: disable=invalid-name
 """
 ReaScript Name: Import Clip Splicer Performance Specification JSON file
-About: 
+About:
   # beaunus REAPER Clip Splicer
   
   This module imports a _performance specification_ JSON document into the 
@@ -542,3 +544,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
