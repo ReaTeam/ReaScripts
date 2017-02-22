@@ -2,9 +2,11 @@
 ReaScript Name: Add markers for lyrics in selected items
 About:
   Looks through the lyrics in an item and adds a marker at each lyric.
-Instructions:
-  - Select items
-  - Run the script
+
+  Instructions:
+
+    - Select items
+    - Run the script
 Author: beaunus
 Licence: GPL v3
 REAPER: 5.0
