@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1b7d7b29bea3e6f351e98c140dfea2863f223f83" name="ReaTeam Scripts">
+<index version="1" commit="73c0d86a1bd3cae42e482a2f0fee04b7a7c79698" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -457,6 +457,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.5" author="Lokasenna" time="2017-02-05T21:05:51Z">
         <changelog><![CDATA[Added an option to restrict notes to the current time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbe96cba76a934635bbc5f9c9d659544a8a53e75/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
+      </version>
+      <version name="1.51" author="Lokasenna" time="2017-02-23T03:57:07Z">
+        <changelog><![CDATA[Added an option to restrict notes to the current time selection]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73c0d86a1bd3cae42e482a2f0fee04b7a7c79698/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill time selection with empty items.lua" type="script" desc="Fill time selection with empty items">
