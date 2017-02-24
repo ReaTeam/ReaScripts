@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="73c0d86a1bd3cae42e482a2f0fee04b7a7c79698" name="ReaTeam Scripts">
+<index version="1" commit="68f6c5c7031dce75b354da15a0fe12f3a815e605" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -493,6 +493,26 @@ added support for all track envelopes]]></changelog>
       </metadata>
       <version name="1.0" author="Lokasenna" time="2016-12-28T02:37:27Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95c2c33c0f2a1b9ecfc9a08a8dd04fa1447d2a77/Items%20Editing/Lokasenna_Insert%20empty%20item%20for%20each%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Select all notes in selected items.lua" type="script" desc="Select all notes in selected items">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-02-24T23:05:55Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/68f6c5c7031dce75b354da15a0fe12f3a815e605/Items%20Editing/Lokasenna_Select%20all%20notes%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Unselect all notes in selected items.lua" type="script" desc="Unselect all notes in selected items">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-02-24T23:05:55Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/68f6c5c7031dce75b354da15a0fe12f3a815e605/Items%20Editing/Lokasenna_Unselect%20all%20notes%20in%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_spk77_Sort items by length.lua" type="script" desc="Sort selected items by length (ascending)">
