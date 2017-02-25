@@ -1,10 +1,12 @@
 --[[
 Description: Lokasenna_Radial Menu 
-Version: 2.0.1
+Version: 2.0.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Bug fix
+	Clarified the "menu not found" error
+	Menu background fills the window properly
+	"Import menu" dialog properly looks for .txt files
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -4608,7 +4610,7 @@ local function load_menu(browse)
 	local load_settings
 	if browse then
 		_=dm and Msg("\tprompting for a file")
-		local ret, user_file = reaper.GetUserFileNameForRead("", "Import menus...", ".lua" )
+		local ret, user_file = reaper.GetUserFileNameForRead("", "Import menus...", ".txt" )
 		if ret then 
 			file_name = user_file
 			--load_settings = reaper.ShowMessageBox("Import this file's global settings as well?", "Import settings?", 3)
@@ -4655,7 +4657,7 @@ local function load_menu(browse)
 	else
 		
 		if not setup then
-			reaper.ShowMessageBox("Error opening menu file:\n"..tostring(err), "Menu file not found", 0)
+			reaper.ShowMessageBox("\tError opening menu file:\n\t"..tostring(err).."\n\nIf this is your first time using Radial Menu,\nyou'll need to run the Setup script first.", "Menu file not found", 0)
 			return 0
 		else
 			-- Submenus for all of the default menu items
@@ -6653,14 +6655,14 @@ function GUI.elms.frm_radial:draw_base_menu()
 
 	gfx.dest = 50
 	gfx.setimgdim(50, -1, -1)
-	gfx.setimgdim(50, frm_w, frm_w)
+	gfx.setimgdim(50, frm_w, (setup and self.h or gfx.h) )
 	
 	_=dm and Msg("\tfrm_w = "..tostring(frm_w))
 	
 	_=dm and Msg("\tdrawing background")
 	
 	GUI.color( get_color("col_bg", -2) )
-	gfx.rect(self.x, self.y, self.w, self.h, true)	
+	gfx.rect(self.x, self.y, self.w, (setup and self.h or gfx.h), true)	
 	
 	for i = -1, #mnu_arr[cur_depth] do
 		
