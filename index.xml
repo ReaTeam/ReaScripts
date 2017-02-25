@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="68f6c5c7031dce75b354da15a0fe12f3a815e605" name="ReaTeam Scripts">
+<index version="1" commit="18d783b50a0a9cd30910e0c07d29eb59ec93b5cd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3913,24 +3913,15 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Radial Menu.lua" type="script" desc="Radial Menu">
+    <reapack name="Lokasenna_Radial Menu.lua" type="script" desc="Lokasenna_Radial Menu">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides a circular "quick menu" for commonly-used actions, similar to how weapons are selected in many FPS games.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Instructions:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Bind the script to a key\line
-- Hold the key down, a window will open\line
-- Use the mouse to choose menu options and click on actions\line
-- Let the key go when you're done, and the window will close\line
-\line
-- Right-click the window to enter Setup mode\line
-    - You can release the keyboard key; the window will stay open\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Setup mode: - Click and hold the left mouse button on a menu option to edit it - Buttons can be relabelled and assigned any Action ID you want - Alternatively, set the action to e.g. 'menu 12' to create a new submenu -1 - reserved for script settings. Don't use it. 0 - the one you see when the script starts 1-8 - the eight default submenus - You should be able to make as many submenus as you want.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Press F1 to access color settings; all are RGBA, 0-255\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for further documentation, reporting bugs, etc.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use the accompanying script "Lokasenna_Radial Menu Setup.lua" to configure the menu and additional settings.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for further documentation/bug reports/help.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?p=1788321">Forum Thread</link>
@@ -4040,6 +4031,11 @@ Bug fixes]]></changelog>
       <version name="1.100" author="Lokasenna" time="2017-02-10T13:26:39Z">
         <changelog><![CDATA[Bug fix: I'm an idiot]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb347d2c76807630c0c940fee0a28429826a65ad/Various/Lokasenna_Radial%20Menu.lua</source>
+      </version>
+      <version name="2.0.0" author="Lokasenna" time="2017-02-25T03:00:00Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/18d783b50a0a9cd30910e0c07d29eb59ec93b5cd/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/18d783b50a0a9cd30910e0c07d29eb59ec93b5cd/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example menus.txt">https://github.com/ReaTeam/ReaScripts/raw/18d783b50a0a9cd30910e0c07d29eb59ec93b5cd/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20menus.txt</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
