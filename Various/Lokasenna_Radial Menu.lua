@@ -1,12 +1,20 @@
 --[[
 Description: Lokasenna_Radial Menu 
-Version: 2.0.2
+Version: 2.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Clarified the "menu not found" error
-	Menu background fills the window properly
-	"Import menu" dialog properly looks for .txt files
+	New
+	- When opening a context menu, context is now displayed in the title bar
+	- Added a new button command: 'quit'
+	- If the menu is in 'keep the window open' mode, any keypress will close it
+	
+	Fixes
+	- 'close_time' has had its minimum value reduced to 1ms
+	- Made the 'menu file not found' dialog a little clearer, hopefully
+	- Menu background now extends all the way to the bottom of the window
+	- 'Import menus' dialog now looks for .txt files rather than .lua
+	- Fixed a crash when using F1 to highlight the context boxes in Setup	
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -4433,8 +4441,6 @@ end
 
 
 
-
-
 -- The default settings and menus
 local mnu_arr = {
 	
@@ -4482,6 +4488,75 @@ local mnu_arr = {
 	}		
 }
 
+
+
+
+-- All of our context text boxes' contents
+local context_arr = setup and {
+	{lbl = "TCP", 			con = "tcp", 								head = 1},
+	{lbl = "Track", 		con = "tcp|track", 							head = 2},
+	{lbl = "Envelope", 		con = "tcp|envelope", 						head = 2},
+	{lbl = "Empty", 		con = "tcp|empty", 							head = 2},
+	{lbl = ""},
+	{lbl = "MCP", 			con = "mcp", 								head = 1},
+	{lbl = "Track",			con = "mcp|track",							head = 2},
+	{lbl = "Empty",			con = "mcp|empty", 							head = 2},
+	{lbl = ""},
+	{lbl = "Ruler", 		con = "ruler", 								head = 1},
+	{lbl = "Region lane", 	con = "ruler|region_lane", 					head = 2},
+	{lbl = "Marker lane", 	con = "ruler|marker_lane", 					head = 2},
+	{lbl = "Tempo lane", 	con = "ruler|tempo_lane", 					head = 2},
+	{lbl = "Timeline", 		con = "ruler|timeline", 					head = 2},
+
+	{lbl = "Arrange", 		con = "arrange", 							head = 1},
+	{lbl = "Track", 		con = "arrange|track",						head = 2},
+	{lbl = "Empty", 		con = "arrange|track|empty", 				head = 3},
+	{lbl = "Item", 			con = "arrange|track|item",					head = 3},
+	-- The API function currently won't return this context properly:
+	--{lbl = "Stretch Marker",con = "arrange|track|item_stretch_marker", 	head = 3},
+	{lbl = "Env. Point",	con = "arrange|track|env_point",			head = 3},
+	{lbl = "Env. Segment",	con = "arrange|track|env_segment",			head = 3},
+	{lbl = "Envelope",		con = "arrange|envelope",					head = 2},
+	{lbl = "Empty", 		con = "arrange|envelope|empty",				head = 3},
+	{lbl = "Env. Point",	con = "arrange|envelope|env_point",			head = 3},
+	{lbl = "Env. Segment",	con = "arrange|envelope|env_segment",		head = 3},
+	{lbl = "Empty", 		con = "arrange|empty", 						head = 2},
+
+	{lbl = "Transport", 	con = "transport", 							head = 1},
+	{lbl = ""},
+	{lbl = "MIDI Ed.",		con = "midi_editor",						head = 1},
+	{lbl = "Ruler", 		con = "midi_editor|ruler",					head = 2},
+	{lbl = "Piano Roll",	con = "midi_editor|piano",					head = 2},
+	{lbl = "Notes",			con = "midi_editor|notes",					head = 2},
+	{lbl = "CC Lane",		con = "midi_editor|cc_lane",				head = 2},
+	{lbl = "CC Selector",	con = "midi_editor|cc_lane|cc_selector",	head = 3},
+	{lbl = "CC Lane",		con = "midi_editor|cc_lane|cc_lane",		head = 3},
+
+}
+
+
+
+--[[	
+local depth_arr = {}
+local function new_depth(depth)
+	
+	table.insert(depth_arr, cur_depth)
+	return depth
+	
+end
+local function last_depth()
+	
+	local depth = depth_arr[#depth_arr]
+	if depth == 0 then
+		depth_arr = {base_depth}
+	else
+		table.remove(depth_arr, #depth_arr)
+	end
+	
+	return depth
+	
+end
+]]--
 
 
 -- Create a new button in the specified position and menu
@@ -4862,7 +4937,10 @@ local function get_context_mnu()
 	end
 	
 	-- Show the user what context is being used
-	if str then GUI.elms.lbl_context = GUI.Label:new(1,	8, -20, "Context: "..str, false, 4) end
+	if str then 
+		--GUI.elms.lbl_context = GUI.Label:new(1,	8, -20, "Context: "..str, false, 4) 
+		GUI.name = "Context:  "..string.gsub(str, "|", ", ")
+	end
 	
 	cur_depth = base_depth
 	_=dm and Msg("\tsettled on depth "..base_depth)
@@ -4872,7 +4950,7 @@ end
 -- Highlight the text box for the current mouse context
 local function get_context_txt()
 	
-	_=dm and Msg(">get_context")
+	_=dm and Msg(">get_context_txt")
 	
 	local wnd, seg, det = reaper.BR_GetMouseCursorContext()
 			
@@ -4881,7 +4959,7 @@ local function get_context_txt()
 	_=dm and Msg("\tgot context str: "..tostring(str))
 
 	if str and str ~= "" then
-		
+
 		for k, v in pairs(context_arr) do
 
 			if v.con == str then
@@ -4896,7 +4974,7 @@ local function get_context_txt()
 	
 	GUI.redraw_z[6] = true	
 		
-	_=dm and Msg("<get_context")	
+	_=dm and Msg("<get_context_txt")	
 		
 end
 
@@ -4915,6 +4993,8 @@ local function run_act(act)
 		--cur_depth = 0
 	
 	
+	
+	-- Our various special commands
 	elseif act == "back" then
 	
 		
@@ -4924,6 +5004,14 @@ local function run_act(act)
 		if setup then  end
 		cur_btn = -2
 		redraw_menu = true
+	
+	elseif act == "quit" then
+	
+		_=dm and Msg("\tuser action asked to quit")
+		GUI.quit = true
+		return 0
+		
+	
 	
 	-- Is it a menu?
 	elseif string.sub(act, 1, 4) == "menu" then
@@ -5504,75 +5592,88 @@ local function check_key()
 	-- For debugging
 	local mod_str = ""
 	
-	if startup then
+	if not mnu_arr[-1].key_mode == 3 then
 		
-		_=dm and Msg("Startup, looking for key...")
-		
-		key_down = GUI.char
-		
-		if key_down ~= 0 then
+		if startup then
+			
+			_=dm and Msg("Startup, looking for key...")
+			
+			key_down = GUI.char
+			
+			if key_down ~= 0 then
+						
+				--[[
 					
-			--[[
-				
-				(I have no idea if the same values apply on a Mac)
-				
-				Need to narrow the range to the normal keyboard ASCII values:
-				
-				ASCII 'a' = 97
-				ASCII 'z' = 122
-				
-				1-26		Ctrl+			char + 96
-				65-90		Shift/Caps+		char + 32
-				257-282		Ctrl+Alt+		char - 160
-				321-346		Alt+			char - 224
+					(I have no idea if the same values apply on a Mac)
+					
+					Need to narrow the range to the normal keyboard ASCII values:
+					
+					ASCII 'a' = 97
+					ASCII 'z' = 122
+					
+					1-26		Ctrl+			char + 96
+					65-90		Shift/Caps+		char + 32
+					257-282		Ctrl+Alt+		char - 160
+					321-346		Alt+			char - 224
 
-				gfx.mouse_cap values:
-				
-				4	Ctrl
-				8	Shift
-				16	Alt
-				32	Win
-				
-				For Ctrl+4 or Ctrl+}... I have no fucking clue short of individually
-				checking every possibility.
+					gfx.mouse_cap values:
+					
+					4	Ctrl
+					8	Shift
+					16	Alt
+					32	Win
+					
+					For Ctrl+4 or Ctrl+}... I have no fucking clue short of individually
+					checking every possibility.
 
-			]]--	
-			
-			local cap = GUI.mouse.cap
-			local adj = 0
-			if cap & 4 == 4 then			
-				if not (cap & 16 == 16) then
-					mod_str = "Ctrl"
-					adj = adj + 96			-- Ctrl
-				else				
-					mod_str = "Ctrl Alt"
-					adj = adj - 160			-- Ctrl+Alt
+				]]--	
+				
+				local cap = GUI.mouse.cap
+				local adj = 0
+				if cap & 4 == 4 then			
+					if not (cap & 16 == 16) then
+						mod_str = "Ctrl"
+						adj = adj + 96			-- Ctrl
+					else				
+						mod_str = "Ctrl Alt"
+						adj = adj - 160			-- Ctrl+Alt
+					end
+					--	No change				-- Ctrl+Shift
+					
+				elseif (cap & 16 == 16) then
+					mod_str = "Alt"
+					adj = adj - 224				-- Alt
+					
+					--  No change				-- Alt+Shift
+					
+				elseif cap & 8 == 8 or (key_down >= 65 and key_down <= 90) then		
+					mod_str = "Shift/Caps"
+					adj = adj + 32				-- Shift / Caps
 				end
-				--	No change				-- Ctrl+Shift
-				
-			elseif (cap & 16 == 16) then
-				mod_str = "Alt"
-				adj = adj - 224				-- Alt
-				
-				--  No change				-- Alt+Shift
-				
-			elseif cap & 8 == 8 or (key_down >= 65 and key_down <= 90) then		
-				mod_str = "Shift/Caps"
-				adj = adj + 32				-- Shift / Caps
-			end
-	
-			hold_char = key_down + adj
-			_=dm and Msg("Detected: "..mod_str.." "..string.char(hold_char))
-			
-			startup = false
-		elseif not up_time then
-			up_time = reaper.time_precise()
-		end
 		
-	else
-		key_down = gfx.getchar(hold_char)
-		_ = (dm and key_down == 0) and Msg("Key is no longer down")
-	end	
+				hold_char = math.floor(key_down + adj)
+				_=dm and Msg("Detected: "..mod_str.." "..hold_char)
+				
+				startup = false
+			elseif not up_time then
+				up_time = reaper.time_precise()
+			end
+			
+		else
+			key_down = gfx.getchar(hold_char)
+			_ = (dm and key_down == 0) and Msg("Key is no longer down")
+		end	
+		
+	-- We're in "keep the window open" mode
+	elseif GUI.char > 0 then 
+
+		-- If any key was pressed, close the window
+
+		_=dm and Msg("Keep the window open mode; a key was pressed, closing the window.")		
+
+		GUI.quit = true
+
+	end
 
 end
 
@@ -6137,47 +6238,8 @@ end
 ---- Context text boxes
 
 -- Make a whole bunch of text boxes for the context tab
-local context_arr = {
-	{lbl = "TCP", 			con = "tcp", 								head = 1},
-	{lbl = "Track", 		con = "tcp|track", 							head = 2},
-	{lbl = "Envelope", 		con = "tcp|envelope", 						head = 2},
-	{lbl = "Empty", 		con = "tcp|empty", 							head = 2},
-	{lbl = ""},
-	{lbl = "MCP", 			con = "mcp", 								head = 1},
-	{lbl = "Track",			con = "mcp|track",							head = 2},
-	{lbl = "Empty",			con = "mcp|empty", 							head = 2},
-	{lbl = ""},
-	{lbl = "Ruler", 		con = "ruler", 								head = 1},
-	{lbl = "Region lane", 	con = "ruler|region_lane", 					head = 2},
-	{lbl = "Marker lane", 	con = "ruler|marker_lane", 					head = 2},
-	{lbl = "Tempo lane", 	con = "ruler|tempo_lane", 					head = 2},
-	{lbl = "Timeline", 		con = "ruler|timeline", 					head = 2},
 
-	{lbl = "Arrange", 		con = "arrange", 							head = 1},
-	{lbl = "Track", 		con = "arrange|track",						head = 2},
-	{lbl = "Empty", 		con = "arrange|track|empty", 				head = 3},
-	{lbl = "Item", 			con = "arrange|track|item",					head = 3},
-	-- The API function currently won't return this context:
-	--{lbl = "Stretch Marker",con = "arrange|track|item_stretch_marker", 	head = 3},
-	{lbl = "Env. Point",	con = "arrange|track|env_point",			head = 3},
-	{lbl = "Env. Segment",	con = "arrange|track|env_segment",			head = 3},
-	{lbl = "Envelope",		con = "arrange|envelope",					head = 2},
-	{lbl = "Empty", 		con = "arrange|envelope|empty",				head = 3},
-	{lbl = "Env. Point",	con = "arrange|envelope|env_point",			head = 3},
-	{lbl = "Env. Segment",	con = "arrange|envelope|env_segment",		head = 3},
-	{lbl = "Empty", 		con = "arrange|empty", 						head = 2},
 
-	{lbl = "Transport", 	con = "transport", 							head = 1},
-	{lbl = ""},
-	{lbl = "MIDI Ed.",		con = "midi_editor",						head = 1},
-	{lbl = "Ruler", 		con = "midi_editor|ruler",					head = 2},
-	{lbl = "Piano Roll",	con = "midi_editor|piano",					head = 2},
-	{lbl = "Notes",			con = "midi_editor|notes",					head = 2},
-	{lbl = "CC Lane",		con = "midi_editor|cc_lane",				head = 2},
-	{lbl = "CC Selector",	con = "midi_editor|cc_lane|cc_selector",	head = 3},
-	{lbl = "CC Lane",		con = "midi_editor|cc_lane|cc_lane",		head = 3},
-
-}
 
 --							z	x	 y				w	h	pad
 local txt_con_template = {	6,	504, line_y0 + 16, 80, 20, 4}
@@ -6244,7 +6306,7 @@ local function update_context_elms(init)
 			
 		end
 		
-		local tip_str = "What menu to open when Radial Menu is run with the context: '"
+		local tip_str = "What menu to use when Radial Menu is opened for the context: '"
 		
 		local col_adj_x, col_adj_y = 196, 0
 		
@@ -6274,7 +6336,7 @@ local function update_context_elms(init)
 				GUI.elms[name].font_B = 5
 				GUI.elms[name].lostfocus = txt_update
 				GUI.elms[name].ondoubleclick = txt_dbl
-				GUI.elms[name].tooltip = tip_str..context_arr[i].con.."'"
+				GUI.elms[name].tooltip = tip_str..string.gsub(context_arr[i].con, "|", ", ").."'"
 				
 			end
 		end
@@ -7608,8 +7670,7 @@ if setup then
 			
 		if val and val > 0 then
 
-			-- Make sure we aren't going below the minimum for key detection
-			val = math.max(val, 600)
+			val = math.max(val, 1)
 			mnu_arr[-1].close_time = val
 			self.retval = val
 		else
@@ -7694,7 +7755,7 @@ local function Main()
 
 		]]--	  
 
-		if (setup or key_down ~= 0 or swipe_retrigger > 0 or (startup and diff < (mnu_arr[-1].close_time * 0.001)) or mnu_arr[-1].key_mode == 3) then
+		if (setup or key_down ~= 0 or swipe_retrigger > 0 or (startup and diff < (mnu_arr[-1].close_time * 0.001)) or mnu_arr[-1].key_mode == 3) and not GUI.quit then
 			-- _=dm and Msg("\tnot quitting")
 			-- Do nothing, keep the window open
 			if swipe_retrigger > 0 then swipe_retrigger = swipe_retrigger - 1 end
@@ -7724,7 +7785,7 @@ local function Main()
 		
 		
 		-- See if the user asked to display a context
-		if GUI.elms.tabs.state == 2 and GUI.char == GUI.chars.F1 then get_context() end
+		if GUI.elms.tabs.state == 2 and GUI.char == GUI.chars.F1 then get_context_txt() end
 
 		
 		-- See if we need to draw the radius overlay
@@ -7798,14 +7859,17 @@ ox, oy = frm_w / 2, frm_w / 2
 
 if not setup then
 	
-	GUI.name = "Radial Menu"
+	GUI.name = GUI.name or "Radial Menu"
 	GUI.x, GUI.y, GUI.w, GUI.h = -8, -32, frm_w, frm_w + 12
 	GUI.anchor, GUI.corner = "mouse", "C"
 	
+	--[[	Context is shown in the title bar, so this is unnecessary
+		
 	if GUI.elms.lbl_context then
 		GUI.h = GUI.h + 16
 		GUI.elms.lbl_context.y = GUI.elms.lbl_context.y + GUI.h	
 	end
+	]]--
 	
 	GUI.elms.frm_radial.w, GUI.elms.frm_radial.h = GUI.w, GUI.h
 	
