@@ -1,20 +1,12 @@
 --[[
 Description: Lokasenna_Radial Menu 
-Version: 2.1
+Version: 2.1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	New
-	- When opening a context menu, context is now displayed in the title bar
-	- Added a new button command: 'quit'
-	- If the menu is in 'keep the window open' mode, any keypress will close it
-	
 	Fixes
-	- 'close_time' has had its minimum value reduced to 1ms
-	- Made the 'menu file not found' dialog a little clearer, hopefully
-	- Menu background now extends all the way to the bottom of the window
-	- 'Import menus' dialog now looks for .txt files rather than .lua
-	- Fixed a crash when using F1 to highlight the context boxes in Setup	
+	- Key mode wasn't being detected properly
+
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -5587,16 +5579,18 @@ end
 
 local function check_key()
 
-	_=dm and Msg("check_key")
+	_=dm and Msg(">check_key")
 	
 	-- For debugging
 	local mod_str = ""
 	
-	if not mnu_arr[-1].key_mode == 3 then
+	if mnu_arr[-1].key_mode ~= 3 then
+		
+		_=dm and Msg("\tneed to check the key")
 		
 		if startup then
 			
-			_=dm and Msg("Startup, looking for key...")
+			_=dm and Msg("\tStartup, looking for key...")
 			
 			key_down = GUI.char
 			
@@ -5652,7 +5646,7 @@ local function check_key()
 				end
 		
 				hold_char = math.floor(key_down + adj)
-				_=dm and Msg("Detected: "..mod_str.." "..hold_char)
+				_=dm and Msg("\tDetected: "..mod_str.." "..hold_char)
 				
 				startup = false
 			elseif not up_time then
@@ -5661,7 +5655,7 @@ local function check_key()
 			
 		else
 			key_down = gfx.getchar(hold_char)
-			_ = (dm and key_down == 0) and Msg("Key is no longer down")
+			_ = (dm and key_down == 0) and Msg("\tKey is no longer down")
 		end	
 		
 	-- We're in "keep the window open" mode
@@ -5669,11 +5663,13 @@ local function check_key()
 
 		-- If any key was pressed, close the window
 
-		_=dm and Msg("Keep the window open mode; a key was pressed, closing the window.")		
+		_=dm and Msg("\tKeep the window open mode; a key was pressed, closing the window.")		
 
 		GUI.quit = true
 
 	end
+
+	_=dm and Msg("<check_key")
 
 end
 
