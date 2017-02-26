@@ -1,12 +1,11 @@
 --[[
 Description: Lokasenna_Radial Menu 
-Version: 2.1.1
+Version: 2.1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Fixes
 	- Key mode wasn't being detected properly
-
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
