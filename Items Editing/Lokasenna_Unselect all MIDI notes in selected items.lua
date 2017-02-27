@@ -1,6 +1,6 @@
 --[[
-Description: Unselect all notes in selected items
-Version: 1.0
+Description: Unselect all MIDI notes in selected items
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
