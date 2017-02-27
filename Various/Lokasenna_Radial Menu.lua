@@ -1,6 +1,6 @@
 --[[
 Description: Lokasenna_Radial Menu 
-Version: 2.2.0
+Version: 2.2.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -9,7 +9,6 @@ New
 - New command: 'midi 12345' will direct an action to the current MIDI Editor rather than the main window
 - If no settings file is found, will open in Setup mode rather than exiting
 - Menus are underlined to separate them from action buttons
-
 Fixed
 - Color choices being reversed - RGB->BGR (Mac only?)
 - Crash when trying to use SWS functions if SWS isn't installed
