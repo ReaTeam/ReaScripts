@@ -6,7 +6,6 @@ Donation: https://paypal.me/Lokasenna
 Changelog:
 	Initial release
 Links:
-	Forum Thread 
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Allows action IDs to repeated at a specified interval
