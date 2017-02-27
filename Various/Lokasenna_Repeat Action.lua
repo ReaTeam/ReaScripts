@@ -1,11 +1,12 @@
 --[[
 Description: Lokasenna_Repeat Action
-Version: 1.0.0
+Version: 1.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Initial release
 Links:
+	Forum Thread 
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Allows action IDs to repeated at a specified interval
@@ -21,8 +22,8 @@ About:
 	4. Each script will be individually accessible in the action list for you to bind to a shortcut key.
 Extensions:
 Provides:
-	[nomain] .
-	[main] Lokasenna_Repeat Action - Add new action.lua
+	[nomain] . > Lokasenna_Repeat Action/.
+	[main] Lokasenna_Repeat Action - Add new action.lua > Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua
 --]]
 
 local dm = debug_mode
