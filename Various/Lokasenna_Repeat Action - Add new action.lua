@@ -23,7 +23,7 @@ About:
 Extensions:
 Provides:
 	[nomain] Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua
-	. > Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua
+	[main] . > Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua
 --]]
 
 -- Licensed under the GNU GPL v3
