@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2c2bb64c38085eab0ea0d6baf4c753d2d4f271ff" name="ReaTeam Scripts">
+<index version="1" commit="9d3f2d25ba16e42074e15b1af77acf3e06f02563" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4099,7 +4099,7 @@ Fixes
         <source file="Lokasenna_Radial Menu - example menus.txt">https://github.com/ReaTeam/ReaScripts/raw/51de2dc864fb4387c6c3c23270023c53ec12ec7f/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20menus.txt</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Lokasenna_Repeat Action">
+    <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -4107,7 +4107,7 @@ Fixes
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Allows action IDs to repeated at a specified interval\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 1.\tx360\tab This script won't do anything by itself; use the included script 'Lokasenna_Repeat Action - Add new action.lua' to generate a script for each action you want to repeat.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 2.\tx360\tab In Reaper's action list, use the 'Load' button and browse to: 'Reaper/Scripts/ReaTeam Scripts/Various/Lokasenna_Repeat Action commands/"\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2.\tx360\tab In Reaper's action list, use the 'Load' button and browse to: 'Reaper/Scripts/ReaTeam Scripts/Various/Lokasenna_Repeat Action/"\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 3.\tx360\tab Select the scripts you generated.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 4.\tx360\tab Each script will be individually accessible in the action list for you to bind to a shortcut key.\sa180\par}
 }
@@ -4124,6 +4124,11 @@ Fixes
         <changelog><![CDATA[Initial release]]></changelog>
         <source file="Lokasenna_Repeat Action/.">https://github.com/ReaTeam/ReaScripts/raw/2c2bb64c38085eab0ea0d6baf4c753d2d4f271ff/Various/Lokasenna_Repeat%20Action.lua</source>
         <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/2c2bb64c38085eab0ea0d6baf4c753d2d4f271ff/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
+      </version>
+      <version name="1.0.2" author="Lokasenna" time="2017-02-27T22:43:38Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source file="Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua">https://github.com/ReaTeam/ReaScripts/raw/9d3f2d25ba16e42074e15b1af77acf3e06f02563/Various/Lokasenna_Repeat%20Action.lua</source>
+        <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/9d3f2d25ba16e42074e15b1af77acf3e06f02563/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
