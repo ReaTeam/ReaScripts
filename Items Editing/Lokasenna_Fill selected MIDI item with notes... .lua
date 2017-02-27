@@ -1,20 +1,28 @@
 --[[
 Description: Fill selected MIDI item with notes...
-Version: 1.51
+Version: 1.6
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added an option to restrict notes to the current time selection
+	Can be given a pattern to use when inserting notes
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=186665
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Allows you to quickly add a large quantity of notes to a MIDI item.
-	Could be used, for example, to add a steady hi-hat pattern.
+	Could be used to e.g. add a steady hi-hat, or a specific kick pattern.
 Extensions:
 --]]
 
 -- Licensed under the GNU GPL v3
+
+local dm, _ = debug_mode
+local function Msg(str)
+	reaper.ShowConsoleMsg(tostring(str).."\n")
+end
+
+local info = debug.getinfo(1,'S');
+script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
 
 ---- Libraries added with Lokasenna's Script Compiler ----
 
@@ -84,10 +92,20 @@ local GUI = {}
 
 
 
-GUI.version = "beta 7"
+GUI.version = "beta 8"
 
 -- Might want to know this
 GUI.OS = reaper.GetOS()
+
+-- Also might need to know this
+GUI.SWS_exists = function ()
+	
+	local exists = reaper.APIExists("BR_Win32_GetPrivateProfileString")
+	if not exists then reaper.ShowMessageBox( "This script requires the SWS extension.", "SWS not found", 0) end
+	return exists
+	
+end
+
 
 	---- Keyboard constants ----
 	
@@ -139,10 +157,10 @@ GUI.fonts = {
 	
 	-- Font, size, bold/italics/underline
 	-- 				^ One string: "b", "iu", etc.
-	{"Calibri", 36, "b"},	-- 1. Title
-	{"Calibri", 28},	-- 2. Header
-	{"Calibri", 22},	-- 3. Label
-	{"Calibri", 18}	-- 4. Value
+	{"Calibri", 32},	-- 1. Title
+	{"Calibri", 20},	-- 2. Header
+	{"Calibri", 16},	-- 3. Label
+	{"Calibri", 16}	-- 4. Value
 	
 }
 
@@ -159,7 +177,7 @@ GUI.colors = {
 	txt = {192, 192, 192, 255},			-- Text
 	
 	shadow = {0, 0, 0, 102},			-- Shadow
-	
+	faded = {0, 0, 0, 64},
 	
 	-- Standard 16 colors
 	black = {0, 0, 0, 255},
@@ -216,14 +234,34 @@ GUI.font = function (fnt)
 end
 
 
+-- Start drawing with one of the colors from the table
 GUI.color = function (col)
-	gfx.set(table.unpack(GUI.colors[col]))
+
+	-- If we're given a table of color values, just pass it right along
+	if type(col) == "table" then
+
+		gfx.set(col[1], col[2], col[3], col[4] or 1)
+	else
+		gfx.set(table.unpack(GUI.colors[col]))
+	end	
+
 end
 
 
 
 -- Global shadow size, in pixels
 GUI.shadow_dist = 2
+
+--[[
+	How fast the caret in textboxes should blink, measured in GUI update loops.
+	
+	'16' looks like a fairly typical textbox caret.
+	
+	Because each On and Off redraws the textbox's Z layer, this can cause CPU issues
+	in scripts with lots of drawing to do. In that case, raising it to 24 or 32
+	will still look alright but require less redrawing.
+]]--
+GUI.txt_blink_rate = 16
 
 
 -- Draw the given string of the first color with a shadow 
@@ -277,23 +315,54 @@ GUI.Msg = function (message)
 	reaper.ShowConsoleMsg(tostring(message).."\n")
 end
 
-
--- Copy the contents of one table to another, since Lua can't do it natively
-GUI.table_copy = function (source)
+--[[
+	Copy the contents of one table to another, since Lua can't do it natively
+	
+	Provide a second table as 'base' to use it as the basis for copying, only
+	bringing over keys from the source table that don't exist in the base
+	
+	'depth' only exists to provide indenting for my debug messages, it can
+	be left out when calling the function.
+]]--
+GUI.table_copy = function (source, base, depth)
+	
+	-- 'Depth' is only for indenting debug messages
+	depth = ((not not depth) and (depth + 1)) or 0
+	
+	
 	
 	if type(source) ~= "table" then return source end
 	
 	local meta = getmetatable(source)
-	local new = {}
+	local new = base or {}
 	for k, v in pairs(source) do
+		
+
+		
 		if type(v) == "table" then
-			new[k] = GUI.table_copy(v)
+			
+			--_=dm and GUI.Msg(string.rep("\t", depth + 1)..tostring(k).." is a table; recursing...")
+			
+			if base then
+				_=dm and GUI.Msg(string.rep("\t", depth).."base:\t"..tostring(k))
+				new[k] = GUI.table_copy(v, base[k], depth)
+			else
+				new[k] = GUI.table_copy(v, nil, depth)
+			end
+			
 		else
-			new[k] = v
+			if not base or (base and new[k] == nil) then 
+				_=dm and GUI.Msg(string.rep("\t", depth).."added:\t"..tostring(k).." = "..tostring(v))		
+				new[k] = v
+			end
 		end
+		
+		--_=dm and GUI.Msg(string.rep("\t", depth).."done with "..tostring(k))
 	end
-	
 	setmetatable(new, meta)
+	
+	--_=dm and GUI.Msg(string.rep("\t", depth).."finished copying")
+	
 	return new
 	
 end
@@ -328,13 +397,53 @@ GUI.open_file = function (path)
 end
 
 
--- Allows "for x, y in pairs(z) do" in alphabetical/numerical order
--- Copied from Programming In Lua, 19.3
+-- 	Sorting function taken from: http://lua-users.org/wiki/SortedIteration
+GUI.full_sort = function (op1, op2)
+
+	if type(op1) == "string" and string.match(op1, "^(%-?%d+)") then
+		op1 = tonumber( string.match(op1, "^(%-?%d+)") )
+	end
+	if type(op2) == "string" and string.match(op2, "^(%-?%d+)") then
+		op2 = tonumber( string.match(op2, "^(%-?%d+)") )
+	end
+
+	--if op1 == "0" then op1 = 0 end
+	--if op2 == "0" then op2 = 0 end
+	local type1, type2 = type(op1), type(op2)
+	if type1 ~= type2 then --cmp by type
+		return type1 < type2
+	elseif type1 == "number" and type2 == "number"
+		or type1 == "string" and type2 == "string" then
+		return op1 < op2 --comp by default
+	elseif type1 == "boolean" and type2 == "boolean" then
+		return op1 == true
+	else
+		return tostring(op1) < tostring(op2) --cmp by address
+	end
+	
+end
+
+
+--[[
+	Allows "for x, y in pairs(z) do" in alphabetical/numerical order
+	Copied from Programming In Lua, 19.3
+	
+	Call with f = "full" to use the full sorting function above
+	
+]]--
 GUI.kpairs = function (t, f)
+
+	--GUI.Msg("kpairs start")
+
+	if f == "full" then
+		f = GUI.full_sort
+	end
 
 	local a = {}
 	for n in pairs(t) do table.insert(a, n) end
+	--GUI.Msg("kpairs sorting")
 	table.sort(a, f)
+	--GUI.Msg("kpairs sorted")
 	
 	local i = 0      -- iterator variable
 	local iter = function ()   -- iterator function
@@ -347,8 +456,158 @@ GUI.kpairs = function (t, f)
 		
 	end
 	
+	--GUI.Msg("kpairs end")
+	
 	return iter
 end
+
+
+
+	---- Text functions ----
+
+
+--[[	Preapres a table of character widths
+	
+	Iterates through all of the font presets, storing the widths
+	of every printable ASCII character in a table. 
+	
+	Accessable via:		GUI.txt_width[font_num][char_num]
+	
+	- Requires a window to have been opened in Reaper
+	
+	- 'get_txt_width' and 'word_wrap' will automatically run this
+	  if it hasn't been run already; it may be rather clunky to use
+	  on demand depending on what your script is doing, so it's
+	  typically better to run this immediately after initiliazing
+	  the window and then have the width table ready to use.
+]]--
+
+GUI.init_txt_width = function ()
+
+	_=dm and GUI.Msg("init_txt_width")
+
+	GUI.txt_width = {}
+	local arr
+	for k in pairs(GUI.fonts) do
+			
+		GUI.font(k)
+		GUI.txt_width[k] = {}
+		arr = {}
+		
+		for i = 1, 255 do
+			
+			arr[i] = gfx.measurechar(i)
+			
+		end	
+		
+		GUI.txt_width[k] = arr
+		
+	end
+	
+end
+
+
+-- Returns the total width (in pixels) for a given string and font
+GUI.get_txt_width = function (str, font)
+	
+	if not GUI.txt_width then GUI.ini_txt_width() end 
+
+	local widths = GUI.txt_width[font]
+	local w = 0
+	for i = 1, string.len(str) do
+
+		w = w + widths[		string.byte(	string.sub(str, i, i)	) ]
+
+	end
+
+	return w
+
+end
+
+
+--[[	Wraps a string to fit a given width
+	
+	str		String. Can include line breaks/paragraphs; they should be preserved.
+	font	Font preset number
+	w		Pixel width
+	indent	Number of spaces to indent the first line of each paragraph
+			(The algorithm skips tab characters and leading spaces, so
+			use this parameter instead)
+	
+	i.e.	Blah blah blah blah		-> indent = 2 ->	  Blah blah blah blah
+			blah blah blah blah							blah blah blah blah
+
+	
+	pad		Indent wrapped lines by the first __ characters of the paragraph
+			(For use with bullet points, etc)
+			
+	i.e.	- Blah blah blah blah	-> pad = 2 ->	- Blah blah blah blah
+			blah blah blah blah				  	 	  blah blah blah blah
+	
+				
+	This function expands on the "greedy" algorithm found here:
+	https://en.wikipedia.org/wiki/Line_wrap_and_word_wrap#Algorithm
+				
+]]--
+GUI.word_wrap = function (str, font, w, indent, pad)
+	
+	_=dm and GUI.Msg("word wrap:\n\tfont "..tostring(font).."\n\twidth "..tostring(w).."\n\tindent "..tostring(indent))
+	
+	if not GUI.txt_width then GUI.ini_txt_width() end
+	
+	local ret_str = {}
+
+	local w_left, w_word
+	local space = GUI.txt_width[font][string.byte(" ")]
+	
+	local new_para = indent and string.rep(" ", indent) or 0
+	
+	local w_pad = pad and GUI.get_txt_width(	string.sub(str, 1, pad), font	) or 0
+	local new_line = "\n"..string.rep(" ", math.floor(w_pad / space)	)
+	
+	
+	for line in string.gmatch(str, "([^\n\r]*)[\n\r]*") do
+		
+		table.insert(ret_str, new_para)
+		
+		-- Check for leading spaces and tabs
+		local leading, line = string.match(line, "^([%s\t]*)(.*)$")	
+		if leading then table.insert(ret_str, leading) end
+		
+		w_left = w
+		for word in string.gmatch(line,  "([^%s]+)") do
+	
+			-- Check for tab stops, since this function won't parse them properly
+	
+	
+			w_word = GUI.get_txt_width(word, font)
+			if (w_word + space) > w_left then
+				
+				table.insert(ret_str, new_line)
+				w_left = w - w_word
+				
+			else
+			
+				w_left = w_left - (w_word + space)
+				
+			end
+			
+			table.insert(ret_str, word)
+			table.insert(ret_str, " ")
+			
+		end
+		
+		table.insert(ret_str, "\n")
+		
+	end
+	
+	table.remove(ret_str, #ret_str)
+	ret_str = table.concat(ret_str)
+	
+	return ret_str
+			
+end
+
 
 
 -- Returns an ordinal string (i.e. 30 --> 30th)
@@ -388,24 +647,6 @@ GUI.rgb2num = function (red, green, blue)
 end
 
 
--- Convert a number to hexadecimal
-GUI.num2hex = function (num)
-	
-		local hexstr = '0123456789abcdef'
-		local s = ''
-		
-		while num > 0 do
-			local mod = math.fmod(num, 16)
-			s = string.sub(hexstr, mod+1, mod+1) .. s
-			num = math.floor(num / 16)
-		end
-		
-		if s == '' then s = '0' end
-		return s
-		
-end
-
-
 -- Convert a hex color to 8-bit values r,g,b
 GUI.hex2rgb = function (num)
 	
@@ -414,14 +655,116 @@ GUI.hex2rgb = function (num)
 	end
 
 	local red = string.sub(num, 1, 2)
-	local blue = string.sub(num, 3, 4)
-	local green = string.sub(num, 5, 6)
+	local green = string.sub(num, 3, 4)
+	local blue = string.sub(num, 5, 6)
+
 	
-	red = tonumber(red, 16)
-	blue = tonumber(blue, 16)
-	green = tonumber(green, 16)
-	
+	red = tonumber(red, 16) or 0
+	green = tonumber(green, 16) or 0
+	blue = tonumber(blue, 16) or 0
+
 	return red, green, blue
+	
+end
+
+
+-- Thanks to Heda for this one
+GUI.num2rgb = function (num)
+	
+	r = num & 255
+	g = (num >> 8) & 255
+	b = (num >> 16) & 255
+	
+	return r, g, b
+	
+end
+
+
+-- Convert rgb[a] to hsv[a]; useful for gradients
+-- Provide the arguments as 0-1
+GUI.rgb2hsv = function (r, g, b, a)
+	
+	local max = math.max(r, g, b)
+	local min = math.min(r, g, b)
+	local chroma = max - min
+	
+	-- Dividing by zero is never a good idea
+	if chroma == 0 then
+		return 0, 0, max, (a or 1)
+	end
+	
+	local hue
+	if max == r then
+		hue = ((g - b) / chroma) % 6
+	elseif max == g then
+		hue = ((b - r) / chroma) + 2
+	elseif max == b then
+		hue = ((r - g) / chroma) + 4
+	else
+		hue = -1
+	end
+	
+	if hue ~= -1 then hue = hue / 6 end
+	
+	local sat = (max ~= 0) 	and	((max - min) / max)
+							or	0
+							
+	return hue, sat, max, (a or 1)
+	
+	
+end
+
+-- ...and back the other way
+GUI.hsv2rgb = function (h, s, v, a)
+	
+	local chroma = v * s
+	
+	local hp = h * 6
+	local x = chroma * (1 - math.abs(hp % 2 - 1))
+	
+	local r, g, b
+	if hp <= 1 then
+		r, g, b = chroma, x, 0
+	elseif hp <= 2 then
+		r, g, b = x, chroma, 0
+	elseif hp <= 3 then
+		r, g, b = 0, chroma, x
+	elseif hp <= 4 then
+		r, g, b = 0, x, chroma
+	elseif hp <= 5 then
+		r, g, b = x, 0, chroma
+	elseif hp <= 6 then
+		r, g, b = chroma, 0, x
+	else
+		r, g, b = 0, 0, 0
+	end
+	
+	local min = v - chroma	
+	
+	return r + min, g + min, b + min, (a or 1)
+	
+end
+
+--[[
+	Returns the color for a given position on an HSV gradient between two colors
+
+	col_a		Tables of {R, G, B[, A]}, values from 0-1
+	col_b
+	
+	pos			Position along the gradient, 0 = col_a, 1 = col_b
+
+]]--
+GUI.gradient = function (col_a, col_b, pos)
+	
+	local col_a = {GUI.rgb2hsv(table.unpack(col_a))}
+	local col_b = {GUI.rgb2hsv(table.unpack(col_b))}
+	
+	local h = math.abs(col_a[1] + (pos * (col_b[1] - col_a[1])))
+	local s = math.abs(col_a[2] + (pos * (col_b[2] - col_a[2])))
+	local v = math.abs(col_a[3] + (pos * (col_b[3] - col_a[3])))
+	local a = (#col_a == 4) and (math.abs(col_a[4] + (pos * (col_b[4] - col_a[4])))) or 1
+	
+	return GUI.hsv2rgb(h, s, v, a)
 	
 end
 
@@ -539,7 +882,7 @@ end
 --[[
 	Takes cartesian coords, with optional origin coords, and returns
 	an angle (in radians) and radius. The angle is given without reference
-	to pi; that is, pi/4 rads would return as simply 0.25
+	to Pi; that is, pi/4 rads would return as simply 0.25
 ]]--
 GUI.cart2polar = function (x, y, ox, oy)
 	
@@ -556,6 +899,10 @@ end
 -- Are these coordinates inside the given element?
 GUI.IsInside = function (elm, x, y)
 
+	if not elm then return false end
+
+	x, y = x or GUI.mouse.x, y or GUI.mouse.y
+
 	local inside = 
 			x >= elm.x and x < (elm.x + elm.w) and 
 			y >= elm.y and y < (elm.y + elm.h)
@@ -565,20 +912,6 @@ GUI.IsInside = function (elm, x, y)
 end
 
 
--- Make sure the window position is on-screen
-GUI.check_window_pos = function ()
-	
-	local x, y, w, h = GUI.x, GUI.y, GUI.w, GUI.h
-	local l, t, r, b = x, y, x + w, y + h
-	
-	local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
-	
-	if l < 0 then GUI.x = 0 end
-	if r > screen_w then GUI.x = (screen_w - w - 16) end
-	if t < 0 then GUI.y = 0 end
-	if b > screen_h then GUI.y = (screen_h - h - 40) end
-	
-end
 
 --[[
 Returns x,y coordinates for a window with the specified anchor position
@@ -600,6 +933,7 @@ If no anchor is specified, it will default to the top-left corner of the screen.
 GUI.get_window_pos = function (x, y, w, h, anchor, corner)
 
 	local ax, ay, aw, ah = 0, 0, 0 ,0
+		
 	local __, __, scr_w, scr_h = reaper.my_getViewport(x, y, x + w, y + h, x, y, x + w, y + h, 1)
 	
 	if anchor == "screen" then
@@ -628,6 +962,9 @@ GUI.get_window_pos = function (x, y, w, h, anchor, corner)
 	x = x + ax + cx
 	y = y + ay + cy
 	
+--[[
+	
+	Disabled until I can figure out the multi-monitor issue
 	
 	-- Make sure the window is entirely on-screen
 	local l, t, r, b = x, y, x + w, y + h
@@ -636,6 +973,7 @@ GUI.get_window_pos = function (x, y, w, h, anchor, corner)
 	if r > scr_w then x = (scr_w - w - 16) end
 	if t < 0 then y = 0 end
 	if b > scr_h then y = (scr_h - h - 40) end
+]]--	
 	
 	return x, y	
 	
@@ -643,9 +981,20 @@ end
 
 
 
+	---- Z-layer blitting ----
+
+-- On each draw loop, only layers that are set to true in this table
+-- will be redrawn; if false, it will just copy them from the buffer
+-- Set [0] = true to redraw everything.
+GUI.redraw_z = {}
+
+
+
 	---- Our main functions ----
 	
 -- Maintain a list of all GUI elements, sorted by their z order	
+-- Also removes any elements with z = -1, for automatically
+-- cleaning things up.
 GUI.update_elms_list = function (init)
 	
 	local z_table = {}
@@ -658,6 +1007,7 @@ GUI.update_elms_list = function (init)
 
 		local z = GUI.elms[key].z or 5
 
+		-- Delete elements if the script asked to
 		if z == -1 then
 			
 			GUI.elms[key] = nil
@@ -692,7 +1042,8 @@ GUI.Init = function ()
 	
 	
 	-- Create the window
-	gfx.clear = GUI.rgb2num(table.unpack(GUI.colors.wnd_bg))
+	--gfx.clear = GUI.rgb2num(table.unpack(GUI.colors.wnd_bg))
+	gfx.clear = reaper.ColorToNative(table.unpack(GUI.colors.wnd_bg))
 	
 	if not GUI.x then GUI.x = 0 end
 	if not GUI.y then GUI.y = 0 end
@@ -703,6 +1054,7 @@ GUI.Init = function ()
 	GUI.x, GUI.y = GUI.get_window_pos(GUI.x, GUI.y, GUI.w, GUI.h, GUI.anchor, GUI.corner)
 		
 	gfx.init(GUI.name, GUI.w, GUI.h, 0, GUI.x, GUI.y)
+	
 	
 	GUI.cur_w, GUI.cur_h = gfx.w, gfx.h
 
@@ -746,6 +1098,7 @@ end
 GUI.Main = function ()
 	
 	-- Update mouse and keyboard state, window dimensions
+	GUI.mouse.lx, GUI.mouse.ly = GUI.mouse.x, GUI.mouse.y
 	GUI.mouse.x, GUI.mouse.y = gfx.mouse_x, gfx.mouse_y
 	GUI.mouse.wheel = gfx.mouse_wheel
 	GUI.mouse.cap = gfx.mouse_cap
@@ -765,32 +1118,50 @@ GUI.Main = function ()
 		reaper.defer(GUI.Main)
 	end
 
-	-- Update each element's state, starting from the top down.
-		-- This is very important, so that lower elements don't
-		-- "steal" the mouse.
+
+	--GUI.mouse.down = false
+	--GUI.mouse.r_down = false
+
+--[[
+	Update each element's state, starting from the top down.
+	
+	This is very important, so that lower elements don't
+	"steal" the mouse.
+	
+	
+	This function will also delete any elements that have their z set to -1
+
+	Handy for something like Label:fade if you just want to remove
+	the faded element entirely
+	
+	***Don't try to remove elements in the middle of the Update
+	loop; use this instead to have them automatically cleaned up***	
+	
+]]--
 	GUI.update_elms_list()
 	
-	-- We'll use this to break the update loop early if the user did something
+	-- We'll use this to shorten each elm's update loop if the user did something
 	-- Slightly more efficient, and averts any bugs from false positives
 	GUI.elm_updated = false
 
 	for i = 0, GUI.z_max do
 		if #GUI.elms_list[i] > 0 and not (GUI.elms_hide[i] or GUI.elms_freeze[i]) then
 			for __, elm in pairs(GUI.elms_list[i]) do
-				
-				GUI.cur_elm = elm
-				GUI.Update(GUI.elms[elm])
-				if GUI.elm_updated then break end
+
+				if elm then GUI.Update(GUI.elms[elm]) end
+				--if GUI.elm_updated then break end
 				
 			end
 		end
 		
-		if GUI.elm_updated then break end
+		--if GUI.elm_updated then break end
 		
 	end
 
+	-- Just in case any user functions want to know...
 	GUI.mouse.last_down = GUI.mouse.down
 	GUI.mouse.last_r_down = GUI.mouse.r_down
+
 
 	-- If the user gave us a function to run, check to see if it needs to be run again, and do so.
 	-- 
@@ -809,15 +1180,70 @@ GUI.Main = function ()
 	-- Redraw all of the elements, starting from the bottom up.
 	GUI.update_elms_list()
 
-	for i = GUI.z_max, 0, -1 do
-		if #GUI.elms_list[i] > 0 and not GUI.elms_hide[i] then
-			for __, elm in pairs(GUI.elms_list[i]) do
-				if not GUI.elms[elm] then GUI.Msg(elm.." doesn't exist?") end
-				GUI.elms[elm]:draw()
-			end
+	local w, h = gfx.w, gfx.h
+
+	--[[
+		Having everything draw to a single buffer is less efficient than having
+		separate buffers per Z, but it gets around the problem of text looking shitty
+		because it's been anti-aliased with a transparent background.
+	]]--
+
+	local need_redraw = false
+	if GUI.redraw_z[0] then
+		need_redraw = true
+	else
+		for z, b in pairs(GUI.redraw_z) do
+			if b == true then need_redraw = true end
 		end
 	end
-	GUI.Draw_Version()
+
+	if need_redraw then
+		
+		-- Clear the table before drawing so elements can force a redraw
+		-- in their own :draw methods - for Label:fade(), particularly
+		for z, v in pairs(GUI.redraw_z) do
+			GUI.redraw_z[z] = nil
+		end		
+		
+		gfx.dest = 0
+		gfx.setimgdim(0, -1, -1)
+		gfx.setimgdim(0, w, h)
+
+		GUI.color("wnd_bg")
+		gfx.rect(0, 0, w, h, 1)
+
+		for i = GUI.z_max, 0, -1 do
+			if #GUI.elms_list[i] > 0 and not GUI.elms_hide[i] then
+				
+				-- This stuff is for blitting individual z layers
+				-- Disabled until I figure out a solution for the antialiased text issue
+				
+				--*if GUI.redraw_z[i] then
+					
+					-- Set this before we redraw, so that elms can call a redraw themselves
+					-- e.g. Labels fading out
+					--*GUI.redraw_z[i] = false
+
+					--*gfx.setimgdim(i, -1, -1)
+					--*gfx.setimgdim(i, w, h)
+					--*gfx.dest = i
+					for __, elm in pairs(GUI.elms_list[i]) do
+						if not GUI.elms[elm] then GUI.Msg(elm.." doesn't exist?") end
+						GUI.elms[elm]:draw()
+					end
+
+					--*gfx.dest = -1
+				--*end
+							
+				-- --gfx.blit(source, scale, rotation[, srcx, srcy, srcw, srch, destx, desty, destw, desth, rotxoffs, rotyoffs] )
+				--*gfx.blit(i, 1, 0, 0, 0, w, h, 0, 0, w, h, 0, 0)
+			end
+		end
+		GUI.Draw_Version()		
+		
+	end
+	gfx.dest = -1
+	gfx.blit(0, 1, 0, 0, 0, w, h, 0, 0, w, h, 0, 0)
 	
 	gfx.update()
 	
@@ -830,109 +1256,131 @@ GUI.Update = function (elm)
 	local wheel = GUI.mouse.wheel
 	local inside = GUI.IsInside(elm, x, y)
 	
-
-	-- Left button click
-	if GUI.mouse.cap&1==1 then
-		
-		-- If it wasn't down already...
-		if not GUI.mouse.last_down then
-
-			-- Was a different element clicked?
-			if not inside then 
-				elm.focus = false
-			else	
+	local skip = elm:onupdate() or false
 	
-				GUI.mouse.down = true
-				GUI.mouse.ox, GUI.mouse.oy = x, y
-				GUI.mouse.lx, GUI.mouse.ly = x, y
-				elm.focus = true
-				elm:onmousedown()
-				GUI.elm_updated = true
+	if GUI.elm_updated then
+		if elm.focus then
+			elm.focus = false
+			elm:lostfocus()
+		end
+		skip = true
+	end
+
+
+	if not skip then
+		
+		-- Left button click
+		if GUI.mouse.cap&1==1 then
+			
+			
+			-- If it wasn't down already...
+			if not GUI.mouse.last_down then
+
+
+				-- Was a different element clicked?
+				if not inside then 
+					if elm.focus then
+						elm.focus = false
+						elm:lostfocus()
+					end
+					return 0
+				else	
+
+					GUI.mouse.down = true
+					GUI.mouse.ox, GUI.mouse.oy = x, y
+					--GUI.mouse.lx, GUI.mouse.ly = x, y
+					elm.focus = true
+					elm:onmousedown()
+					GUI.elm_updated = true
+					
+					-- Double clicked?
+					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
+
+						elm:ondoubleclick()
+						GUI.mouse.down = false
+						GUI.elm_updated = true
+					end				
+					
+				end
+				
+
+			
+			-- 		Dragging? 									Did the mouse start out in this element?
+			elseif (x ~= GUI.mouse.lx or y ~= GUI.mouse.ly) and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
+				if elm.focus ~= false then 
+					elm:ondrag()
+					GUI.elm_updated = true
+				end
+				--GUI.mouse.lx, GUI.mouse.ly = x, y
+			end
+
+		-- If it was originally clicked in this element and has now been released
+		elseif GUI.mouse.down and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
+		
+			elm:onmouseup()
+			GUI.elm_updated = true
+			GUI.mouse.down = false
+			GUI.mouse.ox, GUI.mouse.oy = -1, -1
+			GUI.mouse.lx, GUI.mouse.ly = -1, -1
+			GUI.mouse.uptime = os.clock()
+
+		end
+		
+		
+		-- Right button click
+		if GUI.mouse.cap&2==2 then
+			
+			-- If it wasn't down already...
+			if not GUI.mouse.last_r_down then
+
+				-- Was a different element clicked?
+				if not inside then 
+					--elm.focus = false
+				else
+		
+					GUI.mouse.r_down = true
+					GUI.mouse.r_ox, GUI.mouse.r_oy = x, y
+					--GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
+					--elm.focus = true
+					elm:onmouser_down()
+					GUI.elm_updated = true
+				
+				end
 				
 				-- Double clicked?
-				if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
-					elm:ondoubleclick()
+				if GUI.mouse.r_uptime and os.clock() - GUI.mouse.r_uptime < 0.20 then
+					elm:onr_doubleclick()
 					GUI.elm_updated = true
-				end				
-				
-			end
+				end
 			
-
-		
-		-- 		Dragging? 									Did the mouse start out in this element?
-		elseif (x ~= GUI.mouse.lx or y ~= GUI.mouse.ly) and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
-			if elm.focus ~= false then 
-				elm:ondrag()
-				GUI.elm_updated = true
+			-- 		Dragging? 									Did the mouse start out in this element?
+			elseif (x ~= GUI.mouse.r_lx or y ~= GUI.mouse.r_ly) and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then
+				if elm.focus ~= false then 
+					elm:onr_drag()
+					GUI.elm_updated = true
+				end
+				--GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
 			end
-			GUI.mouse.lx, GUI.mouse.ly = x, y
+
+		-- If it was originally clicked in this element and has now been released
+		elseif GUI.mouse.r_down and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then 
+		
+			elm:onmouser_up()
+			GUI.elm_updated = true
+			GUI.mouse.r_down = false
+			GUI.mouse.r_ox, GUI.mouse.r_oy = -1, -1
+			--GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
+			GUI.mouse.r_uptime = os.clock()
+
 		end
-
-	-- If it was originally clicked in this element and has now been released
-	elseif GUI.mouse.down and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then 
 	
-		elm:onmouseup()
-		GUI.elm_updated = true
-		GUI.mouse.down = false
-		GUI.mouse.ox, GUI.mouse.oy = -1, -1
-		GUI.mouse.lx, GUI.mouse.ly = -1, -1
-		GUI.mouse.uptime = os.clock()
-
-	end
-	
-	
-	-- Right button click
-	if GUI.mouse.cap&2==2 then
-		
-		-- If it wasn't down already...
-		if not GUI.mouse.last_r_down then
-
-			-- Was a different element clicked?
-			if not inside then 
-				--elm.focus = false
-			else
-	
-				GUI.mouse.r_down = true
-				GUI.mouse.r_ox, GUI.mouse.r_oy = x, y
-				GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
-				--elm.focus = true
-				elm:onmouser_down()
-				GUI.elm_updated = true
-			
-			end
-			
-			-- Double clicked?
-			if GUI.mouse.r_uptime and os.clock() - GUI.mouse.r_uptime < 0.20 then
-				elm:onr_doubleclick()
-				GUI.elm_updated = true
-			end
-		
-		-- 		Dragging? 									Did the mouse start out in this element?
-		elseif (x ~= GUI.mouse.r_lx or y ~= GUI.mouse.r_ly) and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then
-			if elm.focus ~= false then 
-				elm:onr_drag()
-				GUI.elm_updated = true
-			end
-			GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
-		end
-
-	-- If it was originally clicked in this element and has now been released
-	elseif GUI.mouse.r_down and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then 
-	
-		elm:onmouser_up()
-		GUI.elm_updated = true
-		GUI.mouse.r_down = false
-		GUI.mouse.r_ox, GUI.mouse.r_oy = -1, -1
-		GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
-		GUI.mouse.r_uptime = os.clock()
-
 	end
 	
 	
 	-- If the mouse is hovering over the element
-	if not GUI.mouse.down and not GUI.mouse.r_down and inside then
+	if inside and not GUI.mouse.down and not GUI.mouse.r_down then
 		elm:onmouseover()
-		GUI.elm_updated = true
+		--GUI.elm_updated = true
 		elm.mouseover = true
 	else
 		elm.mouseover = false
@@ -941,7 +1389,7 @@ GUI.Update = function (elm)
 	
 	
 	-- If the mousewheel's state has changed
-	if GUI.mouse.wheel ~= GUI.mouse.lwheel and inside then
+	if inside and GUI.mouse.wheel ~= GUI.mouse.lwheel then
 		
 		GUI.mouse.inc = (GUI.mouse.wheel - GUI.mouse.lwheel) / 120
 		
@@ -981,14 +1429,14 @@ GUI.Draw_Version = function ()
 
 	local str = "Lokasenna_GUI "..GUI.version
 	
-	gfx.setfont(1, "Arial", 12, 105)
+	gfx.setfont(1, "Calibri", 12, 105)
 	GUI.color("txt")
 	
 	local str_w, str_h = gfx.measurestr(str)
 	
 	--gfx.x = GUI.w - str_w - 4
 	--gfx.y = GUI.h - str_h - 4
-	gfx.x = gfx.w - str_w - 4
+	gfx.x = gfx.w - str_w - 6
 	gfx.y = gfx.h - str_h - 4
 	
 	gfx.drawstr(str)	
@@ -1010,9 +1458,12 @@ function GUI.Element:new()
 	
 end
 
+-- Updates the current tooltip, if necessary
 function GUI.Element:onmouseover()
 	
-	if self.tooltip and not GUI.tooltip_elm then GUI.tooltip_elm = self end
+	if self.tooltip and not GUI.tooltip_elm then 
+		GUI.tooltip_elm = self 
+	end
 
 end
 
@@ -1027,6 +1478,67 @@ function GUI.Element:onr_doubleclick() end
 function GUI.Element:onr_drag() end
 function GUI.Element:onwheel() end
 function GUI.Element:ontype() end
+function GUI.Element:onupdate() end
+function GUI.Element:lostfocus() end
+
+
+--[[
+	All classes will use this as their template, so that
+	elements are initialized with every method available.
+	
+	To create a new class, just use:
+	
+		-- Creates a new child of GUI.Element
+		GUI.my_class = GUI.Element:new()
+		
+		--							Whatever parameters you want
+		function GUI.my_class:new(param_a, param_b, param_c, param_d)
+		
+			-- Every class object is really just a big table
+			local class = {}
+			
+			-- Store the parameters this object was created with
+			class.param_a = param_a
+			class.param_b = param_b
+			class.param_c = param_c
+			class.param_d = param_d
+		
+			-- Force a redraw for this object's layer, since presumably we want to see it
+			GUI.redraw_z[z] = true
+		
+			-- More class stuff. Roughly, it's just telling the new object to use GUI.my_class
+			-- as a reference for anything it needs, which in turn will use GUI.Element as
+			-- its own reference.
+			
+			setmetatable(class, self)
+			self.__index = self
+			
+			-- Return the new child object
+			return class
+		
+		end
+	
+	
+	Methods are added by:
+	
+		function GUI.my_class:fade()
+	
+			blah blah blah
+			
+		end
+		
+	
+	- All classes need their methods explicitly written; GUI.Element does absolutely nothing
+	  except keep the script from crashing when it goes to look for a method you didn't add.
+	
+	- All of the methods listed for GUI.Element will be called when appropriate on each loop
+	  of GUI.Update. Any methods that aren't listed there can be called on their own as a
+	  function. To fade a label, for instance:
+	  
+		my_label:fade(2, 3, 10)
+		
+]]--
+
 
 
 
@@ -1060,7 +1572,8 @@ function GUI.Label:new(z, x, y, caption, shadow, font)
 	label.type = "Label"
 	
 	label.z = z
-	
+	GUI.redraw_z[z] = true
+
 	label.x, label.y = x, y
 	
 	-- Placeholders for these values, since we don't need them but some functions will throw a fit if they aren't there
@@ -1070,7 +1583,6 @@ function GUI.Label:new(z, x, y, caption, shadow, font)
 	
 	label.shadow = shadow or 0
 	label.font = font or 1
-	
 	
 	setmetatable(label, self)
     self.__index = self 
@@ -1083,6 +1595,7 @@ function GUI.Label:fade(len, z_new, z_end)
 	
 	self.z = z_new
 	self.fade_arr = { len, z_end, reaper.time_precise() }
+	GUI.redraw_z[self.z] = true
 	
 end
 
@@ -1105,7 +1618,8 @@ function GUI.Label:draw()
 		diff = diff * diff * diff
 		--diff = diff * diff
 		local a = 1 - (gfx.a * (diff))
-		--GUI.Msg("a = "..a)
+		
+		GUI.redraw_z[self.z] = true
 		if a < 0.02 then
 			self.z = self.fade_arr[2]
 			self.fade_arr = nil
@@ -1136,6 +1650,7 @@ function GUI.Label:val(newval)
 		self.retval = newval
 		GUI.font(self.font)
 		self.w, self.h = gfx.measurestr(self.retval)
+		GUI.redraw_z[self.z] = true
 	else
 		return self.retval
 	end
@@ -1160,13 +1675,14 @@ ticks			Display ticks or not. **Currently does nothing**
 
 -- Slider - New
 GUI.Slider = GUI.Element:new()
-function GUI.Slider:new(z, x, y, w, dir, caption, min, max, steps, default, ticks)
+function GUI.Slider:new(z, x, y, w, caption, min, max, steps, default, dir, ticks)
 	
 	local Slider = {}
 	Slider.type = "Slider"
 	
 	Slider.z = z
-	
+	GUI.redraw_z[z] = true
+
 	Slider.x, Slider.y = x, y
 	Slider.w, Slider.h = table.unpack(dir == "h" and {w, 8} or {8, w})
 	
@@ -1177,6 +1693,7 @@ function GUI.Slider:new(z, x, y, w, dir, caption, min, max, steps, default, tick
 	end
 
 	Slider.caption = caption
+	--Slider.output = {}
 	
 	Slider.min, Slider.max = min, max
 	Slider.steps = steps
@@ -1206,7 +1723,7 @@ function GUI.Slider:draw()
 	local min, max = self.min, self.max
 	
 	-- Size of the handle
-	local radius = 8
+	local radius = self.r or 8
 
 
 	if dir == "h" then
@@ -1231,7 +1748,21 @@ function GUI.Slider:draw()
 		
 		if fill_w ~= 0 then
 			
-			GUI.color(self.col_fill or "elm_fill")
+			-- If the user has given us two colors to make a gradient with
+			if self.col_fill_a then
+				
+				-- Make a gradient, 
+				local col_a = GUI.colors[self.col_fill_a]
+				local col_b = GUI.colors[self.col_fill_b]
+				local grad_step = curstep / steps
+	
+				local r, g, b, a = GUI.gradient(col_a, col_b, grad_step)
+	
+				gfx.set(r, g, b, a)
+									
+			else
+				GUI.color(self.col_fill or "elm_fill")
+			end
 			gfx.circle(fill_x - 1, oy, h / 2 - 1, 1, 1)	
 			
 			-- gfx.rect gets cranky about drawing a negative height			
@@ -1262,7 +1793,7 @@ function GUI.Slider:draw()
 
 		-- Draw caption	
 		if self.caption ~= "" then
-			GUI.font(3)
+			GUI.font(self.font_a or 3)
 			
 			local str_w, str_h = gfx.measurestr(self.caption)
 			
@@ -1270,20 +1801,35 @@ function GUI.Slider:draw()
 			gfx.y = y - h - str_h
 
 
-			GUI.shadow(self.caption, "txt", "shadow")
+			GUI.shadow(self.caption, self.col_a or "txt", "shadow")
 		end
 		
 		-- Draw ticks + highlighted labels if specified	
 		-- Draw slider value otherwise 
 		
+		local output = self.retval
 
+		if self.output then
+			local t = type(self.output)
 
-		local output = self.output or self.retval
+			if t == "string" or t == "number" then
+				output = self.output
+			elseif t == "table" then
+				output = self.output[curstep]
+			elseif t == "function" then
+				output = self.output(self)
+			end
+		end
+		
+		-- Avoid any crashes from weird user data
+		output = tostring(output)
+	
+		--local output = self.output[curstep] or self.retval
 
 		if output ~= "" then
 			
-			GUI.color("txt")
-			GUI.font(4)
+			GUI.color(self.col_b or "txt")
+			GUI.font(self.font_b or 4)
 			
 			local str_w, str_h = gfx.measurestr(output)
 			gfx.x = x + (w - str_w) / 2
@@ -1322,12 +1868,10 @@ function GUI.Slider:draw()
 				-- Make a gradient, 
 				local col_a = GUI.colors[self.col_fill_a]
 				local col_b = GUI.colors[self.col_fill_b]
-				
-				local r = math.abs(col_a[1] + ((curstep / steps) * (col_b[1] - col_a[1])))
-				local g = math.abs(col_a[2] + ((curstep / steps) * (col_b[2] - col_a[2])))
-				local b = math.abs(col_a[3] + ((curstep / steps) * (col_b[3] - col_a[3])))
-				local a = math.abs(col_a[4] + ((curstep / steps) * (col_b[4] - col_a[4])))
-					
+				local grad_step = curstep / steps
+	
+				local r, g, b, a = GUI.gradient(col_a, col_b, grad_step)
+	
 				gfx.set(r, g, b, a)
 									
 			else
@@ -1363,7 +1907,7 @@ function GUI.Slider:draw()
 
 		-- Draw caption	
 		if self.caption ~= "" then
-			GUI.font(3)
+			GUI.font(self.font_a or 3)
 			
 			local str_w, str_h = gfx.measurestr(self.caption)
 
@@ -1371,18 +1915,30 @@ function GUI.Slider:draw()
 			gfx.y = y - h - str_h
 
 
-			GUI.shadow(self.caption, "txt", "shadow")
+			GUI.shadow(self.caption, self.col_a or "txt", "shadow")
 		end
 		
 		-- Draw ticks + highlighted labels if specified	
 		-- Draw slider value otherwise 
 
-		local output = self.output or self.retval
+		local output = self.retval
+
+		if self.output then
+			local t = type(self.output)
+
+			if t == "string" or t == "number" then
+				output = self.output
+			elseif t == "table" then
+				output = self.output[curstep]
+			elseif t == "function" then
+				output = self.output(self)				
+			end
+		end
 		
 		if output ~= "" then
 			
-			GUI.color("txt")
-			GUI.font(4)
+			GUI.color(self.col_b or "txt")
+			GUI.font(self.font_b or 4)
 		
 			local str_w, str_h = gfx.measurestr(output)
 			gfx.x = x + (w - str_w) / 2
@@ -1399,12 +1955,13 @@ end
 function GUI.Slider:val(newval)
 
 	if newval then
-		self.curstep = newval
+		self.curstep = newval --(self.dir == "h" and self.min or self.max)
 		self.curval = self.curstep / self.steps
 		self.retval = GUI.round((((self.max - self.min) / self.steps) * self.curstep) + self.min)
 		--self.retval = newval
+		GUI.redraw_z[self.z] = true
 	else
-		return self.retval
+		return self.curstep --(self.dir == "h" and self.min or self.max)
 	end
 
 end
@@ -1424,13 +1981,14 @@ function GUI.Slider:onmousedown()
 	
 	self.retval = GUI.round(((self.max - self.min) / self.steps) * self.curstep + self.min)
 	
+	GUI.redraw_z[self.z] = true
+	
 end
 
 
 -- Slider - Dragging
 function GUI.Slider:ondrag()
-	
-	-- If this works, I love this structure
+
 	local coord, lastcoord, size = 
 		table.unpack(self.dir == "h"
 					and {GUI.mouse.x, GUI.mouse.lx, self.w}
@@ -1455,6 +2013,8 @@ function GUI.Slider:ondrag()
 	self.curstep = GUI.round(self.curval * self.steps)
 	
 	self.retval = GUI.round(((self.max - self.min) / self.steps) * self.curstep + self.min)
+	
+	GUI.redraw_z[self.z] = true
 	
 end
 
@@ -1481,8 +2041,24 @@ function GUI.Slider:onwheel()
 	
 	self.retval = GUI.round(((self.max - self.min) / self.steps) * self.curstep + self.min)
 
+	GUI.redraw_z[self.z] = true
+
 end
 
+
+-- Slider - Doubleclick
+function GUI.Slider:ondoubleclick()
+	
+	local steps = self.steps
+	local min = self.min
+	
+	self.curstep = self.default
+	self.curval = self.curstep / steps
+	self.retval = GUI.round(((self.max - min) / steps) * self.curstep + min)
+	
+	GUI.redraw_z[self.z] = true
+	
+end
 
 
 
@@ -1507,7 +2083,8 @@ function GUI.Range:new(z, x, y, w, caption, min, max, steps, default_a, default_
 	Range.type = "Range"
 	
 	Range.z = z
-	
+	GUI.redraw_z[z] = true
+
 	Range.x, Range.y, Range.w, Range.h = x, y, w, 8
 
 	Range.caption = caption
@@ -1626,22 +2203,28 @@ end
 
 
 -- Range - Get/set value
-function GUI.Range:val(newval_a, newval_b)
+function GUI.Range:val(newvals)
 	
-	if newval_a or newval_b then
-		retval_a = newval_a
-		retval_b = newval_b
+	if newvals then
+		retval_a = newvals[1]
+		retval_b = newvals[2]
 		
 		if retval_a > retval_b then
 			retval_a, retval_b = retval_b, retval_a
 		end
 		
-		self.retval_a = retval_a
-		self.retval_b = retval_b
+		self.curstep_a = retval_a - self.min
+		self.curstep_b = retval_b - self.min
+		self.curval_a = self.curstep_a / self.steps
+		self.curval_b = self.curstep_b / self.steps
+		self.retval_a = GUI.round((((self.max - self.min) / self.steps) * self.curstep_a) + self.min)		
+		self.retval_b = GUI.round((((self.max - self.min) / self.steps) * self.curstep_b) + self.min)		
+		
+		GUI.redraw_z[self.z] = true
 	
 	else
 		
-		return self.retval_a, self.retval_b
+		return self.curstep_a + self.min, self.curstep_b + self.min
 		
 	end
 
@@ -1675,6 +2258,8 @@ function GUI.Range:onmousedown()
 	
 	self[ret] = GUI.round(((self.max - self.min) / self.steps) * self[step] + self.min)
 	
+	GUI.redraw_z[self.z] = true	
+	
 end
 
 
@@ -1706,7 +2291,9 @@ function GUI.Range:ondrag()
 	self[dragstep] = GUI.round(self[dragval] * self.steps)
 	
 	self[ret] = GUI.round(((self.max - self.min) / self.steps) * self[dragstep] + self.min)
-	
+
+	GUI.redraw_z[self.z] = true
+
 end
 
 
@@ -1742,9 +2329,33 @@ function GUI.Range:onwheel()
 	self[step] = GUI.round(self[val] * self.steps)
 	
 	self[ret] = GUI.round(((self.max - self.min) / self.steps) * self[step] + self.min)
-	
+
+	GUI.redraw_z[self.z] = true
+
 end
 
+
+function GUI.Range:ondoubleclick()
+	
+--[[
+	self.curstep = self.default
+	self.curval = self.curstep / self.steps
+	self.retval = GUI.round(((self.max - self.min) / self.steps) * self.curstep + self.min)
+	
+	GUI.redraw_z[self.z] = true
+]]--
+
+	local steps = self.steps
+	local min, max = self.min, self.max
+
+	self.curstep_a, self.curstep_b = self.default_a, self.default_b
+	self.curval_a, self.curval_b = self.curstep_a / steps, self.curstep_b / steps
+	self.retval_a = GUI.round(((max - min) / steps) * self.curstep_a + min)
+	self.retval_b = GUI.round(((max - min) / steps) * self.curstep_b + min)
+	
+	GUI.redraw_z[self.z] = true
+	
+end
 
 
 --[[	Knob class.
@@ -1768,6 +2379,7 @@ function GUI.Knob:new(z, x, y, w, caption, min, max, steps, default, ticks)
 	Knob.type = "Knob"
 	
 	Knob.z = z
+	GUI.redraw_z[z] = true	
 	
 	Knob.x, Knob.y, Knob.w, Knob.h = x, y, w, w
 
@@ -1908,7 +2520,9 @@ function GUI.Knob:val(newval)
 		self.retval = newval
 		self.curstep = newval - self.min
 		self.curval = self.curstep / self.steps
-		
+
+		GUI.redraw_z[self.z] = true
+
 	else
 		return self.retval
 	end	
@@ -1936,7 +2550,9 @@ function GUI.Knob:ondrag()
 	self.curstep = GUI.round(self.curval * self.steps)
 	
 	self.retval = GUI.round(((self.max - self.min) / self.steps) * self.curstep + self.min)
-	
+
+	GUI.redraw_z[self.z] = true
+
 end
 
 
@@ -1959,6 +2575,8 @@ function GUI.Knob:onwheel()
 	self.curstep = GUI.round(self.curval * self.steps)
 	
 	self:val()
+
+	GUI.redraw_z[self.z] = true
 
 end
 
@@ -1984,6 +2602,7 @@ function GUI.Radio:new(z, x, y, w, h, caption, opts, pad)
 	opt_lst.type = "Radio"
 	
 	opt_lst.z = z
+	GUI.redraw_z[z] = true	
 	
 	opt_lst.x, opt_lst.y, opt_lst.w, opt_lst.h = x, y, w, h
 
@@ -1998,6 +2617,8 @@ function GUI.Radio:new(z, x, y, w, h, caption, opts, pad)
 		opt_lst.optarray[tempidx] = word
 		tempidx = tempidx + 1
 	end
+	
+	opt_lst.shadow = true
 	
 	opt_lst.numopts = tempidx - 1
 	
@@ -2036,7 +2657,7 @@ function GUI.Radio:draw()
 	
 	GUI.shadow(self.caption, "txt", "shadow")
 	
-	GUI.font(3)
+	GUI.font(self.font or 3)
 
 	-- Draw the options
 	GUI.color("txt")
@@ -2060,12 +2681,17 @@ function GUI.Radio:draw()
 		end
 		
 		-- Labels
-		GUI.color("txt")
+		--GUI.color("txt")
 		local str_w, str_h = gfx.measurestr(self.optarray[i])
 		
 		gfx.x = x + 4 * radius
 		gfx.y = cur_y + (optheight - str_h) / 2
-		gfx.drawstr(self.optarray[i])		
+		if self.shadow then
+			GUI.shadow(self.optarray[i], "txt", "shadow")
+		else
+			GUI.color("txt")
+			gfx.drawstr(self.optarray[i])
+		end
 		
 		cur_y = cur_y + optheight
 
@@ -2079,7 +2705,9 @@ end
 function GUI.Radio:val(newval)
 	
 	if newval then
+		self.retval = newval
 		self.state = newval
+		GUI.redraw_z[self.z] = true		
 	else
 		return self.retval
 	end	
@@ -2098,7 +2726,9 @@ function GUI.Radio:onmousedown()
 	mouseopt = math.floor(mouseopt * self.numopts) + 1
 
 	self.state = mouseopt
-	
+
+	GUI.redraw_z[self.z] = true
+
 end
 
 
@@ -2111,7 +2741,9 @@ function GUI.Radio:onmouseup()
 	else
 		self.state = self.retval	
 	end
-	
+
+	GUI.redraw_z[self.z] = true
+
 end
 
 
@@ -2119,6 +2751,8 @@ end
 function GUI.Radio:ondrag() 
 
 	self:onmousedown()
+
+	GUI.redraw_z[self.z] = true
 
 end
 
@@ -2132,7 +2766,9 @@ function GUI.Radio:onwheel()
 	if self.state > self.numopts then self.state = self.numopts end
 	
 	self.retval = self.state
-	
+
+	GUI.redraw_z[self.z] = true
+
 end
 
 
@@ -2153,12 +2789,13 @@ pad				Padding between the caption and each option
 
 -- Checklist - New
 GUI.Checklist = GUI.Element:new()
-function GUI.Checklist:new(z, x, y, caption, opts, dir, pad)
+function GUI.Checklist:new(z, x, y, w, h, caption, opts, dir, pad)
 	
 	local chk = {}
 	chk.type = "Checklist"
 	
 	chk.z = z
+	GUI.redraw_z[z] = true	
 	
 	chk.x, chk.y = x, y
 	
@@ -2172,6 +2809,8 @@ function GUI.Checklist:new(z, x, y, caption, opts, dir, pad)
 	chk.pad = pad
 
 	chk.f_color = "elm_fill"
+	
+	chk.shadow = true
 
 	-- Parse the string of options into a table
 	chk.optarray, chk.optsel = {}, {}
@@ -2282,15 +2921,15 @@ function GUI.Checklist:draw()
 					gfx.x, gfx.y = chk_x + (size - str_w) / 2, chk_y + size + 4
 				end
 			else
-			if not swap then
-				gfx.x, gfx.y = chk_x + 1.5 * size, chk_y + (size - str_h) / 2
-			else
-				gfx.x, gfx.y = chk_x - str_w - 8, chk_y + (size - str_h) / 2
+				if not swap then
+					gfx.x, gfx.y = chk_x + 1.5 * size, chk_y + (size - str_h) / 2
+				else
+					gfx.x, gfx.y = chk_x - str_w - 8, chk_y + (size - str_h) / 2
 				end
 			end
 	
 		
-			if self.numopts == 1 then
+			if self.numopts == 1 or self.shadow then
 				GUI.shadow(self.optarray[i], "txt", "shadow")
 			else
 				GUI.color("txt")
@@ -2304,13 +2943,13 @@ end
 
 
 -- Checklist - Get/set value. Returns a table of boolean values for each option.
-function GUI.Checklist:val(...)
+function GUI.Checklist:val(newvals)
 	
-	if ... then 
-		local newvals = {...}
+	if newvals then 
 		for i = 1, self.numopts do
 			self.optsel[i] = newvals[i]
 		end
+		GUI.redraw_z[self.z] = true	
 	else
 		return self.optsel
 	end
@@ -2330,7 +2969,8 @@ local mouseopt = self.dir == "h" and ((GUI.mouse.x - self.x + self.pad / 2) / se
 	-- Make that the current option
 	
 	self.optsel[mouseopt] = not self.optsel[mouseopt] 
-	
+
+	GUI.redraw_z[self.z] = true
 	--self:val()
 	
 end
@@ -2359,6 +2999,7 @@ function GUI.Button:new(z, x, y, w, h, caption, func, ...)
 	Button.type = "Button"
 	
 	Button.z = z
+	GUI.redraw_z[z] = true	
 	
 	Button.x, Button.y, Button.w, Button.h = x, y, w, h
 
@@ -2419,7 +3060,8 @@ end
 function GUI.Button:onmousedown()
 	
 	self.state = 1
-	
+	GUI.redraw_z[self.z] = true
+
 end
 
 
@@ -2434,7 +3076,14 @@ function GUI.Button:onmouseup()
 		self.func(table.unpack(self.params))
 		
 	end
+	GUI.redraw_z[self.z] = true
 
+end
+
+function GUI.Button:ondoubleclick()
+	
+	self.state = 0
+	
 end
 
 
@@ -2481,11 +3130,14 @@ function GUI.Textbox:new(z, x, y, w, h, caption, pad)
 	txt.type = "Textbox"
 	
 	txt.z = z
+	GUI.redraw_z[z] = true	
 	
 	txt.x, txt.y, txt.w, txt.h = x, y, w, h
 
 	txt.caption = caption
 	txt.pad = pad
+	
+	txt.shadow = true
 	
 	txt.caret = 0
 	txt.sel = 0
@@ -2514,11 +3166,16 @@ function GUI.Textbox:draw()
 	local pad = self.pad
 	
 	-- Draw the caption
-	GUI.font(3)
+	GUI.font(self.font_A or 3)
 	local str_w, str_h = gfx.measurestr(caption)
 	gfx.x = x - str_w - pad
-	gfx.y = y
-	GUI.shadow(caption, "txt", "shadow")
+	gfx.y = y + (h - str_h) / 2
+	if self.shadow then 
+		GUI.shadow(caption, "txt", "shadow") 
+	else
+		GUI.color(self.color or "txt")
+		gfx.drawstr(caption)
+	end
 	
 	-- Draw the textbox frame, and make it brighter if focused.
 	
@@ -2542,7 +3199,7 @@ function GUI.Textbox:draw()
 
 	-- Draw the text
 	GUI.color("txt")
-	GUI.font(4)
+	GUI.font(self.font_B or 4)
 	str_w, str_h = gfx.measurestr(text)
 	gfx.x = x + pad
 	gfx.y = y + (h - str_h) / 2
@@ -2577,7 +3234,7 @@ function GUI.Textbox:draw()
 	if focus then
 		
 		-- ...but only for half of the blink cycle
-		if self.blink < 8 then
+		if self.show_caret then
 			
 			local caret_x = x + pad + gfx.measurestr(string.sub(text, 0, caret))
 
@@ -2586,8 +3243,7 @@ function GUI.Textbox:draw()
 			
 		end
 		
-		-- Increment the blink cycle
-		self.blink = (self.blink + 1) % 16
+	--GUI.redraw_z[self.z] = true
 		
 	end
 	
@@ -2599,11 +3255,19 @@ function GUI.Textbox:val(newval)
 	
 	if newval then
 		self.retval = newval
+		GUI.redraw_z[self.z] = true		
 	else
 		return self.retval
 	end
 end
 
+
+-- Textbox - Lost focus
+function GUI.Textbox:lostfocus()
+
+	GUI.redraw_z[self.z] = true
+	
+end
 
 -- Textbox - Get the closest character position to the mouse.
 function GUI.Textbox:getcaret()
@@ -2637,7 +3301,7 @@ function GUI.Textbox:onmousedown()
 		self.cursstate = 0
 		self.sel = 0
 		self.caret = self:getcaret()
-
+		GUI.redraw_z[self.z] = true
 	end
 	
 end
@@ -2648,7 +3312,7 @@ function GUI.Textbox:ondoubleclick()
 	
 	local len = string.len(self.retval)
 	self.caret, self.sel = len, -len
-
+	GUI.redraw_z[self.z] = true
 end
 
 
@@ -2656,7 +3320,7 @@ end
 function GUI.Textbox:ondrag()
 	
 	self.sel = self:getcaret() - self.caret
-	
+	GUI.redraw_z[self.z] = true	
 end
 
 
@@ -2704,6 +3368,8 @@ function GUI.Textbox:ontype()
 		
 	elseif char == GUI.chars.RETURN then
 		self.focus = false
+		self:lostfocus()
+		text = self.retval
 		
 	elseif char == GUI.chars.HOME then
 		self.caret = 0
@@ -2722,8 +3388,29 @@ function GUI.Textbox:ontype()
 	
 	self.retval = text
 	self.sel = 0
+	GUI.redraw_z[self.z] = true	
+end
+
+
+-- Textbox - On Update (for making it blink)
+function GUI.Textbox:onupdate()
+	
+	if self.focus then
+	
+		if self.blink == 0 then
+			self.show_caret = true
+			GUI.redraw_z[self.z] = true
+		elseif self.blink == math.floor(GUI.txt_blink_rate / 2) then
+			self.show_caret = false
+			GUI.redraw_z[self.z] = true
+		end
+		self.blink = (self.blink + 1) % GUI.txt_blink_rate
+
+	end
 	
 end
+
+
 
 
 
@@ -2745,6 +3432,7 @@ function GUI.Menubox:new(z, x, y, w, h, caption, opts, pad)
 	menu.type = "Menubox"
 	
 	menu.z = z
+	GUI.redraw_z[z] = true	
 	
 	menu.x, menu.y, menu.w, menu.h = x, y, w, h
 
@@ -2778,7 +3466,7 @@ function GUI.Menubox:draw()
 	
 	local caption = self.caption
 	local val = self.retval
-	local text = type(self.optarray[val]) == "table" 
+	local text = (type(self.optarray[val]) == "table")
 					and self.optarray[val][1] 
 					or self.optarray[val]
 
@@ -2786,7 +3474,7 @@ function GUI.Menubox:draw()
 	
 
 	-- Draw the caption
-	GUI.font(3)
+	GUI.font(self.font or 3)
 	local str_w, str_h = gfx.measurestr(caption)
 	gfx.x = x - str_w - self.pad
 	gfx.y = y + (h - str_h) / 2
@@ -2832,6 +3520,8 @@ function GUI.Menubox:draw()
 	-- Draw the text
 	GUI.font(4)
 	GUI.color("txt")
+	
+	if self.output then text = self.output(text) end
 
 	str_w, str_h = gfx.measurestr(text)
 	gfx.x = x + 4
@@ -2846,6 +3536,7 @@ function GUI.Menubox:val(newval)
 	
 	if newval then
 		self.retval = newval
+		GUI.redraw_z[self.z] = true		
 	else
 		return math.floor(self.retval)
 	end
@@ -2855,23 +3546,43 @@ end
 
 -- Menubox - Mouse up
 function GUI.Menubox:onmouseup()
-	
+
 	local menu_str = ""
 	
 	for i = 1, self.numopts do
 		if i == self.curopt then menu_str = menu_str .. "!" end
-		menu_str = menu_str .. (type(self.optarray[i]) == "table" and self.optarray[i][1] or self.optarray[i]) .. "|"
+--[[
+		menu_str = menu_str .. ((type(self.optarray[i]) ~= "table") and self.optarray[i] or self.optarray[i][1]) .. "|"
+]]--
+		local new_str
+		if type(self.optarray[i]) == "table" then
+			new_str = tostring(self.optarray[i][1])
+		else
+			new_str = tostring(self.optarray[i])
+		end
+		
+		menu_str = menu_str .. new_str .. "|"
+
 	end
 	
-	--gfx.x = self.x
-	--gfx.y = self.y + self.h
+	menu_str = string.sub(menu_str, 1, string.len(menu_str) - 1)
+
 	gfx.x, gfx.y = GUI.mouse.x, GUI.mouse.y
 	
 	local curopt = gfx.showmenu(menu_str)
 	if curopt ~= 0 then self.retval = curopt end
+
 	self.focus = false
+	
+	GUI.redraw_z[self.z] = true	
 end
 
+
+-- Menubox - Mouse down
+-- This is only so that the box will light up
+function GUI.Menubox:onmousedown()
+	GUI.redraw_z[self.z] = true
+end
 
 -- Menubox - Mousewheel
 function GUI.Menubox:onwheel()
@@ -2883,6 +3594,7 @@ function GUI.Menubox:onwheel()
 	
 	self.retval = curopt
 	
+	GUI.redraw_z[self.z] = true	
 end
 
 
@@ -2897,6 +3609,7 @@ function GUI.Frame:new(z, x, y, w, h, shadow, fill, color, round)
 	Frame.type = "Frame"
 	
 	Frame.z = z
+	GUI.redraw_z[z] = true	
 	
 	Frame.x, Frame.y, Frame.w, Frame.h = x, y, w, h
 	
@@ -2948,6 +3661,100 @@ end
 	
 
 
+--[[	TxtFrame class
+	
+	
+]]--
+GUI.TxtFrame = GUI.Element:new()
+function GUI.TxtFrame:new(z, x, y, w, h, text, font, col_txt, pad, shadow, fill, color, round)
+	
+	local TxtFrame = {}
+	TxtFrame.type = "TxtFrame"
+	
+	TxtFrame.z = z
+	GUI.redraw_z[z] = true	
+	
+	TxtFrame.x, TxtFrame.y, TxtFrame.w, TxtFrame.h = x, y, w, h
+	
+	TxtFrame.retval = text
+	TxtFrame.font = font or 4
+	TxtFrame.col_txt = col_txt or "txt"
+	TxtFrame.pad = pad or 0	
+	
+	TxtFrame.shadow = shadow
+	TxtFrame.fill = fill or false
+	TxtFrame.color = color or "elm_frame"
+	TxtFrame.round = round or 0
+	TxtFrame.thick = thick or 0
+	
+	
+	setmetatable(TxtFrame, self)
+	self.__index = self
+	return TxtFrame
+	
+end
+
+
+function GUI.TxtFrame:val(newval)
+
+	if newval then
+		self.retval = newval
+		GUI.redraw_z[self.z] = true
+	else
+		return self.retval
+	end
+
+end
+
+
+function GUI.TxtFrame:draw()
+	
+	if self.color == "none" then return 0 end
+	
+	local x, y, w, h = self.x, self.y, self.w, self.h
+	local dist = GUI.shadow_dist
+	local fill = self.fill
+	local round = self.round
+	local shadow = self.shadow
+	
+	--GUI.roundrect = function (x, y, w, h, r, antialias, fill)
+	
+	if shadow then
+		GUI.color("shadow")
+		for i = 1, dist do
+			if round > 0 then
+				GUI.roundrect(x + i, y + i, w, h, round, 1, fill)
+			else
+				gfx.rect(x + i, y + i, w, h, fill)
+			end
+		end
+	end
+	
+	
+	GUI.color(self.color)
+	if round > 0 then
+		GUI.roundrect(x, y, w, h, round, 1, fill)
+	else
+		gfx.rect(x, y, w, h, fill)
+	end
+
+	if self.retval then
+		
+		local text = self.retval
+		
+		GUI.font(self.font)
+		GUI.color(self.col_txt)
+		
+		gfx.x, gfx.y = self.x + self.pad, self.y + self.pad
+		gfx.drawstr(text)		
+		
+	end
+
+end
+	
+
+
+
 --[[	Tabframe class
 caption		does nothing ATM
 dir			"h" or "v"
@@ -2981,6 +3788,7 @@ function GUI.Tabframe:new(z, x, y, w, h, caption, opts, pad)
 	Tab.type = "Tabframe"
 	
 	Tab.z = z
+	GUI.redraw_z[z] = true	
 	
 	Tab.x, Tab.y = x, y
 	Tab.btn_w, Tab.btn_h = w, h
@@ -3026,6 +3834,8 @@ function GUI.Tabframe:new(z, x, y, w, h, caption, opts, pad)
 end
 
 
+
+
 function GUI.Tabframe:update_sets(init)
 	
 	
@@ -3052,6 +3862,21 @@ function GUI.Tabframe:update_sets(init)
 		
 		GUI.elms_hide[z] = false
 		
+	end
+	
+end
+
+
+function GUI.Tabframe:val(newval)
+	
+	if newval then
+		self.state = newval
+		self.retval = self.state
+
+		self:update_sets()
+		GUI.redraw_z[self.z] = true
+	else
+		return self.state
 	end
 	
 end
@@ -3103,7 +3928,7 @@ end
 
 function GUI.Tabframe:draw()
 	
-	local x, y, w, h = self.x, self.y + 2, self.btn_w, self.btn_h
+	local x, y, w, h = self.x + 16, self.y + 2, self.btn_w, self.btn_h
 	local pad = self.pad
 	local font = self.font_B
 	local dir = self.dir
@@ -3111,7 +3936,7 @@ function GUI.Tabframe:draw()
 	local optarray = self.optarray
 
 	GUI.color("elm_bg")
-	gfx.rect(0, 0, gfx.w, h, true)
+	gfx.rect(x - 16, y, gfx.w, h, true)
 			
 	local x_adj, y_adj = table.unpack(dir == "h" and { (w + pad), 0 } or { 0, (h + pad) })
 	
@@ -3136,7 +3961,7 @@ function GUI.Tabframe:draw()
 
 	-- Draw the frame
 	GUI.color("wnd_bg")		
-	gfx.rect(0, self.y + h, gfx.w, 6, true)
+	gfx.rect(self.x, self.y + h, gfx.w, 6, true)
 
 
 	
@@ -3145,16 +3970,19 @@ end
 
 -- Tabframe - Mouse down.
 function GUI.Tabframe:onmousedown()
-			
+
+	local adj = (self.dir == "h") and 0.5*self.h or 0.5*self.w
 	--See which option it's on
-	local mouseopt = (self.dir == "h") and ((GUI.mouse.x - self.x) / self.w) or ((GUI.mouse.y - self.y) / self.h)
+	local mouseopt = (self.dir == "h") and ((GUI.mouse.x - (self.x + adj)) / self.w) or ((GUI.mouse.y - self.y) / self.h)
 	--local adj_y = self.y + self.capheight + self.pad
 	--local adj_h = self.h - self.capheight - self.pad
 	--local mouseopt = (GUI.mouse.y - adj_y) / adj_h
 		
-	mouseopt = math.floor(mouseopt * self.numopts) + 1
+	mouseopt = GUI.clamp((math.floor(mouseopt * self.numopts) + 1), 1, self.numopts)
 
 	self.state = mouseopt
+
+	GUI.redraw_z[self.z] = true
 	
 end
 
@@ -3171,7 +3999,7 @@ function GUI.Tabframe:onmouseup()
 	else
 		self.state = self.retval	
 	end
-	
+	GUI.redraw_z[self.z] = true	
 end
 
 
@@ -3179,20 +4007,21 @@ end
 function GUI.Tabframe:ondrag() 
 
 	self:onmousedown()
-
+	GUI.redraw_z[self.z] = true
 end
 
 
 -- Tabframe - Mousewheel
 function GUI.Tabframe:onwheel()
-	--[[
+
 	self.state = self.state + (dir == "h" and GUI.mouse.inc or -GUI.mouse.inc)
 	
 	if self.state < 1 then self.state = 1 end
 	if self.state > self.numopts then self.state = self.numopts end
 	
 	self.retval = self.state
-	]]--
+	self:update_sets()
+	GUI.redraw_z[self.z] = true
 end
 
 
@@ -3212,7 +4041,7 @@ GUI = GUI_table()
 
 
 GUI.name = "Fill MIDI item with..."
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 256, 176
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 512, 192
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
@@ -3294,11 +4123,20 @@ local function fill_item()
 	
 	local note_num = tonumber(GUI.Val("txt_note"))
 	
+	local length = GUI.elms.mnu_patt.retval
+	
 	local cur_ppq = start_ppq
+	local i = 1
+
 	while cur_ppq < end_ppq do
 		-- reaper.MIDI_InsertNote( take, selected, muted, startppqpos, endppqpos, chan, pitch, vel, noSortInOptional )
-		reaper.MIDI_InsertNote(cur_take, false, false, cur_ppq, cur_ppq + len_ppq, 0, note_num, 127, true)	
+		_=dm and Msg("i = "..tostring(i).."\t(i - 1) % length + 1 = "..tostring( math.floor( (i - 1) % length + 1 ) ) )
+		if GUI.elms.chk_patt.optsel[ (i - 1) % length + 1 ] then
+			reaper.MIDI_InsertNote(cur_take, false, false, cur_ppq, cur_ppq + len_ppq, 0, note_num, 127, true)	
+		end
+		i = i + 1
 		cur_ppq = cur_ppq + adj_ppq
+
 	end
 	
 	reaper.MIDI_Sort(cur_take)
@@ -3313,17 +4151,75 @@ local function fill_item()
 end
 
 GUI.elms = {
-	
-	mnu_length = GUI.Menubox:new(	1,	152, 16, 64, 20, "Note length:", len_str, 8),
+
+	txt_note = GUI.Textbox:new(		1,	152, 16, 64, 20, "Note number:", 8),
+	mnu_length = GUI.Menubox:new(	1,	368, 16, 64, 20, "Note length:", len_str, 8),
 	mnu_offset = GUI.Menubox:new(	1,	152, 42, 64, 20, "Every __ bars:", beat_str, 8),
-	txt_note = GUI.Textbox:new(		1,	152, 68, 64, 20, "Note number:", 8),
-	chk_time = GUI.Checklist:new(	1,	32, 96, "", "Only in time selection", "v", 4),
-	btn_go = GUI.Button:new(		1,	96, 128, 64, 20, "Go!", fill_item),
-	
+	chk_time = GUI.Checklist:new(	1,	288, 42, nil, nil, "", "Only in time selection", "v", 4),
+
+	mnu_patt = GUI.Menubox:new(		1,	152, 68, 64, 20, "Pattern length:", "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16", 4),
+	chk_patt = GUI.Checklist:new(	1,	52, 120, nil, nil, "", "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16", "h", 5),
+
+	frm_patt = GUI.Frame:new(		2,	0, 0, 0, 0),
+
+
+	btn_go = GUI.Button:new(		1,	224, 156, 64, 24, "Go!", fill_item),
 }
 GUI.Val("mnu_length", 4)
 GUI.Val("mnu_offset", 6)
 GUI.Val("txt_note", 35)
+GUI.elms.chk_patt.optsel[1] = true
+
+GUI.elms_freeze = {[2] = true}
+
+function GUI.elms.frm_patt:draw()
+	
+
+
+	local mnu_x, mnu_y =	GUI.elms.mnu_patt.x + (GUI.elms.mnu_patt.w / 2),
+							GUI.elms.mnu_patt.y + (GUI.elms.mnu_patt.h / 2)
+	
+	local n1_x, n1_y = 	mnu_x, 
+						mnu_y + (GUI.elms.mnu_patt.h / 2) + 8
+	
+	local n0_x, n0_y =	GUI.elms.chk_patt.x - (GUI.elms.chk_patt.pad / 2),
+						n1_y
+
+
+	local length = tonumber(GUI.elms.mnu_patt.retval)
+
+
+	local n2_x, n2_y =	GUI.elms.chk_patt.x + (GUI.elms.chk_patt.chk_w * length) + (GUI.elms.chk_patt.pad * (length - 1)) + GUI.elms.chk_patt.pad / 2,
+						n1_y
+	
+	local n3_x, n3_y =	n0_x, 
+						GUI.elms.chk_patt.y + GUI.elms.chk_patt.h + GUI.elms.chk_patt.pad / 2
+	
+	local n4_x, n4_y =	n2_x, 
+						n3_y
+
+	local n_w, n_h =	n4_x - n0_x,
+						n4_y - n0_y
+
+	GUI.color("elm_bg")
+	
+	gfx.rect(n0_x, n0_y, n_w, n_h, 1)
+
+	GUI.color("elm_frame")
+		
+	gfx.line(mnu_x, mnu_y, n1_x, n1_y)
+
+	gfx.line(n0_x, n0_y, n1_x, n1_y)
+	gfx.line(n1_x, n1_y, n2_x, n2_y)
+	
+	gfx.line(n0_x, n0_y, n3_x, n3_y)
+	gfx.line(n2_x, n2_y, n4_x, n4_y)
+	
+	gfx.line(n3_x, n3_y, n4_x, n4_y)
+	
+	
+end
+
 
 
 GUI.Init()
