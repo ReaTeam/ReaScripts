@@ -1,11 +1,13 @@
 --[[
 Description: Repeat Action
-Version: 1.0.2
+Version: 1.0.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release
+	Added link to forum thread
+	'Esc' will close the script if it gets stuck
 Links:
+	Forum Thread http://forum.cockos.com/showthread.php?t=188632
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Allows action IDs to repeated at a specified interval
@@ -77,7 +79,7 @@ end
 local wnd = midi and reaper.MIDIEditor_GetActive()
 	
 
-
+local char
 
 local function check_key()
 
@@ -92,7 +94,7 @@ _=dm and Msg(">check_key")
 		
 		_=dm and Msg("\tStartup, looking for key...")
 		
-		key_down = gfx.getchar()
+		key_down = char
 		
 		if key_down ~= 0 then
 					
@@ -198,6 +200,10 @@ end
 local function Main()
 	
 	_=dm and Msg(">main")
+	
+	char = gfx.getchar()
+	
+	if char == -1 or char == 27 then return 0 end
 	
 	check_key()
 	
