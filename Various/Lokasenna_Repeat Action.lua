@@ -1,6 +1,6 @@
 --[[
-Description: Lokasenna_Repeat Action
-Version: 1.0.1
+Description: Repeat Action
+Version: 1.0.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -14,14 +14,14 @@ About:
 	for each action you want to repeat.
 	
 	2. In Reaper's action list, use the 'Load' button and browse to:
-		'Reaper/Scripts/ReaTeam Scripts/Various/Lokasenna_Repeat Action commands/"
+		'Reaper/Scripts/ReaTeam Scripts/Various/Lokasenna_Repeat Action/"
 
 	3. Select the scripts you generated.
 	
 	4. Each script will be individually accessible in the action list for you to bind to a shortcut key.
 Extensions:
 Provides:
-	[nomain] . > Lokasenna_Repeat Action/.
+	[nomain] . > Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua
 	[main] Lokasenna_Repeat Action - Add new action.lua > Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua
 --]]
 
