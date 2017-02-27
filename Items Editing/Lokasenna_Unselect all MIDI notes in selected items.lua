@@ -33,4 +33,4 @@ end
 
 reaper.UpdateArrange()
 
-reaper.Undo_EndBlock("Unselect all notes in selected items", -1)
+reaper.Undo_EndBlock("Unselect all MIDI notes in selected items", -1)
