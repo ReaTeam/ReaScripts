@@ -1,6 +1,6 @@
 --[[
 Description: Fill selected MIDI item with notes...
-Version: 1.6
+Version: 1.60
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
