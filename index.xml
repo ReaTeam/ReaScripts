@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6821a4f17869927f6c32fbeba4910c3a1dca1f73" name="ReaTeam Scripts">
+<index version="1" commit="e2ad198844839295e1a6c12f4c6fe70c4dcd1762" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -503,24 +503,28 @@ added support for all track envelopes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95c2c33c0f2a1b9ecfc9a08a8dd04fa1447d2a77/Items%20Editing/Lokasenna_Insert%20empty%20item%20for%20each%20selected%20track.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Select all notes in selected items.lua" type="script" desc="Select all notes in selected items">
+    <reapack name="Lokasenna_Select all MIDI notes in selected items.lua" type="script" desc="Select all MIDI notes in selected items">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-02-24T23:05:55Z">
+      <version name="1.0" author="Lokasenna" time="2017-02-27T15:03:12Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/68f6c5c7031dce75b354da15a0fe12f3a815e605/Items%20Editing/Lokasenna_Select%20all%20notes%20in%20selected%20items.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f606ebc4e443a37021ae1c94f97737e4d8899a16/Items%20Editing/Lokasenna_Select%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
+      </version>
+      <version name="1.01" author="Lokasenna" time="2017-02-27T15:04:08Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2ad198844839295e1a6c12f4c6fe70c4dcd1762/Items%20Editing/Lokasenna_Select%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Unselect all notes in selected items.lua" type="script" desc="Unselect all notes in selected items">
+    <reapack name="Lokasenna_Unselect all MIDI notes in selected items.lua" type="script" desc="Unselect all MIDI notes in selected items">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-02-24T23:05:55Z">
+      <version name="1.01" author="Lokasenna" time="2017-02-27T15:03:35Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/68f6c5c7031dce75b354da15a0fe12f3a815e605/Items%20Editing/Lokasenna_Unselect%20all%20notes%20in%20selected%20items.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c9d4accc8c3851add25d15874555f50ab74becd9/Items%20Editing/Lokasenna_Unselect%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_spk77_Sort items by length.lua" type="script" desc="Sort selected items by length (ascending)">
