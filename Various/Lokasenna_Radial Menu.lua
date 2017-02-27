@@ -1,11 +1,18 @@
 --[[
 Description: Lokasenna_Radial Menu 
-Version: 2.1.2
+Version: 2.2.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fixes
-	- Key mode wasn't being detected properly
+New
+- Expanded mouse-click modes; the parameter 'mnu_0_on_act' in the Settings file no longer exists
+- New command: 'midi 12345' will direct an action to the current MIDI Editor rather than the main window
+- If no settings file is found, will open in Setup mode rather than exiting
+- Menus are underlined to separate them from action buttons
+
+Fixed
+- Color choices being reversed - RGB->BGR (Mac only?)
+- Crash when trying to use SWS functions if SWS isn't installed
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -1061,7 +1068,8 @@ GUI.Init = function ()
 	
 	
 	-- Create the window
-	gfx.clear = GUI.rgb2num(table.unpack(GUI.colors.wnd_bg))
+	--gfx.clear = GUI.rgb2num(table.unpack(GUI.colors.wnd_bg))
+	gfx.clear = reaper.ColorToNative(table.unpack(GUI.colors.wnd_bg))
 	
 	if not GUI.x then GUI.x = 0 end
 	if not GUI.y then GUI.y = 0 end
@@ -2939,10 +2947,10 @@ function GUI.Checklist:draw()
 					gfx.x, gfx.y = chk_x + (size - str_w) / 2, chk_y + size + 4
 				end
 			else
-			if not swap then
-				gfx.x, gfx.y = chk_x + 1.5 * size, chk_y + (size - str_h) / 2
-			else
-				gfx.x, gfx.y = chk_x - str_w - 8, chk_y + (size - str_h) / 2
+				if not swap then
+					gfx.x, gfx.y = chk_x + 1.5 * size, chk_y + (size - str_h) / 2
+				else
+					gfx.x, gfx.y = chk_x - str_w - 8, chk_y + (size - str_h) / 2
 				end
 			end
 	
@@ -4060,9 +4068,6 @@ GUI = GUI_table()
 
 _=dm and GUI.Msg(script_path)
 
-
-
-
 -- For the context boxes
 GUI.fonts[5] = {"Calibri", 15}
 
@@ -4070,10 +4075,17 @@ GUI.fonts[5] = {"Calibri", 15}
 GUI.fonts[6] = {"Calibri", 18, "b"}
 
 -- For the radial menu
-GUI.fonts[7] = {"Calibri", 16, "b"}
-GUI.fonts[8] = {"Calibri", 14}
+GUI.fonts[7] = {"Calibri", 16, "b"}		-- Normal buttons
+GUI.fonts[8] = {"Calibri", 14}			-- Submenu preview
+GUI.fonts[9] = {"Calibri", 16, "bu"}	-- Menus
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
+
+-- If there's no saved settings, i.e. first run, open in Setup mode
+if not reaper.file_exists(settings_file_name) then 
+	reaper.ShowMessageBox("Couldn't find any saved settings. Opening in Setup mode.", "No settings found", 0)
+	setup = true
+end
 
 -- It's much more efficient to put the trig functions in local variables if we're going
 -- to be using them a lot.
@@ -4107,9 +4119,8 @@ local hvr_time = 0
 --local ra, rb, rc, rd = 50, 60, 64, 160
 
 
-local key_mode_str = "Close the menu,Perform the highlighted action and close the menu,Keep the menu open"
-
-local misc_opt_str = "Return to the base menu after performing an action,Hover over an option to 'click' it      →"
+local key_mode_str = "Close the menu,Run the highlighted action and close the menu,Keep the menu open"
+local mouse_mode_str = "Just run the action,Return to the base menu,Close the menu"
 
 
 
@@ -4202,9 +4213,19 @@ local settings_help_str = [=[--[[
 										_SWS_AWMPLAYTOG
 										_RS2bf8e77e958d48b42c7d7b585790ee0427a96a7e
 										
+											Note: Because the MIDI Editor uses its own
+											action list, when running MIDI actions you
+											may need to enter them as 'midi 40364' to
+											keep Reaper from getting confused.
+										
 										Open a menu:
 										menu 20		(opens menu 20)
 										menu stuff	(opens the menu with alias 'stuff')
+										
+										Other commands:
+										back		Return to the base menu
+										quit		Close the script
+										
 										
 	
 			["col_main"] = {			Normal button color
@@ -4276,9 +4297,10 @@ local settings_help_str = [=[--[[
 									(1-3, see the options in the Setup script)
 									
 		["last_tab"] = 1,			The last tab that was active in the Setup script
-		
-		["mnu_0_on_act"] = true,	Boolean - return to the base menu after
-									performing an action?
+									
+		["mouse_mode"] = 1,			What to do when the mouse is clicked
+									(1-3, see the options in the Setup script)
+									
 									
 		["num_btns"] = 8,			Number of buttons for new menus to start with
 		
@@ -4346,16 +4368,22 @@ local help_pages = {
  
 - To paste an action ID, use the Paste button.
  
-- Assign buttons to open a menu with 'menu 20', or 'menu stuff'. Assign a button's action to 'back' to return to the base menu.
+- Assign buttons to open a menu with 'menu 20', or 'menu stuff'. 
+ 
+- Other commands that can be assigned to buttons:
+  'back' - Return to the base menu
+  'quit' - Close the script
+  'midi 41076' - Sends an action ID to the current MIDI Editor, rather than the main window.
 
 ]]},
 
 
 
 	{"Context", 
-		
-[[- By default, Radial Menu will always open menu 0 at startup. This tab allows you to specify different menus to open based on which Reaper area the mouse cursor is over - i.e. one set of actions for tracks and another for media items.
+[[    Important: Context functions require the SWS extension for Reaper to be installed.
  
+- By default, Radial Menu will always open menu 0 at startup. This tab allows you to specify different menus to open based on which Reaper area the mouse cursor is over - i.e. one set of actions for tracks and another for media items.
+  
 - Any contexts left blank will look at the 'level' above them for a match, and the level above that, eventually defaulting back to 0.
  
 - Contexts can be assigned via menu numbers or aliases. 
@@ -4446,7 +4474,7 @@ local mnu_arr = {
 		["num_btns"] = 8,
 		["last_tab"] = 1,
 		["key_mode"] = 1,
-		["mnu_0_on_act"] = false,
+		["mouse_mode"] = 1,
 		["hvr_click"] = false,
 		["hvr_time"] = 200,
 		["close_time"] = 600,
@@ -4743,74 +4771,9 @@ end
 
 -- Print out the contents of mnu_arr, for debugging and shit
 local function spit_table()
-	
-	GUI.Msg("-1 = ")
-	
-	for k, v in GUI.kpairs(mnu_arr[-1]) do
-		
-		if type(v) == "table" then
-			if k == "contexts" then
-				GUI.Msg("\tcontexts: ")
-				for c, n in GUI.kpairs(v) do
-					GUI.Msg("\t\t"..c.." = "..n)
-				end
-			elseif k == "misc_opts" then
-				local str = ""
-				for a, b in ipairs(v) do
-					str = str..", "..tostring(b)
-				end
-				GUI.Msg("\t"..k.." = "..string.sub(str, 3))
-			else
-				GUI.Msg("\t"..k.." = "..table.concat(v, ", "))
-			end
-		else
-			GUI.Msg("\t"..k.." = "..tostring(v))
-		end
-	end
-	
-	
-	-- Get a list of all the menus that exist
-	local arr = {}
-	for k, v in pairs(mnu_arr) do
-		if k ~= -1 then
-			table.insert(arr, k)
-		end
-	end
-	table.sort(arr)
-	
-	
-	for k = 1, #arr do
-		
-		--GUI.Msg("working on arr["..k.."]")
-		local i = arr[k]
-		
-		GUI.Msg(i.." = ")
-		for j = 0, #mnu_arr[i] do
-			
-			GUI.Msg("\t"..j.." = ")
-			
-			if type(mnu_arr[i][j]) == "table" then
-				
-				for k, v in pairs(mnu_arr[i][j]) do
-					
-					if type(v) == "table" then
-						GUI.Msg("\t\t"..k.." = "..table.concat(v, ", "))
-					else
-						GUI.Msg("\t\t"..k.." = "..tostring(v))
-					end
-					
-				end
-				
-			else
-			
-				GUI.Msg("\t"..j.." = "..tostring(mnu_arr[i][j]))
-				
-			end
-			
-		end
-		
-	end
-	
+
+	Msg( serializeTable(mnu_arr) )
+
 end
 
 
@@ -4907,9 +4870,8 @@ local function get_context_mnu()
 	
 	_=dm and Msg("getting mouse context")
 	
-	local str = get_context_str()
-	
-	
+	local str = GUI.SWS_exists and get_context_str() or ""
+		
 	-- See if there's an exact match; if there isn't, trim off the last value and try again
 	while str do
 		_=dm and Msg("\tlooking for context: '"..tostring(str).."'")
@@ -4943,8 +4905,13 @@ local function get_context_txt()
 	
 	_=dm and Msg(">get_context_txt")
 	
-	local wnd, seg, det = reaper.BR_GetMouseCursorContext()
-			
+	if not GUI.SWS_exists then
+		
+		reaper.ShowMessageBox("Context functions require the SWS extension for Reaper to be installed.", "SWS not found", 0)
+		return 0
+		
+	end
+	
 	local str = get_context_str()
 			
 	_=dm and Msg("\tgot context str: "..tostring(str))
@@ -4972,7 +4939,7 @@ end
 
 
 -- Parse and run the current action
-local function run_act(act)
+local function run_act(act, midi)
 
 	_=dm and Msg("running action: "..tostring(act))
 
@@ -5002,6 +4969,11 @@ local function run_act(act)
 		GUI.quit = true
 		return 0
 		
+	
+	elseif string.sub(act, 1, 4) == "midi" then
+	
+		run_act( string.sub(act, 5), true)
+		return 0
 	
 	
 	-- Is it a menu?
@@ -5038,13 +5010,26 @@ local function run_act(act)
 		
 		_=dm and Msg("sending action to Reaper: "..tostring(act))
 		
-		if act and act > 0 then reaper.Main_OnCommand(act, 0) end
-		if not setup and mnu_arr[-1].mnu_0_on_act then
-			cur_depth = base_depth
-			last_depth = base_depth
-			if setup then  end
-			cur_btn = -2
-			redraw_menu = true
+		if act and act > 0 then 
+			
+			if not midi then
+				reaper.Main_OnCommand(act, 0) 
+			else
+				local wnd = reaper.MIDIEditor_GetActive()
+				if wnd then reaper.MIDIEditor_OnCommand(wnd, act) end
+			end
+			
+			if not setup then
+				
+				if mnu_arr[-1].mouse_mode == 2 then
+					cur_depth = base_depth
+					last_depth = base_depth
+					redraw_menu = true
+				elseif mnu_arr[-1].mouse_mode == 3 then
+					GUI.quit = true
+				end
+
+			end
 		end
 	end	
 
@@ -5198,7 +5183,8 @@ local function update_glbl_settings()
 	GUI.Val("chk_preview", {mnu_arr[-1].preview})
 	GUI.Val("tabs", mnu_arr[-1].last_tab)
 	GUI.Val("opt_key_mode", mnu_arr[-1].key_mode)
-	GUI.Val("chk_misc_opts", {mnu_arr[-1].mnu_0_on_act, mnu_arr[-1].hvr_click})
+	GUI.Val("opt_mouse_mode", mnu_arr[-1].mouse_mode)
+	GUI.Val("chk_misc_opts", {mnu_arr[-1].hvr_click})
 	GUI.Val("txt_hvr_time", mnu_arr[-1].hvr_time)
 	GUI.Val("txt_close_time", mnu_arr[-1].close_time)
 
@@ -5585,7 +5571,7 @@ local function check_key()
 	
 	if mnu_arr[-1].key_mode ~= 3 then
 		
-		_=dm and Msg("\tneed to check the key")
+		_=dm and Msg("\tChecking the shortcut key")
 		
 		if startup then
 			
@@ -5654,7 +5640,11 @@ local function check_key()
 			
 		else
 			key_down = gfx.getchar(hold_char)
-			_ = (dm and key_down == 0) and Msg("\tKey is no longer down")
+			if key_down ~= 0 then
+				_=dm and Msg("\tKey "..tostring(hold_char).." is still down (ret:"..tostring(key_down)..")")
+			else
+				_=dm and Msg("\tKey "..tostring(hold_char).." is no longer down")
+			end
 		end	
 		
 	-- We're in "keep the window open" mode
@@ -5662,7 +5652,7 @@ local function check_key()
 
 		-- If any key was pressed, close the window
 
-		_=dm and Msg("\tKeep the window open mode; a key was pressed, closing the window.")		
+		_=dm and Msg("\tKey mode = 3 and a key was pressed; closing the window.")		
 
 		GUI.quit = true
 
@@ -5901,6 +5891,8 @@ local ref1 = {x = 490, y = line_y0 + 64, w = 270, h = 68}	-- Menu color settings
 local ref2 = {x = 490, y = line_y1 + 40, w = 270, h = 68}	-- Button color settings
 local ref3 = {x = 490, y = line_y0 + 16, w = 270, h = 68}	-- Global color settings
 
+local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20}	-- Options buttons
+local ref6 = {x = 458, y = line_y0 + 280}					-- Misc. opts
 
 GUI.elms = not setup and {
 
@@ -6054,21 +6046,25 @@ or
 
 
 
+
+
 	---- Options tab z = 11,12,13
 
 	--mnu_g_shape = GUI.Menubox:new(		12,	500, line_y0 + 96, 64, 20, "Button shape:", "Circle,Square,Arc", 4),	
 	
-	opt_key_mode = GUI.Radio:new(		12,	464, line_y0 + 16, 336, 108, "When the shortcut key is released:", key_mode_str, 4),
+	opt_key_mode = GUI.Radio:new(		12,	448, line_y0 + 16, 336, 96, "When the shortcut key is released:", key_mode_str, 4),
 	
-	chk_misc_opts = GUI.Checklist:new(	12, 474, line_y0 + 148, 336, 108, "", misc_opt_str, "v", 4),
-	txt_hvr_time = GUI.Textbox:new(		12, 756, line_y0 + 172, 48, 20, "(ms):", 4),
-	txt_close_time = GUI.Textbox:new(	12, 756, line_y0 + 212, 48, 20, "If no key is detected, close the window after (ms):", 4),
+	opt_mouse_mode = GUI.Radio:new(		12, 448, line_y0 + 144, 336, 96, "When running an action:", mouse_mode_str, 4),
 	
-	btn_open_txt = GUI.Button:new(		12,	532, line_y0 + 266, 192, 20, "Open settings in text editor", open_txt),
-	btn_refresh_txt = GUI.Button:new(	12,	532, line_y0 + 292, 192, 20, "Refresh from settings file", refresh_menu),
-	btn_load_txt = GUI.Button:new(		12,	532, line_y0 + 318, 192, 20, "Import menus...", refresh_menu, true),
+	chk_misc_opts = GUI.Checklist:new(	12, ref6.x, ref6.y, 336, 108, "", "Hover over an option to 'click' it →", "v", 4),
+	txt_hvr_time = GUI.Textbox:new(		12, ref6.x + 270, ref6.y, 48, 20, "(ms):", 4),
+	txt_close_time = GUI.Textbox:new(	12, ref6.x + 270, ref6.y + 48, 48, 20, "If no key is detected, close the window after (ms):", 4),
+	
+	btn_open_txt = GUI.Button:new(		12,	ref4.x, ref4.y, ref4.w, ref4.h, "Open settings in text editor", open_txt),
+	btn_refresh_txt = GUI.Button:new(	12,	ref4.x, ref4.y + 26, ref4.w, ref4.h, "Refresh from settings file", refresh_menu),
+	btn_load_txt = GUI.Button:new(		12,	ref4.x, ref4.y + 52, ref4.w, ref4.h, "Import menus...", refresh_menu, true),
 	--btn_save_txt = GUI.Button:new(		12,	500, line_y0 + 270, 192, 22, "Export user settings...", save_menu, true),
-	btn_spit_table = GUI.Button:new(	12,	532, line_y0 + 344, 192, 20, "Show saved data (for debugging)", spit_table),
+	btn_spit_table = GUI.Button:new(	12,	ref4.x, ref4.y + 78, ref4.w, ref4.h, "Show saved data (for debugging)", spit_table),
 	
 	
 	
@@ -6215,6 +6211,7 @@ local function assign_tooltips()
 	-- Options tab --
 	
 	GUI.elms.opt_key_mode.tooltip = "What to do when the script's shortcut key is released"
+	GUI.elms.opt_mouse_mode.tooltip = "What to do when an action is clicked"
 	
 	GUI.elms.btn_open_txt.tooltip = "Open the settings file in the system's text editor"
 	GUI.elms.btn_refresh_txt.tooltip = "Refresh menus and settings from the settings file"
@@ -6587,7 +6584,9 @@ local function get_color_picker(self)
 	local retval, colorOut = reaper.GR_SelectColor()
 	
 	if retval ~= 0 then
-		local r, g, b = GUI.num2rgb(colorOut)
+		
+		--local r, g, b = GUI.num2rgb(colorOut)
+		local r, g, b = reaper.ColorFromNative(colorOut)
 		self.col_user = {r / 255, g / 255, b / 255}
 		GUI.redraw_z[self.z] = true
 		redraw_menu = true
@@ -6881,6 +6880,11 @@ function GUI.elms.frm_radial:draw()
 	for i = -1, #mnu_arr[cur_depth] do
 		
 		if mnu_arr[cur_depth][i] then
+			
+			if string.sub(mnu_arr[cur_depth][i].act, 1, 4) == "menu" then
+				GUI.font(9)
+			end
+			
 			str = string.gsub(mnu_arr[cur_depth][i].lbl, "|", "\n")
 			str_w, str_h = gfx.measurestr(str)
 			
@@ -6898,7 +6902,10 @@ function GUI.elms.frm_radial:draw()
 				gfx.y = cy - str_h / 2 + j * h
 				gfx.drawstr(s)
 				j = j + 1
-			end		
+			end	
+			
+			GUI.font(7)
+			
 		end
 	end
 	
@@ -7635,11 +7642,26 @@ if setup then
 	end
 
 
+	function GUI.elms.opt_mouse_mode:onmouseup()
+		
+		GUI.Radio.onmouseup(self)
+		mnu_arr[-1].mouse_mode = self.retval
+
+	end
+	function GUI.elms.opt_mouse_mode:onwheel()
+		
+		GUI.Radio.onwheel(self)
+		mnu_arr[-1].mouse_mode = self.retval
+		
+	end
+
+
+
 
 	function GUI.elms.chk_misc_opts:onmouseup()
 		
 		GUI.Checklist.onmouseup(self)
-		mnu_arr[-1].mnu_0_on_act, mnu_arr[-1].hvr_click = table.unpack(GUI.Val("chk_misc_opts"))
+		mnu_arr[-1].hvr_click = table.unpack(GUI.Val("chk_misc_opts"))
 		--GUI.Val("chk_misc_opts", {mnu_arr[-1].misc_opts[1], mnu_arr[-1].misc_opts[2]})
 		--GUI.Val("txt_hvr_time", mnu_arr[-1].misc_opts[3])
 		
