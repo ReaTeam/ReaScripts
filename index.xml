@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="858d52eca074f3d493bfb707ce7de71c81d0724e" name="ReaTeam Scripts">
+<index version="1" commit="1ec7ae355320bca495f606509822e47162de38ff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -439,7 +439,7 @@ added support for all track envelopes]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Allows you to quickly add a large quantity of notes to a MIDI item. Could be used, for example, to add a steady hi-hat pattern.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows you to quickly add a large quantity of notes to a MIDI item. Could be used to e.g. add a steady hi-hat, or a specific kick pattern.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=186665">Forum Thread</link>
@@ -461,6 +461,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.51" author="Lokasenna" time="2017-02-23T03:57:07Z">
         <changelog><![CDATA[Added an option to restrict notes to the current time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73c0d86a1bd3cae42e482a2f0fee04b7a7c79698/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
+      </version>
+      <version name="1.6" author="Lokasenna" time="2017-02-27T04:35:11Z">
+        <changelog><![CDATA[Can be given a pattern to use when inserting notes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ec7ae355320bca495f606509822e47162de38ff/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill time selection with empty items.lua" type="script" desc="Fill time selection with empty items">
