@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1ec7ae355320bca495f606509822e47162de38ff" name="ReaTeam Scripts">
+<index version="1" commit="89e690ff0348ae825bf1c4288c78bb19a4d8680d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3919,17 +3919,6 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
     </reapack>
     <reapack name="Lokasenna_Radial Menu.lua" type="script" desc="Lokasenna_Radial Menu">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Provides a circular "quick menu" for commonly-used actions, similar to how weapons are selected in many FPS games.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Use the accompanying script "Lokasenna_Radial Menu Setup.lua" to configure the menu and additional settings.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for further documentation/bug reports/help.\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?p=1788321">Forum Thread</link>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-01-19T16:30:45Z">
@@ -4082,6 +4071,9 @@ Fixes
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/858d52eca074f3d493bfb707ce7de71c81d0724e/Various/Lokasenna_Radial%20Menu.lua</source>
         <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/858d52eca074f3d493bfb707ce7de71c81d0724e/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
         <source file="Lokasenna_Radial Menu - example menus.txt">https://github.com/ReaTeam/ReaScripts/raw/858d52eca074f3d493bfb707ce7de71c81d0724e/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20menus.txt</source>
+      </version>
+      <version name="2.2.0" author="Lokasenna" time="2017-02-27T05:43:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89e690ff0348ae825bf1c4288c78bb19a4d8680d/Various/Lokasenna_Radial%20Menu.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
