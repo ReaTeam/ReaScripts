@@ -4068,7 +4068,6 @@ Menu background fills the window properly
 - When opening a context menu, context is now displayed in the title bar
 - Added a new button command: 'quit'
 - If the menu is in 'keep the window open' mode, any keypress will close it
-
 Fixes
 - 'close_time' has had its minimum value reduced to 1ms
 - Made the 'menu file not found' dialog a little clearer, hopefully
