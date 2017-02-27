@@ -1,6 +1,6 @@
 --[[
-Description: Select all notes in selected items
-Version: 1.0
+Description: Select all MIDI notes in selected items
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -33,4 +33,4 @@ end
 
 reaper.UpdateArrange()
 
-reaper.Undo_EndBlock("Select all notes in selected items", -1)
+reaper.Undo_EndBlock("Select all MIDI notes in selected items", -1)
