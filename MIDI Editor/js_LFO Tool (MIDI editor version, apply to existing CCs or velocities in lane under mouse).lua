@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua
-Version: 2.01
+Version: 2.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -75,7 +75,7 @@ About:
     + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
     + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
     + Requires REAPER v5.32 or later.  
-  v2.01 (2017-02-28)
+  v2.02 (2017-02-28)
     + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
 ]]
 -- The archive of the full changelog is at the end of the script.
@@ -2795,17 +2795,22 @@ end
 -- This function ADDS items to tablePPQs and other tables.
 function insertNewCCs(PPQstart, PPQend, channel)
     
-    --[[ Since v2.01, first CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
+    -- Since v2.01, first CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
 
-    -- Get first insert position at CC density 'grid'
+    i = #tablePPQs + 1
+    tablePPQs[i] = math.ceil(PPQstart)
+    tableChannels[i] = channel
+    tableFlags[i] = 1
+    tableFlagsLSB[i] = 1
+        
+    -- Get first insert position at CC density 'grid' beyond PPQstart
     local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, PPQstart)
+    -- For improved accuracy, do not round firstCCinsertPPQpos yet
     local firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
-    if math.floor(firstCCinsertPPQpos+0.5) <= PPQstart then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
-    ]]
-    firstCCinsertPPQpos = math.ceil(PPQstart)
-    
+    if math.floor(firstCCinsertPPQpos+0.5) <= math.ceil(PPQstart) then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
+        
     -- PPQend is actually beyond time selection, so "-1" to prevent insert at PPQend
-    i = #tablePPQs
+    --i = #tablePPQs
     for p = firstCCinsertPPQpos, PPQend-1, PPperCC do
         local insertPPQpos = math.floor(p + 0.5)      
         i = i + 1
@@ -2814,7 +2819,7 @@ function insertNewCCs(PPQstart, PPQend, channel)
         tableFlags[i] = 1
         tableFlagsLSB[i] = 1
     end
-        
+            
 end -- insertNewCCs(startPPQ, endPPQ, channel)
 
 -------------------------------------
