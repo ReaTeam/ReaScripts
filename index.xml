@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="333072c7b40a012aab7373eca89775b7637e60b4" name="ReaTeam Scripts">
+<index version="1" commit="2db38677e8fbf1eaf3312a92d8e03c723d714b44" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4126,6 +4126,11 @@ Fixes
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6051a022fa2329795087363e5f58a7fc07dd7f3b/Various/Lokasenna_Radial%20Menu.lua</source>
         <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/6051a022fa2329795087363e5f58a7fc07dd7f3b/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
         <source file="Lokasenna_Radial Menu - example menus.txt">https://github.com/ReaTeam/ReaScripts/raw/6051a022fa2329795087363e5f58a7fc07dd7f3b/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20menus.txt</source>
+      </version>
+      <version name="2.2.4" author="Lokasenna" time="2017-02-28T13:31:00Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2db38677e8fbf1eaf3312a92d8e03c723d714b44/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/2db38677e8fbf1eaf3312a92d8e03c723d714b44/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example menus.txt">https://github.com/ReaTeam/ReaScripts/raw/2db38677e8fbf1eaf3312a92d8e03c723d714b44/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20menus.txt</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
