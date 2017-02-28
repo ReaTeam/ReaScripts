@@ -1,11 +1,10 @@
 --[[
 Description: Repeat Action
-Version: 1.0.3
+Version: 1.0.5
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added link to forum thread
-	'Esc' will close the script if it gets stuck
+	Added more detailed debug messages
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=188632
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -176,10 +175,16 @@ local function check_act()
 	_=dm and Msg(">check_act")
 	
 	local time = reaper.time_precise()
-	
+
+	_=dm and Msg("\tinterval set to: "..tostring(interval).." seconds")
+	_=dm and Msg("\ttime since last action: "
+		.. math.floor( (time - last) * 1000 ) / 1000
+		.. " seconds"
+	)
+
 	if time - last > interval then
 		
-		_=dm and Msg("time elapsed, running action")
+		_=dm and Msg("\tinterval elapsed, running action: " .. tostring(act))
 		
 		if not midi then
 			reaper.Main_OnCommand(act, 0)
