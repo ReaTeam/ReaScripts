@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua
-Version: 2.00
+Version: 2.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -75,6 +75,8 @@ About:
     + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
     + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
     + Requires REAPER v5.32 or later.  
+  v2.01 (2017-02-28)
+    + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.    
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -2793,10 +2795,14 @@ end
 -- This function ADDS items to tablePPQs and other tables.
 function insertNewCCs(PPQstart, PPQend, channel)
     
+    --[[ Since v2.01, first CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
+    
     -- Get first insert position at CC density 'grid'
     local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, PPQstart)
     local firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
     if math.floor(firstCCinsertPPQpos+0.5) <= PPQstart then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
+    ]]
+    firstCCinsertPPQpos = math.ceil(PPQstart)
     
     -- PPQend is actually beyond time selection, so "-1" to prevent insert at PPQend
     i = #tablePPQs
@@ -3005,32 +3011,32 @@ if couldNotParseLane then
     if selectionToUse == "existing" then
         if laneToUse == "under mouse" then
             reaper.ShowMessageBox("The lane under mouse is not usable."
+                         .. "\n\nThe LFO Tool can only work in lanes that accept events with continuous values (unlike sysex or text, for example)."
                          .. "\n\nSince the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes when the script starts:"
-                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."
-                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."                        
                          .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
                          , "ERROR", 0)
         else
             reaper.ShowMessageBox("The last clicked lane is not usable."
+                         .. "\n\nThe LFO Tool can only work in lanes that accept events with continuous values (unlike sysex or text, for example)."           
                          .. "\n\nSince the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
-                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."     
-                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel,\n * channel pressure, or\n * velocity."                        
                          .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
                          , "ERROR", 0)    
         end
     else
         if laneToUse == "under mouse" then
             reaper.ShowMessageBox("The lane under mouse is not usable."
+                         .. "\n\nThe LFO Tool can only work in lanes that accept events with continuous values (unlike sysex or text, for example)."     
                          .. "\n\nSince the 'laneToUse' setting is currently set to 'under mouse', the mouse must be positioned over one of the following lanes when the script starts:"
-                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."
-                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."                        
                          .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
                          , "ERROR", 0)        
         else
             reaper.ShowMessageBox("The last clicked lane is not useable."
+                         .. "\n\nThe LFO Tool can only work in lanes that accept events with continuous values (unlike sysex or text, for example)."
                          .. "\n\nSince the 'laneToUse' setting is currently set to 'last clicked', the last clicked lane in the MIDI editor must be one of the following lanes:"
-                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."     
-                         .. "\n\nThese lanes accept messages with continuous values, unlike sysex or text, for example."                         
+                         .. "\n * 7-bit CC,\n * 14-bit CC,\n * pitchwheel, or\n * channel pressure."                            
                          .. "\n\nThe velocity lane can only be used when applying the LFO to existing events, not when inserting new events.  (That is, when the setting 'selectionToUse' is set to 'existing' in the script's user area.)"
                          , "ERROR", 0)     
         end  
