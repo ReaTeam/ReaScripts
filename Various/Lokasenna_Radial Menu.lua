@@ -1,17 +1,14 @@
 --[[
-Description: Lokasenna_Radial Menu 
-Version: 2.2.1
+Description: Radial Menu 
+Version: 2.2.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 New
-- Expanded mouse-click modes; the parameter 'mnu_0_on_act' in the Settings file no longer exists
-- New command: 'midi 12345' will direct an action to the current MIDI Editor rather than the main window
-- If no settings file is found, will open in Setup mode rather than exiting
-- Menus are underlined to separate them from action buttons
+- Renamed the ReaPack package 'Radial Menu' just to keep the list tidier
+- Added a button export your settings to a separate file
 Fixed
-- Color choices being reversed - RGB->BGR (Mac only?)
-- Crash when trying to use SWS functions if SWS isn't installed
+- Crash when deleting menu button 0
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -4397,13 +4394,20 @@ local help_pages = {
 
 	{"Swiping",
 		
-[[-	If the basic Radial Menu wasn't fast enough for you, try this. Swiping lets you trigger menus and actions via mouse movements, in the same way as answering a call on your mobile phone.
+[[The basic Radial Menu wasn't fast enough for you? Try this. Swiping lets you trigger menus and actions via mouse movements, in the same way as answering a call on your mobile phone.
  	
-- When Swiping is enabled, quickly move the mouse out from the center of the Radial Menu window; the option you swiped over will be 'clicked'.
+- When Swiping is enabled, quickly move the mouse out from the center of the Radial Menu window; the option you swiped over will be 'clicked'. If a submenu is opened via Swiping, the script window will re-center itself on your mouse cursor, allowing very fast navigation through your menus.
  
-- When a submenu is opened via Swiping, the script window will re-center itself on your mouse cursor, allowing very fast navigation through your menu setup.
  
-- Adjust the sliders to fine-tune the Swiping logic until it feels right. 
+- Start sensitivity: Lower values will require you to move the mouse faster to track a Swipe; higher values will start Swiping even with slow movement.
+ 
+- Stop sensitivity: How much the mouse needs to slow down to be considered "stopped", triggering the Swipe action. Lower vaues will require your cursor to be almost completely stopped, higher values will only need you to slow down a little.
+ 
+- Stop time: How long the mouse needs to be stopped, as determined by the 'Stop sensitivity' setting, before triggering the action.
+ 
+- Swiping threshold: Defines a 'safe zone' in which Swiping won't be tracked, e.g. so you can use the menu buttons normally without accidentally triggering a Swipe.
+ 
+- You may need to fine-tune all four sliders together to find a Swipe behavior that feels right for you.
 		
 ]]},
 
@@ -4414,14 +4418,18 @@ local help_pages = {
 [[- Any menus that don't have their own colors specified will look here, as will buttons in those menus don't have colors of their own.
  
 - Sizes and target areas for the radial menu can be adjusted. Be aware that the 'preview' labels drawn when hovering over a menu are centered between the red and yellow rings, so some combinations of settings may not look very good.
-  
+ 
+- You know, it's a bit weird just how much empty space there is on this tab... almost like it was being left there for future use. Hmm...
+ 
 ]]},
 
 
 
 	{"Options",
 		
-[[- Depending on the options selected here, some of Reaper's actions may not play nicely with the script; particularly, anything that opens a window or otherwise takes 'focus' away from the script. It's a Reaper issue, unfortunately.
+[[- The various settings here may not all work with each other.
+ 	
+- Likewise, some of Reaper's actions may not play nicely with your settings here; particularly, anything that opens a window or otherwise takes 'focus' away from the script. It's a Reaper issue, unfortunately.
  
 - Settings are saved to 'Lokasenna_Radial Menu settings.txt' in the same folder as this script. Feel free to edit it, but make sure it's written with proper Lua syntax. The settings file also has further documentation for most parameters.
 ]]},	
@@ -4670,16 +4678,22 @@ end
 local function save_menu(export)
 	
 	local file_name = settings_file_name
-	--[[
-		Disabled until we're able to use the dialog to save a new file
 	
 	if export then
-		ret, user_file = reaper.GetUserFileNameForRead("", "Export user settings...", ".lua")
-		if ret then file_name = user_file end
+		
+		local ret, user_file = reaper.GetUserInputs("Export settings", 1, "Export to 'script_folder/____.txt' :,extrawidth=64", "my settings")
+		
+		if ret then
+			file_name = user_file..".txt"
+		else
+			return 0
+		end
+
 	end
-	]]--
+
+	if not file_name then return 0 end
 	
-	local file = io.open(settings_file_name, "w+") or nil
+	local file = io.open(file_name, "w+") or nil
 	if not file then 
 		return 0 
 	end
@@ -5454,14 +5468,13 @@ local function remove_btn(cur)
 		
 	elseif #mnu_arr[cur_depth] > 0 then
 	
-		local old_arr = mnu_arr[cur_depth]
-		local num = cur and cur_btn or #old_arr		
-		local arr = {}
+		local num = cur and cur_btn or #mnu_arr[cur_depth]
+		local new_arr, arr_num, arr_hash = {}, {}, {}
 		
 		_=dm and Msg("\tcreating temporary array")
 
 		
-		
+--[[		
 		for k, v in pairs(old_arr) do
 		
 			
@@ -5472,7 +5485,8 @@ local function remove_btn(cur)
 		
 		_=dm and Msg("\tremoving btn "..tostring(num).." - "..old_arr[num].lbl.." of "..tostring(#arr))
 		
-		table.remove(arr, num)
+		arr[num] = nil
+		--table.remove(arr, num)
 		
 		_=dm and Msg("\tarray now has "..tostring(#arr).." buttons")
 		_=dm and Msg("\tcopying back to mnu_arr")
@@ -5486,8 +5500,42 @@ local function remove_btn(cur)
 			_=dm and Msg("\t\tcopied "..tostring(k).." - "..tostring(v))
 		
 		end
+]]--
+
 		
-		mnu_arr[cur_depth] = old_arr
+		-- Separate the table by key into nums and hash
+		for k, v in pairs(mnu_arr[cur_depth]) do
+			if tonumber(k) then
+				arr_num[tonumber(k)] = v
+			else
+				arr_hash[k] = v
+			end
+		end
+		
+		-- Remove the button
+		arr_num[num] = nil
+		
+		
+		local k = 0
+		
+		for i = 0, #mnu_arr[cur_depth] do
+			
+			if arr_num[i] then
+				new_arr[k] = arr_num[i]
+				k = k + 1
+			end
+			
+		end
+		
+		-- Throw the hash values back in
+		for k, v in pairs(arr_hash) do
+			
+			new_arr[k] = v
+			
+		end
+		
+		
+		mnu_arr[cur_depth] = new_arr
 		
 		cur_btn = -2
 
@@ -6007,7 +6055,7 @@ or
 
 	frm_r1 = GUI.Frame:new(				20,	828, line_y3, 112, 80, false, false, nil, 0),
 
-	opt_swipe_mode = GUI.Radio:new(		19,	464, line_y3 + 96, 192, 80, "Swiping uses buttons from:", "The active menu, ", 4),
+	opt_swipe_mode = GUI.Radio:new(		19,	464, line_y3 + 96, 192, 80, "Swiping uses actions from:", "The active menu, ", 4),
 	txt_swipe_menu = GUI.Textbox:new(	18,	542, line_y3 + 150, 96, 20, "Menu:", 4),
 	
 	chk_swipe_acts = GUI.Checklist:new(	18, 464, line_y3 + 192, nil, nil, "", "Swiping can trigger actions", "v", 4),
@@ -6061,22 +6109,30 @@ or
 	
 	btn_open_txt = GUI.Button:new(		12,	ref4.x, ref4.y, ref4.w, ref4.h, "Open settings in text editor", open_txt),
 	btn_refresh_txt = GUI.Button:new(	12,	ref4.x, ref4.y + 26, ref4.w, ref4.h, "Refresh from settings file", refresh_menu),
-	btn_load_txt = GUI.Button:new(		12,	ref4.x, ref4.y + 52, ref4.w, ref4.h, "Import menus...", refresh_menu, true),
+	btn_load_txt = GUI.Button:new(		12,	ref4.x, ref4.y + 52, ref4.w, ref4.h, "Import settings...", refresh_menu, true),
+	btn_save_txt = GUI.Button:new(		12, ref4.x, ref4.y + 78, ref4.w, ref4.h, "Export settings...", save_menu, true),
 	--btn_save_txt = GUI.Button:new(		12,	500, line_y0 + 270, 192, 22, "Export user settings...", save_menu, true),
-	btn_spit_table = GUI.Button:new(	12,	ref4.x, ref4.y + 78, ref4.w, ref4.h, "Show saved data (for debugging)", spit_table),
+	btn_spit_table = GUI.Button:new(	12,	ref4.x, ref4.y + 104, ref4.w, ref4.h, "Show saved data (for debugging)", spit_table),
 	
 	
 	
 	
 	---- Help tab z = 14,15,16 ----
 	
-	mnu_help = GUI.Menubox:new(			15, 668, line_y0 + 6, 128, 20, "", "", 4),
-	frm_help = GUI.TxtFrame:new(		16, 436, line_y0 + 32, 588, 340, "help stuff", 4, "txt", 8, false, true, "elm_bg", 0),
+	mnu_help = GUI.Menubox:new(			15, 544, line_y0 + 6, 160, 20, "", "", 4),
+	btn_thread = GUI.Button:new(		15,	736, line_y0 + 5, 96, 20, "Forum thread", GUI.open_file, thread_URL),
+	btn_donate = GUI.Button:new(		15,	840, line_y0 + 5, 72, 20, "Donate", GUI.open_file, donate_URL),	
 	
-	btn_thread = GUI.Button:new(		15,	640, line_y0 + 380, 96, 20, "Forum thread", GUI.open_file, thread_URL),
-	btn_donate = GUI.Button:new(		15,	752, line_y0 + 380, 72, 20, "Donate", GUI.open_file, donate_URL),	
+	line_help = GUI.Frame:new(			15, 436, line_y0 + 32, 600, 4, true, true),
+	frm_help = GUI.TxtFrame:new(		16, 436, line_y0 + 36, 588, 374, "help stuff", 4, "txt", 8, false, true, "elm_bg", 0),
 	
+
 }
+
+
+
+
+
 
 
 GUI.elms.frm_radial.state = false
@@ -6215,8 +6271,12 @@ local function assign_tooltips()
 	GUI.elms.btn_open_txt.tooltip = "Open the settings file in the system's text editor"
 	GUI.elms.btn_refresh_txt.tooltip = "Refresh menus and settings from the settings file"
 	GUI.elms.btn_load_txt.tooltip = "Load menus and settings from another file"
+	GUI.elms.btn_save_txt.tooltip = "Save menus and settings to a separate file"
 	GUI.elms.btn_spit_table.tooltip = "Display the current menus and settings in Reaper's console (may take a few seconds)"
 	
+	
+	
+	-- Help tab --
 	GUI.elms.btn_thread.tooltip = "Open the official Reaper forum thread for this script"
 	GUI.elms.btn_donate.tooltip = "Open a PayPal donation link for the script's author"
 
