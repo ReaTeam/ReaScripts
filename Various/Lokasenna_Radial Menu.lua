@@ -1,14 +1,12 @@
 --[[
 Description: Radial Menu 
-Version: 2.2.3
+Version: 2.2.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-New
-- Renamed the ReaPack package 'Radial Menu' just to keep the list tidier
-- Added a button export your settings to a separate file
-Fixed
-- Crash when deleting menu button 0
+Fixes
+- Crash when the Forum Thread or Donate buttons are clicked
+- 'Export Menus' not working on Mac (hopefully)
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -119,6 +117,18 @@ GUI.version = "beta 8"
 -- Might want to know this
 GUI.OS = reaper.GetOS()
 
+-- Borrowed from X-Raym
+if GUI.OS == "Win32" or reaper.GetOS() == "Win64" then
+	-- user_folder = buf --"C:\\Users\\[username]" -- need to be test
+	GUI.file_sep = "\\"
+else
+	-- user_folder = "/USERS/[username]" -- Mac OS. Not tested on Linux.
+	GUI.file_sep = "/"
+end
+
+
+
+
 -- Also might need to know this
 GUI.SWS_exists = function ()
 	
@@ -226,7 +236,7 @@ GUI.colors = {
 
 
 GUI.font = function (fnt)
-	local font, size, str = table.unpack(GUI.fonts[fnt])
+	local font, size, str = table.unpack( type(fnt) == "table" and fnt or GUI.fonts[fnt])
 	
 	-- ASCII values:
 	-- Bold		 98
@@ -4072,8 +4082,9 @@ GUI.fonts[6] = {"Calibri", 18, "b"}
 
 -- For the radial menu
 GUI.fonts[7] = {"Calibri", 16, "b"}		-- Normal buttons
-GUI.fonts[8] = {"Calibri", 14}			-- Submenu preview
-GUI.fonts[9] = {"Calibri", 16, "bu"}	-- Menus
+GUI.fonts[8] = {"Calibri", 16, "bu"}	-- Menus
+GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
+
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 
@@ -4123,7 +4134,11 @@ local mouse_mode_str = "Just run the action,Return to the base menu,Close the me
 
 
 	---- Documentation ----
-	
+
+local thread_URL = [[http://forum.cockos.com/showthread.php?t=186637]]
+local donate_URL = [[https://www.paypal.me/Lokasenna]]
+
+
 
 local settings_help_str = [=[--[[
 		Settings for Lokasenna_Radial Menu.lua
@@ -4473,18 +4488,23 @@ local mnu_arr = {
 	-- Using index -1 for random settings so that 'for i = 0, #mnu_arr'
 	-- loops won't even see it
 	[-1] = {
+		["close_time"] = 600,		
 		["col_main"] = {0.753, 0.753, 0.753},
 		["col_hvr"] = {0.878, 0.878, 0.878},
 		["col_tog"] = {0, 0.753, 0},
 		["col_bg"] = {0.2, 0.2, 0.2},
 		["contexts"] = {},
-		["num_btns"] = 8,
-		["last_tab"] = 1,
-		["key_mode"] = 1,
-		["mouse_mode"] = 1,
+		["fonts"] = {
+						{"Calibri", 16, "b"},	-- Normal buttons
+						{"Calibri", 16, "bu"},	-- Menus
+						{"Calibri", 14},		-- Submenu preview
+					},
 		["hvr_click"] = false,
-		["hvr_time"] = 200,
-		["close_time"] = 600,
+		["hvr_time"] = 200,		
+		["key_mode"] = 1,
+		["last_tab"] = 1,
+		["mouse_mode"] = 1,
+		["num_btns"] = 8,		
 		["preview"] = true,
 		["ra"] = 48,
 		["rb"] = 60,
@@ -4498,7 +4518,7 @@ local mnu_arr = {
 						stop = 20,
 						menu_mode = 1,
 						menu = 0,
-		},
+					},
 	},
 	-- Base level
 	[0] = {
@@ -4681,10 +4701,12 @@ local function save_menu(export)
 	
 	if export then
 		
-		local ret, user_file = reaper.GetUserInputs("Export settings", 1, "Export to 'script_folder/____.txt' :,extrawidth=64", "my settings")
+		local ret, user_file = reaper.GetUserInputs("Export settings", 1, 
+			"Export to 'script_folder".. GUI.file_sep .. "____.txt' :,extrawidth=64",
+			"my settings")
 		
 		if ret then
-			file_name = user_file..".txt"
+			file_name = script_path .. GUI.file_sep .. user_file..".txt"
 		else
 			return 0
 		end
@@ -4693,8 +4715,9 @@ local function save_menu(export)
 
 	if not file_name then return 0 end
 	
-	local file = io.open(file_name, "w+") or nil
+	local file, err = io.open(file_name, "w+") or nil
 	if not file then 
+		reaper.ShowMessageBox("Couldn't open the file.\nError: "..tostring(err), "Whoops", 0)
 		return 0 
 	end
 
@@ -5602,8 +5625,24 @@ end
 
 
 
-
-
+-- Center/justify/etc any elms that need it
+local function align_elms()
+	
+	
+	GUI.font( GUI.elms.lbl_f_font.font )
+	
+	local str = GUI.elms.lbl_f_font.retval
+	local str_w, str_h = gfx.measurestr(str)
+	
+	GUI.elms.lbl_f_font.x = GUI.elms.txt_font_A.x + (GUI.elms.txt_font_A.w - str_w) / 2
+	
+	str = GUI.elms.lbl_f_size.retval
+	str_w, str_h = gfx.measurestr(str)
+	
+	GUI.elms.lbl_f_size.x = GUI.elms.txt_size_A.x + (GUI.elms.txt_size_A.w - str_w) / 2	
+	
+	
+end
 
 
 
@@ -5939,6 +5978,9 @@ local ref2 = {x = 490, y = line_y1 + 40, w = 270, h = 68}	-- Button color settin
 local ref3 = {x = 490, y = line_y0 + 16, w = 270, h = 68}	-- Global color settings
 
 local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20}	-- Options buttons
+
+local ref5 = {x = 776, y = line_y0 + 240}
+
 local ref6 = {x = 458, y = line_y0 + 280}					-- Misc. opts
 
 GUI.elms = not setup and {
@@ -5959,7 +6001,7 @@ or
 	
 	frm_line_x = GUI.Frame:new(			22,	432, 0, 4, 432, true, true),
 	
-	frm_line_tt = GUI.Frame:new(		21, 0, line_y_tt, 1024, 4, true, true),
+	frm_line_tt = GUI.Frame:new(		1, 0, line_y_tt, 1024, 4, true, true),
 	
 
 
@@ -6076,14 +6118,16 @@ or
 	lbl_col_g_bg = GUI.Label:new(		9,	ref3.x + 144, 	ref3.y + 24, 	"Background color:", 1, 3),
 	frm_col_g_bg = GUI.Frame:new(		9,	ref3.x + 250, 	ref3.y + 22, 	20, 20, true, true, "elm_frame", 0),
 
-	sldr_num_btns = GUI.Slider:new(		9,	572, line_y0 + 128, 96, "Number of buttons (new menus)", 4, 16, 12, 4, "h"),
+	sldr_num_btns = GUI.Slider:new(		9,	504, line_y0 + 128, 96, "Number of buttons (new menus)", 4, 16, 12, 4, "h"),
+	
 	
 	chk_preview = GUI.Checklist:new(	9,	816, line_y0 + 17, nil, nil, "", "Show submenu preview", "v", 4),
 
-	frm_line_y2 = GUI.Frame:new(		8,	436, line_y2, 600, 4, true, true),
+
+	frm_line_y2 = GUI.Frame:new(		9,	436, line_y2, 600, 4, true, true),
 	lbl_radii = GUI.Label:new(			9,	448, line_y2 + 8, "Radii and target areas:", 1, 2),
 
-	frm_r2 = GUI.Frame:new(				10,	450, line_y2 + 40, 252, 140, false, false, nil, 0),
+	frm_r2 = GUI.Frame:new(				10,	450, line_y2 + 40, 252, 140, false, false, "wnd_bg", 0),
 
 	sldr_ra = GUI.Slider:new(			9,	464, line_y2 + 72, 96, "Center button", 16, 96, 80, 32, "h"),
 	sldr_rc = GUI.Slider:new(			9,	592, line_y2 + 72, 96, "Inside of ring", 64, 160, 96, 52, "h"),
@@ -6091,6 +6135,24 @@ or
 
 	sldr_rb = GUI.Slider:new(			20,	464, line_y2 + 144, 96, "Nothing yet", 20, 128, 108, 40, "h"),
 
+	line_rad_font = GUI.Frame:new(		8, 702, line_y2 + 4, 4, line_y_tt - line_y2 - 4, true, true),
+
+	lbl_fonts = GUI.Label:new(			9,	718, line_y2 + 8, "Fonts:", 1, 2),
+
+	lbl_f_font = GUI.Label:new(			9,	ref5.x, ref5.y - 20, "Font", 1, 3),
+	lbl_f_size = GUI.Label:new(			9,	ref5.x + 130, ref5.y - 20, "Size", 1, 3),
+	
+	txt_font_A = GUI.Textbox:new(		9,	ref5.x, ref5.y, 128, 20, "Main:", 4),
+	txt_font_B = GUI.Textbox:new(		9,	ref5.x, ref5.y + 26, 128, 20, "Menus:", 4),
+	txt_font_C = GUI.Textbox:new(		9,	ref5.x, ref5.y + 52, 128, 20, "Preview:", 4),
+	
+	txt_size_A = GUI.Textbox:new(		9,	ref5.x + 130, ref5.y, 28, 20, "", 4),
+	txt_size_B = GUI.Textbox:new(		9,	ref5.x + 130, ref5.y + 26, 28, 20, "", 4),
+	txt_size_C = GUI.Textbox:new(		9,	ref5.x + 130, ref5.y + 52, 28, 20, "", 4),	
+	
+	chk_flags_A = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y, nil, nil, "", "B,I,U", "h", 2),
+	chk_flags_B = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y + 26, nil, nil, "", " , , ", "h", 2),
+	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
 
 
 
@@ -6933,7 +6995,7 @@ function GUI.elms.frm_radial:draw()
 	-- Draw all of the labels
 	
 	_=dm and Msg("\tdrawing labels")
-	GUI.font(7)
+	GUI.font( mnu_arr[-1].fonts[1] )
 	
 	local str, str_w, str_h, cx, cy, w, h, j
 	for i = -1, #mnu_arr[cur_depth] do
@@ -6941,7 +7003,7 @@ function GUI.elms.frm_radial:draw()
 		if mnu_arr[cur_depth][i] then
 			
 			if string.sub(mnu_arr[cur_depth][i].act, 1, 4) == "menu" then
-				GUI.font(9)
+				GUI.font( mnu_arr[-1].fonts[2] )
 			end
 			
 			str = string.gsub(mnu_arr[cur_depth][i].lbl, "|", "\n")
@@ -6963,7 +7025,7 @@ function GUI.elms.frm_radial:draw()
 				j = j + 1
 			end	
 			
-			GUI.font(7)
+			GUI.font( mnu_arr[-1].fonts[1] )
 			
 		end
 	end
@@ -6979,7 +7041,7 @@ function GUI.elms.frm_radial:draw()
 		local adj = 2 / (#mnu_arr[mnu_children] + 1)
 		local r = ra + (rc - ra) / 2
 		
-		GUI.font(8)
+		GUI.font( mnu_arr[-1].fonts[3] )
 		--GUI.color(colorsmart(get_color(	(mnu_arr[mnu_children][-1] and "col_main" or "col_bg"), -2)))
 		GUI.color(colorsmart(get_color(	(mnu_arr[cur_depth][-1] and "col_main" or "col_bg"), -2)))
 		
@@ -7974,6 +8036,9 @@ if setup then
 	GUI.init_txt_width()
 	init_help_pages()
 	GUI.Val("frm_help", help_pages[1][2])
+	
+	-- For any elms that need adjusting
+	align_elms()
 
 	init_frm_swipe_menu()
 
