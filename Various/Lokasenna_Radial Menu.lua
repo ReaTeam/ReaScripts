@@ -1,12 +1,10 @@
 --[[
 Description: Radial Menu 
-Version: 2.2.4
+Version: 2.2.5
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-Fixes
-- Crash when the Forum Thread or Donate buttons are clicked
-- 'Export Menus' not working on Mac (hopefully)
+- Disabled the Font options that shouldn't have been there yet
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -6135,6 +6133,8 @@ or
 
 	sldr_rb = GUI.Slider:new(			20,	464, line_y2 + 144, 96, "Nothing yet", 20, 128, 108, 40, "h"),
 
+--[[
+
 	line_rad_font = GUI.Frame:new(		8, 702, line_y2 + 4, 4, line_y_tt - line_y2 - 4, true, true),
 
 	lbl_fonts = GUI.Label:new(			9,	718, line_y2 + 8, "Fonts:", 1, 2),
@@ -6154,7 +6154,7 @@ or
 	chk_flags_B = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y + 26, nil, nil, "", " , , ", "h", 2),
 	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
 
-
+]]--
 
 
 	---- Options tab z = 11,12,13
@@ -8038,7 +8038,7 @@ if setup then
 	GUI.Val("frm_help", help_pages[1][2])
 	
 	-- For any elms that need adjusting
-	align_elms()
+	--align_elms()
 
 	init_frm_swipe_menu()
 
