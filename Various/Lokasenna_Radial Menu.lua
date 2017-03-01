@@ -1,10 +1,10 @@
 --[[
 Description: Radial Menu 
-Version: 2.2.5
+Version: 2.3.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-- Disabled the Font options that shouldn't have been there yet
+- Added customizable fonts to the Global tab
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -4087,7 +4087,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 
 -- If there's no saved settings, i.e. first run, open in Setup mode
-if not reaper.file_exists(settings_file_name) then 
+if not (setup or reaper.file_exists(settings_file_name) ) then 
 	reaper.ShowMessageBox("Couldn't find any saved settings. Opening in Setup mode.", "No settings found", 0)
 	setup = true
 end
@@ -4232,6 +4232,9 @@ local settings_help_str = [=[--[[
 										menu stuff	(opens the menu with alias 'stuff')
 										
 										Other commands:
+										midi 12345	Send an action to the current MIDI
+													editor rather than the main window
+													
 										back		Return to the base menu
 										quit		Close the script
 										
@@ -4297,6 +4300,46 @@ local settings_help_str = [=[--[[
 									If there's still no match, it will open menu 0.				
 									(see the Setup script's Context tab for a list
 									of available contexts)
+									
+		["fonts"] = {				Font settings
+		
+			[1] = 	{				1 - Normal buttons
+									2 - Menus
+									3 - Preview text
+									
+				"Calibri", 			Font face. See the note below.
+				
+				16, 				Size
+				
+				"b"					Flags. Just a string listing:
+										b	bold
+										i	italics
+										u	underline
+										
+									The order doesn't matter, i.e. this would be
+									perfectly fine: "iub"
+									
+										
+									Important: Font names are really picky, and will
+									default back to Arial if you get them wrong. The
+									Setup script provides a green/red light for each
+									font to let you know if it's correct or not.
+									
+									Unfortunately, the names are often not what you
+									see when using them in Office, etc...
+									
+									To get a font's name in Windows:
+									1. Find the .ttf file in your Windows\Fonts folder
+									2. Right-click it, select Properties
+									3. Select the Details tab
+									4. The first field, "Name", is what you want to
+									   be using here.
+									   
+									Mac users - I have no idea. 
+									   
+									   
+									I know, it's stupid.
+				
 			
 		
 		["hvr_click"] = false,		Boolean - hover over a button to 'click' it
@@ -4407,7 +4450,7 @@ local help_pages = {
 
 	{"Swiping",
 		
-[[The basic Radial Menu wasn't fast enough for you? Try this. Swiping lets you trigger menus and actions via mouse movements, in the same way as answering a call on your mobile phone.
+[[- The basic Radial Menu wasn't fast enough for you? Try this. Swiping lets you trigger menus and actions via mouse movements, in the same way as answering a call on your mobile phone.
  	
 - When Swiping is enabled, quickly move the mouse out from the center of the Radial Menu window; the option you swiped over will be 'clicked'. If a submenu is opened via Swiping, the script window will re-center itself on your mouse cursor, allowing very fast navigation through your menus.
  
@@ -4430,9 +4473,11 @@ local help_pages = {
 		
 [[- Any menus that don't have their own colors specified will look here, as will buttons in those menus don't have colors of their own.
  
-- Sizes and target areas for the radial menu can be adjusted. Be aware that the 'preview' labels drawn when hovering over a menu are centered between the red and yellow rings, so some combinations of settings may not look very good.
+- Sizes and target areas for the radial menu can be adjusted here. Be aware that the 'preview' labels drawn when hovering over a menu are centered between the red and yellow rings, so some combinations of settings may not look very good.
  
-- You know, it's a bit weird just how much empty space there is on this tab... almost like it was being left there for future use. Hmm...
+- The font controls should be mostly self-explanatory. One thing - the little green (or red) lights are there to tell if you what you've typed is a font. 
+ 
+- NOTE: Fonts may not use the same name you'd see in Microsoft Office, etc. It's dependent on metadata in the font file itself - on Windows, right-click a .ttf file, choose Properties, and select the Details tab - the Name field is what you want to be using here. Mac users... I have no idea.
  
 ]]},
 
@@ -4493,9 +4538,20 @@ local mnu_arr = {
 		["col_bg"] = {0.2, 0.2, 0.2},
 		["contexts"] = {},
 		["fonts"] = {
-						{"Calibri", 16, "b"},	-- Normal buttons
-						{"Calibri", 16, "bu"},	-- Menus
-						{"Calibri", 14},		-- Submenu preview
+						[1] = 	{	-- Normal button labels
+									"Calibri", 
+									16, 
+									"b"
+								},
+						[2] = 	{	-- Menu labels
+									"Calibri", 
+									16, 
+									"bu"
+								},	
+						[3] = 	{	-- Preview text
+									"Calibri", 
+									14
+								},		
 					},
 		["hvr_click"] = false,
 		["hvr_time"] = 200,		
@@ -4700,7 +4756,7 @@ local function save_menu(export)
 	if export then
 		
 		local ret, user_file = reaper.GetUserInputs("Export settings", 1, 
-			"Export to 'script_folder".. GUI.file_sep .. "____.txt' :,extrawidth=64",
+			"Export to ...this script's folder...".. GUI.file_sep .. "____.txt' :,extrawidth=64",
 			"my settings")
 		
 		if ret then
@@ -5215,7 +5271,41 @@ local function update_glbl_settings()
 
 	GUI.Val("sldr_num_btns", mnu_arr[-1].num_btns - GUI.elms.sldr_num_btns.min)
 	GUI.Val("chk_preview", {mnu_arr[-1].preview})
+	
+	
+	GUI.Val("txt_font_A", mnu_arr[-1].fonts[1][1])
+	GUI.Val("txt_font_B", mnu_arr[-1].fonts[2][1])
+	GUI.Val("txt_font_C", mnu_arr[-1].fonts[3][1])
+	
+	GUI.Val("txt_size_A", mnu_arr[-1].fonts[1][2])
+	GUI.Val("txt_size_B", mnu_arr[-1].fonts[2][2])	
+	GUI.Val("txt_size_C", mnu_arr[-1].fonts[3][2])
+	
+	local fA, fB, fC =	mnu_arr[-1].fonts[1][3] or "",
+						mnu_arr[-1].fonts[2][3] or "",
+						mnu_arr[-1].fonts[3][3] or ""
+						
+					
+	GUI.Val("chk_flags_A", 	{	not not string.match(fA, "b"),
+								not not string.match(fA, "i"),
+								not not string.match(fA, "u")
+								}
+	)
+	GUI.Val("chk_flags_B", 	{	not not string.match(fB, "b"),
+								not not string.match(fB, "i"),
+								not not string.match(fB, "u")
+								}
+	)
+	GUI.Val("chk_flags_C", 	{	not not string.match(fC, "b"),
+								not not string.match(fC, "i"),
+								not not string.match(fC, "u")
+								}
+	)
+	
+	
+	
 	GUI.Val("tabs", mnu_arr[-1].last_tab)
+	
 	GUI.Val("opt_key_mode", mnu_arr[-1].key_mode)
 	GUI.Val("opt_mouse_mode", mnu_arr[-1].mouse_mode)
 	GUI.Val("chk_misc_opts", {mnu_arr[-1].hvr_click})
@@ -5915,6 +6005,21 @@ end
 
 
 
+-- Sees if a font named 'font' exists on this system
+-- Returns true/false
+local function validate_font(font)
+	
+	if type(font) ~= "string" then return false end
+	
+	gfx.setfont(1, font, 10)
+	
+	local __, ret_font = gfx.getfont()
+	
+	return font == ret_font	
+	
+end
+
+
 
 
 
@@ -5977,7 +6082,7 @@ local ref3 = {x = 490, y = line_y0 + 16, w = 270, h = 68}	-- Global color settin
 
 local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20}	-- Options buttons
 
-local ref5 = {x = 776, y = line_y0 + 240}
+local ref5 = {x = 768, y = line_y0 + 240}
 
 local ref6 = {x = 458, y = line_y0 + 280}					-- Misc. opts
 
@@ -6133,7 +6238,7 @@ or
 
 	sldr_rb = GUI.Slider:new(			20,	464, line_y2 + 144, 96, "Nothing yet", 20, 128, 108, 40, "h"),
 
---[[
+
 
 	line_rad_font = GUI.Frame:new(		8, 702, line_y2 + 4, 4, line_y_tt - line_y2 - 4, true, true),
 
@@ -6146,15 +6251,17 @@ or
 	txt_font_B = GUI.Textbox:new(		9,	ref5.x, ref5.y + 26, 128, 20, "Menus:", 4),
 	txt_font_C = GUI.Textbox:new(		9,	ref5.x, ref5.y + 52, 128, 20, "Preview:", 4),
 	
-	txt_size_A = GUI.Textbox:new(		9,	ref5.x + 130, ref5.y, 28, 20, "", 4),
-	txt_size_B = GUI.Textbox:new(		9,	ref5.x + 130, ref5.y + 26, 28, 20, "", 4),
-	txt_size_C = GUI.Textbox:new(		9,	ref5.x + 130, ref5.y + 52, 28, 20, "", 4),	
+	frm_val_fonts = GUI.Frame:new(		9,	ref5.x + 130, ref5.y, 14, 72),
 	
-	chk_flags_A = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y, nil, nil, "", "B,I,U", "h", 2),
-	chk_flags_B = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y + 26, nil, nil, "", " , , ", "h", 2),
-	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 160, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
+	txt_size_A = GUI.Textbox:new(		9,	ref5.x + 146, ref5.y, 28, 20, "", 4),
+	txt_size_B = GUI.Textbox:new(		9,	ref5.x + 146, ref5.y + 26, 28, 20, "", 4),
+	txt_size_C = GUI.Textbox:new(		9,	ref5.x + 146, ref5.y + 52, 28, 20, "", 4),	
+	
+	chk_flags_A = GUI.Checklist:new(	9,	ref5.x + 176, ref5.y, nil, nil, "", "B,I,U", "h", 2),
+	chk_flags_B = GUI.Checklist:new(	9,	ref5.x + 176, ref5.y + 26, nil, nil, "", " , , ", "h", 2),
+	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 176, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
 
-]]--
+
 
 
 	---- Options tab z = 11,12,13
@@ -6203,407 +6310,6 @@ GUI.elms.frm_radial.font = 6
 
 
 
----- Tooltips ----
-
-local function assign_tooltips()
-	
-	-- Trash variable, placeholder for assigning the same tooltip to multiple elements
-	-- rather than having to type/copy/edit them multiple times
-	local tip
-		
-	
-	-- Menus tab --
-	
-	GUI.elms.btn_add_menu.tooltip = "Add a new menu"
-	GUI.elms.btn_del_menu.tooltip = "Delete this menu"
-	
-	GUI.elms.mnu_menu.tooltip = "Select a menu to edit (new menus are created the first time you click the button assigned to them)"
-
-	tip = "Swiping is currently set to use this menu"
-	GUI.elms.frm_swipe_menu.tooltip = tip
-	GUI.elms.lbl_swipe_menu.tooltip = tip
-	
-	GUI.elms.txt_alias.tooltip = "Assign an alias to this menu"
-	
-	tip = "The menu's normal button color"
-	GUI.elms.lbl_col_m_btn.tooltip = tip
-	GUI.elms.frm_col_m_btn.tooltip = tip
-	
-	tip = "The menu's mouse-over color"
-	GUI.elms.lbl_col_m_hvr.tooltip = tip
-	GUI.elms.frm_col_m_hvr.tooltip = tip
-
-	tip = "The menu's 'this action is toggled on' color"
-	GUI.elms.lbl_col_m_tog.tooltip = tip
-	GUI.elms.frm_col_m_tog.tooltip = tip
-	
-	tip = "The menu's background color"
-	GUI.elms.lbl_col_m_bg.tooltip = tip
-	GUI.elms.frm_col_m_bg.tooltip = tip
-	
-	GUI.elms.btn_use_global.tooltip = "Use the global settings for this menu (won't override individual button colors)"
-	
-	tip = "Add or remove buttons from the current menu (16 buttons max)"
-	GUI.elms.lbl_num_m_btns.tooltip = tip
-	GUI.elms.num_m_btns_rem.tooltip = tip
-	GUI.elms.num_m_btns_add.tooltip = tip
-	
-	GUI.elms.chk_center.tooltip = "Add an additional button in the center of this menu"
-	
-	GUI.elms.frm_no_btn.tooltip = "Right-click a button in the radial menu to edit it"
-	
-	GUI.elms.btn_btn_left.tooltip = "Move this button counterclockwise"
-	GUI.elms.btn_btn_right.tooltip = "Move this button clockwise"
-	GUI.elms.btn_btn_del.tooltip = "Delete this button"
-	
-	
-	tip = "The button's normal color"
-	GUI.elms.lbl_col_b_btn.tooltip = tip
-	GUI.elms.frm_col_b_btn.tooltip = tip
-	
-	tip = "The button's mouse-over color"
-	GUI.elms.lbl_col_b_hvr.tooltip = tip
-	GUI.elms.frm_col_b_hvr.tooltip = tip
-	
-	tip = "The button's 'this action is toggled on' color"
-	GUI.elms.lbl_col_b_tog.tooltip = tip
-	GUI.elms.frm_col_b_tog.tooltip = tip
-	
-	GUI.elms.btn_use_mnu.tooltip = "Use the menu's settings for this button"
-	
-	GUI.elms.txt_btn_lbl.tooltip = "What label to display for the button (Use '|' to wrap text to a new line)"
-	GUI.elms.txt_btn_act.tooltip = "What action to assign to this button (see 'Help' tab for extra commands)"
-	GUI.elms.btn_paste.tooltip = "Scripts can't access the clipboard, so use this to paste action IDs from Reaper"
-
-
-	-- Context tab --
-	-- Populated at runtime --
-	
-	
-
-	-- Swiping tab --
-
-	GUI.elms.chk_swipe.tooltip = "Enable/disable mouse swiping to 'click' buttons"
-	
-	GUI.elms.frm_no_swipe.tooltip = "Enable swiping to use these options"
-	
-	GUI.elms.sldr_accel.tooltip = "How easily the script will begin tracking a Swipe"
-	GUI.elms.sldr_decel.tooltip = "How slow the mouse must be moving to be considered 'stopped'"
-	GUI.elms.sldr_stop.tooltip = "How long the mouse must be stopped before triggering an action"
-	GUI.elms.sldr_re.tooltip = "Swipes are only tracked if the mouse is outside this radius"
-	
-	GUI.elms.opt_swipe_mode.tooltip = "What set of actions to use for Swipes"
-	GUI.elms.chk_swipe_acts.tooltip = "Allow Swiping to trigger Reaper actions, or only open menus?"
-
-
-
-	-- Global tab --
-
-	tip = "The normal button color"
-	GUI.elms.lbl_col_g_btn.tooltip = tip
-	GUI.elms.frm_col_g_btn.tooltip = tip
-	
-	tip = "Moused-over button color"
-	GUI.elms.lbl_col_g_hvr.tooltip = tip
-	GUI.elms.frm_col_g_hvr.tooltip = tip
-	
-	tip = "'This action is toggled on' button color"
-	GUI.elms.lbl_col_g_tog.tooltip = tip
-	GUI.elms.frm_col_g_tog.tooltip = tip
-	
-	tip = "Menu background color"
-	GUI.elms.lbl_col_g_bg.tooltip = tip
-	GUI.elms.frm_col_g_bg.tooltip = tip
-	
-	GUI.elms.chk_preview.tooltip = "When hovering over a menu, show a 'preview' of that menu's buttons"
-	
-	GUI.elms.sldr_num_btns.tooltip = "Number of buttons to add when first creating a new menu"
-	
-	GUI.elms.sldr_ra.tooltip = "The size of the center button - also the size of the 'dead zone' if the center button isn't shown"
-	GUI.elms.sldr_rb.tooltip = "I'm sure I'll find a use for this one soon"
-	GUI.elms.sldr_rc.tooltip = "The inner radius of the menu ring"
-	GUI.elms.sldr_rd.tooltip = "The outer radius of the menu ring"
-	
-	
-	-- Options tab --
-	
-	GUI.elms.opt_key_mode.tooltip = "What to do when the script's shortcut key is released"
-	GUI.elms.opt_mouse_mode.tooltip = "What to do when an action is clicked"
-	
-	GUI.elms.btn_open_txt.tooltip = "Open the settings file in the system's text editor"
-	GUI.elms.btn_refresh_txt.tooltip = "Refresh menus and settings from the settings file"
-	GUI.elms.btn_load_txt.tooltip = "Load menus and settings from another file"
-	GUI.elms.btn_save_txt.tooltip = "Save menus and settings to a separate file"
-	GUI.elms.btn_spit_table.tooltip = "Display the current menus and settings in Reaper's console (may take a few seconds)"
-	
-	
-	
-	-- Help tab --
-	GUI.elms.btn_thread.tooltip = "Open the official Reaper forum thread for this script"
-	GUI.elms.btn_donate.tooltip = "Open a PayPal donation link for the script's author"
-
-
-end
-
-
-
-
----- Context text boxes
-
--- Make a whole bunch of text boxes for the context tab
-
-
-
---							z	x	 y				w	h	pad
-local txt_con_template = {	6,	504, line_y0 + 16, 80, 20, 4}
-local function update_context_elms(init)
-	
-
-	
-	if init then
-		
-		_=dm and Msg("initializing context elements")
-		
-		local z, x, y, w, h, pad = table.unpack(txt_con_template)
-		local x_adj, y_adj = 0, 24
-		local col_adj = 0
-		
-		
-		local function txt_update(self)
-			
-			_=dm and Msg("updating context "..context_arr[self.i].con)
-			_=dm and Msg("\tuser entered "..self.retval)
-			
-			GUI.Textbox.lostfocus(self)
-			
-			if not self.retval or self.retval == "" then
-				--self.retval = mnu_arr[-1].contexts[ context_arr[self.i].con ] or ""
-				self.retval = ""
-				mnu_arr[-1].contexts[ context_arr[self.i].con ] = ""
-				
-			elseif tonumber(self.retval) and tonumber(self.retval) > 0 then
-				_=dm and Msg("\tit's a number; assigning")
-				mnu_arr[-1].contexts[ context_arr[self.i].con ] = tonumber(self.retval)
-			elseif check_alias(self.retval) then
-				_=dm and Msg("\tit's an alias; looking it up")
-				mnu_arr[-1].contexts[ context_arr[self.i].con ] = self.retval
-				
-				_=dm and Msg("\tgot: "..check_alias(self.retval))
-
-			end
-			
-		end
-		
-		local function txt_dbl(self)
-			
-			GUI.Textbox.ondoubleclick(self)
-			
-			local val = tonumber(self.retval) or check_alias(self.retval)
-			
-			if val then
-				cur_depth = val
-				cur_btn = -2
-				update_mnu_menu()
-				update_mnu_settings()	
-				update_btn_settings()
-				GUI.Val("tabs", 1)
-			
-			else
-			
-				reaper.ShowMessageBox("Menu '"..tostring(self.retval).."' doesn't seem to exist.", "Whoops", 0)
-			
-			end
-			
-			self.focus = false
-			self:lostfocus()
-			
-		end
-		
-		local tip_str = "What menu to use when Radial Menu is opened for the context: '"
-		
-		local col_adj_x, col_adj_y = 196, 0
-		
-		for i = 1, #context_arr do
-			
-			local lbl = context_arr[i].lbl
-			if lbl ~= "" then
-				if context_arr[i].lbl == "Arrange" then 
-					x_adj = col_adj_x
-					col_adj_y = y_adj * -(i - 1)
-
-				elseif context_arr[i].lbl == "Transport" then
-					x_adj = col_adj_x * 2
-					col_adj_y = y_adj * -(i - 1)
-				end
-				
-				local name = "txt_context_"..i
-				
-				local y_adj = (i - 1) * y_adj
-				local x_adj = x_adj + ((context_arr[i].head - 1) * 16)
-				
-				GUI.elms[name] = GUI.Textbox:new(z, x + x_adj, y + y_adj + col_adj_y, w, h, context_arr[i].lbl, pad)
-				GUI.elms[name].i = i
-				GUI.elms[name].font_A = 	((context_arr[i].head == 1) and 2)
-										or	((context_arr[i].head == 2) and 3)
-										or	((context_arr[i].head == 3) and 5)
-				GUI.elms[name].font_B = 5
-				GUI.elms[name].lostfocus = txt_update
-				GUI.elms[name].ondoubleclick = txt_dbl
-				GUI.elms[name].tooltip = tip_str..string.gsub(context_arr[i].con, "|", ", ").."'"
-				
-			end
-		end
-	
-	
-	else
-
-		_=dm and Msg("updating context elements")
-
-		local arr = mnu_arr[-1].contexts
-	
-		-- Updating textboxes from the values in mnu_arr
-		for i = 1, #context_arr do
-			
-			-- Skip over the entries we're using as spacers
-			if context_arr[i].lbl ~= "" then
-				
-				local name = "txt_context_"..i
-				local con = context_arr[GUI.elms[name].i].con
-				local val = arr[con] or ""
-
-				GUI.Val(name, val)
-				
-			end
-			
-		end
-	
-	end	
-
-	_=dm and Msg("finished with context elements")
-
-end
-
-
-
-
-
-
-if setup then
-	
-	GUI.elms_hide = {[20] = true}
-	GUI.elms_freeze = {[10] = true, [22] = true}
-	
-	GUI.elms.tabs:update_sets(
-		{
-		[1] = {2, 3, 4},
-		[2] = {5, 6, 7},
-		[4] = {8, 9, 10},
-		[3] = {17, 18, 19},
-		[5] = {11, 12, 13},
-		[6] = {14, 15, 16},
-		}
-	)
-	
-	
-	
-	assign_tooltips()
-	update_context_elms(true)
-
-
-	GUI.elms.tabs.font_A = 6
-
-	GUI.elms.frm_radial.state = false
-	--GUI.elms.frm_radial.font = 6
-
-	GUI.elms.lbl_swipe_menu.color = "magenta"
-
-
-
-	GUI.elms.mnu_menu.font = 2
-	GUI.elms.mnu_menu.output = function(text)
-		
-		return string.match(text, "^(%d+)")
-		
-	end
-
-
-	function GUI.elms.txt_alias:ontype()
-		
-		GUI.Textbox.ontype(self)
-		mnu_arr[cur_depth].alias = tostring(self.retval)
-	
-	end
-
-	function GUI.elms.txt_alias:lostfocus()
-
-		_=dm and Msg("updating menu "..tostring(cur_depth).."'s alias: "..tostring(self.retval))
-		mnu_arr[cur_depth].alias = tostring(self.retval)
-		
-		update_mnu_menu()
-		update_mnu_settings()
-
-	end
-
-
-	GUI.elms.sldr_ra.col_a = "red"
-	GUI.elms.sldr_rb.col_a = "lime"
-	GUI.elms.sldr_rc.col_a = "yellow"
-	GUI.elms.sldr_rd.col_a = "cyan"
-	GUI.elms.sldr_re.col_a = "magenta"
-
-	local function rad_sldr_output(self)	
-		return tostring(self.curstep + self.min) .. " px" 
-	end
-	GUI.elms.sldr_ra.output = rad_sldr_output
-	GUI.elms.sldr_rb.output = rad_sldr_output
-	GUI.elms.sldr_rc.output = rad_sldr_output
-	GUI.elms.sldr_rd.output = rad_sldr_output
-	GUI.elms.sldr_re.output = rad_sldr_output
-
-
-
-	GUI.elms.sldr_accel.output = function(self)
-		return self.retval.."%"
-	end
-
-	GUI.elms.sldr_decel.output = function(self)
-		return self.retval.."%"
-	end
-
-	GUI.elms.sldr_stop.output = function(self)
-		return (self.retval) .. " ms"
-	end
-
-
-
-
-	---- Method overrides ----
-
-
-	-- Save settings every time the user changes the active tab
-	function GUI.elms.tabs:update_sets()
-		
-		GUI.Tabframe.update_sets(self)
-		mnu_arr[-1].last_tab = self.state
-		save_menu()
-		
-	end
-
-
-
-	function GUI.elms.frm_line_tt:draw()
-		
-		GUI.color("elm_bg")
-		gfx.rect(0, 432, self.w, 32)
-		GUI.Frame.draw(self)
-		
-	end
-
-end
-
-
-
-
 
 
 
@@ -6644,178 +6350,7 @@ end
 
 
 
--- Pink overlay when working on the Swipe menu
-local function init_frm_swipe_menu()
-
-	local gap = 12
-	
-	GUI.elms.frm_swipe_menu.gap = gap
-	
-	local w = frm_w - 2*gap
-
-	gfx.dest = 101
-	gfx.setimgdim(101, -1, -1)
-	gfx.setimgdim(101, w, w)
-	gfx.set(0, 0, 0, 1)
-	
-	gfx.circle(ox - gap, oy - gap, mnu_arr[-1].rd + 1.25*gap, true, 1)
-
-
-	gfx.dest = 100
-	gfx.setimgdim(100, -1, -1)
-	gfx.setimgdim(100, w, w)
-	
-	GUI.color("magenta")
-	
-	gfx.rect(0, 0, w, w)
-	
-	gfx_mode = 1
-	gfx.blit(101, 1, 0)
-	
-	gfx.muladdrect(0, 0, w, w, 1, 1, 1, 0.5)
-
-	gfx_mode = 0
-	gfx.dest = -1	
-	
-end
-
-
--- Draw the chosen color inside the frame
-local function draw_col_frame(self)
-	
-	local x, y, w, h = self.x + 1, self.y + 1, self.w - 2, self.h - 2
-	
-	GUI.color(self.color)
-	gfx.rect(x, y, w, h, true)	
-	
-	if self.col_user then 
-		gfx.set(table.unpack(self.col_user))
-		gfx.rect(x + 1, y + 1, w - 2, h - 2, true)
-	end
-	
-	GUI.color("black")
-	gfx.rect(x, y, w, h, false)
-	
-end	
-
-
--- Pop up the OS color picker and assign the result to this frame
-local function get_color_picker(self)
-	
-	local retval, colorOut = reaper.GR_SelectColor()
-	
-	if retval ~= 0 then
-		
-		--local r, g, b = GUI.num2rgb(colorOut)
-		local r, g, b = reaper.ColorFromNative(colorOut)
-		self.col_user = {r / 255, g / 255, b / 255}
-		GUI.redraw_z[self.z] = true
-		redraw_menu = true
-		
-	end
-end
-
-
-local function update_rad_sldrs(sldr)
-	
-	local ra, rb, rc, rd, re = mnu_arr[-1].ra, mnu_arr[-1].rb, mnu_arr[-1].rc, mnu_arr[-1].rd, mnu_arr[-1].re
-	
-	local gap = 4
-	
-	if sldr == "a" then
-		
-		_=dm and Msg("adjusting with sldr A as master")
-		
-		ra = GUI.Val("sldr_ra") + GUI.elms.sldr_ra.min
-		
-		if rb - ra < gap then
-			rb = ra + gap
-		end
-		
-		if rc - rb < gap then
-			rc = rb + gap
-		end
-		
-		if rd - rc < gap then
-			rd = rc + gap
-		end
-		
-	elseif sldr == "b" then
-	
-		_=dm and Msg("adjusting with sldr B as master")
-
-		rb = GUI.Val("sldr_rb") + GUI.elms.sldr_rb.min
-		
-		if rb - ra < gap then
-			ra = rb - gap
-			
-		else
-			if rc - rb < gap then
-				rc = rb + gap
-			end
-			
-			if rd - rc < gap then
-				rd = rc + gap
-			end
-		end
-
-	elseif sldr == "c" then
-	
-		_=dm and Msg("adjusting with sldr C as master")
-	
-		rc = GUI.Val("sldr_rc") + GUI.elms.sldr_rc.min
-		if rc - rb < gap then
-			
-			rb = rc - gap
-
-			if rb - ra < gap then
-				ra = rb - gap
-			end
-
-		else
-		
-			if rd - rc < gap then
-				rd = rc + gap
-			end
-		end
-	
-	elseif sldr == "d" then
-	
-		_=dm and Msg("adjusting with sldr D as master")
-	
-		rd = GUI.Val("sldr_rd") + GUI.elms.sldr_rd.min
-		if rd - rc < gap then
-			rc = rd - gap
-		end
-		
-		if rc - rb < gap then
-			rb = rc - gap
-		end
-		
-		if rb - ra < gap then
-			ra = rb - gap
-		end	
-
-	end
-	
-	GUI.Val("sldr_ra", ra - GUI.elms.sldr_ra.min)
-	GUI.Val("sldr_rb", rb - GUI.elms.sldr_rb.min)
-	GUI.Val("sldr_rc", rc - GUI.elms.sldr_rc.min)
-	GUI.Val("sldr_rd", rd - GUI.elms.sldr_rd.min)
-	GUI.Val("sldr_re", re - GUI.elms.sldr_re.min)
-	
-	mnu_arr[-1].ra, mnu_arr[-1].rb, mnu_arr[-1].rc, mnu_arr[-1].rd = ra, rb, rc, rd
-	
-	redraw_menu = true
-		
-end
-
-
-
-
-
-
--- All of menu drawing happens here
+-- All of the menu drawing happens here
 function GUI.elms.frm_radial:draw_base_menu()
 	
 	_=dm and Msg(">draw_base_menu")
@@ -7196,10 +6731,613 @@ end
 
 
 
----- Setup methods ----
+
+---- Setup properties and methods ----
 
 if setup then
+
+	GUI.elms_hide = {[20] = true}
+	GUI.elms_freeze = {[10] = true, [22] = true}
+	
+	GUI.elms.tabs:update_sets(
+		{
+		[1] = {2, 3, 4},
+		[2] = {5, 6, 7},
+		[4] = {8, 9, 10},
+		[3] = {17, 18, 19},
+		[5] = {11, 12, 13},
+		[6] = {14, 15, 16},
+		}
+	)
+	
+
+
+	---- Tooltips ----
+
+	function assign_tooltips()
 		
+		-- Trash variable, placeholder for assigning the same tooltip to multiple elements
+		-- rather than having to type/copy/edit them multiple times
+		local tip
+			
+		
+		-- Menus tab --
+		
+		GUI.elms.btn_add_menu.tooltip = "Add a new menu"
+		GUI.elms.btn_del_menu.tooltip = "Delete this menu"
+		
+		GUI.elms.mnu_menu.tooltip = "Select a menu to edit (new menus are created the first time you click the button assigned to them)"
+
+		tip = "Swiping is currently set to use this menu"
+		GUI.elms.frm_swipe_menu.tooltip = tip
+		GUI.elms.lbl_swipe_menu.tooltip = tip
+		
+		GUI.elms.txt_alias.tooltip = "Assign an alias to this menu"
+		
+		tip = "The menu's normal button color"
+		GUI.elms.lbl_col_m_btn.tooltip = tip
+		GUI.elms.frm_col_m_btn.tooltip = tip
+		
+		tip = "The menu's mouse-over color"
+		GUI.elms.lbl_col_m_hvr.tooltip = tip
+		GUI.elms.frm_col_m_hvr.tooltip = tip
+
+		tip = "The menu's 'this action is toggled on' color"
+		GUI.elms.lbl_col_m_tog.tooltip = tip
+		GUI.elms.frm_col_m_tog.tooltip = tip
+		
+		tip = "The menu's background color"
+		GUI.elms.lbl_col_m_bg.tooltip = tip
+		GUI.elms.frm_col_m_bg.tooltip = tip
+		
+		GUI.elms.btn_use_global.tooltip = "Use the global settings for this menu (won't override individual button colors)"
+		
+		tip = "Add or remove buttons from the current menu (16 buttons max)"
+		GUI.elms.lbl_num_m_btns.tooltip = tip
+		GUI.elms.num_m_btns_rem.tooltip = tip
+		GUI.elms.num_m_btns_add.tooltip = tip
+		
+		GUI.elms.chk_center.tooltip = "Add an additional button in the center of this menu"
+		
+		GUI.elms.frm_no_btn.tooltip = "Right-click a button in the radial menu to edit it"
+		
+		GUI.elms.btn_btn_left.tooltip = "Move this button counterclockwise"
+		GUI.elms.btn_btn_right.tooltip = "Move this button clockwise"
+		GUI.elms.btn_btn_del.tooltip = "Delete this button"
+		
+		
+		tip = "The button's normal color"
+		GUI.elms.lbl_col_b_btn.tooltip = tip
+		GUI.elms.frm_col_b_btn.tooltip = tip
+		
+		tip = "The button's mouse-over color"
+		GUI.elms.lbl_col_b_hvr.tooltip = tip
+		GUI.elms.frm_col_b_hvr.tooltip = tip
+		
+		tip = "The button's 'this action is toggled on' color"
+		GUI.elms.lbl_col_b_tog.tooltip = tip
+		GUI.elms.frm_col_b_tog.tooltip = tip
+		
+		GUI.elms.btn_use_mnu.tooltip = "Use the menu's settings for this button"
+		
+		GUI.elms.txt_btn_lbl.tooltip = "What label to display for the button (Use '|' to wrap text to a new line)"
+		GUI.elms.txt_btn_act.tooltip = "What action to assign to this button (see 'Help' tab for extra commands)"
+		GUI.elms.btn_paste.tooltip = "Scripts can't access the clipboard, so use this to paste action IDs from Reaper"
+
+
+		-- Context tab --
+		-- Populated at runtime --
+		
+		
+
+		-- Swiping tab --
+
+		GUI.elms.chk_swipe.tooltip = "Enable/disable mouse swiping to 'click' buttons"
+		
+		GUI.elms.frm_no_swipe.tooltip = "Enable swiping to use these options"
+		
+		GUI.elms.sldr_accel.tooltip = "How easily the script will begin tracking a Swipe"
+		GUI.elms.sldr_decel.tooltip = "How slow the mouse must be moving to be considered 'stopped'"
+		GUI.elms.sldr_stop.tooltip = "How long the mouse must be stopped before triggering an action"
+		GUI.elms.sldr_re.tooltip = "Swipes are only tracked if the mouse is outside this radius"
+		
+		GUI.elms.opt_swipe_mode.tooltip = "What set of actions to use for Swipes"
+		GUI.elms.chk_swipe_acts.tooltip = "Allow Swiping to trigger Reaper actions, or only open menus?"
+
+
+
+		-- Global tab --
+
+		tip = "The normal button color"
+		GUI.elms.lbl_col_g_btn.tooltip = tip
+		GUI.elms.frm_col_g_btn.tooltip = tip
+		
+		tip = "Moused-over button color"
+		GUI.elms.lbl_col_g_hvr.tooltip = tip
+		GUI.elms.frm_col_g_hvr.tooltip = tip
+		
+		tip = "'This action is toggled on' button color"
+		GUI.elms.lbl_col_g_tog.tooltip = tip
+		GUI.elms.frm_col_g_tog.tooltip = tip
+		
+		tip = "Menu background color"
+		GUI.elms.lbl_col_g_bg.tooltip = tip
+		GUI.elms.frm_col_g_bg.tooltip = tip
+		
+		GUI.elms.chk_preview.tooltip = "When hovering over a menu, show a 'preview' of that menu's buttons"
+		
+		GUI.elms.sldr_num_btns.tooltip = "Number of buttons to add when first creating a new menu"
+		
+		GUI.elms.sldr_ra.tooltip = "The size of the center button - also the size of the 'dead zone' if the center button isn't shown"
+		GUI.elms.sldr_rb.tooltip = "I'm sure I'll find a use for this one soon"
+		GUI.elms.sldr_rc.tooltip = "The inner radius of the menu ring"
+		GUI.elms.sldr_rd.tooltip = "The outer radius of the menu ring"
+		
+		GUI.elms.txt_font_A.tooltip = "What font to use for normal buttons"
+		GUI.elms.txt_font_B.tooltip = "What font to use for menu buttons"
+		GUI.elms.txt_font_C.tooltip = "What font to use for preview text"
+		
+		GUI.elms.txt_size_A.tooltip = "Font size for normal buttons"
+		GUI.elms.txt_size_B.tooltip = "Font size for menu buttons"
+		GUI.elms.txt_size_C.tooltip = "Font size for preview text"
+		
+		GUI.elms.frm_val_fonts.tooltip = "Indicates whether or not the given font name is valid"
+		
+		
+		
+		
+		-- Options tab --
+		
+		GUI.elms.opt_key_mode.tooltip = "What to do when the script's shortcut key is released"
+		GUI.elms.opt_mouse_mode.tooltip = "What to do when an action is clicked"
+		
+		GUI.elms.btn_open_txt.tooltip = "Open the settings file in the system's text editor"
+		GUI.elms.btn_refresh_txt.tooltip = "Refresh menus and settings from the settings file"
+		GUI.elms.btn_load_txt.tooltip = "Load menus and settings from another file"
+		GUI.elms.btn_save_txt.tooltip = "Save menus and settings to a separate file"
+		GUI.elms.btn_spit_table.tooltip = "Display the current menus and settings in Reaper's console (may take a few seconds)"
+		
+		
+		
+		-- Help tab --
+		GUI.elms.btn_thread.tooltip = "Open the official Reaper forum thread for this script"
+		GUI.elms.btn_donate.tooltip = "Open a PayPal donation link for the script's author"
+
+
+	end
+
+
+
+
+	---- Context text boxes
+
+	-- Make a whole bunch of text boxes for the context tab
+
+
+
+	--							z	x	 y				w	h	pad
+	local txt_con_template = {	6,	504, line_y0 + 16, 80, 20, 4}
+	
+	function update_context_elms(init)
+		
+
+		
+		if init then
+			
+			_=dm and Msg("initializing context elements")
+			
+			local z, x, y, w, h, pad = table.unpack(txt_con_template)
+			local x_adj, y_adj = 0, 24
+			local col_adj = 0
+			
+			
+			local function txt_update(self)
+				
+				_=dm and Msg("updating context "..context_arr[self.i].con)
+				_=dm and Msg("\tuser entered "..self.retval)
+				
+				GUI.Textbox.lostfocus(self)
+				
+				if not self.retval or self.retval == "" then
+					--self.retval = mnu_arr[-1].contexts[ context_arr[self.i].con ] or ""
+					self.retval = ""
+					mnu_arr[-1].contexts[ context_arr[self.i].con ] = ""
+					
+				elseif tonumber(self.retval) and tonumber(self.retval) > 0 then
+					_=dm and Msg("\tit's a number; assigning")
+					mnu_arr[-1].contexts[ context_arr[self.i].con ] = tonumber(self.retval)
+				elseif check_alias(self.retval) then
+					_=dm and Msg("\tit's an alias; looking it up")
+					mnu_arr[-1].contexts[ context_arr[self.i].con ] = self.retval
+					
+					_=dm and Msg("\tgot: "..check_alias(self.retval))
+
+				end
+				
+			end
+			
+			local function txt_dbl(self)
+				
+				GUI.Textbox.ondoubleclick(self)
+				
+				local val = tonumber(self.retval) or check_alias(self.retval)
+				
+				if val then
+					cur_depth = val
+					cur_btn = -2
+					update_mnu_menu()
+					update_mnu_settings()	
+					update_btn_settings()
+					GUI.Val("tabs", 1)
+				
+				else
+				
+					reaper.ShowMessageBox("Menu '"..tostring(self.retval).."' doesn't seem to exist.", "Whoops", 0)
+				
+				end
+				
+				self.focus = false
+				self:lostfocus()
+				
+			end
+			
+			local tip_str = "What menu to use when Radial Menu is opened for the context: '"
+			
+			local col_adj_x, col_adj_y = 196, 0
+			
+			for i = 1, #context_arr do
+				
+				local lbl = context_arr[i].lbl
+				if lbl ~= "" then
+					if context_arr[i].lbl == "Arrange" then 
+						x_adj = col_adj_x
+						col_adj_y = y_adj * -(i - 1)
+
+					elseif context_arr[i].lbl == "Transport" then
+						x_adj = col_adj_x * 2
+						col_adj_y = y_adj * -(i - 1)
+					end
+					
+					local name = "txt_context_"..i
+					
+					local y_adj = (i - 1) * y_adj
+					local x_adj = x_adj + ((context_arr[i].head - 1) * 16)
+					
+					GUI.elms[name] = GUI.Textbox:new(z, x + x_adj, y + y_adj + col_adj_y, w, h, context_arr[i].lbl, pad)
+					GUI.elms[name].i = i
+					GUI.elms[name].font_A = 	((context_arr[i].head == 1) and 2)
+											or	((context_arr[i].head == 2) and 3)
+											or	((context_arr[i].head == 3) and 5)
+					GUI.elms[name].font_B = 5
+					GUI.elms[name].lostfocus = txt_update
+					GUI.elms[name].ondoubleclick = txt_dbl
+					GUI.elms[name].tooltip = tip_str..string.gsub(context_arr[i].con, "|", ", ").."'"
+					
+				end
+			end
+		
+		
+		else
+
+			_=dm and Msg("updating context elements")
+
+			local arr = mnu_arr[-1].contexts
+		
+			-- Updating textboxes from the values in mnu_arr
+			for i = 1, #context_arr do
+				
+				-- Skip over the entries we're using as spacers
+				if context_arr[i].lbl ~= "" then
+					
+					local name = "txt_context_"..i
+					local con = context_arr[GUI.elms[name].i].con
+					local val = arr[con] or ""
+
+					GUI.Val(name, val)
+					
+				end
+				
+			end
+		
+		end	
+
+		_=dm and Msg("finished with context elements")
+
+	end
+
+
+
+
+
+
+	
+	assign_tooltips()
+	update_context_elms(true)
+
+
+	GUI.elms.tabs.font_A = 6
+
+	GUI.elms.frm_radial.state = false
+	--GUI.elms.frm_radial.font = 6
+
+	GUI.elms.lbl_swipe_menu.color = "magenta"
+
+
+
+	GUI.elms.mnu_menu.font = 2
+	GUI.elms.mnu_menu.output = function(text)
+		
+		return string.match(text, "^(%d+)")
+		
+	end
+
+
+	function GUI.elms.txt_alias:ontype()
+		
+		GUI.Textbox.ontype(self)
+		mnu_arr[cur_depth].alias = tostring(self.retval)
+	
+	end
+
+	function GUI.elms.txt_alias:lostfocus()
+
+		_=dm and Msg("updating menu "..tostring(cur_depth).."'s alias: "..tostring(self.retval))
+		mnu_arr[cur_depth].alias = tostring(self.retval)
+		
+		update_mnu_menu()
+		update_mnu_settings()
+
+	end
+
+
+	GUI.elms.sldr_ra.col_a = "red"
+	GUI.elms.sldr_rb.col_a = "lime"
+	GUI.elms.sldr_rc.col_a = "yellow"
+	GUI.elms.sldr_rd.col_a = "cyan"
+	GUI.elms.sldr_re.col_a = "magenta"
+
+	local function rad_sldr_output(self)	
+		return tostring(self.curstep + self.min) .. " px" 
+	end
+	GUI.elms.sldr_ra.output = rad_sldr_output
+	GUI.elms.sldr_rb.output = rad_sldr_output
+	GUI.elms.sldr_rc.output = rad_sldr_output
+	GUI.elms.sldr_rd.output = rad_sldr_output
+	GUI.elms.sldr_re.output = rad_sldr_output
+
+
+
+	GUI.elms.sldr_accel.output = function(self)
+		return self.retval.."%"
+	end
+
+	GUI.elms.sldr_decel.output = function(self)
+		return self.retval.."%"
+	end
+
+	GUI.elms.sldr_stop.output = function(self)
+		return (self.retval) .. " ms"
+	end
+
+
+
+
+	---- Method overrides ----
+
+
+	-- Save settings every time the user changes the active tab
+	function GUI.elms.tabs:update_sets()
+		
+		GUI.Tabframe.update_sets(self)
+		mnu_arr[-1].last_tab = self.state
+		save_menu()
+		
+	end
+
+
+
+	function GUI.elms.frm_line_tt:draw()
+		
+		GUI.color("elm_bg")
+		gfx.rect(0, 432, self.w, 32)
+		GUI.Frame.draw(self)
+		
+	end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	-- Pink overlay when working on the Swipe menu
+	function init_frm_swipe_menu()
+
+		local gap = 12
+		
+		GUI.elms.frm_swipe_menu.gap = gap
+		
+		local w = frm_w - 2*gap
+
+		gfx.dest = 101
+		gfx.setimgdim(101, -1, -1)
+		gfx.setimgdim(101, w, w)
+		gfx.set(0, 0, 0, 1)
+		
+		gfx.circle(ox - gap, oy - gap, mnu_arr[-1].rd + 1.25*gap, true, 1)
+
+
+		gfx.dest = 100
+		gfx.setimgdim(100, -1, -1)
+		gfx.setimgdim(100, w, w)
+		
+		GUI.color("magenta")
+		
+		gfx.rect(0, 0, w, w)
+		
+		gfx_mode = 1
+		gfx.blit(101, 1, 0)
+		
+		gfx.muladdrect(0, 0, w, w, 1, 1, 1, 0.5)
+
+		gfx_mode = 0
+		gfx.dest = -1	
+		
+	end
+
+
+	-- Draw the chosen color inside the frame
+	function draw_col_frame(self)
+		
+		local x, y, w, h = self.x + 1, self.y + 1, self.w - 2, self.h - 2
+		
+		GUI.color(self.color)
+		gfx.rect(x, y, w, h, true)	
+		
+		if self.col_user then 
+			gfx.set(table.unpack(self.col_user))
+			gfx.rect(x + 1, y + 1, w - 2, h - 2, true)
+		end
+		
+		GUI.color("black")
+		gfx.rect(x, y, w, h, false)
+		
+	end	
+
+
+	-- Pop up the OS color picker and assign the result to this frame
+	function get_color_picker(self)
+		
+		local retval, colorOut = reaper.GR_SelectColor()
+		
+		if retval ~= 0 then
+			
+			--local r, g, b = GUI.num2rgb(colorOut)
+			local r, g, b = reaper.ColorFromNative(colorOut)
+			self.col_user = {r / 255, g / 255, b / 255}
+			GUI.redraw_z[self.z] = true
+			redraw_menu = true
+			
+		end
+	end
+
+
+	function update_rad_sldrs(sldr)
+		
+		local ra, rb, rc, rd, re = mnu_arr[-1].ra, mnu_arr[-1].rb, mnu_arr[-1].rc, mnu_arr[-1].rd, mnu_arr[-1].re
+		
+		local gap = 4
+		
+		if sldr == "a" then
+			
+			_=dm and Msg("adjusting with sldr A as master")
+			
+			ra = GUI.Val("sldr_ra") + GUI.elms.sldr_ra.min
+			
+			if rb - ra < gap then
+				rb = ra + gap
+			end
+			
+			if rc - rb < gap then
+				rc = rb + gap
+			end
+			
+			if rd - rc < gap then
+				rd = rc + gap
+			end
+			
+		elseif sldr == "b" then
+		
+			_=dm and Msg("adjusting with sldr B as master")
+
+			rb = GUI.Val("sldr_rb") + GUI.elms.sldr_rb.min
+			
+			if rb - ra < gap then
+				ra = rb - gap
+				
+			else
+				if rc - rb < gap then
+					rc = rb + gap
+				end
+				
+				if rd - rc < gap then
+					rd = rc + gap
+				end
+			end
+
+		elseif sldr == "c" then
+		
+			_=dm and Msg("adjusting with sldr C as master")
+		
+			rc = GUI.Val("sldr_rc") + GUI.elms.sldr_rc.min
+			if rc - rb < gap then
+				
+				rb = rc - gap
+
+				if rb - ra < gap then
+					ra = rb - gap
+				end
+
+			else
+			
+				if rd - rc < gap then
+					rd = rc + gap
+				end
+			end
+		
+		elseif sldr == "d" then
+		
+			_=dm and Msg("adjusting with sldr D as master")
+		
+			rd = GUI.Val("sldr_rd") + GUI.elms.sldr_rd.min
+			if rd - rc < gap then
+				rc = rd - gap
+			end
+			
+			if rc - rb < gap then
+				rb = rc - gap
+			end
+			
+			if rb - ra < gap then
+				ra = rb - gap
+			end	
+
+		end
+		
+		GUI.Val("sldr_ra", ra - GUI.elms.sldr_ra.min)
+		GUI.Val("sldr_rb", rb - GUI.elms.sldr_rb.min)
+		GUI.Val("sldr_rc", rc - GUI.elms.sldr_rc.min)
+		GUI.Val("sldr_rd", rd - GUI.elms.sldr_rd.min)
+		GUI.Val("sldr_re", re - GUI.elms.sldr_re.min)
+		
+		mnu_arr[-1].ra, mnu_arr[-1].rb, mnu_arr[-1].rc, mnu_arr[-1].rd = ra, rb, rc, rd
+		
+		redraw_menu = true
+			
+	end
+
+
+
+
+
+
+
+
+
 
 	function GUI.elms.frm_swipe_menu:draw()
 		
@@ -7749,6 +7887,146 @@ if setup then
 
 
 
+
+	---- Font settings stuff ----
+
+	function GUI.elms.frm_val_fonts:draw()
+
+		--GUI.Frame.draw(self)
+	
+		local c1, c2, c3 = 	(validate_font( GUI.elms.txt_font_A.retval ) and "lime" or "red"),
+							(validate_font( GUI.elms.txt_font_B.retval ) and "lime" or "red"),
+							(validate_font( GUI.elms.txt_font_C.retval ) and "lime" or "red"),	
+		
+		
+		GUI.font(4)
+		
+		local x, y = 	GUI.elms.txt_font_A.x + GUI.elms.txt_font_A.w + 4, 
+						GUI.elms.txt_font_A.y + 4
+	
+		GUI.color(c1)
+		gfx.circle(x, y, 2, true, true)
+		
+		GUI.color(c2)
+		gfx.circle(x, y + 26, 2, true, true)
+		
+		GUI.color(c3)
+		gfx.circle(x, y + 52, 2, true, true)
+		
+	end
+
+	function GUI.elms.txt_font_A:lostfocus()
+		
+		GUI.Textbox.lostfocus(self)
+		
+		if validate_font(self.retval) then
+			mnu_arr[-1].fonts[1][1] = self.retval
+		else
+			self.retval = mnu_arr[-1].fonts[1][1]
+		end		
+		
+	end
+
+	function GUI.elms.txt_font_B:lostfocus()
+		
+		GUI.Textbox.lostfocus(self)
+		
+		if validate_font(self.retval) then
+			mnu_arr[-1].fonts[2][1] = self.retval
+		else
+			self.retval = mnu_arr[-1].fonts[2][1]
+		end		
+		
+	end
+
+	function GUI.elms.txt_font_C:lostfocus()
+		
+		GUI.Textbox.lostfocus(self)
+		
+		if validate_font(self.retval) then
+			mnu_arr[-1].fonts[3][1] = self.retval
+		else
+			self.retval = mnu_arr[-1].fonts[3][1]
+		end		
+		
+	end
+
+	function GUI.elms.txt_size_A:lostfocus()
+		
+		GUI.Textbox.lostfocus(self)
+		
+		self.retval = tonumber(self.retval)
+		
+		if self.retval then
+			mnu_arr[-1].fonts[1][2] = self.retval
+		else
+			self.retval = mnu_arr[-1].fonts[1][2]
+		end
+		
+	end
+
+	function GUI.elms.txt_size_B:lostfocus()
+		
+		GUI.Textbox.lostfocus(self)
+		
+		self.retval = tonumber(self.retval)
+		
+		if self.retval then
+			mnu_arr[-1].fonts[2][2] = self.retval
+		else
+			self.retval = mnu_arr[-1].fonts[2][2]
+		end
+		
+	end
+
+	function GUI.elms.txt_size_C:lostfocus()
+		
+		GUI.Textbox.lostfocus(self)
+		
+		self.retval = tonumber(self.retval)
+		
+		if self.retval then
+			mnu_arr[-1].fonts[3][2] = self.retval
+		else
+			self.retval = mnu_arr[-1].fonts[3][2]
+		end
+		
+	end
+	
+	function GUI.elms.chk_flags_A:onmouseup()
+		
+		GUI.Checklist.onmouseup(self)
+		
+		mnu_arr[-1].fonts[1][3] = 	(self.optsel[1] and "b" or "")
+								..	(self.optsel[2] and "i" or "")
+								..	(self.optsel[3] and "u" or "")
+								
+	end
+	
+	function GUI.elms.chk_flags_B:onmouseup()
+		
+		GUI.Checklist.onmouseup(self)
+		
+		mnu_arr[-1].fonts[2][3] = 	(self.optsel[1] and "b" or "")
+								..	(self.optsel[2] and "i" or "")
+								..	(self.optsel[3] and "u" or "")
+								
+	end
+	
+	function GUI.elms.chk_flags_C:onmouseup()
+		
+		GUI.Checklist.onmouseup(self)
+		
+		mnu_arr[-1].fonts[3][3] = 	(self.optsel[1] and "b" or "")
+								..	(self.optsel[2] and "i" or "")
+								..	(self.optsel[3] and "u" or "")
+								
+	end
+	
+	
+
+
+
 	function GUI.elms.opt_key_mode:onmouseup()
 		
 		GUI.Radio.onmouseup(self)
@@ -8038,7 +8316,7 @@ if setup then
 	GUI.Val("frm_help", help_pages[1][2])
 	
 	-- For any elms that need adjusting
-	--align_elms()
+	align_elms()
 
 	init_frm_swipe_menu()
 
