@@ -1,10 +1,11 @@
 --[[
 Description: Radial Menu 
-Version: 2.3.0
+Version: 2.3.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-- Added customizable fonts to the Global tab
+- Fixed a crash with color frames on first running the Setup script
+- Rearranged the Global tab to give the font settings more room
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -1828,7 +1829,8 @@ function GUI.Slider:draw()
 			local str_w, str_h = gfx.measurestr(self.caption)
 			
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y - h - str_h
+			gfx.y = not self.swap 	and	y - h - str_h
+									or	y + h + h
 
 
 			GUI.shadow(self.caption, self.col_a or "txt", "shadow")
@@ -1863,8 +1865,8 @@ function GUI.Slider:draw()
 			
 			local str_w, str_h = gfx.measurestr(output)
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y + h + h
-			
+			gfx.y = not self.swap	and	y + h + h
+									or y - h - str_h
 			gfx.drawstr(output)
 		end
 	
@@ -1942,8 +1944,8 @@ function GUI.Slider:draw()
 			local str_w, str_h = gfx.measurestr(self.caption)
 
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y - h - str_h
-
+			gfx.y = not self.swap 	and	y - h - str_h
+									or	y + h + w
 
 			GUI.shadow(self.caption, self.col_a or "txt", "shadow")
 		end
@@ -1972,8 +1974,9 @@ function GUI.Slider:draw()
 		
 			local str_w, str_h = gfx.measurestr(output)
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y + h + w
-			
+			gfx.y = not swap 	and	y + h + w
+								or	y - h - str_h
+								
 			gfx.drawstr(output)
 		end
 	end
@@ -6068,8 +6071,9 @@ local line_y0 = 22
 -- Menu tab's separator
 local line_y1 = 192
 
--- Global tab's separator
-local line_y2 = 200
+-- Global tab's separators
+local line_y2 = 128
+local line_y4 = line_y2 + 112
 
 -- Swipe tab's separator
 local line_y3 = 54
@@ -6082,7 +6086,7 @@ local ref3 = {x = 490, y = line_y0 + 16, w = 270, h = 68}	-- Global color settin
 
 local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20}	-- Options buttons
 
-local ref5 = {x = 768, y = line_y0 + 240}
+local ref5 = {x = 512, y = line_y4 + 48}					-- Font settings
 
 local ref6 = {x = 458, y = line_y0 + 280}					-- Misc. opts
 
@@ -6104,7 +6108,7 @@ or
 	
 	frm_line_x = GUI.Frame:new(			22,	432, 0, 4, 432, true, true),
 	
-	frm_line_tt = GUI.Frame:new(		1, 0, line_y_tt, 1024, 4, true, true),
+	frm_line_tt = GUI.Frame:new(		21, 0, line_y_tt, 1024, 4, true, true),
 	
 
 
@@ -6221,45 +6225,48 @@ or
 	lbl_col_g_bg = GUI.Label:new(		9,	ref3.x + 144, 	ref3.y + 24, 	"Background color:", 1, 3),
 	frm_col_g_bg = GUI.Frame:new(		9,	ref3.x + 250, 	ref3.y + 22, 	20, 20, true, true, "elm_frame", 0),
 
-	sldr_num_btns = GUI.Slider:new(		9,	504, line_y0 + 128, 96, "Number of buttons (new menus)", 4, 16, 12, 4, "h"),
-	
-	
 	chk_preview = GUI.Checklist:new(	9,	816, line_y0 + 17, nil, nil, "", "Show submenu preview", "v", 4),
 
+	sldr_num_btns = GUI.Slider:new(		9,	848, line_y0 + 52, 96, "", 4, 16, 12, 4, "h"),
+	
 
+	-- Radius sliders --
 	frm_line_y2 = GUI.Frame:new(		9,	436, line_y2, 600, 4, true, true),
+	
+	
 	lbl_radii = GUI.Label:new(			9,	448, line_y2 + 8, "Radii and target areas:", 1, 2),
 
-	frm_r2 = GUI.Frame:new(				10,	450, line_y2 + 40, 252, 140, false, false, "wnd_bg", 0),
+	frm_r2 = GUI.Frame:new(				20,	432, line_y2, 600, 112, false, false, "wnd_bg", 0),
 
-	sldr_ra = GUI.Slider:new(			9,	464, line_y2 + 72, 96, "Center button", 16, 96, 80, 32, "h"),
-	sldr_rc = GUI.Slider:new(			9,	592, line_y2 + 72, 96, "Inside of ring", 64, 160, 96, 52, "h"),
-	sldr_rd = GUI.Slider:new(			9,	592, line_y2 + 144, 96, "Outside of ring", 128, 192, 64, 64, "h"),
+	sldr_ra = GUI.Slider:new(			9,	464, line_y2 + 64, 96, "Center button", 16, 96, 80, 32, "h"),
+	sldr_rc = GUI.Slider:new(			9,	592, line_y2 + 64, 96, "Inside of ring", 64, 160, 96, 52, "h"),
+	sldr_rd = GUI.Slider:new(			9,	720, line_y2 + 64, 96, "Outside of ring", 128, 192, 64, 64, "h"),
 
-	sldr_rb = GUI.Slider:new(			20,	464, line_y2 + 144, 96, "Nothing yet", 20, 128, 108, 40, "h"),
+	sldr_rb = GUI.Slider:new(			20,	464, line_y2 + 64, 96, "Nothing yet", 20, 128, 108, 40, "h"),
 
 
+	-- Font settings --
+	frm_line_y4 = GUI.Frame:new(		8, 436, line_y4, 600, 4, true, true),
 
-	line_rad_font = GUI.Frame:new(		8, 702, line_y2 + 4, 4, line_y_tt - line_y2 - 4, true, true),
-
-	lbl_fonts = GUI.Label:new(			9,	718, line_y2 + 8, "Fonts:", 1, 2),
+	lbl_fonts = GUI.Label:new(			9,	448, line_y4 + 8, "Fonts:", 1, 2),
 
 	lbl_f_font = GUI.Label:new(			9,	ref5.x, ref5.y - 20, "Font", 1, 3),
 	lbl_f_size = GUI.Label:new(			9,	ref5.x + 130, ref5.y - 20, "Size", 1, 3),
 	
-	txt_font_A = GUI.Textbox:new(		9,	ref5.x, ref5.y, 128, 20, "Main:", 4),
-	txt_font_B = GUI.Textbox:new(		9,	ref5.x, ref5.y + 26, 128, 20, "Menus:", 4),
-	txt_font_C = GUI.Textbox:new(		9,	ref5.x, ref5.y + 52, 128, 20, "Preview:", 4),
+	txt_font_A = GUI.Textbox:new(		9,	ref5.x, ref5.y, 200, 20, "Main:", 4),
+	txt_font_B = GUI.Textbox:new(		9,	ref5.x, ref5.y + 26, 200, 20, "Menus:", 4),
+	txt_font_C = GUI.Textbox:new(		9,	ref5.x, ref5.y + 52, 200, 20, "Preview:", 4),
 	
-	frm_val_fonts = GUI.Frame:new(		9,	ref5.x + 130, ref5.y, 14, 72),
+	frm_val_fonts = GUI.Frame:new(		9,	ref5.x + 202, ref5.y, 14, 72),
 	
-	txt_size_A = GUI.Textbox:new(		9,	ref5.x + 146, ref5.y, 28, 20, "", 4),
-	txt_size_B = GUI.Textbox:new(		9,	ref5.x + 146, ref5.y + 26, 28, 20, "", 4),
-	txt_size_C = GUI.Textbox:new(		9,	ref5.x + 146, ref5.y + 52, 28, 20, "", 4),	
+	txt_size_A = GUI.Textbox:new(		9,	ref5.x + 216, ref5.y, 28, 20, "", 4),
+	txt_size_B = GUI.Textbox:new(		9,	ref5.x + 216, ref5.y + 26, 28, 20, "", 4),
+	txt_size_C = GUI.Textbox:new(		9,	ref5.x + 216, ref5.y + 52, 28, 20, "", 4),	
 	
-	chk_flags_A = GUI.Checklist:new(	9,	ref5.x + 176, ref5.y, nil, nil, "", "B,I,U", "h", 2),
-	chk_flags_B = GUI.Checklist:new(	9,	ref5.x + 176, ref5.y + 26, nil, nil, "", " , , ", "h", 2),
-	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 176, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
+	chk_flags_A = GUI.Checklist:new(	9,	ref5.x + 246, ref5.y, nil, nil, "", "B,I,U", "h", 2),
+	chk_flags_B = GUI.Checklist:new(	9,	ref5.x + 246, ref5.y + 26, nil, nil, "", " , , ", "h", 2),
+	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 246, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
+
 
 
 
@@ -7070,6 +7077,7 @@ if setup then
 		return string.match(text, "^(%d+)")
 		
 	end
+		
 
 
 	function GUI.elms.txt_alias:ontype()
@@ -7089,6 +7097,13 @@ if setup then
 
 	end
 
+
+	GUI.elms.sldr_num_btns.output = function (self)
+		
+		return "Create new menus with "..tostring(self.curstep + self.min).." buttons"
+		
+	end
+	
 
 	GUI.elms.sldr_ra.col_a = "red"
 	GUI.elms.sldr_rb.col_a = "lime"
@@ -7208,8 +7223,25 @@ if setup then
 		GUI.color(self.color)
 		gfx.rect(x, y, w, h, true)	
 		
-		if self.col_user then 
-			gfx.set(table.unpack(self.col_user))
+		if self.col_user then
+			--[[
+			if type(self.col_user) ~= "table" then
+				reaper.ShowMessageBox(
+					"Got a bad color table when drawing the color frame at ("
+					..tostring(self.x)
+					..", "..tostring(self.y)
+					..".\nself.col_user = "
+					..tostring(self.col_user)
+					.."\nDefaulting to gray for this element."
+					,
+					"Whoops", 0
+				)
+				self.col_user = {0.5, 0.5, 0.5}
+			end
+			]]--
+			--gfx.set(table.unpack(self.col_user))
+			
+			GUI.color(self.col_user)
 			gfx.rect(x + 1, y + 1, w - 2, h - 2, true)
 		end
 		
