@@ -1,11 +1,14 @@
 --[[
 Description: Radial Menu 
-Version: 2.3.1
+Version: 2.3.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-- Fixed a crash with color frames on first running the Setup script
-- Rearranged the Global tab to give the font settings more room
+	New
+	- Version number displayed below the radial menu, and in the Help tab
+	- Will look for the example menus file if no user settings are found
+	- Added an option to clear menu settings
+	- Clearing and loading menu settings can optionally preserve your global settings
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -20,7 +23,7 @@ About:
 Extensions:
 Provides:
 	[main] Lokasenna_Radial Menu/Lokasenna_Radial Menu Setup.lua > Lokasenna_Radial Menu Setup.lua
-	Lokasenna_Radial Menu/Lokasenna_Radial Menu - example menus.txt > Lokasenna_Radial Menu - example menus.txt
+	Lokasenna_Radial Menu/Lokasenna_Radial Menu - example settings.txt > Lokasenna_Radial Menu - example settings.txt
 --]]
 
 -- Licensed under the GNU GPL v3
@@ -186,12 +189,13 @@ GUI.chars = {
 ]]--
 GUI.fonts = {
 	
-	-- Font, size, bold/italics/underline
-	-- 				^ One string: "b", "iu", etc.
-	{"Calibri", 32},	-- 1. Title
-	{"Calibri", 20},	-- 2. Header
-	{"Calibri", 16},	-- 3. Label
-	{"Calibri", 16}	-- 4. Value
+				-- Font, size, bold/italics/underline
+				-- 				^ One string: "b", "iu", etc.
+				{"Calibri", 32},	-- 1. Title
+				{"Calibri", 20},	-- 2. Header
+				{"Calibri", 16},	-- 3. Label
+				{"Calibri", 16},	-- 4. Value
+	version = 	{"Calibri", 12, "i"},
 	
 }
 
@@ -1460,7 +1464,7 @@ GUI.Draw_Version = function ()
 
 	local str = "Lokasenna_GUI "..GUI.version
 	
-	gfx.setfont(1, "Calibri", 12, 105)
+	GUI.font("version")
 	GUI.color("txt")
 	
 	local str_w, str_h = gfx.measurestr(str)
@@ -4086,11 +4090,16 @@ GUI.fonts[7] = {"Calibri", 16, "b"}		-- Normal buttons
 GUI.fonts[8] = {"Calibri", 16, "bu"}	-- Menus
 GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 
+-- Script version in RM
+GUI.fonts[10] = {"Calibri", 14, "i"}
+
+local script_version = "2.3.2"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
+local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
 
 -- If there's no saved settings, i.e. first run, open in Setup mode
-if not (setup or reaper.file_exists(settings_file_name) ) then 
+if not (setup or reaper.file_exists(settings_file_name) or reaper.file_exists(example_file_name) ) then 
 	reaper.ShowMessageBox("Couldn't find any saved settings. Opening in Setup mode.", "No settings found", 0)
 	setup = true
 end
@@ -4122,6 +4131,10 @@ local track_swipe, stopped = false, nil
 local swipe_retrigger = 0
 
 local startup = true
+
+local key_down = 0
+local key_down_arr = {}
+
 local hvr_time = 0
 
 --local ra, rb, rc, rd = 50, 60, 64, 160
@@ -4526,10 +4539,10 @@ end
 	
 	
 
-
+local mnu_arr = {}
 
 -- The default settings and menus
-local mnu_arr = {
+local def_mnu_arr = {
 	
 	-- Using index -1 for random settings so that 'for i = 0, #mnu_arr'
 	-- loops won't even see it
@@ -4580,14 +4593,14 @@ local mnu_arr = {
 	-- Base level
 	[0] = {
 		-- Submenu titles 
-		[0] = { lbl = "cool", act = "menu 1"},
-		[1] = { lbl = "neat", act = "menu 2"},
-		[2] = { lbl = "alright", act = "menu 3"},
-		[3] = { lbl = "mediocre", act = "menu 4"},
-		[4] = { lbl = "boring", act = "menu 5"},
-		[5] = { lbl = "crappy", act = "menu 6"},
-		[6] = { lbl = "useless", act = "menu 7"},
-		[7] = { lbl = "terrible", act = "menu 8"},
+		[0] = { lbl = "Empty", act = ""},
+		[1] = { lbl = "Empty", act = ""},
+		[2] = { lbl = "Empty", act = ""},
+		[3] = { lbl = "Empty", act = ""},
+		[4] = { lbl = "Empty", act = ""},
+		[5] = { lbl = "Empty", act = ""},
+		[6] = { lbl = "Empty", act = ""},
+		[7] = { lbl = "Empty", act = ""},
 	}		
 }
 
@@ -4793,8 +4806,9 @@ local function load_menu(browse)
 
 	_=dm and Msg("loading menus")
 
-	local file_name = settings_file_name
-	local load_settings
+	local file_name = reaper.file_exists(settings_file_name) and settings_file_name or example_file_name
+	
+	--local load_settings
 	if browse then
 		_=dm and Msg("\tprompting for a file")
 		local ret, user_file = reaper.GetUserFileNameForRead("", "Import menus...", ".txt" )
@@ -4828,13 +4842,32 @@ local function load_menu(browse)
 		if not err then 
 			_=dm and Msg("\tparsed menu; checking for missing values\n")
 			
+			local ret = browse and reaper.ShowMessageBox("Would you like to keep your existing global settings and options?", "Keep global settings?", 3)
+			local set_arr
+			
+			if ret == 2 then
+				return 0
+				
+			elseif ret == 6 then
+				set_arr = mnu_arr[-1]
+				set_arr.contexts = {}
+				set_arr.swipe.menu = 0
+				
+				update_context_elms()
+				
+			end
+
+			
 			arr = arr()
 			
 			-- Check for any missing settings in [-1] and copy them from the defaults
-			arr[-1] = GUI.table_copy(mnu_arr[-1], arr[-1], 1)
+			arr[-1] = GUI.table_copy(def_mnu_arr[-1], arr[-1], 1)
 			
 			-- Copy the final table over to mnu_arr
 			mnu_arr = arr
+			if set_arr then mnu_arr[-1] = set_arr end
+			if browse then 	mnu_arr[-1].last_tab = 5 end
+			
 		else
 			reaper.ShowMessageBox("Error parsing menu file:\n"..tostring(err), "Invalid menu file", 0)
 			return 0
@@ -4848,17 +4881,13 @@ local function load_menu(browse)
 			return 0
 		else
 			-- Submenus for all of the default menu items
-			for i = 1, #mnu_arr[0] + 1 do
-				
-				local lbl = mnu_arr[0][i - 1].lbl
-				init_menu(i, nil, lbl)
-				
-			end	
+			mnu_arr = def_mnu_arr
 		end
 	end	
 
 
 end
+
 
 
 
@@ -5398,8 +5427,8 @@ local function update_btn_settings()
 		lbl = ""
 		act = ""
 		c_main = "elm_frame"
-		c_hvr = "elm_frame"
-		c_tog = "elm_frame"
+		c_hvr  = "elm_frame"
+		c_tog  = "elm_frame"
 		GUI.elms.frm_no_btn.z = 3
 	end
 	
@@ -5417,6 +5446,58 @@ local function update_btn_settings()
 end
 
 
+
+-- Clear all the menu settings
+local function clear_menu()
+	
+	local ret = reaper.ShowMessageBox("Would you like to keep your existing global settings and options?", "Keep global settings?", 3)
+	
+	if ret == 2 then
+		return 0
+	else
+		if ret == 6 then
+			local set_arr = mnu_arr[-1]
+			mnu_arr = def_mnu_arr
+			mnu_arr[-1] = set_arr
+			mnu_arr[-1].contexts = {}
+			mnu_arr[-1].swipe.menu = 0
+			
+		elseif ret == 7 then
+			mnu_arr = def_mnu_arr
+			
+		end
+
+		cur_depth = 0
+		last_depth = 0
+		cur_btn = -2
+	
+		update_glbl_settings()
+		update_mnu_settings()
+		update_mnu_menu()
+		update_btn_settings()
+		update_context_elms()
+		
+	end
+	
+end
+
+
+
+
+-- Reset the global colors
+local function reset_glbl_colors()
+	
+	mnu_arr[-1].col_bg = def_mnu_arr[-1].col_bg
+	mnu_arr[-1].col_main = def_mnu_arr[-1].col_main
+	mnu_arr[-1].col_tog = def_mnu_arr[-1].col_tog
+	mnu_arr[-1].col_hvr = def_mnu_arr[-1].col_hvr
+	
+	update_glbl_settings()
+	update_mnu_settings()
+	update_btn_settings()
+	
+	
+end
 
 
 -- Clear the menu's custom colors so get_color will use the globals
@@ -5738,7 +5819,6 @@ end
 
 
 
-
 local function check_key()
 
 	_=dm and Msg(">check_key")
@@ -5816,12 +5896,31 @@ local function check_key()
 			end
 			
 		else
+			
+			-- Running logic
+		
+
 			key_down = gfx.getchar(hold_char)
 			if key_down ~= 0 then
 				_=dm and Msg("\tKey "..tostring(hold_char).." is still down (ret:"..tostring(key_down)..")")
 			else
 				_=dm and Msg("\tKey "..tostring(hold_char).." is no longer down")
 			end
+
+
+			-- Alternate logic that works with ~ or foreign keys, but gets pretty glitchy
+		--[[
+			table.insert(key_down_arr, math.floor(GUI.char))
+			if #key_down_arr > 5 then table.remove(key_down_arr, 1) end
+			
+			key_down = 0			
+			for i = 1, #key_down_arr do
+				if key_down_arr[i] == hold_char then
+					key_down = 1
+					break
+				end
+			end
+		]]--
 		end	
 		
 	-- We're in "keep the window open" mode
@@ -6084,7 +6183,7 @@ local ref1 = {x = 490, y = line_y0 + 64, w = 270, h = 68}	-- Menu color settings
 local ref2 = {x = 490, y = line_y1 + 40, w = 270, h = 68}	-- Button color settings
 local ref3 = {x = 490, y = line_y0 + 16, w = 270, h = 68}	-- Global color settings
 
-local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20}	-- Options buttons
+local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20, adj = 26}	-- Options buttons
 
 local ref5 = {x = 512, y = line_y4 + 48}					-- Font settings
 
@@ -6092,7 +6191,8 @@ local ref6 = {x = 458, y = line_y0 + 280}					-- Misc. opts
 
 GUI.elms = not setup and {
 
-	frm_radial = GUI.Frame:new(			19,	0, 0, 400, 400, false, true, "elm_bg", 0),
+	frm_radial = GUI.Frame:new(			2,	0, 0, 400, 400, false, true, "elm_bg", 0),
+	lbl_version = GUI.Label:new(		1,	6, 0, "Script version: "..script_version, 0, 10),
 	
 }
 or
@@ -6224,6 +6324,8 @@ or
 	frm_col_g_tog = GUI.Frame:new(		9,	ref3.x + 250, 	ref3.y, 20, 	20, true, true, "elm_frame", 0),
 	lbl_col_g_bg = GUI.Label:new(		9,	ref3.x + 144, 	ref3.y + 24, 	"Background color:", 1, 3),
 	frm_col_g_bg = GUI.Frame:new(		9,	ref3.x + 250, 	ref3.y + 22, 	20, 20, true, true, "elm_frame", 0),
+	
+	btn_def_glbl = GUI.Button:new(		9,	ref3.x + 78, ref3.y + 48, 128, 20, "Reset global colors", reset_glbl_colors),
 
 	chk_preview = GUI.Checklist:new(	9,	816, line_y0 + 17, nil, nil, "", "Show submenu preview", "v", 4),
 
@@ -6283,21 +6385,24 @@ or
 	txt_hvr_time = GUI.Textbox:new(		12, ref6.x + 270, ref6.y, 48, 20, "(ms):", 4),
 	txt_close_time = GUI.Textbox:new(	12, ref6.x + 270, ref6.y + 48, 48, 20, "If no key is detected, close the window after (ms):", 4),
 	
-	btn_open_txt = GUI.Button:new(		12,	ref4.x, ref4.y, ref4.w, ref4.h, "Open settings in text editor", open_txt),
-	btn_refresh_txt = GUI.Button:new(	12,	ref4.x, ref4.y + 26, ref4.w, ref4.h, "Refresh from settings file", refresh_menu),
-	btn_load_txt = GUI.Button:new(		12,	ref4.x, ref4.y + 52, ref4.w, ref4.h, "Import settings...", refresh_menu, true),
-	btn_save_txt = GUI.Button:new(		12, ref4.x, ref4.y + 78, ref4.w, ref4.h, "Export settings...", save_menu, true),
+	btn_clear_mnu = GUI.Button:new(		12,	ref4.x, ref4.y, ref4.w, ref4.h, "Clear settings", clear_menu),
+	btn_load_txt = GUI.Button:new(		12,	ref4.x, ref4.y + 2*ref4.adj, ref4.w, ref4.h, "Import settings...", refresh_menu, true),
+	btn_save_txt = GUI.Button:new(		12, ref4.x, ref4.y + 3*ref4.adj, ref4.w, ref4.h, "Export settings...", save_menu, true),	
+	btn_open_txt = GUI.Button:new(		12,	ref4.x, ref4.y + 5*ref4.adj, ref4.w, ref4.h, "Open settings in text editor", open_txt),
+	btn_refresh_txt = GUI.Button:new(	12,	ref4.x, ref4.y + 6*ref4.adj, ref4.w, ref4.h, "Refresh from settings file", refresh_menu),
+
 	--btn_save_txt = GUI.Button:new(		12,	500, line_y0 + 270, 192, 22, "Export user settings...", save_menu, true),
-	btn_spit_table = GUI.Button:new(	12,	ref4.x, ref4.y + 104, ref4.w, ref4.h, "Show saved data (for debugging)", spit_table),
+	btn_spit_table = GUI.Button:new(	12,	ref4.x, ref4.y + 8*ref4.adj, ref4.w, ref4.h, "Show saved data (for debugging)", spit_table),
 	
 	
 	
 	
 	---- Help tab z = 14,15,16 ----
 	
-	mnu_help = GUI.Menubox:new(			15, 544, line_y0 + 6, 160, 20, "", "", 4),
-	btn_thread = GUI.Button:new(		15,	736, line_y0 + 5, 96, 20, "Forum thread", GUI.open_file, thread_URL),
-	btn_donate = GUI.Button:new(		15,	840, line_y0 + 5, 72, 20, "Donate", GUI.open_file, donate_URL),	
+	lbl_ver = GUI.Label:new(			15, 448, line_y0 + 8, "Script version: "..script_version, 1, 3),
+	mnu_help = GUI.Menubox:new(			15, 648, line_y0 + 6, 160, 20, "", "", 4),
+	btn_thread = GUI.Button:new(		15,	832, line_y0 + 5, 96, 20, "Forum thread", GUI.open_file, thread_URL),
+	btn_donate = GUI.Button:new(		15,	936, line_y0 + 5, 72, 20, "Donate", GUI.open_file, donate_URL),	
 	
 	line_help = GUI.Frame:new(			15, 436, line_y0 + 32, 600, 4, true, true),
 	frm_help = GUI.TxtFrame:new(		16, 436, line_y0 + 36, 588, 374, "help stuff", 4, "txt", 8, false, true, "elm_bg", 0),
@@ -7193,7 +7298,7 @@ if setup then
 		gfx.setimgdim(101, w, w)
 		gfx.set(0, 0, 0, 1)
 		
-		gfx.circle(ox - gap, oy - gap, mnu_arr[-1].rd + 1.25*gap, true, 1)
+		gfx.circle(ox - gap, oy - gap, 192 + 4*gap, true, 1)
 
 
 		gfx.dest = 100
@@ -7497,24 +7602,28 @@ if setup then
 		
 		get_color_picker(self) 
 		mnu_arr[-1].col_main = self.col_user
-
+		update_mnu_settings()
+		
 	end
 	function GUI.elms.frm_col_g_hvr:onmouseup() 
 
 		get_color_picker(self) 
 		mnu_arr[-1].col_hvr = self.col_user
+		update_mnu_settings()		
 		
 	end
 	function GUI.elms.frm_col_g_tog:onmouseup() 
 		
 		get_color_picker(self) 
 		mnu_arr[-1].col_tog = self.col_user
+		update_mnu_settings()		
 		
 	end
 	function GUI.elms.frm_col_g_bg:onmouseup() 
 		
 		get_color_picker(self)
 		mnu_arr[-1].col_bg = self.col_user
+		update_mnu_settings()		
 
 	end
 	
@@ -7524,24 +7633,28 @@ if setup then
 		
 		get_color_picker(self) 
 		mnu_arr[cur_depth].col_main = self.col_user
+		update_btn_settings()
 		
 	end
 	function GUI.elms.frm_col_m_hvr:onmouseup() 
 		
 		get_color_picker(self) 
 		mnu_arr[cur_depth].col_hvr = self.col_user
+		update_btn_settings()		
 		
 	end
 	function GUI.elms.frm_col_m_tog:onmouseup() 
 		
 		get_color_picker(self) 
 		mnu_arr[cur_depth].col_tog = self.col_user
+		update_btn_settings()		
 
 	end
 	function GUI.elms.frm_col_m_bg:onmouseup() 
 		
 		get_color_picker(self) 
 		mnu_arr[cur_depth].col_bg = self.col_user
+		update_btn_settings()		
 
 	end
 	
@@ -8275,7 +8388,6 @@ local function Main()
 	
 end
 
-
 -- Make sure we've got a menu file to work with
 if load_menu() == 0 then return 0 end
 
@@ -8351,6 +8463,12 @@ if setup then
 	align_elms()
 
 	init_frm_swipe_menu()
+	
+
+else
+
+	GUI.font(GUI.elms.lbl_version.font)
+	GUI.elms.lbl_version.y = GUI.h - gfx.texth - 4
 
 end
 
