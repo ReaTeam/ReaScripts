@@ -2017,7 +2017,7 @@ end -- showErrorMsg(errorMsg)
 -- Here the main part of the code starts execution
 ---------------------------------------------------
 if type(defaultCurveName) ~= "string" then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'defaultCurveName' must be a string.\n") return(false) end
+    reaper.ShowMessageBox("The setting 'defaultCurveName' must be a string.", "ERROR", 0) return(false) end
 if type(backgroundColor) ~= "table" 
     or type(foregroundColor) ~= "table" 
     or type(textColor) ~= "table" 
@@ -2029,17 +2029,17 @@ if type(backgroundColor) ~= "table"
     or #buttonColor ~= 4 
     or #hotbuttonColor ~= 4 
     then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe custom interface colors must each be a table of four values between 0 and 1.\n") 
+    reaper.ShowMessageBox("The custom interface colors must each be a table of four values between 0 and 1.", "ERROR", 0) 
     return(false) 
     end
 if type(shadows) ~= "boolean" then 
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'shadows' must be either 'true' of 'false'.\n") return(false) end
+    reaper.ShowMessageBox("The setting 'shadows' must be either 'true' of 'false'.", "ERROR", 0) return(false) end
 if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'fineAdjust' must be a number between 0 and 1.\n") return(false) end
+    reaper.ShowMessageBox("The setting 'fineAdjust' must be a number between 0 and 1.", "ERROR", 0) return(false) end
 if type(preserveExistingEnvelope) ~= "boolean" then 
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'preserveExistingEnvelope' must be either 'true' of 'false'.\n") return(false) end
+    reaper.ShowMessageBox("The setting 'preserveExistingEnvelope' must be either 'true' of 'false'.", "ERROR", 0) return(false) end
 if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
-    reaper.ShowConsoleMsg("\n\nERROR: \nThe setting 'phaseStepsDefault' must be a positive multiple of 4.\n") return(false) end
+    reaper.ShowMessageBox("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) end
 
        
 
