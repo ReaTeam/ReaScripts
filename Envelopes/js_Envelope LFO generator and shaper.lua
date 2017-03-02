@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.10
+Version: 1.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -70,6 +70,8 @@ About:
   * v1.10 (2017-01-18)    
     + Header info updated to ReaPack 1.1 format.
     + Keyboard shortcuts "a", "c" and "r" for quick switching between GUI views.
+  * v1.11 (2017-03-02)
+    + Fixed bug in loading default curves with customized names (different from "default").
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -2093,7 +2095,7 @@ end]]
 if getSavedCurvesAndNames() ~= false then
     if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
         for i = 1, #savedNames do
-            if savedNames[i] == "default" then
+            if savedNames[i] == defaultCurveName then
                 loadCurve(i)
             end
         end
