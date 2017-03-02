@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4e46bee640757d14511777a062ab5d1a40d681e6" name="ReaTeam Scripts">
+<index version="1" commit="866ac788fe7bea884be53df1ad67f0acc56aca63" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -245,6 +245,10 @@
         <changelog><![CDATA[+ Header info updated to ReaPack 1.1 format.
 + Keyboard shortcuts "a", "c" and "r" for quick switching between GUI views.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a5ca9f513b978f720cfc5408adc8664ccba57087/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2017-03-02T20:12:34Z">
+        <changelog><![CDATA[+ Fixed bug in loading default curves with customized names (different from "default").]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/866ac788fe7bea884be53df1ad67f0acc56aca63/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
