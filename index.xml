@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="605ccce8d4f0e6d25594185b7f98cd23a1dec9a3" name="ReaTeam Scripts">
+<index version="1" commit="4e46bee640757d14511777a062ab5d1a40d681e6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4170,6 +4170,16 @@ Fixes
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/605ccce8d4f0e6d25594185b7f98cd23a1dec9a3/Various/Lokasenna_Radial%20Menu.lua</source>
         <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/605ccce8d4f0e6d25594185b7f98cd23a1dec9a3/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
         <source file="Lokasenna_Radial Menu - example menus.txt">https://github.com/ReaTeam/ReaScripts/raw/605ccce8d4f0e6d25594185b7f98cd23a1dec9a3/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20menus.txt</source>
+      </version>
+      <version name="2.3.2" author="Lokasenna" time="2017-03-02T19:57:25Z">
+        <changelog><![CDATA[New
+- Version number displayed below the radial menu, and in the Help tab
+- Will look for the example menus file if no user settings are found
+- Added an option to clear menu settings
+- Clearing and loading menu settings can optionally preserve your global settings]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e46bee640757d14511777a062ab5d1a40d681e6/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/4e46bee640757d14511777a062ab5d1a40d681e6/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/4e46bee640757d14511777a062ab5d1a40d681e6/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
