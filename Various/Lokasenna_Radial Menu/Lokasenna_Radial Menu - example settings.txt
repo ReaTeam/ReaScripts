@@ -72,8 +72,13 @@
 			Button settings:
 			
 			["lbl"] = "cool",			The button's label
-			["act"] = "menu 1",			Action to perform / menu to open. Valid
-										commands are as follows:
+			
+										| or ; will wrap the text to a new line,
+										i.e. "Multi|line;text"
+			
+			["act"] = "menu 1",			Action to perform / menu to open. 
+			
+										Valid commands are...
 										
 										Action IDs:											
 										40364	
@@ -91,12 +96,49 @@
 										menu 20		(opens menu 20)
 										menu stuff	(opens the menu with alias 'stuff')
 										
-										Other commands:
-										midi 12345	Send an action to the current MIDI
-													editor rather than the main window
-													
 										back		Return to the base menu
 										quit		Close the script
+										
+										
+										Special commands:
+										
+										midi 12345	Send an action to the current MIDI
+													editor rather than the main window
+					
+										xN 12345	Perform the action N times each time
+													the button is clicked.
+										
+													e.g.	x3 40001
+													
+													will insert three new tracks each
+													time the button is clicked
+													
+													
+													
+										repeat N "12345"	Repeats the action every N
+												 '12345'	seconds while the mouse button
+															is held down.
+												 
+													e.g.	repeat 0.5 "40001"
+													
+													will insert a new track every 0.5 seconds
+													
+										The special commands can be combined, in (I think)
+										any order:
+										
+										midi x3 12345		Perform MIDI action 12345 three times
+										
+										repeat 0.5 "x3 12345"	Perform action 12345 three times,
+																every 0.5 seconds.
+																
+										
+										
+													
+													
+					
+					
+
+					
 										
 										
 	
@@ -290,7 +332,7 @@ return {
 		["hvr_click"] = false,
 		["hvr_time"] = 200,
 		["key_mode"] = 1,
-		["last_tab"] = 1,
+		["last_tab"] = 5,
 		["mnu_0_on_act"] = false,
 		["mouse_mode"] = 1,
 		["num_btns"] = 8,
