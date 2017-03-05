@@ -1,11 +1,10 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.1
+Version: 2.4.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fixed:
-	- Help menu was messed up, showing the wrong pages
+	Forgot to turn the debug messages off...
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -3607,8 +3606,6 @@ function GUI.Menubox:onmouseup()
 	
 	local curopt = gfx.showmenu(menu_str)
 	
-	GUI.Msg("returned = "..curopt)
-	
 	if #sep_arr > 0 then
 		for i = 1, #sep_arr do
 			if curopt >= sep_arr[i] then
@@ -3618,8 +3615,6 @@ function GUI.Menubox:onmouseup()
 			end
 		end
 	end
-	
-	GUI.Msg("corrected = "..curopt)
 	
 	if curopt ~= 0 then self.retval = curopt end
 
@@ -4108,7 +4103,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.1"
+local script_version = "2.4.2"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4183,7 +4178,7 @@ local settings_help_str = [=[--[[
 	the script, all indices must include square brackets and/or quotation 
 	marks rather than being left bare, i.e. 
 
-					[3] 			not		3
+					[3]				not		3
 					["col_main"]	not		col_main
 	
 	
@@ -4601,8 +4596,6 @@ local function init_help_pages()
 	
 		-- Wrap all of the pages to fit in the frame	
 		help_pages[k][2] = GUI.word_wrap(v[2], 4, w, 0, 2)	
-		
-		Msg("page "..k..": "..help_pages[k][1])
 	
 	end
 	
