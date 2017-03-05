@@ -1,19 +1,11 @@
 --[[
 Description: Radial Menu 
-Version: 2.4
+Version: 2.4.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Important:
-	- Selecting buttons in the Setup script changed from right-click to shift+click
-	New:
-	- Actions can be told to repeat as long as the mouse is held down (see Help)
-	- Actions can be performed multiple times per click (see Help)
-	- Repeating actions, mutliple actions, and midi actions can be used together (see Help)
-	- Added ; as a new-line character in button labels, since not all keyboards have |
 	Fixed:
-	- Delay when clicking the same button rapidly
-	- Realized I was updating the mouse state twice on every loop of the script
+	- Help menu was messed up, showing the wrong pages
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -47,6 +39,7 @@ local dm, _ = debug_mode
 local function Msg(str)
 	reaper.ShowConsoleMsg(tostring(str).."\n")
 end
+
 
 local info = debug.getinfo(1,'S');
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
@@ -124,14 +117,10 @@ GUI.version = "beta 8"
 -- Might want to know this
 GUI.OS = reaper.GetOS()
 
--- Borrowed from X-Raym
-if GUI.OS == "Win32" or reaper.GetOS() == "Win64" then
-	-- user_folder = buf --"C:\\Users\\[username]" -- need to be test
-	GUI.file_sep = "\\"
-else
-	-- user_folder = "/USERS/[username]" -- Mac OS. Not tested on Linux.
-	GUI.file_sep = "/"
-end
+--[[	Use when working with file paths if you need to add your own /s
+		(Borrowed from X-Raym)	
+]]--
+GUI.file_sep = string.match(GUI.OS, "Win") and "\\" or "/"
 
 
 
@@ -246,16 +235,6 @@ GUI.colors = {
 GUI.font = function (fnt)
 	local font, size, str = table.unpack( type(fnt) == "table" and fnt or GUI.fonts[fnt])
 	
-	-- ASCII values:
-	-- Bold		 98
-	-- Italics	 105
-	-- Underline 117
-	--[[ old way
-	local flags = 0
-	if b == 1 then flags = flags + 98 end
-	if i == 1 then flags = flags + 105 end
-	if u == 1 then flags = flags + 117 end
-	]]--
 	
 	if string.find(GUI.OS, "OSX") then
 		size = math.floor(size * 0.8)
@@ -3466,6 +3445,13 @@ x, y, w, h		Coordinates of top-left corner, width, overall height *including cap
 caption			Title / question
 opts			String separated by commas, just like for GetUserInputs().
 				ex: "Alice,Bob,Charlie,Denise,Edward"
+				
+				Empty fields ("i.e. Alice,,Charlie") will show a separator, but will still
+				be counted toward the number of options and the value returned when the
+				menu is clicked.
+				
+				e.g. ("Alice,,Charlie") --> clicks 'Charlie' --> returns 3
+				
 pad				Padding between the caption and the box
 	
 ]]--
@@ -3593,6 +3579,10 @@ function GUI.Menubox:onmouseup()
 
 	local menu_str = ""
 	
+	-- The menu doesn't count separators in the returned number,
+	-- so we'll do it here
+	local sep_arr = {}
+	
 	for i = 1, self.numopts do
 		if i == self.curopt then menu_str = menu_str .. "!" end
 --[[
@@ -3606,6 +3596,8 @@ function GUI.Menubox:onmouseup()
 		end
 		
 		menu_str = menu_str .. new_str .. "|"
+		
+		if new_str == "" then table.insert(sep_arr, i) end
 
 	end
 	
@@ -3614,6 +3606,21 @@ function GUI.Menubox:onmouseup()
 	gfx.x, gfx.y = GUI.mouse.x, GUI.mouse.y
 	
 	local curopt = gfx.showmenu(menu_str)
+	
+	GUI.Msg("returned = "..curopt)
+	
+	if #sep_arr > 0 then
+		for i = 1, #sep_arr do
+			if curopt >= sep_arr[i] then
+				curopt = curopt + 1
+			else
+				break
+			end
+		end
+	end
+	
+	GUI.Msg("corrected = "..curopt)
+	
 	if curopt ~= 0 then self.retval = curopt end
 
 	self.focus = false
@@ -4101,7 +4108,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4"
+local script_version = "2.4.1"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4594,6 +4601,8 @@ local function init_help_pages()
 	
 		-- Wrap all of the pages to fit in the frame	
 		help_pages[k][2] = GUI.word_wrap(v[2], 4, w, 0, 2)	
+		
+		Msg("page "..k..": "..help_pages[k][1])
 	
 	end
 	
@@ -6167,7 +6176,7 @@ local function check_mouse()
 	-- If we're over a new option, reset the hover timer
 	if prev_mnu ~= mouse_mnu then
 		
-		_=dm and Msg("mouse is now over button "..tostring(mouse_mnu))
+		_=dm and Msg("\tmouse is now over button "..tostring(mouse_mnu))
 		
 		if mnu_arr[-1].hvr_click  then
 			_=dm and Msg("hovering")
@@ -6650,7 +6659,6 @@ function GUI.elms.frm_radial:draw()
 				or i
 ]]--
 		if mnu_arr[cur_depth][i] then
-			_=dm and Msg("\tbutton "..tostring(i))
 
 			local opt = mnu_arr[cur_depth][i]
 			
@@ -6695,7 +6703,7 @@ function GUI.elms.frm_radial:draw()
 			-- We only need to redraw if the button isn't using its base color
 			if redraw then
 
-				_=dm and Msg("\t\tredrawing")
+				_=dm and Msg("\t\tredrawing "..tostring(i))
 				if i ~= -1 then
 					draw_ring_section(i + k, mnu_adj, rc - r_adj, rd + r_adj, ox, oy, 0, true, color)
 				else
@@ -8563,6 +8571,7 @@ local function Main()
 	
 	end
 	
+	_=dm and Msg("----")
 	
 end
 
@@ -8620,6 +8629,7 @@ else
 	
 
 end
+
 
 
 
