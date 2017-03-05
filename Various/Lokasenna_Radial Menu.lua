@@ -1,14 +1,19 @@
 --[[
 Description: Radial Menu 
-Version: 2.3.2
+Version: 2.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	New
-	- Version number displayed below the radial menu, and in the Help tab
-	- Will look for the example menus file if no user settings are found
-	- Added an option to clear menu settings
-	- Clearing and loading menu settings can optionally preserve your global settings
+	Important:
+	- Selecting buttons in the Setup script changed from right-click to shift+click
+	New:
+	- Actions can be told to repeat as long as the mouse is held down (see Help)
+	- Actions can be performed multiple times per click (see Help)
+	- Repeating actions, mutliple actions, and midi actions can be used together (see Help)
+	- Added ; as a new-line character in button labels, since not all keyboards have |
+	Fixed:
+	- Delay when clicking the same button rapidly
+	- Realized I was updating the mouse state twice on every loop of the script
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -211,7 +216,7 @@ GUI.colors = {
 	elm_outline = {32, 32, 32, 255},
 	txt = {192, 192, 192, 255},			-- Text
 	
-	shadow = {0, 0, 0, 102},			-- Shadow
+	shadow = {0, 0, 0, 80},			-- Shadow
 	faded = {0, 0, 0, 64},
 	
 	-- Standard 16 colors
@@ -2678,8 +2683,10 @@ function GUI.Radio:draw()
 	local pad = self.pad
 	
 	-- Draw the list frame
-	GUI.color("elm_frame")
-	gfx.rect(x, y, w, h, 0)
+	if self.frame then
+		GUI.color("elm_frame")
+		gfx.rect(x, y, w, h, 0)
+	end
 	
 
 	-- Draw the caption
@@ -2901,7 +2908,7 @@ function GUI.Checklist:draw()
 	
 	-- Draw the element frame
 	
-	if self.caption ~= "" then
+	if self.frame then
 		
 		GUI.color("elm_frame")
 		gfx.rect(x, y, w, h, 0)
@@ -3625,6 +3632,7 @@ end
 function GUI.Menubox:onwheel()
 	
 	local curopt = self.retval - GUI.mouse.inc
+	if self.optarray[curopt] == "" then curopt = curopt - GUI.mouse.inc end
 	
 	if curopt < 1 then curopt = 1 end
 	if curopt > self.numopts then curopt = self.numopts end
@@ -4093,7 +4101,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.3.2"
+local script_version = "2.4"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4228,8 +4236,13 @@ local settings_help_str = [=[--[[
 			Button settings:
 			
 			["lbl"] = "cool",			The button's label
-			["act"] = "menu 1",			Action to perform / menu to open. Valid
-										commands are as follows:
+			
+										| or ; will wrap the text to a new line,
+										i.e. "Multi|line;text"
+			
+			["act"] = "menu 1",			Action to perform / menu to open. 
+			
+										Valid commands are...
 										
 										Action IDs:											
 										40364	
@@ -4247,12 +4260,49 @@ local settings_help_str = [=[--[[
 										menu 20		(opens menu 20)
 										menu stuff	(opens the menu with alias 'stuff')
 										
-										Other commands:
-										midi 12345	Send an action to the current MIDI
-													editor rather than the main window
-													
 										back		Return to the base menu
 										quit		Close the script
+										
+										
+										Special commands:
+										
+										midi 12345	Send an action to the current MIDI
+													editor rather than the main window
+					
+										xN 12345	Perform the action N times each time
+													the button is clicked.
+										
+													e.g.	x3 40001
+													
+													will insert three new tracks each
+													time the button is clicked
+													
+													
+													
+										repeat N "12345"	Repeats the action every N
+												 '12345'	seconds while the mouse button
+															is held down.
+												 
+													e.g.	repeat 0.5 "40001"
+													
+													will insert a new track every 0.5 seconds
+													
+										The special commands can be combined, in (I think)
+										any order:
+										
+										midi x3 12345		Perform MIDI action 12345 three times
+										
+										repeat 0.5 "x3 12345"	Perform action 12345 three times,
+																every 0.5 seconds.
+																
+										
+										
+													
+													
+					
+					
+
+					
 										
 										
 	
@@ -4422,32 +4472,50 @@ local help_pages = {
 
 ]]},
 
+	{"", ""},
+	
+	{"Button Commands",
+	
+[[Action IDs:
+    12345, _SWS_AWMPLAYTOG, _RS2bf8e77e958d48b42c7d7b585790ee0427a96a7e
+    (Use 'midi 12345' to specify commands from the MIDI editor's action list)
+  
+Accessing submenus, via menu numbers or aliases:
+    menu 20, menu stuff
+ 
+Return to the base menu:
+    back
+ 	
+Exit the script:
+    quit
+ 
+Perform an action multiple times per button-click:
+    x3 12345
+ 
+Repeat an action at a specified interval (in seconds) while the mouse button is held down:
+    repeat 0.5 '12345'
+ 
+Commands can also be combined:	
+    repeat 0.5 'x3 midi 12345'
+]]},	
+	
+	{"", ""},
 
-
-	{"Menus",
+	{"Menu tab",
 		
 [[- Menus may have anywhere from one to sixteen buttons, with an optional button in the center of the ring. Each menu can have its own color settings, or use the colors set in the Global tab.
  
 - They can also be given an alias for buttons and contexts to reference rather than having to remember menu numbers.
  
-- Right-click buttons in the radial menu at left to edit them. Like menus, they can each have their own colors, or they can use the parent menu's colors; if the menu has no colors assigned, buttons will likewise grab their colors from the Global settings.
- 
-- Using a | in button labels will wrap the text to a new line.
- 
-- To paste an action ID, use the Paste button.
- 
-- Assign buttons to open a menu with 'menu 20', or 'menu stuff'. 
- 
-- Other commands that can be assigned to buttons:
-  'back' - Return to the base menu
-  'quit' - Close the script
-  'midi 41076' - Sends an action ID to the current MIDI Editor, rather than the main window.
+- Shift-click buttons in the radial menu at left to edit them. Like menus, they can each have their own colors, or they can use the parent menu's colors; if the menu has no colors assigned, buttons will likewise grab their colors from the Global settings.
+  
+- To paste an action ID, use the Paste button; scripts don't have a way to access your operating system's clipboard.
 
 ]]},
 
 
 
-	{"Context", 
+	{"Context tab", 
 [[    Important: Context functions require the SWS extension for Reaper to be installed.
  
 - By default, Radial Menu will always open menu 0 at startup. This tab allows you to specify different menus to open based on which Reaper area the mouse cursor is over - i.e. one set of actions for tracks and another for media items.
@@ -4464,7 +4532,7 @@ local help_pages = {
 
 
 
-	{"Swiping",
+	{"Swiping tab",
 		
 [[- The basic Radial Menu wasn't fast enough for you? Try this. Swiping lets you trigger menus and actions via mouse movements, in the same way as answering a call on your mobile phone.
  	
@@ -4485,7 +4553,7 @@ local help_pages = {
 
 
 
-	{"Global",
+	{"Global tab",
 		
 [[- Any menus that don't have their own colors specified will look here, as will buttons in those menus don't have colors of their own.
  
@@ -4499,7 +4567,7 @@ local help_pages = {
 
 
 
-	{"Options",
+	{"Options tab",
 		
 [[- The various settings here may not all work with each other.
  	
@@ -4528,6 +4596,8 @@ local function init_help_pages()
 		help_pages[k][2] = GUI.word_wrap(v[2], 4, w, 0, 2)	
 	
 	end
+	
+	--table.insert(str_arr, 3, "")
 	
 	-- Update the Help menu
 	GUI.elms.mnu_help.optarray = str_arr
@@ -4804,7 +4874,7 @@ end
 -- Load the settings file, or browse for a new one
 local function load_menu(browse)
 
-	_=dm and Msg("loading menus")
+	_=dm and Msg(">load_menu")
 
 	local file_name = reaper.file_exists(settings_file_name) and settings_file_name or example_file_name
 	
@@ -4885,6 +4955,7 @@ local function load_menu(browse)
 		end
 	end	
 
+	_=dm and Msg("<load_menu")
 
 end
 
@@ -4949,19 +5020,20 @@ local function check_alias(str)
 
 	if str == "" or str == nil then return false end
 
-	_=dm and Msg("looking up alias '"..tostring(str).."'")
-	local found = false
+	_=dm and Msg("\tlooking up alias '"..tostring(str).."'")
+
 	for i, v in pairs(mnu_arr) do
 		
-		_=dm and Msg("\tmenu "..tostring(i)..": "..tostring(mnu_arr[i].alias))
-		
 		if mnu_arr[i].alias and mnu_arr[i].alias == str then	
-			_=dm and Msg("got: "..tostring(i))
-			found = tonumber(i)
+			_=dm and Msg("\tfound menu: "..tostring(i))
+			return tonumber(i)
 		end
+		
+		
 	end
 	
-	return found
+	_=dm and Msg("\tno alias found")
+	return false
 	
 end
 
@@ -4990,7 +5062,7 @@ end
 -- Find the appropriate menu for the current mouse context
 local function get_context_mnu()
 	
-	_=dm and Msg("getting mouse context")
+	_=dm and Msg("<get_context_mnu")
 	
 	local str = GUI.SWS_exists and get_context_str() or ""
 		
@@ -5019,6 +5091,7 @@ local function get_context_mnu()
 	
 	cur_depth = base_depth
 	_=dm and Msg("\tsettled on depth "..base_depth)
+	_=dm and Msg("<get_context_mnu")
 	
 end
 
@@ -5063,6 +5136,7 @@ end
 -- Parse and run the current action
 local function run_act(act, midi)
 
+	_=dm and Msg(">run_act")
 	_=dm and Msg("running action: "..tostring(act))
 
 	-- Blank?
@@ -5092,14 +5166,28 @@ local function run_act(act, midi)
 		return 0
 		
 	
-	elseif string.sub(act, 1, 4) == "midi" then
+	elseif string.match(act, "^midi") then
 	
-		run_act( string.sub(act, 5), true)
+		run_act( string.sub(act, 6), true)
 		return 0
+		
+		
+	elseif string.match(act, "^x%d") then
 	
-	
+		local num, act = string.match(act, "^x(%d+) ([^ ]+)")
+		num = tonumber(num)
+		
+		if num and act then
+			
+			for i = 1, num do
+				run_act(act, midi)
+			end
+			
+		end
+		
+
 	-- Is it a menu?
-	elseif string.sub(act, 1, 4) == "menu" then
+	elseif string.match(act, "^menu") then
 					
 		local num = string.sub(act, 6)
 		
@@ -5156,7 +5244,7 @@ local function run_act(act, midi)
 	end	
 
 	_=dm and Msg("\tcur_depth is now "..tostring(cur_depth))
-	_=dm and Msg("finished with action")	
+	_=dm and Msg("<run_act")	
 	
 end
 
@@ -5226,7 +5314,7 @@ end
 -- Update the "Working on menu" box's menu list
 local function update_mnu_menu()
 	
-	_=dm and Msg("updating mnu_menu")
+	_=dm and Msg(">update_mnu_menu")
 	
 	local arr = {}
 
@@ -5273,7 +5361,7 @@ local function update_mnu_menu()
 	--GUI.Val("mnu_menu", tonumber(val))
 	GUI.elms.mnu_menu.retval = tonumber(val)
 	
-	_=dm and Msg("finished with mnu_menu")
+	_=dm and Msg("<update_mnu_menu")
 
 end
 
@@ -5282,7 +5370,7 @@ end
 -- Update global/misc settings from the values in mnu_arr
 local function update_glbl_settings()
 	
-	_=dm and Msg("updating global settings")
+	_=dm and Msg(">update_glbl_settings")
 
 	-- Swipe tab stuff
 	GUI.Val("chk_swipe", {mnu_arr[-1].swipe.enabled})
@@ -5349,7 +5437,7 @@ local function update_glbl_settings()
 	
 	redraw_menu = true
 
-	_=dm and Msg("done updating global settings")
+	_=dm and Msg("<update_glbl_settings")
 
 	
 end
@@ -5529,7 +5617,7 @@ end
 -- for the user to paste action IDs into the script
 local function paste_act()
 	-- retval, retvals_csv reaper.GetUserInputs( title, num_inputs, captions_csv, retvals_csv )
-	local ret, act = reaper.GetUserInputs("Paste an action ID from the clipboard", 1, "Paste here:,extrawidth=64", "")
+	local ret, act = reaper.GetUserInputs("Copy/paste actions", 1, "Copy/paste actions here:,extrawidth=128", mnu_arr[cur_depth][cur_btn].act)
 	
 	if ret then
 		mnu_arr[cur_depth][cur_btn].act = act
@@ -6106,6 +6194,33 @@ end
 
 
 
+local function check_repeat()
+	
+	_=dm and Msg(">check_repeat")
+	
+	local t = reaper.time_precise()
+
+	_=dm and Msg("\tt = "..GUI.round(t, 3).."\t[3] = "..GUI.round(repeat_act[3], 3))
+	_=dm and Msg("\tdiff = "..GUI.round( t - repeat_act[3], 3).."\t[1] = "..GUI.round(repeat_act[1], 3))
+
+	if	GUI.mouse.cap & repeat_act[4] == repeat_act[4] 	then	
+		if( t - repeat_act[3] > repeat_act[1] ) then
+		
+			_=dm and Msg("\trepeating action "..tostring(repeat_act[2]) )
+		
+			run_act(repeat_act[2])	
+			repeat_act[3] = t
+		
+		end
+	else
+		repeat_act = false
+	end
+		
+	_=dm and Msg("<check_repeat")
+end
+
+
+
 
 -- Sees if a font named 'font' exists on this system
 -- Returns true/false
@@ -6202,7 +6317,7 @@ or
 
 	---- General elements z = 21+
 	
-	tabs = GUI.Tabframe:new(			24,	432, 0, 56, 22, "", "Menus,Context,Swiping,Global,Options,Help", 8),	
+	tabs = GUI.Tabframe:new(			24,	432, 0, 56, 22, "", "Menu,Context,Swiping,Global,Options,Help", 8),	
 	
 	frm_radial = GUI.Frame:new(			23,	0, 0, 432, 432, false, true, "elm_bg", 0),
 	
@@ -6274,9 +6389,9 @@ or
 	
 	btn_use_mnu = GUI.Button:new(		4,	ref2.x + 78, 		ref2.y + 48, 	128, 20, "Use menu colors", use_menu_colors),
 
-	txt_btn_lbl = GUI.Textbox:new(		4,	496, line_y1 + 118, 256, 20, "Label:", 4),
-	txt_btn_act = GUI.Textbox:new(		4,	496, line_y1 + 144, 256, 20, "Action:", 4),
-	btn_paste = GUI.Button:new(			4,	766, line_y1 + 143, 48, 20, "Paste", paste_act),
+	txt_btn_lbl = GUI.Textbox:new(		4,	496, line_y1 + 118, 192, 20, "Label:", 4),
+	txt_btn_act = GUI.Textbox:new(		4,	496, line_y1 + 144, 464, 20, "Action:", 4),
+	btn_paste = GUI.Button:new(			4,	856, line_y1 + 170, 96, 20, "Copy/Paste", paste_act),	
 	
 	
 	
@@ -6516,7 +6631,7 @@ function GUI.elms.frm_radial:draw()
 	local colors = {}
 
 
-	_=dm and Msg("drawing menu")
+	_=dm and Msg(">frm_radial:draw")
 
 	gfx.x, gfx.y = 0, 0
 	gfx.blit(50, 1, 0)
@@ -6528,19 +6643,14 @@ function GUI.elms.frm_radial:draw()
 	local redraw
 
 	-- Draw the menu options
-		_=dm and Msg("drawing... "..tostring(mouse_mnu).."  "..tostring(#mnu_arr[cur_depth + 1]))	
 	for i = -1, #mnu_arr[cur_depth] do
-
-		_=dm and Msg("i = "..tostring(i))
-
+--[[
 		local i = (mouse_mnu and i >= 0) 
 				and (i + mouse_mnu + 1) % (#mnu_arr[cur_depth] + 1) 
 				or i
-
-		_=dm and Msg("new i = "..tostring(i))
-
+]]--
 		if mnu_arr[cur_depth][i] then
-			_=dm and Msg("\tdrawing button "..tostring(i))
+			_=dm and Msg("\tbutton "..tostring(i))
 
 			local opt = mnu_arr[cur_depth][i]
 			
@@ -6583,9 +6693,9 @@ function GUI.elms.frm_radial:draw()
 
 
 			-- We only need to redraw if the button isn't using its base color
-			_=dm and Msg("seeing if we need to draw...")
 			if redraw then
 
+				_=dm and Msg("\t\tredrawing")
 				if i ~= -1 then
 					draw_ring_section(i + k, mnu_adj, rc - r_adj, rd + r_adj, ox, oy, 0, true, color)
 				else
@@ -6628,7 +6738,7 @@ function GUI.elms.frm_radial:draw()
 		then
 		
 		local act = mnu_arr[cur_depth][mouse_mnu].act
-		if string.sub(act, 1, 4) == "menu" then
+		if string.match(act, "^menu") then
 			act = string.sub(act, 6)
 			mnu_children = tonumber(act) or check_alias(act)
 
@@ -6653,7 +6763,7 @@ function GUI.elms.frm_radial:draw()
 				GUI.font( mnu_arr[-1].fonts[2] )
 			end
 			
-			str = string.gsub(mnu_arr[cur_depth][i].lbl, "|", "\n")
+			str = string.gsub(mnu_arr[cur_depth][i].lbl, "[|;]", "\n")
 			str_w, str_h = gfx.measurestr(str)
 			
 			cx, cy = table.unpack((i ~= -1) 
@@ -6681,9 +6791,11 @@ function GUI.elms.frm_radial:draw()
 
 	-- Draw the preview labels, if necessary
 	
-	_=dm and Msg("\tmnu_children = "..tostring(mnu_children))	
+
 
 	if mnu_children and mnu_arr[mnu_children] then
+		
+		_=dm and Msg("\tmnu_children = "..tostring(mnu_children))	
 		
 		local adj = 2 / (#mnu_arr[mnu_children] + 1)
 		local r = ra + (rc - ra) / 2
@@ -6735,27 +6847,111 @@ function GUI.elms.frm_radial:draw()
 	end
 	]]--
 
-	_=dm and Msg("finished drawing menu")
+	_=dm and Msg("<frm_radial:draw")
 
 end
 
 
-function GUI.elms.frm_radial:onmouseover() 
+-- When running Radial Menu itself, the mouse is updated on every loop
+-- through Main(), below.
+if setup then
 	
-	check_mouse()
-	
-	
+	function GUI.elms.frm_radial:onmouseover() 
+
+		check_mouse()
+		
+	end
+
 end
 
 
 function GUI.elms.frm_radial:onmousedown()
+	
+	if mouse_mnu == -2 then return 0 end
+	
 	self.state = true
-	GUI.redraw_z[self.z] = true
+	GUI.redraw_z[self.z] = true	
+	
+	local act = mnu_arr[cur_depth][mouse_mnu] 
+				and mnu_arr[cur_depth][mouse_mnu].act
+				
+	if string.match( act, "^repeat" ) then
+		
+		_=dm and Msg("parsing repeat action: "..tostring(string.sub(act, 8)))
+	--[[
+	
+			repeat 0.5 x3 12345
+			       |->	
+	
+					^([^ ]+) +[\'\"](.*)[\'\"]$
+	
+	]]--
+		repeat_act = 	not repeat_act 
+						and { string.match( 
+											string.sub(act, 8), "^([^ ]+) +[\'\"](.*)[\'\"]$") 
+							}
+			
+		if repeat_act and #repeat_act == 2 then
+			_=dm and Msg("\tgot: "..table.concat(repeat_act, ", ") )
+			
+			repeat_act[1] = tonumber(repeat_act[1])
+			if not repeat_act[1] then
+				_=dm and Msg("\ttime stamp wasn't a number")
+				return 0
+			end
+			
+			
+			
+			-- We need a time stamp for repeating the action
+			repeat_act[3] = reaper.time_precise()
+			
+			-- We need to know what mouse button is being used
+			repeat_act[4] = ((GUI.mouse.cap & 1 == 1) and 1 )
+						or	((GUI.mouse.cap & 2 == 2) and 2 )
+						or	((GUI.mouse.cap & 64 == 64) and 64)
+						or	nil
+			
+			-- Make sure it wasn't a hover or swipe "click"
+			if not (repeat_act[1] and repeat_act[4]) then
+				_=dm and Msg("\tno mouse buttons down")
+				repeat_act = false
+				return 0
+			end
+			
+			_=dm and Msg("\tmouse state: "..tostring(repeat_act[4]))
+			run_act(repeat_act[2])
+			
+		else
+			_=dm and Msg("\tparsing failed")
+			repeat_act = false
+			return 0
+		end
+
+		_=dm and Msg("done with repeat action")
+	
+	end
+
 end
 
 
 function GUI.elms.frm_radial:onmouseup()
+	
+	opt_clicked = true
+	repeat_act = false
+	self.state = false	
+	
+	if setup and (GUI.mouse.cap & 8 == 8) then
+
+		cur_btn = (mouse_mnu ~= -2) and mouse_mnu or -2
+		GUI.Val("tabs", 1)
+		update_btn_settings()
+		GUI.redraw_z[self.z] = true		
 		
+		return 0
+		
+	end
+	
+	
 	local mnu = mouse_mnu
 	
 	_=dm and Msg("clicked button "..tostring(mnu))
@@ -6795,8 +6991,6 @@ function GUI.elms.frm_radial:onmouseup()
 
 	end
 
-	opt_clicked = true
-	self.state = false
 	GUI.redraw_z[self.z] = true
 	
 	
@@ -6806,7 +7000,8 @@ end
 -- Avert a bug where 'state' somehow ends up backward and
 -- menus are being hovered with the bg color
 function GUI.elms.frm_radial:ondoubleclick()
-	self.state = false
+	--self.state = false
+	GUI.elms.frm_radial:onmouseup()
 end
 
 
@@ -6828,14 +7023,6 @@ end
 -- Selecting a button to work on
 function GUI.elms.frm_radial:onmouser_up()
 
-	if setup then
-		
-		
-		
-		cur_btn = (mouse_mnu ~= -2) and mouse_mnu or -2
-		update_btn_settings()
-		GUI.redraw_z[self.z] = true		
-	end
 	
 end
 
@@ -6911,7 +7098,7 @@ if setup then
 		
 		GUI.elms.chk_center.tooltip = "Add an additional button in the center of this menu"
 		
-		GUI.elms.frm_no_btn.tooltip = "Right-click a button in the radial menu to edit it"
+		GUI.elms.frm_no_btn.tooltip = "Shift-click a button in the radial menu to edit it"
 		
 		GUI.elms.btn_btn_left.tooltip = "Move this button counterclockwise"
 		GUI.elms.btn_btn_right.tooltip = "Move this button clockwise"
@@ -7036,7 +7223,7 @@ if setup then
 		
 		if init then
 			
-			_=dm and Msg("initializing context elements")
+			_=dm and Msg(">init context elms")
 			
 			local z, x, y, w, h, pad = table.unpack(txt_con_template)
 			local x_adj, y_adj = 0, 24
@@ -7128,10 +7315,11 @@ if setup then
 				end
 			end
 		
+			_=dm and Msg("<init context elms")
 		
 		else
 
-			_=dm and Msg("updating context elements")
+			_=dm and Msg(">update_context_elms")
 
 			local arr = mnu_arr[-1].contexts
 		
@@ -7150,10 +7338,12 @@ if setup then
 				end
 				
 			end
+			
+			_=dm and Msg("<update_context_elms")
 		
 		end	
 
-		_=dm and Msg("finished with context elements")
+
 
 	end
 
@@ -7381,8 +7571,6 @@ if setup then
 		
 		if sldr == "a" then
 			
-			_=dm and Msg("adjusting with sldr A as master")
-			
 			ra = GUI.Val("sldr_ra") + GUI.elms.sldr_ra.min
 			
 			if rb - ra < gap then
@@ -7399,8 +7587,6 @@ if setup then
 			
 		elseif sldr == "b" then
 		
-			_=dm and Msg("adjusting with sldr B as master")
-
 			rb = GUI.Val("sldr_rb") + GUI.elms.sldr_rb.min
 			
 			if rb - ra < gap then
@@ -7417,8 +7603,6 @@ if setup then
 			end
 
 		elseif sldr == "c" then
-		
-			_=dm and Msg("adjusting with sldr C as master")
 		
 			rc = GUI.Val("sldr_rc") + GUI.elms.sldr_rc.min
 			if rc - rb < gap then
@@ -7437,8 +7621,6 @@ if setup then
 			end
 		
 		elseif sldr == "d" then
-		
-			_=dm and Msg("adjusting with sldr D as master")
 		
 			rd = GUI.Val("sldr_rd") + GUI.elms.sldr_rd.min
 			if rd - rc < gap then
@@ -8274,8 +8456,6 @@ end
 
 local function Main()
 	
-	_=dm and Msg(">main loop")
-
 	-- Prevent the user from resizing the window
 	if GUI.resized then
 		local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
@@ -8291,19 +8471,20 @@ local function Main()
 	end	
 	
 	
+	if repeat_act then check_repeat() end
 	
+
 	-- Radial Menu script loop
 	if not setup then
 			
 		-- Main logic for the shortcut key
 		check_key()
 		
+
 		-- Update the mouse position/angle/option/tc
 		check_mouse()
 
 
-	
-	
 
 		local diff = up_time and (reaper.time_precise() - up_time) or 0
 
@@ -8381,9 +8562,6 @@ local function Main()
 	
 	
 	end
-	
-	_=dm and Msg("<main loop")
-	
 	
 	
 end
