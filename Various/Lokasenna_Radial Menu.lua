@@ -1,10 +1,14 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.2
+Version: 2.4.5
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Forgot to turn the debug messages off...
+	New
+	- Right + middle mouse actions for each button. (Hover will always use the Left action)
+	Fixed
+	- Double-clicking an action would occasionally run it an extra time or two
+	- Help menu misbehaving
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -1303,21 +1307,25 @@ GUI.Update = function (elm)
 					end
 					return 0
 				else	
-
-					GUI.mouse.down = true
-					GUI.mouse.ox, GUI.mouse.oy = x, y
-					--GUI.mouse.lx, GUI.mouse.ly = x, y
-					elm.focus = true
-					elm:onmousedown()
-					GUI.elm_updated = true
-					
+				
 					-- Double clicked?
 					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
-
+	
 						elm:ondoubleclick()
 						GUI.mouse.down = false
 						GUI.elm_updated = true
-					end				
+						GUI.mouse.uptime = nil
+						
+					else
+					
+						GUI.mouse.down = true
+						GUI.mouse.ox, GUI.mouse.oy = x, y
+						--GUI.mouse.lx, GUI.mouse.ly = x, y
+						elm.focus = true
+						elm:onmousedown()
+						GUI.elm_updated = true
+					
+					end
 					
 				end
 				
@@ -1391,9 +1399,66 @@ GUI.Update = function (elm)
 			GUI.mouse.r_uptime = os.clock()
 
 		end
-	
+
+
+
+		-- Middle button click
+		if GUI.mouse.cap&64==64 then
+			
+			
+			-- If it wasn't down already...
+			if not GUI.mouse.last_m_down then
+
+
+				-- Was a different element clicked?
+				if not inside then 
+
+				else	
+
+					GUI.mouse.m_down = true
+					GUI.mouse.m_ox, GUI.mouse.m_oy = x, y
+					--GUI.mouse.lx, GUI.mouse.ly = x, y
+					--elm.focus = true
+					elm:onmousem_down()
+					GUI.elm_updated = true
+					
+					-- Double clicked?
+					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
+
+						elm:onm_doubleclick()
+						GUI.mouse.m_down = false
+						GUI.elm_updated = true
+					end				
+					
+				end
+				
+
+			
+			-- 		Dragging? 									Did the mouse start out in this element?
+			elseif (x ~= GUI.mouse.m_lx or y ~= GUI.mouse.m_ly) and GUI.IsInside(elm, GUI.mouse.m_ox, GUI.mouse.m_oy) then
+				if elm.focus ~= false then 
+					elm:onm_drag()
+					GUI.elm_updated = true
+				end
+				--GUI.mouse.lx, GUI.mouse.ly = x, y
+			end
+
+		-- If it was originally clicked in this element and has now been released
+		elseif GUI.mouse.m_down and GUI.IsInside(elm, GUI.mouse.m_ox, GUI.mouse.m_oy) then
+		
+			elm:onmousem_up()
+			GUI.elm_updated = true
+			GUI.mouse.m_down = false
+			GUI.mouse.m_ox, GUI.mouse.m_oy = -1, -1
+			GUI.mouse.m_lx, GUI.mouse.m_ly = -1, -1
+			GUI.mouse.m_uptime = os.clock()
+
+		end
+
+
 	end
 	
+		
 	
 	-- If the mouse is hovering over the element
 	if inside and not GUI.mouse.down and not GUI.mouse.r_down then
@@ -1486,14 +1551,22 @@ function GUI.Element:onmouseover()
 end
 
 function GUI.Element:val() end
+
 function GUI.Element:onmousedown() end
 function GUI.Element:onmouseup() end
 function GUI.Element:ondoubleclick() end
 function GUI.Element:ondrag() end
+
 function GUI.Element:onmouser_down() end
 function GUI.Element:onmouser_up() end
 function GUI.Element:onr_doubleclick() end
 function GUI.Element:onr_drag() end
+
+function GUI.Element:onmousem_down() end
+function GUI.Element:onmousem_up() end
+function GUI.Element:onm_doubleclick() end
+function GUI.Element:onm_drag() end
+
 function GUI.Element:onwheel() end
 function GUI.Element:ontype() end
 function GUI.Element:onupdate() end
@@ -3577,28 +3650,29 @@ end
 function GUI.Menubox:onmouseup()
 
 	local menu_str = ""
+	local str_arr = {}
 	
 	-- The menu doesn't count separators in the returned number,
 	-- so we'll do it here
 	local sep_arr = {}
 	
 	for i = 1, self.numopts do
-		if i == self.curopt then menu_str = menu_str .. "!" end
---[[
-		menu_str = menu_str .. ((type(self.optarray[i]) ~= "table") and self.optarray[i] or self.optarray[i][1]) .. "|"
-]]--
-		local new_str
-		if type(self.optarray[i]) == "table" then
-			new_str = tostring(self.optarray[i][1])
-		else
-			new_str = tostring(self.optarray[i])
-		end
 		
-		menu_str = menu_str .. new_str .. "|"
-		
-		if new_str == "" then table.insert(sep_arr, i) end
+		local str = type(self.optarray[i]) == "table"	and tostring(self.optarray[i][1])
+														or	tostring(self.optarray[i])
+
+		-- Check for separators/submenus
+		if str == "" or string.sub(str, 1, 1) == ">" then table.insert(sep_arr, i) end
+
+		-- Check off the currently-selected option		
+		if i == self.retval then str = "!" .. str end
+
+		table.insert( str_arr, str )
+		table.insert( str_arr, "|" )
 
 	end
+	
+	menu_str = table.concat( str_arr )
 	
 	menu_str = string.sub(menu_str, 1, string.len(menu_str) - 1)
 
@@ -3634,10 +3708,31 @@ end
 function GUI.Menubox:onwheel()
 	
 	local curopt = self.retval - GUI.mouse.inc
-	if self.optarray[curopt] == "" then curopt = curopt - GUI.mouse.inc end
+	local inc = (GUI.mouse.inc > 0) and 1 or -1
+
+	-- Check for illegal values, separators, and submenus
+	while true do
+		
+		if curopt < 1 then 
+			curopt = 1 
+			inc = 1
+		elseif curopt > self.numopts then 
+			curopt = self.numopts 
+			inc = -1
+		end	
+
+		if self.optarray[curopt] == "" or string.sub( self.optarray[curopt], 1, 1 ) == ">" then 
+			curopt = curopt - inc
+
+		else
+		
+			-- All good, let's move on
+			break
+		end
+		
+	end
 	
-	if curopt < 1 then curopt = 1 end
-	if curopt > self.numopts then curopt = self.numopts end
+
 	
 	self.retval = curopt
 	
@@ -4103,12 +4198,12 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.2"
+local script_version = "2.4.5"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
 
--- If there's no saved settings, i.e. first run, open in Setup mode
+-- If there's no saved settings, i.e. first run, and we can't find the example menus, open in Setup mode
 if not (setup or reaper.file_exists(settings_file_name) or reaper.file_exists(example_file_name) ) then 
 	reaper.ShowMessageBox("Couldn't find any saved settings. Opening in Setup mode.", "No settings found", 0)
 	setup = true
@@ -4474,8 +4569,12 @@ local help_pages = {
 
 ]]},
 
+
+
 	{"", ""},
-	
+
+
+
 	{"Button Commands",
 	
 [[Action IDs:
@@ -4500,8 +4599,12 @@ Repeat an action at a specified interval (in seconds) while the mouse button is 
 Commands can also be combined:	
     repeat 0.5 'x3 midi 12345'
 ]]},	
-	
+
+
+
 	{"", ""},
+
+	{">Tabs", ""},
 
 	{"Menu tab",
 		
@@ -5507,8 +5610,10 @@ local function update_btn_settings()
 	
 	local lbl, act, c_main, c_hvr, c_tog
 	if cur_btn ~= -2 then
-		lbl = mnu_arr[cur_depth][cur_btn].lbl
-		act = mnu_arr[cur_depth][cur_btn].act
+		lbl = mnu_arr[cur_depth][cur_btn].lbl or ""
+		act = mnu_arr[cur_depth][cur_btn].act or ""
+		r_act = mnu_arr[cur_depth][cur_btn].r_act or ""
+		m_act = mnu_arr[cur_depth][cur_btn].m_act or ""
 		c_main = get_color("col_main", cur_btn)
 		c_hvr = get_color("col_hvr", cur_btn)
 		c_tog = get_color("col_tog", cur_btn)
@@ -5524,6 +5629,8 @@ local function update_btn_settings()
 	
 	GUI.Val("txt_btn_lbl", lbl)
 	GUI.Val("txt_btn_act", act)
+	GUI.Val("txt_btn_r_act", r_act)
+	GUI.Val("txt_btn_m_act", m_act)
 	GUI.elms.frm_col_b_btn.col_user = c_main
 	GUI.elms.frm_col_b_hvr.col_user = c_hvr
 	GUI.elms.frm_col_b_tog.col_user = c_tog
@@ -5617,12 +5724,12 @@ end
 
 -- Since we can't access the clipboard directly, this provides a space
 -- for the user to paste action IDs into the script
-local function paste_act()
+local function paste_act(btn)
 	-- retval, retvals_csv reaper.GetUserInputs( title, num_inputs, captions_csv, retvals_csv )
-	local ret, act = reaper.GetUserInputs("Copy/paste actions", 1, "Copy/paste actions here:,extrawidth=128", mnu_arr[cur_depth][cur_btn].act)
+	local ret, act = reaper.GetUserInputs("Copy/paste actions", 1, "Copy/paste actions here:,extrawidth=128", ( mnu_arr[cur_depth][cur_btn][btn] or "" ) )
 	
 	if ret then
-		mnu_arr[cur_depth][cur_btn].act = act
+		mnu_arr[cur_depth][cur_btn][btn] = act
 		update_btn_settings()
 	end
 	
@@ -6297,7 +6404,7 @@ local line_y3 = 54
 local line_y_tt = 432
 
 local ref1 = {x = 490, y = line_y0 + 64, w = 270, h = 68}	-- Menu color settings
-local ref2 = {x = 490, y = line_y1 + 40, w = 270, h = 68}	-- Button color settings
+local ref2 = {x = 490, y = line_y1 + 66, w = 270, h = 68}	-- Button color settings
 local ref3 = {x = 490, y = line_y0 + 16, w = 270, h = 68}	-- Global color settings
 
 local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20, adj = 26}	-- Options buttons
@@ -6372,13 +6479,14 @@ or
 	frm_line_y1 = GUI.Frame:new(		2,	436, line_y1, 600, 4, true, true),
 	frm_no_btn = GUI.Frame:new(			3,	436, line_y1, 600, line_y_tt - line_y1, false, true, "faded", 0),
 	
-	lbl_cur_btn = GUI.Label:new(		4,	448, line_y1 + 8, "Current button settings:", 1, 2),
+	lbl_cur_btn = GUI.Label:new(		4,	448, line_y1 + 8, "Current button:", 1, 2),
 
 	--lbl_btn_move = GUI.Label:new(		4,	632, line_y1 + 12, "Move:", 0, 3),
 	btn_btn_left = GUI.Button:new(		4,	632, line_y1 + 10, 32, 20, "↓", move_btn, -1),
 	btn_btn_del = GUI.Button:new(		4,	672, line_y1 + 10, 64, 20, "Delete", remove_btn, true),
 	btn_btn_right = GUI.Button:new(		4,	744, line_y1 + 10, 32, 20, "↑", move_btn, 1),
 	
+	txt_btn_lbl = GUI.Textbox:new(		4,	496, line_y1 + 40, 192, 20, "Label:", 4),	
 	
 	frm_ref2 = dm and GUI.Frame:new(	4,	ref2.x,	ref2.y, ref2.w, ref2.h, false, false, "magenta", 0),
 	
@@ -6391,9 +6499,16 @@ or
 	
 	btn_use_mnu = GUI.Button:new(		4,	ref2.x + 78, 		ref2.y + 48, 	128, 20, "Use menu colors", use_menu_colors),
 
-	txt_btn_lbl = GUI.Textbox:new(		4,	496, line_y1 + 118, 192, 20, "Label:", 4),
-	txt_btn_act = GUI.Textbox:new(		4,	496, line_y1 + 144, 464, 20, "Action:", 4),
-	btn_paste = GUI.Button:new(			4,	856, line_y1 + 170, 96, 20, "Copy/Paste", paste_act),	
+	lbl_btn_acts = GUI.Label:new(		4,	448, line_y1 + 134, "Actions:", 1, 2),
+
+	txt_btn_act = GUI.Textbox:new(		4,	496, line_y1 + 160, 440, 20, "Left:", 4),
+	btn_paste = GUI.Button:new(			4,	944, line_y1 + 160, 56, 20, "Paste", paste_act, "act"),	
+
+	txt_btn_r_act = GUI.Textbox:new(	4,	496, line_y1 + 186, 440, 20, "Right:", 4),
+	btn_r_paste = GUI.Button:new(		4,	944, line_y1 + 186, 56, 20, "Paste", paste_act, "r_act"),	
+
+	txt_btn_m_act = GUI.Textbox:new(	4,	496, line_y1 + 212, 440, 20, "Middle:", 4),
+	btn_m_paste = GUI.Button:new(		4,	944, line_y1 + 212, 56, 20, "Paste", paste_act, "m_act"),		
 	
 	
 	
@@ -6866,7 +6981,8 @@ if setup then
 end
 
 
-function GUI.elms.frm_radial:onmousedown()
+
+function GUI.elms.frm_radial:btn_down(btn)
 	
 	if mouse_mnu == -2 then return 0 end
 	
@@ -6874,7 +6990,12 @@ function GUI.elms.frm_radial:onmousedown()
 	GUI.redraw_z[self.z] = true	
 	
 	local act = mnu_arr[cur_depth][mouse_mnu] 
-				and mnu_arr[cur_depth][mouse_mnu].act
+				and (btn == 1 and mnu_arr[cur_depth][mouse_mnu].act)
+				or	(btn == 2 and mnu_arr[cur_depth][mouse_mnu].r_act)
+				or	(btn == 64 and mnu_arr[cur_depth][mouse_mnu].m_act)
+				or	nil
+				
+	if not act then return 0 end
 				
 	if string.match( act, "^repeat" ) then
 		
@@ -6907,10 +7028,13 @@ function GUI.elms.frm_radial:onmousedown()
 			repeat_act[3] = reaper.time_precise()
 			
 			-- We need to know what mouse button is being used
+			--[[
 			repeat_act[4] = ((GUI.mouse.cap & 1 == 1) and 1 )
 						or	((GUI.mouse.cap & 2 == 2) and 2 )
 						or	((GUI.mouse.cap & 64 == 64) and 64)
 						or	nil
+			]]--
+			repeat_act[4] = btn
 			
 			-- Make sure it wasn't a hover or swipe "click"
 			if not (repeat_act[1] and repeat_act[4]) then
@@ -6931,11 +7055,26 @@ function GUI.elms.frm_radial:onmousedown()
 		_=dm and Msg("done with repeat action")
 	
 	end
+	
+	
+end
 
+function GUI.elms.frm_radial:onmousedown()
+	self:btn_down(1)
+end
+
+function GUI.elms.frm_radial:onmouser_down()	
+	self:btn_down(2)	
+end
+
+function GUI.elms.frm_radial:onmousem_down()
+	self:btn_down(64)
 end
 
 
-function GUI.elms.frm_radial:onmouseup()
+
+function GUI.elms.frm_radial:btn_up(btn)
+	
 	
 	opt_clicked = true
 	repeat_act = false
@@ -6967,9 +7106,14 @@ function GUI.elms.frm_radial:onmouseup()
 		cur_btn = -2
 	
 	elseif mnu_arr[cur_depth][mnu] then
-		
-		
-		run_act( mnu_arr[cur_depth][mnu].act )
+
+		local act = mnu_arr[cur_depth][mouse_mnu] 
+					and (btn == 1 and mnu_arr[cur_depth][mouse_mnu].act)
+					or	(btn == 2 and mnu_arr[cur_depth][mouse_mnu].r_act)
+					or	(btn == 64 and mnu_arr[cur_depth][mouse_mnu].m_act)
+					or	nil
+					
+		if act then	run_act( act ) end
 		
 		
 	end
@@ -6994,38 +7138,39 @@ function GUI.elms.frm_radial:onmouseup()
 
 	GUI.redraw_z[self.z] = true
 	
+		
+	
+	
+	
 	
 end
 
 
--- Avert a bug where 'state' somehow ends up backward and
--- menus are being hovered with the bg color
-function GUI.elms.frm_radial:ondoubleclick()
-	--self.state = false
-	GUI.elms.frm_radial:onmouseup()
+function GUI.elms.frm_radial:onmouseup()
+	self:btn_up(1)
 end
 
-
----------------------------------------------------------
----***-- Right-click methods for the menu frame ---***---
----------------------------------------------------------
-
-function GUI.elms.frm_radial:onmouser_down()
-	-- Processed when the right button is first pressed down
-end
-
-function GUI.elms.frm_radial:onmouser_drag()
-	-- Only processed if the right button is down AND the mouse has moved.
-	
-	-- This method should keep being called even if the mouse leaves the
-	-- window; I haven't tried it though.
-end
-
--- Selecting a button to work on
 function GUI.elms.frm_radial:onmouser_up()
-
-	
+	self:btn_up(2)
 end
+
+function GUI.elms.frm_radial:onmousem_up()
+	self:btn_up(64)
+end
+
+function GUI.elms.frm_radial:ondoubleclick()
+	GUI.mouse.down = true
+end
+
+function GUI.elms.frm_radial:ondoubler_click()
+	GUI.mouse.r_down = true
+end
+
+function GUI.elms.frm_radial:ondoublem_click()
+	GUI.mouse.m_down = true
+end
+
+
 
 
 
@@ -7121,8 +7266,15 @@ if setup then
 		GUI.elms.btn_use_mnu.tooltip = "Use the menu's settings for this button"
 		
 		GUI.elms.txt_btn_lbl.tooltip = "What label to display for the button (Use '|' to wrap text to a new line)"
-		GUI.elms.txt_btn_act.tooltip = "What action to assign to this button (see 'Help' tab for extra commands)"
-		GUI.elms.btn_paste.tooltip = "Scripts can't access the clipboard, so use this to paste action IDs from Reaper"
+		
+		tip = "What action to assign to this button (see 'Help' tab for extra commands)"
+		GUI.elms.txt_btn_act.tooltip = tip
+		GUI.elms.txt_btn_r_act.tooltip = tip
+		GUI.elms.txt_btn_m_act.tooltip = tip
+		tip = "Scripts can't access the clipboard, so use this to paste action IDs from Reaper"
+		GUI.elms.btn_paste.tooltip = tip
+		GUI.elms.btn_r_paste.tooltip = tip
+		GUI.elms.btn_m_paste.tooltip = tip
 
 
 		-- Context tab --
@@ -8173,7 +8325,7 @@ if setup then
 
 
 
-	-- Update the current button's label/action
+	-- Update the current button's label/actions
 	function GUI.elms.txt_btn_lbl:ontype()
 		
 		GUI.Textbox.ontype(self)
@@ -8186,8 +8338,18 @@ if setup then
 		mnu_arr[cur_depth][cur_btn].act = self.retval
 		
 	end
-
-
+	function GUI.elms.txt_btn_r_act:ontype()
+		
+		GUI.Textbox.ontype(self)
+		mnu_arr[cur_depth][cur_btn].r_act = self.retval
+		
+	end
+	function GUI.elms.txt_btn_m_act:ontype()
+		
+		GUI.Textbox.ontype(self)
+		mnu_arr[cur_depth][cur_btn].m_act = self.retval
+		
+	end
 
 	function GUI.elms.chk_center:onmouseup()
 		
