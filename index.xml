@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="351789851b45e531ba2d48566546a326708d86c0" name="ReaTeam Scripts">
+<index version="1" commit="4de4d5f75bc8766df3c4ee0ee5f3dad96375c820" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3975,6 +3975,38 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
     <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
       <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Opens the folder containing Reaper's executable file.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-03-07T22:32:17Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4de4d5f75bc8766df3c4ee0ee5f3dad96375c820/Various/Lokasenna_Open%20Reaper%20folder.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Open Resource folder.lua" type="script" desc="Open Resource folder">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Opens the folder containing Reaper's resources (effects, scripts, etc)\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-03-07T22:32:17Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4de4d5f75bc8766df3c4ee0ee5f3dad96375c820/Various/Lokasenna_Open%20Resource%20folder.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Radial Menu.lua" type="script" desc="Radial Menu">
