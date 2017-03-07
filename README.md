@@ -77,6 +77,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [ambisonictoolkit/atk-reaper](https://github.com/ambisonictoolkit/atk-reaper)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [berthu/ReaScripts](https://github.com/berthu/ReaScripts)
+- [ChrAfonso/REAPER_punches_and_streamers: REAPER scripts to add Punches and Streamers for film sync](https://github.com/ChrAfonso/REAPER_punches_and_streamers)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
 - [JamesHEure/Reascript](https://github.com/JamesHEure/Reascript)
