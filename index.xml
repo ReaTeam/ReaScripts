@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="69ddf3c10c9c0312835e3aea295259fafd1f5ad4" name="ReaTeam Scripts">
+<index version="1" commit="be4e7efd2312fde794126b6ead1d9217f1468a80" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3987,12 +3987,17 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Note: Due to Reaper limitations, creating a shortcut to a folder equires you to select a file IN that folder, and then manually erase the filename from the path. Sorry. :/\par}
 }
 ]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=189152">Forum Thread</link>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-03-10T04:43:54Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/69ddf3c10c9c0312835e3aea295259fafd1f5ad4/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2017-03-10T04:54:36Z">
+        <changelog><![CDATA[Added forum thread]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/be4e7efd2312fde794126b6ead1d9217f1468a80/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
