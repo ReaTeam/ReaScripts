@@ -1,11 +1,12 @@
 --[[
 Description: Lokasenna_Create action to open a file...
-Version: 1.0
+Version: 1.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release
+	Added forum thread
 Links:
+	Forum Thread http://forum.cockos.com/showthread.php?t=189152
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Automates the creation of ReaScripts that will open files or folders
