@@ -1,10 +1,10 @@
 --[[
 Description: Lokasenna_Create action to open a file...
-Version: 1.0.1
+Version: 1.1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added forum thread
+	Created scripts are automatically added to the Action List
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=189152
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -58,3 +58,5 @@ reaper.ShowMessageBox( "Successfully created file:\n"
 						"Yay!", 0)
 
 io.close(file)
+
+reaper.AddRemoveReaScript( true, 0, file_name, true )
