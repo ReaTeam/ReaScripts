@@ -4707,6 +4707,10 @@ RCJacH/ReaScripts
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/thenfour/ReaperScripts"}}{\fldrslt{\ul
 thenfour/ReaperScripts
 }}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/tomtjes/ReaScripts"}}{\fldrslt{\ul
+tomtjes/ReaScripts: Scripts for Reaper
+}}}
 \sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If you want your repo to appear on this list, simply edit this file and send a pull request.\par}
 }
