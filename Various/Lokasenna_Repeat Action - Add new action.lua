@@ -18,15 +18,13 @@ if ret then
 	
 	local act, alias, interval, midi = string.match(csv, "([^,]+),([^,]*),([^,]+),([^,]+)")
 	
-	--Msg(tostring(act).." "..tostring(alias).." "..tostring(midi))	
-	
 	if not (act and interval and midi) then
 		reaper.ShowMessageBox("Invalid parameters.", "Whoops", 0)
 		return 0
 	end
 	
 	local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
-						.. "Lokasenna Repeat Action - " 
+						.. "Lokasenna_Repeat Action - " 
 						.. (alias or tostring(act))
 						.. ".lua"
 						
@@ -45,7 +43,7 @@ if ret then
 
 ]=]
 
-	local str_vars = 	  "act = "..act.."\n"
+	local str_vars = 	  'act = "'..act..'"\n'
 						.."interval = "..interval.."\n"
 						.."midi = "..tostring(midi == "y").."\n\n"
 	
@@ -58,5 +56,7 @@ dofile(script_path .. "Lokasenna_Repeat Action.lua")]=]
 	file:write(str)
 	
 	io.close(file)
+	
+	reaper.AddRemoveReaScript( true, (midi == "n" and 0 or 32060), script_path, true )
 	
 end

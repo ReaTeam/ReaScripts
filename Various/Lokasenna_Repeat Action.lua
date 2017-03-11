@@ -1,10 +1,12 @@
 --[[
 Description: Repeat Action
-Version: 1.0.5
+Version: 1.1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added more detailed debug messages
+	Created scripts are automatically added to the Action List
+	(MIDI actions should be in the MIDI Editor's action list)
+	Will work with ReaScript and custom action IDs now
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=188632
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -183,6 +185,12 @@ local function check_act()
 	)
 
 	if time - last > interval then
+		
+		if string.sub(act, 1, 1) == "_" then act = reaper.NamedCommandLookup(act) end
+		
+		-- Just some error checking because Lua occasionally 
+		-- throws a fit about numbers that are strings
+		act = tonumber(act)
 		
 		_=dm and Msg("\tinterval elapsed, running action: " .. tostring(act))
 		
