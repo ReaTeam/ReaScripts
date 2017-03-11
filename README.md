@@ -88,5 +88,6 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [MichaelKlier/KolorEyesOSCSync](https://github.com/MichaelKlier/KolorEyesOSCSync)
 - [RCJacH/ReaScripts](https://github.com/RCJacH/ReaScripts/)
 - [thenfour/ReaperScripts](https://github.com/thenfour/ReaperScripts)
+- [tomtjes/ReaScripts: Scripts for Reaper](https://github.com/tomtjes/ReaScripts)
 
 If you want your repo to appear on this list, simply edit this file and send a pull request.
