@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6679a9224e67d218c03883e4d9f2653824dd3f50" name="ReaTeam Scripts">
+<index version="1" commit="c91603cdcd92f01cabd12185d284965ea2a0ede4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4325,6 +4325,13 @@ Fixed
         <changelog><![CDATA[Added more detailed debug messages]]></changelog>
         <source file="Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua">https://github.com/ReaTeam/ReaScripts/raw/f1c424560b57bae90c8f7b8ec0e1c657cbbc81b0/Various/Lokasenna_Repeat%20Action.lua</source>
         <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/f1c424560b57bae90c8f7b8ec0e1c657cbbc81b0/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
+      </version>
+      <version name="1.1.0" author="Lokasenna" time="2017-03-11T04:27:02Z">
+        <changelog><![CDATA[Created scripts are automatically added to the Action List
+(MIDI actions should be in the MIDI Editor's action list)
+Will work with ReaScript and custom action IDs now]]></changelog>
+        <source file="Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action.lua</source>
+        <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
