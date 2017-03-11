@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="be4e7efd2312fde794126b6ead1d9217f1468a80" name="ReaTeam Scripts">
+<index version="1" commit="6679a9224e67d218c03883e4d9f2653824dd3f50" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3998,6 +3998,10 @@ seek to the first item in the song's children tracks [p=1743149]]]></changelog>
       <version name="1.0.1" author="Lokasenna" time="2017-03-10T04:54:36Z">
         <changelog><![CDATA[Added forum thread]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/be4e7efd2312fde794126b6ead1d9217f1468a80/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
+      </version>
+      <version name="1.1.0" author="Lokasenna" time="2017-03-11T04:06:50Z">
+        <changelog><![CDATA[Created scripts are automatically added to the Action List]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6679a9224e67d218c03883e4d9f2653824dd3f50/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
