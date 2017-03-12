@@ -52,7 +52,7 @@ elseif retval == 2 then
 	
 	local val, minvalOut, maxvalOut = reaper.TakeFX_GetParam( take, fxnumberOut, param )
 	reaper.TakeFX_SetParam( take, fxnumberOut, param, val + add )
-		
+
 end
 
 reaper.Undo_EndBlock("Adjust ReaSamplomatic 5000 Pitch Offset: "..undo_str, -1)
