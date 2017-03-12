@@ -1,14 +1,12 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.5
+Version: 2.4.6
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	New
-	- Right + middle mouse actions for each button. (Hover will always use the Left action)
-	Fixed
-	- Double-clicking an action would occasionally run it an extra time or two
-	- Help menu misbehaving
+	Fixed:
+	- Right- and middle- clicks lagging when clicking rapidly
+	- Graphical issues when clicking empty space to go back
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -410,12 +408,12 @@ end
 -- To open files in their default app, or URLs in a browser
 -- Copied from Heda; cheers!
 GUI.open_file = function (path)
-  local OS = reaper.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
-    os.execute('open "" "' .. path .. '"')
-  else
-    os.execute('start "" "' .. path .. '"')
-  end
+	local OS = reaper.GetOS()
+	if OS == "OSX32" or OS == "OSX64" then
+		os.execute('open "" "' .. path .. '"')
+	else
+		os.execute('start "" "' .. path .. '"')
+	end
 end
 
 
@@ -1272,6 +1270,7 @@ GUI.Main = function ()
 end
 
 
+--	See if the any of the given element's methods need to be called
 GUI.Update = function (elm)
 	
 	local x, y = GUI.mouse.x, GUI.mouse.y
@@ -1291,7 +1290,7 @@ GUI.Update = function (elm)
 
 	if not skip then
 		
-		-- Left button click
+		-- Left button
 		if GUI.mouse.cap&1==1 then
 			
 			
@@ -1311,49 +1310,50 @@ GUI.Update = function (elm)
 					-- Double clicked?
 					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
 	
-						elm:ondoubleclick()
-						GUI.mouse.down = false
-						GUI.elm_updated = true
 						GUI.mouse.uptime = nil
+						GUI.mouse.dbl_clicked = true
+						elm:ondoubleclick()						
 						
-					else
+					elseif not GUI.mouse.dbl_clicked then
 					
-						GUI.mouse.down = true
-						GUI.mouse.ox, GUI.mouse.oy = x, y
-						--GUI.mouse.lx, GUI.mouse.ly = x, y
 						elm.focus = true
-						elm:onmousedown()
-						GUI.elm_updated = true
+						elm:onmousedown()						
 					
 					end
 					
+					GUI.mouse.down = true
+					GUI.mouse.ox, GUI.mouse.oy = x, y
+					GUI.elm_updated = true
+					
 				end
-				
-
-			
+							
 			-- 		Dragging? 									Did the mouse start out in this element?
 			elseif (x ~= GUI.mouse.lx or y ~= GUI.mouse.ly) and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
+			
 				if elm.focus ~= false then 
-					elm:ondrag()
+
 					GUI.elm_updated = true
+					elm:ondrag()
+					
 				end
-				--GUI.mouse.lx, GUI.mouse.ly = x, y
 			end
 
 		-- If it was originally clicked in this element and has now been released
 		elseif GUI.mouse.down and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
 		
-			elm:onmouseup()
+			-- We don't want to trigger an extra mouse-up after double clicking
+			if not GUI.mouse.dbl_clicked then elm:onmouseup() end
+			
 			GUI.elm_updated = true
 			GUI.mouse.down = false
 			GUI.mouse.ox, GUI.mouse.oy = -1, -1
 			GUI.mouse.lx, GUI.mouse.ly = -1, -1
-			GUI.mouse.uptime = os.clock()
+			GUI.mouse.downtime = os.clock()
 
 		end
 		
 		
-		-- Right button click
+		-- Right button
 		if GUI.mouse.cap&2==2 then
 			
 			-- If it wasn't down already...
@@ -1364,45 +1364,54 @@ GUI.Update = function (elm)
 					--elm.focus = false
 				else
 		
-					GUI.mouse.r_down = true
-					GUI.mouse.r_ox, GUI.mouse.r_oy = x, y
-					--GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
-					--elm.focus = true
-					elm:onmouser_down()
-					GUI.elm_updated = true
-				
-				end
-				
-				-- Double clicked?
-				if GUI.mouse.r_uptime and os.clock() - GUI.mouse.r_uptime < 0.20 then
-					elm:onr_doubleclick()
-					GUI.elm_updated = true
-				end
+						-- Double clicked?
+					if GUI.mouse.r_downtime and os.clock() - GUI.mouse.r_uptime < 0.20 then
+						
+						GUI.mouse.r_downtime = nil
+						GUI.mouse.r_dbl_clicked = true
+						elm:onr_doubleclick()
+						
+					elseif not GUI.mouse.r_dbl_clicked then
 			
+						elm:onmouser_down()
+						
+					end
+					
+					GUI.mouse.r_down = true
+					GUI.mouse.ox, GUI.mouse.oy = x, y
+					GUI.elm_updated = true
+				
+				end
+				
+		
 			-- 		Dragging? 									Did the mouse start out in this element?
 			elseif (x ~= GUI.mouse.r_lx or y ~= GUI.mouse.r_ly) and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then
+			
 				if elm.focus ~= false then 
+
 					elm:onr_drag()
 					GUI.elm_updated = true
+
 				end
-				--GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
+
 			end
 
 		-- If it was originally clicked in this element and has now been released
 		elseif GUI.mouse.r_down and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then 
 		
-			elm:onmouser_up()
+			if not GUI.mouse.r_dbl_clicked then elm:onmouser_up() end
+			
 			GUI.elm_updated = true
 			GUI.mouse.r_down = false
 			GUI.mouse.r_ox, GUI.mouse.r_oy = -1, -1
-			--GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
-			GUI.mouse.r_uptime = os.clock()
+			GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
+			GUI.mouse.r_downtime = os.clock()
 
 		end
 
 
 
-		-- Middle button click
+		-- Middle button
 		if GUI.mouse.cap&64==64 then
 			
 			
@@ -1414,44 +1423,49 @@ GUI.Update = function (elm)
 				if not inside then 
 
 				else	
+					-- Double clicked?
+					if GUI.mouse.m_downtime and os.clock() - GUI.mouse.m_uptime < 0.20 then
+
+						GUI.mouse.m_downtime = nil
+						GUI.mouse.m_dbl_clicked = true
+						elm:onm_doubleclick()
+
+					else
+					
+						elm:onmousem_down()					
+
+					end				
 
 					GUI.mouse.m_down = true
 					GUI.mouse.m_ox, GUI.mouse.m_oy = x, y
-					--GUI.mouse.lx, GUI.mouse.ly = x, y
-					--elm.focus = true
-					elm:onmousem_down()
 					GUI.elm_updated = true
-					
-					-- Double clicked?
-					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
 
-						elm:onm_doubleclick()
-						GUI.mouse.m_down = false
-						GUI.elm_updated = true
-					end				
-					
 				end
 				
 
 			
 			-- 		Dragging? 									Did the mouse start out in this element?
 			elseif (x ~= GUI.mouse.m_lx or y ~= GUI.mouse.m_ly) and GUI.IsInside(elm, GUI.mouse.m_ox, GUI.mouse.m_oy) then
+			
 				if elm.focus ~= false then 
+					
 					elm:onm_drag()
 					GUI.elm_updated = true
+					
 				end
-				--GUI.mouse.lx, GUI.mouse.ly = x, y
+
 			end
 
 		-- If it was originally clicked in this element and has now been released
 		elseif GUI.mouse.m_down and GUI.IsInside(elm, GUI.mouse.m_ox, GUI.mouse.m_oy) then
 		
-			elm:onmousem_up()
+			if not GUI.mouse.m_dbl_clicked then elm:onmousem_up() end
+			
 			GUI.elm_updated = true
 			GUI.mouse.m_down = false
 			GUI.mouse.m_ox, GUI.mouse.m_oy = -1, -1
 			GUI.mouse.m_lx, GUI.mouse.m_ly = -1, -1
-			GUI.mouse.m_uptime = os.clock()
+			GUI.mouse.m_downtime = os.clock()
 
 		end
 
@@ -4198,7 +4212,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.5"
+local script_version = "2.4.6"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -7100,11 +7114,8 @@ function GUI.elms.frm_radial:btn_up(btn)
 	if mnu == -2 and cur_depth ~= 0 then
 	
 		_=dm and Msg("\tresetting to base depth")
-		cur_depth = base_depth
-		last_depth = base_depth
-		
-		cur_btn = -2
-	
+		run_act( "back" )
+
 	elseif mnu_arr[cur_depth][mnu] then
 
 		local act = mnu_arr[cur_depth][mouse_mnu] 
