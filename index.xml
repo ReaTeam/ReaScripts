@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6e64a58b1a68fa07add306a379788f1bcd868e6f" name="ReaTeam Scripts">
+<index version="1" commit="813af910780f35e36bce6b15192a33e74e7322d6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -381,6 +381,30 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 Pitch Offset">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Provides hotkey/MIDI functionality to adjust the pitch of a sample in ReaSamplomatic 5000\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-03-12T03:30:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Down 0.01 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Down%200.01%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Down 0.05 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Down%200.05%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Down 0.1 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Down%200.1%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Down 0.5 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Down%200.5%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 0.01 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%200.01%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 0.05 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%200.05%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 0.1 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%200.1%20semitones.lua</source>
+        <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 0.5 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/813af910780f35e36bce6b15192a33e74e7322d6/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%200.5%20semitones.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameter">
       <metadata>
         <link rel="screenshot">http://stash.reaper.fm/24908/Link%20FX%20params3.gif</link>
