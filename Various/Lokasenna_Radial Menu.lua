@@ -1,12 +1,11 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.6
+Version: 2.4.7
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Fixed:
-	- Right- and middle- clicks lagging when clicking rapidly
-	- Graphical issues when clicking empty space to go back
+	- Right- and middle- doubleclicks crashing the script
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -1308,9 +1307,9 @@ GUI.Update = function (elm)
 				else	
 				
 					-- Double clicked?
-					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
+					if GUI.mouse.downtime and os.clock() - GUI.mouse.downtime < 0.20 then
 	
-						GUI.mouse.uptime = nil
+						GUI.mouse.downtime = nil
 						GUI.mouse.dbl_clicked = true
 						elm:ondoubleclick()						
 						
@@ -1365,7 +1364,7 @@ GUI.Update = function (elm)
 				else
 		
 						-- Double clicked?
-					if GUI.mouse.r_downtime and os.clock() - GUI.mouse.r_uptime < 0.20 then
+					if GUI.mouse.r_downtime and os.clock() - GUI.mouse.r_downtime < 0.20 then
 						
 						GUI.mouse.r_downtime = nil
 						GUI.mouse.r_dbl_clicked = true
@@ -1424,7 +1423,7 @@ GUI.Update = function (elm)
 
 				else	
 					-- Double clicked?
-					if GUI.mouse.m_downtime and os.clock() - GUI.mouse.m_uptime < 0.20 then
+					if GUI.mouse.m_downtime and os.clock() - GUI.mouse.m_downtime < 0.20 then
 
 						GUI.mouse.m_downtime = nil
 						GUI.mouse.m_dbl_clicked = true
@@ -4212,7 +4211,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.6"
+local script_version = "2.4.7"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
