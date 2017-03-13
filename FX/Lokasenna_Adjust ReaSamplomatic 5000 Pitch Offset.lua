@@ -1,9 +1,10 @@
 --[[
 Description: Adjust ReaSamplomatic 5000 Pitch Offset
-Version: 1.0
+Version: 1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
+	Added +/- 1 semitone actions
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -52,7 +53,7 @@ elseif retval == 2 then
 	
 	local val, minvalOut, maxvalOut = reaper.TakeFX_GetParam( take, fxnumberOut, param )
 	reaper.TakeFX_SetParam( take, fxnumberOut, param, val + add )
-
+		
 end
 
 reaper.Undo_EndBlock("Adjust ReaSamplomatic 5000 Pitch Offset: "..undo_str, -1)
