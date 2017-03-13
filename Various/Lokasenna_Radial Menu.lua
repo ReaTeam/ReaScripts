@@ -1,11 +1,11 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.8
+Version: 2.4.9
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Fixed:
-	- More double-click issues
+	- More double-click issues... again
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -1314,7 +1314,7 @@ GUI.Update = function (elm)
 						elm:ondoubleclick()						
 						
 					elseif not GUI.mouse.dbl_clicked then
-					
+				
 						elm.focus = true
 						elm:onmousedown()						
 					
@@ -4214,7 +4214,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.8"
+local script_version = "2.4.9"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -7151,10 +7151,6 @@ function GUI.elms.frm_radial:btn_up(btn)
 
 	GUI.redraw_z[self.z] = true
 	
-		
-	
-	
-	
 	
 end
 
@@ -7172,18 +7168,16 @@ function GUI.elms.frm_radial:onmousem_up()
 end
 
 function GUI.elms.frm_radial:ondoubleclick()
-	GUI.mouse.down = true
+	self:btn_up(1)
 end
 
 function GUI.elms.frm_radial:ondoubler_click()
-	GUI.mouse.r_down = true
+	self:btn_up(2)	
 end
 
 function GUI.elms.frm_radial:ondoublem_click()
-	GUI.mouse.m_down = true
+	self:btn_up(64)
 end
-
-
 
 
 
