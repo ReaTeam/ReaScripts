@@ -1,11 +1,11 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.7
+Version: 2.4.8
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Fixed:
-	- Right- and middle- doubleclicks crashing the script
+	- More double-click issues
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -1345,6 +1345,7 @@ GUI.Update = function (elm)
 			
 			GUI.elm_updated = true
 			GUI.mouse.down = false
+			GUI.mouse.dbl_clicked = false
 			GUI.mouse.ox, GUI.mouse.oy = -1, -1
 			GUI.mouse.lx, GUI.mouse.ly = -1, -1
 			GUI.mouse.downtime = os.clock()
@@ -1402,6 +1403,7 @@ GUI.Update = function (elm)
 			
 			GUI.elm_updated = true
 			GUI.mouse.r_down = false
+			GUI.mouse.r_dbl_clicked = false
 			GUI.mouse.r_ox, GUI.mouse.r_oy = -1, -1
 			GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
 			GUI.mouse.r_downtime = os.clock()
@@ -1462,6 +1464,7 @@ GUI.Update = function (elm)
 			
 			GUI.elm_updated = true
 			GUI.mouse.m_down = false
+			GUI.mouse.m_dbl_clicked = false
 			GUI.mouse.m_ox, GUI.mouse.m_oy = -1, -1
 			GUI.mouse.m_lx, GUI.mouse.m_ly = -1, -1
 			GUI.mouse.m_downtime = os.clock()
@@ -4211,7 +4214,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.7"
+local script_version = "2.4.8"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
