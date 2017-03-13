@@ -507,19 +507,32 @@ class ReaperClipSplicer:
         """Creates a file that reports the available and unavailable files
         for the project.
         """
+        
+        # Prompt user if the report should be sorted
+        captions_csv = 'YES / NO'
+        retvals_csv = ''
+        sorted_response = RPR_GetUserInputs("Should the report be sorted?",
+                                         1,
+                                         captions_csv,
+                                         retvals_csv,
+                                         99)[4].split(",")[0]
         # Export the report of available and unavailable files
         now = str(datetime.datetime.now())
         report_file = open(
             self.folder + "/reaper_clip_splicer_report-" + now + ".txt", "w")
         report_file.write("beaunus REAPER Clip Splicer Report\n")
         report_file.write(now + "\n\n")
-
         report_file.write("Available components" + "\n")
-        report_file.writelines(sorted(self.available_files, key=component_key))
+        if sorted_response == "YES":
+          report_file.writelines(sorted(self.available_files, key=component_key))
+        else:
+          report_file.writelines(self.available_files)
         report_file.write("\n")
         report_file.write("Unavailable components" + "\n")
-        report_file.writelines(
-            sorted(self.unavailable_files, key=component_key))
+        if sorted_response == "YES":
+          report_file.writelines(sorted(self.unavailable_files, key=component_key))
+        else:
+          report_file.writelines(self.unavailable_files)
 
 
 def main():
