@@ -1,6 +1,6 @@
 --[[
 Description: Radial Menu 
-Version: 2.4.9
+Version: 2.4.10
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -1292,7 +1292,6 @@ GUI.Update = function (elm)
 		-- Left button
 		if GUI.mouse.cap&1==1 then
 			
-			
 			-- If it wasn't down already...
 			if not GUI.mouse.last_down then
 
@@ -1378,7 +1377,7 @@ GUI.Update = function (elm)
 					end
 					
 					GUI.mouse.r_down = true
-					GUI.mouse.ox, GUI.mouse.oy = x, y
+					GUI.mouse.r_ox, GUI.mouse.r_oy = x, y
 					GUI.elm_updated = true
 				
 				end
@@ -1400,7 +1399,7 @@ GUI.Update = function (elm)
 		elseif GUI.mouse.r_down and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then 
 		
 			if not GUI.mouse.r_dbl_clicked then elm:onmouser_up() end
-			
+
 			GUI.elm_updated = true
 			GUI.mouse.r_down = false
 			GUI.mouse.r_dbl_clicked = false
@@ -4214,7 +4213,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.4.9"
+local script_version = "2.4.10"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -7168,14 +7167,16 @@ function GUI.elms.frm_radial:onmousem_up()
 end
 
 function GUI.elms.frm_radial:ondoubleclick()
+	GUI.Msg("l dbl")
 	self:btn_up(1)
 end
 
-function GUI.elms.frm_radial:ondoubler_click()
+function GUI.elms.frm_radial:onr_doubleclick()
+	GUI.Msg("r dbl")
 	self:btn_up(2)	
 end
 
-function GUI.elms.frm_radial:ondoublem_click()
+function GUI.elms.frm_radial:onm_doubleclick()
 	self:btn_up(64)
 end
 
