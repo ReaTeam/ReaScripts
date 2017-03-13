@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f779915af52e3ec4ab6feb521848c73cbd9be331" name="ReaTeam Scripts">
+<index version="1" commit="f88afc8afd59725ff3e20e3626023edd4e1ba5e3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -456,6 +456,23 @@ added support for all track envelopes]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script splits selected non-locked items at edit cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The logic is inspired by spk77's script "Split all items at edit cursor".\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=189347">Forum Thread</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-03-13T23:18:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua" type="script" desc="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua">
