@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f88afc8afd59725ff3e20e3626023edd4e1ba5e3" name="ReaTeam Scripts">
+<index version="1" commit="adfb851389fcf8f042e619ea5c2d2015fb0f811e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -1262,6 +1262,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.22" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ Temporary workaround for 'disappearing CCs' bug in MIDI editor.
++ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -1339,6 +1344,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
+      <version name="3.22" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ Temporary workaround for 'disappearing CCs' bug in MIDI editor.
++ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
       <metadata>
@@ -1350,7 +1360,7 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw sine or warped (power) sine ramps of CC and pitchwheel events in real time (chasing start values).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 An improvement over REAPER's built-in "Linear ramp CC events" mouse action:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By using the mousewheel, the shape of the ramp can be changed from sine to warped (power) sine.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By using the mousewheel, the shape of the ramp can be changed from linear to curved (allowing the easy insertion of parablic shapes).\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
@@ -1365,7 +1375,7 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from sine to any power of sine, by changing the "defaultShapePower" parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from linear to any power curve, by changing the "defaultShapePower" parameter. To set the default shape to parabolic, use 2 or 0.5.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
@@ -1402,6 +1412,11 @@ added support for all track envelopes]]></changelog>
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.22" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ Temporary workaround for 'disappearing CCs' bug in MIDI editor.
++ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
       <metadata>
@@ -1413,7 +1428,7 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw sine or warped (power) sine ramps of CC and pitchwheel events in real time (without chasing start values).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 An improvement over REAPER's built-in "Linear ramp CC events" mouse action:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By using the mousewheel, the shape of the ramp can be changed from sine to warped (power) sine.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By using the mousewheel, the shape of the ramp can be changed from linear to curved (allowing the easy insertion of parablic shapes).\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
@@ -1428,7 +1443,7 @@ added support for all track envelopes]]></changelog>
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from sine to any power of sine, by changing the "defaultShapePower" parameter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from linear to any power curve, by changing the "defaultShapePower" parameter. To set the default shape to parabolic, use 2 or 0.5.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
@@ -1464,6 +1479,11 @@ added support for all track envelopes]]></changelog>
       <version name="3.21" author="juliansader" time="2017-01-30T08:24:06Z">
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.22" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ Temporary workaround for 'disappearing CCs' bug in MIDI editor.
++ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -1585,6 +1605,7 @@ added support for all track envelopes]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.1" author="juliansader" time="2016-05-25T09:30:26Z">
@@ -1627,7 +1648,7 @@ added support for all track envelopes]]></changelog>
       </version>
       <version name="3.01" author="juliansader" time="2017-01-24T02:56:11Z">
         <changelog><![CDATA[+ Fixed bug when custom 'shape' is number.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/70eaa2e700b3d01cb546ec755bfa40ed2df858af/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua" type="script" desc="js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua">
@@ -1661,11 +1682,16 @@ added support for all track envelopes]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="3.01" author="juliansader" time="2017-02-17T14:32:29Z">
         <changelog><![CDATA[+ Fixed bug when custom 'shape' is number.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8f69e2938e8e8b502ed9e3cc3a3a2d37c2f40dc7/MIDI%20Editor/js_Insert%20linear%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20(without%20dialog%20box).lua</source>
+      </version>
+      <version name="3.02" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.   ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Insert%20linear%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20(without%20dialog%20box).lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert ramps between selected CCs or velocities (in last clicked lane, without dialog box, at grid spacing).lua" type="script" desc="js_Insert ramps between selected CCs or velocities (in last clicked lane, without dialog box, at grid spacing).lua">
@@ -1699,6 +1725,7 @@ added support for all track envelopes]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="3.00" author="juliansader" time="2017-01-15T19:35:59Z">
@@ -1709,6 +1736,10 @@ added support for all track envelopes]]></changelog>
 + Requires REAPER v5.32 or later.
 + In velocity lane, will set velocities of existing notes to ramp from leftmost and rightmost notes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Insert%20ramps%20between%20selected%20CCs%20or%20velocities%20(in%20last%20clicked%20lane,%20without%20dialog%20box,%20at%20grid%20spacing).lua</source>
+      </version>
+      <version name="3.02" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Insert%20ramps%20between%20selected%20CCs%20or%20velocities%20(in%20last%20clicked%20lane,%20without%20dialog%20box,%20at%20grid%20spacing).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua">
@@ -3037,6 +3068,36 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="2.02" author="juliansader" time="2017-01-30T08:24:06Z">
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_View and edit tempo map in MIDI editor.lua" type="script" desc="js_View and edit tempo map in MIDI editor.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A Lua script for viewing and editing the tempo map in the MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The tempo map is displayed in a CC lane, and any edits in the CC lane are mirrored in the tempo map.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Create a track names "Tempo" and insert a single MIDI take in the track.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab (The take should cover the time span of the tempo map that will be viewed/edited.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Optionally, rename the CC lane to "Tempo" or any other suitable name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab (The actions and menu items to rename CC lanes are somewhat misleadingly named, and only refer to "Note names". In the MIDI editor, make the Tempo track active, then go to File -> Note names -> Load note names from file. The file only needs to contain a single line, such as "CC31 Tempo".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The default CC lane is the 14-bit 31/63 lane, but alternative lanes can be selected by the user in the script's user area.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Run the script.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab (The script can be linked to a toolbar button, which will indicate the activation status of the script.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Once the script is running, if any changes are made directly to the Master track's tempo envelope, (within the take's time span), the script will deactivate.\line When the script is re-activated, the new changes can be re-copied into the Tempo track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=189334</link>
+        <link rel="screenshot">http://stash.reaper.fm/30160/Script%20-%20View%20and%20edit%20tempo%20map%20in%20MIDI%20editor.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-03-14T01:35:41Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_View%20and%20edit%20tempo%20map%20in%20MIDI%20editor.lua</source>
       </version>
     </reapack>
     <reapack name="js_Zoom MIDI editor to 5 measures at mouse position.lua" type="script" desc="js_Zoom MIDI editor to 5 measures at mouse position.lua">
