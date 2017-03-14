@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw linear or curved ramps in real time.lua
-Version: 3.22
+Version: 3.23
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -124,6 +124,8 @@ About:
   * v3.22 (2017-03-13)
     + Temporary workaround for 'disappearing CCs' bug in MIDI editor.
     + In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.    
+  * v3.23 (2017-03-14)
+    + Fix chasing bug that was introduced yesterday.
 ]]
 
 ----------------------------------------
@@ -1010,12 +1012,10 @@ end
 -- If doChase == false, they will eventually be replaced by mouseOrigCCvalue.
 
 -- By default (if not doChase, or if no pre-existing CCs are found),
---    use mouse starting values.
-lastChasedValue = mouseOrigCCvalue
-nextChasedValue = mouseOrigCCvalue     
+--    use mouse starting values.    
 -- 14-bit CC must determine both MSB and LSB.  If no LSB is found, simply use 0 as default.
-local lastChasedMSB, nextChasedMSB 
-local nextChasedMSB, nextChasedLSB = 0, 0
+local lastChasedMSB, nextChasedMSB
+local lastChasedLSB, nextChasedLSB
 
 -- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
 --    Instead, only changed (i.e. deselected) events will be re-packed and inserted individually, while unchanged events
@@ -1115,9 +1115,15 @@ MIDIstringSub5 = (table.concat(tableEvents) .. MIDIstring:sub(unchangedPos)):sub
 if not doChase then
     lastChasedValue = mouseOrigCCvalue
     nextChasedValue = mouseOrigCCvalue
-elseif laneIsCC14BIT then
-    if lastChasedMSB then lastChasedValue = (lastChasedMSB<<7) + lastChasedLSB end
-    if nextChasedMSB then nextChasedValue = (nextChasedMSB<<7) + nextChasedLSB end
+else
+    if laneIsCC14BIT then
+        if not lastChasedLSB then lastChasedLSB = 0 end
+        if not nextChasedLSB then nextChasedLSB = 0 end
+        if lastChasedMSB then lastChasedValue = (lastChasedMSB<<7) + lastChasedLSB end
+        if nextChasedMSB then nextChasedValue = (nextChasedMSB<<7) + nextChasedLSB end
+    end
+    if not lastChasedValue then lastChasedValue = mouseOrigCCvalue end
+    if not nextChasedValue then nextChasedValue = mouseOrigCCvalue end
 end
   
 
