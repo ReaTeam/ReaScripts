@@ -34,6 +34,10 @@ About:
     (within the take's time span), the script will deactivate.  
     When the script is re-activated, the new changes can be re-copied into the Tempo track.
 
+  Note: This script is not compatible with linear tempo changes. However, this is not a grave disadvantage, since
+     * linear tempo changes are somewhat buggy in current versions of REAPER ~v5.35, and
+     * SWS's tempo map actions also require square tempo changes.
+
   The first time that the script is stopped, REAPER will pop up a dialog box 
     asking whether to terminate or restart the script.  Select "Terminate"
     and "Remember my answer for this script".)   
