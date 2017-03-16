@@ -1,6 +1,8 @@
 -- @description Select source tracks of selected tracks receives recursively
--- @version 1.0
+-- @version 1.0.1
 -- @author cfillion
+-- @changelog
+--   Fix background script using the wrong logic file
 -- @donation https://www.paypal.me/cfillion
 -- @provides
 --   [main] cfillion_Select source tracks of selected tracks receives recursively (background).lua
