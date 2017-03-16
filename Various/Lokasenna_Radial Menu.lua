@@ -1,12 +1,12 @@
 --[[
 Description: Radial Menu 
-Version: 2.5
+Version: 2.5.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	New:
-	- Added a button on the Menu tab that will create a "shortcut" script to
-	open RM directly on that menu.
+	- 'back' command now returns to the previous menu
+	- 'base' command added, returns to original menu that Radial Menu opened on
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -4221,7 +4221,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.5"
+local script_version = "2.5.1"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4241,7 +4241,7 @@ local pi = 3.1416
 local ox, oy, frm_w
 
 local cur_depth, last_depth, cur_btn = 0, 0, -2
-local base_depth = 0
+local base_depth, prev_depths = 0, {}
 
 local redraw_menu = true
 
@@ -4380,7 +4380,11 @@ local settings_help_str = [=[--[[
 										menu 20		(opens menu 20)
 										menu stuff	(opens the menu with alias 'stuff')
 										
-										back		Return to the base menu
+										back		Return to the previous menu
+										base		Return to the original menu
+													(either menu 0 or the specified menu
+													for a given Reaper context)
+													
 										quit		Close the script
 										
 										
@@ -4598,22 +4602,30 @@ local help_pages = {
 
 
 
-	{"Button Commands",
+	{"Button commands p1",
 	
 [[Action IDs:
-    12345, _SWS_AWMPLAYTOG, _RS2bf8e77e958d48b42c7d7b585790ee0427a96a7e
+    12345, _SWS_AWMPLAYTOG, _RS1a8cae1f4c60d0e5d5d90bc96eda9d83050eb214
     (Use 'midi 12345' to specify commands from the MIDI editor's action list)
   
 Accessing submenus, via menu numbers or aliases:
     menu 20, menu stuff
  
-Return to the base menu:
+Return to the previous menu:
     back
  	
+Return to the base menu (0 by default, or the specified menu for a given context):
+    base
+  	
 Exit the script:
     quit
- 
-Perform an action multiple times per button-click:
+]]},
+
+
+	
+	{"Button commands p2",
+
+[[Perform an action multiple times per button-click:
     x3 12345
  
 Repeat an action at a specified interval (in seconds) while the mouse button is held down:
@@ -4621,15 +4633,18 @@ Repeat an action at a specified interval (in seconds) while the mouse button is 
  
 Commands can also be combined:	
     repeat 0.5 'x3 midi 12345'
-]]},	
+    (Every 0.5 seconds, send command 12345 to the MIDI editor three times)
+
+]]},
 
 
 
 	{"", ""},
 
+
 	{">Tabs", ""},
 
-	{"Menu tab",
+	{"Menu",
 		
 [[- Menus may have anywhere from one to sixteen buttons, with an optional button in the center of the ring. Each menu can have its own color settings, or use the colors set in the Global tab.
  
@@ -4643,7 +4658,7 @@ Commands can also be combined:
 
 
 
-	{"Context tab", 
+	{"Context", 
 [[    Important: Context functions require the SWS extension for Reaper to be installed.
  
 - By default, Radial Menu will always open menu 0 at startup. This tab allows you to specify different menus to open based on which Reaper area the mouse cursor is over - i.e. one set of actions for tracks and another for media items.
@@ -4660,7 +4675,7 @@ Commands can also be combined:
 
 
 
-	{"Swiping tab",
+	{"Swiping",
 		
 [[- The basic Radial Menu wasn't fast enough for you? Try this. Swiping lets you trigger menus and actions via mouse movements, in the same way as answering a call on your mobile phone.
  	
@@ -4681,7 +4696,7 @@ Commands can also be combined:
 
 
 
-	{"Global tab",
+	{"Global",
 		
 [[- Any menus that don't have their own colors specified will look here, as will buttons in those menus don't have colors of their own.
  
@@ -4695,7 +4710,7 @@ Commands can also be combined:
 
 
 
-	{"Options tab",
+	{"Options",
 		
 [[- The various settings here may not all work with each other.
  	
@@ -5317,11 +5332,14 @@ local function run_act(act, midi)
 	
 		
 		_=dm and Msg("\tresetting to base depth")
-		cur_depth = base_depth
-		last_depth = base_depth	
+		cur_depth = #prev_depths > 0 and table.remove(prev_depths) or base_depth
 		if setup then  end
 		cur_btn = -2
 		redraw_menu = true
+		
+	elseif act == "base" then
+	
+		run_act("menu "..tostring(base_depth))
 	
 	elseif act == "quit" then
 	
@@ -5359,10 +5377,16 @@ local function run_act(act, midi)
 		
 		new_depth = tonumber(num) or check_alias(num)
 		
-		if new_depth and new_depth > 0 then
-			last_depth = cur_depth
+		if new_depth then
+			
+			if new_depth == base_depth then
+				prev_depths = {}
+			else
+				table.insert(prev_depths, cur_depth)
+			end
+			
 			cur_depth = new_depth
-			if setup then  end
+			--if setup then  end
 			cur_btn = -2
 			redraw_menu = true
 			
@@ -5396,8 +5420,7 @@ local function run_act(act, midi)
 			if not setup then
 				
 				if mnu_arr[-1].mouse_mode == 2 then
-					cur_depth = base_depth
-					last_depth = base_depth
+					run_act("back")
 					redraw_menu = true
 				elseif mnu_arr[-1].mouse_mode == 3 then
 					GUI.quit = true
