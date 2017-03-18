@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw linear or curved ramps in real time, chasing start values.lua
-Version: 3.23
+Version: 3.24
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -8,7 +8,8 @@ REAPER version: v5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 About:
-  # Description
+  # DESCRIPTION
+  
   Draw linear or curved ramps of CC and pitchwheel events in real time (chasing start values).
                
   An improvement over REAPER's built-in "Linear ramp CC events" mouse action:
@@ -40,24 +41,65 @@ About:
   * The script can optionally skip redundant CCs (that is, CCs with the same 
      value as the preceding CC).
 
-  # Instructions
-  There are two ways in which this script can be run:  
+
+  # INSTRUCTIONS
   
-  * First, the script can be linked to its own shortcut key.  In this case, 
-      optionally, if drawing curved shapes are required, the script can 
-      also be linked to a mousewheel shortcut (alternatively, use the 
-      "1-sided warp (accelerate)" script after drawing the ramp.
-
-  * Second, this script, together with other "js_" scripts that edit the "lane under mouse",
-      can each be linked to a toolbar button.  
-      - In this case, each script need not be linked to its own shortcut key.  Instead, only the 
-        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
-        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
-      - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
-        and this selected (armed) script can then be run by using the shortcut for the 
-        aforementioned "js_Run..." script.
-      - For further instructions - please refer to the "js_Run..." script.                 
-
+  This script requires:
+  * a keyboard shortcut to start the script, as well as
+  * a mousewheel modifier to control the shape of the ramp.
+    
+  
+  KEYBOARD SHORTCUT
+  
+  There are two ways in which the script can be started via a keyboard shortcut:  
+  
+  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "Ctrl+tab" for chase+ramp.  
+      (Using the standard steps of linking any REAPER action to a shortcut key.)
+    
+  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+          can each be linked to a toolbar button.  
+     - In this case, each script does not need to be linked to its own shortcut key.  
+     - Instead, only the master control script, with the long name 
+          "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+       needs to be linked to a keyboard shortcut.
+     - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+          and this selected (armed) script can then be run by using the shortcut for the 
+          aforementioned "js_Run..." script.
+     - For further instructions - please refer to the "js_Run..." script.      
+  
+  Note: Since this function is a user script, the way it responds to shortcut keys and 
+    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+    with mouse modifiers:  To run the script, press the shortcut key *once* 
+    to start the script and then move the mouse *without* pressing any 
+    mouse buttons.  Press the shortcut key again once to stop the script.  
+      
+  (The first time that the script is stopped, REAPER will pop up a dialog box 
+    asking whether to terminate or restart the script.  Select "Terminate"
+    and "Remember my answer for this script".)
+  
+  
+  MOUSEWHEEL MODIFIER
+  
+  A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an
+  Action, similar to how keyboard shortcuts are assigned.
+  
+  As is the case with keyboard shortcuts, the script can either be controlled via its own
+  mousewheel modifier, or via the mousewheel modifier that is linked to the "js_Run..." control script.
+  
+  Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user 
+  must remember several modifier combinations, one for each script.  (Mousewheel modifiers such as 
+  Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "tab".)
+  
+  An easier option is to link a single mousewheel+modifier shortcut to the "js_Run..." script, 
+  and this single mousewheel+modifier can then be used to control any of the other "lane under mouse" scripts. 
+  
+  NOTE: The mousewheel modifier that is assigned to the "js_Run..." script can be used to control 
+      the other scripts, including the Draw ramps scripts, even if these scripts
+      were started from their own keyboard shortcuts.      
+              
+  
+  USER CUSTOMIZABLE PARAMETERS
+  
   To enable/disable chasing of existing CC values, set the "doChase" parameter in the 
       USER AREA at the beginning of the script to "false".
       
@@ -72,17 +114,15 @@ About:
   To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), 
       set the "deselectEverythingInLane" parameter.  This allows easy editing of only the new 
       ramp after drawing.
-       
-  Since this function is a user script, the way it responds to shortcut keys and 
-    mouse buttons is opposite to that of REAPER's built-in mouse actions 
-    with mouse modifiers:  To run the script, press the shortcut key *once* 
-    to start the script and then move the mouse or mousewheel *without* 
-    pressing any mouse buttons.  Press the shortcut key again once to 
-    stop the script.  
-
-  (The first time that the script is stopped, REAPER will pop up a dialog box 
-    asking whether to terminate or restart the script.  Select "Terminate"
-    and "Remember my answer for this script".)
+      
+  
+  PERFORMANCE TIPS
+  
+  * The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
+      the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.
+      
+  * If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, 
+      check for graphics driver incompatibility by disabling graphics acceleration in the plugin. 
 ]] 
 
 --[[
@@ -126,6 +166,8 @@ About:
     + In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.    
   * v3.23 (2017-03-14)
     + Fix chasing bug that was introduced yesterday.      
+  * v3.24 (2017-03-18)
+    + More extensive instructions in header.
 ]]
 
 ----------------------------------------

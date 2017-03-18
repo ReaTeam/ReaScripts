@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Arch selected events in lane under mouse with linear or power curve.lua
-Version: 3.11
+Version: 3.12
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28025/Arch%20events.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -21,37 +21,73 @@ About:
   3) Press shortcut key.
   4) The event closest to the left of the mouse position will be raised or lowered to the mouse vertical position.
   5) The mousewheel controls the shape of the curve (from linear to parabolic and other power curves). 
+  6) To stop the script, press the shortcut key again, or move the mouse out of the CC lane.
   
   The user can customize the speed and resolution of arching by changing the 
   "archResolution" variable in the USER AREA of the script.
    
-  There are two ways in which this script can be run:  
+   
+  This script therefore requires:
+    * a keyboard shortcut to start the script, as well as
+    * a mousewheel modifier to control the shape of the Arching curve.
+    
   
-  1) First, the script can be linked to its own shortcut key (such as "Ctrl+C"), in which case
-      it must also be linked to a mousewheel shortcut (such as Ctrl+mousewheel).
-      - The script can be started using either of these shortcuts,
-         but can only be quit using keyboard shortcut (or by moving the mouse out of the MIDI editor)
-
+  KEYBOARD SHORTCUT
+  
+  There are two ways in which the script can be started via a keyboard shortcut:  
+  
+  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "A".  
+      (Using the standard steps of linking any REAPER action to a shortcut key.)
+    
   2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
-        can each be linked to a toolbar button.  
-     - In this case, each script need not be linked to its own shortcut key.  Instead, only the 
-        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
-        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+          can each be linked to a toolbar button.  
+     - In this case, each script does not need to be linked to its own shortcut key.  
+     - Instead, only the master control script, with the long name 
+          "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+       needs to be linked to a keyboard shortcut.
      - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
-        and this selected (armed) script can then be run by using the shortcut for the 
-        aforementioned "js_Run..." script.
-     - For further instructions - please refer to the "js_Run..." script.               
- 
-  Since this function is a user script, the way it responds to shortcut keys and 
+          and this selected (armed) script can then be run by using the shortcut for the 
+          aforementioned "js_Run..." script.
+     - For further instructions - please refer to the "js_Run..." script.      
+  
+  Note: Since this function is a user script, the way it responds to shortcut keys and 
     mouse buttons is opposite to that of REAPER's built-in mouse actions 
     with mouse modifiers:  To run the script, press the shortcut key *once* 
-    to start the script and then move the mouse or mousewheel *without* 
-    pressing any mouse buttons.  Press the shortcut key again once to 
-    stop the script.  
-
+    to start the script and then move the mouse *without* pressing any 
+    mouse buttons.  Press the shortcut key again once to stop the script.  
+      
   (The first time that the script is stopped, REAPER will pop up a dialog box 
     asking whether to terminate or restart the script.  Select "Terminate"
     and "Remember my answer for this script".)
+  
+  
+  MOUSEWHEEL MODIFIER
+  
+  A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an
+  Action, similar to how keyboard shortcuts are assigned.
+  
+  As is the case with keyboard shortcuts, the script can either be controlled via its own
+  mousewheel modifier, or via the mousewheel modifier that is linked to the "js_Run..." control script.
+  
+  Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user 
+  must remember several modifier combinations, one for each script.  (Mousewheel modifiers such as 
+  Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)
+  
+  An easier option is to link a single mousewheel+modifier shortcut to the "js_Run..." script, 
+  and this single mousewheel+modifier can then be used to control any of the other "lane under mouse" scripts. 
+  
+  NOTE: The mousewheel modifier that is assigned to the "js_Run..." script can be used to control 
+      the other scripts, including the Arching scripts, even if these scripts
+      were started from their own keyboard shortcuts.
+      
+      
+  PERFORMANCE TIPS
+  
+  * The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
+      the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.
+      
+  * If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, 
+      check for graphics driver incompatibility by disabling graphics acceleration in the plugin.
 ]] 
 
 --[[
@@ -68,7 +104,9 @@ About:
     + Script works in looped takes.
     + Script works in inline editor.
   * v3.11 (2017-01-30)
-    + Improved reset of toobar button.
+    + Improved reset of toolbar button.
+  * v3.12 (2017-03-18)
+    + More extensive instructions in header.
 ]]
 
 -- USER AREA 
