@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_2-sided warp (and stretch) selected events in lane under mouse.lua
-Version: 3.12
+Version: 3.13
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27593/2-sided%20warp%20%28and%20stretch%29%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -77,7 +77,7 @@ About:
     + Script works in looped takes.
   * v3.11 (2017-01-30)
     + Improved reset of toolbar button.
-  * v3.12 (2017-03-18)
+  * v3.13 (2017-03-18)
     + Fixed ReaPack name and header info.
 ]]
 
