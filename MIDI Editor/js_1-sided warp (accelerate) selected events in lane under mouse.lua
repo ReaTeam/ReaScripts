@@ -1,50 +1,53 @@
 --[[
 ReaScript name: js_1-sided warp (accelerate) selected events in lane under mouse.lua
-Version: 3.11
+Version: 3.12
 Author: juliansader
-Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
+Screenshot: http://stash.reaper.fm/29080/Warp%203.00%20-%20left%20and%20right%2C%20or%20up%20and%20down.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
 REAPER: v5.32 or later
 Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 About:
   # Description
-  A Lua script for warping the positions or values of MIDI events.
+  A Lua script for warping the positions or values of MIDI CCs and velocities.
+  
+  Events positions can be warped horizontally (to the left or right), and event values can be warp vertically (up or down).
+  (Events that do not have values, such as text or sysex, can only be warp horizontally.)
   
   The script only affects events in the MIDI editor lane under the mouse cursor.
+  
   * Useful for changing a linear ramp into a parabolic (or other power) curve.
   * Useful for accelerating a series of evenly spaced notes.
   * Useful for changing the curve shape of LFOs.
 
   # Instructions
-  1) Select the target events that will be warped (the script works on any CCs, notes, text or sysex events)
-  2) Position mouse over the target area (in the case of notes, either the notes area or the velocity lane)
-  3) Press the shortcut key
-  4) Move mouse left/right to warp the selected events' positions, or up/down to warp the values.
-      (This is simiilar to REAPER's "move in one direction only" mouse modifiers.)
+  1) Select the target events that will be warped (the script works on any CCs, notes, text or sysex events).
+  2) Position mouse over the target area (in the case of notes, either the notes area or the velocity lane).
+  3) Press the shortcut key. (Do not press any mouse button.)
+  4) The script can either warp event positions to the left or right, or event values up or down.
+      The warp direction depends on the INITIAL mouse movement: To warp event positions, move the mouse 
+      left/right when the script starts; to warp event values vertically, move the mouse up/down.
+      (This is similar to how REAPER's "move in one direction only" mouse modifiers work.)
+  5) To stop the script, move the mouse out of the CC lane, or press the shortcut key again. 
       
   If the mouse movement is not detected accurately (perhaps due to retina display or jerky mouse), 
       the setting "MouseMovementResolution" in the User Area can be increased.
       
-  the responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible 
-      and editable takes.  If the MIDI editor is slow, try reducing the number of editable and visible tracks.
-  
+        
   There are two ways in which this script can be run:  
   
-  * First, the script can be linked to its own shortcut key.  In this case, 
-      optionally, if drawing curved shapes are required, the script can 
-      also be linked to a mousewheel shortcut (alternatively, use the 
-      "1-sided warp (accelerate)" script after drawing the ramp.
+  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "1".  
+      (Using the standard steps of linking any REAPER action to a shortcut key.)
 
-  * Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
       can each be linked to a toolbar button.  
-      In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+      * In this case, each script need not be linked to its own shortcut key.  Instead, only the 
         accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
         script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
-      Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+      * Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
         and this selected (armed) script can then be run by using the shortcut for the 
         aforementioned "js_Run..." script.
-     For further instructions - please refer to the "js_Run..." script.                 
+      * For further instructions - please refer to the "js_Run..." script.                 
  
   Since this function is a user script, the way it responds to shortcut keys and 
     mouse buttons is opposite to that of REAPER's built-in mouse actions 
@@ -56,6 +59,13 @@ About:
   (The first time that the script is stopped, REAPER will pop up a dialog box 
     asking whether to terminate or restart the script.  Select "Terminate"
     and "Remember my answer for this script".)   
+    
+    
+  PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
+      the visible and editable takes.  If the MIDI editor is slow, try reducing the number of editable and visible tracks.
+      
+  PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, 
+      check for graphics driver incompatibility by disabling graphics acceleration in the plugin.
 ]] 
 
 --[[
@@ -82,6 +92,8 @@ About:
     + Script works in looped takes.
   * v3.11 (2017-01-30)
     + Improved reset of toolbar button.
+  * v3.12 (2017-03-18)
+    + Fixed ReaPack header info.    
 ]]
 
 
