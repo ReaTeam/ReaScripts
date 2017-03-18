@@ -1,10 +1,10 @@
 --[[
 Description: Lokasenna_Create action to open a file...
-Version: 1.1.0
+Version: 1.2.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Created scripts are automatically added to the Action List
+	Uses the file name as a suggested alias
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=189152
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -27,7 +27,13 @@ reaper.ShowMessageBox("To create an action that opens a folder:\n\n1. Use the ne
 ret, path = reaper.GetUserFileNameForRead("", "Select a file", "")
 if not ret then return 0 end
 
-ret, csv = reaper.GetUserInputs("Create action to open a file... ", 2, "File/folder path:, FIle alias:,extrawidth=128", path..",my file")
+-- Cheers to @mpl for this.
+local num = path:reverse():find('[%/%\\]')
+local alias = path:sub(-num + 1) .. " "
+	--reduced_name = reduced_name:sub(0,-1-reduced_name:reverse():find('%.')) -- cut extension also
+
+
+ret, csv = reaper.GetUserInputs("Create action to open a file... ", 2, "File/folder path:,File alias:,extrawidth=128", path..","..alias)
 if not ret or csv == "" then return 0 end
 
 path, alias = string.match(csv, "([^,]+),([^,]*)")
