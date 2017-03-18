@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e93fb8fa9e9b3bfdb989b1568186b77f8d9b27eb" name="ReaTeam Scripts">
+<index version="1" commit="53a3d75d3cc88d0e7c5ff3aeee0d083394be7012" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -490,6 +490,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.00" author="juliansader" time="2016-09-12T22:52:02Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83a2b6b55fcb551ee47a054a61644b15161de868/Items%20Editing/js_Remove%20all%20CCs,%20pitch,%20channel%20pressure%20and%20program%20change%20events%20from%20all%20tracks.lua</source>
+      </version>
+      <version name="2.00" author="juliansader" time="2017-03-18T23:39:12Z">
+        <changelog><![CDATA[+ Much faster execution, using new API in REAPER v5.30.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/53a3d75d3cc88d0e7c5ff3aeee0d083394be7012/Items%20Editing/js_Remove%20all%20CCs,%20pitch,%20channel%20pressure%20and%20program%20change%20events%20from%20all%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill selected MIDI item with notes... .lua" type="script" desc="Fill selected MIDI item with notes...">
