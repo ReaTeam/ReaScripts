@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="53a3d75d3cc88d0e7c5ff3aeee0d083394be7012" name="ReaTeam Scripts">
+<index version="1" commit="cd773a20e9700fcae5112459a30c51ea0f4ce318" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3850,6 +3850,24 @@ Made by Mordi, Jan 2016]]></changelog>
       </metadata>
       <version name="1.1" author="cfillion" time="2016-06-08T02:29:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/88c962ea116c9df9a6b8687dfd5d302c84f3bb3b/Tracks%20Properties/cfillion_Explode%20selected%20tracks%20to%20mono%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Remove hardware outputs of selected tracks.lua" type="script" desc="Remove hardware outputs of selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=189761</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-03-22T20:54:14Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd773a20e9700fcae5112459a30c51ea0f4ce318/Tracks%20Properties/cfillion_Remove%20hardware%20outputs%20of%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Reset stereo width of selected tracks to 100%.lua" type="script" desc="Reset stereo width of selected tracks to 100%">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=189761</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-03-22T20:54:14Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd773a20e9700fcae5112459a30c51ea0f4ce318/Tracks%20Properties/cfillion_Reset%20stereo%20width%20of%20selected%20tracks%20to%20100%25.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Select destination tracks of selected tracks sends recursively.lua" type="script" desc="Select destination tracks of selected tracks sends recursively">
