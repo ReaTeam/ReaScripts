@@ -260,7 +260,7 @@ class ReaperClipSplicer:
                                          99)[4].split(",")
         i = 0
         for pause_name in self.pause_lengths:
-            self.pause_lengths[pause_name] = int(user_lengths[i])
+            self.pause_lengths[pause_name] = float(user_lengths[i])
             i += 1
 
     def get_track(self, track_id):
@@ -451,10 +451,21 @@ class ReaperClipSplicer:
                 # Iterate over each component
                 if track is not None:
                     for component in track:
+                        beginning_of_component = cursor_position
                         (cursor_position, prev_item) = \
                             self.add_component(
                                 component, cursor_position, prev_item)
                         RPR_SetEditCurPos(cursor_position, False, False)
+                        track_region_color = RPR_ColorToNative(
+                            0, 255, 255) | 0x1000000
+                        RPR_AddProjectMarker2(
+                            0,
+                            True,
+                            beginning_of_component,
+                            cursor_position,
+                            "COMPONENT " + str(component),
+                            0,
+                            track_region_color)
                     track_region_color = RPR_ColorToNative(
                         255, 0, 255) | 0x1000000
                     RPR_AddProjectMarker2(
