@@ -187,6 +187,8 @@ def get_performer(component_string):
         The performer of the component. For example: "Beau"
     """
     index_of_open = component_string.find("[")
+    if index_of_open == -1:
+      return "No Performer"
     index_of_close = component_string.find("]", index_of_open)
     performer = component_string[index_of_open + 1:index_of_close]
     return performer
