@@ -4,23 +4,23 @@
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
---  - Palette of 24 colors (Color Boxes) + 1 temporary (Temporary - the big color box on top)
---  - Left-click a Color Box to Color Tracks, Items or Takes and set it as Temporary
---  - Tracks/Items are recognized automatically according to what was lastly clicked while the Takes mode is set manually by the user
---  - Right-click a Color Box to save the Temporary color into that box
---  - Load/save different user palettes (.txt files)
---  - Left-click Save button to Save current palette or Right-Click to Save As
---  - Left-click Load button to load a new palette or Right-Click to load the default palette
---  - Set the Temporary color to the color of a track/item/take according to what was lastly clicked (Get Color button)
---  - Show Hex name of Temporary color
---  - Left-click Hex name to enter a Hex color code manually (formats: 123456, #123456, # 123456 & 0x123456)
---  - Right-click Hex name to paste it to the clipboard for use with SWS Auto Color/Icons
---  - Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.
---  - Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white
---  - Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState
---  - Click Load SWS button to load SWSColor files
---  - Click SWS Colors button to open the SWS Color Management tool
---  - Ability to dock the script to the left or to the right
+--   - Palette of 24 colors (Color Boxes) + 1 temporary (Temporary - the big color box on top)
+--   - Left-click a Color Box to Color Tracks, Items or Takes and set it as Temporary
+--   - Tracks/Items are recognized automatically according to what was lastly clicked while the Takes mode is set manually by the user
+--   - Right-click a Color Box to save the Temporary color into that box
+--   - Load/save different user palettes (.txt files)
+--   - Left-click Save button to Save current palette or Right-Click to Save As
+--   - Left-click Load button to load a new palette or Right-Click to load the default palette
+--   - Set the Temporary color to the color of a track/item/take according to what was lastly clicked (Get Color button)
+--   - Show Hex name of Temporary color
+--   - Left-click Hex name to enter a Hex color code manually (formats: 123456, #123456, # 123456 & 0x123456)
+--   - Right-click Hex name to paste it to the clipboard for use with SWS Auto Color/Icons
+--   - Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.
+--   - Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white
+--   - Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState
+--   - Click Load SWS button to load SWSColor files
+--   - Click SWS Colors button to open the SWS Color Management tool
+--   - Ability to dock the script to the left or to the right
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
