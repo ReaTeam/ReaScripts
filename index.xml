@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3b437feb4bc33c8a7feff93aa02fd383e6778837" name="ReaTeam Scripts">
+<index version="1" commit="c69fa6ba231575e82c46a69aceec0b85c6803ef1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4098,6 +4098,23 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.61" author="Airon" time="2016-06-15T15:29:41Z">
         <changelog><![CDATA[+ spk77: fixed colour swatch reset (forum.cockos.com/showpost.php?p=1694646&postcount=282)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/Airon_Colour%20Swatch.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="amagalma_ReaNoir - Track/Item/Take coloring utility">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
+      </metadata>
+      <version name="1.50" author="amagalma" time="2017-03-25T19:36:58Z">
+        <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
++ fixed bug when entering hex numbers]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c69fa6ba231575e82c46a69aceec0b85c6803ef1/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
