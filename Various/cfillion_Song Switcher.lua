@@ -49,6 +49,9 @@
 --
 --   A web browser interface is also installed as **song_switcher.html** for
 --   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
+--   Note that the timecode displayed in the web interface always starts at 00:00.
+--   This means that even if a song starts at 7:45 in the project and ends at 9:12,
+--   it's displayed as 00:00 to 01:26 on the web interface for convenience.
 
 WINDOW_TITLE = 'Song Switcher'
 
