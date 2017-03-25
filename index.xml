@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c69fa6ba231575e82c46a69aceec0b85c6803ef1" name="ReaTeam Scripts">
+<index version="1" commit="f9f185d804f211161f06f7b858e9e2f07bdf2faa" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4107,6 +4107,23 @@ Made by Mordi, Jan 2016]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Palette of 24 colors (Color Boxes) + 1 temporary (Temporary - the big color box on top)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click a Color Box to Color Tracks, Items or Takes and set it as Temporary\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Tracks/Items are recognized automatically according to what was lastly clicked while the Takes mode is set manually by the user\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click a Color Box to save the Temporary color into that box\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Load/save different user palettes (.txt files)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click Save button to Save current palette or Right-Click to Save As\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click Load button to load a new palette or Right-Click to load the default palette\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set the Temporary color to the color of a track/item/take according to what was lastly clicked (Get Color button)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show Hex name of Temporary color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click Hex name to enter a Hex color code manually (formats: 123456, #123456, # 123456 & 0x123456)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click Hex name to paste it to the clipboard for use with SWS Auto Color/Icons\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click Load SWS button to load SWSColor files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click SWS Colors button to open the SWS Color Management tool\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
@@ -4114,7 +4131,7 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.50" author="amagalma" time="2017-03-25T19:36:58Z">
         <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
 + fixed bug when entering hex numbers]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c69fa6ba231575e82c46a69aceec0b85c6803ef1/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f9f185d804f211161f06f7b858e9e2f07bdf2faa/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
