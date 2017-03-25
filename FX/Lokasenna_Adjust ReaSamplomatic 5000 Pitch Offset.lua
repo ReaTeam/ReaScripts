@@ -1,10 +1,10 @@
 --[[
 Description: Adjust ReaSamplomatic 5000 Pitch Offset
-Version: 1.1
+Version: 1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added +/- 1 semitone actions
+	Added a "reset to 0" action
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
