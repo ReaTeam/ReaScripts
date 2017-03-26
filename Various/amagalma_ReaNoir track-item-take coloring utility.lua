@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.60
+-- @version 1.61
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -27,6 +27,8 @@
 
 --[[
  * Changelog:
+ * v1.61 (2017-03-26)
+  + fixed bug when trying to save a palette loaded from an SWSColor file
  * v1.60 (2017-03-26)
   + added HSL sliders - right click sliders' area to toggle
  * v1.50 (2017-03-25)
@@ -64,7 +66,7 @@
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym and cfillion!!! :)
 
-version = "v1.60"
+version = "v1.61"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -722,7 +724,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         SavePalette_btn :set_label_color(0.8,0.8,0.8,1)
         
         SavePalette_btn.onClick = function ()
-          if loaded_file == last_palette_on_exit or loaded_file == "Default" or string.match(file_name, ".SWSColor$") == ".SWSColor" then 
+          if loaded_file == last_palette_on_exit or loaded_file == "Default" or string.match(loaded_file, "-sws$") == "-sws" then 
             SaveAsPalette() else
           local ok = reaper.ShowMessageBox("This will overwrite the current palette. Are you sure?", "", 1 )
             if ok == 1 then SaveColorFile(loaded_file)
