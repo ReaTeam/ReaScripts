@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.50
+-- @version 1.60
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -21,10 +21,14 @@
 --   - Click Load SWS button to load SWSColor files
 --   - Click SWS Colors button to open the SWS Color Management tool
 --   - Ability to dock the script to the left or to the right
+--   - Right-click sliders' area to toggle between RGB and HSL mode
+--
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v1.60 (2017-03-26)
+  + added HSL sliders - right click sliders' area to toggle
  * v1.50 (2017-03-25)
   + preliminary work for HSL mode for sliders (coming in next version)
   + fixed bug when entering hex numbers
@@ -60,7 +64,7 @@
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym and cfillion!!! :)
 
-version = "v1.50"
+version = "v1.60"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -557,12 +561,21 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         ColorBx_CLICK(ColorBoxes [boxID],boxID)
     end      
     
-    function ColorBx_CLICK(boxID,ident)  
+    function ColorBx_CLICK(boxID)  
         boxID.onClick = function ()
-            slider_btn_r.val = boxID.r +0.2 
-            slider_btn_g.val = boxID.g +0.2 
-            slider_btn_b.val = boxID.b +0.2 
-            slider_btn_a.val = boxID.a
+            if mode == "rgb" then
+              slider_btn_r.val = boxID.r +0.2 
+              slider_btn_g.val = boxID.g +0.2 
+              slider_btn_b.val = boxID.b +0.2 
+              slider_btn_a.val = boxID.a
+            end
+            if mode == "hsl" then
+              local h, s, l = rgbToHsl(boxID.r+0.2, boxID.g+0.2, boxID.b+0.2)
+              slider_btn_h.val = h
+              slider_btn_s.val = s
+              slider_btn_l.val = l 
+              slider_btn_a.val = boxID.a
+            end
             if what == "tracks" then
                 Convert_RGB (boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
                 ApplyColor_Tracks()
@@ -597,8 +610,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
 -- Emmanuel Oga's rgbToHsl and hslToRgb functions taken from here:
 -- https://github.com/EmmanuelOga/columns/blob/master/utils/color.lua
    
-    function rgbToHsl(r, g, b) -- values 0-255
-      r, g, b = r / 255, g / 255, b / 255
+    function rgbToHsl(r, g, b) -- values in-out 0-1
       local max, min = math.max(r, g, b), math.min(r, g, b)
       local h, s, l
       l = (max + min) / 2
@@ -615,11 +627,11 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         end
         h = h / 6
       end
-      return h, s, l or 255
+      return h, s, l or 1
     end
     
     
-    function hslToRgb(h, s, l)
+    function hslToRgb(h, s, l) -- values in-out 0-1
       local r, g, b
       if s == 0 then
         r, g, b = l, l, l -- achromatic
@@ -735,7 +747,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     end
     
     function Luminance(change)
-      local hue, sat, lum = rgbToHsl(red, green, blue)
+      local hue, sat, lum = rgbToHsl(red/255, green/255, blue/255)
       lum = lum + change
       local r, g, b = hslToRgb(hue, sat, lum)
       if r<=0 then r = 0 end ; if g<=0 then g = 0 end ; if b<=0 then b = 0 end
@@ -1022,6 +1034,10 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         gfx.rect(Sliders_x, Sliders_y + 19,20,17,0)
         gfx.rect(Sliders_x, Sliders_y + 39,121,17,0)
         gfx.rect(Sliders_x, Sliders_y + 39,20,17,0)
+        if mode == "hsl" then
+          local r, g, b = hslToRgb(slider_btn_h.val, slider_btn_s.val, slider_btn_l.val)
+          slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = r, g, b
+        end
     end
     
     function Sliders_INIT()
@@ -1033,9 +1049,9 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
           slider_btn_b = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "B","", 0, 0, 1)
           slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5)                         
         elseif mode == "hsl" then
-          slider_btn_r = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "H","", 0.8, 0, 1)
-          slider_btn_g = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "S","", 1, 0.05, 0.05)
-          slider_btn_b = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "L","", 1, 1, 1)
+          slider_btn_h = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "H","", 0.8, 0, 1)
+          slider_btn_s = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "S","", 1, 0.05, 0.05)
+          slider_btn_l = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "L","", 1, 1, 1)
           slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5) 
         end   
     end
@@ -1043,16 +1059,25 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     function Change_Mode()
       if gfx.mouse_x >= 34 and gfx.mouse_x <= 152 and gfx.mouse_y >= 195 and gfx.mouse_y <= 250 and last_mouse_state == 0 and gfx.mouse_cap == 2 then
          if mode == "rgb" then
-            answer = reaper.MB("Change to HSL mode? ", "Change Color Mode", 1 )
-            if answer == 1 then mode = "hsl" 
+            local answer = reaper.MB("Change to HSL mode? ", "Change Color Mode", 1 )
+            if answer == 1 then mode = "hsl"
+              local prev_red, prev_green, prev_blue = red/255, green/255, blue/255
               gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
-              Sliders_INIT()  
+              Sliders_INIT()
+              local h, s, l = rgbToHsl(prev_red, prev_green, prev_blue)
+              slider_btn_h.val = h
+              slider_btn_s.val = s
+              slider_btn_l.val = l 
             end
          elseif mode == "hsl" then
-            answer = reaper.MB("Change to RGB mode? ", "Change Color Mode", 1 )
+            local answer = reaper.MB("Change to RGB mode? ", "Change Color Mode", 1 )
             if answer == 1 then mode = "rgb"
+              local prev_red, prev_green, prev_blue = red, green, blue
               gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
-              Sliders_INIT()  
+              Sliders_INIT()
+              slider_btn_r.val = prev_red/255
+              slider_btn_g.val = prev_green/255
+              slider_btn_b.val = prev_blue/255  
             end
          end                
       end
@@ -1292,9 +1317,16 @@ function main()
   HEXinfo_btn:draw()
   
   Sliders_GUI()
-  slider_btn_r:draw()
-  slider_btn_g:draw()
-  slider_btn_b:draw()
+  if mode == "hsl" then 
+    slider_btn_h:draw()
+    slider_btn_s:draw()
+    slider_btn_l:draw()
+  end
+  if mode == "rgb" then
+    slider_btn_r:draw()
+    slider_btn_g:draw()
+    slider_btn_b:draw()
+  end
 
   for createbox = 1,24 do
       ColorBoxes [createbox]:draw()      
@@ -1306,8 +1338,8 @@ function main()
   ColorTracks_btn:draw()
   ColorItems_btn:draw()
   ColorTakes_btn:draw()
-  Darker_btn:draw()
-  Brighter_btn:draw()
+  if mode == "rgb" then Darker_btn:draw() end
+  if mode == "rgb" then Brighter_btn:draw() end
   OpenSWS_btn:draw()
   LoadSWS_btn:draw()  
   Palette_info_GUI()
