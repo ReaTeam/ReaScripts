@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e166d2765ef022ef1e6821164a18996aa7dc4b2b" name="ReaTeam Scripts">
+<index version="1" commit="3ddff97f3428a8b1883c31f47ce830a3df0efa29" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4123,7 +4123,8 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click Load SWS button to load SWSColor files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click SWS Colors button to open the SWS Color Management tool\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click sliders' area to toggle between RGB and HSL mode\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
@@ -4132,6 +4133,10 @@ Made by Mordi, Jan 2016]]></changelog>
         <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
 + fixed bug when entering hex numbers]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f9f185d804f211161f06f7b858e9e2f07bdf2faa/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="1.60" author="amagalma" time="2017-03-26T00:20:50Z">
+        <changelog><![CDATA[+ added HSL sliders - right click sliders' area to toggle]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3ddff97f3428a8b1883c31f47ce830a3df0efa29/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
