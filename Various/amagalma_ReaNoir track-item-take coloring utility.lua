@@ -27,7 +27,7 @@
 
 --[[
  * Changelog:
- * v.161 (2017-03-26)
+ * v1.61 (2017-03-26)
   + fixed bug when trying to save a palette loaded from an SWSColor file
  * v1.60 (2017-03-26)
   + added HSL sliders - right click sliders' area to toggle
