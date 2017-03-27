@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.61
+-- @version 1.63
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -27,6 +27,10 @@
 
 --[[
  * Changelog:
+ * v1.63 (2017-03-27)
+  + No more annoying pop-up when changing mode between RGB<->HSL
+ * v1.62 (2017-03-27)
+  + Reanoir opens in the correct folders when loading SWSColors or user palettes (thanks Lokasenna! :) )
  * v1.61 (2017-03-26)
   + fixed bug when trying to save a palette loaded from an SWSColor file
  * v1.60 (2017-03-26)
@@ -64,9 +68,9 @@
   + changed name to ReaNoir
 --]]
 
--- Special Thanks to: Spacemen Tree, spk77, X-Raym and cfillion!!! :)
+-- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
 
-version = "v1.61"
+version = "v1.63"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -446,8 +450,9 @@ colors = {}
 mode = "rgb"
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
-last_palette_on_exit = script_path .. "ReaNoir\\last_palette_on_exit.txt"
-UserPalettes_path = script_path .. "ReaNoir\\"
+  separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
+last_palette_on_exit = script_path .."ReaNoir"..separ.."last_palette_on_exit.txt"
+UserPalettes_path = script_path .. "ReaNoir"..separ
 reaper.RecursiveCreateDirectory(UserPalettes_path,1)
  
 
@@ -873,7 +878,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     end
   
     function LoadSWSColors()
-        local retval, file_name = reaper.GetUserFileNameForRead("", "Select .SWSColor file", ".SWSColor")
+        local retval, file_name = reaper.GetUserFileNameForRead(reaper.GetResourcePath()..separ.."Colorset"..separ.."*.SWSColor", "Select .SWSColor file", ".SWSColor")
         if retval == true then
             if string.match(file_name, ".SWSColor$") ~= ".SWSColor" then
                 reaper.ShowMessageBox("Please, choose a file with a .SWSColor extrension!", "Error!", 0)
@@ -914,7 +919,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         end
          --- Load palette from file ---
         LoadPalette_btn.onClick = function ()
-            local retval, filetxt = reaper.GetUserFileNameForRead("", "Select file", ".txt")
+            local retval, filetxt = reaper.GetUserFileNameForRead(UserPalettes_path..separ.."*.txt", "Select file", ".txt")
               if retval == true then
                 if filetxt == last_palette_on_exit then 
                   LoadColorFile(last_palette_on_exit)
@@ -1060,28 +1065,28 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function Change_Mode()
       if gfx.mouse_x >= 34 and gfx.mouse_x <= 152 and gfx.mouse_y >= 195 and gfx.mouse_y <= 250 and last_mouse_state == 0 and gfx.mouse_cap == 2 then
-         if mode == "rgb" then
-            local answer = reaper.MB("Change to HSL mode? ", "Change Color Mode", 1 )
-            if answer == 1 then mode = "hsl"
+        if lastchange == nil or reaper.time_precise()-lastchange > 0.3 then
+          if mode == "rgb" then
+              mode = "hsl"
               local prev_red, prev_green, prev_blue = red/255, green/255, blue/255
               gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
               Sliders_INIT()
               local h, s, l = rgbToHsl(prev_red, prev_green, prev_blue)
               slider_btn_h.val = h
               slider_btn_s.val = s
-              slider_btn_l.val = l 
-            end
-         elseif mode == "hsl" then
-            local answer = reaper.MB("Change to RGB mode? ", "Change Color Mode", 1 )
-            if answer == 1 then mode = "rgb"
+              slider_btn_l.val = l
+              lastchange = reaper.time_precise() 
+          elseif mode == "hsl" then
+              mode = "rgb"
               local prev_red, prev_green, prev_blue = red, green, blue
               gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
               Sliders_INIT()
               slider_btn_r.val = prev_red/255
               slider_btn_g.val = prev_green/255
-              slider_btn_b.val = prev_blue/255  
-            end
-         end                
+              slider_btn_b.val = prev_blue/255
+              lastchange = reaper.time_precise()  
+          end                
+        end       
       end
     end
     
