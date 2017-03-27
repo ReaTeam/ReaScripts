@@ -60,6 +60,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 ### Other ReaPack compatible repositories (not included in ReaPack)
 
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
+- [Claudiohbsantos Reaper Scripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
 - [geraintluff/jsfx](https://github.com/geraintluff/jsfx)
@@ -70,7 +71,6 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
-- [Claudiohbsantos Reaper Sripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
 
 ### Other repositories or packs not compatible with ReaPack
 
