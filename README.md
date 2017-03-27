@@ -70,6 +70,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
+- [Claudiohbsantos Reaper Sripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
 
 ### Other repositories or packs not compatible with ReaPack
 
