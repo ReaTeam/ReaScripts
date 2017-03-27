@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.61
+-- @version 1.62
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -27,6 +27,8 @@
 
 --[[
  * Changelog:
+ * v1.62 (2017-03-27)
+  + Reanoir opens in the correct folders when loading SWSColors or user palettes (thanks Lokasenna! :) )
  * v1.61 (2017-03-26)
   + fixed bug when trying to save a palette loaded from an SWSColor file
  * v1.60 (2017-03-26)
@@ -64,9 +66,9 @@
   + changed name to ReaNoir
 --]]
 
--- Special Thanks to: Spacemen Tree, spk77, X-Raym and cfillion!!! :)
+-- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
 
-version = "v1.61"
+version = "v1.62"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -446,8 +448,9 @@ colors = {}
 mode = "rgb"
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
-last_palette_on_exit = script_path .. "ReaNoir\\last_palette_on_exit.txt"
-UserPalettes_path = script_path .. "ReaNoir\\"
+  separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
+last_palette_on_exit = script_path .."ReaNoir"..separ.."last_palette_on_exit.txt"
+UserPalettes_path = script_path .. "ReaNoir"..separ
 reaper.RecursiveCreateDirectory(UserPalettes_path,1)
  
 
@@ -873,7 +876,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     end
   
     function LoadSWSColors()
-        local retval, file_name = reaper.GetUserFileNameForRead("", "Select .SWSColor file", ".SWSColor")
+        local retval, file_name = reaper.GetUserFileNameForRead(reaper.GetResourcePath()..separ.."Colorset"..separ.."*.SWSColor", "Select .SWSColor file", ".SWSColor")
         if retval == true then
             if string.match(file_name, ".SWSColor$") ~= ".SWSColor" then
                 reaper.ShowMessageBox("Please, choose a file with a .SWSColor extrension!", "Error!", 0)
@@ -914,7 +917,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         end
          --- Load palette from file ---
         LoadPalette_btn.onClick = function ()
-            local retval, filetxt = reaper.GetUserFileNameForRead("", "Select file", ".txt")
+            local retval, filetxt = reaper.GetUserFileNameForRead(UserPalettes_path..separ.."*.txt", "Select file", ".txt")
               if retval == true then
                 if filetxt == last_palette_on_exit then 
                   LoadColorFile(last_palette_on_exit)
