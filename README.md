@@ -60,6 +60,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 ### Other ReaPack compatible repositories (not included in ReaPack)
 
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
+- [Claudiohbsantos Reaper Scripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
 - [geraintluff/jsfx](https://github.com/geraintluff/jsfx)
