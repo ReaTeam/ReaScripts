@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.63
+-- @version 1.65
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -22,11 +22,15 @@
 --   - Click SWS Colors button to open the SWS Color Management tool
 --   - Ability to dock the script to the left or to the right
 --   - Right-click sliders' area to toggle between RGB and HSL mode
+--   - Information displayed on top of ReaNoir when hovering mouse over buttons/sliders
 --
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v1.65 (2017-03-29)
+  + Takes mode button is now green to contrast the manual mode with Tracks/Items mode (red) which is automatic
+  + Information displayed on top of ReaNoir when hovering mouse over buttons/sliders
  * v1.63 (2017-03-27)
   + No more annoying pop-up when changing mode between RGB<->HSL
  * v1.62 (2017-03-27)
@@ -70,7 +74,7 @@
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
 
-version = "v1.63"
+version = "v1.65"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -88,7 +92,7 @@ function Msg(name)
   if value then
     reaper.ShowConsoleMsg(string.format("%s = %s", name, tostring(value)).."\n")
   else
-    reaper.ShowConsoleMsg = (string.format("No variable named '%s' found.", name).."\n")
+    reaper.ShowConsoleMsg(string.format("No variable named '%s' found.", name).."\n")
   end
 end
 -----------------------------------------------------------------------------------------------
@@ -178,7 +182,6 @@ sl.min_val = min_val
 sl.max_val = max_val
 sl.lbl = lbl
 sl.help_text = help_text
-sl.help_text = ""
 
 --// Modded Slider Colors //--
 
@@ -188,15 +191,19 @@ sl.mouse_state = 0
 sl.lbl_w, sl.lbl_h = gfx.measurestr(lbl)
 end
 ) -- end of slider class
+
 function Slider:set_help_text()
 if self.help_text == "" then return false end
-gfx.set(1,1,1,1)
-gfx.x = 10
-gfx.y = 10
+gfx.setfont(2,"Arial", 15, 105)
+local width = gfx.measurestr(self.help_text)
+gfx.set(0.85,0.85,0.85,1)
+gfx.x = GUI_centerx-width/2
+gfx.y = 11
 gfx.printf(self.help_text)
+gfx.setfont(1)
 end
+
 function Slider:draw()
---self:set_help_text()
 self.a = 0.6
 gfx.set(0.7,0.7,0.7,self.a)
 if last_mouse_state == 0 and self.mouse_state == 1 then self.mouse_state = 0 end
@@ -206,7 +213,6 @@ if last_mouse_state == 0 and gfx.mouse_cap & 1 == 1 and self.mouse_state == 0 th
 self.mouse_state = 1
 end
 if self.mouse_state == 1 then
----self.val = scale_x_to_slider_val(self.min_val, self.max_val, (gfx.mouse_x*12) - gfx.mouse_x*8-320+self.x1, self.x1/4, self.x2*4)
 self.val = scale_x_to_slider_val(self.min_val, self.max_val, gfx.mouse_x , self.x1, self.x2)
 end
 end
@@ -288,24 +294,31 @@ end
 function Button:__is_mouse_on()
 return(gfx.mouse_x > self.x1 and gfx.mouse_x < self.x2 and gfx.mouse_y > self.y1 and gfx.mouse_y < self.y2)
 end
+
 function Button:__lmb_down()
 return(last_mouse_state == 0 and gfx.mouse_cap & 1 == 1 and self.__mouse_state == 0)
 end
 
---- MOD Mouse
 function Button:__rmb_down()
 return(last_mouse_state == 0 and gfx.mouse_cap & 2 == 2 and self.__mouse_state == 0)
---return(last_mouse_state == 0 and self.mouse_state == 2)
 end
+
+--- Control + left click
+function Button:__lmbCtrl_down()
+return(last_mouse_state == 0 and gfx.mouse_cap & 5 == 5 and self.__mouse_state == 0)
+end
+
 function Button:set_help_text()
 if self.help_text == "" then return false end
-gfx.set(1,1,1,1)
-
-gfx.x = 20  --- x coordinate of help text
-gfx.y = 12  --- y coordinate of help text
-
+gfx.setfont(2)
+local width = gfx.measurestr(self.help_text)
+gfx.set(0.85,0.85,0.85,1)
+gfx.x = GUI_centerx-width/2
+gfx.y = 11
 gfx.printf(self.help_text)
+gfx.setfont(1)
 end
+
 function Button:set_color(r,g,b,a)
 self.r = r
 self.g = g
@@ -339,65 +352,69 @@ end
 end
 -- Draw element (+ mouse handling)
 function Button:draw()
--- lmb released (and was clicked on element)
-if last_mouse_state == 0 and self.__mouse_state == 1 then self.__mouse_state = 0 end
-
-------MOD MOUSE RIGHT BUTTON
-if last_mouse_state == 0 and self.__mouse_state == 2 then self.__mouse_state = 0 end
+-- button released (and was clicked on element)
+if last_mouse_state == 0 and self.__mouse_state == 1 or 2 or 5 then self.__mouse_state = 0 end
 -- Mouse is on element -----------------------
 if self:__is_mouse_on() then
-if self:__lmb_down() then -- Left mouse btn is pressed on button
-self.__mouse_state = 1
-if self.__state_changing == false then
-self.__state_changing = true
-else self.__state_changing = true
-end
-end
-self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
-
-if last_mouse_state == 0 and gfx.mouse_cap & 1 == 0 and self.__state_changing == true then
-if self.onRClick ~= nil then self:onRClick()
-self.__state_changing = false
-else self.__state_changing = false
-end
-end
-
--------MOD
-if self:__is_mouse_on() then
-if self:__rmb_down() then -- Right mouse btn is pressed on button
-self.__mouse_state = 2
-if self.__state_changing == false then
-self.__state_changing = true
-else self.__state_changing = true
-end
-end
-self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
-if last_mouse_state == 0 and gfx.mouse_cap & 2 == 0 and self.__state_changing == true then
-if self.onClick ~= nil then self:onClick()
-self.__state_changing = false
-else self.__state_changing = false
-end
-end
-end
+  if self:__lmb_down() then -- Left mouse btn is pressed on button
+    self.__mouse_state = 1
+    self.__state_changing = true
+  end
+  self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
+  if last_mouse_state == 0 and gfx.mouse_cap & 1 == 0 and self.__state_changing == true then
+    if self.onRClick ~= nil then self:onRClick()
+    elseif self.onCtrlClick ~= nil then self:onCtrlClick()
+    end
+    self.__state_changing = false
+  end
+-------Mouse is on element (right button)
+  if self:__is_mouse_on() then
+    if self:__rmb_down() then -- Right mouse btn is pressed on button
+      self.__mouse_state = 2
+      self.__state_changing = true
+    end
+    self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
+    if last_mouse_state == 0 and gfx.mouse_cap & 2 == 0 and self.__state_changing == true then
+      if self.onClick ~= nil then self:onClick()
+      elseif self.onCtrlClick ~= nil then self:onCtrlClick()
+      end
+      self.__state_changing = false
+    end
+---- Mouse is on element (Ctrl & lmb)
+    if self:__is_mouse_on() then
+      if self:__lmbCtrl_down() then -- Left mouse btn & Ctrl is pressed on button
+        self.__mouse_state = 5
+        self.__state_changing = true
+      end
+      self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
+        if last_mouse_state == 0 and gfx.mouse_cap & 5 == 0 and self.__state_changing == true then
+          if self.onRClick ~= nil then self:onRClick()
+          elseif self.onClick ~= nil then self:onClick()
+          end
+          self.__state_changing = false
+      end
+    end
+  end
 -- Mouse is not on element -----------------------
 else
-if last_mouse_state == 0 and self.__state_changing == true then
-self.__state_changing = false
+  if last_mouse_state == 0 and self.__state_changing == true then
+    self.__state_changing = false
+  end
 end
-end
+
 if self.__mouse_state == 1 or self.vis_state == 1 or self.__state_changing then
-gfx.set(0.8*self.r,0.8*self.g,0.8*self.b,math.max(self.a - 0.2, 0.2)*0.8)
-gfx.rect(self.x1, self.y1, self.w, self.h)
+  gfx.set(0.8*self.r,0.8*self.g,0.8*self.b,math.max(self.a - 0.2, 0.2)*0.8)
+  gfx.rect(self.x1, self.y1, self.w, self.h)
 -- Button is not pressed
 elseif not self.state_changing or self.vis_state == 0 or self.__mouse_state == 0 then
-gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
-gfx.rect(self.x1, self.y1, self.w, self.h)
-gfx.a = math.max(0.4*self.a, 0.6)
-gfx.set(0.3*self.r,0.3*self.g,0.3*self.b,math.max(0.9*self.a,0.8))
+  gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
+  gfx.rect(self.x1, self.y1, self.w, self.h)
+  gfx.a = math.max(0.4*self.a, 0.6)
+  gfx.set(0.3*self.r,0.3*self.g,0.3*self.b,math.max(0.9*self.a,0.8))
 end
+
 self:draw_label()
-gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
---gfx.set(1,1,1,1)
+  gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
     if self.border ~= 1 then
     gfx.rect(self.x1-2, self.y1-2, self.w+4, self.h+4,0) -- e este
     gfx.set(1,1,1,1)
@@ -405,10 +422,9 @@ gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
     gfx.rect(self.x1-3, self.y1-3, self.w+6, self.h+6,0)  --este
     --gfx.rect(self.x1-2, self.y1-2, self.w+4, self.h+4,0)
     end
-gfx.set(0.1,0.1,0.1,1)
-gfx.rect(self.x1-1, self.y1-1, self.w+2, self.h+2,0)
+  gfx.set(0.1,0.1,0.1,1)
+  gfx.rect(self.x1-1, self.y1-1, self.w+2, self.h+2,0)
 end
-
 
 -------- The above is taken from SPK77's Play and Stop Buttons fine script ---------
 --------- so a big Thank You to him. Slight mods done to Mouse and colors ----------
@@ -433,8 +449,6 @@ GUI_centery = GUI_yend/2 + GUI_ystart
 ------------------------------------------
 --------- ColorBoxes Variables -----------
 ------------------------------------------
-no_label = ""  
-larger = 20
 ColorBoxes = {}
 defcolors = {"DE6363", "DED663", "A191E3", "DE91E3", "788F63", "6363A3", "59590D", "633363", "306363", "1459E0", "63A363", 
 "C44247", "94A654", "639CD1", "CCA626", "247A38", "A16E29", "A18263", "852600", "F21700", "94D1FF", "63F2AB", "3DE063", "FFDB78"}
@@ -504,10 +518,11 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function Dock_selector_INIT()   
         local Docksel = ""
-        local Docksel_x = GUI_centerx - 35 -larger/2-50 
-        local Docksel_y = GUI_centery - 25*13.85
-        local Docksel_xlength = -10 + larger
-        DockselL_btn = Button(Docksel_x,Docksel_y +10,Docksel_xlength,11,2,0,0,Docksel, no_label,0,1)
+        local Docksel_x = GUI_centerx - 95
+        local Docksel_y = GUI_centery - 346
+        local Docksel_xlength = 10
+        local help = "Float or Dock L/R"
+        DockselL_btn = Button(Docksel_x,Docksel_y +10,Docksel_xlength,11,2,0,0,Docksel, help,0,1)
             if dock == 3841 then 
                 DockselL_btn:set_color(0.5,0.1,0.1,1)
             else 
@@ -519,7 +534,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                     Write_Prefs()
                 end    
               
-        DockselR_btn = Button(Docksel_x +11,Docksel_y +10,Docksel_xlength,11,2,0,0,Docksel, no_label,0,1)
+        DockselR_btn = Button(Docksel_x +11,Docksel_y +10,Docksel_xlength,11,2,0,0,Docksel, help,0,1)
             if dock == 1 then 
                 DockselR_btn:set_color(0.5,0.1,0.1,1)
             else 
@@ -531,7 +546,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                     Write_Prefs ()
                 end
             
-        DockselU_btn = Button(Docksel_x,Docksel_y,Docksel_xlength +11,10,2,0,0,Docksel, no_label,0,1)
+        DockselU_btn = Button(Docksel_x,Docksel_y,Docksel_xlength +11,10,2,0,0,Docksel, help,0,1)
             if dock == 0 then 
                 DockselU_btn:set_color(0.5,0.1,0.1,1)
             else 
@@ -562,8 +577,9 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function ColorBx_GUI(boxID,xspace,yspace)
         local ColorBx_x = GUI_centerx -57 + xspace
-        local ColorBx_y = GUI_centery + 25*-2.85 + yspace --  
-        ColorBoxes [boxID] = Button (ColorBx_x, ColorBx_y, 20, 20, 2,0,0, "", "",0,1)
+        local ColorBx_y = GUI_centery -71 + yspace
+        local help = "Rclick to save temp color"
+        ColorBoxes [boxID] = Button (ColorBx_x, ColorBx_y, 20, 20, 2,0,0, "", help,0,1)
         ColorBoxes [boxID] : set_color(0.1, 0.1, 0.1, 1)
         ColorBx_CLICK(ColorBoxes [boxID],boxID)
     end      
@@ -602,6 +618,9 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
             boxID.b = slider_btn_b.val -0.2 
             boxID.a = slider_btn_a.val
           end  
+        end
+        boxID.onCtrlClick = function ()
+          reaper.ShowConsoleMsg("you Ctrl clicked! box"..boxID.."\n")
         end
     end
    
@@ -723,9 +742,10 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
 
     function SavePalette_INIT()
         local SavePalette_x = GUI_centerx -1
-        local SavePalette_y = GUI_centery + 25*9.85
+        local SavePalette_y = GUI_centery + 246
         local SavePalette_w = 65
-        SavePalette_btn = Button(SavePalette_x, SavePalette_y, SavePalette_w,22,2,0,0,"Save","",0,1)
+        local help = "RClick to Save as"
+        SavePalette_btn = Button(SavePalette_x, SavePalette_y, SavePalette_w,22,2,0,0,"Save",help,0,1)
         SavePalette_btn :set_label_color(0.8,0.8,0.8,1)
         
         SavePalette_btn.onClick = function ()
@@ -766,7 +786,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local Darker_x = GUI_centerx -64
         local Darker_y = GUI_centery - 85
         local Darker_w = 56
-        Darker_btn = Button(Darker_x, Darker_y, Darker_w,22,2,0,0,"Darker","",0,1)
+        local help = "RClick to set to black"
+        Darker_btn = Button(Darker_x, Darker_y, Darker_w,22,2,0,0,"Darker",help,0,1)
         Darker_btn :set_label_color(0.8,0.8,0.8,1)
         Darker_btn.onClick = function ()
           Luminance(-0.033)
@@ -780,7 +801,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local Brighter_x = GUI_centerx -1
         local Brighter_y = GUI_centery - 85
         local Brighter_w = 56
-        Brighter_btn = Button(Brighter_x, Brighter_y, Brighter_w,22,2,0,0,"Brighter","",0,1)
+        local help = "RClick to set to white"
+        Brighter_btn = Button(Brighter_x, Brighter_y, Brighter_w,22,2,0,0,"Brighter",help,0,1)
         Brighter_btn :set_label_color(0.8,0.8,0.8,1)
         Brighter_btn.onClick = function ()
           Luminance(0.033)
@@ -794,7 +816,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local OpenSWS_x = GUI_centerx -4
         local OpenSWS_y = GUI_centery - 192
         local OpenSWS_w = 72
-        OpenSWS_btn = Button(OpenSWS_x, OpenSWS_y, OpenSWS_w,22,2,0,0,"SWS Colors","",0,1)
+        local help = "SWS Color Management"
+        OpenSWS_btn = Button(OpenSWS_x, OpenSWS_y, OpenSWS_w,22,2,0,0,"SWS Colors",help,0,1)
         OpenSWS_btn :set_label_color(0.8,0.8,0.8,1)
         OpenSWS_btn.onClick = function ()
           reaper.Main_OnCommand(reaper.NamedCommandLookup("_SWSCOLORWND"), 0) -- SWS: Open color management window
@@ -807,7 +830,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local LoadSWS_x = GUI_centerx -77
         local LoadSWS_y = GUI_centery - 192
         local LoadSWS_w = 66
-        LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"Load SWS","",0,1)
+        local help = ".SWSColor palette file"
+        LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"Load SWS",help,0,1)
         LoadSWS_btn :set_label_color(0.8,0.8,0.8,1)
         LoadSWS_btn.onClick = function ()
           LoadSWSColors()
@@ -825,9 +849,10 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function GetColor_INIT()
        local GetColor_x = GUI_centerx -52
-       local GetColor_y = GUI_centery + 25*5.125
+       local GetColor_y = GUI_centery + 128
        local GetColor_w = 94
-       GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color","",0,1)
+       local help = "Copy selected to temp color"
+       GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
        GetColor_btn :set_label_color(0.8,0.8,0.8,1)                 
        GetColor_btn.onClick = function ()         
           if what == "tracks" then
@@ -909,9 +934,10 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
   
     function LoadPalette_INIT()
         local LoadPalette_x = GUI_centerx -72
-        local LoadPalette_y = GUI_centery + 25*9.85
+        local LoadPalette_y = GUI_centery + 246
         local LoadPalette_w = 65
-        LoadPalette_btn = Button(LoadPalette_x, LoadPalette_y, LoadPalette_w,22,2,0,0,"Load","",0,1)
+        local help = "RClick to load default"
+        LoadPalette_btn = Button(LoadPalette_x, LoadPalette_y, LoadPalette_w,22,2,0,0,"Load",help,0,1)
         LoadPalette_btn :set_label_color(0.8,0.8,0.8,1)
         LoadPalette_btn.onRClick = function ()
          local answer = reaper.MB("The default palette will be loaded. Are you sure?", "Load default palette", 1 )
@@ -944,7 +970,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local ColorTracks_x = GUI_centerx -78
         local ColorTracks_y = GUI_centery + 292
         local ColorTracks_w = 46
-        ColorTracks_btn = Button(ColorTracks_x, ColorTracks_y, ColorTracks_w,22,2,0,0,"Tracks","",0,1)
+        local help = "Click to exit Takes mode"
+        ColorTracks_btn = Button(ColorTracks_x, ColorTracks_y, ColorTracks_w,22,2,0,0,"Tracks",help,0,1)
         ColorTracks_btn :set_label_color(0.8,0.8,0.8,1)                
         ColorTracks_btn.onClick = function ()
            what = "tracks"
@@ -956,7 +983,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local ColorItems_x = GUI_centerx -28
         local ColorItems_y = GUI_centery + 292
         local ColorItems_w = 46
-        ColorItems_btn = Button(ColorItems_x, ColorItems_y, ColorItems_w,22,2,0,0,"Items","",0,1)
+        local help = "Click to exit Takes mode"
+        ColorItems_btn = Button(ColorItems_x, ColorItems_y, ColorItems_w,22,2,0,0,"Items",help,0,1)
         ColorItems_btn :set_label_color(0.8,0.8,0.8,1)
         ColorItems_btn.onClick = function ()
            what = "items"
@@ -968,7 +996,8 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local ColorTakes_x = GUI_centerx +22
         local ColorTakes_y = GUI_centery + 292
         local ColorTakes_w = 46
-        ColorTakes_btn = Button(ColorTakes_x, ColorTakes_y, ColorTakes_w,22,2,0,0,"Takes","",0,1)
+        local help = "Take mode - manual exit"
+        ColorTakes_btn = Button(ColorTakes_x, ColorTakes_y, ColorTakes_w,22,2,0,0,"Takes",help,0,1)
         ColorTakes_btn :set_label_color(0.8,0.8,0.8,1)      
         ColorTakes_btn.onClick = function ()
            what = "takes"
@@ -988,21 +1017,22 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
        else -- takes
                   ColorTracks_btn:set_color(0.5,0.5,0.5,0.28) 
                   ColorItems_btn:set_color(0.5,0.5,0.5,0.28) 
-                  ColorTakes_btn:set_color(1,0.05,0,0.3)
+                  ColorTakes_btn:set_color(0.05,1,0,0.3)
        end
     end 
                    
     function RGBsquare_GUI()
         local RGBsquare_x = GUI_centerx -48
-        local RGBsquare_y = GUI_centery + 25*-12.5 
+        local RGBsquare_y = GUI_centery -312
         gfx.set(0,0,0,1)
         gfx.rect(RGBsquare_x + 6,RGBsquare_y + 6,84,74)    
     end
         
     function RGBsquare_INIT()
         local RGBsquare_initx = GUI_centerx -48
-        local RGBsquare_inity = GUI_centery + 25*-12.5             
-        RGBsquare_btn = Button(RGBsquare_initx, RGBsquare_inity, 80,70,2,0,0,"","",0,1)        
+        local RGBsquare_inity = GUI_centery -312
+        local help = "RClick to remove color"             
+        RGBsquare_btn = Button(RGBsquare_initx, RGBsquare_inity, 80,70,2,0,0,"",help,0,1)        
         RGBsquare_btn.onClick = function ()
             Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)          
             if what == "tracks" then ApplyColor_Tracks()
@@ -1033,7 +1063,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function Sliders_GUI()
         local Sliders_x = GUI_centerx -65
-        local Sliders_y = GUI_centery + 25*-6.2
+        local Sliders_y = GUI_centery -155
         gfx.set(0,0,0,1)  
         gfx.rect(Sliders_x, Sliders_y - 1,121,17,0)
         gfx.rect(Sliders_x, Sliders_y - 1,20,17,0)
@@ -1051,14 +1081,16 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local Sliders_initx = GUI_centerx -45
         local Sliders_inity = GUI_centery + (50/2)*-6.2
         if mode == "rgb" then
-          slider_btn_r = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "R","", 1, 0, 0)
-          slider_btn_g = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "G","", 0, 1, 0)
-          slider_btn_b = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "B","", 0, 0, 1)
+          local help = "RClick to change to HSL"
+          slider_btn_r = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "R",help, 1, 0, 0)
+          slider_btn_g = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "G",help, 0, 1, 0)
+          slider_btn_b = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "B",help, 0, 0, 1)
           slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5)                         
         elseif mode == "hsl" then
-          slider_btn_h = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "H","", 0.8, 0, 1)
-          slider_btn_s = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "S","", 1, 0.05, 0.05)
-          slider_btn_l = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "L","", 1, 1, 1)
+          local help = "RClick to change to RGB"
+          slider_btn_h = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "H",help, 0.8, 0, 1)
+          slider_btn_s = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "S",help, 1, 0.05, 0.05)
+          slider_btn_l = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "L",help, 1, 1, 1)
           slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5) 
         end   
     end
@@ -1121,7 +1153,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function HEXinfo_GUI()
           local HEXinfo_x = GUI_centerx -68
-          local HEXinfo_y = GUI_centery + 25* -7.5  
+          local HEXinfo_y = GUI_centery -187
           Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)
           RGB_values = {red, green, blue}
           Hex_display = rgbToHex(RGB_values)
@@ -1137,9 +1169,10 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
   
     function HEXinfo_INIT() 
           local HEXinfo_x = GUI_centerx -68
-          local HEXinfo_y = GUI_centery + 25* -7.5      
+          local HEXinfo_y = GUI_centery -187     
           local Hex_label = tostring(Hex_display)
-          HEXinfo_btn = Button(HEXinfo_x +20, HEXinfo_y-36, 90,17,2,0,0,"","",0,1)
+          local help = "Lmb->paste | Rmb->copy"
+          HEXinfo_btn = Button(HEXinfo_x +20, HEXinfo_y-36, 90,17,2,0,0,"",help,0,1)
               HEXinfo_btn.onRClick = function ()
                 local sws = string.gsub(Hex_display, "#%s", "0x")
                 reaper.GetUserInputs("Copy SWS ready hex color code", 1, "Press Ctrl+C to copy the code", sws) 
@@ -1268,6 +1301,7 @@ function init ()
 
   Read_Prefs()
   gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
+  gfx.setfont(2,"Arial", 15, 105)
   gfx.setfont(1,"Arial", 15)          
   Dock_selector_INIT()
   ColorBx_INIT()
