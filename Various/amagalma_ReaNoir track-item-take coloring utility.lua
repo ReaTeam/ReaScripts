@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.66
+-- @version 1.75
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -23,11 +23,14 @@
 --   - Ability to dock the script to the left or to the right
 --   - Right-click sliders' area to toggle between RGB and HSL mode
 --   - Information displayed on top of ReaNoir when hovering mouse over buttons/sliders
+--   - Ctrl-click on a color box to color the selected tracks/items from the existing color to the ctrl-clicked color in grades
 --
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v1.75 (2017-03-31)
+  + Added ability to make gradient colors from first selected track/item/take's color to the ctrl-clicked color box
  * v1.66 (2017-03-29)
   + Fixed bug when Getting Color in HSL mode
  * v1.65 (2017-03-29)
@@ -76,7 +79,7 @@
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
 
-version = "v1.66"
+version = "v1.75"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -196,7 +199,7 @@ end
 
 function Slider:set_help_text()
 if self.help_text == "" then return false end
-gfx.setfont(2,"Arial", 15, 105)
+gfx.setfont(2,"Tahoma", 13)
 local width = gfx.measurestr(self.help_text)
 gfx.set(0.85,0.85,0.85,1)
 gfx.x = GUI_centerx-width/2
@@ -354,78 +357,80 @@ end
 end
 -- Draw element (+ mouse handling)
 function Button:draw()
--- button released (and was clicked on element)
-if last_mouse_state == 0 and self.__mouse_state == 1 or 2 or 5 then self.__mouse_state = 0 end
--- Mouse is on element -----------------------
-if self:__is_mouse_on() then
-  if self:__lmb_down() then -- Left mouse btn is pressed on button
-    self.__mouse_state = 1
-    self.__state_changing = true
-  end
-  self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
-  if last_mouse_state == 0 and gfx.mouse_cap & 1 == 0 and self.__state_changing == true then
-    if self.onRClick ~= nil then self:onRClick()
-    elseif self.onCtrlClick ~= nil then self:onCtrlClick()
-    end
-    self.__state_changing = false
-  end
--------Mouse is on element (right button)
+  -- button released (and was clicked on element)
+  if last_mouse_state == 0 and self.__mouse_state == 1 or 2 or 5 then self.__mouse_state = 0 end
+  
+  -- Mouse is on element -----------------------
   if self:__is_mouse_on() then
-    if self:__rmb_down() then -- Right mouse btn is pressed on button
-      self.__mouse_state = 2
-      self.__state_changing = true
-    end
-    self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
-    if last_mouse_state == 0 and gfx.mouse_cap & 2 == 0 and self.__state_changing == true then
-      if self.onClick ~= nil then self:onClick()
-      elseif self.onCtrlClick ~= nil then self:onCtrlClick()
-      end
-      self.__state_changing = false
-    end
----- Mouse is on element (Ctrl & lmb)
-    if self:__is_mouse_on() then
-      if self:__lmbCtrl_down() then -- Left mouse btn & Ctrl is pressed on button
-        self.__mouse_state = 5
+      if self:__lmb_down() then -- Left mouse btn is pressed on button
+        self.__mouse_state = 1
         self.__state_changing = true
       end
-      self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
-        if last_mouse_state == 0 and gfx.mouse_cap & 5 == 0 and self.__state_changing == true then
-          if self.onRClick ~= nil then self:onRClick()
-          elseif self.onClick ~= nil then self:onClick()
-          end
-          self.__state_changing = false
+      self:set_help_text()
+      if last_mouse_state == 0 and gfx.mouse_cap & 1 == 0 and self.__state_changing == true then
+        if self.onRClick ~= nil then self:onRClick() 
+           self.__state_changing = false end
+      elseif last_mouse_state == 0 and gfx.mouse_cap == 5 and self.__state_changing == true then  
+        if self.onCtrlClick ~= nil then self:onCtrlClick()
+           self.__state_changing = false end
       end
-    end
-  end
+    -------Mouse is on element (right button)
+      if self:__is_mouse_on() then
+        if self:__rmb_down() then -- Right mouse btn is pressed on button
+            self.__mouse_state = 2
+            self.__state_changing = true
+        end
+        self:set_help_text()
+        if last_mouse_state == 0 and gfx.mouse_cap & 2 == 0 and self.__state_changing == true then
+             if self.onClick ~= nil then self:onClick()
+          elseif self.onCtrlClick ~= nil then self:onCtrlClick()
+          end
+            self.__state_changing = false
+        end
+      ---- Mouse is on element (Ctrl & lmb)
+        if self:__is_mouse_on() then
+            if self:__lmbCtrl_down() then -- Left mouse btn & Ctrl is pressed on button
+              self.__mouse_state = 5
+              self.__state_changing = true
+            end
+            self:set_help_text()
+            if last_mouse_state == 0 and gfx.mouse_cap & 5 == 0 and self.__state_changing == true then
+            if self.onRClick ~= nil then self:onRClick() 
+                  self.__state_changing = false end
+          elseif last_mouse_state == 0 and gfx.mouse_cap & 5 == 1 and self.__state_changing == true then  
+              if self.onClick ~= nil then self:onClick()
+                    self.__state_changing = false end
+            end
+        end
+      end
 -- Mouse is not on element -----------------------
-else
-  if last_mouse_state == 0 and self.__state_changing == true then
-    self.__state_changing = false
+  else
+      if last_mouse_state == 0 and self.__state_changing == true then
+        self.__state_changing = false
+      end
   end
-end
 
-if self.__mouse_state == 1 or self.vis_state == 1 or self.__state_changing then
-  gfx.set(0.8*self.r,0.8*self.g,0.8*self.b,math.max(self.a - 0.2, 0.2)*0.8)
-  gfx.rect(self.x1, self.y1, self.w, self.h)
+  if self.__mouse_state == 1 or self.vis_state == 1 or self.__state_changing then
+      gfx.set(0.8*self.r,0.8*self.g,0.8*self.b,math.max(self.a - 0.2, 0.2)*0.8)
+      gfx.rect(self.x1, self.y1, self.w, self.h)
 -- Button is not pressed
-elseif not self.state_changing or self.vis_state == 0 or self.__mouse_state == 0 then
-  gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
-  gfx.rect(self.x1, self.y1, self.w, self.h)
-  gfx.a = math.max(0.4*self.a, 0.6)
-  gfx.set(0.3*self.r,0.3*self.g,0.3*self.b,math.max(0.9*self.a,0.8))
-end
+  elseif not self.state_changing or self.vis_state == 0 or self.__mouse_state == 0 then
+      gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
+      gfx.rect(self.x1, self.y1, self.w, self.h)
+      gfx.a = math.max(0.4*self.a, 0.6)
+      gfx.set(0.3*self.r,0.3*self.g,0.3*self.b,math.max(0.9*self.a,0.8))
+  end
 
-self:draw_label()
-  gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
+  self:draw_label()
+    gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
     if self.border ~= 1 then
-    gfx.rect(self.x1-2, self.y1-2, self.w+4, self.h+4,0) -- e este
-    gfx.set(1,1,1,1)
-    gfx.set(0.1,0.1,0.1,1)
-    gfx.rect(self.x1-3, self.y1-3, self.w+6, self.h+6,0)  --este
-    --gfx.rect(self.x1-2, self.y1-2, self.w+4, self.h+4,0)
+      gfx.rect(self.x1-2, self.y1-2, self.w+4, self.h+4,0) 
+      gfx.set(1,1,1,1)
+      gfx.set(0.1,0.1,0.1,1)
+      gfx.rect(self.x1-3, self.y1-3, self.w+6, self.h+6,0)
     end
-  gfx.set(0.1,0.1,0.1,1)
-  gfx.rect(self.x1-1, self.y1-1, self.w+2, self.h+2,0)
+    gfx.set(0.1,0.1,0.1,1)
+    gfx.rect(self.x1-1, self.y1-1, self.w+2, self.h+2,0)
 end
 
 -------- The above is taken from SPK77's Play and Stop Buttons fine script ---------
@@ -523,7 +528,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local Docksel_x = GUI_centerx - 95
         local Docksel_y = GUI_centery - 346
         local Docksel_xlength = 10
-        local help = "Float or Dock L/R"
+        local help = "Dock ReaNoir Left"
         DockselL_btn = Button(Docksel_x,Docksel_y +10,Docksel_xlength,11,2,0,0,Docksel, help,0,1)
             if dock == 3841 then 
                 DockselL_btn:set_color(0.5,0.1,0.1,1)
@@ -535,7 +540,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                     DockselL_btn:set_color(0.5,0.1,0.1,1)
                     Write_Prefs()
                 end    
-              
+        local help = "Dock ReaNoir Right"       
         DockselR_btn = Button(Docksel_x +11,Docksel_y +10,Docksel_xlength,11,2,0,0,Docksel, help,0,1)
             if dock == 1 then 
                 DockselR_btn:set_color(0.5,0.1,0.1,1)
@@ -547,7 +552,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                     DockselR_btn:set_color(0.5,0.1,0.1,1)
                     Write_Prefs ()
                 end
-            
+        local help = "Float / Undock ReaNoir"    
         DockselU_btn = Button(Docksel_x,Docksel_y,Docksel_xlength +11,10,2,0,0,Docksel, help,0,1)
             if dock == 0 then 
                 DockselU_btn:set_color(0.5,0.1,0.1,1)
@@ -580,35 +585,38 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     function ColorBx_GUI(boxID,xspace,yspace)
         local ColorBx_x = GUI_centerx -57 + xspace
         local ColorBx_y = GUI_centery -71 + yspace
-        local help = "Rclick to save temp color"
+        local help = "Rmb->Save | Ctrl->Gradient"
         ColorBoxes [boxID] = Button (ColorBx_x, ColorBx_y, 20, 20, 2,0,0, "", help,0,1)
         ColorBoxes [boxID] : set_color(0.1, 0.1, 0.1, 1)
         ColorBx_CLICK(ColorBoxes [boxID],boxID)
     end      
     
-    function ColorBx_CLICK(boxID)  
-        boxID.onClick = function ()
-            if mode == "rgb" then
+    function SetSliders(boxID)
+        if mode == "rgb" then
               slider_btn_r.val = boxID.r +0.2 
               slider_btn_g.val = boxID.g +0.2 
               slider_btn_b.val = boxID.b +0.2 
-              slider_btn_a.val = boxID.a
-            end
-            if mode == "hsl" then
+              slider_btn_a.val = boxID.a            
+        elseif mode == "hsl" then
               local h, s, l = rgbToHsl(boxID.r+0.2, boxID.g+0.2, boxID.b+0.2)
               slider_btn_h.val = h
               slider_btn_s.val = s
               slider_btn_l.val = l 
               slider_btn_a.val = boxID.a
-            end
+        end
+    end
+    
+    function ColorBx_CLICK(boxID)  
+        boxID.onClick = function ()
+            SetSliders(boxID)
             if what == "tracks" then
-                Convert_RGB (boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
+                Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
                 ApplyColor_Tracks()
             elseif what == "items" then
-                Convert_RGB (boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
+                Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
                 ApplyColor_Items()             
             elseif what == "takes" then
-                Convert_RGB (boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
+                Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
                 ApplyColor_Takes()  
             end        
         end
@@ -622,7 +630,59 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
           end  
         end
         boxID.onCtrlClick = function ()
-          reaper.ShowConsoleMsg("you Ctrl clicked! box"..boxID.."\n")
+          if what == "tracks" then
+            local seltracks = reaper.CountSelectedTracks(0)
+            if seltracks > 2 then
+                  local firsttrack = reaper.GetSelectedTrack(0, 0)
+                  local firstcolor = reaper.GetMediaTrackInfo_Value(firsttrack, "I_CUSTOMCOLOR")
+                  if firstcolor == 0 or nil then
+                    reaper.MB("The first selected track must already have a custom color in order to make a gradient!", "Error!", 0 )
+                  else
+                    Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)                      
+                    local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor)
+                    local r_step = (red-firstcolor_r)/(seltracks-1)
+                    local g_step = (green-firstcolor_g)/(seltracks-1)
+                    local b_step = (blue-firstcolor_b)/(seltracks-1)
+                    for i=1,seltracks-1 do
+                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local track = reaper.GetSelectedTrack(0, i)
+                      reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
+                    end
+                    SetSliders(boxID)
+                  end
+            else
+                 reaper.MB( "Please select at least three tracks!", "Cannot create gradient colors!", 0 )
+            end
+          elseif what == "items"then
+            local selitems = reaper.CountSelectedMediaItems(0)
+            if selitems > 2 then
+                 local item = reaper.GetSelectedMediaItem( 0, 0 )
+                 local firstcolor = reaper.GetDisplayedMediaItemColor(item)
+                 if firstcolor == 0 or nil then
+                   reaper.MB("The first selected item must already have a custom color in order to make a gradient!", "Error!", 0 )
+                 else
+                   Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)
+                   local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                   local r_step = (red-firstcolor_r)/(selitems-1)
+                   local g_step = (green-firstcolor_g)/(selitems-1)
+                   local b_step = (blue-firstcolor_b)/(selitems-1)
+                   for i=1,selitems-1 do
+                     local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                     local item = reaper.GetSelectedMediaItem(0, i)
+                     local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                     local active_take = reaper.GetActiveTake(item)
+                     if active_take ~= nil then
+                      reaper.Main_OnCommand(41333, 0) -- Take: Set active take to default color
+                     end
+                     reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+                     reaper.UpdateArrange()
+                   end
+                   SetSliders(boxID)
+                 end
+            else
+                 reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
+            end
+          end
         end
     end
    
@@ -788,7 +848,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         local Darker_x = GUI_centerx -64
         local Darker_y = GUI_centery - 85
         local Darker_w = 56
-        local help = "RClick to set to black"
+        local help = "Rmb->Black | Ctrl->Gradient"
         Darker_btn = Button(Darker_x, Darker_y, Darker_w,22,2,0,0,"Darker",help,0,1)
         Darker_btn :set_label_color(0.8,0.8,0.8,1)
         Darker_btn.onClick = function ()
@@ -797,13 +857,16 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         Darker_btn.onRClick = function ()
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 0, 0, 0
         end
+        Darker_btn.onCtrlClick = function ()
+          reaper.ShowConsoleMsg("you Ctrl clicked Darker")
+        end
     end
     
     function Brighter_INIT()
         local Brighter_x = GUI_centerx -1
         local Brighter_y = GUI_centery - 85
         local Brighter_w = 56
-        local help = "RClick to set to white"
+        local help = "Rmb->White | Ctrl->Gradient"
         Brighter_btn = Button(Brighter_x, Brighter_y, Brighter_w,22,2,0,0,"Brighter",help,0,1)
         Brighter_btn :set_label_color(0.8,0.8,0.8,1)
         Brighter_btn.onClick = function ()
@@ -811,6 +874,9 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         end
         Brighter_btn.onRClick = function ()
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 1, 1, 1
+        end
+        Brighter_btn.onCtrlClick = function ()
+          reaper.ShowConsoleMsg("you Ctrl clicked Brighter")
         end
     end
     
@@ -862,7 +928,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
             if seltracks == 1 then 
                  local track =  reaper.GetSelectedTrack( 0, 0 )
                  local color = reaper.GetMediaTrackInfo_Value( track, "I_CUSTOMCOLOR" )
-                 if color ~= 16576 then
+                 if color ~= 16576 or 0 then
                  R, G, B = IntToRGB(color)
                  else R,G,B = 127,127,127
                  end
@@ -884,22 +950,9 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
             local selitems = reaper.CountSelectedMediaItems(0)
             if selitems == 1 then
                  local item =  reaper.GetSelectedMediaItem( 0, 0 )
-                 local take = reaper.GetActiveTake( item )
-                 if take then
-                  color = reaper.GetMediaItemTakeInfo_Value( take, "I_CUSTOMCOLOR" )
-                  if color == 0 then color =  reaper.GetMediaItemInfo_Value( item, "I_CUSTOMCOLOR" ) end
-                  if color == 0 then 
-                    local track =  reaper.GetMediaItem_Track( item )
-                    color = reaper.GetMediaTrackInfo_Value( track, "I_CUSTOMCOLOR" )
-                  end
-                 else
-                  color =  reaper.GetMediaItemInfo_Value( item, "I_CUSTOMCOLOR" )
-                  if color == 0 then
-                    local track =  reaper.GetMediaItem_Track( item )
-                    color = reaper.GetMediaTrackInfo_Value( track, "I_CUSTOMCOLOR" )
-                  end
-                 end
-                 local R, G, B = IntToRGB(color)
+                 local color = reaper.GetDisplayedMediaItemColor(item)
+                 local R, G, B = reaper.ColorFromNative(color|0x1000000)
+                 if color == 0 then R,G,B = 127,127,127 end
                  if mode == "rgb" then
                    slider_btn_r.val = R/255 
                    slider_btn_g.val = G/255
@@ -1319,7 +1372,7 @@ function init ()
 
   Read_Prefs()
   gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
-  gfx.setfont(2,"Arial", 15, 105)
+  gfx.setfont(2,"Tahoma", 13)
   gfx.setfont(1,"Arial", 15)          
   Dock_selector_INIT()
   ColorBx_INIT()
