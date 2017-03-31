@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1405a7ef36f4a79dfea5df408f0387a8cfabaf32" name="ReaTeam Scripts">
+<index version="1" commit="dbfb8ce09c396bcf78cc688c3c0c71ef1bbb763c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -116,6 +116,16 @@
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-01-18T20:57:05Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/010b7a52af573a3fdae2447b7e67427cd108bd55/Cursor/Lokasenna_Move%20edit%20cursor%20back%20two%20seconds.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move edit cursor to start of first item in selected tracks.lua" type="script" desc="Move edit cursor to start of first item in selected tracks">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-03-31T12:35:21Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbfb8ce09c396bcf78cc688c3c0c71ef1bbb763c/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
