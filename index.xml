@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="25714f25dfaa7a2ce2d9ecb4de63b41f7ea54eac" name="ReaTeam Scripts">
+<index version="1" commit="15928e6f1db6f94dcaf6d44df61fc114f75166bc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4145,7 +4145,8 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click SWS Colors button to open the SWS Color Management tool\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click sliders' area to toggle between RGB and HSL mode\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Information displayed on top of ReaNoir when hovering mouse over buttons/sliders\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Information displayed on top of ReaNoir when hovering mouse over buttons/sliders\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl-click on a color box to color the selected tracks/items from the existing color to the ctrl-clicked color in grades\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
@@ -4170,6 +4171,10 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.66" author="amagalma" time="2017-03-29T20:54:03Z">
         <changelog><![CDATA[+ Fixed bug when Getting Color in HSL mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1405a7ef36f4a79dfea5df408f0387a8cfabaf32/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="1.75" author="amagalma" time="2017-03-31T14:51:16Z">
+        <changelog><![CDATA[+ Added ability to make gradient colors from first selected track/item/take's color to the ctrl-clicked color box]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/15928e6f1db6f94dcaf6d44df61fc114f75166bc/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
