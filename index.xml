@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1f1fffb49fb6f3849367b57949a04e349c67b733" name="ReaTeam Scripts">
+<index version="1" commit="b3af9677442a80a7fdfd0039deeb2b3563e313fa" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4820,6 +4820,13 @@ open RM directly on that menu.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1f1fffb49fb6f3849367b57949a04e349c67b733/Various/Lokasenna_Radial%20Menu.lua</source>
         <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/1f1fffb49fb6f3849367b57949a04e349c67b733/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
         <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/1f1fffb49fb6f3849367b57949a04e349c67b733/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
+      </version>
+      <version name="2.6.1" author="Lokasenna" time="2017-04-02T02:10:30Z">
+        <changelog><![CDATA[New:
+- Can now add an action to the Action List to open specific menus (Menu tab)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3af9677442a80a7fdfd0039deeb2b3563e313fa/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/b3af9677442a80a7fdfd0039deeb2b3563e313fa/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/b3af9677442a80a7fdfd0039deeb2b3563e313fa/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
