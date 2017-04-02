@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.75
+-- @version 1.85
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -23,12 +23,15 @@
 --   - Ability to dock the script to the left or to the right
 --   - Right-click sliders' area to toggle between RGB and HSL mode
 --   - Information displayed on top of ReaNoir when hovering mouse over buttons/sliders
---   - Ctrl-click on a color box to color the selected tracks/items from the existing color to the ctrl-clicked color in grades
+--   - Ctrl-click on any color box (including the Temporary color box) to color the selected tracks/items/takes from the existing color to the ctrl-clicked color in grades
 --
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v1.85 (2017-04-02)
+  + Added ability to make gradient colors for takes too
+  + Gradient function now works for Temporary Color Box too
  * v1.75 (2017-03-31)
   + Added ability to make gradient colors from first selected track/item/take's color to the ctrl-clicked color box
  * v1.66 (2017-03-29)
@@ -79,7 +82,7 @@
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
 
-version = "v1.75"
+version = "v1.85"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -653,7 +656,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
             else
                  reaper.MB( "Please select at least three tracks!", "Cannot create gradient colors!", 0 )
             end
-          elseif what == "items"then
+          elseif what == "items" then
             local selitems = reaper.CountSelectedMediaItems(0)
             if selitems > 2 then
                  local item = reaper.GetSelectedMediaItem( 0, 0 )
@@ -682,6 +685,41 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
             else
                  reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
             end
+          elseif what == "takes" then
+            local selitems = reaper.CountSelectedMediaItems(0)
+            if selitems < 1 then
+              reaper.MB("Not any items are selected!", "Error!", 0 )
+            else
+              for i=0,selitems-1 do
+                local item = reaper.GetSelectedMediaItem(0, i)
+                local take_cnt = reaper.CountTakes(item)
+                if take_cnt < 3 then
+                  if found == 1 then found = 1 else found = 0 end
+                else
+                  found = 1
+                  local take = reaper.GetMediaItemTake( item, 0) -- get first take
+                  local firstcolor = reaper.GetDisplayedMediaItemColor2( item, take)
+                  Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)
+                  local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                  local r_step = (red-firstcolor_r)/(take_cnt-1)
+                  local g_step = (green-firstcolor_g)/(take_cnt-1)
+                  local b_step = (blue-firstcolor_b)/(take_cnt-1)
+                  for j=1, take_cnt-1 do
+                    local take = reaper.GetMediaItemTake( item, j)
+                    local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
+                    local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                    reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
+                    reaper.UpdateItemInProject( item )
+                    reaper.UpdateArrange()
+                  end
+                end
+              end
+              if found == 0 then
+                reaper.MB( "Not any item with more than two takes was selected!", "Cannot create gradient colors!", 0 )
+              end
+            end
+            SetSliders(boxID)
+            found = nil
           end
         end
     end
@@ -858,7 +896,6 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 0, 0, 0
         end
         Darker_btn.onCtrlClick = function ()
-          reaper.ShowConsoleMsg("you Ctrl clicked Darker")
         end
     end
     
@@ -876,7 +913,6 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 1, 1, 1
         end
         Brighter_btn.onCtrlClick = function ()
-          reaper.ShowConsoleMsg("you Ctrl clicked Brighter")
         end
     end
     
@@ -1102,7 +1138,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     function RGBsquare_INIT()
         local RGBsquare_initx = GUI_centerx -48
         local RGBsquare_inity = GUI_centery -312
-        local help = "RClick to remove color"             
+        local help = "Rmb->Default | Ctrl->Gradient"             
         RGBsquare_btn = Button(RGBsquare_initx, RGBsquare_inity, 80,70,2,0,0,"",help,0,1)        
         RGBsquare_btn.onClick = function ()
             Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)          
@@ -1130,6 +1166,95 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
               end
           end  
         end
+
+        RGBsquare_btn.onCtrlClick = function ()
+          if what == "tracks" then
+            local seltracks = reaper.CountSelectedTracks(0)
+            if seltracks > 2 then
+                  local firsttrack = reaper.GetSelectedTrack(0, 0)
+                  local firstcolor = reaper.GetMediaTrackInfo_Value(firsttrack, "I_CUSTOMCOLOR")
+                  if firstcolor == 0 or nil then
+                    reaper.MB("The first selected track must already have a custom color in order to make a gradient!", "Error!", 0 )
+                  else
+                    Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)                      
+                    local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor)
+                    local r_step = (red-firstcolor_r)/(seltracks-1)
+                    local g_step = (green-firstcolor_g)/(seltracks-1)
+                    local b_step = (blue-firstcolor_b)/(seltracks-1)
+                    for i=1,seltracks-1 do
+                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local track = reaper.GetSelectedTrack(0, i)
+                      reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
+                    end
+                  end
+            else
+                 reaper.MB( "Please select at least three tracks!", "Cannot create gradient colors!", 0 )
+            end
+          elseif what == "items" then
+            local selitems = reaper.CountSelectedMediaItems(0)
+            if selitems > 2 then
+                 local item = reaper.GetSelectedMediaItem( 0, 0 )
+                 local firstcolor = reaper.GetDisplayedMediaItemColor(item)
+                 if firstcolor == 0 or nil then
+                   reaper.MB("The first selected item must already have a custom color in order to make a gradient!", "Error!", 0 )
+                 else
+                   Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)
+                   local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                   local r_step = (red-firstcolor_r)/(selitems-1)
+                   local g_step = (green-firstcolor_g)/(selitems-1)
+                   local b_step = (blue-firstcolor_b)/(selitems-1)
+                   for i=1,selitems-1 do
+                     local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                     local item = reaper.GetSelectedMediaItem(0, i)
+                     local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                     local active_take = reaper.GetActiveTake(item)
+                     if active_take ~= nil then
+                      reaper.Main_OnCommand(41333, 0) -- Take: Set active take to default color
+                     end
+                     reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+                     reaper.UpdateArrange()
+                   end
+                 end
+            else
+                 reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
+            end
+          elseif what == "takes" then
+            local selitems = reaper.CountSelectedMediaItems(0)
+            if selitems < 1 then
+              reaper.MB("Not any items are selected!", "Error!", 0 )
+            else
+              for i=0,selitems-1 do
+                local item = reaper.GetSelectedMediaItem(0, i)
+                local take_cnt = reaper.CountTakes(item)
+                if take_cnt < 3 then
+                  if found == 1 then found = 1 else found = 0 end
+                else
+                  found = 1
+                  local take = reaper.GetMediaItemTake( item, 0) -- get first take
+                  local firstcolor = reaper.GetDisplayedMediaItemColor2( item, take)
+                  Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)
+                  local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                  local r_step = (red-firstcolor_r)/(take_cnt-1)
+                  local g_step = (green-firstcolor_g)/(take_cnt-1)
+                  local b_step = (blue-firstcolor_b)/(take_cnt-1)
+                  for j=1, take_cnt-1 do
+                    local take = reaper.GetMediaItemTake( item, j)
+                    local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
+                    local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                    reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
+                    reaper.UpdateItemInProject( item )
+                    reaper.UpdateArrange()
+                  end
+                end
+              end
+              if found == 0 then
+                reaper.MB( "Not any item with more than two takes was selected!", "Cannot create gradient colors!", 0 )
+              end
+            end
+            found = nil
+          end
+        end
+
     end
     
     function Sliders_GUI()
