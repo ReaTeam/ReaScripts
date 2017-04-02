@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b3af9677442a80a7fdfd0039deeb2b3563e313fa" name="ReaTeam Scripts">
+<index version="1" commit="111c43a1b0f175242696f8857ff2a3a144323e4a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4146,7 +4146,7 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click sliders' area to toggle between RGB and HSL mode\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Information displayed on top of ReaNoir when hovering mouse over buttons/sliders\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl-click on a color box to color the selected tracks/items from the existing color to the ctrl-clicked color in grades\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl-click on any color box (including the Temporary color box) to color the selected tracks/items/takes from the existing color to the ctrl-clicked color in grades\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
@@ -4175,6 +4175,11 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.75" author="amagalma" time="2017-03-31T14:51:16Z">
         <changelog><![CDATA[+ Added ability to make gradient colors from first selected track/item/take's color to the ctrl-clicked color box]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/15928e6f1db6f94dcaf6d44df61fc114f75166bc/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="1.85" author="amagalma" time="2017-04-02T11:40:12Z">
+        <changelog><![CDATA[+ Added ability to make gradient colors for takes too
++ Gradient function now works for Temporary Color Box too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/111c43a1b0f175242696f8857ff2a3a144323e4a/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
