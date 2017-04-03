@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.85
+-- @version 1.90
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -24,11 +24,16 @@
 --   - Right-click sliders' area to toggle between RGB and HSL mode
 --   - Information displayed on top of ReaNoir when hovering mouse over buttons/sliders
 --   - Ctrl-click on any color box (including the Temporary color box) to color the selected tracks/items/takes from the existing color to the ctrl-clicked color in grades
+--   - Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode
+--   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
 --
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v1.90 (2017-04-03)
+  + Added Compact (No Sliders) mode (set in the script)
+  + Last slider Mode (RGB or HSL) is now remembered when loading
  * v1.85 (2017-04-02)
   + Added ability to make gradient colors for takes too
   + Gradient function now works for Temporary Color Box too
@@ -82,7 +87,23 @@
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
 
-version = "v1.85"
+
+
+
+
+-------------------------------------------------\
+--------------------------------------------------|
+--                                                |
+      mode = "rgb"       -- "rgb" OR "compact"      <<------ MODE OF OPERATION (WITH/OUT SLIDERS)
+--                                                |
+--------------------------------------------------|
+-------------------------------------------------/
+
+
+
+
+
+version = "v1.90"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -439,22 +460,31 @@ end
 -------- The above is taken from SPK77's Play and Stop Buttons fine script ---------
 --------- so a big Thank You to him. Slight mods done to Mouse and colors ----------
 ------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
 
-                                  --///////--
+
          
+------------------------------------------
+------------- Variables ------------------
+------------------------------------------
+dock = 0
+colors = {}
+info = debug.getinfo(1,'S')
+script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
+separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
+last_palette_on_exit = script_path .."ReaNoir"..separ.."last_palette_on_exit.txt"
+UserPalettes_path = script_path .. "ReaNoir"..separ
+reaper.RecursiveCreateDirectory(UserPalettes_path,1)
 
 ------------------------------------------
---------- GUI Variables -----------------
+--------- GUI Variables ------------------
 ------------------------------------------
-
+if mode == "compact" then compact = 115 else compact = 0 end
 GUI_xstart = 5
 GUI_xend = 186
 GUI_ystart = 5
-GUI_yend = 690
+GUI_yend = 690 - compact
 GUI_centerx = GUI_xend/2 + GUI_xstart
-GUI_centery = GUI_yend/2 + GUI_ystart                 
+GUI_centery = GUI_yend/2 + GUI_ystart + compact/2                 
 
 ------------------------------------------
 --------- ColorBoxes Variables -----------
@@ -467,20 +497,6 @@ table.insert(ColorBoxes, { }) -- insert new row
 end 
 
 ------------------------------------------
---------- ??? Variables ------------------
-------------------------------------------
-dock = 0
-colors = {}
-mode = "rgb"
-info = debug.getinfo(1,'S')
-script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
-  separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
-last_palette_on_exit = script_path .."ReaNoir"..separ.."last_palette_on_exit.txt"
-UserPalettes_path = script_path .. "ReaNoir"..separ
-reaper.RecursiveCreateDirectory(UserPalettes_path,1)
- 
-
-------------------------------------------
 --------- Functions ----------------------
 ------------------------------------------
 
@@ -491,25 +507,25 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
       gfx.set(0.4,0.4,0.4,0.5)
       gfx.rect(GUI_xstart +5,GUI_ystart +5,GUI_xend -20,GUI_yend-20,1)
       local begin = 7
-      local endd = 168
+      local endd = 168-compact
       gfx.set(0.1,0.1,0.1,1)
       gfx.rect(GUI_xstart+begin+2,GUI_ystart+begin+16,GUI_xend-begin*3-7,GUI_yend-begin*3-179,0)
       gfx.set(0.1,0.1,0.1,0.7)
       gfx.rect(GUI_xstart+begin+4,GUI_ystart+begin+18,GUI_xend-begin*3-11,GUI_yend-begin*3-183,1)
-      gfx.rect(GUI_xstart +9,GUI_ystart+532,GUI_xend -28,GUI_yend-endd*3-48,1)
+      gfx.rect(GUI_xstart +9,GUI_ystart+532-compact,GUI_xend -28,GUI_yend-endd*3-48-compact*2,1)
       gfx.set(0.1,0.1,0.1,1)
-      gfx.rect(GUI_xstart +7,GUI_ystart+530,GUI_xend -24,GUI_yend-endd*3-44,0) 
+      gfx.rect(GUI_xstart +7,GUI_ystart+530-compact,GUI_xend -24,GUI_yend-endd*3-44-compact*2,0) 
       gfx.set(1,1,1,0.2)   
-      gfx.line(GUI_xstart +60,GUI_ystart+548,GUI_xstart +158,GUI_ystart+548,0) -- palette line up
-      gfx.line(GUI_xstart +16,GUI_ystart+625,GUI_xstart +158,GUI_ystart+625,0) -- palette line down
+      gfx.line(GUI_xstart +60,GUI_ystart+548-compact,GUI_xstart +158,GUI_ystart+548-compact,0) -- palette line up
+      gfx.line(GUI_xstart +16,GUI_ystart+625-compact,GUI_xstart +158,GUI_ystart+625-compact,0) -- palette line down
       gfx.set(1,1,1,0.5)
       gfx.x = GUI_xstart +16 -- Palette text x and y
-      gfx.y = GUI_ystart +540 
+      gfx.y = GUI_ystart +540 -compact
       gfx.drawstr ("Palette")
       gfx.set(0.1,0.1,0.1,1)
-      gfx.rect(GUI_xstart +13,GUI_ystart+558,GUI_xstart +145,24,0) -- Palette name border
+      gfx.rect(GUI_xstart +13,GUI_ystart+558-compact,GUI_xstart +145,24,0) -- Palette name border
       gfx.set(0.2,0.2,0.2,1) 
-      gfx.rect(GUI_xstart +14,GUI_ystart+559,GUI_xstart +143,22,1) -- Palette name field   
+      gfx.rect(GUI_xstart +14,GUI_ystart+559-compact,GUI_xstart +143,22,1) -- Palette name field   
     end
         
     function Dock_selector_GUI()
@@ -553,7 +569,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                 DockselR_btn.onClick = function () 
                     dock = 1
                     DockselR_btn:set_color(0.5,0.1,0.1,1)
-                    Write_Prefs ()
+                    Write_Prefs()
                 end
         local help = "Float / Undock ReaNoir"    
         DockselU_btn = Button(Docksel_x,Docksel_y,Docksel_xlength +11,10,2,0,0,Docksel, help,0,1)
@@ -566,7 +582,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                     dock = 0
                     DockselU_btn:set_color(0.5,0.1,0.1,1)
                     Write_Prefs()
-                end                        
+                end                     
     end 
     
     function ColorBx_INIT()
@@ -587,7 +603,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function ColorBx_GUI(boxID,xspace,yspace)
         local ColorBx_x = GUI_centerx -57 + xspace
-        local ColorBx_y = GUI_centery -71 + yspace
+        local ColorBx_y = GUI_centery -71 + yspace - compact
         local help = "Rmb->Save | Ctrl->Gradient"
         ColorBoxes [boxID] = Button (ColorBx_x, ColorBx_y, 20, 20, 2,0,0, "", help,0,1)
         ColorBoxes [boxID] : set_color(0.1, 0.1, 0.1, 1)
@@ -595,7 +611,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     end      
     
     function SetSliders(boxID)
-        if mode == "rgb" then
+        if mode == "rgb" or mode == "compact" then
               slider_btn_r.val = boxID.r +0.2 
               slider_btn_g.val = boxID.g +0.2 
               slider_btn_b.val = boxID.b +0.2 
@@ -826,7 +842,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
       end
       gfx.set(1,1,1,0.7)
       gfx.x = GUI_xstart +21 -- Palette info text x and y
-      gfx.y = GUI_ystart +562
+      gfx.y = GUI_ystart +562 -compact
       gfx.drawstr(palette_display)
     end
     
@@ -842,7 +858,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
 
     function SavePalette_INIT()
         local SavePalette_x = GUI_centerx -1
-        local SavePalette_y = GUI_centery + 246
+        local SavePalette_y = GUI_centery + 246 -compact
         local SavePalette_w = 65
         local help = "RClick to Save as"
         SavePalette_btn = Button(SavePalette_x, SavePalette_y, SavePalette_w,22,2,0,0,"Save",help,0,1)
@@ -953,10 +969,15 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function GetColor_INIT()
        local GetColor_x = GUI_centerx -52
-       local GetColor_y = GUI_centery + 128
+       local GetColor_y = GUI_centery + 128 - compact
        local GetColor_w = 94
        local help = "Copy selected to temp color"
-       GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
+       local help2 = "Lmb->Get selected | Rmb->Set"
+       if mode == "rgb" or mode == "hsl" then
+         GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
+       elseif mode == "compact" then
+         GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help2,0,1)
+       end
        GetColor_btn :set_label_color(0.8,0.8,0.8,1)                 
        GetColor_btn.onClick = function ()         
           if what == "tracks" then
@@ -968,7 +989,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                  R, G, B = IntToRGB(color)
                  else R,G,B = 127,127,127
                  end
-                 if mode == "rgb" then
+                 if mode == "rgb" or mode == "compact" then
                    slider_btn_r.val = R/255 
                    slider_btn_g.val = G/255
                    slider_btn_b.val = B/255
@@ -977,7 +998,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                    slider_btn_h.val = h
                    slider_btn_s.val = s
                    slider_btn_l.val = l 
-                   slider_btn_a.val = 1
+                   slider_btn_a.val = 1  
                  end
             else
                  reaper.MB( "Please selected only one track.", "Error!", 0 )
@@ -989,7 +1010,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                  local color = reaper.GetDisplayedMediaItemColor(item)
                  local R, G, B = reaper.ColorFromNative(color|0x1000000)
                  if color == 0 then R,G,B = 127,127,127 end
-                 if mode == "rgb" then
+                 if mode == "rgb" or mode == "compact" then
                    slider_btn_r.val = R/255 
                    slider_btn_g.val = G/255
                    slider_btn_b.val = B/255
@@ -1006,6 +1027,15 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
           end
        end
        GetColor_btn.onRClick = function ()
+         if mode == "compact" then
+           local answer, color = reaper.GR_SelectColor()
+           if answer ~= 0 then
+            local R, G, B = reaper.ColorFromNative(color|0x1000000)
+            slider_btn_r.val = R/255 
+            slider_btn_g.val = G/255
+            slider_btn_b.val = B/255
+           end
+         end
        end 
     end
   
@@ -1041,7 +1071,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
   
     function LoadPalette_INIT()
         local LoadPalette_x = GUI_centerx -72
-        local LoadPalette_y = GUI_centery + 246
+        local LoadPalette_y = GUI_centery + 246 -compact
         local LoadPalette_w = 65
         local help = "RClick to load default"
         LoadPalette_btn = Button(LoadPalette_x, LoadPalette_y, LoadPalette_w,22,2,0,0,"Load",help,0,1)
@@ -1075,7 +1105,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function ColorTracks_INIT()
         local ColorTracks_x = GUI_centerx -78
-        local ColorTracks_y = GUI_centery + 292
+        local ColorTracks_y = GUI_centery + 292 -compact
         local ColorTracks_w = 46
         local help = "Click to exit Takes mode"
         ColorTracks_btn = Button(ColorTracks_x, ColorTracks_y, ColorTracks_w,22,2,0,0,"Tracks",help,0,1)
@@ -1088,7 +1118,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function ColorItems_INIT()
         local ColorItems_x = GUI_centerx -28
-        local ColorItems_y = GUI_centery + 292
+        local ColorItems_y = GUI_centery + 292 -compact
         local ColorItems_w = 46
         local help = "Click to exit Takes mode"
         ColorItems_btn = Button(ColorItems_x, ColorItems_y, ColorItems_w,22,2,0,0,"Items",help,0,1)
@@ -1101,7 +1131,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     
     function ColorTakes_INIT()
         local ColorTakes_x = GUI_centerx +22
-        local ColorTakes_y = GUI_centery + 292
+        local ColorTakes_y = GUI_centery + 292 -compact
         local ColorTakes_w = 46
         local help = "Take mode - manual exit"
         ColorTakes_btn = Button(ColorTakes_x, ColorTakes_y, ColorTakes_w,22,2,0,0,"Takes",help,0,1)
@@ -1212,7 +1242,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                       reaper.Main_OnCommand(41333, 0) -- Take: Set active take to default color
                      end
                      reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
-                     reaper.UpdateArrange()
+                     reaper.UpdateItemInProject( item )
                    end
                  end
             else
@@ -1243,7 +1273,6 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
                     local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
                     reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
                     reaper.UpdateItemInProject( item )
-                    reaper.UpdateArrange()
                   end
                 end
               end
@@ -1276,17 +1305,16 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     function Sliders_INIT()
         local Sliders_initx = GUI_centerx -45
         local Sliders_inity = GUI_centery + (50/2)*-6.2
-        if mode == "rgb" then
-          local help = "RClick to change to HSL"
-          slider_btn_r = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "R",help, 1, 0, 0)
-          slider_btn_g = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "G",help, 0, 1, 0)
-          slider_btn_b = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "B",help, 0, 0, 1)
-          slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5)                         
-        elseif mode == "hsl" then
+        local help = "RClick to change to HSL"
+        slider_btn_r = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "R",help, 1, 0, 0)
+        slider_btn_g = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "G",help, 0, 1, 0)
+        slider_btn_b = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "B",help, 0, 0, 1)
+        slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5)                         
+        if mode == "hsl" then
           local help = "RClick to change to RGB"
-          slider_btn_h = Slider(Sliders_initx, Sliders_inity, 100, 15, 0.39, 0, 1, "H",help, 0.8, 0, 1)
-          slider_btn_s = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0.39, 0, 1, "S",help, 1, 0.05, 0.05)
-          slider_btn_l = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.39, 0, 1, "L",help, 1, 1, 1)
+          slider_btn_h = Slider(Sliders_initx, Sliders_inity, 100, 15, 0, 0, 1, "H",help, 0.8, 0, 1)
+          slider_btn_s = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0, 0, 1, "S",help, 1, 0.05, 0.05)
+          slider_btn_l = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.38824, 0, 1, "L",help, 1, 1, 1)
           slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5) 
         end   
     end
@@ -1468,6 +1496,7 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
         
     function Write_Prefs()
         reaper.SetExtState("ReaNoir", "Dock", tostring(dock), 1)
+        if mode ~= "compact" then reaper.SetExtState("ReaNoir", "Mode", mode, 1) end
         local _, x, y, _, _ = gfx.dock(-1, 0, 0, 0, 0)
         reaper.SetExtState("ReaNoir", "x", tostring(x), 1)
         reaper.SetExtState("ReaNoir", "y", tostring(y), 1)
@@ -1479,6 +1508,10 @@ reaper.RecursiveCreateDirectory(UserPalettes_path,1)
     function Read_Prefs()
       local HasState = reaper.HasExtState("ReaNoir", "Dock")
       if HasState == true then dock = tonumber(reaper.GetExtState("ReaNoir", "Dock")) end
+      if mode == "rgb" or mode == "hsl" then
+        local HasState = reaper.HasExtState("ReaNoir", "Mode")
+        if HasState == true then mode = tostring(reaper.GetExtState("ReaNoir", "Mode")) end
+      end
       local HasState = reaper.HasExtState("ReaNoir", "Loaded file")
       if HasState == true then last = tostring(reaper.GetExtState("ReaNoir", "Loaded file")) end
       local HasState1 = reaper.HasExtState("ReaNoir", "x") 
@@ -1509,9 +1542,9 @@ function init ()
   else
     LoadColorFile(last)
   end
-  
+   
+  Sliders_INIT()
   RGBsquare_INIT() 
-  Sliders_INIT()   
   SavePalette_INIT()
   LoadPalette_INIT()
   ColorTracks_INIT()
@@ -1548,18 +1581,22 @@ function main()
   
   RGBsquare_GUI()
   RGBsquare_btn:draw()
-  RGBsquare_btn:set_color(slider_btn_r.val -0.2, slider_btn_g.val -0.2, slider_btn_b.val -0.2, slider_btn_a.val)
+  if mode == "rgb" or "hsl" then
+    RGBsquare_btn:set_color(slider_btn_r.val -0.2, slider_btn_g.val -0.2, slider_btn_b.val -0.2, slider_btn_a.val)
+  elseif mode == "compact" then
+    RGBsquare_btn:set_color(R/255, G/255, B/255, 1)
+  end
   
   HEXinfo_GUI()
   HEXinfo_btn:draw()
   
-  Sliders_GUI()
-  if mode == "hsl" then 
+  if mode == "hsl" then
+    Sliders_GUI() 
     slider_btn_h:draw()
     slider_btn_s:draw()
     slider_btn_l:draw()
-  end
-  if mode == "rgb" then
+  elseif mode == "rgb" then
+    Sliders_GUI()
     slider_btn_r:draw()
     slider_btn_g:draw()
     slider_btn_b:draw()
