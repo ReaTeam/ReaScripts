@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2beta
+-- @version 2.0beta
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -31,7 +31,7 @@
 
 --[[
  * Changelog:
- * v.2beta (2017-04-04)
+ * v2.0beta (2017-04-04)
   + Coloring actions now create undo points in Reaper's Undo History
   + Better handling of empty items when applying gradient colors to many items in Takes Mode
   + Random colors when in Takes Mode now can color Empty items too (empty items have no takes)
@@ -112,7 +112,7 @@
 
 
 
-version = "v2beta"
+version = "v2.0beta"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
