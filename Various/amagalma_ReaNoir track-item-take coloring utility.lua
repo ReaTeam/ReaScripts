@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.90
+-- @version 1.95
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -11,7 +11,7 @@
 --   - Load/save different user palettes (.txt files)
 --   - Left-click Save button to Save current palette or Right-Click to Save As
 --   - Left-click Load button to load a new palette or Right-Click to load the default palette
---   - Set the Temporary color to the color of a track/item/take according to what was lastly clicked (Get Color button)
+--   - Set the Temporary color to the color of the first selected track/item/take according to what was lastly clicked (Get Color button)
 --   - Show Hex name of Temporary color
 --   - Left-click Hex name to enter a Hex color code manually (formats: 123456, #123456, # 123456 & 0x123456)
 --   - Right-click Hex name to paste it to the clipboard for use with SWS Auto Color/Icons
@@ -31,6 +31,10 @@
 
 --[[
  * Changelog:
+ * v1.95 (2017-04-04)
+  + Added Random color button: select random colors from the current palette (no color is repeated until all 24 have been used)
+  + Removed "select only one track/item" pop-ups when Getting Color. It gets the first selected one
+  + Changed behavior of Right-Click Temporary Color box in Items Mode to set all takes of items to default color
  * v1.90 (2017-04-03)
   + Added Compact (No Sliders) mode (set in the script)
   + Last slider Mode (RGB or HSL) is now remembered when loading
@@ -103,7 +107,7 @@
 
 
 
-version = "v1.90"
+version = "v1.95"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -967,10 +971,82 @@ end
       return R,G,B
     end
     
+    
+    function RandomColors_INIT()
+      local RandomColors_x = GUI_centerx -72
+      local RandomColors_y = GUI_centery + 128 - compact
+      local RandomColors_w = 65
+      local help = "Select colors randomly"
+      RandomColors_btn = Button(RandomColors_x, RandomColors_y, RandomColors_w,22,2,0,0,"Random",help,0,1)
+      RandomColors_btn :set_label_color(0.8,0.8,0.8,1)
+      
+      RandomColors_btn.onClick = function ()
+        local list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+        local list_size = 24
+        if what == "tracks" then
+            local seltracks = reaper.CountSelectedTracks(0)
+            for i=0, seltracks-1 do
+              if list_size == 0 then
+                list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+                list_size = 24
+              end      
+              local k = math.random(1, list_size)
+              local colorbox = list[k]
+              table.remove(list, k)
+              list_size = list_size-1
+              Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
+              local cur_track = reaper.GetTrack(0,i)
+              local sel_track = reaper.IsTrackSelected(cur_track)
+                if sel_track == true then 
+                  reaper.SetTrackColor(cur_track, ConvertedRGB) 
+                end
+            end
+            list, list_size = nil, nil            
+        elseif what == "items" then
+            local seltitems = reaper.CountSelectedMediaItems(0)
+            for i=0, seltitems-1 do
+              if list_size == 0 then
+                list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+                list_size = 24
+              end      
+              local k = math.random(1, list_size)
+              local colorbox = list[k]
+              table.remove(list, k)
+              list_size = list_size-1
+              Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
+              local cur_item = reaper.GetSelectedMediaItem(0,i)
+              reaper.SetMediaItemInfo_Value(cur_item, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
+              reaper.UpdateItemInProject( cur_item )
+            end         
+        elseif what == "takes" then
+            local seltitems = reaper.CountSelectedMediaItems(0)
+            for i=0, seltitems-1 do
+              local cur_item = reaper.GetSelectedMediaItem(0,i)
+              local take_cnt = reaper.CountTakes( cur_item )
+              for j=0, take_cnt-1 do
+                if list_size == 0 then
+                  list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+                  list_size = 24
+                end      
+                local k = math.random(1, list_size)
+                local colorbox = list[k]
+                table.remove(list, k)
+                list_size = list_size-1
+                Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
+                cur_take = reaper.GetMediaItemTake( cur_item, j)
+                reaper.SetMediaItemTakeInfo_Value(cur_take, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
+              end
+              reaper.UpdateItemInProject(cur_item )
+            end         
+        end
+      end
+    end
+    
+    
     function GetColor_INIT()
-       local GetColor_x = GUI_centerx -52
+       local GetColor_x = GUI_centerx -1
        local GetColor_y = GUI_centery + 128 - compact
-       local GetColor_w = 94
+       local GetColor_w = 65
        local help = "Copy selected to temp color"
        local help2 = "Lmb->Get selected | Rmb->Set"
        if mode == "rgb" or mode == "hsl" then
@@ -1000,8 +1076,6 @@ end
                    slider_btn_l.val = l 
                    slider_btn_a.val = 1  
                  end
-            else
-                 reaper.MB( "Please selected only one track.", "Error!", 0 )
             end
           elseif what == "items" or what == "takes" then
             local selitems = reaper.CountSelectedMediaItems(0)
@@ -1021,8 +1095,6 @@ end
                    slider_btn_l.val = l 
                    slider_btn_a.val = 1
                  end
-            else
-                 reaper.MB( "Please selected only one item.", "Error!", 0 )
             end
           end
        end
@@ -1179,7 +1251,9 @@ end
         end     
         RGBsquare_btn.onRClick = function ()
           if what == "tracks" then reaper.Main_OnCommand(40359, 0) -- Track: Set to default color
-          elseif what == "items" then reaper.Main_OnCommand(40707, 0) -- Item: Set to default color
+          elseif what == "items" then
+            reaper.Main_OnCommand(40707, 0) -- Item: Set to default color
+            reaper.Main_OnCommand(41337, 0) -- Take: Set all takes of selected items to default color
           else  -- takes
           local item_count =  reaper.CountSelectedMediaItems(0)
               if item_count > 0 then      
@@ -1554,6 +1628,7 @@ function init ()
   Brighter_INIT()
   HEXinfo_INIT()
   GetColor_INIT()
+  RandomColors_INIT()
   OpenSWS_INIT()
   LoadSWS_INIT()
   SetSelected()
@@ -1609,6 +1684,7 @@ function main()
   SavePalette_btn:draw()
   LoadPalette_btn:draw()
   GetColor_btn:draw()
+  RandomColors_btn:draw()
   ColorTracks_btn:draw()
   ColorItems_btn:draw()
   ColorTakes_btn:draw()
