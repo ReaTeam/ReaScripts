@@ -1,6 +1,6 @@
 --[[
-Description: Track selection follows item selection.lua
-Version: 1.0
+Description: Track selection follows item selection
+Version: 1.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
