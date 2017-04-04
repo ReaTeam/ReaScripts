@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fd26952fb52d53c134f4a674e4a14e6bf6efd6fb" name="ReaTeam Scripts">
+<index version="1" commit="0e36947a54f24706bbbab160e7908083d23a800d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -735,7 +735,7 @@ added support for all track envelopes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f34d02614399a582a1b5e82b80b5e4deabe6c6f/Items%20Properties/Lokasenna_Toggle%20selected%20item's%20image%20between%20notes%20and%20background.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Track selection follows item selection.lua" type="script" desc="Track selection follows item selection.lua">
+    <reapack name="Lokasenna_Track selection follows item selection.lua" type="script" desc="Track selection follows item selection">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -754,6 +754,10 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="Lokasenna" time="2017-04-04T22:10:54Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd26952fb52d53c134f4a674e4a14e6bf6efd6fb/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2017-04-04T22:51:38Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/17ba3726bc7a1eadce2de2ab2df605abd9134fd0/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
@@ -4960,6 +4964,23 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:23Z">
         <changelog><![CDATA[Stores the last script to an ExtState; for companion script]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3bde81f8ccdc3be7c1aae4693437117ce36c47f4/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Scroll mixer to first selected track.lua" type="script" desc="Scroll mixer to first selected track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Scrolls the mixer so that the first selected track is at the left-hand side, if possible.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-04-04T22:52:25Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0e36947a54f24706bbbab160e7908083d23a800d/Various/Lokasenna_Scroll%20mixer%20to%20first%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
