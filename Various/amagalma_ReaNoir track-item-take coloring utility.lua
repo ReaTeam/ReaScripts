@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.0beta
+-- @version 2.0
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -26,11 +26,15 @@
 --   - Ctrl-click on any color box (including the Temporary color box) to color the selected tracks/items/takes from the existing color to the ctrl-clicked color in grades
 --   - Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode
 --   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
---
+--   - Click on "?" on right top corner to display information, Right-Click for manual
+
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v2.0 (2017-04-05)
+  + added Information button on right top corner
+  + GetColor now gets correctly the first selected track/item/take color when many are selected
  * v2.0beta (2017-04-04)
   + Coloring actions now create undo points in Reaper's Undo History
   + Better handling of empty items when applying gradient colors to many items in Takes Mode
@@ -112,7 +116,7 @@
 
 
 
-version = "v2.0beta"
+version = "v2.0"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -924,7 +928,7 @@ end
         local Darker_x = GUI_centerx -64
         local Darker_y = GUI_centery - 85
         local Darker_w = 56
-        local help = "Rmb->Black | Ctrl->Gradient"
+        local help = "Rclick to set Temp to Black"
         Darker_btn = Button(Darker_x, Darker_y, Darker_w,22,2,0,0,"Darker",help,0,1)
         Darker_btn :set_label_color(0.8,0.8,0.8,1)
         Darker_btn.onClick = function ()
@@ -941,7 +945,7 @@ end
         local Brighter_x = GUI_centerx -1
         local Brighter_y = GUI_centery - 85
         local Brighter_w = 56
-        local help = "Rmb->White | Ctrl->Gradient"
+        local help = "Rclick to set Temp to White"
         Brighter_btn = Button(Brighter_x, Brighter_y, Brighter_w,22,2,0,0,"Brighter",help,0,1)
         Brighter_btn :set_label_color(0.8,0.8,0.8,1)
         Brighter_btn.onClick = function ()
@@ -1096,7 +1100,7 @@ end
        GetColor_btn.onClick = function ()         
           if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
-            if seltracks == 1 then 
+            if seltracks > 0 then 
                  local track =  reaper.GetSelectedTrack( 0, 0 )
                  local color = reaper.GetMediaTrackInfo_Value( track, "I_CUSTOMCOLOR" )
                  if color ~= 16576 or 0 then
@@ -1117,7 +1121,7 @@ end
             end
           elseif what == "items" or what == "takes" then
             local selitems = reaper.CountSelectedMediaItems(0)
-            if selitems == 1 then
+            if selitems > 0 then
                  local item =  reaper.GetSelectedMediaItem( 0, 0 )
                  local color = reaper.GetDisplayedMediaItemColor(item)
                  local R, G, B = reaper.ColorFromNative(color|0x1000000)
@@ -1267,7 +1271,138 @@ end
                   ColorTakes_btn:set_color(0.05,1,0,0.3)
        end
     end 
-                   
+    
+    function ShowInfo()
+        local ShowInfo_x = GUI_centerx + 50
+        local ShowInfo_y = GUI_centery -315
+        local help = "lmb->Info | Rmb->Manual"
+        ShowInfo_btn = Button(ShowInfo_x, ShowInfo_y, 15,15,2,0,0,"?",help,0,1)
+        ShowInfo_btn:set_color(0.4, 0.4, 0.4, 0.25)
+        ShowInfo_btn:set_label_color(0.85,0.85,0.85,1)
+        ShowInfo_btn.onClick = function ()
+            local Info = [[
+                                  --- ReaNoir track/item/take coloring utility ---
+                                                        script by amagalma
+                                      
+- part of the code is modification of codes by Spacemen Tree, spk77 & Em. Oga
+- special thanks to them and to X-Raym, cfillion and Lokasenna for their help!
+
+                                                         ^^ Features: ^^
+
+- Palette of 24 Color Boxes + 1 Temporary Color Box (the big color box on top)
+
+- Click any of the color boxes to Color Tracks, Items or Takes and set it as
+  Temporary Color
+  
+- Tracks/Items Mode is set automatically according to what was lastly clicked.
+  The Takes mode is set and exited manually by the user
+  
+- Temporary Color can be adjusted by the Sliders and saved in to any of the
+  24 Color Boxes
+  
+- Hex name of Temporary Color is shown and can be copied to clipboard in a
+  SWS Auto Color/Icons ready format
+  
+- A color can be entered in the Temporary Color Box by entering its hex code too
+
+- ReaNoir can create Gradient Colors between existing track/item/take colors
+  and any of the Color Boxes (including the Temporary Box)
+  
+- Ability to apply a random color selection to tracks/items/takes. No color is
+  repeated before all 24 have been used
+  
+- Two available Slider Modes: RGB and HSL
+
+- Two available script modes: RGB/HSL and Compact (No Sliders). The mode is
+  set inside the script in the "MODE OF OPERATION" section box
+  
+- When in Compact (No Sliders) Mode, Right-click Get Color Button to set
+  Temporary Color Box's color
+  
+- Palettes can be loaded and saved as txt files. They reside in ReaNoir folder in
+  the same path as the script
+  
+- Default palette is hard-coded into the script
+
+- Current palette is automatically saved as last_palette_on_exit.txt as a backup
+  each time the script exits
+  
+- SWSColor files can be imported as ReaNoir palettes via the dedicated Load SWS
+  button. The 16 colors get loaded to the first 16 Color Boxes and the rest 8
+  Color Boxes get filled with gradient colors from the two gradient colors specified
+  in the SWSColor file
+  
+- ReaNoir can be docked Left/Right or Float and remembers its position and
+  dock state, and last Slider Mode (RGB or HSL)
+  
+- 3 available click modes: left click, right click and ctrl-left click
+
+- Information is displayed on top of ReaNoir when hovering mouse over
+  buttons/sliders]]
+            reaper.MB(Info, "Information", 0)
+        end
+        ShowInfo_btn.onRClick = function ()
+        local Info = [[
+FROM TOP TO BOTTOM        
+        
+Docker Buttons (upper left corner) ----------------------------------------------
+- Click to dock Left/Right or Float
+
+Temporary Color Box (big color box on top) -----------------------------------
+- Left-click to apply color
+- Right-click to apply default color (remove custom color)
+- Ctrl-click to make gradient colors from first selected track/item/take color
+  to Temporary Color
+
+Hex Display ------------------------------------------------------------------
+- Left-click Hex name to enter a Hex color code manually (formats: 123456,
+  #123456, # 123456 & 0x123456)
+- Right-click to copy Hex code to clipboard
+
+Load SWS Button: Load SWSColor file -----------------------------------------
+
+SWS Colors Button: Open SWS Color Management ---------------------------
+
+Sliders Area -------------------------------------------------------------------
+- Left-click to change Temporary Color
+- Right-click to toggle between RGB-HSL modes
+
+Darker/Brighter buttons (in RGB mode) --------------------------------------
+- Left-click to darken/brighten Temporary Color
+- Right-click to set Temporary Color to Black/White
+
+24 Color Boxes ---------------------------------------------------------------
+- Left-click to apply color
+- Right-click to save Temporary Color into right-clicked color box
+- Ctrl-click to make gradient colors from first selected track/item/take
+  color to Color Box color
+
+Random Color --------------------------------------------------------------
+- Apply random color selection from the palette
+
+Get Color --------------------------------------------------------------------
+- RGB/HSL mode: get first selected track/item/take color and load it to
+  Temporary Color Box
+- Compact(No Sliders) mode: left-click the same. Right-click to define
+  Temporary Color Box's color
+
+Palette box: Shows loaded palette --------------------------------------------
+
+Load Button ------------------------------------------------------------------
+- Left-click to load ReaNoir palette
+- Right-click to load default palette
+
+Save Button -------------------------------------------------------------------
+- Left-click to Save
+- Right-click to Save As
+
+Tracks/Items/Takes: shows to what colors are applied ------------------------  
+]]
+            reaper.MB(Info, "Information", 0)
+        end
+        
+    end
+                       
     function RGBsquare_GUI()
         local RGBsquare_x = GUI_centerx -48
         local RGBsquare_y = GUI_centery -312
@@ -1683,6 +1818,7 @@ function init ()
   OpenSWS_INIT()
   LoadSWS_INIT()
   SetSelected()
+  ShowInfo()
       
   -- Initialize focus
   local init_focus = reaper.GetCursorContext2(true)
@@ -1742,7 +1878,8 @@ function main()
   if mode == "rgb" then Darker_btn:draw() end
   if mode == "rgb" then Brighter_btn:draw() end
   OpenSWS_btn:draw()
-  LoadSWS_btn:draw()  
+  LoadSWS_btn:draw()
+  ShowInfo_btn:draw()  
   Palette_info_GUI()
   Change_Mode()  
 
