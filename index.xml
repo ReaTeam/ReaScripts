@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0e36947a54f24706bbbab160e7908083d23a800d" name="ReaTeam Scripts">
+<index version="1" commit="c74192e9c875974bd797086e420514e1d4be0b90" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4173,10 +4173,10 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Information displayed on top of ReaNoir when hovering mouse over buttons/sliders\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl-click on any color box (including the Temporary color box) to color the selected tracks/items/takes from the existing color to the ctrl-clicked color in grades\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on "?" on right top corner to display information, Right-Click for manual\sa180\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
       </metadata>
       <version name="1.50" author="amagalma" time="2017-03-25T19:36:58Z">
         <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
@@ -4221,6 +4221,16 @@ Made by Mordi, Jan 2016]]></changelog>
       </version>
       <version name="2.0beta" author="amagalma" time="2017-04-04T18:01:04Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dfd1e811d52fde858b7f0d1d1616c5c891cd8177/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.0" author="amagalma" time="2017-04-04T23:21:26Z">
+        <changelog><![CDATA[+ added Information button on right top corner
++ GetColor now gets correctly the first selected track/item/take color when many are selected
+* v2.0beta (2017-04-04)
++ Coloring actions now create undo points in Reaper's Undo History
++ Better handling of empty items when applying gradient colors to many items in Takes Mode
++ Random colors when in Takes Mode now can color Empty items too (empty items have no takes)
++ Fixed bug when applying random colors to tracks]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c74192e9c875974bd797086e420514e1d4be0b90/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
