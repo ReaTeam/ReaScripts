@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dfd1e811d52fde858b7f0d1d1616c5c891cd8177" name="ReaTeam Scripts">
+<index version="1" commit="fd26952fb52d53c134f4a674e4a14e6bf6efd6fb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -733,6 +733,27 @@ added support for all track envelopes]]></changelog>
       <version name="1.0" author="Lokasenna" time="2017-01-05T22:47:13Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4f34d02614399a582a1b5e82b80b5e4deabe6c6f/Items%20Properties/Lokasenna_Toggle%20selected%20item's%20image%20between%20notes%20and%20background.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Track selection follows item selection.lua" type="script" desc="Track selection follows item selection.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Runs in the background and allows you to replicate a behavior from Cubase - when selecting items, the track selection is changed to match and the mixer view is scrolled to show the first selected track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To exit, open the Actions menu, and click on: Running script: Lokasenna_Track selection follows item selection.lua down at the bottom.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: This script is a rewrite of: tritonality_X-Raym_Cubase_Style_SelectTrack_On_ItemSelect.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It had a few bugs and I couldn't understand the original code well enough to fix them, so I opted to rewrite it from scratch.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?p=1583631">Forum Thread</link>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-04-04T22:10:54Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd26952fb52d53c134f4a674e4a14e6bf6efd6fb/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
