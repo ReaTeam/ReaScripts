@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 1.95
+-- @version 2.0beta
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -31,6 +31,11 @@
 
 --[[
  * Changelog:
+ * v2.0beta (2017-04-04)
+  + Coloring actions now create undo points in Reaper's Undo History
+  + Better handling of empty items when applying gradient colors to many items in Takes Mode
+  + Random colors when in Takes Mode now can color Empty items too (empty items have no takes)
+  + Fixed bug when applying random colors to tracks
  * v1.95 (2017-04-04)
   + Added Random color button: select random colors from the current palette (no color is repeated until all 24 have been used)
   + Removed "select only one track/item" pop-ups when Getting Color. It gets the first selected one
@@ -107,7 +112,7 @@
 
 
 
-version = "v1.95"
+version = "v2.0beta"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -661,6 +666,7 @@ end
                   if firstcolor == 0 or nil then
                     reaper.MB("The first selected track must already have a custom color in order to make a gradient!", "Error!", 0 )
                   else
+                    reaper.Undo_BeginBlock()
                     Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)                      
                     local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor)
                     local r_step = (red-firstcolor_r)/(seltracks-1)
@@ -671,6 +677,7 @@ end
                       local track = reaper.GetSelectedTrack(0, i)
                       reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
                     end
+                    reaper.Undo_EndBlock("Color selected track(s) with gradient colors", -1)
                     SetSliders(boxID)
                   end
             else
@@ -684,6 +691,7 @@ end
                  if firstcolor == 0 or nil then
                    reaper.MB("The first selected item must already have a custom color in order to make a gradient!", "Error!", 0 )
                  else
+                   reaper.Undo_BeginBlock()
                    Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)
                    local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
                    local r_step = (red-firstcolor_r)/(selitems-1)
@@ -700,11 +708,13 @@ end
                      reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
                      reaper.UpdateArrange()
                    end
+                   reaper.Undo_EndBlock("Color selected item(s) with gradient colors", -1)
                    SetSliders(boxID)
                  end
             else
                  reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
             end
+          
           elseif what == "takes" then
             local selitems = reaper.CountSelectedMediaItems(0)
             if selitems < 1 then
@@ -724,6 +734,7 @@ end
                   local r_step = (red-firstcolor_r)/(take_cnt-1)
                   local g_step = (green-firstcolor_g)/(take_cnt-1)
                   local b_step = (blue-firstcolor_b)/(take_cnt-1)
+                  reaper.Undo_BeginBlock()
                   for j=1, take_cnt-1 do
                     local take = reaper.GetMediaItemTake( item, j)
                     local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
@@ -732,6 +743,7 @@ end
                     reaper.UpdateItemInProject( item )
                     reaper.UpdateArrange()
                   end
+                  reaper.Undo_EndBlock("Color takes of selected item(s) with gradient colors", -1)
                 end
               end
               if found == 0 then
@@ -800,7 +812,8 @@ end
       return r,g,b
     end
                        
-    function ApplyColor_Tracks()     
+    function ApplyColor_Tracks()
+      reaper.Undo_BeginBlock()     
          local track_count = reaper.CountTracks(0)         
          for i=0, track_count-1 do 
            local cur_track = reaper.GetTrack(0,i)
@@ -809,9 +822,11 @@ end
                reaper.SetTrackColor(cur_track, ConvertedRGB) 
                end
          end
+      reaper.Undo_EndBlock("Color selected track(s)", -1)
     end
     
-    function ApplyColor_Items()     
+    function ApplyColor_Items()
+      reaper.Undo_BeginBlock()     
          local item_count =  reaper.CountSelectedMediaItems(0)
          if item_count > 0 then      
              for i=0, item_count-1 do 
@@ -820,9 +835,11 @@ end
              reaper.UpdateItemInProject(cur_item)
              end     
          end
+      reaper.Undo_EndBlock("Color selected item(s)", -1)
     end
     
-    function ApplyColor_Takes()     
+    function ApplyColor_Takes()
+      reaper.Undo_BeginBlock()     
         local item_count =  reaper.CountSelectedMediaItems(0)
         if item_count > 0 then      
             for i=0, item_count-1 do 
@@ -836,6 +853,7 @@ end
             reaper.UpdateItemInProject(cur_item)   
             end     
         end
+      reaper.Undo_EndBlock("Color active take of selected item(s)", -1)
     end
     
     function Palette_info_GUI()
@@ -985,6 +1003,7 @@ end
         local list_size = 24
         if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
+            reaper.Undo_BeginBlock()
             for i=0, seltracks-1 do
               if list_size == 0 then
                 list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
@@ -995,35 +1014,19 @@ end
               table.remove(list, k)
               list_size = list_size-1
               Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
-              local cur_track = reaper.GetTrack(0,i)
+              local cur_track = reaper.GetSelectedTrack(0,i)
               local sel_track = reaper.IsTrackSelected(cur_track)
-                if sel_track == true then 
-                  reaper.SetTrackColor(cur_track, ConvertedRGB) 
+                if sel_track == true then
+                  reaper.SetTrackColor(cur_track, ConvertedRGB)
                 end
             end
+            reaper.Undo_EndBlock("Set random color selection for selected track(s)", -1)
             list, list_size = nil, nil            
         elseif what == "items" then
             local seltitems = reaper.CountSelectedMediaItems(0)
-            for i=0, seltitems-1 do
-              if list_size == 0 then
-                list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
-                list_size = 24
-              end      
-              local k = math.random(1, list_size)
-              local colorbox = list[k]
-              table.remove(list, k)
-              list_size = list_size-1
-              Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
-              local cur_item = reaper.GetSelectedMediaItem(0,i)
-              reaper.SetMediaItemInfo_Value(cur_item, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
-              reaper.UpdateItemInProject( cur_item )
-            end         
-        elseif what == "takes" then
-            local seltitems = reaper.CountSelectedMediaItems(0)
-            for i=0, seltitems-1 do
-              local cur_item = reaper.GetSelectedMediaItem(0,i)
-              local take_cnt = reaper.CountTakes( cur_item )
-              for j=0, take_cnt-1 do
+            if seltitems > 0 then
+            reaper.Undo_BeginBlock()
+              for i=0, seltitems-1 do
                 if list_size == 0 then
                   list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
                   list_size = 24
@@ -1033,11 +1036,46 @@ end
                 table.remove(list, k)
                 list_size = list_size-1
                 Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
-                cur_take = reaper.GetMediaItemTake( cur_item, j)
-                reaper.SetMediaItemTakeInfo_Value(cur_take, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
+                local cur_item = reaper.GetSelectedMediaItem(0,i)
+                reaper.SetMediaItemInfo_Value(cur_item, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
+                reaper.UpdateItemInProject( cur_item )
+              end         
+            reaper.Undo_EndBlock("Set random color selection for selected item(s)", -1)
+            end
+        elseif what == "takes" then
+          local seltitems = reaper.CountSelectedMediaItems(0)
+          if seltitems > 0 then
+            reaper.Undo_BeginBlock()
+            for i=0, seltitems-1 do
+              local cur_item = reaper.GetSelectedMediaItem(0,i)
+              local take_cnt = reaper.CountTakes(cur_item)
+              if take_cnt == 0 then
+                local k = math.random(1, list_size)
+                local colorbox = list[k]
+                table.remove(list, k)
+                list_size = list_size-1
+                Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)
+                reaper.SetMediaItemInfo_Value(cur_item, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
+                reaper.UpdateItemInProject(cur_item)
+              else
+                for j=0, take_cnt-1 do
+                  if list_size == 0 then
+                    list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+                    list_size = 24
+                  end      
+                  local k = math.random(1, list_size)
+                  local colorbox = list[k]
+                  table.remove(list, k)
+                  list_size = list_size-1
+                  Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
+                  cur_take = reaper.GetMediaItemTake( cur_item, j)
+                  reaper.SetMediaItemTakeInfo_Value(cur_take, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
+                  reaper.UpdateItemInProject(cur_item)
+                end
               end
-              reaper.UpdateItemInProject(cur_item )
             end         
+            reaper.Undo_EndBlock("Set random color selection for selected take(s)", -1)
+          end
         end
       end
     end
@@ -1280,6 +1318,7 @@ end
                   if firstcolor == 0 or nil then
                     reaper.MB("The first selected track must already have a custom color in order to make a gradient!", "Error!", 0 )
                   else
+                    reaper.Undo_BeginBlock()
                     Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)                      
                     local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor)
                     local r_step = (red-firstcolor_r)/(seltracks-1)
@@ -1290,6 +1329,7 @@ end
                       local track = reaper.GetSelectedTrack(0, i)
                       reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
                     end
+                    reaper.Undo_EndBlock("Color selected track(s) with gradient colors", -1)
                   end
             else
                  reaper.MB( "Please select at least three tracks!", "Cannot create gradient colors!", 0 )
@@ -1302,6 +1342,7 @@ end
                  if firstcolor == 0 or nil then
                    reaper.MB("The first selected item must already have a custom color in order to make a gradient!", "Error!", 0 )
                  else
+                   reaper.Undo_BeginBlock()
                    Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)
                    local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
                    local r_step = (red-firstcolor_r)/(selitems-1)
@@ -1318,6 +1359,7 @@ end
                      reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
                      reaper.UpdateItemInProject( item )
                    end
+                   reaper.Undo_EndBlock("Color selected item(s) with gradient colors", -1)
                  end
             else
                  reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
@@ -1334,23 +1376,32 @@ end
                   if found == 1 then found = 1 else found = 0 end
                 else
                   found = 1
-                  local take = reaper.GetMediaItemTake( item, 0) -- get first take
-                  local firstcolor = reaper.GetDisplayedMediaItemColor2( item, take)
-                  Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)
-                  local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
-                  local r_step = (red-firstcolor_r)/(take_cnt-1)
-                  local g_step = (green-firstcolor_g)/(take_cnt-1)
-                  local b_step = (blue-firstcolor_b)/(take_cnt-1)
-                  for j=1, take_cnt-1 do
-                    local take = reaper.GetMediaItemTake( item, j)
-                    local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
-                    local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
-                    reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
-                    reaper.UpdateItemInProject( item )
-                  end
                 end
               end
-              if found == 0 then
+              if found == 1 then
+                reaper.Undo_BeginBlock()
+                for i=0,selitems-1 do
+                  local item = reaper.GetSelectedMediaItem(0, i)
+                  local take_cnt = reaper.CountTakes(item)
+                  if take_cnt > 2 then
+                    local take = reaper.GetMediaItemTake( item, 0) -- get first take
+                    local firstcolor = reaper.GetDisplayedMediaItemColor2( item, take)
+                    Convert_RGB(slider_btn_r.val, slider_btn_g.val,slider_btn_b.val, slider_btn_a.val)
+                    local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                    local r_step = (red-firstcolor_r)/(take_cnt-1)
+                    local g_step = (green-firstcolor_g)/(take_cnt-1)
+                    local b_step = (blue-firstcolor_b)/(take_cnt-1)
+                    for j=1, take_cnt-1 do
+                      local take = reaper.GetMediaItemTake( item, j)
+                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
+                      local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                      reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
+                      reaper.UpdateItemInProject( item )
+                    end
+                  end
+                end
+                reaper.Undo_EndBlock("Color selected take(s) with gradient colors", -1)
+              elseif found == 0 then
                 reaper.MB( "Not any item with more than two takes was selected!", "Cannot create gradient colors!", 0 )
               end
             end
