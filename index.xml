@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c74192e9c875974bd797086e420514e1d4be0b90" name="ReaTeam Scripts">
+<index version="1" commit="e126c7c46837d260072538e071003c7e6c776b63" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4483,7 +4483,7 @@ Web Interface:
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Create action to open a file... .lua" type="script" desc="Lokasenna_Create action to open a file...">
+    <reapack name="Lokasenna_Create action to open a file... .lua" type="script" desc="Create action to open a file...">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -4512,6 +4512,10 @@ Web Interface:
       <version name="1.2.0" author="Lokasenna" time="2017-03-18T02:13:38Z">
         <changelog><![CDATA[Uses the file name as a suggested alias]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/72680a930d8ba322385cd23baed99ff3fd526b5b/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
+      </version>
+      <version name="1.2.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create mix bus and reroute all top-level tracks to it.lua" type="script" desc="Create mix bus and reroute all top-level tracks to it">
@@ -4936,7 +4940,7 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Lokasenna_Run last Lua script in debug mode">
+    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -4953,8 +4957,12 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:40Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67e146f0d8c840a69d719113fb1a4e7f0fc94cc6/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
       </version>
+      <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
     </reapack>
-    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Lokasenna_Run Lua script in debug mode">
+    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Run Lua script in debug mode">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -4974,6 +4982,10 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:23Z">
         <changelog><![CDATA[Stores the last script to an ExtState; for companion script]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3bde81f8ccdc3be7c1aae4693437117ce36c47f4/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+      <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Scroll mixer to first selected track.lua" type="script" desc="Scroll mixer to first selected track">
