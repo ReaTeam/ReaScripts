@@ -1,10 +1,10 @@
 --[[
 Description: Track selection follows item selection
-Version: 1.0.1
+Version: 1.0.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release
+	Bug fix
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1583631
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -98,7 +98,9 @@ local function Main()
 			
 			------------------------------------------
 			--Optional, comment this out if you want--
-			reaper.SetMixerScroll( reaper.GetSelectedTrack(0, 0) )
+			if num_items > 0 then
+				reaper.SetMixerScroll( reaper.GetSelectedTrack(0, 0) )
+			end
 			------------------------------------------
 			
 		else
