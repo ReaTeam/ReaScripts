@@ -1,10 +1,10 @@
 --[[
-Description: Lokasenna_Run Lua script in debug mode
-Version: 1.1.0
+Description: Run Lua script in debug mode
+Version: 1.1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Stores the last script to an ExtState; for companion script
+	Name change for consistency
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
