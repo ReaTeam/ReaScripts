@@ -1,10 +1,10 @@
 --[[
 Description: Scroll mixer to first selected track
-Version: 1.0
+Version: 1.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release
+	Bug fix
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -15,4 +15,6 @@ Extensions:
 
 -- Licensed under the GNU GPL v3
 
-reaper.SetMixerScroll( reaper.GetSelectedTrack(0, 0) )
+if reaper.CountSelectedTracks( 0 ) > 0 then
+	reaper.SetMixerScroll( reaper.GetSelectedTrack(0, 0) )
+end
