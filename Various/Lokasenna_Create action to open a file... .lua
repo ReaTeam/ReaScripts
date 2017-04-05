@@ -1,10 +1,10 @@
 --[[
-Description: Lokasenna_Create action to open a file...
-Version: 1.2.0
+Description: Create action to open a file...
+Version: 1.2.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Uses the file name as a suggested alias
+	Name change for consistency
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=189152
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
