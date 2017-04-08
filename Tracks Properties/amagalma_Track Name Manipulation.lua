@@ -3,6 +3,9 @@
 -- @version 1.0
 -- @about
 --   # Utility to manipulate track names
+--   - Manipulate track names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
+--   -
+--   - Undo points are created only if track names have been changed when you close the script or if track names have been changed when you change track selection.
 
 -- @link http://forum.cockos.com/showthread.php?t=190534
 
