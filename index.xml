@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c14d111d4191bc9a3ae066bf918c1166f5be400e" name="ReaTeam Scripts">
+<index version="1" commit="a10b9cab04260ad6e1e03a634b6cd8f4c75ab6e2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3895,6 +3895,23 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Tracks Properties">
+    <reapack name="amagalma_Track Name Manipulation.lua" type="script" desc="amagalma_Track Name Manipulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track names have been changed when you close the script or if track names have been changed when you change track selection.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-04-08T19:37:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a10b9cab04260ad6e1e03a634b6cd8f4c75ab6e2/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
+      </version>
+    </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
