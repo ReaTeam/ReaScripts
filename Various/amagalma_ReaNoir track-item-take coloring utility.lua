@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.0
+-- @version 2.01
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -32,6 +32,8 @@
 
 --[[
  * Changelog:
+ * v2.01 (2017-04-09)
+  + small bugfix for OSX
  * v2.0 (2017-04-05)
   + added Information button on right top corner
   + GetColor now gets correctly the first selected track/item/take color when many are selected
@@ -116,7 +118,7 @@
 
 
 
-version = "v2.0"
+version = "v2.01"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -864,7 +866,7 @@ end
       if loaded_file == "Default" then palette_display = "Default"
       elseif loaded_file == last_palette_on_exit then palette_display = "unsaved palette"
       else
-        palette_display = string.gsub(loaded_file:match("^.+\\(.+)$"), ".txt", "" )
+        palette_display = string.gsub(loaded_file:match("^.+"..separ.."(.+)$"), ".txt", "")
       end
       gfx.set(1,1,1,0.7)
       gfx.x = GUI_xstart +21 -- Palette info text x and y
