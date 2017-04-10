@@ -6,6 +6,11 @@
 --
 --   - Does not create undo points by default. Easily changeable in the end of the script.
 
+--[[
+ * Changelog:
+ * v1.01 (2017-04-10)
+  + made the action substantially faster when many items (>500) are selected
+--]]
 
 local reaper = reaper
 local add = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 -1 -1\nPT 0 1 0\n>"
@@ -137,7 +142,9 @@ end
 
 -- Uncomment undos if you want Undo points to be created
 --reaper.Undo_BeginBlock()
+reaper.PreventUIRefresh(1)
 ToggleTakeVolEnvVisible()
+reaper.PreventUIRefresh(-1)
 --reaper.Undo_EndBlock("Toggle active take volume envelope visible", -1)
 -- Comment the line below if you have uncommented the Undo lines
 function NoUndoPoint() end ; reaper.defer(NoUndoPoint)
