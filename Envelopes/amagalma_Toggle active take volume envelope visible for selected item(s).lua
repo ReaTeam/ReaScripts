@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle active take volume envelope visible for selected item(s)
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Toggles visibility of (active) take volume envelopes for the selected item(s)
 --
