@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="33ade1182e6e3a78d3ee913b71cfc6837efd9431" name="ReaTeam Scripts">
+<index version="1" commit="0ded24c2fb64a36e3859f1680a36991ed0c75e23" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -176,7 +176,7 @@
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-10T02:04:46Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/26acc9b4ef2116ac7651fa29b489fddc47e16515/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ded24c2fb64a36e3859f1680a36991ed0c75e23/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
