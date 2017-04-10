@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="db88868d79f9ab4505f237b76a828ae68a87ed4b" name="ReaTeam Scripts">
+<index version="1" commit="26acc9b4ef2116ac7651fa29b489fddc47e16515" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -164,6 +164,21 @@
     </reapack>
   </category>
   <category name="Envelopes">
+    <reapack name="amagalma_Toggle active take volume envelope visible for selected item(s).lua" type="script" desc="amagalma_Toggle active take volume envelope visible for selected item(s)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles visibility of (active) take volume envelopes for the selected item(s)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Does not create undo points by default. Easily changeable in the end of the script.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-04-10T02:04:46Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/26acc9b4ef2116ac7651fa29b489fddc47e16515/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
