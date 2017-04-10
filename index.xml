@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0ded24c2fb64a36e3859f1680a36991ed0c75e23" name="ReaTeam Scripts">
+<index version="1" commit="410851d4a904eb8d1c0152fa2f11b1331f0518f4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -177,6 +177,26 @@
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-10T02:04:46Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ded24c2fb64a36e3859f1680a36991ed0c75e23/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-04-10T18:21:31Z">
+        <changelog><![CDATA[+ made the action substantially faster when many items (>500) are selected]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/410851d4a904eb8d1c0152fa2f11b1331f0518f4/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle take volume envelope visible for all takes of all items in project.lua" type="script" desc="amagalma_Toggle active take volume envelope visible for all items in project">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles visibility of take volume envelopes for all takes of all items in project\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Equivalent to Start+Shift+Hyphen ("Show/hide Clip Gain Line") in Pro Tools\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Does not create undo points by default. Easily changeable in the end of the script.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-04-10T18:20:56Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a210539e8cc95b65c1237cefa7d98043a015d9ae/Envelopes/amagalma_Toggle%20take%20volume%20envelope%20visible%20for%20all%20takes%20of%20all%20items%20in%20project.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
