@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="410851d4a904eb8d1c0152fa2f11b1331f0518f4" name="ReaTeam Scripts">
+<index version="1" commit="067a3bc0aec176f3c72518f11384d5fb60a1ac8c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -181,6 +181,10 @@
       <version name="1.01" author="amagalma" time="2017-04-10T18:21:31Z">
         <changelog><![CDATA[+ made the action substantially faster when many items (>500) are selected]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/410851d4a904eb8d1c0152fa2f11b1331f0518f4/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-04-11T20:39:04Z">
+        <changelog><![CDATA[+ fixed bug that would crop to active take when hiding empty envelope of first and active take in a multitake item]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/067a3bc0aec176f3c72518f11384d5fb60a1ac8c/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle take volume envelope visible for all takes of all items in project.lua" type="script" desc="amagalma_Toggle active take volume envelope visible for all items in project">
