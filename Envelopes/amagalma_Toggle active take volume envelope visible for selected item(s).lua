@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle active take volume envelope visible for selected item(s)
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Toggles visibility of (active) take volume envelopes for the selected item(s)
 --
@@ -8,13 +8,15 @@
 
 --[[
  * Changelog:
+ * v1.02 (2017-0-11)
+  + fixed bug that would crop to active take when hiding empty envelope of first and active take in a multitake item
  * v1.01 (2017-04-10)
   + made the action substantially faster when many items (>500) are selected
 --]]
 
 local reaper = reaper
 local add = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 -1 -1\nPT 0 1 0\n>"
-local remove = "\n<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 %-1 %-1\nPT 0 1 0\n>"
+local remove = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 %-1 %-1\nPT 0 1 0\n>\n"
 
 
 local function CreateItemVolEnv(item)
@@ -47,10 +49,11 @@ end
 
 local function RemoveActiveTakeVolEnv(item)
   local startrem, endrem = string.find(chunk, remove, startafter)  
-  local first = string.sub(chunk, 1, startrem)
-  local second = string.sub(chunk, endrem)
+  local first = string.sub(chunk, 1, startrem-1)
+  local second = string.sub(chunk, endrem+1)
   local newchunk = first..second
   reaper.SetItemStateChunk(item, newchunk, false)
+  startafter = nil
 end
 
 
@@ -92,7 +95,7 @@ local function ToggleTakeVolEnvVisible()
           local _, chunk = reaper.GetEnvelopeStateChunk(VolEnv, "")
           local visible = string.match(chunk, "\nVIS (%d).-\n")
           if visible == "0" then
-            show =1
+            show = 1
             goto dostuff
           end   
         end
@@ -104,7 +107,7 @@ local function ToggleTakeVolEnvVisible()
     local item = reaper.GetSelectedMediaItem(0, i)
     local take_cnt = reaper.CountTakes(item)
     local take = reaper.GetActiveTake(item)
-    if take then
+    if take_cnt > 0 then
       local VolEnv = reaper.GetTakeEnvelopeByName(take, "Volume")
       if not VolEnv then
         if show == 1 then 
@@ -125,8 +128,12 @@ local function ToggleTakeVolEnvVisible()
             end
           elseif take_cnt > 1 then
             _, chunk = reaper.GetItemStateChunk(item, "", false)
-            local _, startafter = string.find(chunk, "TAKE SEL")
-            if string.find(chunk, remove, startafter) ~= nil then
+            _, startafter = string.find(chunk, "TAKE SEL")
+            _ = nil
+            if not startafter then
+              startafter = string.find(chunk, ">\n<VOLENV")-10
+            end
+            if string.find(chunk, remove, startafter) then
               RemoveActiveTakeVolEnv(item)
               chunk = nil
             else
