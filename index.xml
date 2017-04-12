@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4a94561684b24027415f1709821820cfddc5fa1c" name="ReaTeam Scripts">
+<index version="1" commit="48e8d6885b3def1df36af4e901d4b7dd248dff67" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4317,6 +4317,20 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="2.01" author="amagalma" time="2017-04-09T14:57:58Z">
         <changelog><![CDATA[+ small bugfix for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/db88868d79f9ab4505f237b76a828ae68a87ed4b/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle select/unselect all tracks/items/envelope points depending on what is under mouse\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-04-12T17:49:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/48e8d6885b3def1df36af4e901d4b7dd248dff67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
