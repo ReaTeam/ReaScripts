@@ -1,16 +1,22 @@
 -- @description amagalma_Toggle active take volume envelope visible for all items in project
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Toggles visibility of take volume envelopes for all takes of all items in project
 --
 --   - Equivalent to Start+Shift+Hyphen ("Show/hide Clip Gain Line") in Pro Tools
 --   - Does not create undo points by default. Easily changeable in the end of the script.
 
+--[[
+ * Changelog:
+ * v1.01 (2017-0-11)
+  + fixed bug that would crop to active take when hiding empty envelope of first and active take in a multitake item
+--]]
+
 
 local reaper = reaper
 local add = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 -1 -1\nPT 0 1 0\n>"
-local remove = "\n<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 %-1 %-1\nPT 0 1 0\n>"
+local remove = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 %-1 %-1\nPT 0 1 0\n>\n"
 
 
 local function CreateItemVolEnv(item)
@@ -43,9 +49,10 @@ end
 
 local function RemoveActiveTakeVolEnv(item)
   local startrem, endrem = string.find(chunk, remove, startafter)  
-  local first = string.sub(chunk, 1, startrem)
-  local second = string.sub(chunk, endrem)
+  local first = string.sub(chunk, 1, startrem-1)
+  local second = string.sub(chunk, endrem+1)
   local newchunk = first..second
+  startafter = nil
   reaper.SetItemStateChunk(item, newchunk, false)
 end
 
@@ -138,7 +145,7 @@ local function ToggleTakeVolEnvVisible()
           elseif show == 0 then 
             if take_cnt == 1 then
               _, chunk = reaper.GetItemStateChunk(item, "", false)
-              if string.find(chunk, remove) ~= nil then
+              if string.find(chunk, remove) then
                 RemoveItemVolEnv(item)
                 chunk = nil
               else
@@ -146,8 +153,12 @@ local function ToggleTakeVolEnvVisible()
               end
             elseif take_cnt > 1 then
               _, chunk = reaper.GetItemStateChunk(item, "", false)
-              local _, startafter = string.find(chunk, "TAKE SEL")
-              if string.find(chunk, remove, startafter) ~= nil then
+              _, startafter = string.find(chunk, "TAKE SEL")
+              _ = nil
+              if not startafter then 
+                startafter = string.find(chunk, ">\n<VOLENV")-10 
+              end
+              if string.find(chunk, remove, startafter) then
                 RemoveActiveTakeVolEnv(item)
                 chunk = nil
               else
