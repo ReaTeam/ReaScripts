@@ -4,8 +4,7 @@
 -- @about
 --   # Script: Implodes items across tracks into takes, removes empty tracks and inherits their height
 --
-
--- @link http://stash.reaper.fm/30479/amagalma_Implode%20items%20across%20tracks%20into%20takes%20%28remove%20empty%20tracks%29.gif
+-- @screenshot http://stash.reaper.fm/30479/amagalma_Implode%20items%20across%20tracks%20into%20takes%20%28remove%20empty%20tracks%29.gif
 
 
 local reaper = reaper
