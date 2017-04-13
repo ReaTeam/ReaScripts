@@ -1,12 +1,19 @@
 -- @description amagalma_Track Name Manipulation
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
 -- @about
 --   # Utility to manipulate track names
 --   - Manipulate track names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
 --   -
 --   - Undo points are created only if track names have been changed when you close the script or if track names have been changed when you change track selection.
+--
 -- @link http://forum.cockos.com/showthread.php?t=190534
+
+--[[
+ * Changelog:
+ * v1.1 (2017-04-13)
+  + added Number button to add index numbering as a prefix or suffix
+--]]
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
@@ -121,6 +128,7 @@ end
 function Button:set_help_text()
   if self.help_text == "Replaces all instances of the pattern provided\n with the replacement" or
      self.help_text == "Removes specified number of characters\n from the start" or
+     self.help_text == "Adds index numbers at the start or end (p->\nprefix | s->suffix, then the starting number" or
      self.help_text == "Removes specified number of characters\n from the end" then
     gfx.y = strh + 6.75*strh*1.5 
   else
@@ -306,6 +314,7 @@ local function main() -- MAIN FUNCTION
   f(); capitalize_btn:draw()
   f(); title_btn:draw()
   f(); strip_btn:draw()
+  f(); number_btn:draw()
   
   -- Check every one second to see if the track selection has changed
   local newtime=os.time()
@@ -360,6 +369,10 @@ local function init() -- INITIALIZATION
   local label, help = "Suffix", "Appends text to the end"
   local width, height = gfx.measurestr(label)
   suffix_btn = Button(strw + strh*2 - (width + strh), strh, width + strh, height + strh/8, 2, 0, 0, label, help)
+  
+  local label, help = "Number", "Adds index numbers at the start or end (p->\nprefix | s->suffix, then the starting number"
+  local width, height = gfx.measurestr(label)
+  number_btn = Button((strw + strh*2 - width)/2, strh, width + strh, height + strh/8, 2, 0, 0, label, help)
   
   local label, help = "Trim Start", "Removes specified number of characters\n from the start"
   local width, height = gfx.measurestr(label)
@@ -425,7 +438,31 @@ local function init() -- INITIALIZATION
       end
     end  
   end
-
+  
+  function number_btn.onClick()
+    if CheckTracks() then
+      local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 1, "Specify mode and number:", "")
+      if ok then
+        if text:match("[psPS]%s?%d+") then
+          local newName = ""
+          local mode, number = text:match("([psPS])%s?(%d+)")
+          for i=0, trackCount-1 do
+            local trackId = reaper.GetSelectedTrack(0, i)
+            local _, currentName = reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", "", 0)
+            if mode:match("[pP]") then
+              newName = string.format("%02d", math.floor(number+i)) .. " " .. currentName
+            else
+              newName = currentName .. " " .. string.format("%02d", math.floor(number+i))
+            end
+            reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", tostring(newName), 1)
+          end
+        else
+          reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
+        end
+      end
+    end  
+  end
+  
   function replace_btn.onClick()
     if CheckTracks() then
       local ok, retvals = reaper.GetUserInputs("Replace", 2, "Pattern:,Replacement:", "")
