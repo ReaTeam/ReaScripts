@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.01
+-- @version 2.02
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -27,9 +27,13 @@
 --   - Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode
 --   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
 --   - Click on "?" on right top corner to display information, Right-Click for manual
+
 -- @link http://forum.cockos.com/showthread.php?t=189602
+
 --[[
  * Changelog:
+ * v2.02 (2017-04-13)
+  + bugfix: entering Hex codes when in HSL mode was not working
  * v2.01 (2017-04-09)
   + small bugfix for OSX
  * v2.0 (2017-04-05)
@@ -116,7 +120,7 @@
 
 
 
-version = "v2.01"
+version = "v2.02"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -1670,12 +1674,20 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
                     elseif string.match(answer, "#") == "#" then answer = answer:gsub("#", "")
                     elseif string.match(answer, "0x") == "0x" then answer = answer:gsub("0x", "")
                     end                
-                  local R = tonumber("0x"..answer:sub(1,2))
-                  local G = tonumber("0x"..answer:sub(3,4))
-                  local B = tonumber("0x"..answer:sub(5,6))
-                  slider_btn_r.val = R/255 
-                  slider_btn_g.val = G/255  
-                  slider_btn_b.val = B/255
+                    local R = tonumber("0x"..answer:sub(1,2))
+                    local G = tonumber("0x"..answer:sub(3,4))
+                    local B = tonumber("0x"..answer:sub(5,6))
+                    if mode == "rgb" or mode == "compact" then
+                      slider_btn_r.val = R/255 
+                      slider_btn_g.val = G/255  
+                      slider_btn_b.val = B/255
+                    elseif mode == "hsl" then
+                      local h, s, l = rgbToHsl(R/255, G/255, B/255)
+                      slider_btn_h.val = h
+                      slider_btn_s.val = s
+                      slider_btn_l.val = l 
+                      slider_btn_a.val = 1
+                    end
                   else
                       reaper.ShowMessageBox("This is not a valid number!", "Error!", 0)
                   end  
