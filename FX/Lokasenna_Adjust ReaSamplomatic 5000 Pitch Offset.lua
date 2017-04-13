@@ -1,15 +1,21 @@
 --[[
 Description: Adjust ReaSamplomatic 5000 Pitch Offset
-Version: 1.2
+Version: 1.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Added a "reset to 0" action
+	- Added preliminary support for relative MIDI
+	- Now uses a more accurate multiplier internally; prev. versions
+	would add a cent of error every 13 semitones or so.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Provides hotkey/MIDI functionality to adjust the pitch of a sample
 	in ReaSamplomatic 5000
+	
+	For use with MIDI CCs, bind a control knob to one of the Up actions
+	and set it for Relative control. Binding a CC to the Down actions 
+	will work backwards.
 Extensions:
 Provides:
 	[main] Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/*.lua
@@ -22,11 +28,14 @@ Provides:
 
 local undo_str = (add or 0.01) .. " semitones"
 
-local frac = 0.00006252527237
-local add = (add or 0.01) * 100 * frac
+-- Preliminary support for relative MIDI control
+local new_val, fn, sID, cID, mode, res, val = reaper.get_action_context()
+
+local frac =  0.0000625002384186
+local add = (add or 0.01) * 100 * frac * ((mode > 0 and val ~= 0) and (math.abs(val) / val) or 1)
 local param = 15			-- RS5K's Pitch Offset parameter
 
-local retval, tracknumberOut, itemnumberOut, fxnumberOut = reaper.GetFocusedFX() 
+local retval, tracknumberOut, itemnumberOut, fxnumberOut = reaper.GetFocusedFX()
 
 -- Adjust for the track given by GetFocusedFX being zero-based
 local track = reaper.GetTrack( 0, tracknumberOut - 1 )
