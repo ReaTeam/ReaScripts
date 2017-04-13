@@ -27,9 +27,7 @@
 --   - Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode
 --   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
 --   - Click on "?" on right top corner to display information, Right-Click for manual
-
 -- @link http://forum.cockos.com/showthread.php?t=189602
-
 --[[
  * Changelog:
  * v2.01 (2017-04-09)
