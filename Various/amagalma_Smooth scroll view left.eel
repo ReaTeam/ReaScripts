@@ -1,0 +1,29 @@
+// @description amagalma_Smooth scroll view left
+// @author amagalma
+// @version 1.0
+// @about
+//   # Scrolls smoothly the view to the left by user defined velocity and scroll percentage
+//
+
+
+/////////////////////// USER VALUES ////////////////////////
+scroll = 40; // how much % will the view move             //
+velocity = 400; // how many msecs the scrolling will last //
+frames = 12; // how many frames will the scrolling have   //
+////////////////////////////////////////////////////////////
+
+
+extension_api("BR_GetArrangeView", 0, a, b);
+c = (b-a)*scroll/100;
+frameduration = velocity/frames;
+loop(frames,
+  start = time_precise();
+  extension_api("BR_SetArrangeView", 0, a-c/frames, b-c/frames);
+  a = a - c/frames;
+  b = b - c/frames;
+  UpdateTimeline();
+  fin = time_precise();
+  timeelapsed = floor((fin-start)*1000);
+  timeelapsed < frameduration ? sleep(frameduration-timeelapsed);
+);
+function NoUndo()(abs(0)); defer("NoUndo()");
