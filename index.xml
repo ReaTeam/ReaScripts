@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="46dcb4f2d5f3d713e42d3a357428b6fac59023c3" name="ReaTeam Scripts">
+<index version="1" commit="5af687a459403d1ad77b483a48fd242e6323cdc8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3986,9 +3986,10 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track names have been changed when you close the script or if track names have been changed when you change track selection.\sa180\par}
 }
 ]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-08T19:37:15Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a10b9cab04260ad6e1e03a634b6cd8f4c75ab6e2/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5af687a459403d1ad77b483a48fd242e6323cdc8/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
@@ -4245,6 +4246,21 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/Airon_Colour%20Swatch.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Implode items across tracks into takes (remove empty tracks).lua" type="script" desc="amagalma_Script: Implode items across tracks into takes (remove empty tracks)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Script: Implodes items across tracks into takes, removes empty tracks and inherits their height\par}
+}
+]]></description>
+        <link rel="screenshot">http://stash.reaper.fm/30479/amagalma_Implode%20items%20across%20tracks%20into%20takes%20%28remove%20empty%20tracks%29.gif</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-04-13T08:57:17Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54b8426bba0faf1df0342e5abb818703af3e7820/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="amagalma_ReaNoir - Track/Item/Take coloring utility">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4277,6 +4293,7 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on "?" on right top corner to display information, Right-Click for manual\sa180\par}
 }
 ]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
       </metadata>
       <version name="1.50" author="amagalma" time="2017-03-25T19:36:58Z">
         <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
@@ -4334,7 +4351,7 @@ Made by Mordi, Jan 2016]]></changelog>
       </version>
       <version name="2.01" author="amagalma" time="2017-04-09T14:57:58Z">
         <changelog><![CDATA[+ small bugfix for OSX]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/db88868d79f9ab4505f237b76a828ae68a87ed4b/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/549fda2669519177174c3b421bea12695db54be7/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
