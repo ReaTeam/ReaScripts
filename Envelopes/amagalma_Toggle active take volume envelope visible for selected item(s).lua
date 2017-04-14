@@ -72,7 +72,7 @@ local function Main()
   local sel_items = reaper.CountSelectedMediaItems(0)
   if sel_items > 0 then
     for i = 0, sel_items-1 do
-      local item = reaper.GetSelectedMediaItem(0, 0)
+      local item = reaper.GetSelectedMediaItem(0, i)
       ToggleVisibility(item)
     end
   end
