@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle active take volume envelope visible for selected item(s)
 -- @author amagalma
--- @version 2.0
+-- @version 2.01
 -- @about
 --   # Toggles visibility of (active) take volume envelopes for the selected item(s)
 --
@@ -8,6 +8,8 @@
 
 --[[
  * Changelog:
+ * v2.01 (2017-04-14)
+  + small improvement
  * v2.0 (2017-04-14)
   + Complete re-write of the code. No more depending on buggy actions
  * v1.02 (2017-04-11)
@@ -45,7 +47,9 @@ local function ToggleVisibility(item)
     end
     if VolEnvStart > 0 then
       for j = 1, #def_env do -- Check if existing Volume envelope is the default
-        if def_env[j] ~= (t[VolEnvStart+j-1]) then defaultexists = 0 end
+        if j ~= 6 then -- We don't care if DEFSHAPE matches
+          if not t[VolEnvStart+j-1]:find(def_env[j]) then defaultexists = 0 end
+        end
         if string.match(t[VolEnvStart+j-1], "VIS %d 1 1") then VisLine = VolEnvStart+j-1 end
       end
     end
