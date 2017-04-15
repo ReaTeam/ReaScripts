@@ -20,7 +20,9 @@
   + made the action substantially faster when many items (>500) are selected
 --]]
 
+
 local reaper = reaper
+
 
 local function ToggleVisibility(item)
   local take_cnt = reaper.CountTakes(item)
@@ -41,7 +43,7 @@ local function ToggleVisibility(item)
     end
     local VolEnvStart, defaultexists, VisLine, insert_here = 0, 1, 0, 0
     for i = found, #t do
-      if t[i] == "TAKE" or (t[i] == ">" and t[i-1] == ">") then 
+      if t[i] == "TAKE" or (t[i] == ">" and t[i-1] == ">") then
         insert_here = i ; defaultexists = 0 break -- No Volume Envelope exists for the active take
       end
       if t[i] == "<VOLENV" then VolEnvStart = i break end -- Volume Envelope exists
