@@ -5,7 +5,7 @@
 --   # Toggles visibility of (active) take volume envelopes for the selected item(s)
 --
 --   - Does not create undo points by default. Easily changeable in the end of the script.
-　
+
 --[[
  * Changelog:
  * v2.02 (2017-04-15)
@@ -19,10 +19,9 @@
  * v1.01 (2017-04-10)
   + made the action substantially faster when many items (>500) are selected
 --]]
-　
-　
+
 local reaper = reaper
-　
+
 local function ToggleVisibility(item)
   local take_cnt = reaper.CountTakes(item)
   if take_cnt > 0 then
@@ -72,8 +71,8 @@ local function ToggleVisibility(item)
     SetChunk(item, table.concat(t, "\n"), true) -- Write the table to the item chunk
   end
 end
-　
-　
+
+
 local function Main()
   local sel_items = reaper.CountSelectedMediaItems(0)
   if sel_items > 0 then
@@ -83,8 +82,8 @@ local function Main()
     end
   end
 end
-　
-　
+
+
 -- Uncomment undos if you want Undo points to be created
 --reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh(1)
