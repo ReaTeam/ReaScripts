@@ -36,7 +36,7 @@ local function ToggleVisibility(item)
     helper((chunk:gsub("(.-)\r?\n", helper)))
     local found = 0
     for i in pairs(t) do
-      if string.find(t[i], act_take_guid:gsub("-", "%%-")) then
+      if t[i] == act_take_guid:gsub("-", "%%-") then
         found = i ; break
       end
     end
