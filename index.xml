@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2d66c0bc5b6c5ea681bc5993a668257ce2baccfb" name="ReaTeam Scripts">
+<index version="1" commit="2b3b1927c4f095c8ddc87d222a45947370f87ab4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -196,7 +196,7 @@
       </version>
       <version name="2.02" author="amagalma" time="2017-04-15T13:40:27Z">
         <changelog><![CDATA[+ some optimizations]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d66c0bc5b6c5ea681bc5993a668257ce2baccfb/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b3b1927c4f095c8ddc87d222a45947370f87ab4/Envelopes/amagalma_Toggle%20active%20take%20volume%20envelope%20visible%20for%20selected%20item(s).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle take volume envelope visible for all takes of all items in project.lua" type="script" desc="amagalma_Toggle active take volume envelope visible for all items in project">
