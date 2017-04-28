@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4fd78678b1f2556d8e66ab39df30fa1023aaac87" name="ReaTeam Scripts">
+<index version="1" commit="bbdb6647ae909e72fb5c192f4c2accfa03a91978" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -136,23 +136,6 @@
       <version name="1.0" author="Lokasenna" time="2017-03-31T12:35:21Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbfb8ce09c396bcf78cc688c3c0c71ef1bbb763c/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20selected%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Set time selection from edit cursor to play cursor.lua" type="script" desc="Set time selection from edit cursor to play cursor">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Creates a time selection between the edit cursor and play cursor\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Will snap to grid if snap is enabled, and will follow grid visibility changes (different zoom levels, etc)\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0" author="Lokasenna" time="2017-04-28T04:16:48Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4fd78678b1f2556d8e66ab39df30fa1023aaac87/Cursor/Lokasenna_Set%20time%20selection%20from%20edit%20cursor%20to%20play%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
@@ -3973,6 +3956,41 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-04-28T04:55:11Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbdb6647ae909e72fb5c192f4c2accfa03a91978/Time%20Selection/Lokasenna_Move%20time%20selection%20left%20by%20time%20selection%20length.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Move time selection right by time selection length.lua" type="script" desc="Move time selection right by time selection length">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-04-28T04:55:11Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbdb6647ae909e72fb5c192f4c2accfa03a91978/Time%20Selection/Lokasenna_Move%20time%20selection%20right%20by%20time%20selection%20length.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Set time selection from edit cursor to play cursor.lua" type="script" desc="Set time selection from edit cursor to play cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Creates a time selection between the edit cursor and play cursor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Will snap to grid if snap is enabled, and will follow grid visibility changes (different zoom levels, etc)\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2017-04-28T04:55:11Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbdb6647ae909e72fb5c192f4c2accfa03a91978/Time%20Selection/Lokasenna_Set%20time%20selection%20from%20edit%20cursor%20to%20play%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="spk77_Set time selection from edit cursor to end of items.eel" type="script" desc="Set time selection from edit cursor to end of items">
       <version name="0.2015.7.1" time="2015-12-02T21:24:29Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc999f3d4f53c79e150bb3b101e9b0bb370f53b5/Time%20Selection/spk77_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20items.eel</source>
