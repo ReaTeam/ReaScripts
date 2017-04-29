@@ -1,6 +1,6 @@
 --[[
 Description: Theory Helper
-Version: 1.30
+Version: 1.31
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -4517,7 +4517,7 @@ local function load_ext()
 	
 	local size_a, size_b = string.match(reaper.GetExtState(name, "search size"), "(%d+),(%d+)")
 
-	GUI.Val("rng_size", {tonumber(size_a), tonumber(size_b)})
+	if size_a and size_b then GUI.Val("rng_size", {tonumber(size_a), tonumber(size_b)}) end
 	
 	local search = reaper.GetExtState(name, "scale search")
 
