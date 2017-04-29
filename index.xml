@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bbdb6647ae909e72fb5c192f4c2accfa03a91978" name="ReaTeam Scripts">
+<index version="1" commit="8864a7e4e9e536936b64f3c9368f08e1ce528b95" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3706,6 +3706,10 @@ Harmony\line
       <version name="1.29" author="Lokasenna" time="2017-02-16T14:21:23Z">
         <changelog><![CDATA[Fix: Crash when double-clicking to remove chord highlights]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/437eb5cd453ffcbe92bbe6f0b611e7b50fd8ef7a/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.30" author="Lokasenna" time="2017-04-29T14:28:24Z">
+        <changelog><![CDATA[Fix: Crashes on first startup]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8864a7e4e9e536936b64f3c9368f08e1ce528b95/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi-ahmusic_Search selected notes in scale finder.lua" type="script" desc="Search selected notes in scale finder">
