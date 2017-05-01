@@ -1,6 +1,6 @@
 --[[
 Description: Theory Helper
-Version: 1.31
+Version: 1.32
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -3031,8 +3031,13 @@ end
 function GUI.Checklist:val(newvals)
 	
 	if newvals then 
-		for i = 1, self.numopts do
-			self.optsel[i] = newvals[i]
+		
+		if type(newvals) == "boolean" then
+			self.optsel[1] = newvals
+		elseif type(newvals) == "table" then
+			for i = 1, self.numopts do
+				self.optsel[i] = newvals[i]
+			end
 		end
 		GUI.redraw_z[self.z] = true	
 	else
@@ -4504,9 +4509,9 @@ local function load_ext()
 	
 	local name = GUI.name
 	
-	key_new = tonumber(reaper.GetExtState(GUI.name, "current key"))
-	scale_num = tonumber(reaper.GetExtState(GUI.name, "current scale"))
-	reascale_path = reaper.GetExtState(GUI.name, "current reascale")
+	key_new = tonumber(reaper.GetExtState(GUI.name, "current key")) or key_new
+	scale_num = tonumber(reaper.GetExtState(GUI.name, "current scale")) or scale_num
+	reascale_path = reaper.GetExtState(GUI.name, "current reascale") or reascale_path
 	
 	if not (key_new and scale_num and reascale_path) then return end
 			
@@ -4731,7 +4736,6 @@ local function get_reascale(startup)
 		__, reascale_path = reaper.GetUserFileNameForRead("", "Choose a .reascale file", ".reascale")
 		--GUI.Msg("got: "..tostring(reascale_path))
 		file, err = io.open(reascale_path)
-		if not file then GUI.Msg("error: "..tostring(err)) end
 	end
 	
 	if file then
@@ -4796,7 +4800,7 @@ local function get_reascale(startup)
 
 		GUI.elms.mnu_scale.optarray = mnu_scale_arr
 		GUI.elms.mnu_scale.numopts = #mnu_scale_arr
-		
+
 		if not startup then 
 			scale_num = 1 
 		else
@@ -4805,11 +4809,10 @@ local function get_reascale(startup)
 	
 	else
 	
-		reaper.ShowMessageBox( "This script needs a .reascale file to work with.", "No .reascale found", 0)
+		reaper.ShowMessageBox( "This script needs a .reascale file to work with.\n\nError: "..tostring(err), "No .reascale found", 0)
 		GUI.quit = true
 	
 	end	
-	
 	
 end
 
@@ -4903,8 +4906,7 @@ local function find_modes(dir, key_trans)
 			-- Rework at some point to insert next to the original scale?
 			--GUI.elms.mnu_scale.optarray = mnu_scale_arr
 			--GUI.elms.mnu_scale.numopts = #mnu_scale_arr
-
-
+			
 		end
 	
 	end
