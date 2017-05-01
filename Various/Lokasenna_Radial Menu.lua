@@ -1,17 +1,13 @@
 --[[
 Description: Radial Menu 
-Version: 2.7.0
+Version: 2.7.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	New:
-	- Assignable key binds (Global tab, see documentation in Help)
+	- Visual indicator when a button is clicked via key binds
 	Fixed:
-	- Pressing backspace with the text caret at the beginning of any
-	  textbox was causing the contents to be duplicated
-			(cheers to snooks for the solution)
-	- The button label textbox has been widened, so button labels can
-	  be substantially longer
+	- A couple of key bind-related crashes
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -4206,7 +4202,6 @@ GUI = GUI_table()
 
 ---- End of libraries ----
 
-
 _=dm and GUI.Msg(script_path)
 
 -- For the context boxes
@@ -4223,7 +4218,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.7.0"
+local script_version = "2.7.1"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4263,6 +4258,12 @@ local swipe_retrigger = 0
 
 -- For smart buttons
 local smart_act, armed = "", -2
+
+
+-- For key binds
+local bound_key, bound_act, bound_mnu
+
+
 
 local startup = true
 
@@ -6146,7 +6147,7 @@ local function check_bind()
 	
 	local char = string.char(GUI.char)
 	
-	bound_key, bound_act = nil
+	bound_key, bound_act, bound_mnu = nil, nil, nil
 	
 	local num = #mnu_arr[cur_depth] + 1
 	
@@ -6159,8 +6160,8 @@ local function check_bind()
 
 			--GUI.Msg("detect key bind: "..char.." -> act = "..tostring(bound_act))
 			
-			run_act( mnu_arr[cur_depth][k >= 0 and (k - 1) or k].act )
-			
+			bound_mnu = {k - 1, reaper.time_precise(), mnu_arr[cur_depth][k >= 0 and (k - 1) or k].act}
+
 			redraw_menu = true
 			GUI.redraw_z[GUI.elms.frm_radial.z] = true 
 			
@@ -6184,6 +6185,17 @@ local function check_key()
 	
 	-- For debugging
 	local mod_str = ""
+	
+	
+	-- For visually showing a button "click" with key binds
+	if bound_mnu and (reaper.time_precise() - bound_mnu[2] > 0.05) then
+		
+		run_act(bound_mnu[3])
+		
+		bound_mnu = nil
+		GUI.redraw_z[GUI.elms.frm_radial.z] = true
+	end
+	
 	
 	if mnu_arr[-1].key_mode ~= 3 then
 		
@@ -6264,8 +6276,6 @@ local function check_key()
 			else
 				_=dm and Msg("\tKey "..tostring(hold_char).." is no longer down")
 			end
-
-
 
 			if GUI.char ~= 0 and GUI.char ~= hold_char and mnu_arr[-1].key_binds.enabled then check_bind() end
 
@@ -7004,7 +7014,11 @@ function GUI.elms.frm_radial:draw()
 
 				r_adj = 4
 				color = self.state and "col_bg" or "col_hvr"
-				
+			
+			elseif bound_mnu and i == bound_mnu[1] then
+
+				color = "col_bg"
+			
 			end
 			
 			if string.sub(opt.act, 1, 4) ~= "menu" and opt.act ~= "" then
@@ -7182,9 +7196,11 @@ function GUI.elms.frm_radial:draw()
 		local str_w, str_h
 		local cx, cy
 		
-		for i = -1, #mnu_arr[cur_depth] + 1 do
+		for i = -1, #mnu_arr[cur_depth] do
 			
-			local hint = mnu_arr[-1].key_binds[#mnu_arr[cur_depth] + 1][i >= 0 and (i + 1) or i]
+			--local j = (i >= 0) and (i + 1) or i
+				
+			local hint = (mnu_arr[-1].key_binds[#mnu_arr[cur_depth] + 1] and mnu_arr[-1].key_binds[#mnu_arr[cur_depth] + 1][(i >= 0 and (i + 1) or i)]) or nil
 			
 			if hint and hint ~= "" and i ~= cur_btn then
 				
@@ -9059,6 +9075,7 @@ local function Main()
 	if not setup then
 			
 		-- Main logic for the shortcut key
+		
 		check_key()
 		
 
