@@ -1,11 +1,17 @@
 --[[
 Description: Radial Menu 
-Version: 2.6.1
+Version: 2.7.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	New:
-	- Can now add an action to the Action List to open specific menus (Menu tab)
+	- Assignable key binds (Global tab, see documentation in Help)
+	Fixed:
+	- Pressing backspace with the text caret at the beginning of any
+	  textbox was causing the contents to be duplicated
+			(cheers to snooks for the solution)
+	- The button label textbox has been widened, so button labels can
+	  be substantially longer
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -33,6 +39,8 @@ Provides:
 	More efficient than calling another function and making it check
 	
 ]]--
+
+local reaper, gfx, string, table = reaper, gfx, string, table
 
 
 local dm, _ = debug_mode
@@ -2940,18 +2948,8 @@ function GUI.Checklist:new(z, x, y, w, h, caption, opts, dir, pad)
 	
 	chk.numopts = tempidx - 1
 	
-	--[[
-		-- Figure out the total size of the Tab now that we know the number of buttons
-	-- Necessary so we can do the math for clicking on it
-	Tab.w, Tab.h = 
-		table.unpack(Tab.dir == "h" 
-			and { (w + pad) * Tab.numopts, h }
-			or  { w, (h + pad) * Tab.numopts }
-		)
-	]]--
-	
 	-- Work out the total size of the checklist now that we have the number of options
-	-- Necessary
+
 	chk.w, chk.h =
 		table.unpack(chk.dir == "h"
 			and { (chk.chk_w + pad) * chk.numopts, chk.chk_w}
@@ -3060,8 +3058,13 @@ end
 function GUI.Checklist:val(newvals)
 	
 	if newvals then 
-		for i = 1, self.numopts do
-			self.optsel[i] = newvals[i]
+		
+		if type(newvals) == "boolean" then
+			self.optsel[1] = newvals
+		elseif type(newvals) == "table" then
+			for i = 1, self.numopts do
+				self.optsel[i] = newvals[i]
+			end
 		end
 		GUI.redraw_z[self.z] = true	
 	else
@@ -3463,14 +3466,14 @@ function GUI.Textbox:ontype()
 	end
 		
 
-	if char		== GUI.chars.LEFT then
+	if 	   char	== GUI.chars.LEFT then
 		if caret > 0 then self.caret = caret - 1 end
 
 	elseif char	== GUI.chars.RIGHT then
 		if caret < string.len(text) then self.caret = caret + 1 end
 	
 	elseif char == GUI.chars.BACKSPACE then
-		if string.len(text) > 0 and self.sel == 0 then
+		if string.len(text) > 0 and self.sel == 0 and caret > 0 then
 			text = string.sub(text, 1, caret - 1)..(string.sub(text, caret + 1))
 			self.caret = caret - 1
 		end
@@ -4220,7 +4223,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.6.1"
+local script_version = "2.7.0"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4256,6 +4259,10 @@ local track_swipe, stopped = false, nil
 
 -- Was the window recently reopened by swiping?
 local swipe_retrigger = 0
+
+
+-- For smart buttons
+local smart_act, armed = "", -2
 
 local startup = true
 
@@ -4442,7 +4449,7 @@ local settings_help_str = [=[--[[
 				
 				
 				
-	Global settings are kept in index [-1]:
+	Global settings are stored in index [-1]:
 	[-1] = {
 	
 		["close_time"] = 600,		How long to keep the window open (in ms) on 
@@ -4533,6 +4540,23 @@ local settings_help_str = [=[--[[
 		
 		["hvr_click"] = false,		Boolean - hover over a button to 'click' it
 		["hvr_time"] = 200,			Hover time for ^^^ (in ms)
+		
+		
+		["key_binds"] = {			Key bind settings
+		
+			["enabled"] = true,		Boolean - enables the assigned key binds
+		
+			["hints"] =	true,		Boolean - display key binds outside the menu ring
+			
+			["last_num"] = 1,		Last menu size selected in the setup script (1-13)
+		
+			[4] =	{				Menu size for each set of bindings. (4-16)
+			
+				[1] = "r",			Key bind for the given button number.
+				
+										-1	=	Center button
+										1	=	Always the button facing right
+		
 		
 		["key_mode"] = 1,			What to do when the shortcut key is released
 									(1-3, see the options in the Setup script)
@@ -4707,6 +4731,16 @@ Commands can also be combined:
  
 - NOTE: Fonts may not use the same name you'd see in Microsoft Office, etc. It's dependent on metadata in the font file itself - on Windows, right-click a .ttf file, choose Properties, and select the Details tab - the Name field is what you want to be using here. Mac users... I have no idea.
  
+ 
+- If you wish, Radial Menu can also have keyboard keys assigned to "click" each button in a menu.
+ 
+- Bindings are assigned separately for each possible menu size, since you may want to use a different set of keys with a menu of four buttons versus sixteen.
+ 
+- Key binds can be displayed outside the menu ring, for those of us with faulty memories.
+ 
+- NOTE: Key binds should not be expected to play nicely with 'repeat' actions. Key binds WILL, however, repeat normal actions on their own when the key is held down.
+ 
+ 
 ]]},
 
 
@@ -4785,6 +4819,24 @@ local def_mnu_arr = {
 					},
 		["hvr_click"] = false,
 		["hvr_time"] = 200,		
+		["key_binds"] = {
+							enabled = false,
+							hints = false,
+							last_num = 8,
+							[4] = {},
+							[5] = {},
+							[6] = {},
+							[7] = {},
+							[8] = {},
+							[9] = {},
+							[10] = {},
+							[11] = {},
+							[12] = {},
+							[13] = {},
+							[14] = {},
+							[15] = {},
+							[16] = {},							
+						},
 		["key_mode"] = 1,
 		["last_tab"] = 1,
 		["mouse_mode"] = 1,
@@ -5068,6 +5120,7 @@ local function load_menu(browse)
 				set_arr.swipe.menu = 0
 				
 				update_context_elms()
+				update_key_elms()
 				
 			end
 
@@ -5153,45 +5206,6 @@ dofile(script_path .. "Lokasenna_Radial Menu.lua")]=]
 	end
 
 end
-
-
--- Update the tooltip label
--- Use force = [tooltip_idx] to, duh, force that tooltip to display
-local function update_tooltip(force)
-
-if GUI.tooltip_elm or force then
-		--GUI.Msg("step 1")
-		if force or GUI.IsInside(GUI.tooltip_elm, GUI.mouse.x, GUI.mouse.y) then
-			--GUI.Msg("step 2")
-			if GUI.elms.lbl_tooltip.z == 20 or GUI.elms.lbl_tooltip.fade_arr or force then
-				
-				GUI.elms.lbl_tooltip.fade_arr = nil
-				
-				GUI.font(4)
-				local str = force or GUI.tooltip_elm.tooltip  --tooltips[force or GUI.tooltip_elm.tooltip]
-				local str_w, str_h = gfx.measurestr(str)
-				
-				GUI.elms.lbl_tooltip.x = (GUI.w - str_w) / 2
-				GUI.elms.lbl_tooltip.y = 434 + (30 - str_h) / 2
-				
-				GUI.Val("lbl_tooltip", str)
-				GUI.elms.lbl_tooltip.z = 1
-			
-			end
-		elseif not GUI.mouse.down then
-			
-			--GUI.elms.lbl_tooltip.z = 18
-			GUI.elms.lbl_tooltip:fade(2, 1, 20)
-			GUI.tooltip_elm = nil	
-			--GUI.Msg("setting nil")
-			
-		end
-	end
-	
-	GUI.forcetooltip = nil
-	
-end
-
 
 
 
@@ -5338,9 +5352,11 @@ local function run_act(act, midi)
 		cur_btn = -2
 		redraw_menu = true
 		
+		
 	elseif act == "base" then
 	
 		run_act("menu "..tostring(base_depth))
+	
 	
 	elseif act == "quit" then
 	
@@ -5353,6 +5369,14 @@ local function run_act(act, midi)
 	
 		run_act( string.sub(act, 6), true)
 		return 0
+	
+	
+	elseif string.match(act, "^smart") then
+	
+		-- Toggle the current button "armed"
+		-- Changing menus will also disarm
+		
+		smart_act = act
 		
 		
 	elseif string.match(act, "^x%d") then
@@ -5389,6 +5413,10 @@ local function run_act(act, midi)
 			cur_depth = new_depth
 			--if setup then  end
 			cur_btn = -2
+			
+			armed = -2
+			smart_act = ""
+			
 			redraw_menu = true
 			
 		else
@@ -5578,7 +5606,7 @@ local function update_glbl_settings()
 	GUI.elms.frm_col_g_bg.col_user = mnu_arr[-1].col_bg
 
 	GUI.Val("sldr_num_btns", mnu_arr[-1].num_btns - GUI.elms.sldr_num_btns.min)
-	GUI.Val("chk_preview", {mnu_arr[-1].preview})
+	GUI.Val("chk_preview", mnu_arr[-1].preview)
 	
 	
 	GUI.Val("txt_font_A", mnu_arr[-1].fonts[1][1])
@@ -5610,6 +5638,22 @@ local function update_glbl_settings()
 								}
 	)
 	
+	
+	GUI.Val("chk_keys", mnu_arr[-1].key_binds.enabled)
+	GUI.Val("chk_hints", mnu_arr[-1].key_binds.hints)
+	
+	local num = mnu_arr[-1].key_binds.last_num
+	GUI.Val("mnu_keys", num)	
+--[[	
+	for i = -1, num + 3 do
+		
+		if i ~= 0 then
+			GUI.Msg("setting txt_keys_"..i)
+			GUI.Val("txt_keys_"..i, mnu_arr[-1].key_binds[num][i])
+		end
+		
+	end
+]]--	
 	
 	
 	GUI.Val("tabs", mnu_arr[-1].last_tab)
@@ -5666,9 +5710,8 @@ local function update_mnu_settings()
 		then
 		
 		GUI.elms.frm_swipe_menu.z = 22
-		GUI.elms.lbl_swipe_menu.z = GUI.elms.mnu_menu.z
-		
-		
+		GUI.elms.lbl_swipe_menu.z = 22
+			
 		
 	else
 	
@@ -5756,6 +5799,7 @@ local function clear_menu()
 		update_mnu_menu()
 		update_btn_settings()
 		update_context_elms()
+		update_key_elms()
 		
 	end
 	
@@ -6077,7 +6121,7 @@ end
 
 
 
--- Center/justify/etc any elms that need it
+-- Center/justify/etc any specific elms that need it
 local function align_elms()
 	
 	
@@ -6096,6 +6140,41 @@ local function align_elms()
 	
 end
 
+
+
+local function check_bind()
+	
+	local char = string.char(GUI.char)
+	
+	bound_key, bound_act = nil
+	
+	local num = #mnu_arr[cur_depth] + 1
+	
+	for k, v in pairs(mnu_arr[-1].key_binds[num]) do
+		
+		if char == v then
+			
+			--bound_key = GUI.char
+			--bound_act = mnu_arr[cur_depth][k >= 0 and (k - 1) or k].act
+
+			--GUI.Msg("detect key bind: "..char.." -> act = "..tostring(bound_act))
+			
+			run_act( mnu_arr[cur_depth][k >= 0 and (k - 1) or k].act )
+			
+			redraw_menu = true
+			GUI.redraw_z[GUI.elms.frm_radial.z] = true 
+			
+			return true
+			
+		end		
+		
+	end
+	
+	
+	-- Return true if we found a keybind to use
+	--return bound_key
+	
+end
 
 
 
@@ -6179,7 +6258,6 @@ local function check_key()
 			
 			-- Running logic
 		
-
 			key_down = gfx.getchar(hold_char)
 			if key_down ~= 0 then
 				_=dm and Msg("\tKey "..tostring(hold_char).." is still down (ret:"..tostring(key_down)..")")
@@ -6187,6 +6265,9 @@ local function check_key()
 				_=dm and Msg("\tKey "..tostring(hold_char).." is no longer down")
 			end
 
+
+
+			if GUI.char ~= 0 and GUI.char ~= hold_char and mnu_arr[-1].key_binds.enabled then check_bind() end
 
 			-- Alternate logic that works with ~ or foreign keys, but gets pretty glitchy
 		--[[
@@ -6210,7 +6291,8 @@ local function check_key()
 
 		_=dm and Msg("\tKey mode = 3 and a key was pressed; closing the window.")		
 
-		GUI.quit = true
+		
+		if mnu_arr[-1].key_binds.enabled then GUI.quit = not check_bind() end
 
 	end
 
@@ -6430,9 +6512,45 @@ end
 
 
 
+-- Erase the key bindings for the currently-selected menu size
+local function clear_binds()
+
+	local num = GUI.Val("mnu_keys") + 3
+	
+	for i = -1, num do
+		if i ~= 0 then
+			mnu_arr[-1].key_binds[num][i] = nil
+		end
+	end		
+	
+	update_key_elms()
+	update_glbl_settings()
+
+end
 
 
+-- Copy the current menu size's bindings to all higher/lower menus
+local function prop_binds(dir)
+	
+	local num = GUI.Val("mnu_keys") + 3
+	local a, b = num + dir, (dir > 0 and 16 or 4)
+	
+	--if a > b then a, b = b, a end
+	
+	for i = a, b, dir do
+			
+		for j = 1, i do
+			
+			mnu_arr[-1].key_binds[i][j] = mnu_arr[-1].key_binds[num][j] or ""
+			
+		end
+		
+		mnu_arr[-1].key_binds[i][-1] = mnu_arr[-1].key_binds[num][-1] or ""
+		
+	end	
+	
 
+end
 
 
 
@@ -6471,6 +6589,8 @@ end
 
 -- Values to reference elms off of
 
+local line_x = 432
+
 -- Bottom of tabs
 local line_y0 = 22
 
@@ -6480,11 +6600,12 @@ local line_y1 = 192
 -- Global tab's separators
 local line_y2 = 128
 local line_y4 = line_y2 + 112
+local line_y5 = line_y4 + 132
 
 -- Swipe tab's separator
 local line_y3 = 54
 
-local line_y_tt = 432
+local line_y_tt = 608
 
 local ref1 = {x = 490, y = line_y0 + 40, w = 270, h = 68}	-- Menu color settings
 local ref2 = {x = 490, y = line_y1 + 66, w = 270, h = 68}	-- Button color settings
@@ -6511,9 +6632,9 @@ or
 	
 	tabs = GUI.Tabframe:new(			24,	432, 0, 56, 22, "", "Menu,Context,Swiping,Global,Options,Help", 8),	
 	
-	frm_radial = GUI.Frame:new(			23,	0, 0, 432, 432, false, true, "elm_bg", 0),
+	frm_radial = GUI.Frame:new(			23,	0, 0, 432, line_y_tt, false, true, "elm_bg", 0),
 	
-	frm_line_x = GUI.Frame:new(			22,	432, 0, 4, 432, true, true),
+	frm_line_x = GUI.Frame:new(			22,	line_x, 0, 4, line_y_tt, true, true),
 	
 	frm_line_tt = GUI.Frame:new(		21, 0, line_y_tt, 1024, 4, true, true),
 	
@@ -6522,11 +6643,11 @@ or
 
 	---- Hidden layers z = 20 ----
 	
-	lbl_tooltip = GUI.Label:new(		20, 386, 442, "tooltip", 0, 4),
-	frm_rad_overlay = GUI.Frame:new(	20, 0, 0, 432, 432, false, true, "shadow", 0),
+	lbl_tooltip = GUI.Label:new(		20, 386, 0, "tooltip", 0, 4),
+	frm_rad_overlay = GUI.Frame:new(	20, 0, 0, 432, line_y_tt, false, true, "shadow", 0),
 
-	frm_swipe_menu = GUI.Frame:new(		20, 0, 0, 432, 432, false, true, "magenta", 0),
-	lbl_swipe_menu = GUI.Label:new(		20, 616, line_y0 + 32, "Assigned to Swipe", 1, 2),
+	frm_swipe_menu = GUI.Frame:new(		20, 0, 0, 432, line_y_tt, false, true, "magenta", 0),
+	lbl_swipe_menu = GUI.Label:new(		20, 0, 0, "This menu is assigned to Swipe actions", 0, 2),
 
 	---- Menus tab  z = 2,3,4 ----
 
@@ -6570,7 +6691,7 @@ or
 	btn_btn_del = GUI.Button:new(		4,	672, line_y1 + 10, 64, 20, "Delete", remove_btn, true),
 	btn_btn_right = GUI.Button:new(		4,	744, line_y1 + 10, 32, 20, "↑", move_btn, 1),
 	
-	txt_btn_lbl = GUI.Textbox:new(		4,	496, line_y1 + 40, 192, 20, "Label:", 4),	
+	txt_btn_lbl = GUI.Textbox:new(		4,	496, line_y1 + 40, 288, 20, "Label:", 4),	
 	
 	frm_ref2 = dm and GUI.Frame:new(	4,	ref2.x,	ref2.y, ref2.w, ref2.h, false, false, "magenta", 0),
 	
@@ -6607,7 +6728,7 @@ or
 	---- Swipe tab z = 17,18,19 ----
 	
 	
-	chk_swipe = GUI.Checklist:new(	18, 444, line_y0 + 6, 0, 0, "", "Swiping enabled", "v", 0),
+	chk_swipe = GUI.Checklist:new(		18, 444, line_y0 + 6, 0, 0, "", "Swiping enabled", "v", 0),
 
 
 	frm_line_swipe = GUI.Frame:new(		17,	436, line_y3, 600, 4, true, true),
@@ -6686,6 +6807,26 @@ or
 	chk_flags_C = GUI.Checklist:new(	9,	ref5.x + 246, ref5.y + 52, nil, nil, "", " , , ", "h", 2),
 
 
+	-- Key bind settings --
+	frm_line_y5 = GUI.Frame:new(		8, 436, line_y5, 600, 4, true, true),
+
+	lbl_keys = GUI.Label:new(			9,	448, line_y5 + 8, "Key binds:", 1, 2),
+	
+
+
+	chk_keys = GUI.Checklist:new(		9,	464, line_y5 + 40, nil, nil, "", "Key binds enabled", "v", 4),
+	chk_hints = GUI.Checklist:new(		9,	464, line_y5 + 64, nil, nil, "", "Show key binding hints", "v", 4),	
+	mnu_keys = GUI.Menubox:new(			9,	576, line_y5 + 96, 48, 20, "Number of buttons:", "4,5,6,7,8,9,10,11,12,13,14,15,16", 4),
+
+	
+	btn_keys_clear = GUI.Button:new(	9,	464, line_y5 + 130, 160, 20, "Clear binds for this size", clear_binds),
+	
+	lbl_keys_prop = GUI.Label:new(		9,	464, line_y5 + 160, "Propagate binds:", 1, 3),
+	btn_keys_pr_dn = GUI.Button:new(	9,	560, line_y5 + 158, 32, 20, "↓", prop_binds, -1),
+	btn_keys_pr_up = GUI.Button:new(	9,	596, line_y5 + 158, 32, 20, "↑", prop_binds, 1),
+
+	frm_keys_bg = GUI.Frame:new(		9,	0, 0, 0, 0, false, true, "red", 0),
+	-- array of textboxes created at runtime
 
 
 
@@ -6721,7 +6862,7 @@ or
 	btn_donate = GUI.Button:new(		15,	936, line_y0 + 5, 72, 20, "Donate", GUI.open_file, donate_URL),	
 	
 	line_help = GUI.Frame:new(			15, 436, line_y0 + 32, 600, 4, true, true),
-	frm_help = GUI.TxtFrame:new(		16, 436, line_y0 + 36, 588, 374, "help stuff", 4, "txt", 8, false, true, "elm_bg", 0),
+	frm_help = GUI.TxtFrame:new(		16, 436, line_y0 + 36, 588, line_y_tt - (line_y0 + 36), "help stuff", 4, "txt", 8, false, false, "wnd_bg", 0),
 	
 
 }
@@ -6990,8 +7131,6 @@ function GUI.elms.frm_radial:draw()
 
 
 	-- Draw the preview labels, if necessary
-	
-
 
 	if mnu_children and mnu_arr[mnu_children] then
 		
@@ -7031,21 +7170,46 @@ function GUI.elms.frm_radial:draw()
 		end
 	end
 
-	--[[
-		Disabled for now, wasn't working right for last_depths past 8
-		
-		-- Draw the guide button from the previous menu
-	if cur_depth > 0 then
-		
-		--local k = math.max(last_depth - 1, 0)
-		
-		--Msg(#mnu_arr[last_depth])
-		local adj = 2 / (#mnu_arr[last_depth] + 1)
-		
-		draw_ring_section(cur_depth - 1, adj, ra, rb, ox, oy, 0, true, get_color("col_main", -2))
 
+
+	-- Draw key binding hints if necessary
+	if mnu_arr[-1].key_binds.enabled and mnu_arr[-1].key_binds.hints then
+				
+		GUI.font( 4 )
+		local col = colorsmart( get_color( "col_bg", -2 ) )
+		GUI.color( col )
+		
+		local str_w, str_h
+		local cx, cy
+		
+		for i = -1, #mnu_arr[cur_depth] + 1 do
+			
+			local hint = mnu_arr[-1].key_binds[#mnu_arr[cur_depth] + 1][i >= 0 and (i + 1) or i]
+			
+			if hint and hint ~= "" and i ~= cur_btn then
+				
+				-- Get center coords
+				
+				cx, cy = table.unpack((i ~= -1) 
+							and	{GUI.polar2cart(i * mnu_adj, rd + 12, ox, oy)}
+							or	{ox, oy - (mnu_arr[cur_depth][-1] and (ra + 8) or 0)}
+							)				
+				
+				-- Measure and position string
+				
+				str_w, str_h = gfx.measurestr(hint)
+				gfx.x, gfx.y = cx - str_w / 2, cy - str_h / 2
+				
+				gfx.drawstr(hint)
+				
+				
+			end		
+		
+		end
+		
 	end
-	]]--
+
+
 
 	_=dm and Msg("<frm_radial:draw")
 
@@ -7186,6 +7350,7 @@ function GUI.elms.frm_radial:btn_up(btn)
 		_=dm and Msg("\tresetting to base depth")
 		run_act( "back" )
 
+	-- Clicked a button; parse the action
 	elseif mnu_arr[cur_depth][mnu] then
 
 		local act = mnu_arr[cur_depth][mouse_mnu] 
@@ -7352,6 +7517,7 @@ if setup then
 		GUI.elms.btn_m_paste.tooltip = tip
 
 
+
 		-- Context tab --
 		-- Populated at runtime --
 		
@@ -7410,6 +7576,13 @@ if setup then
 		
 		GUI.elms.frm_val_fonts.tooltip = "Indicates whether or not the given font name is valid"
 		
+		GUI.elms.chk_keys.tooltip = "Enables the use of keyboard keys to 'click' buttons"
+		GUI.elms.chk_hints.tooltip = "Show key binds next to each menu button"
+		GUI.elms.mnu_keys.tooltip = "What size of menu to assign key binds for"
+		GUI.elms.btn_keys_clear.tooltip = "Clear all key binds for the current menu size"
+		GUI.elms.btn_keys_pr_dn.tooltip = "Copy this size's key binds to all smaller sizes"
+		GUI.elms.btn_keys_pr_up.tooltip = "Copy this size's key binds to all larger sizes"		
+		
 		
 		
 		
@@ -7434,14 +7607,51 @@ if setup then
 	end
 
 
+	-- Update the tooltip label
+	-- Use force = [tooltip_idx] to, duh, force that tooltip to display
+	function update_tooltip(force)
+
+		if GUI.tooltip_elm or force then
+			--GUI.Msg("step 1")
+			if force or GUI.IsInside(GUI.tooltip_elm, GUI.mouse.x, GUI.mouse.y) then
+				--GUI.Msg("step 2")
+				if GUI.elms.lbl_tooltip.z == 20 or GUI.elms.lbl_tooltip.fade_arr or force then
+					
+					GUI.elms.lbl_tooltip.fade_arr = nil
+					
+					GUI.font(4)
+					local str = force or GUI.tooltip_elm.tooltip  --tooltips[force or GUI.tooltip_elm.tooltip]
+					local str_w, str_h = gfx.measurestr(str)
+					
+					GUI.elms.lbl_tooltip.x = (GUI.w - str_w) / 2
+					GUI.elms.lbl_tooltip.y = line_y_tt + (30 - str_h) / 2 + 4
+					
+					GUI.Val("lbl_tooltip", str)
+					GUI.elms.lbl_tooltip.z = 1
+				
+				end
+			elseif not GUI.mouse.down then
+				
+				--GUI.elms.lbl_tooltip.z = 18
+				GUI.elms.lbl_tooltip:fade(2, 1, 20)
+				GUI.tooltip_elm = nil	
+				--GUI.Msg("setting nil")
+				
+			end
+		end
+		
+		GUI.forcetooltip = nil
+		
+	end
+
+
+
+
 
 
 	---- Context text boxes
 
 	-- Make a whole bunch of text boxes for the context tab
-
-
-
 	--							z	x	 y				w	h	pad
 	local txt_con_template = {	6,	504, line_y0 + 16, 80, 20, 4}
 	
@@ -7577,12 +7787,103 @@ if setup then
 
 
 
+	---- Key binding text boxes
+
+	local l = GUI.elms.mnu_keys.x + GUI.elms.mnu_keys.w
+	local txt_key_template = {	8,	l + (1024 - l) / 2, line_y5 + (line_y_tt - line_y5) / 2, 20, 20}
+	
+	local r = 80
+	local aspect = 1
+	
+	GUI.elms.frm_keys_bg.x, GUI.elms.frm_keys_bg.y = txt_key_template[2], txt_key_template[3]
+	GUI.elms.frm_keys_bg.r = r
+	
+	function update_key_elms(init)
+		
+		_=dm and Msg(">init key bind elms")
+		
+		local z, x, y, w, h = table.unpack(txt_key_template)
+		local x_adj, y_adj = 48, 24
 
 
+		local function key_update(self)
+			
+			_=dm and Msg("updating key bind "..self.i)
+			_=dm and Msg("\tuser entered "..self.retval)
+			
+			GUI.Textbox.lostfocus(self)
+			
+			if not self.retval or self.retval == "" then
+				
+				self.retval = ""
+				mnu_arr[-1].key_binds[mnu_arr[-1].key_binds.last_num + 3][self.i] = ""
+				
+			else
+				
+				self.retval = string.sub(self.retval, 1, 1)
+				mnu_arr[-1].key_binds[mnu_arr[-1].key_binds.last_num + 3][self.i] = self.retval
+
+			end
+			
+		end
+		
+		
+		local num = (mnu_arr[-1].key_binds.last_num or 5) + 3
+
+		for i = -1, 16 do
+			
+			local name = "txt_key_"..i
+			
+			if i > num then
+				
+				if GUI.elms[name] then GUI.elms[name].z = -1 end
+			
+			elseif i ~= 0 then
+			
+				local cx, cy
+				
+				if i == -1 then
+			
+					cx, cy = x, y
+			
+				else
+
+					local angle = ((i - 1) / num) * 2 * GUI.pi
+				
+					cx, cy = x + cos(angle) * r, y + sin(angle) * r * aspect
+				
+				end
+				
+				local x, y = cx - w / 2, cy - h / 2
+				
+				GUI.elms[name] = GUI.Textbox:new(z, x, y, w, h, "", 4)
+				GUI.elms[name].i = i
+				GUI.elms[name].lostfocus = key_update
+				GUI.elms[name].tooltip = "Key bind to menu button "..i	
+				
+			end
+			
+		end
+			
+		
+		local arr = mnu_arr[-1].key_binds
+		
+		-- Updating textboxes from the values in mnu_arr
+		for i = -1, num do
+			
+			if i ~= 0 then
+				GUI.Val("txt_key_"..i, arr[num][i] or "")
+			end
+			
+		end		
+
+		
+	end
 
 	
 	assign_tooltips()
 	update_context_elms(true)
+	--update_key_elms(true)
 
 
 	GUI.elms.tabs.font_A = 6
@@ -7677,32 +7978,15 @@ if setup then
 	function GUI.elms.frm_line_tt:draw()
 		
 		GUI.color("elm_bg")
-		gfx.rect(0, 432, self.w, 32)
+		gfx.rect(0, GUI.elms.frm_line_tt.y, self.w, 32)
 		GUI.Frame.draw(self)
 		
 	end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	-- Pink overlay when working on the Swipe menu
+	-- Also centers the pink "Assigned to this menu" label
 	function init_frm_swipe_menu()
 
 		local gap = 12
@@ -7716,7 +8000,7 @@ if setup then
 		gfx.setimgdim(101, w, w)
 		gfx.set(0, 0, 0, 1)
 		
-		gfx.circle(ox - gap, oy - gap, 192 + 4*gap, true, 1)
+		gfx.circle(ox - gap, ox - gap, 192 + 4*gap, true, 1)
 
 
 		gfx.dest = 100
@@ -7735,7 +8019,15 @@ if setup then
 		gfx_mode = 0
 		gfx.dest = -1	
 		
+		
+		
+		GUI.font(GUI.elms.lbl_swipe_menu.font)
+		local str_w, str_h = gfx.measurestr(GUI.elms.lbl_swipe_menu.retval)
+		GUI.elms.lbl_swipe_menu.x = (line_x - str_w) / 2
+		GUI.elms.lbl_swipe_menu.y = ((oy - (w / 2)) - str_h) / 2
+		
 	end
+
 
 
 	-- Draw the chosen color inside the frame
@@ -7883,13 +8175,12 @@ if setup then
 
 
 
-
-
-
 	function GUI.elms.frm_swipe_menu:draw()
 		
-		gfx.x, gfx.y = self.gap, self.gap
+		local w, h = gfx.getimgdim(100)
+		gfx.x, gfx.y = self.gap, self.gap + (oy - (frm_w / 2))
 		gfx.mode = 1
+	--gfx.blit(source, scale, rotation[, srcx, srcy, srcw, srch, destx, desty, destw, desth, rotxoffs, rotyoffs] )
 		gfx.blit(100, 1, 0)
 		
 		gfx.mode = 0
@@ -8589,7 +8880,63 @@ if setup then
 	end
 	
 	
+	---- Key binding stuff
+	
+	function GUI.elms.chk_keys:onmouseup()
+		
+		GUI.Checklist.onmouseup(self)
+		mnu_arr[-1].key_binds.enabled = self.optsel[1]
+		
+	end	
+	
+	function GUI.elms.mnu_keys:onwheel()
 
+		GUI.Menubox.onwheel(self)
+		mnu_arr[-1].key_binds.last_num = tonumber(self.retval)
+		update_key_elms(true)
+	
+	end
+
+	function GUI.elms.mnu_keys:onmouseup()
+	
+		GUI.Menubox.onmouseup(self)
+		mnu_arr[-1].key_binds.last_num = tonumber(self.retval)
+		update_key_elms(true)
+		
+	end
+
+	function GUI.elms.chk_hints:onmouseup()
+		
+		GUI.Checklist.onmouseup(self)
+		mnu_arr[-1].key_binds.hints = self.optsel[1]
+		
+	end
+
+
+	function GUI.elms.frm_keys_bg:draw()
+		
+		local x, y, r = self.x - 1, self.y - 1, self.r
+		local pad = 20
+		--[[
+		GUI.color("shadow")
+		for i = 1, GUI.shadow_dist do
+			gfx.circle(x + i, y + i, r + pad, true, true)
+		end
+		]]--
+		GUI.color( "tab_bg" )
+		
+		gfx.circle(x, y, r + pad, true, true)
+		
+		--GUI.color({0, 0, 0, 0.8})
+		GUI.color( "elm_frame" )
+		
+		gfx.circle(x, y, r + pad, false, true)
+		
+		
+	end
+
+
+	---- Options ----
 
 
 	function GUI.elms.opt_key_mode:onmouseup()
@@ -8662,6 +9009,8 @@ if setup then
 
 
 
+	---- Help ----
+
 	function GUI.elms.mnu_help:onwheel()
 		
 		GUI.Menubox.onwheel(self)
@@ -8690,7 +9039,7 @@ end
 
 
 
-
+-- Main Radial Menu loop
 
 local function Main()
 	
@@ -8700,12 +9049,6 @@ local function Main()
 		gfx.quit()
 		gfx.init(GUI.name, GUI.w, GUI.h, 0, x, y)
 		GUI.redraw_z[0] = true
-	end	
-	
-	-- Do we need to redraw the buffered copy of the menu?
-	if redraw_menu then
-		GUI.elms.frm_radial:draw_base_menu()
-		redraw_menu = false
 	end	
 	
 	
@@ -8722,6 +9065,12 @@ local function Main()
 		-- Update the mouse position/angle/option/tc
 		check_mouse()
 
+
+		-- Check for smart tool stuff
+		if armed > -2 and gfx.getchar(GUI.SPACE) > 0 then
+			Msg("running smart action: "..tostring(smart_act))
+			run_act(smart_act)
+		end
 
 
 		local diff = up_time and (reaper.time_precise() - up_time) or 0
@@ -8801,6 +9150,18 @@ local function Main()
 	
 	end
 	
+	
+	-- Do we need to redraw the buffered copy of the menu?
+	-- (Placing this last so subfunctions are always able
+	-- to force a redraw properly
+	if redraw_menu then
+		
+		GUI.elms.frm_radial:draw_base_menu()
+		redraw_menu = false
+		
+	end	
+	
+	
 	_=dm and Msg("----")
 	
 end
@@ -8816,6 +9177,7 @@ if setup then
 	update_mnu_settings()
 	update_btn_settings()
 	update_context_elms()
+	update_key_elms()
 	update_rad_sldrs()
 
 	reaper.atexit(save_menu)	
@@ -8834,26 +9196,23 @@ else
 
 end
 
-	
+
+
+
 if not mnu_arr[cur_depth] then init_menu(cur_depth) end
 
-frm_w = not setup and (2 * mnu_arr[-1].rd) + 16 or 432
-ox, oy = frm_w / 2, frm_w / 2
+frm_w = not setup								-- Add some padding if key_binding hints are enabled
+					and (2 * mnu_arr[-1].rd + ((mnu_arr[-1].key_binds.enabled and mnu_arr[-1].key_binds.hints) and 24 or 0)) + 16 
+					or 432
+ox = frm_w / 2
+oy = setup and line_y_tt / 2 or ox
 
-
+-- Window parameters
 if not setup then
 	
 	GUI.name = GUI.name or "Radial Menu"
-	GUI.x, GUI.y, GUI.w, GUI.h = -8, -32, frm_w, frm_w + 12
+	GUI.x, GUI.y, GUI.w, GUI.h = -8, -32, frm_w, frm_w + 16
 	GUI.anchor, GUI.corner = "mouse", "C"
-	
-	--[[	Context is shown in the title bar, so this is unnecessary
-		
-	if GUI.elms.lbl_context then
-		GUI.h = GUI.h + 16
-		GUI.elms.lbl_context.y = GUI.elms.lbl_context.y + GUI.h	
-	end
-	]]--
 	
 	GUI.elms.frm_radial.w, GUI.elms.frm_radial.h = GUI.w, GUI.h
 	
@@ -8861,7 +9220,7 @@ if not setup then
 else
 
 	GUI.name = "Radial Menu Setup"
-	GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 1024, 464
+	GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 1024, 640
 	GUI.anchor, GUI.corner = "screen", "C"
 	
 
