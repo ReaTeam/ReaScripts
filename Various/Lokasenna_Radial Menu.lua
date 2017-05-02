@@ -1,13 +1,18 @@
 --[[
 Description: Radial Menu 
-Version: 2.7.1
+Version: 2.7.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	New:
-	- Visual indicator when a button is clicked via key binds
+	- Option to open the window in a consistent location rather than
+	  at the mouse cursor.
+	- When set to require the action key to be held down, displays an
+	  indicator at the top-left while trying to identify the key
 	Fixed:
-	- A couple of key bind-related crashes
+	- Deleting buttons from a menu would clear the center button as well
+	- Lowered the time threshold for a double-click to 15ms; fixes issues 
+	  with repeatedly clicking a button too quickly.
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -266,7 +271,7 @@ GUI.color = function (col)
 
 	-- If we're given a table of color values, just pass it right along
 	if type(col) == "table" then
-
+		
 		gfx.set(col[1], col[2], col[3], col[4] or 1)
 	else
 		gfx.set(table.unpack(GUI.colors[col]))
@@ -1314,7 +1319,7 @@ GUI.Update = function (elm)
 				else	
 				
 					-- Double clicked?
-					if GUI.mouse.downtime and os.clock() - GUI.mouse.downtime < 0.20 then
+					if GUI.mouse.downtime and os.clock() - GUI.mouse.downtime < 0.10 then
 	
 						GUI.mouse.downtime = nil
 						GUI.mouse.dbl_clicked = true
@@ -4218,7 +4223,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.7.1"
+local script_version = "2.7.2"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -4274,10 +4279,9 @@ local hvr_time = 0
 
 --local ra, rb, rc, rd = 50, 60, 64, 160
 
-
-local key_mode_str = "Close the menu,Run the highlighted action and close the menu,Keep the menu open"
+local win_pos_str = "At the mouse cursor,In its previous location"
 local mouse_mode_str = "Just run the action,Return to the base menu,Close the menu"
-
+local key_mode_str = "Close the menu,Run the highlighted action and close the menu,Keep the menu open"
 
 
 
@@ -4839,6 +4843,7 @@ local def_mnu_arr = {
 							[16] = {},							
 						},
 		["key_mode"] = 1,
+		["last_pos"] = {0,0},
 		["last_tab"] = 1,
 		["mouse_mode"] = 1,
 		["num_btns"] = 8,		
@@ -4856,6 +4861,7 @@ local def_mnu_arr = {
 						menu_mode = 1,
 						menu = 0,
 					},
+		["win_pos"] = 1,
 	},
 	-- Base level
 	[0] = {
@@ -5645,22 +5651,12 @@ local function update_glbl_settings()
 	
 	local num = mnu_arr[-1].key_binds.last_num
 	GUI.Val("mnu_keys", num)	
---[[	
-	for i = -1, num + 3 do
-		
-		if i ~= 0 then
-			GUI.Msg("setting txt_keys_"..i)
-			GUI.Val("txt_keys_"..i, mnu_arr[-1].key_binds[num][i])
-		end
-		
-	end
-]]--	
-	
-	
+
 	GUI.Val("tabs", mnu_arr[-1].last_tab)
-	
-	GUI.Val("opt_key_mode", mnu_arr[-1].key_mode)
+
+	GUI.Val("opt_win_pos", mnu_arr[-1].win_pos)
 	GUI.Val("opt_mouse_mode", mnu_arr[-1].mouse_mode)
+	GUI.Val("opt_key_mode", mnu_arr[-1].key_mode)
 	GUI.Val("chk_misc_opts", {mnu_arr[-1].hvr_click})
 	GUI.Val("txt_hvr_time", mnu_arr[-1].hvr_time)
 	GUI.Val("txt_close_time", mnu_arr[-1].close_time)
@@ -5993,36 +5989,7 @@ local function remove_btn(cur)
 		
 		_=dm and Msg("\tcreating temporary array")
 
-		
---[[		
-		for k, v in pairs(old_arr) do
-		
-			
-			arr[k] = v
-			_=dm and Msg("\t\tadded "..tostring(k).." - "..tostring(v))
-				
-		end
-		
-		_=dm and Msg("\tremoving btn "..tostring(num).." - "..old_arr[num].lbl.." of "..tostring(#arr))
-		
-		arr[num] = nil
-		--table.remove(arr, num)
-		
-		_=dm and Msg("\tarray now has "..tostring(#arr).." buttons")
-		_=dm and Msg("\tcopying back to mnu_arr")
-		
-		old_arr = {}
-		
-		for k, v in pairs(arr) do
-			
-			--if type(k) == "number" and k > 1 then k = k - 1 end
-			old_arr[k] = v
-			_=dm and Msg("\t\tcopied "..tostring(k).." - "..tostring(v))
-		
-		end
-]]--
 
-		
 		-- Separate the table by key into nums and hash
 		for k, v in pairs(mnu_arr[cur_depth]) do
 			if tonumber(k) then
@@ -6036,9 +6003,9 @@ local function remove_btn(cur)
 		arr_num[num] = nil
 		
 		
-		local k = 0
+		local k = -1
 		
-		for i = 0, #mnu_arr[cur_depth] do
+		for i = -1, #mnu_arr[cur_depth] do
 			
 			if arr_num[i] then
 				new_arr[k] = arr_num[i]
@@ -6262,6 +6229,9 @@ local function check_key()
 				_=dm and Msg("\tDetected: "..mod_str.." "..hold_char)
 				
 				startup = false
+				GUI.elms.lbl_startup.z = 20
+				GUI.redraw_z[GUI.elms.frm_radial.z] = true
+				
 			elseif not up_time then
 				up_time = reaper.time_precise()
 			end
@@ -6453,7 +6423,7 @@ local function check_mouse()
 		
 		_=dm and Msg("\tmouse is now over button "..tostring(mouse_mnu))
 		
-		if mnu_arr[-1].hvr_click  then
+		if not setup and mnu_arr[-1].hvr_click  then
 			_=dm and Msg("hovering")
 			hvr_time = reaper.time_precise()
 		end
@@ -6463,7 +6433,7 @@ local function check_mouse()
 		GUI.redraw_z[GUI.elms.frm_radial.z] = true 
 	
 	-- If the hover time has run out, click the current option
-	elseif hvr_time and mnu_arr[-1].hvr_click and (reaper.time_precise() - hvr_time) > (mnu_arr[-1].hvr_time / 1000) then
+	elseif not setup and hvr_time and mnu_arr[-1].hvr_click and (reaper.time_precise() - hvr_time) > (mnu_arr[-1].hvr_time / 1000) then
 		if mnu_arr[cur_depth][mouse_mnu] then
 			_=dm and Msg("hovered long enough, clicking")
 			run_act(mnu_arr[cur_depth][mouse_mnu].act)
@@ -6625,12 +6595,13 @@ local ref4 = {x = 808, y = line_y0 + 16, w = 192, h = 20, adj = 26}	-- Options b
 
 local ref5 = {x = 512, y = line_y4 + 48}					-- Font settings
 
-local ref6 = {x = 458, y = line_y0 + 280}					-- Misc. opts
+local ref6 = {x = 458, y = line_y0 + 500}					-- Misc. opts
 
 GUI.elms = not setup and {
 
 	frm_radial = GUI.Frame:new(			2,	0, 0, 400, 400, false, true, "elm_bg", 0),
 	lbl_version = GUI.Label:new(		1,	6, 0, "Script version: "..script_version, 0, 10),
+	lbl_startup = GUI.Label:new(		20,	6, 4, "Detecting action key...", 0, 10),
 	
 }
 or
@@ -6840,13 +6811,16 @@ or
 
 
 
+
 	---- Options tab z = 11,12,13
 
 	--mnu_g_shape = GUI.Menubox:new(		12,	500, line_y0 + 96, 64, 20, "Button shape:", "Circle,Square,Arc", 4),	
 	
-	opt_key_mode = GUI.Radio:new(		12,	448, line_y0 + 16, 336, 96, "When the shortcut key is released:", key_mode_str, 4),
+	opt_win_pos = GUI.Radio:new(		12,	448, line_y0 + 16, 336, 74, "Open the Radial Menu window:", win_pos_str, 4),
+	opt_mouse_mode = GUI.Radio:new(		12, 448, line_y0 + 122, 336, 96, "When running an action:", mouse_mode_str, 4),	
+	opt_key_mode = GUI.Radio:new(		12,	448, line_y0 + 254, 336, 96, "When the shortcut key is released:", key_mode_str, 4),
 	
-	opt_mouse_mode = GUI.Radio:new(		12, 448, line_y0 + 144, 336, 96, "When running an action:", mouse_mode_str, 4),
+
 	
 	chk_misc_opts = GUI.Checklist:new(	12, ref6.x, ref6.y, 336, 108, "", "Hover over an option to 'click' it →", "v", 4),
 	txt_hvr_time = GUI.Textbox:new(		12, ref6.x + 270, ref6.y, 48, 20, "(ms):", 4),
@@ -7604,8 +7578,10 @@ if setup then
 		
 		-- Options tab --
 		
+		GUI.elms.opt_win_pos.tooltip = "Where to open the Radial Menu window"
+		GUI.elms.opt_mouse_mode.tooltip = "What to do when an action is clicked"		
 		GUI.elms.opt_key_mode.tooltip = "What to do when the script's shortcut key is released"
-		GUI.elms.opt_mouse_mode.tooltip = "What to do when an action is clicked"
+
 		
 		GUI.elms.btn_open_txt.tooltip = "Open the settings file in the system's text editor"
 		GUI.elms.btn_refresh_txt.tooltip = "Refresh menus and settings from the settings file"
@@ -8955,18 +8931,20 @@ if setup then
 	---- Options ----
 
 
-	function GUI.elms.opt_key_mode:onmouseup()
+	function GUI.elms.opt_win_pos:onmouseup()
 		
 		GUI.Radio.onmouseup(self)
-		mnu_arr[-1].key_mode = self.retval
+		mnu_arr[-1].win_pos = self.retval
 		
 	end
-	function GUI.elms.opt_key_mode:onwheel()
+	
+	function GUI.elms.opt_win_pos:onwheel()
 		
 		GUI.Radio.onwheel(self)
-		mnu_arr[-1].key_mode = self.retval
+		mnu_arr[-1].win_pos = self.retval
 		
 	end
+
 
 
 	function GUI.elms.opt_mouse_mode:onmouseup()
@@ -8979,6 +8957,22 @@ if setup then
 		
 		GUI.Radio.onwheel(self)
 		mnu_arr[-1].mouse_mode = self.retval
+		
+	end
+
+
+
+
+	function GUI.elms.opt_key_mode:onmouseup()
+		
+		GUI.Radio.onmouseup(self)
+		mnu_arr[-1].key_mode = self.retval
+		
+	end
+	function GUI.elms.opt_key_mode:onwheel()
+		
+		GUI.Radio.onwheel(self)
+		mnu_arr[-1].key_mode = self.retval
 		
 	end
 
@@ -9053,6 +9047,119 @@ end
 
 
 
+
+-- Make sure we've got a menu file to work with
+if load_menu() == 0 then return 0 end
+
+-- Setup: Init things that need to have menus/settings loaded
+if setup then
+	
+	update_mnu_menu()
+	update_glbl_settings()
+	update_mnu_settings()
+	update_btn_settings()
+	update_context_elms()
+	update_key_elms()
+	update_rad_sldrs()
+
+	reaper.atexit(save_menu)	
+
+else
+
+
+	if open_depth then	
+		-- If Radial Menu was called from a shortcut script, use that for a base depth
+		base_depth = open_depth
+		cur_depth = open_depth
+	else
+		-- This needs to happen prior to the window being opened; it takes over the cursor
+		get_context_mnu() 
+	end
+
+end
+
+
+
+
+if not mnu_arr[cur_depth] then init_menu(cur_depth) end
+
+frm_w = not setup								-- Add some padding if key_binding hints are enabled
+					and (2 * mnu_arr[-1].rd + ((mnu_arr[-1].key_binds.enabled and mnu_arr[-1].key_binds.hints) and 24 or 0)) + 16 
+					or 432
+ox = frm_w / 2
+oy = setup and line_y_tt / 2 or ox
+
+-- Window parameters
+if not setup then
+	
+	GUI.name = GUI.name or "Radial Menu"
+	
+	GUI.w, GUI.h = frm_w, frm_w + 16
+
+	if mnu_arr[-1].win_pos == 1 then
+		GUI.x, GUI.y = -8, -32
+		GUI.anchor, GUI.corner = "mouse", "C"
+	else
+		GUI.x, GUI.y = table.unpack( mnu_arr[-1].last_pos or {0,0} )
+		
+		local function store_pos()
+			
+			local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
+			mnu_arr[-1].last_pos = {x,y}
+			save_menu()
+			
+		end
+		
+		reaper.atexit(store_pos)
+		
+	end
+	
+	GUI.elms.frm_radial.w, GUI.elms.frm_radial.h = GUI.w, GUI.h
+	
+	--Display the startup mode indicator if in "hold the key down" mode
+	
+	if mnu_arr[-1].key_mode == 1 or mnu_arr[-1].key_mode == 2 then GUI.elms.lbl_startup.z = 1 end
+	
+else
+
+	GUI.name = "Radial Menu Setup"
+	GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 1024, 640
+	GUI.anchor, GUI.corner = "screen", "C"
+	
+
+end
+
+
+
+
+_=dm and Msg("Opening GUI window")
+
+GUI.Init()
+
+
+-- Init things that need the window open
+if setup then
+		
+	-- Format the Help tab's text so it fits
+	-- Needs the window open so it can use gfx functions
+	GUI.init_txt_width()
+	init_help_pages()
+	GUI.Val("frm_help", help_pages[1][2])
+	
+	-- For any elms that need adjusting
+	align_elms()
+
+	init_frm_swipe_menu()
+	
+
+else
+
+	GUI.font(GUI.elms.lbl_version.font)
+	GUI.elms.lbl_version.y = GUI.h - gfx.texth - 4
+
+end
+
+_=dm and Msg("Starting main GUI loop")
 
 
 -- Main Radial Menu loop
@@ -9183,97 +9290,6 @@ local function Main()
 	
 end
 
--- Make sure we've got a menu file to work with
-if load_menu() == 0 then return 0 end
-
--- Setup: Things that need to use menus and settings
-if setup then
-	
-	update_mnu_menu()
-	update_glbl_settings()
-	update_mnu_settings()
-	update_btn_settings()
-	update_context_elms()
-	update_key_elms()
-	update_rad_sldrs()
-
-	reaper.atexit(save_menu)	
-
-else
-
-
-	if open_depth then	
-		-- If Radial Menu was called from a shortcut script, use that for a base depth
-		base_depth = open_depth
-		cur_depth = open_depth
-	else
-		-- This needs to happen prior to the window being opened; it takes over the cursor
-		get_context_mnu() 
-	end
-
-end
-
-
-
-
-if not mnu_arr[cur_depth] then init_menu(cur_depth) end
-
-frm_w = not setup								-- Add some padding if key_binding hints are enabled
-					and (2 * mnu_arr[-1].rd + ((mnu_arr[-1].key_binds.enabled and mnu_arr[-1].key_binds.hints) and 24 or 0)) + 16 
-					or 432
-ox = frm_w / 2
-oy = setup and line_y_tt / 2 or ox
-
--- Window parameters
-if not setup then
-	
-	GUI.name = GUI.name or "Radial Menu"
-	GUI.x, GUI.y, GUI.w, GUI.h = -8, -32, frm_w, frm_w + 16
-	GUI.anchor, GUI.corner = "mouse", "C"
-	
-	GUI.elms.frm_radial.w, GUI.elms.frm_radial.h = GUI.w, GUI.h
-	
-	
-else
-
-	GUI.name = "Radial Menu Setup"
-	GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 1024, 640
-	GUI.anchor, GUI.corner = "screen", "C"
-	
-
-end
-
-
-
-
-_=dm and Msg("Opening GUI window")
-
-GUI.Init()
-
-
--- Init things that need the window open
-if setup then
-		
-	-- Format the Help tab's text so it fits
-	-- Needs the window open so it can use gfx functions
-	GUI.init_txt_width()
-	init_help_pages()
-	GUI.Val("frm_help", help_pages[1][2])
-	
-	-- For any elms that need adjusting
-	align_elms()
-
-	init_frm_swipe_menu()
-	
-
-else
-
-	GUI.font(GUI.elms.lbl_version.font)
-	GUI.elms.lbl_version.y = GUI.h - gfx.texth - 4
-
-end
-
-_=dm and Msg("Starting main GUI loop")
 
 GUI.func = Main
 GUI.freq = 0
