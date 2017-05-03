@@ -1,13 +1,16 @@
 -- @description Big Repeat Button
--- @version 1.0
+-- @version 1.0.1
 -- @author cfillion
+-- @changelog
+--   Improve mouse hit detection
+--   Scale the margin along with the window
+--   Show a message when the window is too small to fit the button
 -- @link
---   Author's Website https://cfillion.ca
+--   cfillion.ca https://cfillion.ca
 --   Request Thread http://forum.cockos.com/showthread.php?t=191477
 -- @screenshot https://i.imgur.com/BUripgE.gif
 -- @donation https://www.paypal.me/cfillion/10
 
-local MARGIN = 40
 local HIGHLIGHT = 0.1
 local REPEAT_QUERY = -1
 local REPEAT_TOGGLE = 255
@@ -26,9 +29,18 @@ function status(on)
 end
 
 function loop()
+  local margin = math.max(gfx.w, gfx.h) / 15
+  local left = gfx.w - margin
+  local width = left - margin
+  local bottom = gfx.h - margin
+  local height = bottom - margin
+  local mouse_hit =
+    (gfx.mouse_x > margin and gfx.mouse_x < left) and
+    (gfx.mouse_y > margin and gfx.mouse_y < bottom)
+
   if gfx.getchar() < 0 then
     return gfx.quit()
-  elseif (gfx.mouse_cap & 1) ~= 0 then
+  elseif (gfx.mouse_cap & 1) ~= 0 and mouse_hit then
     mouse_down = true
   elseif mouse_down then
     reaper.GetSetRepeat(REPEAT_TOGGLE)
@@ -36,11 +48,18 @@ function loop()
   end
 
   local on = reaper.GetSetRepeat(REPEAT_QUERY) == 1
+  local label = string.format("Repeat %s", status(on))
+  gfx.setfont(1)
+  local w, h = gfx.measurestr(label)
 
-  local left = gfx.w - MARGIN
-  local width = left - MARGIN
-  local bottom = gfx.h - MARGIN
-  local height = bottom - MARGIN
+  if w > width or h > height then
+    gfx.x = 0; gfx.y = 0
+    gfx.setfont(0)
+    gfx.drawstr("The button is too big to fit in this window.")
+    gfx.update()
+    reaper.defer(loop)
+    return
+  end
 
   gfx.r = 0; gfx.g = 0; gfx.b = 0
 
@@ -50,10 +69,7 @@ function loop()
     gfx.r = 0.3
   end
 
-  local hit_x = gfx.mouse_x > MARGIN and gfx.mouse_x < left
-  local hit_y = gfx.mouse_y > MARGIN and gfx.mouse_y < bottom
-
-  if hit_x and hit_y then
+  if mouse_hit then
     if mouse_down then
       gfx.b = 0.5
     else
@@ -63,14 +79,13 @@ function loop()
     end
   end
 
-  gfx.rect(MARGIN, MARGIN, width, height, true)
+  gfx.rect(margin, margin, width, height, true)
 
   gfx.r = 0.9; gfx.g = 0.9; gfx.b = 1
-  gfx.rect(MARGIN, MARGIN, width, height, false)
+  gfx.rect(margin, margin, width, height, false)
 
-  gfx.x = MARGIN; gfx.y = MARGIN
-  gfx.drawstr(string.format("Repeat %s", status(on)),
-    CENTER_H | CENTER_V, left, bottom)
+  gfx.x = margin; gfx.y = margin
+  gfx.drawstr(label, CENTER_H | CENTER_V, left, bottom)
 
   gfx.update()
   reaper.defer(loop)
