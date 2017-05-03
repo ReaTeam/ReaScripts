@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fc476929fb71fd6167e8e6696d974da286582f91" name="ReaTeam Scripts">
+<index version="1" commit="2b464a7c5e5a5fb53c33083e6d0e38472624c224" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4469,13 +4469,19 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
       <metadata>
-        <link rel="website" href="https://cfillion.ca">Author's Website</link>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=191477">Request Thread</link>
         <link rel="screenshot">https://i.imgur.com/BUripgE.gif</link>
         <link rel="donation">https://www.paypal.me/cfillion/10</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-05-03T17:55:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc476929fb71fd6167e8e6696d974da286582f91/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2017-05-03T19:25:15Z">
+        <changelog><![CDATA[Improve mouse hit detection
+Scale the margin along with the window
+Show a message when the window is too small to fit the button]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b464a7c5e5a5fb53c33083e6d0e38472624c224/Various/cfillion_Big%20Repeat%20Button.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
