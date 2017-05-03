@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="85db53468351fba92b205eb9c2d6caf6dba8d21f" name="ReaTeam Scripts">
+<index version="1" commit="fc476929fb71fd6167e8e6696d974da286582f91" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4465,6 +4465,17 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
+      <metadata>
+        <link rel="website" href="https://cfillion.ca">Author's Website</link>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191477">Request Thread</link>
+        <link rel="screenshot">https://i.imgur.com/BUripgE.gif</link>
+        <link rel="donation">https://www.paypal.me/cfillion/10</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-05-03T17:55:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fc476929fb71fd6167e8e6696d974da286582f91/Various/cfillion_Big%20Repeat%20Button.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
