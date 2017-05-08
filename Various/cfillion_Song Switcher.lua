@@ -1,13 +1,17 @@
 -- @description Song Switcher
--- @version 1.3
+-- @version 1.4
 -- @changelog
---   * fix detection of start/end time when there are no items in the first few tracks
+--   * only show mousedown button effect for the left button
+--   * show a context menu on right click
+--   * stop transport before switching songs rather than after
+--   * toggle filter box with single click rather than double click
 --   Web Interface:
---   * add midi panic and data reset buttons
---   * disable spell check on the input box
---   * implement timeline view with seek support and markers
---   * make spacebar trigger play/stop on desktop
---   * rewrite with cleaner code
+--   * add Lock button to enable read-only mode
+--   * change the color of the play button on pause/record
+--   * confirm tab close in locked mode
+--   * disable pixel interpolation when scaling the timeline
+--   * enhance noscript and fix loading flickering
+--   * implement precise seek on mouse drag in timeline
 -- @author cfillion
 -- @provides
 --   [main] cfillion_Song Switcher/*.lua
@@ -96,6 +100,8 @@ KEY_MINUS = 45
 KEY_PLUS = 43
 KEY_STAR = 42
 KEY_F3 = 26163
+
+MOUSE_LEFT_BTN = 1
 
 PADDING = 3
 MARGIN = 10
@@ -221,6 +227,12 @@ function setCurrentIndex(index)
     setSongEnabled(songs[currentIndex], false)
   end
 
+  local mode = getSwitchMode()
+
+  if mode == SWITCH_SEEKSTOP then
+    reaper.CSurf_OnStop()
+  end
+
   local song = songs[index]
   local disableOk = not invalid
   local enableOk = setSongEnabled(song, true)
@@ -229,10 +241,6 @@ function setCurrentIndex(index)
     currentIndex = index
     setNextIndex(index)
 
-    local mode = getSwitchMode()
-    if mode == SWITCH_SEEKSTOP then
-      reaper.CSurf_OnStop()
-    end
     if mode == SWITCH_SEEK or mode == SWITCH_SEEKSTOP then
       reaper.SetEditCurPos(song.startTime, true, true)
     end
@@ -331,7 +339,7 @@ function drawName(song)
   useColor(COLOR_NAME)
   drawTextLine(line)
 
-  if isLineUnderMouse(line) and isDoubleClick then
+  if isLineUnderMouse(line) and mouseClick then
     filterPrompt = true
   end
 end
@@ -353,8 +361,9 @@ function drawFilter()
     gfx.line(topRight, line.ty, topRight, line.ty + line.rect.h)
   end
 
-  if isLineUnderMouse(line) and isDoubleClick then
+  if isLineUnderMouse(line) and mouseClick then
     filterPrompt = false
+    filterBuffer = ''
   end
 end
 
@@ -438,7 +447,7 @@ function switchModeButton()
   if mode == SWITCH_SEEK then
     action = 'seek'
   elseif mode == SWITCH_SEEKSTOP then
-    action = 'seek+stop'
+    action = 'stop+seek'
   else
     action = 'onswitch'
   end
@@ -466,17 +475,7 @@ function dockButton()
   local dockState = gfx.dock(-1)
 
   if button(btn, dockState ~= 0, false, false) then
-    if dockState == 0 then
-      local lastDock = tonumber(reaper.GetExtState(EXT_SECTION,
-        EXT_LAST_DOCK))
-      if not lastDock or lastDock < 1 then lastDock = 1 end
-
-      gfx.dock(lastDock)
-    else
-      reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK,
-        tostring(dockState), true)
-      gfx.dock(0)
-    end
+    toggleDock(dockState)
   end
 end
 
@@ -520,7 +519,7 @@ function button(line, active, highlight, danger)
   end
 
   if isUnderMouse(line.rect.x, line.rect.y, line.rect.w, line.rect.h) then
-    if mouseState > 0 then
+    if (mouseState & MOUSE_LEFT_BTN) == MOUSE_LEFT_BTN then
       if danger then
         useColor(COLOR_DANGERBG)
         color = COLOR_DANGERFG
@@ -658,7 +657,6 @@ function isLineUnderMouse(line)
 end
 
 function mouse()
-  isDoubleClick = false
   mouseClick = false
 
   if gfx.mouse_wheel ~= 0 then
@@ -678,16 +676,10 @@ function mouse()
     reset()
   elseif mouseState == 1 and gfx.mouse_cap == 0 then
     -- left button release
-
-    local now = os.clock()
-    if lastClick > now - 0.2 then
-      isDoubleClick = true
-      lastClick = 0
-    else
-      lastClick = now
-    end
-
     mouseClick = true
+  elseif mouseState == 2 and gfx.mouse_cap == 0 then
+    -- right button release
+    contextMenu()
   end
 
   mouseState = gfx.mouse_cap
@@ -863,13 +855,45 @@ function updateState()
   reaper.SetExtState(EXT_SECTION, EXT_STATE, state, false)
 end
 
+function toggleDock(dockState)
+  if dockState == 0 then
+    local lastDock = tonumber(reaper.GetExtState(EXT_SECTION,
+      EXT_LAST_DOCK))
+    if not lastDock or lastDock < 1 then lastDock = 1 end
+
+    gfx.dock(lastDock)
+  else
+    reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK,
+      tostring(dockState), true)
+    gfx.dock(0)
+  end
+end
+
+function contextMenu()
+  local dockState = gfx.dock(-1)
+  local dockFlag
+  if dockState > 0 then dockFlag = '!' else dockFlag = '' end
+
+  local menu = string.format(
+    '%sDock window|Reset data',
+    dockFlag
+  )
+
+  local actions = {
+    function() toggleDock(dockState) end,
+    reset,
+  }
+
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local index = gfx.showmenu(menu)
+  if actions[index] then actions[index]() end
+end
+
 -- graphics initialization
 mouseState = 0
 mouseClick = false
 highlightTime = 0
 scrollTo = 0
-lastClick = 0
-isDoubleClick = false
 
 local w, h, dockState, x, y = previousWindowState()
 
