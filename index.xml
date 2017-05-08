@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b464a7c5e5a5fb53c33083e6d0e38472624c224" name="ReaTeam Scripts">
+<index version="1" commit="e81e1fa2c23b79095256e1687eed0bcad04d7f34" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4669,6 +4669,24 @@ Web Interface:
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/song_switcher.html</source>
+      </version>
+      <version name="1.4" author="cfillion" time="2017-05-08T19:40:16Z">
+        <changelog><![CDATA[* only show mousedown button effect for the left button
+* show a context menu on right click
+* stop transport before switching songs rather than after
+* toggle filter box with single click rather than double click
+Web Interface:
+* add Lock button to enable read-only mode
+* change the color of the play button on pause/record
+* confirm tab close in locked mode
+* disable pixel interpolation when scaling the timeline
+* enhance noscript and fix loading flickering
+* implement precise seek on mouse drag in timeline]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher.lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script" desc="AutoSend MIDI of selected track to a specific track">
