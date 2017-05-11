@@ -1,6 +1,5 @@
-@noindex
-
 --[[
+ * noindex
  * Version: 1.0
 --]]
 

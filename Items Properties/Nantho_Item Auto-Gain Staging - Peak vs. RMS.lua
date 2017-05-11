@@ -1,7 +1,5 @@
-@provides
-  [nomain] spk77_Get max peak val and pos from take_function.lua
-
 --[[
+ * Provides: [nomain] spk77_Get max peak val and pos from take_function.lua
  * ReaScript Name: Item Auto-Gain Staging - Peak vs. RMS
  * Description: See title
  * Instructions: Select items. Run.
