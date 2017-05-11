@@ -1,7 +1,11 @@
 --[[
- * Provides: [nomain] spk77_Get max peak val and pos from take_function.lua
+ * Provides: [nomain] spk77_Get max peak val and pos from take_function.lua > Nantho_Item Auto-Gain Staging - Peak vs. RMS.lua/spk77_Get max peak val and pos from take_function_Copy1.lua
  * ReaScript Name: Item Auto-Gain Staging - Peak vs. RMS
- * Description: See title
+ * Links:
+    Forum Thread http://forum.cockos.com/showthread.php?t=184368
+ * About: 
+    - Normalize selected items to -x dB RMS/LUFS/LU (x and unit specified by user imput) ;
+    -  If those normalized items have peaks over -y dB (y specified by user), trim them down to peak at -y dB max.
  * Instructions: Select items. Run.
  * Screenshot: 
  * Author: Nantho
