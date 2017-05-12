@@ -14,7 +14,7 @@
  * REAPER: 5.0
  * Extensions: spk77 Get max peak val and pos from take (function and example).lua
  * Extensions: SWS extension
- * Version: 1.0
+ * Version: 1.0.0-1
 --]]
 
 --[[
