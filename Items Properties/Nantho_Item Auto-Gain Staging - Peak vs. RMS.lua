@@ -14,7 +14,7 @@
  * REAPER: 5.0
  * Extensions: spk77 Get max peak val and pos from take (function and example).lua
  * Extensions: SWS extension
- * Version: 1.0
+ * Version: 1.0.0-1
 --]]
 
 --[[
@@ -44,7 +44,7 @@ console = true -- true/false: display debug messages in the console
 
 local info = debug.getinfo(1,'S');
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
-dofile(script_path .. "/PeakVsRMS/spk77_Get max peak val and pos from take_function.lua")
+dofile(script_path .. "/Nantho_PeakVsRMS/spk77_Get max peak val and pos from take_function.lua")
 
 -------------------------------------------------------------- INCLUDES
 
