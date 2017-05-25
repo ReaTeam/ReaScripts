@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6bf762aa2b4cffb5418be6f03083975106da030b" name="ReaTeam Scripts">
+<index version="1" commit="84517a85d17f04ac64f9fe8016fc983d0d4c55c7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4522,6 +4522,11 @@ Made by Mordi, Jan 2016]]></changelog>
 Scale the margin along with the window
 Show a message when the window is too small to fit the button]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b464a7c5e5a5fb53c33083e6d0e38472624c224/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+      <version name="1.0.2" author="cfillion" time="2017-05-25T20:08:29Z">
+        <changelog><![CDATA[Improve button sizing in wide + short windows
+Try harder to fit the button in very small windows]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84517a85d17f04ac64f9fe8016fc983d0d4c55c7/Various/cfillion_Big%20Repeat%20Button.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
