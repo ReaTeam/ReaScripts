@@ -1,10 +1,9 @@
 -- @description Big Repeat Button
--- @version 1.0.1
+-- @version 1.0.2
 -- @author cfillion
 -- @changelog
---   Improve mouse hit detection
---   Scale the margin along with the window
---   Show a message when the window is too small to fit the button
+--   Improve button sizing in wide + short windows
+--   Try harder to fit the button in very small windows
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Request Thread http://forum.cockos.com/showthread.php?t=191477
@@ -29,7 +28,7 @@ function status(on)
 end
 
 function loop()
-  local margin = math.max(gfx.w, gfx.h) / 15
+  local margin = math.min(gfx.w, gfx.h) / 8
   local left = gfx.w - margin
   local width = left - margin
   local bottom = gfx.h - margin
@@ -53,12 +52,20 @@ function loop()
   local w, h = gfx.measurestr(label)
 
   if w > width or h > height then
-    gfx.x = 0; gfx.y = 0
-    gfx.setfont(0)
-    gfx.drawstr("The button is too big to fit in this window.")
-    gfx.update()
-    reaper.defer(loop)
-    return
+    local diff = math.max(w - width, h - height)
+
+    if diff <= margin then
+      margin = margin - diff
+      width = width + (diff * 2)
+      height = height + (diff * 2)
+    else
+      gfx.x = 0; gfx.y = 0
+      gfx.setfont(0)
+      gfx.drawstr("The window is too small to fit the button.")
+      gfx.update()
+      reaper.defer(loop)
+      return
+    end
   end
 
   gfx.r = 0; gfx.g = 0; gfx.b = 0
