@@ -1,9 +1,9 @@
 -- @description Big Repeat Button
--- @version 1.0.2
+-- @version 1.0.3
 -- @author cfillion
 -- @changelog
---   Improve button sizing in wide + short windows
---   Try harder to fit the button in very small windows
+--   Show the button even if the window cannot fit the text
+--   Fix mouse cursor click hit detection in small windows
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Request Thread http://forum.cockos.com/showthread.php?t=191477
@@ -19,12 +19,16 @@ local CENTER_V = 4
 
 local mouse_down = false
 
-function status(on)
-  if on then
-    return "ON "
-  else
-    return "OFF"
+function make_label(on)
+  local status = function(on)
+    if on then
+      return "ON"
+    else
+      return "OFF"
+    end
   end
+
+  return string.format("Repeat %s", status(on))
 end
 
 function loop()
@@ -33,6 +37,18 @@ function loop()
   local width = left - margin
   local bottom = gfx.h - margin
   local height = bottom - margin
+
+  local w, h = gfx.measurestr(make_label(false))
+  local diff = math.max(w - width, h - height)
+
+  if diff > 0 and diff <= margin then
+    margin = margin - diff
+    left = left + diff
+    bottom = bottom + diff
+    width = width + (diff * 2)
+    height = height + (diff * 2)
+  end
+
   local mouse_hit =
     (gfx.mouse_x > margin and gfx.mouse_x < left) and
     (gfx.mouse_y > margin and gfx.mouse_y < bottom)
@@ -47,26 +63,6 @@ function loop()
   end
 
   local on = reaper.GetSetRepeat(REPEAT_QUERY) == 1
-  local label = string.format("Repeat %s", status(on))
-  gfx.setfont(1)
-  local w, h = gfx.measurestr(label)
-
-  if w > width or h > height then
-    local diff = math.max(w - width, h - height)
-
-    if diff <= margin then
-      margin = margin - diff
-      width = width + (diff * 2)
-      height = height + (diff * 2)
-    else
-      gfx.x = 0; gfx.y = 0
-      gfx.setfont(0)
-      gfx.drawstr("The window is too small to fit the button.")
-      gfx.update()
-      reaper.defer(loop)
-      return
-    end
-  end
 
   gfx.r = 0; gfx.g = 0; gfx.b = 0
 
@@ -92,7 +88,7 @@ function loop()
   gfx.rect(margin, margin, width, height, false)
 
   gfx.x = margin; gfx.y = margin
-  gfx.drawstr(label, CENTER_H | CENTER_V, left, bottom)
+  gfx.drawstr(make_label(on), CENTER_H | CENTER_V, left, bottom)
 
   gfx.update()
   reaper.defer(loop)
