@@ -46,11 +46,11 @@ end
 -- tNotesWithNotation is an improvement over REAPER's native parsing, since it allows enumeration of notes with notation.
 local tEvents = {} 
 local tNotes = {}
-local tCCs = {}
+--local tCCs = {}
 local tTextSysex = {}
 local tSelEvents = {}
 local tSelNotes = {}
-local tSelCCs = {}
+--local tSelCCs = {}
 local tSelTextSysex = {}
 local tNotesWithNotation = {}
 local tNotationWithoutNotes = {}
@@ -119,7 +119,7 @@ while stringPos < MIDIlen do
                 tNotes[lastNoteOnIndex].noteOffIndex = e
                 runningNotes[channel][pitch][flags] = nil
             end
-        
+        --[[
         elseif eventType > 9 and eventType < 0xF then -- All the different types of CCs, pitchwheel, etc
             c = c + 1 
             tCCs[c] = e
@@ -127,7 +127,7 @@ while stringPos < MIDIlen do
                 sc = sc + 1
                 tSelCCs[sc] = c
             end
-        
+        ]]
         elseif eventType == 15 then
             t = t + 1
             tTextSysex[t] = e
