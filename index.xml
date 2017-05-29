@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="52ccbf464fdb7745ee1d1da0e0b5860c86698feb" name="ReaTeam Scripts">
+<index version="1" commit="ae979728a0d27c316a35ec8d75d717ea71858899" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -943,6 +943,26 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Export markers to mkvmerge simple chapter format.lua" type="script" desc="Export markers to mkvmerge simple chapter format">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Usage Instructions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Create your markers\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run this script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Paste the generated text into a text file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Run the following command to merge your video with the chapter text file: `mkvmerge input.mov --chapters chapters.txt --default-language eng -o output.mpv\sa180\par}
+}
+]]></description>
+        <link rel="website">http://cfillion.ca</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-05-29T23:19:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ae979728a0d27c316a35ec8d75d717ea71858899/Markers/cfillion_Export%20markers%20to%20mkvmerge%20simple%20chapter%20format.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Insert regions at markers and vice versa in time selection.lua" type="script" desc="Insert regions at markers and vice versa in time selection">
