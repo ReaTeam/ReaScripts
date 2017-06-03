@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua
-Version: 2.02
+Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -77,6 +77,8 @@ About:
     + Requires REAPER v5.32 or later.  
   v2.02 (2017-02-28)
     + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
+  v2.10 (2017-06-03)
+    + New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.    
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1855,65 +1857,223 @@ function callGenerateNodesThenUpdateEvents()
     updateEventValuesAndUploadIntoTake()
 end
 
+
 ------------------------------------------------------------
 -- NOTE: This function requires all the tables to be sorted!
 function updateEventValuesAndUploadIntoTake() 
-
-    local mustQuantize = false
-    local quantStepSize
-    if tableGUIelements[GUIelement_QUANTSTEPS].value ~= 1 then 
-        mustQuantize = true 
-        local numQuantSteps = 3 + math.ceil(125*tableGUIelements[GUIelement_QUANTSTEPS].value)
-        quantStepSize = m_floor(0.5 + (laneMaxValue-laneMinValue)/numQuantSteps)
-    end
 
     local tableEditedMIDI = {} -- Clean previous tableEditedMIDI
     local c = 0 -- Count index inside tableEditedMIDI - strangely, this is faster than using table.insert or even #tableEditedMIDI+1
     
     local offset = 0
     local lastPPQpos = 0
-    
     local i = 1 -- index in tablePPQs and other event tables
     
-    for n = 1, #tableNodes-1 do
-        while i <= #tablePPQs and tablePPQs[i] < tableNodes[n+1].PPQ do
-            local newValue
-            if tablePPQs[i] >= tableNodes[n].PPQ and tablePPQs[i] < tableNodes[n+1].PPQ then
+    -- The smoothing function depends on values of nodes before and after the current two, 
+    --    so add two artificial 'nodes' to tableNodes:
+    local numNodesMinus1 = #tableNodes-1
+    tableNodes[0] = {value = tableNodes[1].value, PPQ = tableNodes[1].PPQ-1, shape = 0}
+    tableNodes[#tableNodes+1] = {value = tableNodes[#tableNodes].value, PPQ = tableNodes[#tableNodes].PPQ + 1}
+    
+    -- Iterate through all the nodes
+    for n = 1, numNodesMinus1 do
+    
+        local prevNodeValue = tableNodes[n].value
+        local nextNodeValue = tableNodes[n+1].value
+        local prevPrevNodeValue = tableNodes[n-1].value
+        local nextNextNodeValue = tableNodes[n+2].value        
+        local maxNodeValue, minNodeValue
+        
+        local prevNodePPQ = tableNodes[n].PPQ
+        local nextNodePPQ = tableNodes[n+1].PPQ
+        local prevPrevNodePPQ = tableNodes[n-1].PPQ
+        local nextNextNodePPQ = tableNodes[n+2].PPQ
+
+        -- These values will be used if smoothing needs to be done
+        -- For smoothing sqaure nodes, the corners will be converted to ovals with radii
+        --    determined by the Smoothing slider.  
+        -- The X radius (i.e. PPQ) will range between 0 and half the distance between the nodes PPQ positions.
+        -- Similarly, the Y radii (i.e. CC values) will range between 0 and half the difference in values of the nodes.
+        -- (The Y radii at prevNode and nextNode may therefore differ.)
+        --    squareSmoothLeftPPQ = prevNodePPQ + squareSmoothRadiusX and
+        --    squareSmoothRightPPQ = nextNodePPQ - squareSmoothRadiusX are simply the cutoff PPQ positions between which event values will not be affected.
+        local midPointPPQ, squareSmoothLeftPPQ, squareSmoothRightPPQ, squareSmoothRadiusX, squareSmoothRadiusYleft, squareSmoothRadiusYright
+        local slopeBetweenNodesCurrent, slopeBetweenNodesPrev, slopeBetweenNodesNext 
+            
+        -- In case smoothing is applied, do some pre-calculations of slopes
+        -- (Do this for each node, not each CC, to save time)
+        --
+        -- How does the smoothing work?  At each node, if the preceding and next inter-node slopes have different signs, 
+        --    it tries to approximate a slope of 0 at that node.
+        -- If the preceding and next inter-node slopes have the same sign, it tries to approximate the slope with the lowest absolute value.
+        -- Square shapes have idiosyncratic issues.
+        local mustSmooth = false -- Only do smoothing if necessary
+        if tableGUIelements[GUIelement_SMOOTH].value ~= 0 -- Slider value = 0 implies no smoothing
+        and nextNodePPQ - prevNodePPQ > 2 -- If nodes are too close, too few CCs in-between to smooth, and avoid divide-by-zero
+        and prevNodeValue ~= nextNodeValue -- Unlike REAPER's Bézier curves, the LFO Tool will not shift CC values beyond node boundaries, so not smoothing will be applied if node values are equal.
+        then
+        
+            mustSmooth = true
+            
+            -- min and max node values will be used to prevent inadvertent (aka buggy) changes in CC values beyond node boundaries.
+            if prevNodeValue > nextNodeValue then maxNodeValue, minNodeValue = prevNodeValue, nextNodeValue
+            else maxNodeValue, minNodeValue = nextNodeValue, prevNodeValue 
+            end
+                        
+            -- Square shapes have idiosyncratic issues.
+            if tableNodes[n].shape == 1 then -- square
+                slopeBetweenNodesCurrent = 0
+                squareSmoothRadiusX = (nextNodePPQ - prevNodePPQ)*0.5*tableGUIelements[GUIelement_SMOOTH].value
+                squareSmoothRadiusYleft  = math.abs((prevNodeValue - prevPrevNodeValue)*0.5*tableGUIelements[GUIelement_SMOOTH].value)
+                squareSmoothRadiusYright = math.abs((prevNodeValue - nextNodeValue)*0.5*tableGUIelements[GUIelement_SMOOTH].value)
+                squareSmoothLeftPPQ  = prevNodePPQ + squareSmoothRadiusX
+                squareSmoothRightPPQ = nextNodePPQ - squareSmoothRadiusX
+            else
+                slopeBetweenNodesCurrent = (nextNodeValue - prevNodeValue) / math.max(1, (nextNodePPQ - prevNodePPQ))
+                midPointPPQ = (nextNodePPQ + prevNodePPQ)*0.5
+            end
+            
+            if tableNodes[n-1].shape == 1 then -- square
+                slopeBetweenNodesPrev = (prevNodeValue - prevPrevNodeValue) -- Simulate steep slope, but with correct sign
+            else
+                slopeBetweenNodesPrev = (prevNodeValue - prevPrevNodeValue) / math.max(1, (prevNodePPQ - prevPrevNodePPQ))
+            end
+            
+            if tableNodes[n+1].shape == 1 then -- square
+                slopeBetweenNodesNext = 0
+            else
+                slopeBetweenNodesNext = (nextNextNodeValue - nextNodeValue) / math.max(1, (nextNextNodePPQ - nextNodePPQ))
+            end
+            
+            -- If the preceding and next inter-node slopes have the same sign, it tries to approximate the slope with the lowest absolute value.
+            if (slopeBetweenNodesPrev >= 0 and slopeBetweenNodesCurrent <= 0) 
+            or (slopeBetweenNodesPrev <= 0 and slopeBetweenNodesCurrent >= 0) 
+            then
+                slopeAtNodeN = 0
+            elseif math.abs(slopeBetweenNodesPrev) < math.abs(slopeBetweenNodesCurrent) then
+                slopeAtNodeN = slopeBetweenNodesPrev
+            else
+                slopeAtNodeN = slopeBetweenNodesCurrent
+            end
+            
+            if (slopeBetweenNodesNext >= 0 and slopeBetweenNodesCurrent <= 0) 
+            or (slopeBetweenNodesNext <= 0 and slopeBetweenNodesCurrent >= 0) 
+            then
+                slopeAtNodeNplus1 = 0
+            elseif math.abs(slopeBetweenNodesNext) < math.abs(slopeBetweenNodesCurrent) then
+                slopeAtNodeNplus1 = slopeBetweenNodesNext
+            else
+                slopeAtNodeNplus1 = slopeBetweenNodesCurrent
+            end
+        end -- if tableGUIelements[GUIelement_SMOOTH].value ~= 0
+        
+        -- Now start iterating through the CCs
+        while i <= #tablePPQs and tablePPQs[i] < nextNodePPQ do
+            --local newValue
+            
+            if tablePPQs[i] >= prevNodePPQ and tablePPQs[i] < nextNodePPQ then
+            
+                -- Determine event values, based on node point shape
                 if tableNodes[n].shape == 0 then -- Linear
-                    newValue = tableNodes[n].value + ((tablePPQs[i] - tableNodes[n].PPQ)/(tableNodes[n+1].PPQ - tableNodes[n].PPQ))*(tableNodes[n+1].value - tableNodes[n].value)
+                    newValue = prevNodeValue + ((tablePPQs[i] - prevNodePPQ)/(nextNodePPQ - prevNodePPQ))*(nextNodeValue - prevNodeValue)
                 elseif tableNodes[n].shape == 1 then -- Square
-                    newValue = tableNodes[n].value
+                    newValue = prevNodeValue
                 elseif tableNodes[n].shape >= 2 and tableNodes[n].shape < 3 then -- Sine
                     local piMin = (tableNodes[n].shape - 2)*m_pi
                     local piRefVal = m_cos(piMin)+1
-                    local piFrac  = piMin + (tablePPQs[i]-tableNodes[n].PPQ)/(tableNodes[n+1].PPQ-tableNodes[n].PPQ)*(m_pi - piMin)
+                    local piFrac  = piMin + (tablePPQs[i]-prevNodePPQ)/(nextNodePPQ-prevNodePPQ)*(m_pi - piMin)
                     local cosFrac = 1-(m_cos(piFrac)+1)/piRefVal
-                    newValue = tableNodes[n].value + cosFrac*(tableNodes[n+1].value-tableNodes[n].value)
+                    newValue = prevNodeValue + cosFrac*(nextNodeValue-prevNodeValue)
                 elseif tableNodes[n].shape >= 3 and tableNodes[n].shape < 4 then -- Inverse parabolic
                     local minVal = 1 - (tableNodes[n].shape - 4)
-                    local fracVal = minVal*(tablePPQs[i]-tableNodes[n+1].PPQ)/(tableNodes[n].PPQ-tableNodes[n+1].PPQ)
+                    local fracVal = minVal*(tablePPQs[i]-nextNodePPQ)/(prevNodePPQ-nextNodePPQ)
                     local refVal = minVal^3
                     local normFrac = (fracVal^3)/refVal
-                    newValue = tableNodes[n+1].value + normFrac*(tableNodes[n].value - tableNodes[n+1].value)            
+                    newValue = nextNodeValue + normFrac*(prevNodeValue - nextNodeValue)            
                 elseif tableNodes[n].shape >= 4 and tableNodes[n].shape < 5 then -- Parabolic
                     local minVal = tableNodes[n].shape - 4
-                    local fracVal = minVal + (tablePPQs[i]-tableNodes[n].PPQ)/(tableNodes[n+1].PPQ-tableNodes[n].PPQ)*(1 - minVal)
+                    local fracVal = minVal + (tablePPQs[i]-prevNodePPQ)/(nextNodePPQ-prevNodePPQ)*(1 - minVal)
                     local refVal = 1 - minVal^3
                     local normFrac = 1 - (1-fracVal^3)/refVal
-                    newValue = tableNodes[n].value + normFrac*(tableNodes[n+1].value - tableNodes[n].value)
+                    newValue = prevNodeValue + normFrac*(nextNodeValue - prevNodeValue)
                 else -- if tableNodes[n].shape == 5 then -- Bézier
-                    newValue = tableNodes[n].value
+                    newValue = prevNodeValue
                 end                
                 
-                if mustQuantize then
+                
+                -- Apply slider: Bézier-like smoothing
+                if mustSmooth then          
+                    
+                    -- For smoothing sqaure nodes, the corners will be converted to ovals with radii
+                    --    determined by the Smoothing slider.
+                    if tableNodes[n].shape == 1 then
+                        -- Smoothing only needs to be applied at left node if previous node shape is NOT square
+                        if tablePPQs[i] < squareSmoothLeftPPQ and tableNodes[n-1].shape == 1 then
+                        local discriminant = (   1 - ((tablePPQs[i] - squareSmoothLeftPPQ)/squareSmoothRadiusX)^2  ) * (squareSmoothRadiusYleft^2)
+                        if discriminant < 0 then discriminant = 0 end
+                            y = discriminant^0.5
+                            if prevPrevNodeValue < prevNodeValue then
+                                newValue = newValue - squareSmoothRadiusYleft + y
+                            else
+                                newValue = newValue + squareSmoothRadiusYleft - y
+                            end
+                        elseif tablePPQs[i] > squareSmoothRightPPQ then
+                            local discriminant = (   1 - ((tablePPQs[i] - squareSmoothRightPPQ)/squareSmoothRadiusX)^2  ) * (squareSmoothRadiusYright^2)
+                            if discriminant < 0 then discriminant = 0 end
+                            y = discriminant^0.5
+                            if nextNodeValue < prevNodeValue then
+                                newValue = newValue - squareSmoothRadiusYright + y
+                            else
+                                newValue = newValue + squareSmoothRadiusYright - y
+                            end
+                        end
+                        
+                    -- For other node shapes, smoothing involves calculating a linear 'target' slope at the node,
+                    --    and shifting event values on both sides of the node towards this slope, until
+                    --    events on both sides of the node have the same slope.
+                    else
+                        local linearTargetValue, distanceWeightedTargetValue
+                        -- CCs closer to node[n] are adjusted by preceding node[n-1], whereas CCs closer to node[n+1] are adjusted by node[n+2]
+                        -- CCs closer to node[n]:
+                        if tablePPQs[i] < (prevNodePPQ + nextNodePPQ)/2 then 
+                            linearTargetValue = prevNodeValue + slopeAtNodeN * (tablePPQs[i] - prevNodePPQ)
+                            -- To get a smooth Bézier-like curve, CCs closer to the nodes must be more strongly affected by the smoothing.
+                            -- CCs precisely at the midpoint between nodes will not be affected.
+                            -- Possible formulas to use?  Can try quadratic etc.
+                            -- distanceWeightedTargetValue = newValue + (1 - (tablePPQs[i] - prevNodePPQ) / ((nextNodePPQ - prevNodePPQ)/2))^2 * (linearTargetValue - newValue)
+                            distanceWeightedTargetValue = linearTargetValue + ((tablePPQs[i] - prevNodePPQ) / ((nextNodePPQ - prevNodePPQ)/2)) * (newValue - linearTargetValue)                        
+    
+                        -- CCs closer to node[n+1]:
+                        else
+                            linearTargetValue = nextNodeValue + slopeAtNodeNplus1 * (tablePPQs[i] - nextNodePPQ)
+                            distanceWeightedTargetValue = linearTargetValue + ((nextNodePPQ - tablePPQs[i]) / ((nextNodePPQ - prevNodePPQ)/2)) * (newValue - linearTargetValue)                        
+                        end
+                        
+                        newValue = newValue + tableGUIelements[GUIelement_SMOOTH].value * (distanceWeightedTargetValue - newValue)
+                    end -- if tableNodes[n].shape == 1
+                    
+                    if newValue > maxNodeValue then newValue = maxNodeValue
+                    elseif newValue < minNodeValue then newValue = minNodeValue 
+                    end
+                end -- if mustSmooth
+                
+                
+                -- Apply slider: quantization
+                if tableGUIelements[GUIelement_QUANTSTEPS].value ~= 1 then
+                    local numQuantSteps = 3 + math.ceil(125*tableGUIelements[GUIelement_QUANTSTEPS].value)
+                    local quantStepSize = m_floor(0.5 + (laneMaxValue-laneMinValue)/numQuantSteps)
                     newValue = quantStepSize * m_floor(0.5 + newValue/quantStepSize)
                 end
                 
+                
+                -- Ensure that values do not exceed bounds of CC lane
                 if newValue < laneMinValue then newValue = laneMinValue
                 elseif newValue > laneMaxValue then newValue = laneMaxValue
                 else newValue = m_floor(newValue+0.5)
                 end
                 
+                
+                -- Insert the MIDI events into REAPER's MIDI stream
                 offset = tablePPQs[i]-lastPPQpos
                 lastPPQpos = tablePPQs[i]
                 
@@ -1949,8 +2109,8 @@ function updateEventValuesAndUploadIntoTake()
                     tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
                 end -- if laneIsCC7BIT / laneIsCC14BIT / ...
             i = i + 1
-            end -- if tablePPQs[i] >= tableNodes[n].PPQ and tablePPQs[i] < tableNodes[n+1].PPQ then
-        end -- while i <= #tablePPQs and tablePPQs[i] < tableNodes[n+1].PPQ do
+            end -- if tablePPQs[i] >= prevNodePPQ and tablePPQs[i] < nextNodePPQ then
+        end -- while i <= #tablePPQs and tablePPQs[i] < nextNodePPQ do
     end -- for n = 1, #tableNodes-1 do
     
     -----------------------------------------------------------
@@ -2119,7 +2279,7 @@ function loadCurve(curveNum)
             elseif sliderName == "Phase step" then tableGUIelements[GUIelement_PHASE].value = tonumber(nextStr())
             elseif sliderName == "Randomness" then tableGUIelements[GUIelement_RANDOMNESS].value = tonumber(nextStr())
             elseif sliderName == "Quant steps" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
-            elseif sliderName == "Bezier shape" then tableGUIelements[GUIelement_BEZIERSHAPE].value = tonumber(nextStr())
+            elseif sliderName == "Bezier shape" then tableGUIelements[GUIelement_SMOOTH].value = tonumber(nextStr())
             elseif sliderName == "Fade in duration" then tableGUIelements[GUIelement_FADEIN].value = tonumber(nextStr())
             elseif sliderName == "Fade out duration" then tableGUIelements[GUIelement_FADEOUT].value = tonumber(nextStr())
             elseif sliderName == "Timebase?" then tableGUIelements[GUIelement_TIMEBASE].value = tonumber(nextStr())
@@ -2199,10 +2359,10 @@ function constructNewGUI()
     GUIelement_PHASE = 4
     tableGUIelements[5]=make_slider(borderWidth,borderWidth+GUIelementHeight*6,0,0,0.0,"Randomness",function(nx) end)
     GUIelement_RANDOMNESS = 5
-    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quant steps",function(nx) end)
+    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quantize",function(nx) end)
     GUIelement_QUANTSTEPS = 6
-    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.7,"Bezier shape",function(nx) end)
-    GUIelement_BEZIERSHAPE = 7
+    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.0,"Smoothing",function(nx) end)
+    GUIelement_SMOOTH = 7
     tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
     GUIelement_FADEIN = 8
     tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
