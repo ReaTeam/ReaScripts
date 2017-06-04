@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua
-Version: 2.10
+Version: 2.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif
@@ -78,7 +78,7 @@ About:
     + Requires REAPER v5.32 or later.  
   v2.02 (2017-02-28)
     + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
-  v2.10 (2017-06-03)
+  v2.11 (2017-06-04)
     + New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.
 ]]
 -- The archive of the full changelog is at the end of the script.
@@ -1762,7 +1762,7 @@ function loop_GetInputsAndUpdate()
                     elseif tableGUIelements[i].name == "Phase step" then saveString = saveString .. ",Phase step," .. tostring(tableGUIelements[i].value)
                     elseif tableGUIelements[i].name == "Randomness" then saveString = saveString .. ",Randomness," .. tostring(tableGUIelements[i].value)
                     elseif tableGUIelements[i].name == "Quant steps" then saveString = saveString .. ",Quant steps," .. tostring(tableGUIelements[i].value)
-                    elseif tableGUIelements[i].name == "Bezier shape" then saveString = saveString .. ",Bezier shape," .. tostring(tableGUIelements[i].value)
+                    elseif tableGUIelements[i].name == "Bezier shape" or tableGUIelements[i].name == "Smoothing" then saveString = saveString .. ",Bezier shape," .. tostring(tableGUIelements[i].value)
                     elseif tableGUIelements[i].name == "Fade in duration" then saveString = saveString .. ",Fade in duration," .. tostring(tableGUIelements[i].value)
                     elseif tableGUIelements[i].name == "Fade out duration" then saveString = saveString .. ",Fade out duration," .. tostring(tableGUIelements[i].value)
                     elseif tableGUIelements[i].name == "Timebase?" then saveString = saveString .. ",Timebase?," .. tostring(tableGUIelements[i].value)
@@ -1909,7 +1909,7 @@ function updateEventValuesAndUploadIntoTake()
         -- If the preceding and next inter-node slopes have the same sign, it tries to approximate the slope with the lowest absolute value.
         -- Square shapes have idiosyncratic issues.
         local mustSmooth = false -- Only do smoothing if necessary
-        if tableGUIelements[GUIelement_BEZIER].value ~= 0 -- Slider value = 0 implies no smoothing
+        if tableGUIelements[GUIelement_SMOOTH].value ~= 0 -- Slider value = 0 implies no smoothing
         and nextNodePPQ - prevNodePPQ > 2 -- If nodes are too close, too few CCs in-between to smooth, and avoid divide-by-zero
         and prevNodeValue ~= nextNodeValue -- Unlike REAPER's Bézier curves, the LFO Tool will not shift CC values beyond node boundaries, so not smoothing will be applied if node values are equal.
         then
@@ -1924,9 +1924,9 @@ function updateEventValuesAndUploadIntoTake()
             -- Square shapes have idiosyncratic issues.
             if tableNodes[n].shape == 1 then -- square
                 slopeBetweenNodesCurrent = 0
-                squareSmoothRadiusX = (nextNodePPQ - prevNodePPQ)*0.5*tableGUIelements[GUIelement_BEZIER].value
-                squareSmoothRadiusYleft  = math.abs((prevNodeValue - prevPrevNodeValue)*0.5*tableGUIelements[GUIelement_BEZIER].value)
-                squareSmoothRadiusYright = math.abs((prevNodeValue - nextNodeValue)*0.5*tableGUIelements[GUIelement_BEZIER].value)
+                squareSmoothRadiusX = (nextNodePPQ - prevNodePPQ)*0.5*tableGUIelements[GUIelement_SMOOTH].value
+                squareSmoothRadiusYleft  = math.abs((prevNodeValue - prevPrevNodeValue)*0.5*tableGUIelements[GUIelement_SMOOTH].value)
+                squareSmoothRadiusYright = math.abs((prevNodeValue - nextNodeValue)*0.5*tableGUIelements[GUIelement_SMOOTH].value)
                 squareSmoothLeftPPQ  = prevNodePPQ + squareSmoothRadiusX
                 squareSmoothRightPPQ = nextNodePPQ - squareSmoothRadiusX
             else
@@ -1966,7 +1966,7 @@ function updateEventValuesAndUploadIntoTake()
             else
                 slopeAtNodeNplus1 = slopeBetweenNodesCurrent
             end
-        end -- if tableGUIelements[GUIelement_BEZIER].value ~= 0
+        end -- if tableGUIelements[GUIelement_SMOOTH].value ~= 0
         
         -- Now start iterating through the CCs
         while i <= #tablePPQs and tablePPQs[i] < nextNodePPQ do
@@ -2050,7 +2050,7 @@ function updateEventValuesAndUploadIntoTake()
                             distanceWeightedTargetValue = linearTargetValue + ((nextNodePPQ - tablePPQs[i]) / ((nextNodePPQ - prevNodePPQ)/2)) * (newValue - linearTargetValue)                        
                         end
                         
-                        newValue = newValue + tableGUIelements[GUIelement_BEZIER].value * (distanceWeightedTargetValue - newValue)
+                        newValue = newValue + tableGUIelements[GUIelement_SMOOTH].value * (distanceWeightedTargetValue - newValue)
                     end -- if tableNodes[n].shape == 1
                     
                     if newValue > maxNodeValue then newValue = maxNodeValue
@@ -2280,7 +2280,7 @@ function loadCurve(curveNum)
             elseif sliderName == "Phase step" then tableGUIelements[GUIelement_PHASE].value = tonumber(nextStr())
             elseif sliderName == "Randomness" then tableGUIelements[GUIelement_RANDOMNESS].value = tonumber(nextStr())
             elseif sliderName == "Quant steps" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
-            elseif sliderName == "Bezier shape" then tableGUIelements[GUIelement_BEZIERSHAPE].value = tonumber(nextStr())
+            elseif sliderName == "Bezier shape" or sliderName == "Smoothing" then tableGUIelements[GUIelement_SMOOTH].value = tonumber(nextStr())
             elseif sliderName == "Fade in duration" then tableGUIelements[GUIelement_FADEIN].value = tonumber(nextStr())
             elseif sliderName == "Fade out duration" then tableGUIelements[GUIelement_FADEOUT].value = tonumber(nextStr())
             elseif sliderName == "Timebase?" then tableGUIelements[GUIelement_TIMEBASE].value = tonumber(nextStr())
@@ -2360,10 +2360,10 @@ function constructNewGUI()
     GUIelement_PHASE = 4
     tableGUIelements[5]=make_slider(borderWidth,borderWidth+GUIelementHeight*6,0,0,0.0,"Randomness",function(nx) end)
     GUIelement_RANDOMNESS = 5
-    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quantize steps",function(nx) end)
+    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quant steps",function(nx) end)
     GUIelement_QUANTSTEPS = 6
-    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.7,"Smoothing",function(nx) end)
-    GUIelement_BEZIERSHAPE = 7
+    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.0,"Smoothing",function(nx) end)
+    GUIelement_SMOOTH = 7
     tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
     GUIelement_FADEIN = 8
     tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
