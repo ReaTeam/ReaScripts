@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6acdf31f093d7484292c6497b9f47d00d76ddde2" name="ReaTeam Scripts">
+<index version="1" commit="b4eb251ba298f65b110ec25a9441ddf9ec03d740" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4276,6 +4276,11 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/66addd3305db6f4ea486760214f272a6a31c8759/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively%20(background).lua</source>
         <source file="cfillion_Select destination tracks of selected tracks sends recursively (logic).lua">https://github.com/ReaTeam/ReaScripts/raw/66addd3305db6f4ea486760214f272a6a31c8759/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively%20(logic).lua</source>
       </version>
+      <version name="1.1.1" author="cfillion" time="2017-06-04T02:08:42Z">
+        <changelog><![CDATA[Simpler packaging using new ReaPack features (no other code changes).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Select source tracks of selected tracks receives recursively.lua" type="script" desc="Select source tracks of selected tracks receives recursively">
       <metadata>
@@ -4291,6 +4296,11 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78d02b17af007aa1e483eb009df23ee623edba1f/Tracks%20Properties/cfillion_Select%20source%20tracks%20of%20selected%20tracks%20receives%20recursively.lua</source>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/78d02b17af007aa1e483eb009df23ee623edba1f/Tracks%20Properties/cfillion_Select%20source%20tracks%20of%20selected%20tracks%20receives%20recursively%20(background).lua</source>
         <source file="cfillion_Select source tracks of selected tracks receives recursively (logic).lua">https://github.com/ReaTeam/ReaScripts/raw/78d02b17af007aa1e483eb009df23ee623edba1f/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively%20(logic).lua</source>
+      </version>
+      <version name="1.0.2" author="cfillion" time="2017-06-04T02:08:42Z">
+        <changelog><![CDATA[Simpler packaging using new ReaPack features (no other code changes).]]></changelog>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle track FX bypass by name.lua" type="script" desc="Toggle track FX bypass by name">
@@ -4428,6 +4438,14 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="spk77_Set solo for send 3.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%203.lua</source>
         <source main="main" file="spk77_Set solo for send 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%204.lua</source>
         <source main="main" file="spk77_Set solo for send 5.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%205.lua</source>
+      </version>
+      <version name="0.1.1" author="spk77" time="2017-06-04T01:33:19Z">
+        <changelog><![CDATA[ReaPack packaging enhancement by cfillion (no other code change).]]></changelog>
+        <source main="main" file="spk77_Set solo for send 1.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 2.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 3.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 4.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 5.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set track names to first item (active take) name.eel" type="script" desc="Set track names to first item (active take) name">
