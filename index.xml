@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0fdc9c82a8a78a5a6a0dde77d09324edd92828d0" name="ReaTeam Scripts">
+<index version="1" commit="6acdf31f093d7484292c6497b9f47d00d76ddde2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4051,6 +4051,14 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="cfillion_Toggle take FX 3 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%203%20bypass%20for%20selected%20items.lua</source>
         <source main="main" file="cfillion_Toggle take FX 4 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%204%20bypass%20for%20selected%20items.lua</source>
         <source main="main" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%205%20bypass%20for%20selected%20items.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2017-06-04T00:49:43Z">
+        <changelog><![CDATA[More efficient packaging of the slots for ReaPack.]]></changelog>
+        <source main="main" file="cfillion_Toggle take FX 1 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 2 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 3 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 4 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Add count of same-named takes to selected takes names (starting from 1).lua" type="script" desc="Add count of same-named takes to selected takes names (starting from 1)">
