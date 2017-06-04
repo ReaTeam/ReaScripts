@@ -8,4 +8,4 @@
 --   [main] cfillion_Select destination tracks of selected tracks sends recursively.lua > cfillion_Select source tracks of selected tracks receives recursively.lua
 --   [main] cfillion_Select destination tracks of selected tracks sends recursively.lua > cfillion_Select source tracks of selected tracks receives recursively (background).lua
 
--- The code of this script is in `cfillion_Select destination tracks of selected tracks sends recursively.lua`.
+-- The contents of this script is in `cfillion_Select destination tracks of selected tracks sends recursively.lua`.
