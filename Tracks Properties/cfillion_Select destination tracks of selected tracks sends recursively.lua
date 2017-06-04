@@ -5,11 +5,12 @@
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=183638
 -- @donation https://www.paypal.me/cfillion
 -- @provides
+--   [main] .
 --   [main] . > cfillion_Select destination tracks of selected tracks sends recursively (background).lua
 
 -- This file is also used by cfillion_Select source tracks of selected tracks sends recursively.lua
 
-local script_name = ({reaper.get_action_context()}[2]):match("([/\\_]+.lua$")
+local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
 local background = script_name:match("background")
 local destination = script_name:match("destination")
 
