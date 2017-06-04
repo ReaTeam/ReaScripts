@@ -2010,18 +2010,18 @@ function updateEventValuesAndUploadIntoTake()
                     if tableNodes[n].shape == 1 then
                         -- Smoothing only needs to be applied at left node if previous node shape is NOT square
                         if tablePPQs[i] < squareSmoothLeftPPQ and tableNodes[n-1].shape == 1 then
-                        local discriminant = (   1 - ((tablePPQs[i] - squareSmoothLeftPPQ)/squareSmoothRadiusX)^2  ) * (squareSmoothRadiusYleft^2)
-                        if discriminant < 0 then discriminant = 0 end
-                            y = discriminant^0.5
+                            local radicand = (   1 - ((tablePPQs[i] - squareSmoothLeftPPQ)/squareSmoothRadiusX)^2  ) * (squareSmoothRadiusYleft^2)
+                            if radicand < 0 then radicand = 0 end
+                            local y = radicand^0.5
                             if prevPrevNodeValue < prevNodeValue then
                                 newValue = newValue - squareSmoothRadiusYleft + y
                             else
                                 newValue = newValue + squareSmoothRadiusYleft - y
                             end
                         elseif tablePPQs[i] > squareSmoothRightPPQ then
-                            local discriminant = (   1 - ((tablePPQs[i] - squareSmoothRightPPQ)/squareSmoothRadiusX)^2  ) * (squareSmoothRadiusYright^2)
-                            if discriminant < 0 then discriminant = 0 end
-                            y = discriminant^0.5
+                            local radicand = (   1 - ((tablePPQs[i] - squareSmoothRightPPQ)/squareSmoothRadiusX)^2  ) * (squareSmoothRadiusYright^2)
+                            if radicand < 0 then radicand = 0 end
+                            local y = radicand^0.5
                             if nextNodeValue < prevNodeValue then
                                 newValue = newValue - squareSmoothRadiusYright + y
                             else
