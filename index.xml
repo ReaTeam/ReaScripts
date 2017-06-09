@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf" name="ReaTeam Scripts">
+<index version="1" commit="9b7dc63a3c91d9ea674742459ad90371ae2f3afe" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -5507,6 +5507,26 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
         <changelog><![CDATA[Name change for consistency]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Script Compiler.lua" type="script" desc="Script compiler">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Simplifies the process of working with and distributing additional library files for Lua scripters, by scanning your script for a few specific commands and using them to copy the external libraries' contents directly into the base script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for a more detailed explanation.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=185264">Forum thread</link>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="2.0" author="Lokasenna" time="2017-06-09T18:45:36Z">
+        <changelog><![CDATA[Better bug checking
+Offers an alternative syntax for libraries that might be less cumbersome]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9b7dc63a3c91d9ea674742459ad90371ae2f3afe/Various/Lokasenna_Script%20Compiler.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Scroll mixer to first selected track.lua" type="script" desc="Scroll mixer to first selected track">
