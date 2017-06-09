@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8ec262f9480695aef743f25cb818a3c88dd3c431" name="ReaTeam Scripts">
+<index version="1" commit="d9eff91857cf9372d1d695893faa68011c3e775f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -566,6 +566,25 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="cfillion_Repair missing JSFX files in current project.lua" type="script" desc="Repair missing JSFX files in the current project">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Repair missing JSFX files in the current project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script scans the current project file for broken JSFX references and prompts for the new location of each unique missing JSFX found.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A fixed copy of the project file is created (OriginalName-jsfix.RPP).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script supports JSFX located either in the resource folder or in the project directory.\par}
+}
+]]></description>
+        <link rel="website">https://cfillion.ca</link>
+        <link rel="donation">https://www.paypal.me/cfillion/10</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-06-09T22:58:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d9eff91857cf9372d1d695893faa68011c3e775f/FX/cfillion_Repair%20missing%20JSFX%20files%20in%20current%20project.lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 Pitch Offset">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
