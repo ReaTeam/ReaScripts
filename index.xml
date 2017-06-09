@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9b7dc63a3c91d9ea674742459ad90371ae2f3afe" name="ReaTeam Scripts">
+<index version="1" commit="8ec262f9480695aef743f25cb818a3c88dd3c431" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -160,6 +160,116 @@
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Cursor/spk77_Move%20edit%20cursor%20to%20start%20of%20current%20measure.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Development">
+    <reapack name="cfillion_GFX Keyboard Inspector.lua" type="script" desc="GFX Keyboard Inspector">
+      <version name="1.0" author="cfillion" time="2017-06-09T21:48:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/cfillion_GFX%20Keyboard%20Inspector.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Interactive ReaScript (iReaScript)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script simulates a {\field{\*\fldinst{HYPERLINK "https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop"}}{\fldrslt{\ul
+REPL
+}}}
+ shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 http://i.imgur.com/RrGfulR.gif\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy/Paste from clipboard\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline input (functions, conditions...)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
+https://github.com/cfillion/reascripts
+}}}
+.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
+        <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="0.6.1" author="cfillion" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[fix division by zero when wrapping lines starting with a zero-length character
+fix invisible \t (tabs) on windows
+fix ugly font on windows]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Gets the last script that was run via 'Run Lua script in debug mode' and attempts to open it in debug mode again; a replacement for Reaper's native action 'ReaScript: Run last ReaScript (EEL or Lua)', since scripts can't get that filename from REAPER.ini directly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.1.1" author="Lokasenna" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Run Lua script in debug mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Lets users open a compatible .lua script in debug mode, to assist in diagnosing errors, crashes, etc.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.1.1" author="Lokasenna" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Script Compiler.lua" type="script" desc="Script compiler">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Simplifies the process of working with and distributing additional library files for Lua scripters, by scanning your script for a few specific commands and using them to copy the external libraries' contents directly into the base script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for a more detailed explanation.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=185264">Forum thread</link>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="2.0" author="Lokasenna" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[Better bug checking
+Offers an alternative syntax for libraries that might be less cumbersome]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/Lokasenna_Script%20Compiler.lua</source>
       </version>
     </reapack>
   </category>
@@ -4700,126 +4810,6 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Interactive ReaScript (iReaScript)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script simulates a {\field{\*\fldinst{HYPERLINK "https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop"}}{\fldrslt{\ul
-REPL
-}}}
- shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 http://i.imgur.com/RrGfulR.gif\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy/Paste from clipboard\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline input (functions, conditions...)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
-https://github.com/cfillion/reascripts
-}}}
-.\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
-        <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
-        <link rel="donation">https://www.paypal.me/cfillion</link>
-      </metadata>
-      <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
-        <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bab6dccc9dd0e64959a919e193fd33d06eafd4ad/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.2" author="cfillion" time="2016-06-08T03:06:35Z">
-        <changelog><![CDATA[+ enhance formatting of arrays containing nil values
-+ implement Delete key
-+ implement word movement keys (Shift+Left and Shift+Right)
-+ imply the return statement by default
-+ limit maximum depth when formatting tables
-+ protect against overriding of built-in variables]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7211142377827197c98a656217c8b16a0d556b46/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.3" author="cfillion" time="2016-07-15T02:34:49Z">
-        <changelog><![CDATA[+ added autocompletion with Tab key
-+ added PageUp/PageDown keys to scroll faster
-+ fix formatting of multiline text chunks
-+ implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
-+ preserve current input and history on .clear
-+ protect against invalid access on reaper/gfx tables (thanks to X-Raym)
-+ set global `_` variable to the first return value of last statement
-+ support multi-line statements]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4" author="cfillion" time="2016-08-18T01:21:36Z">
-        <changelog><![CDATA[+ autocomplete partial matches
-+ don't execute empty code input (v0.3 regression)
-+ enhance formatting of string values
-+ fix input of tildes
-+ increase maximum buffer size to 2048 lines
-+ limit maximum size of tables values when formatting
-+ optimize layout by only computing new or modified text segments
-+ preserve current input when using Ctrl+L shortcut
-+ prevent cursor positon from affecting text position
-+ remove reaper/gfx proxy variable workaround (requires REAPER v5.23 [t=177319])
-+ rewrite drawing & scrolling code
-+ wait at least one second before blinking the cursor]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bfdb4ee178087033c0a4ca7fa005c231dd53b43/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4.1" author="cfillion" time="2016-10-07T06:24:44Z">
-        <changelog><![CDATA[+ fix auto-completion of exact matches
-+ fix caret display in multiline input
-+ improve how partially visible lines affect the scrollbar
-+ remember docked state (use `gfx.dock(N)` to put in dock)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6c99cdaf8a1facf4b9c3bea1df4557e94c68b825/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4.2" author="cfillion" time="2016-10-08T00:15:15Z">
-        <changelog><![CDATA[+ fix formatting of zero-indexed table
-+ fix formatting of zero-sized (yet non-empty) tables
-+ override global 'print' function
-+ use braces instead of non-lua brackets for tables with numeric indexes]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/47168e1db8b06fc5b6df35196733d092f3f3fb5d/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4.3" author="cfillion" time="2016-10-14T04:18:29Z">
-        <changelog><![CDATA[fix drawing of multiline input after code execution]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c396e3ec5ee15e112466183a75de2b6b4a7758/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.5" author="cfillion" time="2016-12-13T03:26:51Z">
-        <changelog><![CDATA[add Copy/Paste/Clear/Dock/Close actions to the right click context menu
-display errors using bold font
-document the built-in functions and variables in .help
-fix formatting of \t and \r in strings when they are followed by numbers
-implement (fix) display of empty lines
-remember window position, size and docked state
-store every return values in _ global variable]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.6" author="cfillion" time="2017-01-20T23:22:20Z">
-        <changelog><![CDATA[allow .clear to be recorded in the history
-do not crash on clipboard read/write failure (eg. 32-bit windows)
-don't evaluate command/actions while in a lua block
-implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
-remove extra newline inserted when executing an empty command since v0.5]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c29a701329b5a410f6edf81fbbf32468b5cf2574/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.6.1" author="cfillion" time="2017-02-02T15:40:36Z">
-        <changelog><![CDATA[fix division by zero when wrapping lines starting with a zero-length character
-fix invisible \t (tabs) on windows
-fix ugly font on windows]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2558a4f8cfcce27caf1eae57c8bab133c480287c/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-    </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5459,74 +5449,6 @@ Fixed:
 Will work with ReaScript and custom action IDs now]]></changelog>
         <source file="Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action.lua</source>
         <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Gets the last script that was run via 'Run Lua script in debug mode' and attempts to open it in debug mode again; a replacement for Reaper's native action 'ReaScript: Run last ReaScript (EEL or Lua)', since scripts can't get that filename from REAPER.ini directly.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:40Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67e146f0d8c840a69d719113fb1a4e7f0fc94cc6/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-      <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
-        <changelog><![CDATA[Name change for consistency]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Run Lua script in debug mode">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Lets users open a compatible .lua script in debug mode, to assist in diagnosing errors, crashes, etc.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0.0" author="Lokasenna" time="2017-02-09T16:31:29Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/379b77e168e248c759a41a6a7281dbbb6159a0a8/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-      <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:23Z">
-        <changelog><![CDATA[Stores the last script to an ExtState; for companion script]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3bde81f8ccdc3be7c1aae4693437117ce36c47f4/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-      <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
-        <changelog><![CDATA[Name change for consistency]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Script Compiler.lua" type="script" desc="Script compiler">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Simplifies the process of working with and distributing additional library files for Lua scripters, by scanning your script for a few specific commands and using them to copy the external libraries' contents directly into the base script.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for a more detailed explanation.\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?t=185264">Forum thread</link>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="2.0" author="Lokasenna" time="2017-06-09T18:45:36Z">
-        <changelog><![CDATA[Better bug checking
-Offers an alternative syntax for libraries that might be less cumbersome]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9b7dc63a3c91d9ea674742459ad90371ae2f3afe/Various/Lokasenna_Script%20Compiler.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Scroll mixer to first selected track.lua" type="script" desc="Scroll mixer to first selected track">
