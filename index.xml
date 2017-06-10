@@ -207,6 +207,81 @@ https://github.com/cfillion/reascripts
         <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
+      <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bab6dccc9dd0e64959a919e193fd33d06eafd4ad/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.2" author="cfillion" time="2016-06-08T03:06:35Z">
+        <changelog><![CDATA[+ enhance formatting of arrays containing nil values
++ implement Delete key
++ implement word movement keys (Shift+Left and Shift+Right)
++ imply the return statement by default
++ limit maximum depth when formatting tables
++ protect against overriding of built-in variables]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7211142377827197c98a656217c8b16a0d556b46/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.3" author="cfillion" time="2016-07-15T02:34:49Z">
+        <changelog><![CDATA[+ added autocompletion with Tab key
++ added PageUp/PageDown keys to scroll faster
++ fix formatting of multiline text chunks
++ implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
++ preserve current input and history on .clear
++ protect against invalid access on reaper/gfx tables (thanks to X-Raym)
++ set global `_` variable to the first return value of last statement
++ support multi-line statements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4" author="cfillion" time="2016-08-18T01:21:36Z">
+        <changelog><![CDATA[+ autocomplete partial matches
++ don't execute empty code input (v0.3 regression)
++ enhance formatting of string values
++ fix input of tildes
++ increase maximum buffer size to 2048 lines
++ limit maximum size of tables values when formatting
++ optimize layout by only computing new or modified text segments
++ preserve current input when using Ctrl+L shortcut
++ prevent cursor positon from affecting text position
++ remove reaper/gfx proxy variable workaround (requires REAPER v5.23 [t=177319])
++ rewrite drawing & scrolling code
++ wait at least one second before blinking the cursor]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bfdb4ee178087033c0a4ca7fa005c231dd53b43/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.1" author="cfillion" time="2016-10-07T06:24:44Z">
+        <changelog><![CDATA[+ fix auto-completion of exact matches
++ fix caret display in multiline input
++ improve how partially visible lines affect the scrollbar
++ remember docked state (use `gfx.dock(N)` to put in dock)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6c99cdaf8a1facf4b9c3bea1df4557e94c68b825/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.2" author="cfillion" time="2016-10-08T00:15:15Z">
+        <changelog><![CDATA[+ fix formatting of zero-indexed table
++ fix formatting of zero-sized (yet non-empty) tables
++ override global 'print' function
++ use braces instead of non-lua brackets for tables with numeric indexes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/47168e1db8b06fc5b6df35196733d092f3f3fb5d/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.3" author="cfillion" time="2016-10-14T04:18:29Z">
+        <changelog><![CDATA[fix drawing of multiline input after code execution]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c396e3ec5ee15e112466183a75de2b6b4a7758/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.5" author="cfillion" time="2016-12-13T03:26:51Z">
+        <changelog><![CDATA[add Copy/Paste/Clear/Dock/Close actions to the right click context menu
+display errors using bold font
+document the built-in functions and variables in .help
+fix formatting of \t and \r in strings when they are followed by numbers
+implement (fix) display of empty lines
+remember window position, size and docked state
+store every return values in _ global variable]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.6" author="cfillion" time="2017-01-20T23:22:20Z">
+        <changelog><![CDATA[allow .clear to be recorded in the history
+do not crash on clipboard read/write failure (eg. 32-bit windows)
+don't evaluate command/actions while in a lua block
+implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
+remove extra newline inserted when executing an empty command since v0.5]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c29a701329b5a410f6edf81fbbf32468b5cf2574/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
       <version name="0.6.1" author="cfillion" time="2017-06-09T21:48:23Z">
         <changelog><![CDATA[fix division by zero when wrapping lines starting with a zero-length character
 fix invisible \t (tabs) on windows
