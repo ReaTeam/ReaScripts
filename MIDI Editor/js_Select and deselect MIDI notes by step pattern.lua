@@ -553,7 +553,7 @@ updateTableNotes()
 -- GUI stuff.
 -- gfx.measurestr only returns correct value if a GUI is alreay open.  
 -- So quickly open a dummy GUI to font size.
-gfx.init("Step pattern selector", 200, 400)
+gfx.init("Note selector", 200, 400)
 gfx.setfont(1, fontFace, fontSize, 'b')
 strWidth, strHeight    = gfx.measurestr("000")
 newNotesStrWidth, _    = gfx.measurestr("Load new set of notes")
@@ -573,7 +573,7 @@ stepsBottomY      = borderWidth + strHeight*5
 loadButtonTopY    = borderWidth + strHeight*6
 loadButtonBottomY = borderWidth + strHeight*7
 
-gfx.init("Pattern selector", borderWidth*2 + strWidth*8, borderWidth*2 + strHeight*7)
+gfx.init("Note selector", borderWidth*2 + strWidth*8, borderWidth*2 + strHeight*7)
 gfx.setfont(1, fontFace, fontSize, 'b')
 drawGUI()
 
