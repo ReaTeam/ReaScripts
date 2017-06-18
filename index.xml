@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d41e79841636171000ce51e8d67ca864cda3eb3b" name="ReaTeam Scripts">
+<index version="1" commit="39726c898d5549676a67e251b88a28f847db843b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -2387,6 +2387,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 + GUI window will open at last-used screen position.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
       <metadata>
@@ -2459,6 +2464,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ Option to skip redundant CCs.
 + GUI window will open at last-used screen position.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
@@ -2537,6 +2547,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 + GUI window will open at last-used screen position.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
       <metadata>
@@ -2613,6 +2628,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ Option to skip redundant CCs.
 + GUI window will open at last-used screen position.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
@@ -2691,6 +2711,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 + GUI window will open at last-used screen position.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
       <metadata>
@@ -2767,6 +2792,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ Option to skip redundant CCs.
 + GUI window will open at last-used screen position.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
