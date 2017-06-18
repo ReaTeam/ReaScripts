@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua
-Version: 2.20
+Version: 2.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -83,7 +83,7 @@ About:
     + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
   v2.11 (2017-06-04)
     + New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.
-  v2.20 (2017-06-19)
+  v2.21 (2017-06-19)
     + Option to skip redundant CCs.
     + GUI window will open at last-used screen position.
 ]]
@@ -1902,6 +1902,7 @@ function callGenerateNodesThenUpdateEvents()
     updateEventValuesAndUploadIntoTake()
 end
 
+
 ------------------------------------------------------------
 -- NOTE: This function requires all the tables to be sorted!
 function updateEventValuesAndUploadIntoTake() 
@@ -1912,7 +1913,7 @@ function updateEventValuesAndUploadIntoTake()
     local offset = 0
     local lastPPQpos = 0
     local i = 1 -- index in tablePPQs and other event tables
-    local prevValue
+    local prevValues = {} -- store previous values for each channel, for skipRedundantCCs
     
     -- The smoothing function depends on values of nodes before and after the current two, 
     --    so add two artificial 'nodes' to tableNodes:
@@ -2119,14 +2120,14 @@ function updateEventValuesAndUploadIntoTake()
                 
                 
                 -- Insert the MIDI events into REAPER's MIDI stream
+                --!!!!!!!!New in 2.20: skipRedundantCCs
+                local channel = tableChannels[i]
                 
-                --!!!!!!!!New in 2.20
-                --skipRedundantCCs is only applied to CCs, not note velocities
-                if laneIsVELOCITY then
+                if laneIsVELOCITY then --skipRedundantCCs is only applied to CCs, not note velocities
                     offset = tablePPQs[i]-lastPPQpos
                     -- Insert note-on
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0x90 | tableChannels[i], tablePitches[i], newValue) 
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0x90 | channel, tablePitches[i], newValue) 
                     -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
                     if tableNotation[i] then
                         c = c + 1
@@ -2134,33 +2135,33 @@ function updateEventValuesAndUploadIntoTake()
                     end
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", tableNoteLengths[i], tableFlags[i], 3, 0x80 | tableChannels[i], tablePitches[i], 0)
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", tableNoteLengths[i], tableFlags[i], 3, 0x80 | channel, tablePitches[i], 0)
                     lastPPQpos = tablePPQs[i] + tableNoteLengths[i]
                     
-                elseif newValue ~= prevValue or not skipRedundantCCs then
+                elseif not skipRedundantCCs or newValue ~= prevValues[channel] then
                     offset = tablePPQs[i]-lastPPQpos
                     
                     if laneIsCC7BIT then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], targetLane, newValue)
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | channel, targetLane, newValue)
                     elseif laneIsPITCH then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], newValue&127, newValue>>7)
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | channel, newValue&127, newValue>>7)
                     elseif laneIsCC14BIT then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], targetLane-256, newValue>>7)
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | channel, targetLane-256, newValue>>7)
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4BI4BBB", 0     , tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], targetLane-224, newValue&127)
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", 0     , tableFlagsLSB[i], 3, 0xB0 | channel, targetLane-224, newValue&127)
                     elseif laneIsCHPRESS then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
+                        tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | channel, newValue) -- NB Channel Pressure uses only 2 bytes!
                     elseif laneIsPROGRAM then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
+                        tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | channel, newValue) -- NB Channel Pressure uses only 2 bytes!
                     end -- if laneIsCC7BIT / laneIsCC14BIT / ...
                     
                     lastPPQpos = tablePPQs[i]
-                    prevValue = newValue
+                    prevValues[channel] = newValue
                 end
             i = i + 1
             end -- if tablePPQs[i] >= prevNodePPQ and tablePPQs[i] < nextNodePPQ then
