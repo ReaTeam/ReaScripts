@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua
-Version: 2.11
+Version: 2.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -30,6 +30,7 @@ About:
   
   Move mousewheel while mouse hovers above node for fine adjustment.
   
+  
   Use a Ctrl modifier to edit all nodes simultaneously:
   
   Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position.
@@ -37,6 +38,7 @@ About:
   Ctrl + Rightclick to enter a precise custom value for all nodes.
   
   Ctrl + Mousewheel for fine adjustment of all nodes simultaneously.
+  
   
   The keyboard shortcuts "a", "c" and "r" can be used to switch the envelope view between Amplitude, Center and Rate.
   
@@ -50,12 +52,14 @@ About:
 
   LOADING AND SAVING CURVES
   
-  Right-click (outside envelope area) to open the Save/Load/Delete curve menu.
+  Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.
   
   One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".
   
                     
   FURTHER CUSTOMIZATION
+  
+  The menu also includes an option to skip redundant CCs while drawing the LFO.
   
   Further customization is possible - see the instructions in the script's USER AREA.
   
@@ -76,9 +80,12 @@ About:
     + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
     + Requires REAPER v5.32 or later.  
   v2.02 (2017-02-28)
-    + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.    
+    + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
   v2.11 (2017-06-04)
     + New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.
+  v2.20 (2017-06-19)
+    + Option to skip redundant CCs.
+    + GUI window will open at last-used screen position.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -102,7 +109,7 @@ About:
     hotbuttonColor  = {0, 1, 0, 1}
     shadows         = true  
     
-    -- Which area should be filled with CCs?
+    -- Which area should be filled with CCs?  Either "notes", "time" or "existing".
     -- "notes" to fill areas underneath selected notes, "time" for time selection,
     --    or "existing" to apply the LFO to existing selected events (which may be velocities).
     --    If "time", script can be linked to a mouse modifier such as double-click.
@@ -259,30 +266,32 @@ Finally, in v5.32, these bugs were (seemingly) all fixed.  This new version of t
 ]]
 
 
-shapeSelected = 6 -- Starting shape
-GUIelementHeight = 28 -- Height of the GUI elements
-borderWidth = 10
-envHeight = 190
-initXsize = 209 --300 -- Initial sizes for the GUI
-initYsize = borderWidth + GUIelementHeight*11 + envHeight + 45
-envYpos = initYsize - envHeight - 30
+local shapeSelected = 6 -- Starting shape
+local GUIelementHeight = 28 -- Height of the GUI elements
+local borderWidth = 10
+local envHeight = 190
+local initXsize = 209 --300 -- Initial sizes for the GUI
+local initYsize = borderWidth + GUIelementHeight*11 + envHeight + 45
+local envYpos = initYsize - envHeight - 30
 
-hotpointRateDisplayType = "period note length" -- "frequency" or "period note length"
-hotpointTimeDisplayType = -1
-rateInterpolationType = "parabolic" -- "linear" or "parabolic"
+local hotpointRateDisplayType = "period note length" -- "frequency" or "period note length"
+local hotpointTimeDisplayType = -1
+local rateInterpolationType = "parabolic" -- "linear" or "parabolic"
 
 -- By default, these curve will align if the tempo is a constant 120bpm
 -- The range is between 2 whole notes and 1/32 notes, or 0.25Hz and 16Hz.
-timeBaseMax = 16 -- 16 oscillations per second
-timeBaseMin = 0.25
-beatBaseMax = 32 -- 32 divisions per whole note
-beatBaseMin = 0.5
+local timeBaseMax = 16 -- 16 oscillations per second
+local timeBaseMin = 0.25
+local beatBaseMax = 32 -- 32 divisions per whole note
+local beatBaseMin = 0.5
+
+local skipRedundantCCs = true -- This can be changed in GUI menu
 
 -- The Clip slider and value in the original code
 --     do not appear to have any effect, 
 --     so the slider was replaced by the "Real-time copy to CC?" 'slider',
 --     and the value was replaced by this constant
-clip = 1
+local clip = 1
 
 helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\n  * Leftclick in open space in the envelope drawing area to add an envelope node."
@@ -303,13 +312,11 @@ helpText = "\n\nDRAWING ENVELOPES:"
          .."\n\nRightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected."
                  
          .."\n\nLOADING AND SAVING CURVES:"
-         .."\n\nRight-click (outside envelope area) to open the Save/Load/Delete curve menu."
+         .."\n\nClick on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu."
          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
-                 
-         .."\n\nCOPYING TO CC:"
-         .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
-        
+                         
          .."\n\nFURTHER CUSTOMIZATION:"
+         .."\n\nThe menu also includes an option to skip redundant CCs while drawing the LFO."
          .."\n\nFurther customization is possible - refer to the instructions in the script's USER AREA.\nThis includes:"
          .."\n  * Easily adding custom LFO shapes."
          .."\n  * Specifying the resolution of LFO shapes' phase steps."
@@ -320,14 +327,14 @@ helpText = "\n\nDRAWING ENVELOPES:"
                  
 
 -- mouse_cap values
-NOTHING = 0
-LEFTBUTTON = 1
-RIGHTBUTTON = 2
-CTRLKEY = 4
-SHIFTKEY = 8
-ALTKEY = 16
-WINKEY = 32
-MIDDLEBUTTON = 64
+local NOTHING = 0
+local LEFTBUTTON = 1
+local RIGHTBUTTON = 2
+local CTRLKEY = 4
+local SHIFTKEY = 8
+local ALTKEY = 16
+local WINKEY = 32
+local MIDDLEBUTTON = 64
 
 
 -- The raw MIDI data will be stored in the string.  While parsing the string, targeted events (the
@@ -424,16 +431,16 @@ local tableGUIelements={}
 local tableNodes = {}
 
 local notevalues={{1,8,"32nd"},
-            {1,5,"16th quintuplet"},
-            {1,4,"16th"},
-            {1,3,"8th triplet"},
-            {1,2,"8th"},
-            {6,8,"8th dotted"},
-            {4,5,"4th quintuplet"},
-            {1,1,"4th"},
-            {6,4,"4th dotted"},
-            {4,2,"Half"},
-            {4,1,"Whole"}}
+                  {1,5,"16th quintuplet"},
+                  {1,4,"16th"},
+                  {1,3,"8th triplet"},
+                  {1,2,"8th"},
+                  {6,8,"8th dotted"},
+                  {4,5,"4th quintuplet"},
+                  {1,1,"4th"},
+                  {6,4,"4th dotted"},
+                  {4,2,"Half"},
+                  {4,1,"Whole"}}
             
 use_note_rates=false         
    
@@ -763,19 +770,24 @@ function draw_envelope(env,enabled)
     gfx.y = gfx.h - 23
     gfx.drawstr(title)
     
-    -- draw "?"
+    -- draw "?" and "≡" buttons --!!!!!!!!New in 2.20
+    local charWidth = gfx.measurestr("≡")
     if shadows == true then
         gfx.x = gfx.w - 19
         gfx.y = gfx.h - 22
         setColor({0,0,0,1})
         gfx.drawstr("?")
+        gfx.x = 19 - charWidth
+        gfx.drawstr("≡")
     end
     setColor(foregroundColor)
     gfx.a = 1
     gfx.y = gfx.h - 23
     gfx.x = gfx.w - 20 --gfx.measurestr("?")
     gfx.drawstr("?")
-    
+    gfx.x = 20 - charWidth --gfx.measurestr("?")
+    gfx.drawstr("≡")
+        
     setColor(backgroundColor)
     gfx.r = gfx.r/3; gfx.g = gfx.g/3; gfx.b = gfx.b/3
     gfx.rect(env.x(), env.y(), env.w(), env.h())
@@ -1102,18 +1114,18 @@ function generateNodes(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,
                 oppositeVal=bound_value(laneMinValue,oppositeVal,laneMaxValue)
                 local tension = segshape*pointTension
                 table.insert(tableNodes, {PPQ = insPPQ, 
-                                   value = val, 
-                                   shape = 0, 
-                                   tension = 0})
+                                          value = val, 
+                                          shape = 0, 
+                                          tension = 0})
                 table.insert(tableNodes, {PPQ = insPPQ,
-                                   value = oppositeVal, 
-                                   shape = pointShape, 
-                                   tension = tension})
+                                          value = oppositeVal, 
+                                          shape = pointShape, 
+                                          tension = tension})
             else
                 table.insert(tableNodes, {PPQ = insPPQ, 
-                                   value = val, 
-                                   shape = pointShape, 
-                                   tension = tension})       
+                                          value = val, 
+                                          shape = pointShape, 
+                                          tension = tension})       
             end
 
             time=time+nextNodeStepSize
@@ -1132,6 +1144,13 @@ function generateNodes(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,
 end
 
 function exit()
+
+   -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
+    local docked, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
+    if docked == 0 and type(xPos) == "number" and type(yPos) == "number" then
+        -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
+        reaper.SetExtState("LFO generator", "Last coordinates", string.format("%i", math.floor(xPos+0.5)) .. "," .. string.format("%i", math.floor(yPos+0.5)), true)
+    end
     gfx.quit()
     
     -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
@@ -1151,6 +1170,7 @@ function exit()
         
     if isInline then reaper.UpdateArrange() end  
     
+    -- Deactivate toolbar button, if any
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
         reaper.SetToggleCommandState(sectionID, cmdID, 0)
         reaper.RefreshToolbar2(sectionID, cmdID)
@@ -1213,13 +1233,13 @@ function loop_GetInputsAndUpdate()
         end
     end
     
-    --[[
+    
     --if selectionToUse == "time" then
         local time_start_new, time_end_new = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
         if time_start_new ~= timeSelectStart or time_end_new ~= timeSelectEnd then 
             return(0) 
         end
-    --end]]
+    --end
     
     setColor(backgroundColor)
     gfx.rect(0,0,gfx.w,gfx.h,true)
@@ -1239,19 +1259,18 @@ function loop_GetInputsAndUpdate()
     -- Now, check all the possible combinations of mousebuttons, mousewheel
     --    and mouse position to see what to do
     
-    -- Show help menu  
-    if (gfx.mouse_cap == LEFTBUTTON
-    and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > gfx.h-22) 
+    -- Show help menu
+    if gfx.mouse_cap == LEFTBUTTON
+    and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > gfx.h-22
     and firstClick == true then
         firstClick = false
-        reaper.ShowConsoleMsg(helpText)
+        reaper.ShowConsoleMsg(helpText)       
     end  
     
     -- Iterate through all the buttons and sliders in the GUI  
     local dogenerate=false
-    for key,tempcontrol in pairs(tableGUIelements) do
+    for key, tempcontrol in pairs(tableGUIelements) do
     
-      --if key>=200 and tempcontrol.type=="Button" then reaper.ShowConsoleMsg(tostring(tempcontrol).." ") end
       if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
       or (key == GUIelement_env and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
       --get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)>0) -- Envelope gets captured if on hotbutton, even if outside rectangle
@@ -1278,56 +1297,56 @@ function loop_GetInputsAndUpdate()
           end
           ]]
         
-            -- Click on Rate/Center/Amplitude buttons to change envelope type
-            --[[if char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
-                tableGUIelements[100].envelope=tempcontrol.envelope
-                tableGUIelements[100].name=tempcontrol.name
-                firstClick = false
-                dogenerate = true
-            end ]]
-            if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
-                tableGUIelements[100].envelope=tableGUIelements[GUIelement_RATE].envelope
-                tableGUIelements[100].name=tableGUIelements[GUIelement_RATE].name -- = tempcontrol.name
-                firstClick = false
-                dogenerate = true
-            elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
-                tableGUIelements[100].envelope=tableGUIelements[GUIelement_CENTER].envelope
-                tableGUIelements[100].name=tableGUIelements[GUIelement_CENTER].name -- = tempcontrol.name
-                firstClick = false
-                dogenerate = true
-            elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
-                tableGUIelements[100].envelope=tableGUIelements[GUIelement_AMPLITUDE].envelope
-                tableGUIelements[100].name=tableGUIelements[GUIelement_AMPLITUDE].name -- tempcontrol.name
-                firstClick = false
-                dogenerate = true
-            end
-            
-            -- Enable or disable Real-time copy-to-CC
-            if gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
-            and firstClick == true
-            then
-              if tempcontrol.value == 0 then
-                  tempcontrol.value = 1
-              else
-                  tempcontrol.value = 0
-              end
+          -- Click on Rate/Center/Amplitude buttons to change envelope type
+          --[[if char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
+              tableGUIelements[100].envelope=tempcontrol.envelope
+              tableGUIelements[100].name=tempcontrol.name
               firstClick = false
               dogenerate = true
-            end 
-        
-            -- Choose envelope shape
-            if gfx.mouse_cap == LEFTBUTTON and tempcontrol.name == "LFO shape?" then
-                gfx.x = gfx.mouse_x
-                gfx.y = gfx.mouse_y
-                retval = gfx.showmenu(shapeMenu)
-                if retval ~= 0 then shapeSelected = retval end
-                dogenerate = true
-                firstClick = false
-            end       
-        
-            --------------------------------------------------------------------------------------------------
-            -- Several options when drawing in envelope
-            if tempcontrol.type=="Envelope" then
+          end ]]
+          if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
+              tableGUIelements[100].envelope=tableGUIelements[GUIelement_RATE].envelope
+              tableGUIelements[100].name=tableGUIelements[GUIelement_RATE].name -- = tempcontrol.name
+              firstClick = false
+              dogenerate = true
+          elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
+              tableGUIelements[100].envelope=tableGUIelements[GUIelement_CENTER].envelope
+              tableGUIelements[100].name=tableGUIelements[GUIelement_CENTER].name -- = tempcontrol.name
+              firstClick = false
+              dogenerate = true
+          elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
+              tableGUIelements[100].envelope=tableGUIelements[GUIelement_AMPLITUDE].envelope
+              tableGUIelements[100].name=tableGUIelements[GUIelement_AMPLITUDE].name -- tempcontrol.name
+              firstClick = false
+              dogenerate = true
+          end
+          
+          -- Enable or disable Real-time copy-to-CC
+          if gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
+          and firstClick == true
+          then
+            if tempcontrol.value == 0 then
+                tempcontrol.value = 1
+            else
+                tempcontrol.value = 0
+            end
+            firstClick = false
+            dogenerate = true
+          end 
+      
+          -- Choose envelope shape
+          if gfx.mouse_cap == LEFTBUTTON and tempcontrol.name == "LFO shape?" then
+              gfx.x = gfx.mouse_x
+              gfx.y = gfx.mouse_y
+              retval = gfx.showmenu(shapeMenu)
+              if retval ~= 0 then shapeSelected = retval end
+              dogenerate = true
+              firstClick = false
+          end       
+      
+          --------------------------------------------------------------------------------------------------
+          -- Several options when drawing in envelope
+          if tempcontrol.type=="Envelope" then
             
               -- Detect hotpoint if hovering over or drag-deleting
               -- The value of the tempcontrol.hotpoint variable is the number of the 'hot'
@@ -1677,19 +1696,29 @@ function loop_GetInputsAndUpdate()
       draw_envelope(tempcontrol,env_enabled)
     end -- for key,tempcontrol in pairs(tableGUIelements)
   
-  ---------------------------------------------
-  -- If right-click, show save/load/delete menu
-  -- (But not if in envelope drawing area)
-  if gfx.mouse_cap == RIGHTBUTTON and not is_in_rect(gfx.mouse_x,
-                                                     gfx.mouse_y,
-                                                     0, --tableGUIelements[100].x(),
-                                                     tableGUIelements[100].y(),
-                                                     gfx.w, --tableGUIelements[100].w(),
-                                                     gfx.h - tableGUIelements[100].y()) --tableGUIelements[100].h()) 
-                                                     then
+    ---------------------------------------------
+    -- If right-click, show save/load/delete menu
+    -- (But not if in envelope drawing area)
+    if (gfx.mouse_cap == RIGHTBUTTON 
+        and not is_in_rect(gfx.mouse_x,
+                           gfx.mouse_y,
+                           0, --tableGUIelements[100].x(),
+                           tableGUIelements[100].y(),
+                           gfx.w, --tableGUIelements[100].w(),
+                           gfx.h - tableGUIelements[100].y()) --tableGUIelements[100].h()) 
+       )
+    -- Left-click on menu button bottom left !!!!!New in 2.20
+    or (gfx.mouse_cap == LEFTBUTTON
+        and gfx.mouse_x < 22 
+        and gfx.mouse_y > gfx.h-22
+        and firstClick == true
+       ) 
+        
+        then
+        firstClick = false
         
         --reaper.DeleteExtState("LFO generator", "savedCurves", true) -- delete the ExtState
-    
+
         -------------------------------
         -- First, try to load all saved curves
         getSavedCurvesAndNames()
@@ -1704,17 +1733,24 @@ function loop_GetInputsAndUpdate()
                 loadStr = loadStr .. "|" .. savedNames[i]
             end
             
-            loadStr = loadStr .. "|<||>Delete curve"
+            loadStr = loadStr .. "|<|>Delete curve"
             for i = 1, #savedNames do
                 loadStr = loadStr .. "|" .. savedNames[i] 
             end
-            loadStr = loadStr .. "|<||"           
+            loadStr = loadStr .. "|<|"           
         else
             gotSavedNames = false
-            loadStr = "#Load curve||#Delete curve||"
+            loadStr = "#Load curve|#Delete curve|"
         end
         
-        saveLoadString = "Save curve||" .. loadStr .. "Reset curve"      
+        saveLoadString = "Save curve|" .. loadStr .. "Reset curve"
+        
+        --!!!!!!!New in 2.20
+        if skipRedundantCCs then
+            saveLoadString = saveLoadString .. "||!Skip redundant CCs"
+        else
+            saveLoadString = saveLoadString .. "||Skip redundant CCs"
+        end
         
         
         ----------------------------------------
@@ -1724,6 +1760,15 @@ function loop_GetInputsAndUpdate()
         
         if menuSel == 0 then  
             -- do nothing
+            
+        --!!!!!!!!!!New in 2.20
+        -- Toggle skipRedundantCCs
+        elseif (gotSavedNames == true and menuSel == 3 + 2*#savedNames)
+            or (gotSavedNames == false and menuSel == 5)
+            then
+            skipRedundantCCs = not skipRedundantCCs
+            reaper.SetExtState("LFO generator", "skipRedundantCCs", tostring(skipRedundantCCs), true)
+            updateEventValuesAndUploadIntoTake()
             
         --------------   
         -- Reset curve
@@ -1857,7 +1902,6 @@ function callGenerateNodesThenUpdateEvents()
     updateEventValuesAndUploadIntoTake()
 end
 
-
 ------------------------------------------------------------
 -- NOTE: This function requires all the tables to be sorted!
 function updateEventValuesAndUploadIntoTake() 
@@ -1868,6 +1912,7 @@ function updateEventValuesAndUploadIntoTake()
     local offset = 0
     local lastPPQpos = 0
     local i = 1 -- index in tablePPQs and other event tables
+    local prevValue
     
     -- The smoothing function depends on values of nodes before and after the current two, 
     --    so add two artificial 'nodes' to tableNodes:
@@ -2074,21 +2119,11 @@ function updateEventValuesAndUploadIntoTake()
                 
                 
                 -- Insert the MIDI events into REAPER's MIDI stream
-                offset = tablePPQs[i]-lastPPQpos
-                lastPPQpos = tablePPQs[i]
                 
-                if laneIsCC7BIT then
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], targetLane, newValue)
-                elseif laneIsPITCH then
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], newValue&127, newValue>>7)
-                elseif laneIsCC14BIT then
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], targetLane-256, newValue>>7)
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", 0     , tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], targetLane-224, newValue&127)
-                elseif laneIsVELOCITY then
+                --!!!!!!!!New in 2.20
+                --skipRedundantCCs is only applied to CCs, not note velocities
+                if laneIsVELOCITY then
+                    offset = tablePPQs[i]-lastPPQpos
                     -- Insert note-on
                     c = c + 1 
                     tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0x90 | tableChannels[i], tablePitches[i], newValue) 
@@ -2100,14 +2135,33 @@ function updateEventValuesAndUploadIntoTake()
                     -- Insert note-off
                     c = c + 1
                     tableEditedMIDI[c] = s_pack("i4BI4BBB", tableNoteLengths[i], tableFlags[i], 3, 0x80 | tableChannels[i], tablePitches[i], 0)
-                    lastPPQpos = lastPPQpos + tableNoteLengths[i]
-                elseif laneIsCHPRESS then
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
-                elseif laneIsPROGRAM then
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
-                end -- if laneIsCC7BIT / laneIsCC14BIT / ...
+                    lastPPQpos = tablePPQs[i] + tableNoteLengths[i]
+                    
+                elseif newValue ~= prevValue or not skipRedundantCCs then
+                    offset = tablePPQs[i]-lastPPQpos
+                    
+                    if laneIsCC7BIT then
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], targetLane, newValue)
+                    elseif laneIsPITCH then
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], newValue&127, newValue>>7)
+                    elseif laneIsCC14BIT then
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], targetLane-256, newValue>>7)
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("i4BI4BBB", 0     , tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], targetLane-224, newValue&127)
+                    elseif laneIsCHPRESS then
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
+                    elseif laneIsPROGRAM then
+                        c = c + 1
+                        tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
+                    end -- if laneIsCC7BIT / laneIsCC14BIT / ...
+                    
+                    lastPPQpos = tablePPQs[i]
+                    prevValue = newValue
+                end
             i = i + 1
             end -- if tablePPQs[i] >= prevNodePPQ and tablePPQs[i] < nextNodePPQ then
         end -- while i <= #tablePPQs and tablePPQs[i] < nextNodePPQ do
@@ -2278,8 +2332,8 @@ function loadCurve(curveNum)
                 end]]
             elseif sliderName == "Phase step" then tableGUIelements[GUIelement_PHASE].value = tonumber(nextStr())
             elseif sliderName == "Randomness" then tableGUIelements[GUIelement_RANDOMNESS].value = tonumber(nextStr())
-            elseif sliderName == "Quant steps" or sliderName == "Smoothing" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
-            elseif sliderName == "Bezier shape" or sliderName == "Smoothing" then tableGUIelements[GUIelement_SMOOTH].value = tonumber(nextStr())
+            elseif sliderName == "Quant steps" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
+            elseif sliderName == "Bezier shape" or sliderName == "Smoothing" then tableGUIelements[GUIelement_SMOOTH].value = tonumber(nextStr()) -- include shape for compatibility with previous versions
             elseif sliderName == "Fade in duration" then tableGUIelements[GUIelement_FADEIN].value = tonumber(nextStr())
             elseif sliderName == "Fade out duration" then tableGUIelements[GUIelement_FADEOUT].value = tonumber(nextStr())
             elseif sliderName == "Timebase?" then tableGUIelements[GUIelement_TIMEBASE].value = tonumber(nextStr())
@@ -2339,7 +2393,14 @@ end -- loadCurve()
 function constructNewGUI()
 
     gfx.quit()
-    gfx.init("LFO: ".. targetLaneString, initXsize, initYsize,0)
+    -- The GUI window will be opened at the last-used coordinates
+    local coordinatesExtState = reaper.GetExtState("LFO generator", "Last coordinates") -- Returns an empty string if the ExtState does not exist
+    xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
+    if xPos and yPos then
+        gfx.init("LFO: ".. targetLaneString, initXsize, initYsize, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+    else
+        gfx.init("LFO: ".. targetLaneString, initXsize, initYsize, 0)
+    end
     gfx.setfont(1,"Ariel", 15)
     
     tableGUIelements[1]=make_radiobutton(borderWidth,borderWidth,0,0,0.5,"Rate", function(nx) end)
@@ -2362,7 +2423,7 @@ function constructNewGUI()
     tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quant steps",function(nx) end)
     GUIelement_QUANTSTEPS = 6
     tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.0,"Smoothing",function(nx) end)
-    GUIelement_SMOOTH = 7
+    GUIelement_SMOOTH = 7 
     tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
     GUIelement_FADEIN = 8
     tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
@@ -2979,7 +3040,7 @@ function insertNewCCs(PPQstart, PPQend, channel)
         tableFlags[i] = 1
         tableFlagsLSB[i] = 1
     end
-            
+        
 end -- insertNewCCs(startPPQ, endPPQ, channel)
 
 -------------------------------------
@@ -3304,6 +3365,14 @@ if getSavedCurvesAndNames() ~= false then
             end
         end
     end
+end
+
+--!!!!!!!New in 2.20
+-- Check whether skipRedundantCCs setting has been saved
+if reaper.GetExtState("LFO generator", "skipRedundantCCs") == "true" then
+    skipRedundantCCs = true
+else
+    skipRedundantCCs = false
 end
 
 -- Generate the first version of the envelope nodes and draw the CCs between
