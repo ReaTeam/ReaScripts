@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select and deselect MIDI notes by step pattern.lua
-Version: 1.00
+Version: 1.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/30964/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern%20-%20Measure%20divisions%20mode.gif
@@ -55,6 +55,8 @@ About:
   * v1.00 (2017-06-17)
     + Much faster execution in takes with large number of MIDI events, using new API of REAPER v5.32.
     + New mode: "Measure divisions", which selects notes based on beat positions in measure. 
+  * v1.10 (2017-06-19)
+    + GUI window will open at last-used position on screen.
 ]]
 
 
@@ -93,6 +95,12 @@ local modeButtonTopY, modeButtonBottomY, lengthTopY, lengthBottomY, stepsTopY, s
 
 ---------------
 function exit()
+    -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
+    local docked, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
+    if docked == 0 and type(xPos) == "number" and type(yPos) == "number" then
+        -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
+        reaper.SetExtState("js_Step pattern", "Last coordinates", string.format("%i", math.floor(xPos+0.5)) .. "," .. string.format("%i", math.floor(yPos+0.5)), true)
+    end
     gfx.quit()
     
     _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
@@ -118,6 +126,8 @@ end -- function setColor
 ------------------------
 local function drawGUI()
 
+    gfx.update()
+    
     setColor(backgroundColor)
     gfx.rect(0, 0, gfx.w, gfx.h, true)
     
@@ -169,8 +179,6 @@ local function drawGUI()
     gfx.y = borderWidth + strHeight*6
     gfx.x = gfx.w/2 - newNotesStrWidth/2
     gfx.drawstr("Load new set of notes")
-    
-    gfx.update()
 
 end -- function drawGUI
 
@@ -573,7 +581,14 @@ stepsBottomY      = borderWidth + strHeight*5
 loadButtonTopY    = borderWidth + strHeight*6
 loadButtonBottomY = borderWidth + strHeight*7
 
-gfx.init("Note selector", borderWidth*2 + strWidth*8, borderWidth*2 + strHeight*7)
+-- The GUI window will be opened at the last-used coordinates
+local coordinatesExtState = reaper.GetExtState("js_Step pattern", "Last coordinates") -- Returns an empty string if the ExtState does not exist
+xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
+if xPos and yPos then
+    gfx.init("Note selector", borderWidth*2 + strWidth*8, borderWidth*2 + strHeight*7, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+else
+    gfx.init("Note selector", borderWidth*2 + strWidth*8, borderWidth*2 + strHeight*7, 0)
+end
 gfx.setfont(1, fontFace, fontSize, 'b')
 drawGUI()
 
