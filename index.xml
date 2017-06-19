@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a79a16008692a5789c586495f7e95cfbefce666a" name="ReaTeam Scripts">
+<index version="1" commit="92e12f633f0d5c6c142b8b889a759eeea11f21a9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3425,7 +3425,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 {\pard \ql \f0 \sa180 \li0 \fi0 To draw patterns that are longer than the initial size of the GUI, simply widen the GUI.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To toggle between the two modes, "Step pattern" and "Measure division", simply click the "Mode" text at the top of the GUI.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 NEW IN VERSION 1.20:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The user can freely edit CCs or velocties in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded after editing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user can freely edit CCs or velocities in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded after editing.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If the pitches or positions of the loaded {\i notes} are edited in the MIDI editor, it may confuse the script, but the script will try to add any {\i selected} and edited notes to the set of loaded, active notes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Therefore, if you change the pitch of some of the loaded notes, simply ensure that these notes are still selected when clicking in the GUI again, and these edited notes will remain loaded.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 TIP:\par}
@@ -3460,7 +3460,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       </version>
       <version name="1.20" author="juliansader" time="2017-06-19T19:16:23Z">
         <changelog><![CDATA[+ Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a79a16008692a5789c586495f7e95cfbefce666a/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/92e12f633f0d5c6c142b8b889a759eeea11f21a9/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
