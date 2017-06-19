@@ -38,11 +38,14 @@ About:
   
   NEW IN VERSION 1.20:
   
-  The user can edit CCs or velocties in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded.  
+  The user can freely edit CCs or velocties in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded after editing.  
   
-  (If note pitches or positions are changed, it may still confuse the script, but the script will try to add any 
-      *selected* and edited notes to the set of loaded, active notes.)    
-  
+  If the pitches or positions of the loaded *notes* are edited in the MIDI editor, it may confuse the script, but the script will try to add any *selected* 
+    and edited notes to the set of loaded, active notes.
+    
+  Therefore, if you change the pitch of some of the loaded notes, simply ensure that these notes are still selected when clicking in the GUI again, 
+    and these edited notes will remain loaded.
+      
   TIP: 
   
   This script works well with the "js_Deselect all notes outside time selection (from all 
@@ -682,11 +685,15 @@ if startupTipsVersion < 1.00 then
 end
 if startupTipsVersion < 1.20 then
     reaper.ShowMessageBox("NEW IN VERSION 1.20:"
-                          .. "\n\nThe user can edit CCs or velocties in the MIDI editor while a set of notes is loaded, "
-                          .. "without requiring that the notes be reloaded."
+                          .. "\n\nThe user can edit CCs or velocities in the MIDI editor while a set of notes is loaded, "
+                          .. "without requiring that the notes be reloaded after editing."
                           .. "\n\n"
-                          .. "(If note pitches or positions are changed, it may still confuse the script, but the script will "
-                          .. "try to add any *selected* and edited notes to the set of loaded, active notes.)"   
+                          .. "If the pitches or positions of the loaded notes are edited in the MIDI editor, "
+                          .. "it may confuse the script, but the script will try to add any *selected* and "
+                          .. "edited notes to the set of loaded, active notes."   
+                          .. "\n\n"
+                          .. "Therefore, if you change the pitch of some of the loaded notes, simply ensure that these notes are still selected "
+                          .. "when clicking in the GUI again, and these edited notes will remain loaded."
                           .. "\n\n"                  
                           .. "\n\n(These startup tips will only be displayed once.)"
                           , "Startup tips", 0)
