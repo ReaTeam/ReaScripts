@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="091e8cb00b1348157c1ff8bd34ccda3aba32103a" name="ReaTeam Scripts">
+<index version="1" commit="3f3f74922a408c088d3f2fc6b5cc80ef9e8b8dea" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -3421,10 +3421,14 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 {\pard \ql \f0 \sa180 \li0 \fi0 First, select the note on which the step pattern must be applied. (Of course, some of these notes will later be deselected by the script.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Then, run the script and draw the desired pattern - the note selection will be updated in real time.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When you need to work with a new set of notes, simply click the "Load new set of notes" text.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 If no notes are selected when the script is started, or if the user changes the MIDI directly (for example, if notes are added to or deleted from the take), the script will dim out the step pattern display, and wait for the user to load a new set of notes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If no notes are selected when the script is started, the script will dim out the step pattern display, and wait for the user to load a new set of notes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To draw patterns that are longer than the initial size of the GUI, simply widen the GUI.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To toggle between the two modes, "Step pattern" and "Measure division", simply click the "Mode" text at the top of the GUI.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 TIP: This script works well with the "js_Deselect all notes outside time selection (from all takes).lua" script. Use the piano roll keys to select all notes in a range of pitches, and then run the Deselect script to limit the note selection to the time selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NEW IN VERSION 1.20:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user can edit CCs or velocties in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (If note pitches or positions are changed, it may still confuse the script, but the script will try to add any {\i selected} and edited notes to the set of loaded, active notes.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 TIP:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script works well with the "js_Deselect all notes outside time selection (from all takes).lua" script. Use the piano roll keys to select all notes in a range of pitches, and then run the Deselect script to limit the note selection to the time selection.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -3452,6 +3456,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.10" author="juliansader" time="2017-06-18T16:51:17Z">
         <changelog><![CDATA[+ GUI window will open at last-used position on screen.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/43be869e56f147664cc30d9a1f2773eaa52e2bdb/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.20" author="juliansader" time="2017-06-19T19:16:23Z">
+        <changelog><![CDATA[+ Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3f3f74922a408c088d3f2fc6b5cc80ef9e8b8dea/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
