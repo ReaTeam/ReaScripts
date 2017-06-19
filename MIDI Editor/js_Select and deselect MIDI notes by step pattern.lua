@@ -38,10 +38,11 @@ About:
   
   NEW IN VERSION 1.20:
   
-  The user can freely edit CCs or velocities in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded after editing.  
+  The user can freely edit CCs or velocities in the MIDI editor while a set of notes is loaded, 
+    without having to reload the notes after editing.  
   
-  If the pitches or positions of the loaded *notes* are edited in the MIDI editor, it may confuse the script, but the script will try to add any *selected* 
-    and edited notes to the set of loaded, active notes.
+  If the pitches or positions of the loaded *notes* are edited in the MIDI editor, it may confuse the script, 
+    but the script will try to add any *selected* and edited notes to the set of loaded, active notes.
     
   Therefore, if you change the pitch of some of the loaded notes, simply ensure that these notes are still selected when clicking in the GUI again, 
     and these edited notes will remain loaded.
