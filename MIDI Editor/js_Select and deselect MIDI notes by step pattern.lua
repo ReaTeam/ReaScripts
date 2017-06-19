@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select and deselect MIDI notes by step pattern.lua
-Version: 1.10
+Version: 1.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/30964/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern%20-%20Measure%20divisions%20mode.gif
@@ -29,16 +29,23 @@ About:
   
   When you need to work with a new set of notes, simply click the "Load new set of notes" text.  
   
-  If no notes are selected when the script is started, or if the user changes the MIDI directly 
-    (for example, if notes are added to or deleted from the take), the script will dim out the step 
+  If no notes are selected when the script is started, the script will dim out the step 
     pattern display, and wait for the user to load a new set of notes.
     
   To draw patterns that are longer than the initial size of the GUI, simply widen the GUI.
   
   To toggle between the two modes, "Step pattern" and "Measure division", simply click the "Mode" text at the top of the GUI.
-      
   
-  TIP: This script works well with the "js_Deselect all notes outside time selection (from all 
+  NEW IN VERSION 1.20:
+  
+  The user can edit CCs or velocties in the MIDI editor while a set of notes is loaded, without requiring that the notes be reloaded.  
+  
+  (If note pitches or positions are changed, it may still confuse the script, but the script will try to add any 
+      *selected* and edited notes to the set of loaded, active notes.)    
+  
+  TIP: 
+  
+  This script works well with the "js_Deselect all notes outside time selection (from all 
       takes).lua" script.  Use the piano roll keys to select all notes in a range of pitches, and
       then run the Deselect script to limit the note selection to the time selection.
 ]]
@@ -57,6 +64,8 @@ About:
     + New mode: "Measure divisions", which selects notes based on beat positions in measure. 
   * v1.10 (2017-06-19)
     + GUI window will open at last-used position on screen.
+  * v1.20 (2017-06-19)
+    + Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.
 ]]
 
 
@@ -85,7 +94,9 @@ for i = 1, 99 do
     tPattern[i] = true
 end
 local mode = "Step pattern"
-local mustLoadNewNotes = true
+local notesAreLoaded = false
+
+local tNoteOns = {} 
 
 local tMIDI = {} 
 local tSelNotes = {}
@@ -147,7 +158,7 @@ local function drawGUI()
     
     -- Draw pattern length text
     setColor(textColor)
-    if mustLoadNewNotes then gfx.a = gfx.a*0.3 end
+    if not notesAreLoaded then gfx.a = gfx.a*0.3 end
     gfx.x = borderWidth
     gfx.y = borderWidth + strHeight*2
     if mode == "Step pattern" then
@@ -166,11 +177,11 @@ local function drawGUI()
         gfx.x = borderWidth + (i-1)*strWidth
         if tPattern[i] == true then
             setColor(blockColor)
-            if mustLoadNewNotes then gfx.a = gfx.a*0.3 end
+            if not notesAreLoaded then gfx.a = gfx.a*0.3 end
             gfx.rect(gfx.x, gfx.y, strWidth*2/3, strHeight)
         end
         setColor(textColor)
-        if mustLoadNewNotes then gfx.a = gfx.a*0.3 end
+        if not notesAreLoaded then gfx.a = gfx.a*0.3 end
         gfx.drawstr(tostring(i))
     end
     
@@ -184,7 +195,9 @@ end -- function drawGUI
 
 
 ---------------------------------
-local function updateTableNotes()
+local function reloadSameNotes()
+-- This function (unlike loadNewSetOfNotes) does NOT only find selected notes.  Instead, it tries to find notes that match the starting positions of the
+--    originally selected notes.
     
     -- The raw MIDI data will be stored in tMIDI, in correct sequence so that it can later be concatenated again by table.concat.
     -- The "flag" bytes of selected note-on and note-off events will be isolated and stored in separate entries, 
@@ -193,6 +206,128 @@ local function updateTableNotes()
     -- Each entry in tSelNotes will be a table that contains the indices (in tMIDI) of the note-on and note-off events' flags.
     tSelNotes = {}
     local e, n = 0, 0 -- Indices in tables
+    
+    notesAreLoaded = false
+    
+    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") then
+           
+        -- Since the notes will be navigated in sequence, the MIDI data must be sorted first.
+        reaper.MIDI_Sort(take)
+        
+        _, MIDIhash = reaper.MIDI_GetHash(take, false, "")
+        
+        -- While parsing the MIDI string, the indices of the last note-ons for each channel/pitch/flag must be temporarily stored until a matching note-off is encountered. 
+        for channel = 0, 15 do
+            for pitch = 0, 127 do
+                tNoteOns[channel][pitch].lastNoteOn = {}
+            end
+        end
+        
+        -- Get all MIDI data and then parse through it    
+        local gotMIDIOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+        if gotMIDIOK then
+            local stringPos, prevStringPos = 1, 1 -- Position inside MIDIstring while parsing
+            local lastSavedStringPos = 0 -- Position of last byte in MIDIstring that was stored in tMIDI
+            local runningPPQpos = 0
+            local MIDIlen = MIDIstring:len() -- Don't parse the final 12 bytes, which provides REAPER's end-of-take All-Notes-Off message
+            local offset, flags, msg
+            
+            while stringPos < MIDIlen do
+                prevStringPos = stringPos
+                offset, flags, msg, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos)
+                runningPPQpos = runningPPQpos + offset       
+                
+                -- All events are stored in tMIDI
+                    
+                -- Note events will be stored in tNotes.  
+                -- Each entry in tNotes is itself a table that contains the indices of two or three events in tMIDI:
+                --    noteOnIndex, noteOffIndex, and (optional) notationIndex
+                
+                -- This function (unlike loadNewSetOfNotes does NOT only analyze selected notes.
+                
+                if msg ~= "" then -- Don't need to analyze empty events that simply change PPQ position
+                    local eventType = msg:byte(1)>>4
+                    
+                    -- Find note-ons and note-offs
+                    if eventType == 9 or eventType == 8 then                            
+                        
+                        local channel = msg:byte(1)&0x0F
+                        local pitch   = msg:byte(2)
+                        
+                        -- Note-ons
+                        if eventType == 9 and msg:byte(3) ~= 0 then
+                            if tNoteOns[channel][pitch][runningPPQpos] -- A note at this position was selected originally
+                            or flags&1 == 1 -- Or this note is newly selected.
+                            then 
+                                if tNoteOns[channel][pitch].lastNoteOn[flags] then
+                                    reaper.ShowMessageBox("The script encountered overlapping notes.\n\nSuch notes are not valid MIDI, and can not be parsed.", "ERROR", 0)
+                                    tMIDI = {}
+                                    tSelNotes = {}
+                                    return false
+                                else
+                                    e = e + 1
+                                    tMIDI[e] = MIDIstring:sub(lastSavedStringPos+1, prevStringPos+3) -- up to and including offset
+                                    e = e + 1
+                                    tMIDI[e] = string.pack("B", flags)
+                                    lastSavedStringPos = prevStringPos+4 -- Position of flags
+                                    
+                                    n = n + 1
+                                    tSelNotes[n] = {noteOnIndex = e, ppqpos = runningPPQpos} -- Reference to flag's index
+                                    -- The reloaded notes can simply reuse the original notes' measureDivision,
+                                    --    but what will happen if the user has changed the time signature?
+                                    -- So rather do the slow re-calculations.
+                                    local startOfMeasure = reaper.MIDI_GetPPQPos_StartOfMeasure(take, runningPPQpos)
+                                    local endOfMeasure = reaper.MIDI_GetPPQPos_EndOfMeasure(take, runningPPQpos+1)
+                                    local measureDivision = (runningPPQpos - startOfMeasure) / (endOfMeasure - startOfMeasure)
+                                    tSelNotes[n].measureDivision = measureDivision
+                             
+                                    tNoteOns[channel][pitch][runningPPQpos] = measureDivision -- Create an entry at this note's start position, so that can be reloaded.
+                                    tNoteOns[channel][pitch].lastNoteOn[flags] = n -- Store the index of the running note-on, so that next matching note-off can be stored at same index.
+                                end
+                            end
+                        -- Note-offs
+                        else
+                            local lastNoteOnIndex = tNoteOns[channel][pitch].lastNoteOn[flags] -- Is a matching note-on waiting?
+                            if lastNoteOnIndex then
+                                e = e + 1
+                                tMIDI[e] = MIDIstring:sub(lastSavedStringPos+1, prevStringPos+3) -- up to and including offset
+                                e = e + 1
+                                tMIDI[e] = string.pack("B", flags)
+                                lastSavedStringPos = prevStringPos+4 -- Position of flags
+                                
+                                tSelNotes[lastNoteOnIndex].noteOffIndex = e -- Reference to flag's index
+                                tNoteOns[channel][pitch].lastNoteOn[flags] = nil
+                            end
+                        end 
+                    end -- if eventType == 9 or eventType == 8
+                end
+            end -- while stringPos < MIDIlen
+            
+            -- Store all remaining MIDI data in tMIDI
+            e = e + 1
+            tMIDI[e] = MIDIstring:sub(lastSavedStringPos+1)            
+            
+        end -- if GotMIDIOK                      
+    end -- if reaper.ValidatePtr2(0, take, "MediaItem_Take*")
+    
+    if #tSelNotes > 0 then
+        notesAreLoaded = true
+    end
+end
+
+
+---------------------------------
+local function loadNewSetOfNotes()
+    
+    -- The raw MIDI data will be stored in tMIDI, in correct sequence so that it can later be concatenated again by table.concat.
+    -- The "flag" bytes of selected note-on and note-off events will be isolated and stored in separate entries, 
+    --    so that they can easily be accessed directly later, to change the selection status of the notes.
+    tMIDI = {} 
+    -- Each entry in tSelNotes will be a table that contains the indices (in tMIDI) of the note-on and note-off events' flags.
+    tSelNotes = {}
+    local e, n = 0, 0 -- Indices in tables
+    
+    notesAreLoaded = false
     
     editor = reaper.MIDIEditor_GetActive()
     if editor ~= nil then 
@@ -210,11 +345,13 @@ local function updateTableNotes()
             _, MIDIhash = reaper.MIDI_GetHash(take, false, "")
             
             -- While parsing the MIDI string, the indices of the last note-ons for each channel/pitch/flag must be temporarily stored until a matching note-off is encountered. 
-            local runningNotes = {}
+            tNoteOns = nil
+            tNoteOns = {}
             for channel = 0, 15 do
-                runningNotes[channel] = {}
+                tNoteOns[channel] = {}
                 for pitch = 0, 127 do
-                    runningNotes[channel][pitch] = {}
+                    tNoteOns[channel][pitch] = {} 
+                    tNoteOns[channel][pitch].lastNoteOn = {}
                 end
             end
             
@@ -256,7 +393,7 @@ local function updateTableNotes()
                             
                             -- Note-ons
                             if eventType == 9 and msg:byte(3) ~= 0 then
-                                if runningNotes[channel][pitch][flags] then
+                                if tNoteOns[channel][pitch].lastNoteOn[flags] then
                                     reaper.ShowMessageBox("The script encountered overlapping notes.\n\nSuch notes are not valid MIDI, and can not be parsed.", "ERROR", 0)
                                     tMIDI = {}
                                     tSelNotes = {}
@@ -269,12 +406,13 @@ local function updateTableNotes()
                                     local measureDivision = (runningPPQpos - startOfMeasure) / (endOfMeasure - startOfMeasure)
                                     tSelNotes[n].measureDivision = measureDivision
                              
-                                    runningNotes[channel][pitch][flags] = n
+                                    tNoteOns[channel][pitch][runningPPQpos] = measureDivision -- Create an entry at this note's start position, so that can be reloaded.
+                                    tNoteOns[channel][pitch].lastNoteOn[flags] = n -- Store the index of the running note-on, so that next matching note-off can be stored at same index.
                                 end
                                 
                             -- Note-offs
                             else
-                                local lastNoteOnIndex = runningNotes[channel][pitch][flags]
+                                local lastNoteOnIndex = tNoteOns[channel][pitch].lastNoteOn[flags]
                                 if not lastNoteOnIndex then
                                     reaper.ShowMessageBox("The script encountered orphan note-offs that do not have corresponding note-ons.", "ERROR", 0)
                                     tMIDI = {}
@@ -282,7 +420,7 @@ local function updateTableNotes()
                                     return false
                                 else
                                     tSelNotes[lastNoteOnIndex].noteOffIndex = e -- Reference to flag's index
-                                    runningNotes[channel][pitch][flags] = nil
+                                    tNoteOns[channel][pitch].lastNoteOn[flags] = nil
                                 end
                             end 
                         end -- if eventType == 9 or eventType == 8
@@ -291,15 +429,15 @@ local function updateTableNotes()
                 
                 -- Store all remaining MIDI data in tMIDI
                 e = e + 1
-                tMIDI[e] = MIDIstring:sub(lastSavedStringPos+1)
-                
-                if #tSelNotes > 0 then
-                    mustLoadNewNotes = false
-                end
+                tMIDI[e] = MIDIstring:sub(lastSavedStringPos+1)                
                 
             end -- if GotMIDIOK                      
         end -- if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take)
     end -- if editor ~= nil
+    
+    if #tSelNotes > 0 then
+        notesAreLoaded = true
+    end
 end
 
 
@@ -362,34 +500,59 @@ local function loopNoteSelector()
     
     -- If no changes are found in rest of loop, don't bother doing enything
     local mustUpdateGUI = false
-    local mustUpdateTableOfNotes = false
+    local mustLoadNewSetOfNotes = false
+    local mustReloadSameNotes = false
     local mustUpdateNoteSelectionInEditor = false    
+    
+    -- Does the take still exist?  
+    local takeIsStillValid = reaper.ValidatePtr2(0, take, "MediaItem_Take*")
+    if not takeIsStillValid then
+        notesAreLoaded = false
+        tMIDI = {}
+        tSelNotes = {}
+        mustUpdateGUI = true
+        -- Don't jump to updates from here.  Instead, wait for user to click on loadNewNotes.
+    end
                     
+    -- First, check for stuff that must be updated even if mouse is outside GUI:
+    
     -- If the GUI size changes, the "Mode" and "Load" buttons at the bottom must remain in the middle
     if gfx.w ~= prevGfxW or gfx.h ~= prevGfxH then
         mustUpdateGUI = true
         prevGfxW = gfx.w 
         prevGfxH = gfx.h
         goto updates
-    end
+    end    
     
     -- Has the editor's grid changed?
-    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") then
+    if takeIsStillValid and notesAreLoaded then
         gridQN, _, _ = reaper.MIDI_GetGrid(take)
         if gridQN ~= prevGridQN then
             prevGridQN = gridQN
             mustUpdateNoteSelectionInEditor = true
             goto updates
         end
-    end
+    end    
+    
+    -- Now, check for stuff that only need to be updated if the mouse is inside the GUI:
     
     -- Check whether mouse clicked on something inside GUI
-    if not (gfx.mouse_x < 0 or gfx.mouse_x > gfx.w or gfx.mouse_y < 0 or gfx.mouse_y > gfx.h)
-    and not (gfx.mouse_x == prevMouseX and gfx.mouse_y == prevMouseY and gfx.mouse_cap == prevMouseCap)
+    if (gfx.mouse_x > 0 and gfx.mouse_x < gfx.w and gfx.mouse_y > 0 and gfx.mouse_y < gfx.h)
+    and (gfx.mouse_x ~= prevMouseX or gfx.mouse_y ~= prevMouseY or gfx.mouse_cap ~= prevMouseCap)
     then
         prevMouseX = gfx.mouse_x
         prevMouseY = gfx.mouse_y
         prevMouseCap = gfx.mouse_cap        
+        
+        -- Has the MIDI inside the take changed?  If so, try to re-load the notes that were originally selected.
+        -- Usually, this will happen when the mouse returns to the GUI after doing edits in the MIDI editor.
+        if takeIsStillValid and notesAreLoaded then -- Are there any notes to reload?
+            local _, currentHash = reaper.MIDI_GetHash(take, false, "") -- take has already been validated above
+            if currentHash ~= MIDIhash then
+                mustReloadSameNotes = true
+                goto updates
+            end
+        end 
         
         -- Is mouse on "Mode" button?
         -- modeButtonAlreadyClicked variable prevents button from being activated multiple times
@@ -457,7 +620,7 @@ local function loopNoteSelector()
         and gfx.mouse_x > gfx.w/2 - newNotesStrWidth/2
         then
             if not (loadButtonAlreadyClicked == true) then
-                mustUpdateTableOfNotes = true
+                mustLoadNewSetOfNotes = true 
                 mustUpdateGUI = true
                 mustUpdateNoteSelectionInEditor = true
             end
@@ -469,31 +632,13 @@ local function loopNoteSelector()
         
     end -- if mouse is inside GUI
     
-    -- Has the editor, take or MIDI changed?  Then must clean table of notes, and start over.
-    if mustLoadNewNotes == false then
-        mustLoadNewNotes = true -- Will be changed back if false
-        local currentEditor = reaper.MIDIEditor_GetActive()
-        if currentEditor == editor then
-            local currentTake = reaper.MIDIEditor_GetTake(currentEditor)
-            if currentTake == take then
-                local _, currentHash = reaper.MIDI_GetHash(currentTake, false, "")
-                if currentHash == MIDIhash then
-                    mustLoadNewNotes = false
-                    --reaper.ShowConsoleMsg(currentHash .. " " .. MIDIhash)
-        end end end
-        if mustLoadNewNotes then
-            tMIDI = nil
-            tMIDI = {}
-            tSelNotes = nil
-            tSelNotes = {}
-            mustUpdateGUI = true
-            goto updates
-        end
-    end
+    
     
     ::updates::
     -- Updates must occur in the correct order
-    if mustUpdateTableOfNotes then updateTableNotes() end
+    if mustLoadNewSetOfNotes then loadNewSetOfNotes() end 
+    
+    if mustReloadSameNotes then reloadSameNotes() end
     
     if mustUpdateGUI then drawGUI() end 
     
@@ -519,14 +664,12 @@ end
 -- Check whether startup tips must be shown
 local startupTipsExtState = reaper.GetExtState("js_Step pattern", "Startup tips version")
 if type(startupTipsExtState) == "string" then
-    local startupTipsVersion = tonumber(startupTipsExtState)
-    if type(startupTipsVersion) == "number" then
-        if startupTipsVersion >= 1.00 then
-            startupTipsHaveBeenShown = true
-        end
-    end
+    startupTipsVersion = tonumber(startupTipsExtState)
 end
-if not startupTipsHaveBeenShown then
+if type(startupTipsVersion) ~= "number" then
+    startupTipsVersion = 0    
+end
+if startupTipsVersion < 1.00 then
     reaper.ShowMessageBox("GRID SETTINGS"
                           .. "\n\nIn step pattern mode, notes that start within one grid length of each other are regarded as one unit "
                           .. "(e.g. a chord or glissando), and will be selected/deselected together."
@@ -534,10 +677,20 @@ if not startupTipsHaveBeenShown then
                           .. "\n\n"
                           .. "\n\nNUMBER OF STEPS"
                           .. "\n\nThe maximum number of steps is 99.  For such long patterns, you may need to widen the GUI window."   
+                          , "Startup tips", 0)
+    reaper.SetExtState("js_Step pattern", "Startup tips version", "1.00", true)
+end
+if startupTipsVersion < 1.20 then
+    reaper.ShowMessageBox("NEW IN VERSION 1.20:"
+                          .. "\n\nThe user can edit CCs or velocties in the MIDI editor while a set of notes is loaded, "
+                          .. "without requiring that the notes be reloaded."
+                          .. "\n\n"
+                          .. "(If note pitches or positions are changed, it may still confuse the script, but the script will "
+                          .. "try to add any *selected* and edited notes to the set of loaded, active notes.)"   
                           .. "\n\n"                  
                           .. "\n\n(These startup tips will only be displayed once.)"
                           , "Startup tips", 0)
-    reaper.SetExtState("js_Step pattern", "Startup tips version", "1.00", true)
+    reaper.SetExtState("js_Step pattern", "Startup tips version", "1.20", true)
 end
 
 
@@ -554,7 +707,7 @@ end
 
 -------------------------------------------------
 -- Load starting set of notes, before drawing GUI
-updateTableNotes()
+loadNewSetOfNotes()
 
 
 ---------------------------------------------------------------------
