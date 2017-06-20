@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.02g
+-- @version 2.03
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,7 +33,7 @@
 
 --[[
  * Changelog:
- * v2.02g (2017-06-20)
+ * v2.03 (2017-06-20)
   + can save SWS files (functionality added by user Gianfini)
  * v2.02 (2017-04-13)
   + bugfix: entering Hex codes when in HSL mode was not working
@@ -123,7 +123,7 @@
 
 
 
-version = "v2.02g"
+version = "v2.03"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
