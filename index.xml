@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ee1ff0959c58a1a88311e1bff2b36d77adc22589" name="ReaTeam Scripts">
+<index version="1" commit="4e9dea77b418f3cb0cdc7a8b6cb5af22e5839d1c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4844,7 +4844,8 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click Load SWS button to load SWSColor files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click LD/SV SWS button to load SWSColor files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-Click LD/SV SWS button to save SWSColor files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click SWS Colors button to open the SWS Color Management tool\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click sliders' area to toggle between RGB and HSL mode\par}
@@ -4855,7 +4856,6 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on "?" on right top corner to display information, Right-Click for manual\sa180\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
       </metadata>
       <version name="1.50" author="amagalma" time="2017-03-25T19:36:58Z">
         <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
@@ -4918,6 +4918,9 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="2.02" author="amagalma" time="2017-04-13T20:36:40Z">
         <changelog><![CDATA[+ bugfix: entering Hex codes when in HSL mode was not working]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1638e3956be7107f741c89c900cc5063de51ba4f/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.02g" author="amagalma" time="2017-06-20T12:28:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e9dea77b418f3cb0cdc7a8b6cb5af22e5839d1c/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
