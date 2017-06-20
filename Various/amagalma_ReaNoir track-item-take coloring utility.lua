@@ -33,7 +33,7 @@
 
 --[[
  * Changelog:
- * v2.02g (2017-06-15)
+ * v2.02g (2017-06-20)
   + can save SWS files (functionality added by user Gianfini)
  * v2.02 (2017-04-13)
   + bugfix: entering Hex codes when in HSL mode was not working
