@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.02
+-- @version 2.02g
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -18,7 +18,8 @@
 --   - Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.
 --   - Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white
 --   - Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState
---   - Click Load SWS button to load SWSColor files
+--   - Click LD/SV SWS button to load SWSColor files
+--   - Right-Click LD/SV SWS button to save SWSColor files
 --   - Click SWS Colors button to open the SWS Color Management tool
 --   - Ability to dock the script to the left or to the right
 --   - Right-click sliders' area to toggle between RGB and HSL mode
@@ -27,11 +28,13 @@
 --   - Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode
 --   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
 --   - Click on "?" on right top corner to display information, Right-Click for manual
---
+
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v2.02g (2017-06-15)
+  + can save SWS files (functionality added by user Gianfini)
  * v2.02 (2017-04-13)
   + bugfix: entering Hex codes when in HSL mode was not working
  * v2.01 (2017-04-09)
@@ -102,7 +105,7 @@
   + changed name to ReaNoir
 --]]
 
--- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
+-- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
 
@@ -120,7 +123,7 @@
 
 
 
-version = "v2.02"
+version = "v2.02g"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -886,6 +889,17 @@ end
         end
     end  
 
+  --- gianfini: save as SWS input request ---
+  function SaveAsSWSPalette()
+      local name = tostring("")..","..tostring("")
+      local retval, newfile = reaper.GetUserInputs("Save as SWS:", 1, "Save New SWS Palette", name)          
+        if retval == true then
+          local newpalette_path = UserPalettes_path .. newfile .. ".SWSColor"             
+          SaveSWSColorFile(newpalette_path)
+          --- LoadColorFile(newpalette_path) ---
+        end
+    end 
+  
     function SavePalette_INIT()
         local SavePalette_x = GUI_centerx -1
         local SavePalette_y = GUI_centery + 246 -compact
@@ -980,13 +994,17 @@ end
         local LoadSWS_x = GUI_centerx -77
         local LoadSWS_y = GUI_centery - 192
         local LoadSWS_w = 66
-        local help = ".SWSColor palette file"
-        LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"Load SWS",help,0,1)
+        local help = "LClick->Load | RClick->Save"
+    
+    ---- gianfini: modification to label name -----
+        LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"LD/SV SWS",help,0,1)
         LoadSWS_btn :set_label_color(0.8,0.8,0.8,1)
         LoadSWS_btn.onClick = function ()
           LoadSWSColors()
         end
         LoadSWS_btn.onRClick = function ()
+    ---- gianfini: added function -----
+          SaveAsSWSPalette()
         end
     end
     
@@ -997,6 +1015,15 @@ end
       return R,G,B
     end
     
+    --- gianfini: convert into int format as for SWS files ---
+    function RGBToInt (red, green, blue)
+     
+      if((red < 0 or red > 255 or green < 0 or green > 255 or blue < 0 or blue > 255)) then
+        return 0
+      end      
+      local INTColor = blue*256*256 + green*256 + red
+      return INTColor
+    end
     
     function RandomColors_INIT()
       local RandomColors_x = GUI_centerx -72
@@ -1093,14 +1120,9 @@ end
        local GetColor_x = GUI_centerx -1
        local GetColor_y = GUI_centery + 128 - compact
        local GetColor_w = 65
-       local help = "Copy selected to temp color"
-       local help2 = "Lmb->Get selected | Rmb->Set"
-       if mode == "rgb" or mode == "hsl" then
-         GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
-       elseif mode == "compact" then
-         GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help2,0,1)
-       end
-       GetColor_btn :set_label_color(0.8,0.8,0.8,1)                 
+       local help = "Lmb->Get sel.| Rmb->OS Set"
+       GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
+       GetColor_btn:set_label_color(0.8,0.8,0.8,1)                 
        GetColor_btn.onClick = function ()         
           if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
@@ -1145,15 +1167,21 @@ end
           end
        end
        GetColor_btn.onRClick = function ()
-         if mode == "compact" then
-           local answer, color = reaper.GR_SelectColor()
-           if answer ~= 0 then
+          local answer, color = reaper.GR_SelectColor()
+          if answer ~= 0 then
             local R, G, B = reaper.ColorFromNative(color|0x1000000)
-            slider_btn_r.val = R/255 
-            slider_btn_g.val = G/255
-            slider_btn_b.val = B/255
-           end
-         end
+            if mode == "compact" or mode == "rgb" then
+              slider_btn_r.val = R/255 
+              slider_btn_g.val = G/255
+              slider_btn_b.val = B/255
+            elseif mode == "hsl" then
+              local h, s, l = rgbToHsl (R/255, G/255, B/255)
+              slider_btn_h.val = h
+              slider_btn_s.val = s
+              slider_btn_l.val = l 
+              slider_btn_a.val = 1
+            end
+          end
        end 
     end
   
@@ -1290,57 +1318,46 @@ end
                                       
 - part of the code is modification of codes by Spacemen Tree, spk77 & Em. Oga
 - special thanks to them and to X-Raym, cfillion and Lokasenna for their help!
+- thanks to Gianfini for his addition to export SWS Colorset files
 
                                                          ^^ Features: ^^
 
 - Palette of 24 Color Boxes + 1 Temporary Color Box (the big color box on top)
-
 - Click any of the color boxes to Color Tracks, Items or Takes and set it as
   Temporary Color
-  
 - Tracks/Items Mode is set automatically according to what was lastly clicked.
   The Takes mode is set and exited manually by the user
-  
 - Temporary Color can be adjusted by the Sliders and saved in to any of the
   24 Color Boxes
-  
 - Hex name of Temporary Color is shown and can be copied to clipboard in a
   SWS Auto Color/Icons ready format
-  
 - A color can be entered in the Temporary Color Box by entering its hex code too
-
 - ReaNoir can create Gradient Colors between existing track/item/take colors
   and any of the Color Boxes (including the Temporary Box)
-  
 - Ability to apply a random color selection to tracks/items/takes. No color is
   repeated before all 24 have been used
-  
 - Two available Slider Modes: RGB and HSL
-
 - Two available script modes: RGB/HSL and Compact (No Sliders). The mode is
   set inside the script in the "MODE OF OPERATION" section box
-  
 - When in Compact (No Sliders) Mode, Right-click Get Color Button to set
   Temporary Color Box's color
-  
 - Palettes can be loaded and saved as txt files. They reside in ReaNoir folder in
   the same path as the script
-  
 - Default palette is hard-coded into the script
-
 - Current palette is automatically saved as last_palette_on_exit.txt as a backup
   each time the script exits
-  
-- SWSColor files can be imported as ReaNoir palettes via the dedicated Load SWS
-  button. The 16 colors get loaded to the first 16 Color Boxes and the rest 8
+- SWSColor files can be imported as ReaNoir palettes using the LD/SV SWS
+  button.
+  The 16 colors get loaded to the first 16 Color Boxes and the rest 8
   Color Boxes get filled with gradient colors from the two gradient colors specified
-  in the SWSColor file
-  
+  in the SWSColor file  
+- ReaNoir palettes can be exported as SWSColor palettes by Right Clicking the 
+  LD/SV SWS button. The first 16 Color Boxes will be written in SWS format and
+  the two gradient colors will be taken from Color Box 17 (gradient start) and 
+  Color Box 24 (gradient end)
 - ReaNoir can be docked Left/Right or Float and remembers its position and
-  dock state, and last Slider Mode (RGB or HSL)
-  
+  dock state, and last Slider Mode (RGB or HSL)  
 - 3 available click modes: left click, right click and ctrl-left click
-
 - Information is displayed on top of ReaNoir when hovering mouse over
   buttons/sliders]]
             reaper.MB(Info, "Information", 0)
@@ -1363,9 +1380,11 @@ Hex Display ------------------------------------------------------------------
   #123456, # 123456 & 0x123456)
 - Right-click to copy Hex code to clipboard
 
-Load SWS Button: Load SWSColor file -----------------------------------------
+LD/SV SWS Button ------------------------------------------------------------
+- Left-click to load SWS Colorset palette
+- Right-click to save palette as .SWSColor file
 
-SWS Colors Button: Open SWS Color Management ---------------------------
+SWS Colors Button: Open SWS Color Management --------------------------
 
 Sliders Area -------------------------------------------------------------------
 - Left-click to change Temporary Color
@@ -1385,10 +1404,9 @@ Random Color --------------------------------------------------------------
 - Apply random color selection from the palette
 
 Get Color --------------------------------------------------------------------
-- RGB/HSL mode: get first selected track/item/take color and load it to
+- Left-click to get first selected track/item/take color and load it to
   Temporary Color Box
-- Compact(No Sliders) mode: left-click the same. Right-click to define
-  Temporary Color Box's color
+- Right-click to define Temporary Color Box's color with OS utility
 
 Palette box: Shows loaded palette --------------------------------------------
 
@@ -1765,7 +1783,50 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
         end 
         file:close()              
     end
+    
+    ---- gianfini: added save SWS file ----     
+    function SaveSWSColorFile(palette_file)
+        file = io.open(palette_file,"w+")
+        ---- J Header -----
+        file:write("[SWS Color]", "\n")
         
+        ---- Collect data ---- 
+        local IntegerColorList = {}
+        local RtoInt = {}
+        local GtoInt = {}
+        local BtoInt = {}
+        for box_pos = 1,16 do
+            RtoInt [box_pos] = ColorBoxes [box_pos].r
+            GtoInt [box_pos] = ColorBoxes [box_pos].g
+            BtoInt [box_pos] = ColorBoxes [box_pos].b
+            Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
+            IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+            ---- Write to file ----
+            file:write("custcolor")
+            file:write(box_pos)
+            file:write("=")
+            file:write(IntegerColorList [box_pos], "\n")
+        end 
+        ---- Write the two gradient files ----
+        box_pos = 17
+        RtoInt [box_pos] = ColorBoxes [box_pos].r
+        GtoInt [box_pos] = ColorBoxes [box_pos].g
+        BtoInt [box_pos] = ColorBoxes [box_pos].b
+        Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
+        IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+        file:write("gradientStart=")
+        file:write(IntegerColorList [box_pos], "\n")
+        box_pos = 24
+        RtoInt [box_pos] = ColorBoxes [box_pos].r
+        GtoInt [box_pos] = ColorBoxes [box_pos].g
+        BtoInt [box_pos] = ColorBoxes [box_pos].b
+        Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
+        IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+        file:write("gradientEnd=")
+        file:write(IntegerColorList [box_pos], "\n")
+        file:close()              
+    end
+  
     function Write_Prefs()
         reaper.SetExtState("ReaNoir", "Dock", tostring(dock), 1)
         if mode ~= "compact" then reaper.SetExtState("ReaNoir", "Mode", mode, 1) end
