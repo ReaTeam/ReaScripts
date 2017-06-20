@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4e9dea77b418f3cb0cdc7a8b6cb5af22e5839d1c" name="ReaTeam Scripts">
+<index version="1" commit="87b0cec84826b203ed3b2d97e4319d1c633e56cf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4921,6 +4921,10 @@ Made by Mordi, Jan 2016]]></changelog>
       </version>
       <version name="2.02g" author="amagalma" time="2017-06-20T12:28:15Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e9dea77b418f3cb0cdc7a8b6cb5af22e5839d1c/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.03" author="amagalma" time="2017-06-20T12:43:56Z">
+        <changelog><![CDATA[+ can save SWS files (functionality added by user Gianfini)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/87b0cec84826b203ed3b2d97e4319d1c633e56cf/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
