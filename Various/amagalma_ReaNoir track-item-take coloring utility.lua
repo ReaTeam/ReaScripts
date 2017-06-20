@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.03
+-- @version 2.04
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,6 +33,8 @@
 
 --[[
  * Changelog:
+ * v2.04 (2017-06-20)
+  + Ctrl-clicking on Darker/Brighter buttons creates shaded/tinted gradient colors
  * v2.03 (2017-06-20)
   + can save SWS files (functionality added by user Gianfini)
  * v2.02 (2017-04-13)
@@ -123,7 +125,7 @@
 
 
 
-version = "v2.03"
+version = "v2.04"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -889,14 +891,12 @@ end
         end
     end  
 
-  --- gianfini: save as SWS input request ---
   function SaveAsSWSPalette()
       local name = tostring("")..","..tostring("")
       local retval, newfile = reaper.GetUserInputs("Save as SWS:", 1, "Save New SWS Palette", name)          
         if retval == true then
           local newpalette_path = UserPalettes_path .. newfile .. ".SWSColor"             
           SaveSWSColorFile(newpalette_path)
-          --- LoadColorFile(newpalette_path) ---
         end
     end 
   
@@ -942,11 +942,117 @@ end
       slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = r, g, b
     end
     
+    function TintShade(tintorshade)
+        if what == "tracks" then
+          local seltracks = reaper.CountSelectedTracks(0)
+          if seltracks > 2 then
+                local firsttrack = reaper.GetSelectedTrack(0, 0)
+                local firstcolor = reaper.GetMediaTrackInfo_Value(firsttrack, "I_CUSTOMCOLOR")
+                if firstcolor == 0 or nil then
+                  reaper.MB("The first selected track must already have a custom color in order to make a gradient!", "Error!", 0 )
+                else
+                  reaper.Undo_BeginBlock()                    
+                  local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor)
+                  local firstcolor_h, firstcolor_s, firstcolor_l = rgbToHsl(firstcolor_r/255, firstcolor_g/255, firstcolor_b/255)
+                  if math.abs(firstcolor_l-tintorshade) < 0.1 then
+                    reaper.MB("The first selected track should have a darker color in order to make tint gradient!", "Error!", 0 )
+                  else
+                    local lastcolor_r, lastcolor_g, lastcolor_b = hslToRgb(firstcolor_h, firstcolor_s, tintorshade)
+                    local r_step = (lastcolor_r*255-firstcolor_r)/(seltracks-1)
+                    local g_step = (lastcolor_g*255-firstcolor_g)/(seltracks-1)
+                    local b_step = (lastcolor_b*255-firstcolor_b)/(seltracks-1)
+                    for i=1,seltracks-1 do
+                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local track = reaper.GetSelectedTrack(0, i)
+                      reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
+                    end
+                    reaper.Undo_EndBlock("Color selected track(s) with gradient tint color", -1)
+                  end
+                end
+          else
+               reaper.MB( "Please select at least three tracks!", "Cannot create gradient colors!", 0 )
+          end
+        elseif what == "items" then
+          local selitems = reaper.CountSelectedMediaItems(0)
+          if selitems > 2 then
+              local item = reaper.GetSelectedMediaItem( 0, 0 )
+              local firstcolor = reaper.GetDisplayedMediaItemColor(item)
+              if firstcolor == 0 or nil then
+                reaper.MB("The first selected item must already have a custom color in order to make a gradient!", "Error!", 0 )
+              else
+                reaper.Undo_BeginBlock()
+                local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                local firstcolor_h, firstcolor_s, firstcolor_l = rgbToHsl(firstcolor_r/255, firstcolor_g/255, firstcolor_b/255)
+                if math.abs(firstcolor_l-tintorshade) < 0.1 then
+                  reaper.MB("The first selected track should have a darker color in order to make tint gradient!", "Error!", 0 )
+                else
+                  local lastcolor_r, lastcolor_g, lastcolor_b = hslToRgb(firstcolor_h, firstcolor_s, tintorshade)
+                  local r_step = (lastcolor_r*255-firstcolor_r)/(selitems-1)
+                  local g_step = (lastcolor_g*255-firstcolor_g)/(selitems-1)
+                  local b_step = (lastcolor_b*255-firstcolor_b)/(selitems-1)
+                  for i=1,selitems-1 do
+                    local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                    local item = reaper.GetSelectedMediaItem(0, i)
+                    local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                    local active_take = reaper.GetActiveTake(item)
+                    if active_take ~= nil then
+                      reaper.Main_OnCommand(41333, 0) -- Take: Set active take to default color
+                    end
+                    reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+                    reaper.UpdateArrange()
+                  end
+                  reaper.Undo_EndBlock("Color selected item(s) with gradient colors", -1)
+                end
+              end
+          else
+               reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
+          end
+        elseif what == "takes" then
+          local selitems = reaper.CountSelectedMediaItems(0)
+          if selitems < 1 then
+            reaper.MB("Not any items are selected!", "Error!", 0 )
+          else
+            for i=0,selitems-1 do
+              local item = reaper.GetSelectedMediaItem(0, i)
+              local take_cnt = reaper.CountTakes(item)
+              if take_cnt < 3 then
+                if found == 1 then found = 1 else found = 0 end
+              else
+                found = 1
+                local take = reaper.GetMediaItemTake( item, 0) -- get first take
+                local firstcolor = reaper.GetDisplayedMediaItemColor2( item, take)
+                local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                local firstcolor_h, firstcolor_s, firstcolor_l = rgbToHsl(firstcolor_r/255, firstcolor_g/255, firstcolor_b/255)
+                local lastcolor_r, lastcolor_g, lastcolor_b = hslToRgb(firstcolor_h, firstcolor_s, tintorshade)
+                local r_step = (lastcolor_r*255-firstcolor_r)/(take_cnt-1)
+                local g_step = (lastcolor_g*255-firstcolor_g)/(take_cnt-1)
+                local b_step = (lastcolor_b*255-firstcolor_b)/(take_cnt-1)
+                reaper.Undo_BeginBlock()
+                for j=1, take_cnt-1 do
+                  local take = reaper.GetMediaItemTake( item, j)
+                  local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
+                  local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                  reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
+                  reaper.UpdateItemInProject( item )
+                  reaper.UpdateArrange()
+                end
+                reaper.Undo_EndBlock("Color takes of selected item(s) with tint gradient colors", -1)
+              end
+            end
+            if found == 0 then
+              reaper.MB( "Not any item with more than two takes was selected!", "Cannot create gradient colors!", 0 )
+            end
+          end
+          found = nil
+        end
+    end
+    
+    
     function Darker_INIT()
         local Darker_x = GUI_centerx -64
         local Darker_y = GUI_centery - 85
         local Darker_w = 56
-        local help = "Rclick to set Temp to Black"
+        local help = "Rclick->Black | Ctrl->Shades"
         Darker_btn = Button(Darker_x, Darker_y, Darker_w,22,2,0,0,"Darker",help,0,1)
         Darker_btn :set_label_color(0.8,0.8,0.8,1)
         Darker_btn.onClick = function ()
@@ -956,6 +1062,7 @@ end
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 0, 0, 0
         end
         Darker_btn.onCtrlClick = function ()
+          TintShade(0.08)
         end
     end
     
@@ -963,7 +1070,7 @@ end
         local Brighter_x = GUI_centerx -1
         local Brighter_y = GUI_centery - 85
         local Brighter_w = 56
-        local help = "Rclick to set Temp to White"
+        local help = "Rclick->White | Ctrl->Tints"
         Brighter_btn = Button(Brighter_x, Brighter_y, Brighter_w,22,2,0,0,"Brighter",help,0,1)
         Brighter_btn :set_label_color(0.8,0.8,0.8,1)
         Brighter_btn.onClick = function ()
@@ -973,6 +1080,7 @@ end
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 1, 1, 1
         end
         Brighter_btn.onCtrlClick = function ()
+          TintShade(0.92)
         end
     end
     
@@ -995,15 +1103,12 @@ end
         local LoadSWS_y = GUI_centery - 192
         local LoadSWS_w = 66
         local help = "LClick->Load | RClick->Save"
-    
-    ---- gianfini: modification to label name -----
         LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"LD/SV SWS",help,0,1)
         LoadSWS_btn :set_label_color(0.8,0.8,0.8,1)
         LoadSWS_btn.onClick = function ()
           LoadSWSColors()
         end
         LoadSWS_btn.onRClick = function ()
-    ---- gianfini: added function -----
           SaveAsSWSPalette()
         end
     end
@@ -1017,7 +1122,6 @@ end
     
     --- gianfini: convert into int format as for SWS files ---
     function RGBToInt (red, green, blue)
-     
       if((red < 0 or red > 255 or green < 0 or green > 255 or blue < 0 or blue > 255)) then
         return 0
       end      
@@ -1333,7 +1437,7 @@ end
   SWS Auto Color/Icons ready format
 - A color can be entered in the Temporary Color Box by entering its hex code too
 - ReaNoir can create Gradient Colors between existing track/item/take colors
-  and any of the Color Boxes (including the Temporary Box)
+  and any of the Color Boxes (including the Temporary & Darker/Brighter boxes)
 - Ability to apply a random color selection to tracks/items/takes. No color is
   repeated before all 24 have been used
 - Two available Slider Modes: RGB and HSL
@@ -1393,6 +1497,8 @@ Sliders Area -------------------------------------------------------------------
 Darker/Brighter buttons (in RGB mode) --------------------------------------
 - Left-click to darken/brighten Temporary Color
 - Right-click to set Temporary Color to Black/White
+- Ctrl-click to make gradient tinted/shaded colors from first selected
+  track/item/take color
 
 24 Color Boxes ---------------------------------------------------------------
 - Left-click to apply color
