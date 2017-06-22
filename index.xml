@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="39bbe6c14d544151da677121f208045be7922300" name="ReaTeam Scripts">
+<index version="1" commit="5204d3b1df83c41efb0c5c4ed73f026b5cf389cd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -4642,13 +4642,34 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7bc709df5dbff69d45053136810469ff66bba6a/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Toggle visiblity of empty non-folder tracks.lua" type="script" desc="Toggle visiblity of empty non-folder tracks">
+    <reapack name="cfillion_Toggle visibility of empty non-folder tracks.lua" type="script" desc="Toggle visibility of empty non-folder tracks">
       <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle visibility of empty non-folder tracks\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script toggles the TCP and MCP visibility of tracks matching all of the following criteria:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track has no FX on it\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track does not contain any media item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track has no envelopes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track is not a folder\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track is not record armed\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A variant of the script is provided which additionally requires tracks to contain the character \u8226? (bullet) in their name. Custom variants can be created by copying the script with the desired track name search string between the apostrophes in the filename.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca/">cfillion.ca</link>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=187651">Forum Thread</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
-      </metadata>
+        </metadata>
       <version name="1.0" author="cfillion" time="2017-02-09T04:14:35Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0421f9b54196fced24dd157cb1f7b9af21c7d887/Tracks%20Properties/cfillion_Toggle%20visiblity%20of%20empty%20non-folder%20tracks.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2017-06-22T08:50:21Z">
+        <changelog><![CDATA[Fixed embarassing typo in the name ('visiblity' -> 'visibility')
+Added a "matching '•'" variant of the script at the request of blumpy]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5204d3b1df83c41efb0c5c4ed73f026b5cf389cd/Tracks%20Properties/cfillion_Toggle%20visibility%20of%20empty%20non-folder%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle visibility of empty non-folder tracks matching '•'.lua">https://github.com/ReaTeam/ReaScripts/raw/5204d3b1df83c41efb0c5c4ed73f026b5cf389cd/Tracks%20Properties/cfillion_Toggle%20visibility%20of%20empty%20non-folder%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
