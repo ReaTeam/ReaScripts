@@ -4661,7 +4661,7 @@ Made by Mordi, Jan 2016]]></changelog>
         <link rel="website" href="https://cfillion.ca/">cfillion.ca</link>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=187651">Forum Thread</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
-        </metadata>
+      </metadata>
       <version name="1.0" author="cfillion" time="2017-02-09T04:14:35Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0421f9b54196fced24dd157cb1f7b9af21c7d887/Tracks%20Properties/cfillion_Toggle%20visiblity%20of%20empty%20non-folder%20tracks.lua</source>
       </version>
@@ -5995,6 +5995,10 @@ berthu/ReaScripts
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ChrAfonso/REAPER_punches_and_streamers"}}{\fldrslt{\ul
 ChrAfonso/REAPER_punches_and_streamers
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/davidhealey/reascript"}}{\fldrslt{\ul
+davidhealey/reascript
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/GoranKovac/ReaScripts"}}{\fldrslt{\ul
