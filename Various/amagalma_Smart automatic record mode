@@ -1,0 +1,54 @@
+// @description amagalma_Smart automatic record mode
+// @author amagalma
+// @version 1.0
+// @about
+//   # Sets intelligently the record mode:
+//   # If there is a time selection after play or edit cursor then mode = time selection auto punch
+//   # If there is a selected item inside the time selection then mode = sel item auto punch
+//   # If no time selection but selected item after play or edit cursor then mode = sel item auto punch
+//   # If no time sel and no sel item after play or edit cursor then mode = normal
+//   # If already recording then running the script stops recording
+//
+
+Main_OnCommand(40252, 0); // Set record mode to normal
+TimeExists = 0;
+ItemExists = 0;
+// If already recording then Stop, else run script
+GetPlayState() == 4 ? Main_OnCommand(1016, 0) : (
+	GetPlayState() > 0 ? (
+					  cursor_position = GetPlayPosition();
+					 ) : (
+					  cursor_position = GetCursorPosition();
+					 );
+	// Check if there is time selection after play or edit cursor
+	GetSet_LoopTimeRange(0, 0, TimeStart, TimeEnd, 0);
+	TimeStart != TimeEnd ? (
+						TimeStart >= cursor_position ? (
+												   TimeExists = 1;
+												  );
+					   );
+	// Check if there are selected items after play or edit cursor
+	CountSelectedMediaItems(0) > 0 ? (
+								item = GetSelectedMediaItem(0,0);
+								item_start = GetMediaItemInfo_Value(item, "D_POSITION");
+								item_start >= cursor_position ? (
+														    ItemExists = 1;
+														   );
+							   );
+	
+	TimeExists == 1 ? ( // Time Selection exists
+					ItemExists == 1 ? ( //Check if sel item exists inside time selection
+								    item_start >= TimeStart ? (
+														  Main_OnCommand(40253, 0); // Set record mode to item auto-punch
+														 ) : (
+														  Main_OnCommand(40076, 0); // Set record mode to time auto-punch
+														 );
+								   ) : (
+								    Main_OnCommand(40076, 0); // Set record mode to time auto-punch
+								   ); 
+				  ) : ( // Time selection does not exist, check if Item exists
+					ItemExists == 1 ? Main_OnCommand(40253, 0); // Set record mode to item auto-punch
+				  );
+	Main_OnCommand(1013, 0); // Record
+);
+function NoUndo()(abs(0)); defer("NoUndo()"); // No undo is needed for the function
