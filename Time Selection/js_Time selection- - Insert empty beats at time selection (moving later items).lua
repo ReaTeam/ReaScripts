@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection- - Insert empty beats at time selection (moving later items).lua
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -24,6 +24,8 @@ About:
   Changelog:
   * v0.90 (2017-06-30)
     + Initial beta release
+  * v0.91 (2017-06-30)
+    + Quick bug fix
 ]]
 
 timeStart, timeEnd = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
@@ -49,5 +51,10 @@ if lastTempoMarkerIndex ~= -1 then
 end
 
 newTimeEnd = timeStart + (beatEnd-beatStart) * (60.00/tempoAtTimeStart)
+
+reaper.Undo_BeginBlock2(0)
 _, _ = reaper.GetSet_LoopTimeRange2(0, true, false, timeStart, newTimeEnd, true)
---reaper.Main_OnCommandEx(40200, -1, 0) -- Time selection: Insert empty space at time selection (moving later items)
+reaper.Main_OnCommandEx(40200, -1, 0) -- Time selection: Insert empty space at time selection (moving later items)
+reaper.Undo_EndBlock2(0, "Insert empty beats in selection", -1)
+
+
