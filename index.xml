@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3ba6c8c672f16b41f8eee91aa0c1779a8f75fc47" name="ReaTeam Scripts">
+<index version="1" commit="c17a789ee419b8327c2d7d9d676c1e27b7979912" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4496,6 +4496,10 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="0.90" author="juliansader" time="2017-06-30T23:45:46Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3ba6c8c672f16b41f8eee91aa0c1779a8f75fc47/Time%20Selection/js_Time%20selection-%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2017-06-30T23:50:42Z">
+        <changelog><![CDATA[+ Quick bug fix]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c17a789ee419b8327c2d7d9d676c1e27b7979912/Time%20Selection/js_Time%20selection-%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
