@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4df7dee986b3dcd70b2ae593e014cf0a819bb6dc" name="ReaTeam Scripts">
+<index version="1" commit="74d96a0305ab27039d02c27386f88bc25239c1eb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
@@ -5019,6 +5019,51 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Play (with memory - no undo).lua" type="script" desc="amagalma_Transport Play (with memory - no undo)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Plays and stores starting position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T16:58:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4aa703845bf012c9d9d74cd8b17f732dfd21c3b/Various/amagalma_Transport%20Play%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Play-Stop (with memory - no undo).lua" type="script" desc="amagalma_Transport Play-Stop (with memory - no undo)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Plays or Stops and stores starting or ending position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T16:59:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8c0007592901d5dfd72e7b15ae23c4c9a11b68/Various/amagalma_Transport%20Play-Stop%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Stop - Toggle position (with memory - no undo).lua" type="script" desc="amagalma_Transport Stop - Toggle position (with memory - no undo)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Stops and toggles between starting and ending position.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T16:59:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74d96a0305ab27039d02c27386f88bc25239c1eb/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
