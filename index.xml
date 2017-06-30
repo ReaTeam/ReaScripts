@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5ad4189858a3a611d2d004318570e0007853bc26" name="ReaTeam Scripts">
+<index version="1" commit="3ba6c8c672f16b41f8eee91aa0c1779a8f75fc47" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4477,6 +4477,27 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="js_Time selection- - Insert empty beats at time selection (moving later items).lua" type="script" desc="js_Time selection- - Insert empty beats at time selection (moving later items).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is a "beats version" of REAPER's native action "Time selection: Insert empty space at time selection (moving later items)".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's action inserts empty space that is equal to {\i time} duration of the time selection. If the time selection is not an exact multiple of beats (calculated in the tempo preceding the insert point), all later events (including tempo changes) will necessarily shift away from their beat positions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script insert empty space equal to the number of {\i beats} in the time selection. Later events will therefore remain on the beat.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 WARNING: This script is NOT compatible with linear tempo changes. Existing tempo changes that overlap the time selection should be square, and the default point should also be square.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=191210</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-06-30T23:45:46Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3ba6c8c672f16b41f8eee91aa0c1779a8f75fc47/Time%20Selection/js_Time%20selection-%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
