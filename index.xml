@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="246b91dc56b0fb969d06f3d9857224fd113ea830" name="ReaTeam Scripts">
+<index version="1" commit="e1d3dbfdc9bb9f5dcdcf996bf937db4690b7687f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -813,6 +813,55 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-03-13T23:18:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Area selection - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua" type="script" desc="js_Area selection - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script facilitates "Area selection" and "Area copy"; i.e. moving or duplicating all items and automation in the time selection of selected tracks, including automation from tracks without any items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script cycles between\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab inserting temporary empty items into the time selection of selected tracks, and\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab deleting all temporary items from the project.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the temporary items are inserted, Crtl-drag can be used to copy the items and automation to their new position or even to other tracks. Pre-existing envelope points in the paste target area will be overwritten.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select time and tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script to insert temporary items across the time selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab Ctrl-drag the items to their new position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Run the script again to remove the (duplicated) temporary items.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-07-01T14:11:43Z">
+        <changelog><![CDATA[+ Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93374009e82bd142aacdf5f14f66383470fe3454/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20temporary%20empty%20items%20in%20time%20selection%20of%20selected%20tracks,%20and%20deleting%20all%20temporary%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Copies all items and automation from the time selection of selected tracks to the position of the edit cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All automation, even from tracks without any items, will be copied.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: A potential problem is that pre-existing envelope points in the area where the automation is pasted will not be overwritten, so old and new points will be mixed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select the area to be copied (i.e. select time and tracks), place edit cursor at paste position, and run script.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-07-01T14:11:10Z">
+        <changelog><![CDATA[+ Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e1d3dbfdc9bb9f5dcdcf996bf937db4690b7687f/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua" type="script" desc="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua">
