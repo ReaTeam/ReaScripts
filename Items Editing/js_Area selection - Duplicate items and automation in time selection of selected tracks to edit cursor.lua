@@ -20,7 +20,7 @@ About:
 
 --[[
   Changelog:
-  * v1.0 (2017-07-01)
+  * v0.90 (2017-07-01)
     + Initial beta release.
 ]]
 
