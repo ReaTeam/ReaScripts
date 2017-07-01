@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -16,14 +16,16 @@ About:
   This script insert empty space equal to the number of *beats* in the time selection.
   Later events will therefore remain on the beat.
   
-  WARNING: This script is NOT compatible with linear tempo changes. 
+  WARNING: This script is not fully compatible with linear tempo changes. 
   The tempo change that precedes the time selection should be square, as should the tempo map's default point shape.
 ]]
 
 --[[
   Changelog:
   * v0.90 (2017-06-30)
-    + Initial beta release
+    + Initial beta release.
+  * v0.91 (2017-06-30)
+    + Changed the header Description a little.
 ]]
 
 timeStart, timeEnd = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
