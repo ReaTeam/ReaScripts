@@ -17,7 +17,7 @@ About:
   Later events will therefore remain on the beat.
   
   WARNING: This script is NOT compatible with linear tempo changes. 
-  Existing tempo changes that overlap the time selection should be square, and the default point should also be square.
+  The tempo change that precedes the time selection should be square, as should the tempo map's default point shape.
 ]]
 
 --[[
