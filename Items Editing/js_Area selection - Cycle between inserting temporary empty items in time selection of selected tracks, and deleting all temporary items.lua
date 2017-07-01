@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Area select - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua
+ReaScript name: js_Area selection - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua
 Version: 0.90
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=193258
