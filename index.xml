@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="71eb643ea050e5be9a8263b78b9ffa6aedf14a28" name="ReaTeam Scripts">
+<index version="1" commit="0de6baa3426bf70d1bd7034d61e052d9a8fe7210" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -815,7 +815,7 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Area selection - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua" type="script" desc="js_Area selection - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua">
+    <reapack name="js_Area selection - Cycle between inserting and deleting temporary empty items.lua" type="script" desc="js_Area selection - Cycle between inserting and deleting temporary empty items.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -837,9 +837,8 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
-      <version name="0.91" author="juliansader" time="2017-07-02T11:44:33Z">
-        <changelog><![CDATA[+ Trying to fix download problem.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbaf8a5984c23ad8621c062850cb18b8136d974e/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20temporary%20empty%20items%20in%20time%20selection%20of%20selected%20tracks,%20and%20deleting%20all%20temporary%20items.lua</source>
+      <version name="0.90" author="juliansader" time="2017-07-03T16:37:49Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0de6baa3426bf70d1bd7034d61e052d9a8fe7210/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua">
