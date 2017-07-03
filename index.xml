@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0a9db00cda7ea5208fbb30c9cad5d969ba0a84b" name="ReaTeam Scripts">
+<index version="1" commit="24e39e4d4622870b9a756311417c64eb00d75fe3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4553,6 +4553,10 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="0.92" author="juliansader" time="2017-07-02T18:54:17Z">
         <changelog><![CDATA[+ Workaround for "Add edge points" bug in REAPER that deletes timesig markers at insertion point.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0a9db00cda7ea5208fbb30c9cad5d969ba0a84b/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.93" author="juliansader" time="2017-07-03T01:36:07Z">
+        <changelog><![CDATA[+ Workaround for "Add edge points" bug in REAPER that deletes timesig markers at insertion point.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24e39e4d4622870b9a756311417c64eb00d75fe3/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
