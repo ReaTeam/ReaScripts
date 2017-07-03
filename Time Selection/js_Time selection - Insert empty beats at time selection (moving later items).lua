@@ -58,15 +58,15 @@ end
 -- Current versions of REAPER has a bug in the "Insert empty space" action, 
 --    which destroys pre-existing *timesig* markers at the insertion point,
 --    if "Options: Add edge points when ripple editing or inserting time" is ON.
--- The pre-existing timesig marker is overwritten by the edge node.
--- This script will therefore deactive the option before inserting time.
---[[
+--    The pre-existing timesig marker is overwritten by the edge node.
+-- However, this option is usually necessary for correct shifting of other envelopes.
+-- This script will therefore activate the option, and will repair any timesig marker at start.
 stateInsertEdgePoints = reaper.GetToggleCommandStateEx(0, 40649) -- Options: Add edge points when ripple editing or inserting time
-if stateInsertEdgePoints == 1 then
-    reaper.Main_OnCommandEx(40649, -1, 0)
+if stateInsertEdgePoints == 0 then
+    reaper.Main_OnCommandEx(40649, -1, 1)
 end
-]]
--- Make doubly sure, by finding and later re-inserting any timesig change at start
+
+-- Make doubly sure, by finding and later re-inserting any timesig marker at start
 startTempoMarkerIndex = reaper.FindTempoTimeSigMarker(0, timeStart+0.001)
 if startTempoMarkerIndex ~= prevTempoMarkerIndex then
     startOK, startTimePos, _, _, startBPM, startTimesig_num, startTimesig_denom, startLineartempo = reaper.GetTempoTimeSigMarker(0, startTempoMarkerIndex)
@@ -97,11 +97,10 @@ if startOK then
     end
 end
 
---[[ Toggle state back on
-if stateInsertEdgePoints == 1 then
+-- Toggle state back off
+if stateInsertEdgePoints == 0 then
     reaper.Main_OnCommandEx(40649, -1, 0)
 end
-]]
 
 reaper.PreventUIRefresh(-1)
 reaper.Undo_EndBlock2(0, "Insert empty beats in selection", -1)
