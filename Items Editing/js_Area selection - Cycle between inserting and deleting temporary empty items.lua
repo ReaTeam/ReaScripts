@@ -1,6 +1,6 @@
 --[[
-ReaScript name: js_Area selection - Cycle between inserting temporary empty items in time selection of selected tracks, and deleting all temporary items.lua
-Version: 0.91
+ReaScript name: js_Area selection - Cycle between inserting and deleting temporary empty items.lua
+Version: 0.90
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=193258
 Donation: https://www.paypal.me/juliansader
@@ -26,9 +26,6 @@ About:
 --[[
   Changelog:
   * v0.90 (2017-07-01)
-    + Initial beta release.
-  * v0.91 (2016-07-02)
-    + Trying to fix download problem.
 ]]
 
 -------------------------------------------------------------------
