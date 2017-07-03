@@ -63,7 +63,7 @@ end
 -- This script will therefore activate the option, and will repair any timesig marker at start.
 stateInsertEdgePoints = reaper.GetToggleCommandStateEx(0, 40649) -- Options: Add edge points when ripple editing or inserting time
 if stateInsertEdgePoints == 0 then
-    reaper.Main_OnCommandEx(40649, -1, 1)
+    reaper.Main_OnCommandEx(40649, -1, 0) -- Toggle once to set ON
 end
 
 -- Make doubly sure, by finding and later re-inserting any timesig marker at start
@@ -99,7 +99,7 @@ end
 
 -- Toggle state back off
 if stateInsertEdgePoints == 0 then
-    reaper.Main_OnCommandEx(40649, -1, 0)
+    reaper.Main_OnCommandEx(40649, -1, 0) -- Toggle again to set OFF
 end
 
 reaper.PreventUIRefresh(-1)
