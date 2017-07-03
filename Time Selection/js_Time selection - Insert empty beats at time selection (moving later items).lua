@@ -97,10 +97,11 @@ if startOK then
     end
 end
 
--- Toggle state back on
+--[[ Toggle state back on
 if stateInsertEdgePoints == 1 then
     reaper.Main_OnCommandEx(40649, -1, 0)
 end
+]]
 
 reaper.PreventUIRefresh(-1)
 reaper.Undo_EndBlock2(0, "Insert empty beats in selection", -1)
