@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0de6baa3426bf70d1bd7034d61e052d9a8fe7210" name="ReaTeam Scripts">
+<index version="1" commit="d2f6e0b0c055ed224f21de909b1c65b901090794" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -686,6 +686,15 @@ added support for all track envelopes]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-06-09T22:58:52Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d9eff91857cf9372d1d695893faa68011c3e775f/FX/cfillion_Repair%20missing%20JSFX%20files%20in%20current%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Show ReaPack about dialog for the focused JSFX.lua" type="script" desc="Show ReaPack about dialog for the focused JSFX">
+      <metadata>
+        <link rel="website">https://cfillion.ca</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="0.1beta" author="cfillion" time="2017-07-05T01:23:38Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2f6e0b0c055ed224f21de909b1c65b901090794/FX/cfillion_Show%20ReaPack%20about%20dialog%20for%20the%20focused%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 Pitch Offset">
