@@ -65,5 +65,5 @@ if not owner then
   return ShowMsg(string.format("Documentation cannot be found because ReaPack does not know about the JSFX at '%s'.", name))
 end
 
-reaper.ReaPack_AboutInstalledPackage(owner)
+reaper.ReaPack_AboutInstalledPackage(owner, 0)
 reaper.ReaPack_FreeEntry(owner)
