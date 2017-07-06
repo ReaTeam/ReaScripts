@@ -9,6 +9,8 @@ About:
   This script inserts CCs with chased values in all *used* channels and lanes of selected MIDI items.
   
   It is particularly useful before splitting items at the edit cursor, to ensure that the new items on the right will start playback with the same CC values as before splitting.
+
+  (Note: In calculating the chased values, muted events are ignored.)
   
   # WARNING
   
