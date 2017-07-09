@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Area selection - Cycle between inserting and deleting temporary empty items.lua
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=193258
 Donation: https://www.paypal.me/juliansader
@@ -26,6 +26,9 @@ About:
 --[[
   Changelog:
   * v0.90 (2017-07-01)
+    + Initial beta release
+  * v0.91 (2017-07-09)
+    + Temporary items will be deleted even if no tracks are selected.
 ]]
 
 -------------------------------------------------------------------
@@ -36,27 +39,11 @@ function noUndo()
 end
 reaper.defer(noUndo)
 
--- Is a usable time selection available?
-timeSelectionStart, timeSelectionEnd = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, true)
-if timeSelectionStart >= timeSelectionEnd then
-    return
-end
-
--- Are any tracks selected?
-numSelTracks = reaper.CountSelectedTracks(0)
-if numSelTracks == 0 then 
-    return
-end
-
 -- Is SWS installed?
 if not reaper.APIExists("ULT_SetMediaItemNote") then
     reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
     return false 
-end
-
--- Checks done, so start undo block.
-reaper.Undo_BeginBlock2(0)
-reaper.PreventUIRefresh(1)    
+end  
 
 
 -----------------------------------------------------------------------------------------------
@@ -112,10 +99,28 @@ end
 ---------------------------------------------------
 -- Check cycle and either add or remove empty items
 if reaper.GetExtState("js_Area copy", "Cycle") == "Has inserted" then
+
+    reaper.Undo_BeginBlock2(0)
+    reaper.PreventUIRefresh(1)  
     deleteEmptyItems()
     reaper.SetExtState("js_Area copy", "Cycle", "Has deleted", true)
     undoString = "Delete temporary empty items"
-else
+
+else -- reaper.GetExtState("js_Area copy", "Cycle") == "Has deleted"
+
+    -- Is a usable time selection available?
+    timeSelectionStart, timeSelectionEnd = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, true)
+    if timeSelectionStart >= timeSelectionEnd then
+        return
+    end
+    -- Are any tracks selected?
+    numSelTracks = reaper.CountSelectedTracks(0)
+    if numSelTracks == 0 then 
+        return
+    end
+    -- Checks done, so start undo block.
+    reaper.Undo_BeginBlock2(0)
+    reaper.PreventUIRefresh(1)  
     insertEmptyItems()
     reaper.SetExtState("js_Area copy", "Cycle", "Has inserted", true)
     undoString = "Insert temporary empty items"
