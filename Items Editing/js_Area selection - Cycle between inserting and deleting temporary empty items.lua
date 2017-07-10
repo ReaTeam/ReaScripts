@@ -71,7 +71,7 @@ function insertEmptyItems()
         -- Will it look better if the items are given a distinctive color?
         --reaper.SetMediaItemInfo_Value(newItem, "I_CUSTOMCOLOR", reaper.ColorToNative(0,0,0)|0x01000000)
         -- Give temporary items a distinctive note, so that can be found later again.
-        reaper.ULT_SetMediaItemNote(newItem, "Area select (temporary)")
+        reaper.ULT_SetMediaItemNote(newItem, "AREA SELECT           ")
         reaper.SetMediaItemSelected(newItem, true)
     end
 end
@@ -84,7 +84,7 @@ function deleteEmptyItems()
         local tItems = {}
         for i = 0, reaper.GetTrackNumMediaItems(track)-1 do
             local item = reaper.GetTrackMediaItem(track, i)
-            if reaper.ULT_GetMediaItemNote(item) == "Area select (temporary)" then
+            if reaper.ULT_GetMediaItemNote(item) == "AREA SELECT           " then
                 tItems[#tItems+1] = item
             end
         end
