@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="57de251811b0f83cabb14fa9dedaa742dd0bd96e" name="ReaTeam Scripts">
+<index version="1" commit="4b4265806d858f6f948119c7e3156295256b6583" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1112,6 +1112,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-07-12T00:26:17Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/944ad69d59e01e6aab493d25f765a04f7a149dab/Items%20Properties/amagalma_Item%20Name%20Manipulation.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-07-12T01:02:30Z">
+        <changelog><![CDATA[+ fixed bug with undo creation]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b4265806d858f6f948119c7e3156295256b6583/Items%20Properties/amagalma_Item%20Name%20Manipulation.lua</source>
       </version>
     </reapack>
     <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
