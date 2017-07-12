@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d2f6e0b0c055ed224f21de909b1c65b901090794" name="ReaTeam Scripts">
+<index version="1" commit="57de251811b0f83cabb14fa9dedaa742dd0bd96e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -849,6 +849,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="0.90" author="juliansader" time="2017-07-03T16:37:49Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0de6baa3426bf70d1bd7034d61e052d9a8fe7210/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
       </version>
+      <version name="0.91" author="juliansader" time="2017-07-09T18:38:52Z">
+        <changelog><![CDATA[+ Temporary items will be deleted even if no tracks are selected.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e960e584c06098708b5a278f5f29777f94bc5cd2/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua">
       <metadata>
@@ -870,6 +874,27 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="0.90" author="juliansader" time="2017-07-01T14:11:10Z">
         <changelog><![CDATA[+ Initial beta release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e1d3dbfdc9bb9f5dcdcf996bf937db4690b7687f/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua" type="script" desc="js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script inserts CCs with chased values in all {\i used} channels and lanes of selected MIDI items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is particularly useful before splitting items at the edit cursor, to ensure that the new items on the right will start playback with the same CC values as before splitting.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (Note: In calculating the chased values, muted events are ignored.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script may cause changes to overlapping notes. (However, splitting items will in any case cause the same changes.) Users should always be wary of overlapping notes, since these are not admissable according to the MIDI standards, and are often changed in unpredictable ways by scripts and native MIDI editing functions.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-07-12T00:41:26Z">
+        <changelog><![CDATA[* Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/57de251811b0f83cabb14fa9dedaa742dd0bd96e/Items%20Editing/js_Edit%20-%20Insert%20chased%20CCs%20at%20edit%20cursor%20in%20selected%20MIDI%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua" type="script" desc="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua">
@@ -1071,6 +1096,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Properties">
+    <reapack name="amagalma_Item Name Manipulation.lua" type="script" desc="amagalma_Item Name Manipulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate item names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if item names have been changed when you close the script or if item names have been changed when you change item selection.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-07-12T00:26:17Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/944ad69d59e01e6aab493d25f765a04f7a149dab/Items%20Properties/amagalma_Item%20Name%20Manipulation.lua</source>
+      </version>
+    </reapack>
     <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
       <version name="1.0" author="IXix" time="2016-10-29T01:58:12Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
