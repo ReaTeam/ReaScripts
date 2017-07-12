@@ -1,6 +1,6 @@
 -- @description amagalma_Item Name Manipulation
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Utility to manipulate item names
 --   - Manipulate item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -8,6 +8,12 @@
 --   - Undo points are created only if item names have been changed when you close the script or if item names have been changed when you change item selection.
 --
 -- @link http://forum.cockos.com/showthread.php?t=190534
+
+--[[
+ * Changelog:
+ * v1.01 (2017-07-12)
+  + fixed bug with undo creation
+--]]
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
@@ -293,7 +299,7 @@ function UndoIfNamesChanged()
   local AllCurrentItemNames = AllItemNames()
   if not compare_tables(AllCurrentItemNames, AllLastItemNames) then
     AllLastItemNames = AllCurrentItemNames
-    reaper.Undo_OnStateChangeEx("Item name manipulation", 1, -1)
+    reaper.Undo_OnStateChange("Item name manipulation")
   end
 end
 
