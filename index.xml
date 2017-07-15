@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4b4265806d858f6f948119c7e3156295256b6583" name="ReaTeam Scripts">
+<index version="1" commit="ad946131a384ef4594c52b556928b59022be0681" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1096,28 +1096,6 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Properties">
-    <reapack name="amagalma_Item Name Manipulation.lua" type="script" desc="amagalma_Item Name Manipulation">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate item names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if item names have been changed when you close the script or if item names have been changed when you change item selection.\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-07-12T00:26:17Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/944ad69d59e01e6aab493d25f765a04f7a149dab/Items%20Properties/amagalma_Item%20Name%20Manipulation.lua</source>
-      </version>
-      <version name="1.01" author="amagalma" time="2017-07-12T01:02:30Z">
-        <changelog><![CDATA[+ fixed bug with undo creation]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b4265806d858f6f948119c7e3156295256b6583/Items%20Properties/amagalma_Item%20Name%20Manipulation.lua</source>
-      </version>
-    </reapack>
     <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
       <version name="1.0" author="IXix" time="2016-10-29T01:58:12Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
@@ -4679,28 +4657,6 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Tracks Properties">
-    <reapack name="amagalma_Track Name Manipulation.lua" type="script" desc="amagalma_Track Name Manipulation">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track names have been changed when you close the script or if track names have been changed when you change track selection.\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-04-08T19:37:15Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5af687a459403d1ad77b483a48fd242e6323cdc8/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
-      </version>
-      <version name="1.1" author="amagalma" time="2017-04-13T18:34:19Z">
-        <changelog><![CDATA[+ added Number button to add index numbering as a prefix or suffix]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b2a928ba8a5a3f69d53a7ef1c60eaa126147d59b/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
-      </version>
-    </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
@@ -5184,6 +5140,24 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Track-Item Name Manipulation.lua" type="script" desc="amagalma_Track-Item Name Manipulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-07-15T14:48:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ad946131a384ef4594c52b556928b59022be0681/Various/amagalma_Track-Item%20Name%20Manipulation.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play (with memory - no undo).lua" type="script" desc="amagalma_Transport Play (with memory - no undo)">
