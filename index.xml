@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5846da7d1e4f018460475fcfe00903282874afde" name="ReaTeam Scripts">
+<index version="1" commit="c057f7a5e1e4cdc2193c3bff32609eb1782a90e4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4821,7 +4821,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.10" author="juliansader" time="2017-07-16T20:09:09Z">
         <changelog><![CDATA[+ Updated to propagate CC names as well as note names.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5846da7d1e4f018460475fcfe00903282874afde/Tracks%20Properties/js_Propagate%20note%20and%20CC%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c057f7a5e1e4cdc2193c3bff32609eb1782a90e4/Tracks%20Properties/js_Propagate%20note%20and%20CC%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua" type="script" desc="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua">
