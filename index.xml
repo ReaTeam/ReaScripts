@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ad946131a384ef4594c52b556928b59022be0681" name="ReaTeam Scripts">
+<index version="1" commit="5846da7d1e4f018460475fcfe00903282874afde" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4803,24 +4803,25 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8e2229f0a1d22703f66384444eb84caa86c7a09d/Tracks%20Properties/js_Autoincrement%20MIDI%20send%20channels%20of%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Propagate note names of last clicked track to all selected tracks.lua" type="script" desc="js_Propagate note names of last clicked track to all selected tracks.lua">
+    <reapack name="js_Propagate note and CC names of last clicked track to all selected tracks.lua" type="script" desc="js_Propagate note and CC names of last clicked track to all selected tracks.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Propagates the note names of last clicked track to all selected tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Propagates the note and CC names of last clicked track to all selected tracks.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script will open a dialog box in which the user can:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab confirm or change the source track, and\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab select whether all existing note names in the selected tracks should be removed.\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=181276</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
-      <version name="1.00" author="juliansader" time="2016-09-12T23:03:11Z">
-        <changelog><![CDATA[+ Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/75a1d5a222d3e277668c0d741ec2317bf707df28/Tracks%20Properties/js_Propagate%20note%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
+      <version name="1.10" author="juliansader" time="2017-07-16T20:09:09Z">
+        <changelog><![CDATA[+ Updated to propagate CC names as well as note names.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5846da7d1e4f018460475fcfe00903282874afde/Tracks%20Properties/js_Propagate%20note%20and%20CC%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua" type="script" desc="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua">
