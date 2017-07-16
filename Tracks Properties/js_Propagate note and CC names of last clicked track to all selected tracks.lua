@@ -48,7 +48,7 @@ if not (type(tonumber(sourceString)) == "number") then sourceString = "" end
 -------------------------------------------------
 -- Get user inputs (user may change source track)
 repeat
-    inputOK, input = reaper.GetUserInputs("Propagate note names", 2, "Source track number,Clear existing note names?", sourceString .. ",y")
+    inputOK, input = reaper.GetUserInputs("Propagate note names", 2, "Source track number,Clear existing note/CC names?", sourceString .. ",y")
     if not inputOK then return end
     
     sourceIndex, mustClear = input:match("(%d+),([yYnN])")
