@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c057f7a5e1e4cdc2193c3bff32609eb1782a90e4" name="ReaTeam Scripts">
+<index version="1" commit="86c4db661ab152d6615d6ee056fcbcf16ffc9082" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1341,10 +1341,15 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2d27078ac43b679c3083a0e1c2bac91b0f2bc93c/MIDI%20Editor/cfillion_Set%20space%20between%20selected%20notes%20from%20grid%20size.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Toggle MIDI Preview on Transport Change.lua" type="script" desc="Toggle MIDI Preview on Transport Change.lua">
-      <version name="1.1" author="cfillion" time="2016-06-05T01:28:45Z">
+    <reapack name="cfillion_Toggle MIDI preview on transport change.lua" type="script" desc="Toggle MIDI preview on transport change">
+      <metadata>
+        <link rel="website">https://cfillion.tk</link>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=169896">Forum Thread</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.1" author="cfillion" time="2017-07-20T21:35:07Z">
         <changelog><![CDATA[Fixed preview toggling when reopening the midi editor]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/473915a806cd9cb6e9e5ad075c8ba9f1b54fea7c/MIDI%20Editor/cfillion_Toggle%20MIDI%20Preview%20on%20Transport%20Change.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/86c4db661ab152d6615d6ee056fcbcf16ffc9082/MIDI%20Editor/cfillion_Toggle%20MIDI%20preview%20on%20transport%20change.lua</source>
       </version>
     </reapack>
     <reapack name="gofer_spk77_Smooth CCs.eel" type="script" desc="Smooth CCs">
