@@ -1,18 +1,12 @@
 --[[
 Description: Radial Menu 
-Version: 2.7.2
+Version: 2.7.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	New:
-	- Option to open the window in a consistent location rather than
-	  at the mouse cursor.
-	- When set to require the action key to be held down, displays an
-	  indicator at the top-left while trying to identify the key
 	Fixed:
-	- Deleting buttons from a menu would clear the center button as well
-	- Lowered the time threshold for a double-click to 15ms; fixes issues 
-	  with repeatedly clicking a button too quickly.
+	- Crash when pressing key bind for the center button with
+	  no center button in the current menu
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -271,7 +265,7 @@ GUI.color = function (col)
 
 	-- If we're given a table of color values, just pass it right along
 	if type(col) == "table" then
-		
+
 		gfx.set(col[1], col[2], col[3], col[4] or 1)
 	else
 		gfx.set(table.unpack(GUI.colors[col]))
@@ -4223,7 +4217,7 @@ GUI.fonts[9] = {"Calibri", 14}			-- Submenu preview
 -- Script version in RM
 GUI.fonts[10] = {"Calibri", 14, "i"}
 
-local script_version = "2.7.2"
+local script_version = "2.7.3"
 
 local settings_file_name = (script_path or "") .. "Lokasenna_Radial Menu - user settings.txt"
 local example_file_name  = (script_path or "") .. "Lokasenna_Radial Menu - example settings.txt"
@@ -6125,9 +6119,13 @@ local function check_bind()
 			--bound_key = GUI.char
 			--bound_act = mnu_arr[cur_depth][k >= 0 and (k - 1) or k].act
 
-			--GUI.Msg("detect key bind: "..char.." -> act = "..tostring(bound_act))
-			
-			bound_mnu = {k - 1, reaper.time_precise(), mnu_arr[cur_depth][k >= 0 and (k - 1) or k].act}
+			--GUI.Msg("detected: "..tostring(k))
+
+			k = k >= 0 and (k - 1) or k
+
+			bound_mnu = {k - 1, reaper.time_precise(), mnu_arr[cur_depth][k] and mnu_arr[cur_depth][k].act or ""}
+
+			--GUI.Msg("detect key bind: "..char.." -> act = "..table.concat(bound_mnu, ", "))
 
 			redraw_menu = true
 			GUI.redraw_z[GUI.elms.frm_radial.z] = true 
