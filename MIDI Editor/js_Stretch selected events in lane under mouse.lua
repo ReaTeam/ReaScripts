@@ -286,7 +286,7 @@ local function loop_trackMouseMovement()
         if stretchLEFT or stretchRIGHT then
             reaper.TrackCtl_SetToolTip("↔", mouseXpos+7, mouseYpos+8, true)
         else
-            reaper.TrackCtl_SetToolTip(" ↕", mouseXpos+7, mouseYpos+8, true) 
+            reaper.TrackCtl_SetToolTip("↕", mouseXpos+7, mouseYpos+8, true) 
         end
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
