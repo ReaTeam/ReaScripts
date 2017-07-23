@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw sine curve in real time, chasing start values.lua
-Version: 3.24
+Version: 3.30
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -167,6 +167,8 @@ About:
     + Fix chasing bug that was introduced yesterday.      
   * v3.24 (2017-03-18)
     + More extensive instructions in header.    
+  * v3.30 (2017-07-23)
+    + Mouse cursor changes to indicate that script is running.      
 ]]
 
 ----------------------------------------
@@ -284,6 +286,9 @@ local m_cos = math.cos
 local m_pi  = math.pi
 --local t_insert = table.insert -- using myTable[c]=X is much faster than table.insert(myTable, X)
 
+-- User preferences that can be customized in the js_MIDI editing preferences script
+local mustDrawCustomCursor
+
   
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
@@ -316,6 +321,11 @@ local function loop_trackMouseMovement()
     --              Therefore, clean the take *before* calling the function!
     --takeIsCleared = true       
     reaper.MIDI_SetAllEvts(take, AllNotesOffString)
+    -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
+    if mustDrawCustomCursor then
+        local mouseXpos, mouseYpos = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip(" ∫", mouseXpos+7, mouseYpos+8, true)
+    end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
         _, mouseNewPitch, mouseNewCClane, mouseNewCCvalue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
@@ -531,6 +541,9 @@ end -- loop_trackMouseMovement()
 
 ----------------------------------------------------------------------------
 function onexit()
+    
+    -- Remove tooltip 'custom cursor'
+    reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
     -- Before exiting, delete existing CCs in the line's range (and channel)
     -- Remember that the loop function may quit after clearing the active take.  The delete function 
@@ -1178,6 +1191,16 @@ lineRightPPQpos = snappedOrigPPQpos
 lineLeftValue   = lastChasedValue
 lineRightValue  = lastChasedValue
 
+---------------------------------------------------------------------------
+-- Must the mouse cursor be changed to indicate that the script is running?
+-- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+-- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+--    and this may appear inelegant to the user.
+if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+    mustDrawCustomCursor = false
+else
+    mustDrawCustomCursor = true
+end
 
 ----------------------------------------------------------------------------------
 -- OK, all tests passed, and the script wil now start making changes to the take, 

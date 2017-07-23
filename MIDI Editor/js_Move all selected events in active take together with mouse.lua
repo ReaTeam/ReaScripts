@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Move all selected events in active take together with mouse.lua
-Version: 1.01
+Version: 1.10
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29102/Move%20events%20to%20mouse%20position.gif
 Website: http://forum.cockos.com/showthread.php?t=184629
@@ -51,6 +51,8 @@ About:
     + Script will work in looped takes.
   * v1.01 (2017-01-30)
     + Improved reset of toolbar button.
+  * v1.10 (2017-07-23)
+    + Mouse cursor changes to indicate that script is running.     
 ]]
 
 ---------------------------------------
@@ -112,6 +114,9 @@ local takeIsCleared = false
 -- Some internal stuff that will be used to set up everything
 local _, take, editor, isInline
 
+-- User preferences that can be customized in the js_MIDI editing preferences script
+local mustDrawCustomCursor
+
   
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
@@ -136,6 +141,11 @@ local function loop_trackMouseMovement()
     --              Therefore, clean the take *before* calling the function!
     takeIsCleared = true
     reaper.MIDI_SetAllEvts(take, AllNotesOffString)
+    -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
+    if mustDrawCustomCursor then
+        local mouseXpos, mouseYpos = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip("↔", mouseXpos+7, mouseYpos+8, true)
+    end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     
     ----------------------------------------------------------------------------------
@@ -192,6 +202,9 @@ end -- loop_trackMouseMovement()
 --############################################################################################
 ----------------------------------------------------------------------------------------------
 function exit()
+    
+    -- Remove tooltip 'custom cursor'
+    reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
     -- Remember that the take was cleared before calling BR_GetMouseCursorContext
     --    So upload MIDI again.
@@ -615,6 +628,17 @@ QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
 --    of events.
 if not parseAndExtractTargetMIDI() then
     return(false) -- parseAndExtractTargetMIDI will display its own error messages, so no need to do that here.
+end
+
+---------------------------------------------------------------------------
+-- Must the mouse cursor be changed to indicate that the script is running?
+-- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+-- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+--    and this may appear inelegant to the user.
+if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+    mustDrawCustomCursor = false
+else
+    mustDrawCustomCursor = true
 end
 
 ---------------------------------------------------------------------------
