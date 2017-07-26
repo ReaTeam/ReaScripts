@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="610e8a081accd83bf7f3c1f1639852c5fa30e502" name="ReaTeam Scripts">
+<index version="1" commit="6ef7fe151f8564a1f91c54f913637af3c606258a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5021,6 +5021,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T08:57:17Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54b8426bba0faf1df0342e5abb818703af3e7820/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Insert AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Insert AB Level Matching JSFX to focused FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts TBProAudio's AB Level Matching JSFX before and after focused FX\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-07-26T17:57:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6ef7fe151f8564a1f91c54f913637af3c606258a/Various/amagalma_Insert%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="amagalma_ReaNoir - Track/Item/Take coloring utility">
