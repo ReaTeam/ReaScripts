@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6ef7fe151f8564a1f91c54f913637af3c606258a" name="ReaTeam Scripts">
+<index version="1" commit="0d9f954c705c8c7ef087767fc3a73ce98cd8ad48" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5232,6 +5232,11 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-07-15T14:48:52Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ad946131a384ef4594c52b556928b59022be0681/Various/amagalma_Track-Item%20Name%20Manipulation.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-07-28T20:25:39Z">
+        <changelog><![CDATA[- Fixed crash when dealing with empty items
+- Changed color scheme]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0d9f954c705c8c7ef087767fc3a73ce98cd8ad48/Various/amagalma_Track-Item%20Name%20Manipulation.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play (with memory - no undo).lua" type="script" desc="amagalma_Transport Play (with memory - no undo)">
