@@ -1,6 +1,6 @@
 -- @description amagalma_Track-Item Name Manipulation
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -9,11 +9,19 @@
 --
 -- @link http://forum.cockos.com/showthread.php?t=190534
 
+--[[
+ * Changelog:
+ * v1.01 (2017-07-28)
+      - Fixed crash when dealing with empty items
+      - Changed color scheme
+ --]]
+
+
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 
-version = "1.0"
+version = "1.01"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -84,13 +92,13 @@ local Button = class(
                         btn.__mouse_state = 0
                         btn.label_w, btn.label_h = gfx.measurestr(btn.label)
                         btn.__state_changing = false
-                        btn.r = 0.7
-                        btn.g = 0.8
-                        btn.b = 0.6
-                        btn.a = 0.14
-                        btn.lbl_r = 0.349
-                        btn.lbl_g = 1
-                        btn.lbl_b = 0.416
+                        btn.r = 0.25
+                        btn.g = 0.25
+                        btn.b = 0.5
+                        btn.a = 0.35
+                        btn.lbl_r = 0.9
+                        btn.lbl_g = 0.95
+                        btn.lbl_b = 0.3
                         btn.lbl_a = 1
                       end
                     )
@@ -550,10 +558,12 @@ local function init() -- INITIALIZATION
         if ok then
           for i=0, itemCount-1 do
             local itemId = reaper.GetSelectedMediaItem(0, i)
-        local acttake =  reaper.GetActiveTake( itemId )
-            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-            local newName = text .. currentName
-            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+            local acttake =  reaper.GetActiveTake( itemId )
+            if acttake then
+              local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+              local newName = text .. currentName
+              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+            end
           end
         end
       end
@@ -579,10 +589,12 @@ local function init() -- INITIALIZATION
         if ok then
           for i=0, itemCount-1 do
             local itemId = reaper.GetSelectedMediaItem(0, i)
-        local acttake =  reaper.GetActiveTake( itemId )
-            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-            local newName = currentName .. text
-            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+            local acttake =  reaper.GetActiveTake( itemId )
+            if acttake then
+              local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+              local newName = currentName .. text
+              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+            end
           end
         end
       end
@@ -621,14 +633,16 @@ local function init() -- INITIALIZATION
             local mode, number = text:match("([psPS])%s?(%d+)")
             for i=0, itemCount-1 do
               local itemId = reaper.GetSelectedMediaItem(0, i)
-        local acttake =  reaper.GetActiveTake( itemId )
-              local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-              if mode:match("[pP]") then
-                newName = string.format("%02d", math.floor(number+i)) .. " " .. currentName
-              else
-                newName = currentName .. " " .. string.format("%02d", math.floor(number+i))
+              local acttake =  reaper.GetActiveTake( itemId )
+              if acttake then
+                local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+                if mode:match("[pP]") then
+                  newName = string.format("%02d", math.floor(number+i)) .. " " .. currentName
+                else
+                  newName = currentName .. " " .. string.format("%02d", math.floor(number+i))
+                end
+                reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
               end
-              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
             end
           else
             reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
@@ -669,9 +683,11 @@ local function init() -- INITIALIZATION
             for i=0, itemCount-1 do
               local itemId = reaper.GetSelectedMediaItem(0, i)
               local acttake =  reaper.GetActiveTake( itemId )
-              local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-              local newName = string.gsub(currentName, replaceOld, replaceWith)
-              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              if acttake then
+                local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+                local newName = string.gsub(currentName, replaceOld, replaceWith)
+                reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              end
             end
           end
         end
@@ -694,9 +710,11 @@ local function init() -- INITIALIZATION
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake =  reaper.GetActiveTake( itemId )
-          local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-          local newName = string.upper(currentName)
-          reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          if acttake then
+            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+            local newName = string.upper(currentName)
+            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          end
         end
       end 
     end  
@@ -717,9 +735,11 @@ local function init() -- INITIALIZATION
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake =  reaper.GetActiveTake( itemId )
-          local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-          local newName = string.lower(currentName)
-          reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          if acttake then
+            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+            local newName = string.lower(currentName)
+            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          end
         end
       end  
     end
@@ -740,9 +760,11 @@ local function init() -- INITIALIZATION
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake =  reaper.GetActiveTake( itemId )
-          local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-          local newName = swapcase(currentName)
-          reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          if acttake then
+            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+            local newName = swapcase(currentName)
+            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          end
         end
       end 
     end  
@@ -763,9 +785,11 @@ local function init() -- INITIALIZATION
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake =  reaper.GetActiveTake( itemId )
-          local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-          local newName = (currentName:gsub("^%l", string.upper))
-          reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          if acttake then
+            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+            local newName = (currentName:gsub("^%l", string.upper))
+            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          end
         end
       end
     end  
@@ -786,9 +810,11 @@ local function init() -- INITIALIZATION
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake =  reaper.GetActiveTake( itemId )
-          local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-          local newName = string.gsub(" "..currentName, "%W%l", string.upper):sub(2)
-          reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          if acttake then
+            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+            local newName = string.gsub(" "..currentName, "%W%l", string.upper):sub(2)
+            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          end
         end
       end
     end  
@@ -809,9 +835,11 @@ local function init() -- INITIALIZATION
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake =  reaper.GetActiveTake( itemId )
-          local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-          local newName = currentName:match("^%s*(.-)%s*$")
-          reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          if acttake then
+            local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+            local newName = currentName:match("^%s*(.-)%s*$")
+            reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+          end
         end
       end
     end  
@@ -842,9 +870,11 @@ local function init() -- INITIALIZATION
             for i=0, itemCount-1 do
               local itemId = reaper.GetSelectedMediaItem(0, i)
               local acttake =  reaper.GetActiveTake( itemId )
-              local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-              local newName = currentName:sub(number+1)
-              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              if acttake then
+                local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+                local newName = currentName:sub(number+1)
+                reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              end
             end
           else
             reaper.MB("Please, type a number!", "This is not a number!", 0)
@@ -879,11 +909,13 @@ local function init() -- INITIALIZATION
           if tonumber(number) ~= nil then
             for i=0, itemCount-1 do
               local itemId = reaper.GetSelectedMediaItem(0, i)
-        local acttake =  reaper.GetActiveTake( itemId )
-              local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
-              local length = currentName:len()
-              local newName = currentName:sub(1, length-number)
-              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              local acttake =  reaper.GetActiveTake( itemId )
+              if acttake then
+                local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+                local length = currentName:len()
+                local newName = currentName:sub(1, length-number)
+                reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              end
             end
           else
             reaper.MB("Please, type a number!", "This is not a number!", 0)
