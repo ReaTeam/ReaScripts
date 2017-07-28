@@ -3,7 +3,7 @@
 -- @version 1.1
 -- @about
 --   # Utility to manipulate track or item names
---   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
+--   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, keep, delete, strip leading & trailing whitespaces).
 --   - Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.
 --   - Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.
 --
@@ -11,7 +11,7 @@
 
 --[[
  * Changelog:
- * v1.1 (2017-07-28)
+ * v1.1 (2017-07-29)
       - Fixed crash when dealing with empty items
       - Changed color scheme
       - Added Clear button (clears all names)
