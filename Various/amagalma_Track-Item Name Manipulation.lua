@@ -1,6 +1,6 @@
 -- @description amagalma_Track-Item Name Manipulation
 -- @author amagalma
--- @version 1.01
+-- @version 1.1
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -11,9 +11,11 @@
 
 --[[
  * Changelog:
- * v1.01 (2017-07-28)
+ * v1.1 (2017-07-28)
       - Fixed crash when dealing with empty items
       - Changed color scheme
+      - Added Clear button (clears all names)
+      - Added Keep button (trims names and keeps only the number of characters defined)
  --]]
 
 
@@ -21,7 +23,7 @@
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 
-version = "1.01"
+version = "1.1"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -157,6 +159,7 @@ function Button:set_help_text()
   if self.help_text == "Replaces all instances of the pattern provided\n with the replacement" or
      self.help_text == "Removes specified number of characters\n from the start" or
      self.help_text == "Adds index numbers at the start or end (p->\nprefix | s->suffix, then the starting number" or
+     self.help_text == "Keeps only specified number of characters\n (s-> from start | e-> from end)" or
      self.help_text == "Removes specified number of characters\n from the end" then
     gfx.y = strh + 6.75*strh*1.5 
   else
@@ -369,6 +372,8 @@ local function main() -- MAIN FUNCTION
   f(); trimstart_btn:draw()
   f(); trimend_btn:draw()
   f(); replace_btn:draw()
+  f(); clear_btn:draw()
+  f(); keep_btn:draw()
   f(); upper_btn:draw()
   f(); lower_btn:draw()
   f(); swap_btn:draw()
@@ -495,6 +500,14 @@ local function init() -- INITIALIZATION
   local width, height = gfx.measurestr(label)
   replace_btn = Button((strw + strh*2 - width)/2, strh + 5*strh*1.5, width + strh, height + strh/8, 2, 0, 0, label, help)
   
+  local label, help = "Clear", "Clears all names!"
+  local width, height = gfx.measurestr(label)
+  clear_btn = Button(strh, strh + 5*strh*1.5, width + strh, height + strh/8, 2, 0, 0, label, help)
+  
+  local label, help = "Keep", "Keeps only specified number of characters\n (s-> from start | e-> from end)"
+  local width, height = gfx.measurestr(label)
+  keep_btn = Button(strw + strh*2 - (width + strh), strh + 5*strh*1.5, width + strh, height + strh/8, 2, 0, 0, label, help)
+  
   local label, help = "Uppercase", "Converts all letters to UPPERCASE"
   local width, height = gfx.measurestr(label)
   upper_btn = Button(strh, strh + 2*strh*1.5, width + strh, height + strh/8, 2, 0, 0, label, help)
@@ -620,7 +633,7 @@ local function init() -- INITIALIZATION
               reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", tostring(newName), 1)
             end
           else
-            reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
+            reaper.MB("Please type p or s followed by the starting number!\nExamples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
           end
         end
       end  
@@ -645,7 +658,7 @@ local function init() -- INITIALIZATION
               end
             end
           else
-            reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
+            reaper.MB("Please type p or s followed by the starting number!\nExamples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
           end
         end
       end
@@ -924,7 +937,86 @@ local function init() -- INITIALIZATION
       end 
     end
   end
-  
+
+  function clear_btn.onClick()
+    if what == "tracks" then
+      if CheckTracks() then
+        local response = reaper.MB("Are you sure you want to clear all names?", "Clear names", 1)
+        if response == 1 then
+          for i=0, trackCount-1 do
+            local trackId = reaper.GetSelectedTrack(0, i)
+            reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", "", 1)
+          end
+        end
+      end
+    elseif what == "items" then
+      if CheckItems() then
+       local response = reaper.MB("Are you sure you want to clear all names?", "Clear names", 1)
+        if response == 1 then
+          for i=0, itemCount-1 do
+            local itemId = reaper.GetSelectedMediaItem(0, i)
+            local acttake =  reaper.GetActiveTake( itemId )
+            if acttake then
+              reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 1)
+            end
+          end
+        end
+      end
+    end  
+  end
+
+  function keep_btn.onClick()
+    if what == "tracks" then
+      if CheckTracks() then
+        local ok, text = reaper.GetUserInputs("Keep (s -> from start, e -> end)", 1, "Specify mode and number:", "")
+        if ok then
+          if text:match("[seSE]%s?%d+") then
+            local newName = ""
+            local mode, number = text:match("([seSE])%s?(%d+)")
+            number = tonumber(number)
+            for i=0, trackCount-1 do
+              local trackId = reaper.GetSelectedTrack(0, i)
+              local _, currentName = reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", "", 0)
+              if mode:match("[sS]") then
+                newName = currentName:sub(0, number)
+              else
+                newName = currentName:sub((-1)*number)
+              end
+              reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", tostring(newName), 1)
+            end
+          else
+            reaper.MB("Please type s or e followed by the number of characters you want to keep!\nExamples: s8 , E5 , S03 , e 12", "Not valid input!", 0)
+          end
+        end
+      end  
+    elseif what == "items" then
+      if CheckItems() then
+        local ok, text = reaper.GetUserInputs("Keep (s -> from start, e -> end)", 1, "Specify mode and number:", "")        
+        if ok then
+          if text:match("[seSE]%s?%d+") then
+            local newName = ""
+            local mode, number = text:match("([seSE])%s?(%d+)")
+            for i=0, itemCount-1 do
+              local itemId = reaper.GetSelectedMediaItem(0, i)
+              local acttake =  reaper.GetActiveTake( itemId )
+              if acttake then
+                local _, currentName = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
+                if mode:match("[sS]") then
+                  newName = currentName:sub(0, number)
+                else
+                  newName = currentName:sub((-1)*number)
+                end
+                reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", tostring(newName), 1)
+              end
+            end
+          else
+            reaper.MB("Please type s or e followed by the number of characters you want to keep!\nExamples: s8 , E5 , S03 , e 12", "Not valid input!", 0)
+          end
+        end
+      end
+    end
+  end
+ 
 end -------------------------------- end of init() function
 
 
