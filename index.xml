@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fd1caee6ba7ad37851f1788456012bfa45850952" name="ReaTeam Scripts">
+<index version="1" commit="77057a6b6839dd24e19b437e9e216a2ee1f82374" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5267,6 +5267,28 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Track-Item Name Manipulation.lua" type="script" desc="amagalma_Track-Item Name Manipulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
+      </metadata>
+      <version name="1.1" author="amagalma" time="2017-07-30T21:10:21Z">
+        <changelog><![CDATA[- Fixed crash when dealing with empty items
+- Changed color scheme
+- Added Clear button (clears all names)
+- Added Keep button (trims names and keeps only the number of characters defined)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/77057a6b6839dd24e19b437e9e216a2ee1f82374/Various/amagalma_Track-Item%20Name%20Manipulation.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play (with memory - no undo).lua" type="script" desc="amagalma_Transport Play (with memory - no undo)">
