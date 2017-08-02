@@ -17,6 +17,8 @@ Version: 1.0
  Changelog:
  * v1.0 (2017-02-20)
     + Initial Release
+ * v1.0.1 (2017-08-02)
+    + Fix "u/0005 appears at beginning of all markers" bug
 ]]
 
 -- Count the number of selected items.
@@ -45,7 +47,7 @@ for i = 0, num_selected_items - 1 do
         adv = 4 + 1 + 4 + msg:len()
         -- Determine if this event is a lyric message
         if msg:byte(1) == 255 and msg:byte(2) == 5 then
-          lyric = msg:sub(2)
+          lyric = msg:sub(3)
           position = reaper.MIDI_GetProjTimeFromPPQPos(take, total_offset)
           -- Create the marker
           reaper.AddProjectMarker(0, false, position, 0, lyric, -1)
