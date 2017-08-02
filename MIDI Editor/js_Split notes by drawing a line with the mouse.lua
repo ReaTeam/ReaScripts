@@ -1,6 +1,6 @@
 --[[
 ReaScript Name:  js_Split notes by drawing a line with the mouse.lua
-Version: 2.02
+Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27951/Split%20notes%20by%20drawing%20line%20with%20mouse.gif
@@ -76,6 +76,8 @@ About:
     + Improved handling of overlapping notes.
  * v2.02 (2017-01-30)
     + Improved reset of toolbar button.
+  * v2.10 (2017-07-23)
+    + Mouse cursor changes to indicate that script is running.     
 ]]
 
 -- USER AREA
@@ -176,6 +178,9 @@ local s_unpack = string.unpack
 local s_pack   = string.pack
 local m_floor  = math.floor
   
+-- User preferences that can be customized in the js_MIDI editing preferences script
+local mustDrawCustomCursor
+
 
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
@@ -208,7 +213,11 @@ local function loop_trackMouseMovement()
     --              Therefore, clean the take *before* calling the function!
     -- To improve accuracy, the pizel position and the PPQ position must be retrieved as close in time to each other as possible.
     reaper.MIDI_SetAllEvts(take, AllNotesOffString)
-    mouseNewX = reaper.GetMousePosition()
+    mouseNewX, mouseNewY = reaper.GetMousePosition()
+    -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
+    if mustDrawCustomCursor then
+        reaper.TrackCtl_SetToolTip("-∕-", mouseNewX+7, mouseNewY+8, true)
+    end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     
     ----------------------------------------------------------------------------------
@@ -333,6 +342,9 @@ end -- loop_trackMouseMovement()
 --##########################################################################
 ----------------------------------------------------------------------------
 function onexit()
+    
+    -- Remove tooltip 'custom cursor'
+    reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
     ---------------------------------------------------
     -- Now that the script exits, the cuts can be made.
@@ -654,6 +666,17 @@ if isInline then
 else
     isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
     QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
+end
+
+---------------------------------------------------------------------------
+-- Must the mouse cursor be changed to indicate that the script is running?
+-- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+-- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+--    and this may appear inelegant to the user.
+if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+    mustDrawCustomCursor = false
+else
+    mustDrawCustomCursor = true
 end
 
 ----------------------------------------------------------------------------------

@@ -1,10 +1,17 @@
 -- @description Song Switcher
--- @version 1.2
+-- @version 1.4
 -- @changelog
---   create a new web browser interface (requires REAPER v5.30+)
---   improve how the previous docking state is saved
---   remember window size and position
---   seek to the first item in the song's children tracks [p=1743149]
+--   * only show mousedown button effect for the left button
+--   * show a context menu on right click
+--   * stop transport before switching songs rather than after
+--   * toggle filter box with single click rather than double click
+--   Web Interface:
+--   * add Lock button to enable read-only mode
+--   * change the color of the play button on pause/record
+--   * confirm tab close in locked mode
+--   * disable pixel interpolation when scaling the timeline
+--   * enhance noscript and fix loading flickering
+--   * implement precise seek on mouse drag in timeline
 -- @author cfillion
 -- @provides
 --   [main] cfillion_Song Switcher/*.lua
@@ -12,9 +19,9 @@
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=181159
 -- @donation https://www.paypal.me/cfillion
 -- @screenshot
---   Docked Mode http://i.imgur.com/4xPMV9J.gif
+--   Docked Mode https://i.imgur.com/4xPMV9J.gif
 --   Windowed Mode https://i.imgur.com/KOP2yK3.png
---   Web Interface https://i.imgur.com/8NOddMK.png
+--   Web Interface https://i.imgur.com/DPcRCGh.png
 -- @about
 --   # Song Switcher
 --
@@ -24,9 +31,15 @@
 --
 --   ## Usage
 --
---   Each song must be in a top-level folder track named "#. Song Name".
---   This script will mute and hide all songs except for the current one.
---   Other tracks/folders are left untouched.  
+--   Each song must be in a top-level folder track named "#. Song Name"
+--   ("#" being any number).
+--
+--   After selecting a song, Song Switcher mutes and hides all songs in the
+--   project except for the current one. Other tracks/folders that are not part
+--   of a song's top-level folder are left untouched.  
+--   Song Switcher can also optionally stop playback and/or seek to the
+--   first item in the song when switching.
+--
 --   This script works best with REAPER settings "**Do not process muted tracks**"
 --   and "**Track mute fade**" enabled.
 --
@@ -40,6 +53,9 @@
 --
 --   A web browser interface is also installed as **song_switcher.html** for
 --   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
+--   Note that the timecode displayed in the web interface always starts at 00:00.
+--   This means that even if a song starts at 7:45 in the project and ends at 9:12,
+--   it's displayed as 00:00 to 01:26 on the web interface for convenience.
 
 WINDOW_TITLE = 'Song Switcher'
 
@@ -85,6 +101,8 @@ KEY_PLUS = 43
 KEY_STAR = 42
 KEY_F3 = 26163
 
+MOUSE_LEFT_BTN = 1
+
 PADDING = 3
 MARGIN = 10
 HALF_MARGIN = 5
@@ -118,8 +136,7 @@ function loadTracks()
 
       if name:find("%d+%.") then
         isSong = true
-
-        songs[#songs + 1] = {name=name, folder=track, tracks={track}, start=0}
+        table.insert(songs, {name=name, folder=track, tracks={track}})
       else
         isSong = false
       end
@@ -127,16 +144,26 @@ function loadTracks()
       local song = songs[#songs]
       song.tracks[#song.tracks + 1] = track
 
-      local firstItem = reaper.GetTrackMediaItem(track, 0)
-      if firstItem then
-        local pos = reaper.GetMediaItemInfo_Value(firstItem, 'D_POSITION')
-        if song.start == 0 or song.start > pos then
-          song.start = pos
+      for itemIndex=0,reaper.CountTrackMediaItems(track)-1 do
+        local item = reaper.GetTrackMediaItem(track, itemIndex)
+        local pos = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+        local endTime = pos + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+
+        if not song.startTime or song.startTime > pos then
+          song.startTime = pos
+        end
+        if not song.endTime or song.endTime < endTime then
+          song.endTime = endTime
         end
       end
     end
 
     depth = depth + track_depth
+  end
+
+  for _,song in ipairs(songs) do
+    if not song.startTime then song.startTime = 0 end
+    if not song.endTime then song.endTime = reaper.GetProjectLength() end
   end
 
   table.sort(songs, compareSongs)
@@ -200,6 +227,12 @@ function setCurrentIndex(index)
     setSongEnabled(songs[currentIndex], false)
   end
 
+  local mode = getSwitchMode()
+
+  if mode == SWITCH_SEEKSTOP then
+    reaper.CSurf_OnStop()
+  end
+
   local song = songs[index]
   local disableOk = not invalid
   local enableOk = setSongEnabled(song, true)
@@ -208,12 +241,8 @@ function setCurrentIndex(index)
     currentIndex = index
     setNextIndex(index)
 
-    local mode = getSwitchMode()
-    if mode == SWITCH_SEEKSTOP then
-      reaper.CSurf_OnStop()
-    end
     if mode == SWITCH_SEEK or mode == SWITCH_SEEKSTOP then
-      reaper.SetEditCurPos(song.start, true, true)
+      reaper.SetEditCurPos(song.startTime, true, true)
     end
   end
 
@@ -310,7 +339,7 @@ function drawName(song)
   useColor(COLOR_NAME)
   drawTextLine(line)
 
-  if isLineUnderMouse(line) and isDoubleClick then
+  if isLineUnderMouse(line) and mouseClick then
     filterPrompt = true
   end
 end
@@ -332,8 +361,9 @@ function drawFilter()
     gfx.line(topRight, line.ty, topRight, line.ty + line.rect.h)
   end
 
-  if isLineUnderMouse(line) and isDoubleClick then
+  if isLineUnderMouse(line) and mouseClick then
     filterPrompt = false
+    filterBuffer = ''
   end
 end
 
@@ -417,7 +447,7 @@ function switchModeButton()
   if mode == SWITCH_SEEK then
     action = 'seek'
   elseif mode == SWITCH_SEEKSTOP then
-    action = 'seek+stop'
+    action = 'stop+seek'
   else
     action = 'onswitch'
   end
@@ -445,17 +475,7 @@ function dockButton()
   local dockState = gfx.dock(-1)
 
   if button(btn, dockState ~= 0, false, false) then
-    if dockState == 0 then
-      local lastDock = tonumber(reaper.GetExtState(EXT_SECTION,
-        EXT_LAST_DOCK))
-      if not lastDock or lastDock < 1 then lastDock = 1 end
-
-      gfx.dock(lastDock)
-    else
-      reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK,
-        tostring(dockState), true)
-      gfx.dock(0)
-    end
+    toggleDock(dockState)
   end
 end
 
@@ -499,7 +519,7 @@ function button(line, active, highlight, danger)
   end
 
   if isUnderMouse(line.rect.x, line.rect.y, line.rect.w, line.rect.h) then
-    if mouseState > 0 then
+    if (mouseState & MOUSE_LEFT_BTN) == MOUSE_LEFT_BTN then
       if danger then
         useColor(COLOR_DANGERBG)
         color = COLOR_DANGERFG
@@ -637,7 +657,6 @@ function isLineUnderMouse(line)
 end
 
 function mouse()
-  isDoubleClick = false
   mouseClick = false
 
   if gfx.mouse_wheel ~= 0 then
@@ -657,16 +676,10 @@ function mouse()
     reset()
   elseif mouseState == 1 and gfx.mouse_cap == 0 then
     -- left button release
-
-    local now = os.clock()
-    if lastClick > now - 0.2 then
-      isDoubleClick = true
-      lastClick = 0
-    else
-      lastClick = now
-    end
-
     mouseClick = true
+  elseif mouseState == 2 and gfx.mouse_cap == 0 then
+    -- right button release
+    contextMenu()
   end
 
   mouseState = gfx.mouse_cap
@@ -833,17 +846,47 @@ function setSwitchMode(mode)
 end
 
 function updateState()
-  local currentName
-  if songs[currentIndex] then
-    currentName = songs[currentIndex].name
-  else
-    currentName = ''
-  end
+  local song = songs[currentIndex] or {name='', startTime=0, endTime=0}
 
-  local state = string.format("%d\t%d\t%s\t%s",
-    currentIndex, #songs, currentName, tostring(invalid)
+  local state = string.format("%d\t%d\t%s\t%f\t%f\t%s",
+    currentIndex, #songs, song.name, song.startTime, song.endTime,
+    tostring(invalid)
   )
   reaper.SetExtState(EXT_SECTION, EXT_STATE, state, false)
+end
+
+function toggleDock(dockState)
+  if dockState == 0 then
+    local lastDock = tonumber(reaper.GetExtState(EXT_SECTION,
+      EXT_LAST_DOCK))
+    if not lastDock or lastDock < 1 then lastDock = 1 end
+
+    gfx.dock(lastDock)
+  else
+    reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK,
+      tostring(dockState), true)
+    gfx.dock(0)
+  end
+end
+
+function contextMenu()
+  local dockState = gfx.dock(-1)
+  local dockFlag
+  if dockState > 0 then dockFlag = '!' else dockFlag = '' end
+
+  local menu = string.format(
+    '%sDock window|Reset data',
+    dockFlag
+  )
+
+  local actions = {
+    function() toggleDock(dockState) end,
+    reset,
+  }
+
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local index = gfx.showmenu(menu)
+  if actions[index] then actions[index]() end
 end
 
 -- graphics initialization
@@ -851,8 +894,6 @@ mouseState = 0
 mouseClick = false
 highlightTime = 0
 scrollTo = 0
-lastClick = 0
-isDoubleClick = false
 
 local w, h, dockState, x, y = previousWindowState()
 

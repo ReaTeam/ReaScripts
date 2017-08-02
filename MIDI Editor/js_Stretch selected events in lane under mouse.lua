@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.11
+Version: 3.20
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -29,32 +29,44 @@ About:
   4) Press the shortcut key.
   5) Move mouse left or right if stretching horizontally, or up or down if stretching vertically.
   6) To exit, move mouse out of CC lane, or press shortcut key again.
-             
-  There are two ways in which this script can be run:  
+          
   
-  * First, the script can be linked to its own shortcut key.
+  KEYBOARD SHORTCUT
   
-  * Second, this script, together with other "js_" scripts that edit the "lane under mouse",
-     can each be linked to a toolbar button.  
-    In this case, each script need not be linked to its own shortcut key.  Instead, only the 
-     accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
-     script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
-
-    Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
-     and this selected (armed) script can then be run by using the shortcut for the 
-     aforementioned "js_Run..." script.
-
-    For further instructions - please refer to the "js_Run..." script.
+  There are two ways in which the script can be started via a keyboard shortcut:  
   
-   Note: Since this function is a user script, the way it responds to shortcut keys and 
-       mouse buttons is opposite to that of REAPER's built-in mouse actions 
-       with mouse modifiers:  To run the script, press the shortcut key *once* 
-       to start the script and then move the mouse *without* pressing any 
-       mouse buttons.  Press the shortcut key again once to stop the script. 
+  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "S".  
+      (Using the standard steps of linking any REAPER action to a shortcut key.)
+    
+  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+          can each be linked to a toolbar button.  
+     - In this case, each script does not need to be linked to its own shortcut key.  
+     - Instead, only the master control script, with the long name 
+          "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+       needs to be linked to a keyboard shortcut.
+     - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+          and this selected (armed) script can then be run by using the shortcut for the 
+          aforementioned "js_Run..." script.
+     - For further instructions - please refer to the "js_Run..." script.      
+  
+  Note: Since this function is a user script, the way it responds to shortcut keys and 
+    mouse buttons is opposite to that of REAPER's built-in mouse actions 
+    with mouse modifiers:  To run the script, press the shortcut key *once* 
+    to start the script and then move the mouse *without* pressing any 
+    mouse buttons.  Press the shortcut key again once to stop the script.  
+      
+  (The first time that the script is stopped, REAPER will pop up a dialog box 
+    asking whether to terminate or restart the script.  Select "Terminate"
+    and "Remember my answer for this script".)
         
-   (The first time that the script is stopped, REAPER will pop up a dialog box 
-       asking whether to terminate or restart the script.  Select "Terminate"
-       and "Remember my answer for this script".)
+      
+  PERFORMANCE TIPS
+  
+  * The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
+      the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.
+      
+  * If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, 
+      check for graphics driver incompatibility by disabling graphics acceleration in the plugin.
 ]]
 
 --[[
@@ -85,6 +97,10 @@ About:
     + Script works in looped takes.
   * v3.11 (2017-01-30)
     + Improved reset of toolbar button.
+  * v3.12 (2017-03-18)
+    + More extensive instructions in header.
+  * v3.20 (2017-07-23)
+    + Mouse cursor changes to indicate that script is running.    
 ]]
 
 ---------------------------------------
@@ -229,6 +245,9 @@ local s_pack   = string.pack
 local t_insert = table.insert -- myTable[i] = X is actually much faster than t_insert(myTable, X)
 local m_floor  = math.floor
 
+-- User preferences that can be customized in the js_MIDI editing preferences script
+local mustDrawCustomCursor
+
   
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
@@ -261,6 +280,15 @@ local function loop_trackMouseMovement()
     --              Therefore, clean the take *before* calling the function!
     takeIsCleared = true
     reaper.MIDI_SetAllEvts(take, AllNotesOffString)
+    -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
+    if mustDrawCustomCursor then
+        local mouseXpos, mouseYpos = reaper.GetMousePosition()
+        if stretchLEFT or stretchRIGHT then
+            reaper.TrackCtl_SetToolTip("↔", mouseXpos+7, mouseYpos+8, true)
+        else
+            reaper.TrackCtl_SetToolTip("↕", mouseXpos+7, mouseYpos+8, true) 
+        end
+    end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
         _, mouseNewPitch, mouseNewCClane, mouseNewCCvalue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
@@ -567,6 +595,9 @@ end -- loop_trackMouseMovement()
 --############################################################################################
 ----------------------------------------------------------------------------------------------
 function onexit() 
+    
+    -- Remove tooltip 'custom cursor'
+    reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
     if mustDeleteOverlappingCCs 
     and (stretchRIGHT or stretchLEFT)
@@ -1673,6 +1704,16 @@ else
     return(false)
 end
 
+---------------------------------------------------------------------------
+-- Must the mouse cursor be changed to indicate that the script is running?
+-- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+-- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+--    and this may appear inelegant to the user.
+if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+    mustDrawCustomCursor = false
+else
+    mustDrawCustomCursor = true
+end
 
 ---------------------------------------------------------------------------
 -- OK, tests passed, and it seems like this script will do something, 

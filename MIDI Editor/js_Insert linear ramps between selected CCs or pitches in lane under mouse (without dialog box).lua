@@ -1,9 +1,9 @@
 --[[
 ReaScript name:  js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua
-Version: 3.01
+Version: 3.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
-Screenshot: 
+Screenshot: http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif
 REAPER version: 5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
@@ -76,6 +76,8 @@ About:
     + In velocity lane, will set velocities of existing notes to ramp from leftmost and rightmost notes.
   * v3.01 (2017-01-20)
     + Fixed bug when custom 'shape' is number.
+  * v3.02 (2017-03-13)
+    + In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.   
 ]] 
 
 -- USER AREA
@@ -826,12 +828,17 @@ else -- not a lane type in which script can be used.
 end
 
 
------------------------------------------------------------------------
--- Get CC CCs will be inserted at the density set in Preferences -> 
---    MIDI editor -> "Events per quarter note when drawing in CC lanes"
+-----------------------------------------------------------------------------------
+-- If CCdensity == "g", *or if the take is in the Tempo track*,
+--    CCs will be inserted at the MIDI editor's grid spacing.
+-- Otherwise, CCs density will follow the setting in
+-- Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
+track = reaper.GetMediaItemTake_Track(take)
+trackNameOK, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+
 local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
 PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
-if CCdensity == "g" then
+if CCdensity == "g" or trackName == "Tempo" then
     QNperCC = reaper.MIDI_GetGrid(take)
     CCperQN = math.floor((1/QNperCC) + 0.5)
 else
