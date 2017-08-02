@@ -1,0 +1,81 @@
+// @description amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)
+// @author amagalma
+// @version 1.1
+// @about
+//   # Toggle select/unselect all tracks/items/envelope points depending on what is under mouse
+//
+
+/*
+ * Changelog:
+ * v1.1 (2017-04-13)
+  + Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)
+*/
+
+function Tracks()
+(
+  CountSelectedTracks(0) == CountTracks(0) ? 
+      Main_OnCommand(40297, 0) // Track: Unselect all tracks
+  : (
+      Main_OnCommand(40296, 0); // Track: Select all tracks
+  );
+);
+
+
+function Items()
+(
+  CountSelectedMediaItems(0) == CountMediaItems(0) ? 
+      Main_OnCommand(40289, 0) // Item: Unselect all items
+  : (
+      Main_OnCommand(40182, 0); // Item: Select all items
+  );
+);
+
+
+function Points()
+(
+  Main_OnCommand(NamedCommandLookup("_BR_SEL_ENV_MOUSE"), 0); //SWS/BR: Select envelope at mouse cursor
+  Main_OnCommand(41595, 0); // Envelope: Toggle select/unselect all points
+);
+
+
+function Main()
+(
+  Undo_BeginBlock();
+  // Get details for what is under mouse cursor
+  extension_api("BR_GetMouseCursorContext", #window, #segment, #details, 128)
+  ;
+////////////////// TRACKS ////////////////////////////////////////////////////
+  // Mouse is over TCP track, or
+  !strcmp(#window, "tcp") && !strcmp(#segment, "track") ? Tracks() 
+  // Mouse is over empty TCP, or
+  :!strcmp(#window, "tcp") && !strcmp(#segment, "empty") ? Tracks() 
+  // Mouse is over MCP Track
+  :!strcmp(#window, "mcp") && !strcmp(#segment, "track") ? Tracks()
+  
+////////////////// ITEMS /////////////////////////////////////////////////////
+  // Mouse is over an item, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "track") && !strcmp(#details, "item") ? Items()
+  // Mouse is over empty arrange, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "track") && !strcmp(#details, "empty") ? Items()
+  // Mouse is over an empty arrange area, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "empty") ? Items()
+  // Mouse is over an item stretch marker
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "track") && !strcmp(#details, "item_stretch_marker") ? Items()
+
+////////////////// ENVELOPES /////////////////////////////////////////////////
+  // Mouse is over ECP, or
+  :!strcmp(#window, "tcp") && !strcmp(#segment, "envelope") ? Points()
+  // Mouse is over an envelope point in the track lane, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "track") && !strcmp(#details, "env_point") ? Points()
+  // Mouse is over an envelope segment in the track lane, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "track") && !strcmp(#details, "env_segment") ? Points()
+  // Mouse is over an envelope point, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "envelope") && !strcmp(#details, "env_point") ? Points()
+  // Mouse is over an envelope segment, or
+  :!strcmp(#window, "arrange") && !strcmp(#segment, "envelope") && !strcmp(#details, "env_segment") ? Points()
+  // Mouse is over Tempo lane
+  :!strcmp(#window, "ruler") && !strcmp(#segment, "tempo_lane") ? Points();
+  Undo_EndBlock("Smart select all tracks/items/envelope points", -1);
+);
+
+Main();

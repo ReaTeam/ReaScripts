@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.01
+Version: 1.10
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -71,6 +71,8 @@ About:
     + The script requires REAPER v5.30.
   * v1.01 (2017-02-14)
     + Interpret note-ons with velocity=0 as note-offs.
+  * v1.10 (2017-06-19)
+    + GUI window will open at last-used screen coordinates.
 ]]
 
 -- USER AREA
@@ -170,7 +172,14 @@ local countSelNotes = 0
 
 ---------------
 function exit()
+    -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
+    local docked, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
+    if docked == 0 and type(xPos) == "number" and type(yPos) == "number" then
+        -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
+        reaper.SetExtState("MIDI Inspector", "Last coordinates", string.format("%i", math.floor(xPos+0.5)) .. "," .. string.format("%i", math.floor(yPos+0.5)), true)
+    end    
     gfx.quit()
+    
     _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
     if not (sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1) then
         reaper.SetToggleCommandState(sectionID, ownCommandID, 0)
@@ -941,7 +950,16 @@ if not (sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommand
     reaper.RefreshToolbar2(sectionID, ownCommandID)
 end
 
-gfx.init("MIDI Inspector", 200, 400)
+-- To measure string widths, must first open a GUI.
+-- The GUI window will be opened at the last-used coordinates
+local coordinatesExtState = reaper.GetExtState("MIDI Inspector", "Last coordinates") -- Returns an empty string if the ExtState does not exist
+local xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
+if xPos and yPos then
+    gfx.init("MIDI Inspector", 200, 400, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+else
+    gfx.init("MIDI Inspector", 200, 400, 0)
+end
+    
 gfx.setfont(1, fontFace, fontSize, 'b')
 strWidth = {}
 strWidth["ACTIVE TAKE"] = gfx.measurestr(" ACTIVE TAKE ")
@@ -993,8 +1011,13 @@ timeFormat = defaultTimeFormat
 
 if type(initWidth) ~= "number" then initWidth = strWidth["Long time format"]+tabShort+15 end
 if type(initHeight) ~= "number" then initHeight = (strHeight+3)*24 end
-gfx.init("MIDI Inspector", initWidth, initHeight)
+
+if xPos and yPos then
+    gfx.init("MIDI Inspector", initWidth, initHeight, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+else
+    gfx.init("MIDI Inspector", initWidth, initHeight, 0)
+end
 gfx.setfont(1, fontFace, fontSize, 'b')
-gfx.update()
+--gfx.update()
 
 reaper.runloop(loopMIDIInspector)
