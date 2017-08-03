@@ -10,7 +10,7 @@ About:
 Author: beaunus
 Licence: GPL v3
 REAPER: 5.0
-Version: 1.0
+Version: 1.0.1
 ]]
 
 --[[
