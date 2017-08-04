@@ -1,5 +1,6 @@
 # pylint: disable=trailing-whitespace
 # pylint: disable=invalid-name
+# TODO: What are the repeats NOT the same length as the previous item?
 """
 ReaScript Name: Import Clip Splicer Performance Specification JSON file
 About:
