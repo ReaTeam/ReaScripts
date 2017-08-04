@@ -1,0 +1,1135 @@
+--[[
+		Settings for Lokasenna_Radial Menu.lua
+	
+		This file is written as a Lua table, and must use the appropriate 
+	syntax with regard to tables, indices, keys, strings, etc, etc. If
+	you run Radial Menu and get an error loading the menu, it either
+	couldn't find this file or you've got some incorrect Lua in it.
+
+	A few general notes:
+
+	- Due to quirks with the function that loads these settings into 
+	the script, all indices must include square brackets and/or quotation 
+	marks rather than being left bare, i.e. 
+
+					[3]				not		3
+					["col_main"]	not		col_main
+	
+	
+	- Colors can be specified per button, per menu, or globally (see
+	table index [-1]). Buttons with no colors specified will use their
+	menu's settings, menus will use the global settings.
+	
+	- When a button is assigned to an action that's toggled On, the button
+	  will light up; if the mouse is hovering or clicked on it, the toggle 
+	  color will be blended with the hover or background color, respectively.
+	
+	- Menus are numbered starting from 0, and menu numbers do NOT need to
+	  be contiguous - that is, 1 2 3 4 9 11 15 20 25 is fine, so feel free
+	  to organize your menus by number however you want.
+	
+	- Buttons are numbered starting from 0, and button numbers DO need to
+	  be contiguous.
+	  
+	- You can add a button in the center of the ring by giving it the
+	  number [-1]
+	  
+	
+	  
+
+
+	Menu #:
+	[0] = {	
+	
+		(There's no limit to the number of menus you can have)
+		
+		["alias"] = "blah",			A name to use for this menu so you don't have
+									to remember menu numbers. Displayed in the
+									menu list, and can be used in button actions
+									and context boxes. (See below)
+	
+		["col_main"] = {			Normal button color for buttons in this menu
+			[1] = 0.0,				R
+			[2] = 1.0,				G	(values are from 0-1)
+			[3] = 1.0,				B
+			
+		["col_tog"] = {				Toggled color, for use with
+			...						i.e. "Options: Toggle metronome"
+			
+		["col_hvr"] = {				Mouse-over color
+			...
+			
+		["col_bg"] = {				Background color
+			...
+		
+	
+	
+		Button #:
+		[0] = {
+		
+			(Maximum of 16 buttons per menu)
+		
+			Button settings:
+			
+			["lbl"] = "cool",			The button's label
+			
+										| or ; will wrap the text to a new line,
+										i.e. "Multi|line;text"
+			
+			["act"] = "menu 1",			Action to perform / menu to open. 
+			
+										Valid commands are...
+										
+										Action IDs:											
+										40364	
+											
+										Script/extension actions:
+										_SWS_AWMPLAYTOG
+										_RS2bf8e77e958d48b42c7d7b585790ee0427a96a7e
+										
+											Note: Because the MIDI Editor uses its own
+											action list, when running MIDI actions you
+											may need to enter them as 'midi 40364' to
+											keep Reaper from getting confused.
+										
+										Open a menu:
+										menu 20		(opens menu 20)
+										menu stuff	(opens the menu with alias 'stuff')
+										
+										back		Return to the previous menu
+										base		Return to the original menu
+													(either menu 0 or the specified menu
+													for a given Reaper context)
+													
+										quit		Close the script
+										
+										
+										Special commands:
+										
+										midi 12345	Send an action to the current MIDI
+													editor rather than the main window
+					
+										xN 12345	Perform the action N times each time
+													the button is clicked.
+										
+													e.g.	x3 40001
+													
+													will insert three new tracks each
+													time the button is clicked
+													
+													
+													
+										repeat N "12345"	Repeats the action every N
+												 '12345'	seconds while the mouse button
+															is held down.
+												 
+													e.g.	repeat 0.5 "40001"
+													
+													will insert a new track every 0.5 seconds
+													
+										The special commands can be combined, in (I think)
+										any order:
+										
+										midi x3 12345		Perform MIDI action 12345 three times
+										
+										repeat 0.5 "x3 12345"	Perform action 12345 three times,
+																every 0.5 seconds.
+																
+										
+										
+													
+													
+					
+					
+
+					
+										
+										
+	
+			["col_main"] = {			Normal button color
+				[1] = 0.0,				R
+				[2] = 1.0,				G	(values are from 0-1)
+				[3] = 1.0,				B
+				
+			["col_tog"] = {				Toggled color, for use with
+				...						i.e. "Options: Toggle metronome"
+				
+			["col_hvr"] = {				Mouse-over color
+				...
+				
+				
+				
+	Global settings are stored in index [-1]:
+	[-1] = {
+	
+		["close_time"] = 600,		How long to keep the window open (in ms) on 
+									startup	if no key is being held down. Going
+									lower than 600ms will probably cause the menu 
+									to keep opening and closing.
+	
+	
+									Global color settings:
+		["col_main"] = {			Normal button color for buttons in this menu
+			[1] = 0.0,				R
+			[2] = 1.0,				G	(values are from 0-1)
+			[3] = 1.0,				B
+			
+		["col_tog"] = {				Toggled color, for use with
+			...						i.e. "Options: Toggle metronome"
+			
+		["col_hvr"] = {				Mouse-over color
+			...
+			
+		["col_bg"] = {				Background color
+			...
+			
+		["contexts"] = {			What menu to open on startup for a given mouse
+			["mcp|empty"] = 10,		context. Contexts can be assigned with menu 
+									numbers or aliases, i.e.
+										20
+										stuff
+									
+									If a particular context isn't given a menu, 
+									it will	look up one 'level' at a time until
+									it finds a match.
+									
+									Example:									
+									The menu was opened with the mouse cursor over 
+									an empty area of a track in the Arrange view.
+									The script will look for:
+										["arrange|track|empty"]
+									then:
+										["arrange|track"]
+									then:
+										["arrange"]
+									
+									If there's still no match, it will open menu 0.				
+									(see the Setup script's Context tab for a list
+									of available contexts)
+									
+		["fonts"] = {				Font settings
+		
+			[1] = 	{				1 - Normal buttons
+									2 - Menus
+									3 - Preview text
+									
+				"Calibri", 			Font face. See the note below.
+				
+				16, 				Size
+				
+				"b"					Flags. Just a string listing:
+										b	bold
+										i	italics
+										u	underline
+										
+									The order doesn't matter, i.e. this would be
+									perfectly fine: "iub"
+									
+										
+									Important: Font names are really picky, and will
+									default back to Arial if you get them wrong. The
+									Setup script provides a green/red light for each
+									font to let you know if it's correct or not.
+									
+									Unfortunately, the names are often not what you
+									see when using them in Office, etc...
+									
+									To get a font's name in Windows:
+									1. Find the .ttf file in your Windows\Fonts folder
+									2. Right-click it, select Properties
+									3. Select the Details tab
+									4. The first field, "Name", is what you want to
+									   be using here.
+									   
+									Mac users - I have no idea. 
+									   
+									   
+									I know, it's stupid.
+				
+			
+		
+		["hvr_click"] = false,		Boolean - hover over a button to 'click' it
+		["hvr_time"] = 200,			Hover time for ^^^ (in ms)
+		
+		
+		["key_binds"] = {			Key bind settings
+		
+			["enabled"] = true,		Boolean - enables the assigned key binds
+		
+			["hints"] =	true,		Boolean - display key binds outside the menu ring
+			
+			["last_num"] = 1,		Last menu size selected in the setup script (1-13)
+		
+			[4] =	{				Menu size for each set of bindings. (4-16)
+			
+				[1] = "r",			Key bind for the given button number.
+				
+										-1	=	Center button
+										1	=	Always the button facing right
+		
+		
+		["key_mode"] = 1,			What to do when the shortcut key is released
+									(1-3, see the options in the Setup script)
+									
+		["last_tab"] = 1,			The last tab that was active in the Setup script
+									
+		["mouse_mode"] = 1,			What to do when the mouse is clicked
+									(1-3, see the options in the Setup script)
+									
+									
+		["num_btns"] = 8,			Number of buttons for new menus to start with
+		
+		["preview"] = true,			Whether or not to preview a menu's buttons when
+									hovering the mouse over it.
+									
+		
+									Button radiuses/target areas:
+		["ra"] = 48,				Center button
+		["rb"] = 60,				Currently unused
+		["rc"] = 116,				Inside of the button ring
+		["rd"] = 192,				Outside of the button ring
+		["re"] = 192,				Threshold for tracking Swipes
+		
+									Note that the preview labels when hovering over
+									a menu are drawn with a radius of (rc - ra), so
+									adjusting these will affect the labels as well.
+		
+		["swipe"] = {				Parameters for the Swiping feature:
+		
+			["accel"] = 65,			Start sensitivity
+			["actions"]	= true,		Whether Swipes can trigger actions, or just menus
+			["decel"] = 10,			Stop sensitivity
+			["enabled"] = true,		Whether Swiping mode is active or not
+			["menu"] = 0,			What menu to use for Swipe actions...
+			["mode"] = 1,		...if this is set to 2. Setting it to 1 will always
+									use the current menu
+			["stop"] = 20,			Stop time for Swipes, in milliseconds
+			
+		
+]]--
+
+
+return {
+	[-1] = {
+		["close_time"] = 600,
+		["col_bg"] = {
+			[1] = 0.2,
+			[2] = 0.2,
+			[3] = 0.2,
+		},
+		["col_hvr"] = {
+			[1] = 0.878,
+			[2] = 0.878,
+			[3] = 0.878,
+		},
+		["col_main"] = {
+			[1] = 0.753,
+			[2] = 0.753,
+			[3] = 0.753,
+		},
+		["col_tog"] = {
+			[1] = 0,
+			[2] = 0.753,
+			[3] = 0,
+		},
+		["contexts"] = {
+		},
+		["fonts"] = {
+			[1] = {
+				[1] = "Calibri",
+				[2] = 16,
+				[3] = "b",
+			},
+			[2] = {
+				[1] = "Calibri",
+				[2] = 16,
+				[3] = "bu",
+			},
+			[3] = {
+				[1] = "Calibri",
+				[2] = 14,
+			},
+		},
+		["hvr_click"] = false,
+		["hvr_time"] = 200,
+		["key_binds"] = {
+			[4] = {
+			},
+			[5] = {
+			},
+			[6] = {
+			},
+			[7] = {
+			},
+			[8] = {
+			},
+			[9] = {
+			},
+			[10] = {
+			},
+			[11] = {
+			},
+			[12] = {
+			},
+			[13] = {
+			},
+			[14] = {
+			},
+			[15] = {
+			},
+			[16] = {
+			},
+			["enabled"] = false,
+			["hints"] = false,
+			["last_num"] = 8,
+		},
+		["key_mode"] = 1,
+		["last_pos"] = {
+			[1] = 0,
+			[2] = 0,
+		},
+		["last_tab"] = 5,
+		["mnu_0_on_act"] = false,
+		["mouse_mode"] = 1,
+		["num_btns"] = 8,
+		["preview"] = true,
+		["ra"] = 44,
+		["rb"] = 85,
+		["rc"] = 116,
+		["rd"] = 192,
+		["re"] = 192,
+		["swipe"] = {
+			["accel"] = 65,
+			["actions"] = false,
+			["decel"] = 10,
+			["enabled"] = false,
+			["menu"] = 0,
+			["menu_mode"] = 1,
+			["stop"] = 20,
+		},
+		["win_pos"] = 1,
+	},
+	[0] = {
+		[0] = {
+			["act"] = "menu track",
+			["lbl"] = "Track",
+		},
+		[1] = {
+			["act"] = "menu view",
+			["lbl"] = "View",
+		},
+		[2] = {
+			["act"] = "menu options",
+			["lbl"] = "Options",
+		},
+		[3] = {
+			["act"] = "menu items",
+			["lbl"] = "Items",
+		},
+		[4] = {
+			["act"] = "menu take",
+			["lbl"] = "Take",
+		},
+		[5] = {
+			["act"] = "menu record",
+			["lbl"] = "Recording",
+		},
+		[6] = {
+			["act"] = "menu midi",
+			["lbl"] = "MIDI|Editor",
+		},
+		[7] = {
+			["act"] = "menu env",
+			["lbl"] = "Envelopes",
+		},
+	},
+	[1] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40001",
+			["lbl"] = "Insert|Track",
+		},
+		[1] = {
+			["act"] = "46000",
+			["lbl"] = "Insert|Template",
+		},
+		[2] = {
+			["act"] = "40357",
+			["lbl"] = "Set|Color",
+		},
+		[3] = {
+			["act"] = "40899",
+			["lbl"] = "Set|Icon",
+		},
+		[4] = {
+			["act"] = "menu track env",
+			["lbl"] = "Envelopes",
+		},
+		[5] = {
+			["act"] = "40421",
+			["lbl"] = "Select|All Items",
+		},
+		[6] = {
+			["act"] = "9",
+			["col_tog"] = {
+				[1] = 1.0,
+				[2] = 0.0,
+				[3] = 0.0,
+			},
+			["lbl"] = "Record Arm",
+		},
+		[7] = {
+			["act"] = "menu track auto",
+			["lbl"] = "Automation|Modes",
+		},
+		["alias"] = "track",
+	},
+	[2] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "50124",
+			["lbl"] = "Media|Explorer",
+		},
+		[1] = {
+			["act"] = "40240",
+			["lbl"] = "Perform.|Meter",
+		},
+		[2] = {
+			["act"] = "40326",
+			["lbl"] = "Region|Manager",
+		},
+		[3] = {
+			["act"] = "40422",
+			["lbl"] = "Screensets",
+		},
+		[4] = {
+			["act"] = "40268",
+			["lbl"] = "Navigator",
+		},
+		[5] = {
+			["act"] = "40251",
+			["lbl"] = "Routing",
+		},
+		[6] = {
+			["act"] = "40906",
+			["lbl"] = "Track|Manager",
+		},
+		[7] = {
+			["act"] = "40378",
+			["lbl"] = "Big Clock",
+		},
+		["alias"] = "view",
+	},
+	[3] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40364",
+			["lbl"] = "Click",
+		},
+		[1] = {
+			["act"] = "40145",
+			["lbl"] = "Grid",
+		},
+		[2] = {
+			["act"] = "1157",
+			["lbl"] = "Snapping",
+		},
+		[3] = {
+			["act"] = "1155",
+			["lbl"] = "Ripple|Editing",
+		},
+		[4] = {
+			["act"] = "40745",
+			["lbl"] = "Solo In|Front",
+		},
+		[5] = {
+			["act"] = "42073",
+			["lbl"] = "Spectral|Peaks",
+		},
+		[6] = {
+			["act"] = "42076",
+			["lbl"] = "Pre-Fader|Metering",
+		},
+		[7] = {
+			["act"] = "40621",
+			["lbl"] = "Link|Loop|Points",
+		},
+		["alias"] = "options",
+	},
+	[4] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40760",
+			["lbl"] = "Dynamic|Split",
+		},
+		[1] = {
+			["act"] = "40757",
+			["lbl"] = "Split @|Edit Cursor",
+		},
+		[2] = {
+			["act"] = "40061",
+			["lbl"] = "Split @|Time Sel.",
+		},
+		[3] = {
+			["act"] = "41588",
+			["lbl"] = "Glue|Items",
+		},
+		[4] = {
+			["act"] = "40009",
+			["lbl"] = "Item|Properties",
+		},
+		[5] = {
+			["act"] = "40704",
+			["lbl"] = "Set Color",
+		},
+		[6] = {
+			["act"] = "40108",
+			["lbl"] = "Normalize|Items",
+		},
+		[7] = {
+			["act"] = "40316",
+			["lbl"] = "Quantize|Positions",
+		},
+		["alias"] = "items",
+	},
+	[5] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40131",
+			["lbl"] = "Crop To|Active Take",
+		},
+		[1] = {
+			["act"] = "40129",
+			["lbl"] = "Delete|Active Take",
+		},
+		[2] = {
+			["act"] = "40435",
+			["lbl"] = "Show Takes|In Lanes",
+		},
+		[3] = {
+			["act"] = "41331",
+			["lbl"] = "Set Color",
+		},
+		[4] = {
+			["act"] = "menu take env",
+			["lbl"] = "Envelopes",
+		},
+		[5] = {
+			["act"] = "40126",
+			["lbl"] = "Switch To|Prev. Take",
+		},
+		[6] = {
+			["act"] = "40224",
+			["lbl"] = "Explode Across|Tracks",
+		},
+		[7] = {
+			["act"] = "40125",
+			["lbl"] = "Switch To|Next Take",
+		},
+		["alias"] = "take",
+	},
+	[6] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "menu record mode",
+			["lbl"] = "Record|Mode",
+		},
+		[1] = {
+			["act"] = "41038",
+			["lbl"] = "Recording|Pre-Roll",
+		},
+		[2] = {
+			["act"] = "1068",
+			["lbl"] = "Repeat",
+		},
+		[3] = {
+			["act"] = "40668",
+			["lbl"] = "Abort|Recording",
+		},
+		[4] = {
+			["act"] = "40490",
+			["lbl"] = "Arm All|Tracks",
+		},
+		[5] = {
+			["act"] = "menu record start",
+			["lbl"] = "Start|Recording...",
+		},
+		["alias"] = "record",
+	},
+	[7] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "midi 40009",
+			["lbl"] = "Quantize",
+		},
+		[1] = {
+			["act"] = "midi 40457",
+			["lbl"] = "Humanize",
+		},
+		[2] = {
+			["act"] = "midi 40759",
+			["lbl"] = "Transpose",
+		},
+		[3] = {
+			["act"] = "menu midi view",
+			["lbl"] = "View Mode",
+		},
+		[4] = {
+			["act"] = "menu midi size",
+			["lbl"] = "Grid Size",
+		},
+		[5] = {
+			["act"] = "menu midi type",
+			["lbl"] = "Grid Type",
+		},
+		[6] = {
+			["act"] = "menu midi length",
+			["lbl"] = "Note Length",
+		},
+		[7] = {
+			["act"] = "menu midi channel",
+			["lbl"] = "Channel",
+		},
+		["alias"] = "midi",
+	},
+	[8] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "menu env sel shape",
+			["lbl"] = "Set Shape|(Sel. Points)",
+		},
+		[1] = {
+			["act"] = "menu env def",
+			["lbl"] = "Set Shape|(Default)",
+		},
+		[2] = {
+			["act"] = "40887",
+			["lbl"] = "Reduce #|Of Points",
+		},
+		[3] = {
+			["act"] = "40726",
+			["lbl"] = "Insert 4 Points|@ Time Sel.",
+		},
+		[4] = {
+			["act"] = "41142",
+			["lbl"] = "Toggle Env.|For Last|Param",
+		},
+		[5] = {
+			["act"] = "41178",
+			["lbl"] = "Move Sel.|Points Left|1 Grid",
+		},
+		[6] = {
+			["act"] = "40415",
+			["lbl"] = "Reset Sel.|Points to 0",
+		},
+		[7] = {
+			["act"] = "41179",
+			["lbl"] = "Move Sel.|Points Right|1 Grid",
+		},
+		["alias"] = "env",
+	},
+	[9] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40404",
+			["lbl"] = "Latch",
+		},
+		[1] = {
+			["act"] = "42023",
+			["lbl"] = "Latch Preview",
+		},
+		[2] = {
+			["act"] = "40401",
+			["lbl"] = "Read",
+		},
+		[3] = {
+			["act"] = "40402",
+			["lbl"] = "Touch",
+		},
+		[4] = {
+			["act"] = "40400",
+			["lbl"] = "Trim/Read",
+		},
+		[5] = {
+			["act"] = "40403",
+			["lbl"] = "Write",
+		},
+		["alias"] = "track auto",
+	},
+	[10] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40406",
+			["lbl"] = "Volume",
+		},
+		[1] = {
+			["act"] = "40407",
+			["lbl"] = "Pan",
+		},
+		[2] = {
+			["act"] = "41975",
+			["lbl"] = "Show env.|panel",
+		},
+		["alias"] = "track env",
+	},
+	[11] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40693",
+			["lbl"] = "Volume",
+		},
+		[1] = {
+			["act"] = "40694",
+			["lbl"] = "Pan",
+		},
+		[2] = {
+			["act"] = "40695",
+			["lbl"] = "Mute",
+		},
+		[3] = {
+			["act"] = "41612",
+			["lbl"] = "Pitch",
+		},
+		[4] = {
+			["act"] = "41974",
+			["lbl"] = "Show Env.|Dialog",
+		},
+		["alias"] = "take env",
+	},
+	[12] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "midi 40482",
+			["lbl"] = "1",
+		},
+		[1] = {
+			["act"] = "midi 40483",
+			["lbl"] = "2",
+		},
+		[2] = {
+			["act"] = "midi 40484",
+			["lbl"] = "3",
+		},
+		[3] = {
+			["act"] = "midi 40485",
+			["lbl"] = "4",
+		},
+		[4] = {
+			["act"] = "midi 40486",
+			["lbl"] = "5",
+		},
+		[5] = {
+			["act"] = "midi 40487",
+			["lbl"] = "6",
+		},
+		[6] = {
+			["act"] = "midi 40488",
+			["lbl"] = "7",
+		},
+		[7] = {
+			["act"] = "midi 40489",
+			["lbl"] = "8",
+		},
+		[8] = {
+			["act"] = "midi 40490",
+			["lbl"] = "9",
+		},
+		[9] = {
+			["act"] = "midi 40491",
+			["lbl"] = "10",
+		},
+		[10] = {
+			["act"] = "midi 40492",
+			["lbl"] = "11",
+		},
+		[11] = {
+			["act"] = "midi 40493",
+			["lbl"] = "12",
+		},
+		[12] = {
+			["act"] = "midi 40494",
+			["lbl"] = "13",
+		},
+		[13] = {
+			["act"] = "midi 40495",
+			["lbl"] = "14",
+		},
+		[14] = {
+			["act"] = "midi 40496",
+			["lbl"] = "15",
+		},
+		[15] = {
+			["act"] = "midi 40497",
+			["lbl"] = "16",
+		},
+		["alias"] = "midi channel",
+	},
+	[13] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40252",
+			["lbl"] = "Normal",
+		},
+		[1] = {
+			["act"] = "40253",
+			["lbl"] = "Sel. Item|Auto Punch",
+		},
+		[2] = {
+			["act"] = "40076",
+			["lbl"] = "Time Sel.|Auto Punch",
+		},
+		["alias"] = "record mode",
+	},
+	[14] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40067",
+			["lbl"] = "...After|2 Beats",
+		},
+		[1] = {
+			["act"] = "40046",
+			["lbl"] = "...At Edit|Cursor",
+		},
+		[2] = {
+			["act"] = "40045",
+			["lbl"] = "...At Next|Beat",
+		},
+		[3] = {
+			["act"] = "40003",
+			["lbl"] = "...At Next|Measure",
+		},
+		[4] = {
+			["act"] = "40056",
+			["lbl"] = "...At Next|Proj. Marker",
+		},
+		["alias"] = "record start",
+	},
+	[15] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "midi 40042",
+			["lbl"] = "Piano Roll",
+		},
+		[1] = {
+			["act"] = "midi 40043",
+			["lbl"] = "Named Notes",
+		},
+		[2] = {
+			["act"] = "midi 40056",
+			["lbl"] = "Event List",
+		},
+		[3] = {
+			["act"] = "midi 40954",
+			["lbl"] = "Notation",
+		},
+		["alias"] = "midi view",
+	},
+	[16] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "midi 41016",
+			["lbl"] = "2",
+		},
+		[1] = {
+			["act"] = "midi 41015",
+			["lbl"] = "1",
+		},
+		[2] = {
+			["act"] = "midi 41014",
+			["lbl"] = "1/2",
+		},
+		[3] = {
+			["act"] = "midi 41013",
+			["lbl"] = "1/4",
+		},
+		[4] = {
+			["act"] = "midi 41012",
+			["lbl"] = "1/8",
+		},
+		[5] = {
+			["act"] = "midi 41011",
+			["lbl"] = "1/16",
+		},
+		[6] = {
+			["act"] = "midi 41010",
+			["lbl"] = "1/32",
+		},
+		[7] = {
+			["act"] = "midi 41009",
+			["lbl"] = "1/64",
+		},
+		["alias"] = "midi size",
+	},
+	[17] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "midi 41003",
+			["lbl"] = "Straight",
+		},
+		[1] = {
+			["act"] = "midi 41005",
+			["lbl"] = "Dotted",
+		},
+		[2] = {
+			["act"] = "midi 41006",
+			["lbl"] = "Swing",
+		},
+		[3] = {
+			["act"] = "midi 41004",
+			["lbl"] = "Triplet",
+		},
+		["alias"] = "midi type",
+	},
+	[18] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "midi 41710",
+			["lbl"] = "1",
+		},
+		[1] = {
+			["act"] = "midi 41709",
+			["lbl"] = "1/2",
+		},
+		[2] = {
+			["act"] = "midi 41708",
+			["lbl"] = "1/4",
+		},
+		[3] = {
+			["act"] = "midi 41707",
+			["lbl"] = "1/8",
+		},
+		[4] = {
+			["act"] = "midi 41706",
+			["lbl"] = "1/16",
+		},
+		[5] = {
+			["act"] = "midi 41705",
+			["lbl"] = "1/32",
+		},
+		[6] = {
+			["act"] = "midi 41704",
+			["lbl"] = "1/64",
+		},
+		[7] = {
+			["act"] = "midi 41295",
+			["lbl"] = "Use|Grid",
+		},
+		["alias"] = "midi length",
+	},
+	[19] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40683",
+			["lbl"] = "Bezier",
+		},
+		[1] = {
+			["act"] = "40429",
+			["lbl"] = "Fast End",
+		},
+		[2] = {
+			["act"] = "40428",
+			["lbl"] = "Fast Start",
+		},
+		[3] = {
+			["act"] = "40189",
+			["lbl"] = "Linear",
+		},
+		[4] = {
+			["act"] = "40424",
+			["lbl"] = "Slow Start/End",
+		},
+		[5] = {
+			["act"] = "40190",
+			["lbl"] = "Square",
+		},
+		["alias"] = "env sel shape",
+	},
+	[20] = {
+		[-1] = {
+			["act"] = "back",
+			["lbl"] = "Back",
+		},
+		[0] = {
+			["act"] = "40681",
+			["lbl"] = "Bezier",
+		},
+		[1] = {
+			["act"] = "40431",
+			["lbl"] = "Fast End",
+		},
+		[2] = {
+			["act"] = "40430",
+			["lbl"] = "Fast Start",
+		},
+		[3] = {
+			["act"] = "40187",
+			["lbl"] = "Linear",
+		},
+		[4] = {
+			["act"] = "40425",
+			["lbl"] = "Slow Start/End",
+		},
+		[5] = {
+			["act"] = "40188",
+			["lbl"] = "Square",
+		},
+		["alias"] = "env def",
+	},
+}

@@ -1,0 +1,40 @@
+-- @version 1.0
+-- @author MPL
+-- @description Install all known repositories for ReaPack
+-- @website http://forum.cockos.com/member.php?u=70694
+-- @changelog
+--   + init
+
+  -- ReaPack 1.2beta2+ supported
+  
+  repos = 
+    {
+      {name='EUGEN27771-ReaScripts',    url='https://raw.githubusercontent.com/EUGEN27771/ReaScripts/master/index.xml'},
+      {name='SonicAnomaly JSFX',        url='https://raw.githubusercontent.com/Sonic-Anomaly/Sonic-Anomaly-JSFX/master/index.xml'},
+      {name='chtammik_Reaper_Scripts',  url='https://raw.githubusercontent.com/chtammik/chtammik_Reaper_Scripts/master/index.xm'},
+      {name='Claudiohbsantos Scripts',  url='https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts/raw/master/index.xml'},
+      {name='Fernsehmüll Scripts',      url='https://github.com/fernsehmuell/reaper_scripts/raw/master/index.xml'},
+      {name="Geraint's JSFX",           url='https://geraintluff.github.io/jsfx/index.xml'},
+      {name='kawa Scripts',             url='https://bitbucket.org/kawaCat/reascript-m2bpack/raw/master/index.xml'},
+      {name='luckyxxl Scripts',         url='https://github.com/luckyxxl/reaper-scripts/raw/master/index.xml'},
+      {name='me2beats Scripts',         url='https://github.com/me2beats/reapack/raw/master/index.xml'},
+      {name='mrlimbic scripts',         url='https://github.com/mrlimbic/reascripts/raw/master/index.xml'},
+      {name='nofish ReaScripts',        url='https://github.com/nofishonfriday/ReaScripts/raw/master/index.xml'},
+      {name="Przemoc's ReaScripts",     url='https://github.com/przemoc/REAPER-ReaScripts/raw/master/index.xml'},
+      {name='RCJacH Scripts',           url='https://github.com/RCJacH/ReaScripts/raw/master/index.xml'},
+      {name='RobU Scripts',             url='https://github.com/RobU23/ReaScripts/raw/master/index.xml'},
+      {name='Tack Scripts',             url='https://github.com/jtackaberry/reascripts/raw/master/index.xml'},
+      {name='X-Raym MIDI Makey Makey',  url='https://github.com/X-Raym/MIDI-Makey-Makey/raw/master/index.xml'},
+    }
+    
+    
+  for i =1, #repos do
+    reaper.ReaPack_AddSetRepository(
+      repos[i].name,--string name, 
+      repos[i].url,--string url, 
+      true,--boolean enable, 
+      2,--integer autoInstall, 
+      true)--boolean commit)
+  end
+  
+  reaper.MB( 'Repositories were succesfully added to syncronization list. \nTo install all scripts physically run action "ReaPack: Synchronize packages"','Install all known repositories.',0)

@@ -1,20 +1,19 @@
--- @version 0.1
+-- @version 0.1.1
 -- @author spk77
 -- @changelog
---   + initial release
+--   ReaPack packaging enhancement by cfillion (no other code change).
 -- @description Set solo for send X
 -- @about
 --   # Set solo for send X
 --
 --  Sets solo for send X (by muting all other sends on the track). This works on selected tracks.
---
+-- @metapackage
 -- @provides
---   [nomain] .
---   [main] spk77_Set solo for send 1.lua
---   [main] spk77_Set solo for send 2.lua
---   [main] spk77_Set solo for send 3.lua
---   [main] spk77_Set solo for send 4.lua
---   [main] spk77_Set solo for send 5.lua
+--   [main] . > spk77_Set solo for send 1.lua
+--   [main] . > spk77_Set solo for send 2.lua
+--   [main] . > spk77_Set solo for send 3.lua
+--   [main] . > spk77_Set solo for send 4.lua
+--   [main] . > spk77_Set solo for send 5.lua
 
 function solo_send(send_index)
   local tr_count = reaper.CountSelectedTracks(0)
@@ -48,4 +47,11 @@ function solo_send(send_index)
   ::continue::
   end
   reaper.Undo_EndBlock("Set solo for send", -1)
+end
+
+local slot = tonumber(({reaper.get_action_context()})[2]:match("send (%d+).lua"))
+if slot then
+  solo_send(slot - 1)
+else
+  error("could not extract send ID from filename")
 end
