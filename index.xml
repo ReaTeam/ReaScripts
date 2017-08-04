@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="77057a6b6839dd24e19b437e9e216a2ee1f82374" name="ReaTeam Scripts">
+<index version="1" commit="6ccdc6d55e736d3c391845f8af15a6ee136b1edf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1257,6 +1257,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
+      </version>
+      <version name="1.0.1" author="beaunus" time="2017-08-03T05:39:04Z">
+        <changelog><![CDATA[+ Fix "u/0005 appears at beginning of all markers" bug]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6ccdc6d55e736d3c391845f8af15a6ee136b1edf/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Export markers to mkvmerge simple chapter format.lua" type="script" desc="Export markers to mkvmerge simple chapter format">
