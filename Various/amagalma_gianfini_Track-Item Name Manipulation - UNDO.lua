@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma, modified by gianfini
--- @version 2.3
+-- @version 2.6
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -14,8 +14,15 @@
 --
 -- @link https://forum.cockos.com/showthread.php?t=194414
 
-
 -- Changelog:
+-- v2.6 (2017-08-02)
+--  - Small tweaks here and there
+-- v2.5 (2017-08-01)
+--  - Added help for Replace pattern symbols, added single line non-destructive edit from list
+-- v2.4 (2017-07-31)
+--  - Adjusted UNDO to avoid useless undo points
+--	- Improved button behavior when inactive
+--	- Fixed cornerstone bugs
 -- v2.3 (2017-07-30)
 --  - Added KEEP modifier from Amagalma script
 --  - Version 'U' with multilevel UNDO
@@ -28,7 +35,7 @@
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
-version = "2.3"
+version = "2.6"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -107,10 +114,11 @@ local Button = class(
                         btn.lbl_g = 0.7
                         btn.lbl_b = 0.7
                         btn.lbl_a = 1
-						btn.lbl_store_r = 0.7
+						btn.lbl_store_r = 0.7  -- gianfini, steady state stored values
 						btn.lbl_store_g = 0.7
 						btn.lbl_store_b = 0.7
 						btn.fill_status = 0 -- gianfini: indicates if modifier exist
+						btn.active = 1 -- gianfini: whether the button is active or not
                       end
                     )
 
@@ -142,6 +150,10 @@ function Button:__lmb_down()
   --return(last_mouse_state == 0 and self.mouse_state == 1)
 end
 
+function Button:__rmb_down()
+	return(last_mouse_state == 0 and gfx.mouse_cap & 2 == 2 and self.__mouse_state == 0)
+end
+
 function Button:set_color1()
   	self.r = 0.7
 	self.g = 0.35
@@ -170,7 +182,7 @@ function Button:set_color2()
   self.lbl_a = 1
 end
 
-function Button:set_color_reset()
+function Button:set_color_reset(on_off)
   self.r = 0.5
   self.g = 0.05
   self.b = 0.05
@@ -182,9 +194,15 @@ function Button:set_color_reset()
   self.lbl_store_g = self.lbl_g
   self.lbl_store_b = self.lbl_b
   self.lbl_a = 1
+  self.active = 1
+  if on_off == 0 then
+	self.active = 0
+	self.lbl_a = self.lbl_a / 2
+	self.a = self.a / 2
+  end
 end
 
-function Button:set_color_undo()
+function Button:set_color_undo(on_off)
   self.r = 0.3
   self.g = 0.25
   self.b = 0.05
@@ -196,6 +214,12 @@ function Button:set_color_undo()
   self.lbl_store_g = self.lbl_g
   self.lbl_store_b = self.lbl_b
   self.lbl_a = 1
+  self.active = 1
+  if on_off == 0 then
+	self.active = 0
+	self.lbl_a = self.lbl_a / 2
+	self.a = self.a / 2
+  end
 end
 
 function Button:set_color_commit()
@@ -224,6 +248,7 @@ function Button:set_color_updown() -- gianfini
   self.lbl_store_g = self.lbl_g
   self.lbl_store_b = self.lbl_b
   self.lbl_a = 1
+  self.active = 0
 end
 
 function Button:set_color_updown_can_move(arrow_verse)  -- gianfini
@@ -238,6 +263,7 @@ function Button:set_color_updown_can_move(arrow_verse)  -- gianfini
   self.lbl_store_g = self.lbl_g
   self.lbl_store_b = self.lbl_b
   self.lbl_a = 1
+  self.active = 1
   
   -- drawing small arrows on button
   gfx.set(0, 0, 0, 1)
@@ -270,23 +296,30 @@ function Button:set_help_text()
 	gfx.x = math.floor(win_w/2 + win_border/2)
     gfx.set(1,.6,.25,1)  -- gianfini changed color
     gfx.setfont(2, "Arial", 15) -- gianfini font size changed
-    gfx.printf(self.help_text)
+    if self.active == 1 then
+		gfx.printf(self.help_text)
+	else
+		gfx.a = 0.5
+		gfx.printf(self.help_text .. " (inactive)")
+	end
 end
 
 function Button:draw_label()
   -- Draw button label
   gfx.setfont(1, "Arial", 19) -- gianfini: keep font size on mouse over
   
+  local temp_lbl_a = 0.4
+  
   if self.label ~= "" then
     gfx.x = self.x1 + math.floor(0.5*self.w - 0.5 * self.label_w) -- center the label
     gfx.y = self.y1 + 0.5*self.h - 0.5*gfx.texth
 
-    if self.__mouse_state == 1 then 
+    if self.__mouse_state == 1 and self.active == 1 then 
       gfx.y = gfx.y + 1
-      gfx.a = self.lbl_a*0.5
+      --gfx.a = self.lbl_a*0.5
 	  temp_lbl_a = self.lbl_a*0.6 -- gianfini temp var for transparency
-    elseif self.__mouse_state == 0 then
-      gfx.a = self.lbl_a  -- gianfini temp var
+    elseif self.__mouse_state == 0 and self.active == 1 then
+      --gfx.a = self.lbl_a  -- gianfini temp var
 	  temp_lbl_a = self.lbl_a*0.9
     end
   
@@ -317,13 +350,11 @@ function Button:draw()
     
     self:set_help_text() -- Draw info/help text (if 'help_text' is not "")
 	
-	-- self.lbl_b = 0 -- gianfini to make it yellow
-    
 	if self.fill_status == 1 then  -- gianfini different coloring if modifier active
 		self.lbl_b = 0.2
 		self.lbl_g = 0.6
 		self.lbl_r = 1
-	else
+	elseif self.active == 1 then
 		self.lbl_b = self.lbl_store_b + ((1 - self.lbl_store_b)/2) 
 		self.lbl_r = self.lbl_store_r + ((1 - self.lbl_store_r)/2)
 		self.lbl_g = self.lbl_store_g + ((1 - self.lbl_store_g)/2)
@@ -332,9 +363,14 @@ function Button:draw()
     if last_mouse_state == 0 and gfx.mouse_cap & 1 == 0 and self.__state_changing == true then
       if self.onClick ~= nil then self:onClick()
         self.__state_changing = false
-      else self.__state_changing = false
+      else 
+	    self.__state_changing = false
       end
     end
+	if self:__rmb_down() then
+		if self.onRClick ~= nil then self:onRClick() end
+		
+	end
   
   -- Mouse is not on element -----------------------
   else
@@ -342,7 +378,7 @@ function Button:draw()
       self.__state_changing = false
     end
 	
-	if self.fill_status == 1 then  -- gianfini different coloring if modifier active
+	if self.fill_status == 1 then  -- gianfini different coloring if modifier active (only for version 2.3 not Undo)
 		self.lbl_b = 0.4
 		self.lbl_g = 0.4
 		self.lbl_r = 1
@@ -353,12 +389,13 @@ function Button:draw()
 	end
   end  
   
-  if self.__mouse_state == 1 or self.vis_state == 1 or self.__state_changing then
+  
+  if (self.__mouse_state == 1 or self.vis_state == 1 or self.__state_changing) and self.active == 1 then
     --self.a = math.max(self.a - 0.2, 0.2)
     --gfx.set(0.8,0,0.8,self.a)
     gfx.set(0.9*self.r,0.9*self.g,0.9*self.b,math.max(self.a - 0.2, 0.2)*0.9)
     gfx.rect(self.x1, self.y1, self.w, self.h)
-
+   
   -- Button is not pressed
   elseif not self.state_changing or self.vis_state == 0 or self.__mouse_state == 0 then
     gfx.set(self.r+0.2,self.g+0.2,self.b+0.2,self.a)
@@ -511,6 +548,50 @@ local function UndoIfNamesChanged()
   end
 end
 
+local function InfoReplacePattern() -- gianfini help for replace button
+	local info = [[
+         --- Track/item Name Manipulation: Replace Pattern Help ---
+		 
+   x: (where x is not one of the magic characters ^$()%.[]*+-?) 
+      represents the character x itself. 
+   •.: (a dot) represents all characters.
+   •%a: represents all letters.
+   •%c: represents all control characters.
+   •%d: represents all digits.
+   •%l: represents all lowercase letters.
+   •%p: represents all punctuation characters.
+   •%s: represents all space characters.
+   •%u: represents all uppercase letters.
+   •%w: represents all alphanumeric characters.
+   •%x: represents all hexadecimal digits.
+   •%z: represents the character with representation 0.
+   •%x: (where x is any non-alphanumeric character) represents 
+          the character x. 
+   • ^ anchors the pattern to the beginning of the string
+   • To escape the magic characters preceed by a '%' 
+   
+   •[set]: represents the class which is the union of all characters 
+              in set. 
+              A range of characters can be specified with a '-'. 
+              All classes %x described above can also be used in set. 
+              All other characters in set represent themselves.  
+   •[^set]: represents the complement of set. 
+
+   Main patterns:
+   • a single character class followed by '*', matches 0 or more 
+     repetitions of characters (longest possible sequence);
+   • a single character class followed by '+', matches 1 or more 
+     repetitions of characters in the class (longest sequence); 
+   • a single character class followed by '-': like '*' but 
+     matches the shortest possible sequence
+   (e.g. ".*" = matches the whole name)
+   
+   For all classes represented by single letters (%a, %c, etc.), the 
+   corresponding uppercase letter represents the complement of the 
+   class.  ]]
+    reaper.MB(info, "Replace Pattern Matching", 0)
+end
+
 -- gianfini: line between buttons
 local function DrawOneDividingLine(txx, tyy, strong)
 	txx = 0
@@ -536,6 +617,21 @@ local function DrawDividingLines() -- gianfini
 	DrawOneDividingLine(reset_btn.x1, reset_btn.y1 + btn_height*2 + math.floor(win_vert_border/2), 1)
 end
 
+function set_list_help_text()
+  
+	gfx.y = Tracks_btn.y1 -- math.floor(win_vert_border/3.7)
+	
+	local help_text_list = "Click on a line for free editing"
+    local hwidth = gfx.measurestr(help_text_list)
+	gfx.x = math.floor(win_w/2 + win_border/2)
+    gfx.set(1,.6,.25,1)  -- gianfini changed color
+    gfx.setfont(2, "Arial", 15) -- gianfini font size changed
+    
+	gfx.printf(help_text_list)
+	
+end
+
+
 -- gianfini: prints a track or item name
 local function DrawTrackName(txx, tyy, tname)
 	if (what == "tracks") then
@@ -556,17 +652,13 @@ local function DrawTrackName(txx, tyy, tname)
 end
 
 local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- gianfini, redraws the tracks - items scroll list
-   --f()
-   --lstw, lsth = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
-   --x_start = lsth
-   --y_start = 10*lsth*1.5
    
    fsmall()
-   lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
+   local lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
    
    --fsmall()
    --strw_small, strh_small = gfx.measurestr("Strip leading & trailing whitespaces")
-   max_lines = math.floor(tl_h/lsth_small)
+   local max_lines = math.floor(tl_h/lsth_small)
    
    x_start = tl_x
    y_start = tl_y
@@ -605,12 +697,16 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- gianfini, redraws
 		else
 			last_s_line = first_s_line + max_lines - 1
 		end
+		
+		num_displayed_lines = last_s_line - first_s_line + 1
 	
 		for i = first_s_line, last_s_line do
 			local trt = reaper.GetSelectedTrack(0, i)
 			track_num = reaper.GetMediaTrackInfo_Value(trt,"IP_TRACKNUMBER")
 			DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(string.format("%02d",track_num))..". "..tostring(ToBeTrackNames[reaper.GetTrackGUID(trt)]))
 		end
+	else
+		num_displayed_lines = 0
 	end
    else -- manage items
 	if CheckItems_NM() then
@@ -640,6 +736,8 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- gianfini, redraws
 			last_s_line = first_s_line + max_lines - 1
 		end
 		
+		num_displayed_lines = last_s_line - first_s_line + 1
+		
 		for i = first_s_line, last_s_line do
 			local itemId = reaper.GetSelectedMediaItem(0, i)
 			local acttake =  reaper.GetActiveTake(itemId)
@@ -648,52 +746,174 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- gianfini, redraws
 				DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]))
 			end
 		end
+	else
+		num_displayed_lines = 0
 	end
    end
 end
 
-function WriteModifiers() -- write modifiers in track - items list, not to Reaper tracks - items
-    --if undo_stack == 0 then return end
-	
+function UpdateUndoHelp()
 	if undo_stack > 0 then
 		local modifier_name = ""
-		local modifier = mod_stack_name[undo_stack]
+		local last_modifier = mod_stack_name[undo_stack]
 		local parm1 = mod_stack_parm1[undo_stack]
 		local parm2 = mod_stack_parm2[undo_stack]
 		
-		if modifier == "prefix" then
+		if last_modifier == "prefix" then
 			modifier_name = "PREFIX " .. "\'" .. parm1 .. "\'"
-		elseif modifier == "suffix" then
+		elseif last_modifier == "suffix" then
 			modifier_name = "SUFFIX " .. "\'" .. parm1 .. "\'"
-		elseif modifier == "trimstart" then
+		elseif last_modifier == "trimstart" then
 			modifier_name = "TRIM START " .. parm1
-		elseif modifier == "trimend" then
+		elseif last_modifier == "trimend" then
 			modifier_name = "TRIM END " .. parm1
-		elseif modifier == "keep" then
+		elseif last_modifier == "keep" then
 			modifier_name = "KEEP " .. "\'" .. parm1 .. "\'" 
-		elseif modifier == "replace" then
-			modifier_name = "REPLACE " .. "\'" .. parm1 .. "\'" .. "\nWITH " .. "\'" .. parm2 .. "\'"
-		elseif modifier == "number" then
+		elseif last_modifier == "replace" then
+			modifier_name = "REPLACE " .. "\'" .. tostring(parm1) .. "\'" .. "\nWITH " .. "\'" .. parm2 .. "\'"
+		elseif last_modifier == "number" then
 			modifier_name = "NUMBER " .. "\'" .. parm1 .. "\'"
-		elseif modifier == "upper" then
+		elseif last_modifier == "upper" then
 			modifier_name = "UPPERCASE"
-		elseif modifier == "lower" then
+		elseif last_modifier == "lower" then
 			modifier_name = "LOWERCASE"
-		elseif modifier == "swap" then
+		elseif last_modifier == "swap" then
 			modifier_name = "SWAPCASE"
-		elseif modifier == "capitalize" then
+		elseif last_modifier == "capitalize" then
 			modifier_name = "CAPITALIZE"
-		elseif modifier == "title" then
+		elseif last_modifier == "title" then
 			modifier_name = "TITLECASE"
-		elseif modifier == "strip" then
+		elseif last_modifier == "strip" then
 			modifier_name = "STRIP LEAD/TRAIL SPACES"
+		elseif last_modifier == "single_line_edit" then
+			modifier_name = "EDIT LINE NO. " .. parm2
 		end
 				
 		undo_btn.help_text = "Undo " .. modifier_name
 	else
 		undo_btn.help_text = "Nothing to undo"
 	end
+end
+
+function ApplyModifier (prevName, modifier, parm1, parm2, seq_number) -- gianfini: appy one modifier to a track-item name
+	local newName = prevName
+	local i = seq_number
+
+	if modifier == "prefix" then
+		newName = parm1 .. newName
+	elseif modifier == "suffix" then
+		newName = newName .. parm1
+	elseif modifier == "trimstart" then
+		newName = newName:sub(parm1 + 1)
+	elseif modifier == "trimend" then
+		local length = newName:len()
+		newName = newName:sub(1, length - parm1)
+	elseif modifier == "keep" then
+		local mode, number = parm1:match("([seSE])%s?(%d+)")
+		number = tonumber(number)
+		if mode:match("[sS]") then
+			newName = newName:sub(0, number)
+		else
+			newName = newName:sub((-1)*number)
+		end 
+	elseif modifier == "replace" then
+		if parm1 ~= "" then
+			newName = string.gsub(newName, parm1, parm2)
+		end
+	elseif modifier == "number" then
+		if parm1 ~= "" then
+		local mode, number = parm1:match("([psPS])%s?(%d+)")
+			if mode:match("[pP]") then
+				newName = string.format("%02d", math.floor(number+i)) .. " " .. newName
+			else
+				newName = newName .. " " .. string.format("%02d", math.floor(number+i))
+			end
+		end
+	elseif modifier == "upper" then
+		newName = string.upper(newName)
+	elseif modifier == "lower" then
+		newName = string.lower(newName)
+	elseif modifier == "swap" then
+		newName = swapcase(newName)
+	elseif modifier == "capitalize" then
+		newName = (newName:gsub("^%l", string.upper))
+	elseif modifier == "title" then
+		newName = string.gsub(" "..newName, "%W%l", string.upper):sub(2)
+	elseif modifier == "strip" then
+		newName = newName:match("^%s*(.-)%s*$")
+	elseif modifier == "single_line_edit" then
+		if tonumber(parm2) == (i + 1) then
+			newName = parm1
+		end
+	end
+
+	return newName
+end
+
+function WriteCurrentModifier() -- write last modifier only to all tracks-items list
+    --if undo_stack == 0 then return end
 	
+	local has_changed = 0 -- indicate whether a change in track-items names has occourred or not
+		
+	if what == "tracks" then
+      if CheckTracks() then
+					  
+			for i=0, trackCount-1 do
+				local trackId = reaper.GetSelectedTrack(0, i)
+				local prevName = ToBeTrackNames[reaper.GetTrackGUID(trackId)] -- gianfini
+				
+				if undo_stack > 0 then
+					local modifier = mod_stack_name[undo_stack]
+					local parm1 = mod_stack_parm1[undo_stack]
+					local parm2 = mod_stack_parm2[undo_stack]
+					
+					newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
+				end
+			
+				-- Update list
+				if newName ~= prevName then
+					ToBeTrackNames[reaper.GetTrackGUID(trackId)] = newName -- gianfini
+					has_changed = 1
+				end
+			end
+	  end
+	else -- managing items
+		if CheckItems() then
+        					  
+			for i=0, itemCount-1 do
+				local itemId = reaper.GetSelectedMediaItem(0, i)
+				local acttake = reaper.GetActiveTake(itemId)
+				if acttake then
+					local prevName = ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]
+					if undo_stack > 0 then
+						local modifier = mod_stack_name[undo_stack]
+						local parm1 = mod_stack_parm1[undo_stack]
+						local parm2 = mod_stack_parm2[undo_stack]
+						
+						newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
+					end	
+			
+					-- Update list
+					if prevName ~= newName then
+						ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)] = newName -- gianfini
+						has_changed = 1
+					end
+				end
+			end
+		end
+	end
+	if has_changed == 0 and undo_stack > 0 then
+		undo_stack = undo_stack - 1
+	end
+
+	UpdateUndoHelp ()
+
+end
+
+
+function WriteModifiersStack() -- write all modifiers to track-items list (not to actual tracks-items) up to current undo-level
+    --if undo_stack == 0 then return end
+		
 	if what == "tracks" then
       if CheckTracks() then
 					  
@@ -707,52 +927,11 @@ function WriteModifiers() -- write modifiers in track - items list, not to Reape
 						local parm1 = mod_stack_parm1[j]
 						local parm2 = mod_stack_parm2[j]
 						
-						if modifier == "prefix" then
-							newName = parm1 .. newName
-						elseif modifier == "suffix" then
-							newName = newName .. parm1
-						elseif modifier == "trimstart" then
-							newName = newName:sub(parm1 + 1)
-						elseif modifier == "trimend" then
-							local length = newName:len()
-							newName = newName:sub(1, length - parm1)
-						elseif modifier == "keep" then
-							local mode, number = parm1:match("([seSE])%s?(%d+)")
-							number = tonumber(number)
-							if mode:match("[sS]") then
-								newName = newName:sub(0, number)
-							else
-								newName = newName:sub((-1)*number)
-							end 
-						elseif modifier == "replace" then
-							if parm1 ~= "" then
-								newName = string.gsub(newName, parm1, parm2)
-							end
-						elseif modifier == "number" then
-							if parm1 ~= "" then
-							local mode, number = parm1:match("([psPS])%s?(%d+)")
-								if mode:match("[pP]") then
-									newName = string.format("%02d", math.floor(number+i)) .. " " .. newName
-								else
-									newName = newName .. " " .. string.format("%02d", math.floor(number+i))
-								end
-							end
-						elseif modifier == "upper" then
-							newName = string.upper(newName)
-						elseif modifier == "lower" then
-							newName = string.lower(newName)
-						elseif modifier == "swap" then
-							newName = swapcase(newName)
-						elseif modifier == "capitalize" then
-							newName = (newName:gsub("^%l", string.upper))
-						elseif modifier == "title" then
-							newName = string.gsub(" "..newName, "%W%l", string.upper):sub(2)
-						elseif modifier == "strip" then
-							newName = newName:match("^%s*(.-)%s*$")
-						end
+						prevName = newName
+						newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
 					end
 				end
-				
+			
 				-- Update list
 				ToBeTrackNames[reaper.GetTrackGUID(trackId)] = newName -- gianfini
 			end
@@ -771,49 +950,8 @@ function WriteModifiers() -- write modifiers in track - items list, not to Reape
 							local parm1 = mod_stack_parm1[j]
 							local parm2 = mod_stack_parm2[j]
 							
-							if modifier == "prefix" then
-								newName = parm1 .. newName
-							elseif modifier == "suffix" then
-								newName = newName .. parm1
-							elseif modifier == "trimstart" then
-								newName = newName:sub(parm1 + 1)
-							elseif modifier == "trimend" then
-								local length = newName:len()
-								newName = newName:sub(1, length - parm1)
-							elseif modifier == "keep" then
-								local mode, number = parm1:match("([seSE])%s?(%d+)")
-								number = tonumber(number)
-								if mode:match("[sS]") then
-									newName = newName:sub(0, number)
-								else
-									newName = newName:sub((-1)*number)
-								end 
-							elseif modifier == "replace" then
-								if parm1 ~= "" then
-									newName = string.gsub(newName, parm1, parm2)
-								end
-							elseif modifier == "number" then
-								if parm1 ~= "" then
-								local mode, number = parm1:match("([psPS])%s?(%d+)")
-									if mode:match("[pP]") then
-										newName = string.format("%02d", math.floor(number+i)) .. " " .. newName
-									else
-										newName = newName .. " " .. string.format("%02d", math.floor(number+i))
-									end
-								end
-							elseif modifier == "upper" then
-								newName = string.upper(newName)
-							elseif modifier == "lower" then
-								newName = string.lower(newName)
-							elseif modifier == "swap" then
-								newName = swapcase(newName)
-							elseif modifier == "capitalize" then
-								newName = (newName:gsub("^%l", string.upper))
-							elseif modifier == "title" then
-								newName = string.gsub(" "..newName, "%W%l", string.upper):sub(2)
-							elseif modifier == "strip" then
-								newName = newName:match("^%s*(.-)%s*$")
-							end
+							prevName = newName
+							newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
 						end
 					end	
 			
@@ -823,7 +961,92 @@ function WriteModifiers() -- write modifiers in track - items list, not to Reape
 			end
 		end
 	end
+	
+	UpdateUndoHelp ()
 end
+
+local function get_line_name(line_num)  -- gianfini: get the text of line in scroll list and corresponding Reaper track num
+	if what == "tracks" then
+		local trackId = reaper.GetSelectedTrack(0, line_num)
+		
+		return ToBeTrackNames[reaper.GetTrackGUID(trackId)], reaper.GetMediaTrackInfo_Value(trackId,"IP_TRACKNUMBER")
+		
+	else	
+		local itemId = reaper.GetSelectedMediaItem(0, line_num)
+		local acttake = reaper.GetActiveTake(itemId)
+		if acttake then
+			return ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)], 0
+		else
+			return "", 0
+		end
+	end
+end
+
+local function modify_single_line(line_num)
+	local line_object = ""
+	
+	local obj_name, track_num = get_line_name(line_num - 1)
+	
+	if what == "tracks" then line_object = "TRACK " .. tostring(string.format("%02d",track_num)) else line_object = "ITEM" end
+	local ok, text = reaper.GetUserInputs("Modify " .. line_object, 1, "Name: ,extrawidth=" .. tostring(math.floor(scroll_list_w*3/5)), obj_name)
+	
+    if ok then
+		undo_stack = undo_stack + 1
+		mod_stack_name [undo_stack] = "single_line_edit"
+		mod_stack_parm1 [undo_stack] = text
+		mod_stack_parm2 [undo_stack] = tostring(line_num)
+		WriteCurrentModifier()
+	end
+	
+end
+
+local function is_mouse_on_list_Down()
+	fsmall()
+    local lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
+	
+	scroll_line_selected = math.floor((gfx.mouse_y - scroll_list_y + lsth_small) / lsth_small)
+	if (gfx.mouse_x > scroll_list_x and gfx.mouse_x < (scroll_list_x + scroll_list_w) and gfx.mouse_y > scroll_list_y and gfx.mouse_y < (scroll_list_y + scroll_list_h) and last_mouse_state == 0)
+		then
+		set_list_help_text()
+	end	
+	return(gfx.mouse_x > scroll_list_x and gfx.mouse_x < (scroll_list_x + scroll_list_w) and gfx.mouse_y > scroll_list_y and gfx.mouse_y < (scroll_list_y + scroll_list_h) and last_mouse_state == 0 and gfx.mouse_cap & 1 == 1 and tonumber(num_displayed_lines) >= scroll_line_selected)
+end
+
+
+local function init_tables()
+  if what == "tracks" then
+    -- Store initial track selection so that there can be a comparison in main()
+    trackCount = reaper.CountSelectedTracks(0)
+    sel_tracks = {}
+    for i = 1, trackCount do
+      sel_tracks[i] = reaper.GetSelectedTrack(0, i - 1)
+    end
+    -- Store all track names before any manipulation so that there can be a comparison afterwards
+    AllLastTrackNames = AllTrackNames()
+	-- gianfini
+	ToBeTrackNames = AllTrackNames()
+	OriginalTrackNames = AllTrackNames()
+	indexed_track = 1
+	undo_stack = 0
+		
+  elseif what == "items" then
+    -- Store initial item selection so that there can be a comparison in main()
+    itemCount = reaper.CountSelectedMediaItems(0)
+    sel_items = {}
+    for i = 1, itemCount do
+      sel_items[i] = reaper.GetSelectedMediaItem(0, i - 1)
+    end
+    -- Store all item names before any manipulation so that there can be a comparison afterwards
+    AllLastItemNames = AllItemNames()
+	-- gianfini
+	ToBeItemNames = AllItemNames()
+	OriginalItemNames = AllItemNames()
+	indexed_item = 1
+	undo_stack = 0
+  end
+  btn_DOWN_can_move = 0
+end
+
 
 local function main() -- MAIN FUNCTION
   -- Draw buttons
@@ -861,8 +1084,14 @@ local function main() -- MAIN FUNCTION
   
   -- gianfini new buttons coloring
   commit_btn:set_color_commit()
-  reset_btn:set_color_reset()
-  undo_btn:set_color_undo()
+  
+  if undo_stack > 0 then
+	reset_btn:set_color_reset(1)
+	undo_btn:set_color_undo(1)
+  else
+    reset_btn:set_color_reset(0)
+    undo_btn:set_color_undo(0)
+  end
   
   if (what == "tracks" and indexed_track > 1) or (what == "items" and indexed_item > 1) then 
 	UP_btn:set_color_updown_can_move(0)
@@ -877,10 +1106,13 @@ local function main() -- MAIN FUNCTION
   end
   
   RefreshTrackItemList (scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h)  --gianfini
+  
+  if is_mouse_on_list_Down() then modify_single_line(tonumber(scroll_line_selected)) end
     
   -- Check every half second to see if the track or item selection has changed
   if what == "tracks" then
-    local newtime = reaper.time_precise()
+    --local newtime = reaper.time_precise()
+	local newtime=os.time() -- gianfini corrected
     if newtime-lasttime >= 0.5 then
       lasttime=newtime
       -- Get the number of selected tracks
@@ -890,10 +1122,14 @@ local function main() -- MAIN FUNCTION
       for i = 1, trackCount do
         cur_tracks[i] = reaper.GetSelectedTrack(0, i - 1)
       end
-      -- See if the current and stored track selections match
+	  -- See if the current and stored track selections match
       if not compare_tables(sel_tracks, cur_tracks) then
       -- User changed the track selection
         sel_tracks = cur_tracks
+				
+		init_tables()
+		undo_btn.help_text = "Nothing to undo"
+		
         UndoIfNamesChanged()
       end
     end
@@ -912,6 +1148,10 @@ local function main() -- MAIN FUNCTION
       if not compare_tables(sel_items, cur_items) then
       -- User changed the item selection
         sel_items = cur_items
+		
+		init_tables()
+		undo_btn.help_text = "Nothing to undo"
+		
         UndoIfNamesChanged()
       end
     end
@@ -928,39 +1168,6 @@ local function main() -- MAIN FUNCTION
     
 end
 
-local function init_tables()
-  if what == "tracks" then
-    -- Store initial track selection so that there can be a comparison in main()
-    trackCount = reaper.CountSelectedTracks(0)
-    sel_tracks = {}
-    for i = 1, trackCount do
-      sel_tracks[i] = reaper.GetSelectedTrack(0, i - 1)
-    end
-    -- Store all track names before any manipulation so that there can be a comparison afterwards
-    AllLastTrackNames = AllTrackNames()
-	-- gianfini
-	ToBeTrackNames = AllTrackNames()
-	OriginalTrackNames = AllTrackNames()
-	indexed_track = 1
-	undo_stack = 0
-		
-  elseif what == "items" then
-    -- Store initial item selection so that there can be a comparison in main()
-    itemCount = reaper.CountSelectedMediaItems(0)
-    sel_items = {}
-    for i = 1, itemCount do
-      sel_items[i] = reaper.GetSelectedMediaItem(0, i - 1)
-    end
-    -- Store all item names before any manipulation so that there can be a comparison afterwards
-    AllLastItemNames = AllItemNames()
-	-- gianfini
-	ToBeItemNames = AllItemNames()
-	OriginalItemNames = AllItemNames()
-	indexed_item = 1
-	undo_stack = 0
-  end
-  btn_DOWN_can_move = 0
-end
 
 local function init() -- INITIALIZATION
   -- Get current context (tracks or items)
@@ -1009,7 +1216,7 @@ local function init() -- INITIALIZATION
   keep_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
   
   -- second raw Replace
-    local label, help = "Replace", "Replaces all instances of the pattern\nwith the replacement"
+    local label, help = "Replace", "Replaces all instances of the pattern\nwith replacement (RClick -> help)"
   local width = win_w - 2*win_border
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
@@ -1169,8 +1376,8 @@ local function init() -- INITIALIZATION
  				mod_stack_name [undo_stack] = "prefix"
 				mod_stack_parm1 [undo_stack] = text
 				mod_stack_parm2 [undo_stack] = ""
+				WriteCurrentModifier() -- gianfini
 			end
-			WriteModifiers() -- gianfini
         end
       end
     elseif what == "items" then
@@ -1190,8 +1397,8 @@ local function init() -- INITIALIZATION
  				mod_stack_name [undo_stack] = "prefix"
 				mod_stack_parm1 [undo_stack] = text
 				mod_stack_parm2 [undo_stack] = ""
+				WriteCurrentModifier() -- gianfini 
 			end
-			WriteModifiers() -- gianfini 
         end
       end
     end
@@ -1215,8 +1422,8 @@ local function init() -- INITIALIZATION
  				mod_stack_name [undo_stack] = "suffix"
 				mod_stack_parm1 [undo_stack] = text
 				mod_stack_parm2 [undo_stack] = ""
+				WriteCurrentModifier() -- gianfini
 			end
-			WriteModifiers() -- gianfini
 			
 		end
       end
@@ -1235,13 +1442,13 @@ local function init() -- INITIALIZATION
           end
 		  ]]--
 		  
-		  if text ~= "" then --gianfini
+			if text ~= "" then --gianfini
 				undo_stack = undo_stack + 1
  				mod_stack_name [undo_stack] = "suffix"
 				mod_stack_parm1 [undo_stack] = text
 				mod_stack_parm2 [undo_stack] = ""
+				WriteCurrentModifier() -- gianfini
 			end
-			WriteModifiers() -- gianfini
         end
       end
     end  
@@ -1260,7 +1467,7 @@ local function init() -- INITIALIZATION
 				mod_stack_parm1 [undo_stack] = text
 				mod_stack_parm2 [undo_stack] = ""
 			end
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
           
 		  else
 			reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
@@ -1279,7 +1486,7 @@ local function init() -- INITIALIZATION
 				mod_stack_parm1 [undo_stack] = text
 				mod_stack_parm2 [undo_stack] = ""
 			end
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
           else
 			reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
@@ -1287,6 +1494,10 @@ local function init() -- INITIALIZATION
         end
       end
     end
+  end
+  
+  function replace_btn.onRClick()
+	InfoReplacePattern()
   end
   
   function replace_btn.onClick()
@@ -1313,7 +1524,7 @@ local function init() -- INITIALIZATION
 				mod_stack_parm1 [undo_stack] = replaceOld
 				mod_stack_parm2 [undo_stack] = replaceWith
 			end
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--for i=0, trackCount-1 do
               --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1347,7 +1558,7 @@ local function init() -- INITIALIZATION
 				mod_stack_parm1 [undo_stack] = replaceOld
 				mod_stack_parm2 [undo_stack] = replaceWith
 			end
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--[[
             for i=0, itemCount-1 do
@@ -1373,7 +1584,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "upper"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 		
 		--for i=0, trackCount-1 do
           --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1390,7 +1601,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "upper"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 		
 		--[[
 		for i=0, itemCount-1 do
@@ -1415,7 +1626,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "lower"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 		
 		--for i=0, trackCount-1 do
           --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1432,7 +1643,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "lower"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 		
 		--[[
         for i=0, itemCount-1 do
@@ -1456,7 +1667,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "swap"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 		
 		--for i=0, trackCount-1 do
           --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1473,7 +1684,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "swap"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 		
 		--[[
 		for i=0, itemCount-1 do
@@ -1497,7 +1708,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "capitalize"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 	  
         --for i=0, trackCount-1 do
           --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1514,7 +1725,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "capitalize"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 	  
 		--[[
         for i=0, itemCount-1 do
@@ -1539,7 +1750,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "title"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 	  
         --for i=0, trackCount-1 do
           --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1556,7 +1767,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "title"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 	  
 		--[[
         for i=0, itemCount-1 do
@@ -1581,7 +1792,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "strip"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 	  		
 		--for i=0, trackCount-1 do
           --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1598,7 +1809,7 @@ local function init() -- INITIALIZATION
 		mod_stack_name [undo_stack] = "strip"
 		mod_stack_parm1 [undo_stack] = ""
 		mod_stack_parm2 [undo_stack] = ""
-		WriteModifiers() -- gianfini
+		WriteCurrentModifier() -- gianfini
 	  
 		--[[
         for i=0, itemCount-1 do
@@ -1625,7 +1836,7 @@ local function init() -- INITIALIZATION
 			mod_stack_name [undo_stack] = "trimstart"
 			mod_stack_parm1 [undo_stack] = number
 			mod_stack_parm2 [undo_stack] = ""
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--for i=0, trackCount-1 do
               --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1650,7 +1861,7 @@ local function init() -- INITIALIZATION
 			mod_stack_name [undo_stack] = "trimstart"
 			mod_stack_parm1 [undo_stack] = number
 			mod_stack_parm2 [undo_stack] = ""
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--[[
             for i=0, itemCount-1 do
@@ -1683,7 +1894,7 @@ local function init() -- INITIALIZATION
 			mod_stack_name [undo_stack] = "trimend"
 			mod_stack_parm1 [undo_stack] = number
 			mod_stack_parm2 [undo_stack] = ""
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--for i=0, trackCount-1 do
               --local trackId = reaper.GetSelectedTrack(0, i)
@@ -1709,7 +1920,7 @@ local function init() -- INITIALIZATION
 			mod_stack_name [undo_stack] = "trimend"
 			mod_stack_parm1 [undo_stack] = number
 			mod_stack_parm2 [undo_stack] = ""
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 						
 			--[[
             for i=0, itemCount-1 do
@@ -1742,7 +1953,7 @@ local function init() -- INITIALIZATION
 			mod_stack_name [undo_stack] = "keep"
 			mod_stack_parm1 [undo_stack] = text
 			mod_stack_parm2 [undo_stack] = ""
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--[[
 			local newName = ""
@@ -1777,7 +1988,7 @@ local function init() -- INITIALIZATION
 			mod_stack_name [undo_stack] = "keep"
 			mod_stack_parm1 [undo_stack] = text
 			mod_stack_parm2 [undo_stack] = ""
-			WriteModifiers() -- gianfini
+			WriteCurrentModifier() -- gianfini
 			
 			--[[
 			local newName = ""
@@ -1845,7 +2056,7 @@ local function init() -- INITIALIZATION
 	if undo_stack > 0 then
 		undo_stack = undo_stack - 1
 	end
-	WriteModifiers()
+	WriteModifiersStack()
   end
   
   function commit_btn.onClick()
@@ -1870,6 +2081,7 @@ local function init() -- INITIALIZATION
 	end
 	
 	init_tables()	
+	undo_btn.help_text = "Nothing to undo"
   end
 	
 end -------------------------------- end of init() function
