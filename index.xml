@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0ecd0265285b1a6aac4bc4c319222529ca1fd52" name="ReaTeam Scripts">
+<index version="1" commit="c7337579a04ec0ff09dc70f5ba74350100e5449b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5028,6 +5028,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:44:05Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/346f4d62416b679d65291a0a5df4c354dfb11e31/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.6" author="amagalma, modified by gianfini" time="2017-08-05T19:51:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c7337579a04ec0ff09dc70f5ba74350100e5449b/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
