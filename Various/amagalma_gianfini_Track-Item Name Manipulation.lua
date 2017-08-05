@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation
 -- @author amagalma, modified by gianfini
--- @version 2.3
+-- @version 2.4
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -19,18 +19,20 @@
 
 
 -- Changelog:
+-- V2.4 (2017-07-30) 
+--  - Added Help for Replace patterns
 -- v2.3 (2017-07-30)
---	- Added KEEP modifier from Amagalma script
+--  - Added KEEP modifier from Amagalma script
 -- v2.2 (2017-07-29)
---	- Fixed handling empty items: no crash anymore
+--  - Fixed handling empty items: no crash anymore
 -- v2.1 (2017-07-28)
---	- Fixed continous "select track/item" windows. Improved switch between tracks and items
+--  - Fixed continous "select track/item" windows. Improved switch between tracks and items
 -- v2.0 (2017-07-26)
---	- Non desctructive mode implemented + graphic changes
+--  - Non desctructive mode implemented + graphic changes
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
-version = "2.3"
+version = "2.4"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -142,6 +144,10 @@ end
 function Button:__lmb_down()
   return(last_mouse_state == 0 and gfx.mouse_cap & 1 == 1 and self.__mouse_state == 0)
   --return(last_mouse_state == 0 and self.mouse_state == 1)
+end
+
+function Button:__rmb_down()
+	return(last_mouse_state == 0 and gfx.mouse_cap & 2 == 2 and self.__mouse_state == 0)
 end
 
 function Button:set_color1()
@@ -323,6 +329,10 @@ function Button:draw()
       else self.__state_changing = false
       end
     end
+	if self:__rmb_down() then
+		if self.onRClick ~= nil then self:onRClick() end
+		
+	end
   
   -- Mouse is not on element -----------------------
   else
@@ -497,6 +507,50 @@ local function UndoIfNamesChanged()
       reaper.Undo_OnStateChange("Item name manipulation")
     end
   end
+end
+
+local function InfoReplacePattern()
+	local info = [[
+         --- Track/item Name Manipulation: Replace Pattern Help ---
+		 
+   x: (where x is not one of the magic characters ^$()%.[]*+-?) 
+      represents the character x itself. 
+   •.: (a dot) represents all characters.
+   •%a: represents all letters.
+   •%c: represents all control characters.
+   •%d: represents all digits.
+   •%l: represents all lowercase letters.
+   •%p: represents all punctuation characters.
+   •%s: represents all space characters.
+   •%u: represents all uppercase letters.
+   •%w: represents all alphanumeric characters.
+   •%x: represents all hexadecimal digits.
+   •%z: represents the character with representation 0.
+   •%x: (where x is any non-alphanumeric character) represents 
+          the character x. 
+   • ^ anchors the pattern to the beginning of the string
+   • To escape the magic characters preceed by a '%' 
+   
+   •[set]: represents the class which is the union of all characters 
+              in set. 
+              A range of characters can be specified with a '-'. 
+              All classes %x described above can also be used in set. 
+              All other characters in set represent themselves.  
+   •[^set]: represents the complement of set. 
+
+   Main patterns:
+   • a single character class followed by '*', matches 0 or more 
+     repetitions of characters (longest possible sequence);
+   • a single character class followed by '+', matches 1 or more 
+     repetitions of characters in the class (longest sequence); 
+   • a single character class followed by '-': like '*' but 
+     matches the shortest possible sequence
+   (e.g. ".*" = matches the whole name)
+   
+   For all classes represented by single letters (%a, %c, etc.), the 
+   corresponding uppercase letter represents the complement of the 
+   class.  ]]
+    reaper.MB(info, "Replace Pattern Matching", 0)
 end
 
 -- gianfini: line between buttons
@@ -1303,6 +1357,10 @@ local function init() -- INITIALIZATION
         end
       end
     end
+  end
+  
+  function replace_btn.onRClick()
+	InfoReplacePattern()
   end
   
   function replace_btn.onClick()
