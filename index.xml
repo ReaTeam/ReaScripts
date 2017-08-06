@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="76c5bcd2dd9c7b620e8007a67474118d45214fcf" name="ReaTeam Scripts">
+<index version="1" commit="40da187532c6df64f49e3575886c68ab9b480111" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4642,10 +4642,18 @@ Made by Mordi, Jan 2016]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script is a "beats version" of REAPER's native action "Time selection: Insert empty space at time selection (moving later items)".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is a "beats version" of REAPER's native action "Time selection: Insert empty space at time selection (moving later items)". The number of selected beats is precisely replicated in the empty space.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 REAPER's action inserts empty space that is equal to {\i time} duration of the time selection. If the time selection is not an exact multiple of beats (calculated in the tempo preceding the insert point), all later events (including tempo changes) will necessarily shift away from their beat positions.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script insert empty space equal to the number of {\i beats} in the time selection (in the tempo preceding the time selection). Later events will therefore remain on the beat.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 WARNING: This script is not fully compatible with linear tempo changes. The tempo change that precedes the time selection should be square, as should the tempo map's default point shape.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tempo map\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script duplicates the tempo envelope into the empty space, which has the result of inserting the exact number of selected {\i beats} in the time selection. Later events will therefore remain on the grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Insert position\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert the empty beats/space on either the left of the right of the time selection, depending position of the edit cursor relative to the time selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Locked items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will also detect locked items and can optionally protect such items against moving or splitting.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Timebase\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time for all tracks, items and envelopes.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=191210</link>
@@ -4666,6 +4674,15 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="0.93" author="juliansader" time="2017-07-03T01:36:07Z">
         <changelog><![CDATA[+ Workaround for "Add edge points" bug in REAPER that deletes timesig markers at insertion point.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/71eb643ea050e5be9a8263b78b9ffa6aedf14a28/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.95" author="juliansader" time="2017-08-06T19:24:32Z">
+        <changelog><![CDATA[+ MIDI items are not split. Instead MIDI is shifted inside item. Script is threfore useful in MIDI editor.
++ Tempo envelope is duplicated into empty space, so that inserted space is equal to selected time as well as selected beats.
++ Compatible with linear tempo changes.
++ User does not need to make any changes to timebase before or after running script.
++ Locked items can be protected against moving or splitting.
++ Empty space can be inserted either to the left or right of time selection (determined by edit cursor position).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40da187532c6df64f49e3575886c68ab9b480111/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
