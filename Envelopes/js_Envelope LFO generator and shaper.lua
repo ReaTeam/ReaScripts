@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.11
+Version: 1.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -72,6 +72,8 @@ About:
     + Keyboard shortcuts "a", "c" and "r" for quick switching between GUI views.
   * v1.11 (2017-03-02)
     + Fixed bug in loading default curves with customized names (different from "default").
+  * v1.20 (2017-08-06)
+    + GUI window will open at last-used screen position.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -806,7 +808,7 @@ function convert_tempo_env_to_TempoTimeSigMarkers()
         reaper.SetTempoTimeSigMarker(0, -1, tableTempoPoints[i].time, -1, -1, tableTempoPoints[i].value, 0, 0, true)
     end
     
-    reaper.UpdateArrange()
+    reaper.UpdateTimeline()
 end -- function convert_tempo_env_to_TempoTimeSigMarkers
 
 
@@ -1183,7 +1185,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   --if last_used_parms==nil then last_used_params={"}
   last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
   reaper.Envelope_SortPoints(env)
-  reaper.UpdateArrange()
+  reaper.UpdateTimeline()
     
   --local envNameOK, envName = reaper.GetEnvelopeName(env, "")
   --if envNameOK and envName == "Tempo map" then convert_tempo_env_to_TempoTimeSigMarkers() end
@@ -1192,6 +1194,14 @@ end
 ----------------------------------------------------------
 
 function exit()
+
+    -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
+    local docked, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
+    if docked == 0 and type(xPos) == "number" and type(yPos) == "number" then
+        -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
+        reaper.SetExtState("LFO generator", "Last coordinates (env version)", string.format("%i", math.floor(xPos+0.5)) .. "," .. string.format("%i", math.floor(yPos+0.5)), true)
+    end
+     
     gfx.quit()
 
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
@@ -2040,7 +2050,6 @@ if type(preserveExistingEnvelope) ~= "boolean" then
     reaper.ShowMessageBox("The setting 'preserveExistingEnvelope' must be either 'true' of 'false'.", "ERROR", 0) return(false) end
 if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
     reaper.ShowMessageBox("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) end
-
        
 
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
@@ -2052,7 +2061,15 @@ reaper.atexit(exit)
 
 time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
 
-gfx.init("LFO tool",initXsize, initYsize,0)
+-- The GUI window will be opened at the last-used coordinates
+local coordinatesExtState = reaper.GetExtState("LFO generator", "Last coordinates (env version)") -- Returns an empty string if the ExtState does not exist
+xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
+if xPos and yPos then
+    gfx.init("LFO tool",initXsize, initYsize, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+else
+    gfx.init("LFO tool",initXsize, initYsize, 0)
+end
+    
 gfx.setfont(1,"Ariel", 15)
 for i=0,10 do
   --local buttonkey=(i+200)
