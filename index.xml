@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="40da187532c6df64f49e3575886c68ab9b480111" name="ReaTeam Scripts">
+<index version="1" commit="8f8692dedd519a6b6746e6f4b8f102c5aab62262" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -537,6 +537,10 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
       <version name="1.11" author="juliansader" time="2017-03-02T20:12:34Z">
         <changelog><![CDATA[+ Fixed bug in loading default curves with customized names (different from "default").]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a04bef566d301c6580a67cd8be05e76acb7bd684/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.20" author="juliansader" time="2017-08-06T21:35:41Z">
+        <changelog><![CDATA[+ GUI window will open at last-used screen position.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f8692dedd519a6b6746e6f4b8f102c5aab62262/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
