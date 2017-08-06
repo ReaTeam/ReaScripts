@@ -574,7 +574,7 @@ reaper.UpdateArrange()
 reaper.Undo_EndBlock2(0, "Insert empty beats in selection", -1)
 
 if tryToUndo then
-    if reaper.Undo_CanUndo2(0) == "Insert empty space and duplicate tempo envelope" then
+    if reaper.Undo_CanUndo2(0) == "Insert empty beats in selection" then
         couldUndo = reaper.Undo_DoUndo2(0)
         if couldUndo == 0 then
             reaper.MB("Could not undo changes.  Please undo manually.", "ERROR", 1)
