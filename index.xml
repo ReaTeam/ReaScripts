@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f8692dedd519a6b6746e6f4b8f102c5aab62262" name="ReaTeam Scripts">
+<index version="1" commit="6f27c1d3526362d51484922526cc276a08b30577" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5590,6 +5590,23 @@ Web Interface:
       <version name="1.2.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
         <changelog><![CDATA[Name change for consistency]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create mix bus and reroute all selected tracks to it.lua" type="script" desc="Create mix bus and reroute all selected tracks to it">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then reroutes all selected tracks to it and disables their Master/Parent sends.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2017-08-06T22:29:49Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f27c1d3526362d51484922526cc276a08b30577/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20selected%20tracks%20to%20it.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create mix bus and reroute all top-level tracks to it.lua" type="script" desc="Create mix bus and reroute all top-level tracks to it">
