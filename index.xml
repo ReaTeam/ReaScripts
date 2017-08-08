@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8acf404456ebf4aa28ddf130bbf8235c68178a3" name="ReaTeam Scripts">
+<index version="1" commit="19aba4be0744b6ee2c52a19c9fd4e67e527e0ab1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5301,6 +5301,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T18:33:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96ad93b4cd2b6b364e9edc2443bdcf127da301b1/Various/amagalma_Smooth%20scroll%20view%20right.eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-08T21:58:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/19aba4be0744b6ee2c52a19c9fd4e67e527e0ab1/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
