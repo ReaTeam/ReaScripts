@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 0.95
+Version: 0.96
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -31,6 +31,9 @@ About:
   # Timebase
   The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time
   for all tracks, items and envelopes.
+  
+  # WARNING
+  The script may require several seconds to parse large projects (and, in particular, large MIDI items).
 ]]
 
 --[[
@@ -44,6 +47,8 @@ About:
     + User does not need to make any changes to timebase before or after running script.
     + Locked items can be protected against moving or splitting.
     + Empty space can be inserted either to the left or right of time selection (determined by edit cursor position).
+  * v0.96 (2017-08-07)
+    + MIDI notes that extend into but not beyond time selection, will not be extended.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -481,6 +486,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------
 -- Repair original positions of MIDI items, and insert space without splitting, by shifting all MIDI after insertion point
+-- Notes that start
 for item, values in pairs(tMIDIItemPositions) do
     local setPosOK = reaper.SetMediaItemPosition(item, values.position, false)
     if not setPosOK then
@@ -501,6 +507,7 @@ for item, values in pairs(tMIDIItemPositions) do
             reaper.MIDI_Sort(take)
             local spacePPQstart = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, spaceTimeStart)+0.5) -- These PPQ values may contain fractions
             local spacePPQend   = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, spaceTimeEnd)+0.5)
+            local spacePPQlength = spacePPQend - spacePPQstart
             local MIDIOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
             if not MIDIOK then
                 reaper.MB("The script could not load the raw MIDI data of all MIDI items.", "ERROR", 1)
@@ -510,59 +517,98 @@ for item, values in pairs(tMIDIItemPositions) do
                 local MIDIlen = MIDIstring:len()
                 local runningPPQpos = 0
                 local prevStrPos, nextStrPos = 1, 1 -- positions inside MIDIstring while parsing
-                local offset, flags, msg
-                while nextStrPos < MIDIlen do
-                    offset, flags, msg, nextStrPos = string.unpack("i4Bs4", MIDIstring, prevStrPos)
-                    runningPPQpos = runningPPQpos + offset
-                    if runningPPQpos > spacePPQstart then
-                        local newMIDIstring = MIDIstring:sub(1,prevStrPos-1) .. string.pack("i4", offset+(spacePPQend-spacePPQstart)) .. MIDIstring:sub(prevStrPos+4)
-                        local setMIDIOK = reaper.MIDI_SetAllEvts(take, newMIDIstring)
-                        if not setMIDIOK then
-                            reaper.MB("The script could not edit the raw MIDI data of all MIDI items.", "ERROR", 1)
-                            tryToUndo = true
-                            goto quit
+                local tNotes, tNoteOffs, tOtherMIDI = {}, {}, {}
+                local lastStringPosOfFirstPart, lastPPQinFirstPart, lastNoteOffPPQ = 0, 0, 0
+                local extractNoteOff = nil
+                
+                local offset, flags, msg, nextStrPos = string.unpack("i4Bs4", MIDIstring, prevStrPos)
+                local runningPPQpos = offset
+                if runningPPQpos > spacePPQend then goto beyondSpace
+                elseif runningPPQpos >= spacePPQstart then goto withinSpace
+                end
+                
+                ::beforeSpaceStart::
+                    if msg:len() == 3 then
+                        local msg1, msg2, msg3 = msg:byte(1,3)
+                        eventType = msg1>>4
+                        if eventType == 9 and msg3 ~= 0 then
+                            local index = (msg2<<11) | ((msg1&0x0F)<<4) | flags
+                            if tNotes[index] == nil then tNotes[index] = 1 else tNotes[index] = tNotes[index] + 1 end
+                        elseif eventType == 9 or eventType == 8 then
+                            local index = (msg2<<11) | ((msg1&0x0F)<<4) | flags
+                            if tNotes[index] == 1 then tNotes[index] = nil else tNotes[index] = tNotes[index] - 1 end
                         end
-                        break
-                        
-                    -- Extract note-offs from events at spacePPQstart,
-                    -- But beware of 0-length notes. REAPER sorts as follows: CCs -> note-offs -> note-ons -> note-offs of 0-length notes.  So break as soon as reach first note-on.
-                    elseif runningPPQpos == spacePPQstart then
-                         local tNoteOffs, tOtherMIDI = {}, {} -- Divide MIDI at spllit point into note-off and other stuff. Note-offs will remain in place to avoid extending notes.
-                         local keepUpToThisPos = prevStrPos-1
-                         local offsetToStartPPQ = offset
-                        ::withinPPQstart::
-                            if msg:len() == 3 and (msg:byte(1)>>4 == 8 or (msg:byte(1)>>4 == 9 and msg:byte(3) == 0)) then
-                                table.insert(tNoteOffs, string.pack("i4Bs4", 0, flags, msg))
-                            else
-                                table.insert(tOtherMIDI, string.pack("i4Bs4", 0, flags, msg))
-                            end
-                            prevStrPos = nextStrPos
-                            if nextStrPos >= MIDIlen or (msg:len() == 3 and msg:byte(1)>>4 == 9 and msg:byte(3) ~= 0) then 
-                                goto beyondPPQstart
-                            else
-                                offset, flags, msg, nextStrPos = string.unpack("i4Bs4", MIDIstring, prevStrPos)
-                                if offset ~= 0 then goto beyondPPQstart
-                                else
-                                    goto withinPPQstart
-                            end end
-                        ::beyondPPQstart::
-                            local newMIDIstring = MIDIstring:sub(1,keepUpToThisPos) .. string.pack("i4Bs4", offsetToStartPPQ, 0, "") 
-                                                                                    .. table.concat(tNoteOffs)
-                                                                                    .. string.pack("i4Bs4", spacePPQend-spacePPQstart, 0, "")
-                                                                                    .. table.concat(tOtherMIDI)
-                                                                                    .. MIDIstring:sub(prevStrPos)
-                            local setMIDIOK = reaper.MIDI_SetAllEvts(take, newMIDIstring)
-                            if not setMIDIOK then
-                                reaper.MB("The script could not edit the raw MIDI data of all MIDI items.", "ERROR", 1)
-                                tryToUndo = true
-                                goto quit
-                            end
-                        break
-                        
+                    end
+                    if nextStrPos >= MIDIlen then
+                        goto noNeedToChangeMIDI
                     else
                         prevStrPos = nextStrPos
+                        offset, flags, msg, nextStrPos = string.unpack("i4Bs4", MIDIstring, prevStrPos)
+                        runningPPQpos = runningPPQpos + offset
+                        if runningPPQpos < spacePPQstart then 
+                            goto beforeSpaceStart
+                        elseif runningPPQpos <= spacePPQend and next(tNotes) ~= nil then
+                            lastStringPosOfFirstPart = prevStrPos-1
+                            lastPPQinFirstPart       = runningPPQpos - offset
+                            lastNoteOffPPQ = lastPPQinFirstPart
+                            goto withinSpace
+                        else -- runningPPQpos > spacePPQend
+                            lastStringPosOfFirstPart = prevStrPos-1
+                            goto beyondSpace
+                            --newMIDIstring = MIDIstring:sub(1,prevStrPos-1) .. string.pack("i4Bs4", offset+spacePPQlength, flags, msg) .. 
+                        end
                     end
-end end end end end
+                        
+                ::withinSpace::
+                    -- If past spacePPQstart, extract note-offs for active notes so that they don't get extended 
+                    --    - but only if the notes are short enough that note-offs fall within the time selection.  
+                    extractNoteOff = nil             
+                    if msg:len() == 3 then
+                        local msg1, msg2, msg3 = msg:byte(1,3)
+                        eventType = msg1>>4
+                        if eventType == 8 or (eventType == 9 and msg3 == 0) then
+                            local index = (msg2<<11) | ((msg1&0x0F)<<4) | flags
+                            if tNotes[index] ~= nil then 
+                                extractNoteOff = true
+                                if tNotes[index] == 1 then tNotes[index] = nil
+                                else tNotes[index] = tNotes[index] - 1
+                    end end end end
+                    if extractNoteOff then
+                        table.insert(tNoteOffs, string.pack("i4Bs4", runningPPQpos - lastNoteOffPPQ, flags, msg))
+                        lastNoteOffPPQ = runningPPQpos
+                        table.insert(tOtherMIDI, string.pack("i4Bs4", offset, 0, "")) -- replace note-off events in main string with empty events
+                    else
+                        table.insert(tOtherMIDI, string.pack("i4Bs4", offset, flags, msg))
+                    end
+                    prevStrPos = nextStrPos
+                    if nextStrPos >= MIDIlen or next(tNotes) == nil then
+                        goto beyondSpace
+                    else
+                        offset, flags, msg, nextStrPos = string.unpack("i4Bs4", MIDIstring, prevStrPos)
+                        runningPPQpos = runningPPQpos + offset
+                        if runningPPQpos <= spacePPQend then 
+                            goto withinSpace
+                        else -- runningPPQpos > spacePPQend
+                            goto beyondSpace
+                        end
+                    end
+                      
+                ::beyondSpace::  
+                    local newMIDIstring = MIDIstring:sub(1,lastStringPosOfFirstPart) 
+                                .. table.concat(tNoteOffs) 
+                                .. string.pack("i4Bs4", lastPPQinFirstPart-lastNoteOffPPQ+spacePPQlength, 0, "") 
+                                .. table.concat(tOtherMIDI) 
+                                .. MIDIstring:sub(prevStrPos)
+                    local setMIDIOK = reaper.MIDI_SetAllEvts(take, newMIDIstring)
+                    if not setMIDIOK then
+                        reaper.MB("The script could not edit the raw MIDI data of all MIDI items.", "ERROR", 1)
+                        tryToUndo = true
+                        goto quit
+                    end
+                    
+                ::noNeedToChangeMIDI::
+                
+end end end end
 
 
 ---------------------------
