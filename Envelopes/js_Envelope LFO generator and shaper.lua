@@ -91,6 +91,7 @@ About:
     + Compatible with automation items.
   * v1.40 (2017-08-09)
     + LFO can be limited to time selection within automation item.
+    + Undo points more informative.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
