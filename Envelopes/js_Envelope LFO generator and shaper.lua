@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.30
+Version: 1.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -17,11 +17,12 @@ About:
   
   SELECTION OF TARGET ENVELOPE
   
-  The script can insert an LFO into either 1) a selected automation item, or 2) the time selection of the underlying envelope.
+  The script can insert LFOs into either 1) a selected automation item, or 2) the time selection of the underlying envelope.
   
   To insert an LFO into the time selection, select an envelope and deselect all automation items.
   
-  To insert an LFO into an automation item, select a single automation item.
+  To insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds 
+      of the selected automation item, the LFO will be inserted into only the selected part of the automation item.
   
   (The time selection and the target envelope or automation item can be changed while the script is running.)
   
@@ -88,6 +89,8 @@ About:
     + GUI window will open at last-used screen position.
   * v1.30 (2017-08-09)
     + Compatible with automation items.
+  * v1.31 (2017-08-09)
+    + LFO can be limited to time selection within automation item.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -263,7 +266,8 @@ helpText = "SELECTION OF TARGET ENVELOPE:"
           .."\n\n  * a selected automation item, or"
           .."\n\n  * the time selection of the underlying envelope."
           .."\n\nTo insert an LFO into the time selection, select an envelope and deselect all automation items."
-          .."\n\nTo insert an LFO into an automation item, select a single automation item."
+          .."\n\nTo insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds of the selected automation item, "
+          .."the LFO will be inserted into only the selected part of the automation item."
           .."\n\n(The time selection and the target envelope or automation item can be changed while the script is running.)"
           
           .."\n\n\nDRAWING CURVES:"
@@ -881,11 +885,17 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       endEnvPointFound = false
   end
       
-  if selectedAutoItem == -1 then
-      time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
-  else 
-      time_start = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
-      time_end   = time_start + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false) - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
+  time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
+  if selectedAutoItem ~= -1 then
+      local autoItemStart = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
+      local autoItemEnd   = time_start + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
+      if time_start > autoItemStart+0.00000001 and time_end < autoItemEnd-0.00000001 then
+          preserveExistingEnvelopeInAutoItem = true
+      else
+          time_start = autoItemStart
+          time_end   = time_end - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
+          preserveExistingEnvelopeInAutoItem = false 
+      end
   end
   
   if time_end <= time_start then -- If no time is selected, time_start = time_end = 0
@@ -898,9 +908,10 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       timeEndPrev = time_end
   end
       
+  local envNameOK, envName = reaper.GetEnvelopeName(env, "")
   
   -- If the LFO Tool has just been opened, firstNewSelection = nil
-  if newSelection == true and not (firstNewSelection == true) then
+  if newSelection == true and not (firstNewSelection == true) and not envName == "Tempo map" then
       reaper.Undo_OnStateChange("LFO Tool: Envelope", -1)
       firstNewSelection = false
   end
@@ -946,7 +957,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   --    existing envelope.
   -- NOTE: Certain envelope shapes, particularly the non-linear shapes, will not 
   --    be perfectly preserved by inserting new edge points.
-  if newSelection == true and selectedAutoItem == -1 then
+  if newSelection == true and preserveExistingEnvelope and (selectedAutoItem == -1 or preserveExistingEnvelopeInAutoItem) then
       startEnvPoint = nil
       endEnvPoint = nil      
       startEnvPoint = {}
@@ -955,14 +966,14 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       endEnvPointFound = false
       
       reaper.Envelope_SortPoints(env)
-      local totalNumberOfPoints = reaper.CountEnvelopePoints(env)
+      local totalNumberOfPoints = reaper.CountEnvelopePointsEx(env, selectedAutoItem)
       
       startEnvPoint = {shape = nil}
-      local closestPointBeforeStart = reaper.GetEnvelopePointByTime(env, time_start - timeOffset - 0.0000001)
+      local closestPointBeforeStart = reaper.GetEnvelopePointByTimeEx(env, selectedAutoItem, time_start - timeOffset - 0.0000001)
       --if i ~= -1 then
       --_, _, _, startEnvPoint.shape, _, _ = reaper.GetEnvelopePoint(env, i)
       for i = closestPointBeforeStart, totalNumberOfPoints do
-          local retval, timeOut, valueOut, shapeOut, _, _ = reaper.GetEnvelopePoint(env, i)
+          local retval, timeOut, valueOut, shapeOut, _, _ = reaper.GetEnvelopePointEx(env, selectedAutoItem, i)
           if retval then
               if not startEnvPoint.shape then startEnvPoint.shape = shapeOut end 
               if timeOut >= time_start - timeOffset - 0.00000001 and timeOut <= time_start - timeOffset + 0.00000001 then
@@ -995,9 +1006,9 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           --end
       end 
       
-      local closestPointBeforeOrAtEnd = reaper.GetEnvelopePointByTime(env, time_end - timeOffset)
+      local closestPointBeforeOrAtEnd = reaper.GetEnvelopePointByTimeEx(env, selectedAutoItem, time_end - timeOffset)
       for i = closestPointBeforeOrAtEnd, totalNumberOfPoints do
-          local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePoint(env, i)
+          local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePointEx(env, selectedAutoItem, i)
           -- Store the parameters of points < time_end, in case they nood to be used to interpolate a 
           --    edge point to preserve existing envelope outside time selection
           if retval then
@@ -1030,8 +1041,8 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   
   -- startEnvPoint (to preservce existing envelope values) must be inserted before 
   --    the LFO's own points
-  if preserveExistingEnvelope == true and selectedAutoItem == -1 and startEnvPointFound == true and not (startEnvPoint.shape == 1) then -- If square shape, not need to insert point
-      reaper.InsertEnvelopePoint(env, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
+  if preserveExistingEnvelope == true and startEnvPointFound == true and not (startEnvPoint.shape == 1) and (selectedAutoItem == -1 or preserveExistingEnvelopeInAutoItem == true) then -- If square shape, not need to insert point
+      reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
   end
   
   
@@ -1227,8 +1238,8 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
               reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
               
               -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
-              if preserveExistingEnvelope == true and selectedAutoItem == -1 and endEnvPointFound == true then
-                  reaper.InsertEnvelopePoint(env, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
+              if preserveExistingEnvelope and endEnvPointFound and (selectedAutoItem == -1 or preserveExistingEnvelopeInAutoItem) then
+                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
               end
           end
               
@@ -1245,7 +1256,6 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   --if last_used_parms==nil then last_used_params={"}
   last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
   reaper.Envelope_SortPointsEx(env, selectedAutoItem)
-  local envNameOK, envName = reaper.GetEnvelopeName(env, "")
   if envNameOK and envName == "Tempo map" then 
       local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
       if firstOK then
