@@ -1,14 +1,29 @@
 -- @description amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX
 --
 --   - You must have TBProAudio's free AB_LM JSFX!
 --   - http://www.tb-software.com/TBProAudio/ab_lmjsfx.html
+-- @link http://forum.cockos.com/showthread.php?t=140268
 
+--[[
+ * Changelog:
+ * v1.01 (2017-08-09)
+  + Better handling of Track chunks >4MB (using eugen2777's workaround)
+  + Some code optimization
+--]]
+
+-----------------------------------------------------------------------------
 local reaper = reaper
+local find = string.find
+local insert = table.insert
+local match = string.match
+local concat = table.concat
+local remove = table.remove
 
+-----------------------------------------------------------------------------
 local function GetInfo()
   local FXGUID, what, trackGUID
   local focus, track, item, fxid = reaper.GetFocusedFX()
@@ -34,8 +49,23 @@ local function GetInfo()
   return FXGUID, track, what, trackGUID
 end
 
+-----------------------------------------------------------------------------
+local function GetTrackChunk(track) -- eugen2777's workaround for chunks >4MB
+  if not track then return end
+  local fast_str, track_chunk
+  fast_str = reaper.SNM_CreateFastString("")
+  if reaper.SNM_GetSetObjectState(track, fast_str, false, false) then
+    track_chunk = reaper.SNM_GetFastString(fast_str)
+  end
+  reaper.SNM_DeleteFastString(fast_str)  
+  return track_chunk
+end
 
-local function InsertSRC(FXGUID, track, what)
+-----------------------------------------------------------------------------
+local function NoUndoPoint() end 
+
+-----------------------------------------------------------------------------
+local function InsertAB(FXGUID, track, what)
   if FXGUID and track then
     local source = {
     "BYPASS 0 0",
@@ -46,51 +76,44 @@ local function InsertSRC(FXGUID, track, what)
     "WAK 0"
     }
     local t = {}
-    local _, chunk = reaper.GetTrackStateChunk(track, "", false)
+    local chunk = GetTrackChunk(track)
     for line in chunk:gmatch('[^\n]+') do       
       t[#t+1] = line
     end
     local FXEndLine, pivot
     for i = 30, #t do
-      if string.find(t[i], FXGUID) then
+      if find(t[i], FXGUID) then
         FXEndLine = i
         break
       end
     end 
     for i = FXEndLine-4, 1, -1 do
-      if string.find(t[i], "BYPASS %d %d %d") then
+      if find(t[i], "BYPASS %d %d %d") then
         pivot = i
         break
       end
     end
     for i = 6, 1, -1 do
-      table.insert(t, pivot, source[i])
+      insert(t, pivot, source[i])
     end
     if what == "track" then
       for i = 24, 28 do
-        if string.find(t[i], "SHOW %d") then
-          local show = tostring(tonumber(string.match(t[i], "SHOW (%d)")) + 1)
+        if find(t[i], "SHOW %d") then
+          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
           t[i] = "SHOW "..show
           break
         end
       end
     elseif what == "item" then
       for i = FXEndLine, 1, -1 do
-        if string.find(t[i], "SHOW %d") then
-          local show = tostring(tonumber(string.match(t[i], "SHOW (%d)")) + 1)
+        if find(t[i], "SHOW %d") then
+          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
           t[i] = "SHOW "..show
           break
         end
       end
     end
-    chunk = table.concat(t, "\n")
-    reaper.SetTrackStateChunk(track, chunk, false)
-  end
-end
-
-
-local function InsertCNTRL(FXGUID, track, trackGUID)
-  if FXGUID and track and trackGUID then
+  -- Insert AB Control JSFX --
     local control = {
     "BYPASS 0 0",
     "FXID_NEXT "..reaper.genGuid(),
@@ -100,34 +123,22 @@ local function InsertCNTRL(FXGUID, track, trackGUID)
     'PRESETNAME "No preset"',
     "WAK 0"
     }
-    local t = {}
-    local _, chunk = reaper.GetTrackStateChunk(track, "", false)
-    for line in chunk:gmatch('[^\n]+') do       
-      t[#t+1] = line
-    end
-    local FXEndLine, pivot
-    for i = 30, #t do
-      if string.find(t[i], FXGUID) then
-        FXEndLine = i
-        break
-      end 
-    end
+    FXEndLine = FXEndLine + 6
     for i = FXEndLine+1, #t do
-      if string.find(t[i], "WAK %d") then
+      if find(t[i], "WAK %d") then
         pivot = i + 1
         break
       end
     end
     for i = 7, 1, -1 do
-      table.insert(t, pivot, control[i])
+      insert(t, pivot, control[i])
     end
-    chunk = table.concat(t, "\n")
+    chunk = concat(t, "\n")
     reaper.SetTrackStateChunk(track, chunk, false)
   end
 end
 
-local function NoUndoPoint() end 
-
+-----------------------------------------------------------------------------
 local function RemoveAB()
   local focus, track, item, fxid = reaper.GetFocusedFX()
   if focus > 0 then
@@ -155,46 +166,46 @@ local function RemoveAB()
     local change = 0
     -- Remove JS AB_LM_src plugin
     for i = 1, #t do
-      if string.find(t[i], "<JS AB_LM_src.*") then
+      if find(t[i], "<JS AB_LM_src.*") then
         FXStartLine = i-1
         break
       end
     end
     if FXStartLine then 
       for i = FXStartLine+1, #t do
-        if string.find(t[i], "WAK %d") then
+        if find(t[i], "WAK %d") then
           FXEndLine = i
           break
         end
       end
       for i = 1, FXEndLine-FXStartLine+1 do
-        table.remove(t, FXStartLine)
+        remove(t, FXStartLine)
       end
       change = 1
     end
-    -- Remove JS AB_LM_cntrl plugin
+    -- Remove JS AB_LM_cntrl plugin --
     for i = 1, #t do
-      if string.find(t[i], "<JS AB_LM_cntrl.*") then
+      if find(t[i], "<JS AB_LM_cntrl.*") then
         FXStartLine = i-1
         break
       end
     end
     if FXStartLine then 
       for i = FXStartLine+1, #t do
-        if string.find(t[i], "WAK %d") then
+        if find(t[i], "WAK %d") then
           FXEndLine = i
           break
         end
       end
       for i = 1, (FXEndLine-FXStartLine+1) do
-        table.remove(t, FXStartLine)
+        remove(t, FXStartLine)
       end
       change = 1
     end
     -- Set chunk
     if change == 1 then
       reaper.Undo_BeginBlock()
-      chunk = table.concat(t, "\n")
+      chunk = concat(t, "\n")
       if focus == 1 then
         reaper.SetTrackStateChunk(track, chunk, false)
       elseif focus == 2 then
@@ -209,7 +220,6 @@ local function RemoveAB()
   end
 end
 
-
 -- Main function ---------------------------------------------------------
 local FXGUID, track, what, trackGUID = GetInfo()
 if track and trackGUID then
@@ -219,8 +229,7 @@ if track and trackGUID then
     reaper.SetProjExtState(0, "AB JSFX Toggle", trackGUID, "0")
   else
     reaper.Undo_BeginBlock()
-    InsertSRC(FXGUID, track, what)
-    InsertCNTRL(FXGUID, track, what, trackGUID)
+    InsertAB(FXGUID, track, what)
     reaper.SetProjExtState(0, "AB JSFX Toggle", trackGUID, "1")
     reaper.Undo_EndBlock("Insert AB plugins to focused FX", -1)
   end
