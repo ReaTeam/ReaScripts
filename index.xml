@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="19aba4be0744b6ee2c52a19c9fd4e67e527e0ab1" name="ReaTeam Scripts">
+<index version="1" commit="3358f9e882a180fdc0c0c83b8dbeb7235ffd7995" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4659,7 +4659,7 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Timebase\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time for all tracks, items and envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script may require several seconds to parse large projects (and, in particular, large MIDI items).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script may require several seconds to parse large MIDI items.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=191210</link>
@@ -4693,6 +4693,10 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="0.96" author="juliansader" time="2017-08-08T19:35:12Z">
         <changelog><![CDATA[+ MIDI notes that extend into but not beyond time selection, will not be extended.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e8acf404456ebf4aa28ddf130bbf8235c68178a3/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.97" author="juliansader" time="2017-08-09T08:24:42Z">
+        <changelog><![CDATA[+ Much faster execution in large projects.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3358f9e882a180fdc0c0c83b8dbeb7235ffd7995/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
