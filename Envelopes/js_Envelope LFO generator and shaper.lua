@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.32
+Version: 1.40
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -89,7 +89,7 @@ About:
     + GUI window will open at last-used screen position.
   * v1.30 (2017-08-09)
     + Compatible with automation items.
-  * v1.32 (2017-08-09)
+  * v1.40 (2017-08-09)
     + LFO can be limited to time selection within automation item.
 ]]
 -- The archive of the full changelog is at the end of the script.
@@ -851,422 +851,431 @@ last_envelope=nil
 --    inserts the points into whatever envelope is active.
 function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip)
 
-  math.randomseed(1)
-     
-  tableVals = nil
-  tableVals = {}
-  
-  --------------------------------------------------------------------------------------------
-  -- This script creates an Undo point whenever the target envelope or time selection changes.
-  -- Except if it is the first envelope: An undo point should only be created AFTER the first 
-  --    envelope has been shaped.
-  -- Another undo point will be created when the script exits.
-  newSelection = false -- temporary
-  env = nil
-  
-  envPrev = env
-  env=reaper.GetSelectedEnvelope(0)
-  if env==nil then return end
-  
-  selectedAutoItemPrev = selectedAutoItem
-  selectedAutoItem = -1
-  for a = 0, reaper.CountAutomationItems(env)-1 do
-      local selected = reaper.GetSetAutomationItemInfo(env, a, "D_UISEL", 0, false)
-      if selected ~= 0 then 
-          if selectedAutoItem ~= -1 then return -- If more than one auto item selected, do nothing
-          else selectedAutoItem = a 
-          end
-      end
-  end
-  
-  if env ~= envPrev or selectedAutoItem ~= selectedAutoItemPrev then 
-      newSelection = true
-      startEnvPointFound = false
-      endEnvPointFound = false
-  end
-      
-  time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
-  if selectedAutoItem ~= -1 then
-      local autoItemStart = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
-      local autoItemEnd   = autoItemStart + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
-      if time_start > autoItemStart+0.00000001 and time_end < autoItemEnd-0.00000001 then
-          preserveExistingEnvelopeInAutoItem = true
-      else
-          time_start = autoItemStart
-          time_end   = autoItemEnd - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
-          preserveExistingEnvelopeInAutoItem = false 
-      end
-  end
-  
-  if time_end <= time_start then -- If no time is selected, time_start = time_end = 0
-      return
-  elseif time_start ~= timeStartPrev or time_end ~= timeEndPrev then -- What happens when only one edge is changed?
-      newSelection = true
-      startEnvPointFound = false
-      endEnvPointFound = false
-      timeStartPrev = time_start
-      timeEndPrev = time_end
-  end
-      
-  local envNameOK, envName = reaper.GetEnvelopeName(env, "")
-  
-  -- If the LFO Tool has just been opened, firstNewSelection = nil
-  if newSelection == true and not (firstNewSelection == true) and not envName == "Tempo map" then
-      reaper.Undo_OnStateChange("LFO Tool: Envelope", -1)
-      firstNewSelection = false
-  end
-  
-  -------------------------------------------------------------------------------
-  -- The reaper.InsertEnvelopePoint function uses time position relative to 
-  --    start of *take*, whereas the reaper.GetSet_LoopTimeRange function returns 
-  --    time relative to *project* start.
-  -- The following code therefore adjusts time_start and time_end
-  --    relative to take position.
-  -- The project's own time offset in seconds (Project settings -> 
-  --    Project start time) does not appear to have an effect - but must still
-  --    make sure about this...
-  local BRenv = reaper.BR_EnvAlloc(env, true)
-  local envTake = reaper.BR_EnvGetParentTake(BRenv)
-  _, _, _, _, _, _, BRenvMinValue, BRenvMaxValue, _, _, _ = reaper.BR_EnvGetProperties(BRenv)
-  reaper.BR_EnvFree(BRenv, false)
-  
-  if envTake ~= nil then -- Envelope is take envelope
-      envItem = reaper.GetMediaItemTake_Item(envTake)
-      envItemOffset = reaper.GetMediaItemInfo_Value(envItem, "D_POSITION")
-      --envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
-      --Does the "start offset in take of item" return value of the following function add any info?
-      --envTakeOffsetInItem = reaper.GetMediaItemTakeInfo_Value(envTake, "D_STARTOFFS")
-      timeOffset = envItemOffset --envTakeOffsetInItem + envItemOffset
-      -- The following lines would further restrict time selection to within
-      --    the position and length of the take (or item).  However, by leaving 
-      --    the time selection unrestricted allows the take to be expanded into
-      --    time selection without having to re-draw the envelope.
-      -- I am not sure how to get the length of an item, so time_end will be
-      --    restricted to item end, not take end.
-      --time_start = math.max(0, time_start - envTakeOffsetInItem - envItemOffset)
-      --time_end = math.min(envItemLength - envTakeOffsetInItem, time_end - envTakeOffsetInItem - envItemOffset)
-  else
-      timeOffset = 0
-  end
-  
-  ---------------------------------------------------------------------------------
-  -- The LFO tries to preserve existing envelope values outside the time selection.
-  -- To do so, it will preserve the outermost pre-existing envelope points at the 
-  --    edges of the selection.
-  -- If it cannot find such points, it will insert new points with values of the 
-  --    existing envelope.
-  -- NOTE: Certain envelope shapes, particularly the non-linear shapes, will not 
-  --    be perfectly preserved by inserting new edge points.
-  if newSelection == true and preserveExistingEnvelope and (selectedAutoItem == -1 or preserveExistingEnvelopeInAutoItem) then
-      startEnvPoint = nil
-      endEnvPoint = nil      
-      startEnvPoint = {}
-      endEnvPoint = {}
-      startEnvPointFound = false
-      endEnvPointFound = false
-      
-      reaper.Envelope_SortPoints(env)
-      local totalNumberOfPoints = reaper.CountEnvelopePointsEx(env, selectedAutoItem)
-      
-      startEnvPoint = {shape = nil}
-      local closestPointBeforeStart = reaper.GetEnvelopePointByTimeEx(env, selectedAutoItem, time_start - timeOffset - 0.0000001)
-      --if i ~= -1 then
-      --_, _, _, startEnvPoint.shape, _, _ = reaper.GetEnvelopePoint(env, i)
-      for i = closestPointBeforeStart, totalNumberOfPoints do
-          local retval, timeOut, valueOut, shapeOut, _, _ = reaper.GetEnvelopePointEx(env, selectedAutoItem, i)
-          if retval then
-              if not startEnvPoint.shape then startEnvPoint.shape = shapeOut end 
-              if timeOut >= time_start - timeOffset - 0.00000001 and timeOut <= time_start - timeOffset + 0.00000001 then
-                  startEnvPointFound = true
-                  startEnvPoint.value = valueOut
-                  break
-              elseif retval == true and timeOut > time_start - timeOffset + 0.00000001 then
-                  break
-              end
-          end
-      end
-      --[[
-      local closestPointBeforeOrAtStart = reaper.GetEnvelopePointByTime(env, time_start - timeOffset)
-      for i = closestPointBeforeOrAtStart, 0, -1 do
-          local retval, timeOut, valueOut, _, _, _ = reaper.GetEnvelopePoint(env, i)
-          if retval == true and timeOut == time_start - timeOffset then
-              startEnvPointFound = true
-              startEnvPoint = {value = valueOut}
-          elseif retval == true and timeOut < time_start - timeOffset then
-              break
-          end
-      end
-      ]]
-      -- If no point found at time start, interpolate envelope value to insert new point
-      if not startEnvPointFound then
-          local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_start-timeOffset, 0, 0)
-          --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
-              startEnvPointFound = true
-              startEnvPoint.value = valueOut
-          --end
-      end 
-      
-      local closestPointBeforeOrAtEnd = reaper.GetEnvelopePointByTimeEx(env, selectedAutoItem, time_end - timeOffset)
-      for i = closestPointBeforeOrAtEnd, totalNumberOfPoints do
-          local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePointEx(env, selectedAutoItem, i)
-          -- Store the parameters of points < time_end, in case they nood to be used to interpolate a 
-          --    edge point to preserve existing envelope outside time selection
-          if retval then
-              if timeOut < time_end - timeOffset - 0.00000001 then
-                  endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
-              elseif timeOut < time_end - timeOffset + 0.00000001 then
-                  endEnvPointFound = true
-                  endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
-              elseif timeOut >= time_end - timeOffset + 0.00000001 then
-                  break
-              end
-          end
-      end
-      
-      -- If no point found, interpolate envelope value to insert new point
-      if endEnvPointFound == false then
-          local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_end-timeOffset, 0, 0)
-          --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
-              endEnvPointFound = true
-              endEnvPoint.value = valueOut
-              if type(endEnvPoint.shape) ~= "number" then endEnvPoint.shape = 1 end -- If no shape was found earlier
-              if type(endEnvPoint.tension) ~= "number" then endEnvPoint.tension = 0.5 end
-          --end
-      end 
-      
-  end -- if newSelection == true
-  
-  -- Remember that take envelopes require a time offset
-  reaper.DeleteEnvelopePointRangeEx(env, selectedAutoItem, time_start - timeOffset - 0.00000001, time_end - timeOffset + 0.00000001) -- time_start - phase?
-  
-  -- startEnvPoint (to preservce existing envelope values) must be inserted before 
-  --    the LFO's own points
-  if preserveExistingEnvelope == true and startEnvPointFound == true and not (startEnvPoint.shape == 1) and (selectedAutoItem == -1 or preserveExistingEnvelopeInAutoItem == true) then -- If square shape, not need to insert point
-      reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
-  end
-  
-  
-  ------------------------------------------------------------------------------
-  -- OK, preservation is done, now can start calculating LFO's own point values.
-  envscalingmode=reaper.GetEnvelopeScalingMode(env)
-
-  minv = BRenvMinValue
-  maxv = BRenvMaxValue
-  
-  -- Keep time_start and time_end in timebase, gen_time_start and gen_time_end is in time or beats.
-  local time, gen_time_start, gen_time_end
-  if ratemode>0.5 then
-    time=reaper.TimeMap_timeToQN(time_start)
-    gen_time_start = time
-    gen_time_end=reaper.TimeMap_timeToQN(time_end)
-  else
-    time=time_start
-    gen_time_start = time
-    gen_time_end=time_end
-  end 
-  
-  local timeseldur = gen_time_end - gen_time_start
+    math.randomseed(1)
+       
+    tableVals = nil
+    tableVals = {}
     
-  local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
-  local phaseStep = math.floor(phase * totalSteps)
-
-  local segshape=-1.0+2.0*tilt
-  local ptcount=0
-  
-  if time <= gen_time_end then
-      isBeyondEnd = false else isBeyondEnd = true
-  end
-  
-  ---------------------------------------------------------------------------------------------------
-  -- The main loop that inserts points.
-  -- In order to interpolate the closing envelope point that will be inserted at end_time,
-  --    this loop must actually progress one step beyond the end time.  The point beyond end_time 
-  --    of course not be inserted, but will only be used to calculate the interpolated closing point.
-  while isBeyondEnd == false do
-
-      -- Calculate the step size to next envelope node
-      -- The script's internal envelope value is between [0,1] and must be mapped to 
-      --    a period between [timeBaseMin, timeBaseMax] or [beatBaseMin,beatBaseMax].
-      -- This is done using a power curve: 
-      --    nextNodeStepSize = (1/(MINFREQ + (MAXFREQ-MINFREQ)*(freq_norm_to_use^FREQPOWER)) / totalSteps
-      time_to_interp = (1.0/timeseldur)*(time-gen_time_start) --!!time_start
-      
-      freq_norm_to_use=get_env_interpolated_value(egsliders[1].envelope,time_to_interp, rateInterpolationType)
-      if ratemode < 0.5 then
-          -- Timebase is time, so step size in seconds
-          nextNodeStepSize = (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
-      else
-          -- Timebase == beats, so step size in Quarter Notes
-          nextNodeStepSize = (4.0/(beatBaseMin + (beatBaseMax-beatBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
-      end
-
-      ---------------------         
-      -- Get info for point
-      totalSteps, val, pointShape, pointTension, linearJump = shape_function[shapeSelected](ptcount-phaseStep)
-      -- Usually "false" values are skipped, but not if it is the very first point
-      --   Try to interpolate
-      if ptcount == 0 and val == false then
-          for i = 1, totalSteps-1 do
-              _, nextVal, nextShape, nextTension, nextJump = shape_function[shapeSelected](ptcount-phaseStep+i)
-              if nextVal ~= false then n=i break end
-          end
-          for i = 1, totalSteps-1 do
-              _, prevVal, prevShape, prevTension, prevJump = shape_function[shapeSelected](ptcount-phaseStep-i)
-              if prevVal ~= false then p=i break end
-          end
-          if nextVal ~= false and prevVal ~= false then -- if entire shape is "false", then don't bother
-              if prevJump then prevVal=-prevVal end
-              linearJump = false
-              if prevShape == 1 then -- square
-                  val = prevVal
-              elseif prevShape == 2 then -- sine
-                  val = prevVal + (nextVal-prevVal)*(1-math.cos(math.pi * p/(p+n)))/2
-              elseif prevShape == 3 then -- Fast start (aka inverse cubic)
-                  val = nextVal + (prevVal-nextVal)*((n/(p+n))^3)
-              elseif prevShape == 4 then -- Fast end (aka cubic)
-                  val = prevVal + (nextVal-prevVal)*((p/(p+n))^3)               
-              else -- Linear or Bézier: This interpolation will only be accurate for linear shapes
-                  val = prevVal + (nextVal-prevVal) * p / (p+n)
-                  pointTension = prevTension
-              end         
-          else
-              return(0) -- entire shape is false
-          end
-      
-      end  
-              
-      if val == false then -- Skip point
-          time=time+nextNodeStepSize
-          ptcount=ptcount+1   
-      else -- Point will be inserted. Must first calculate value
-      -- If linearJump, then oppositeVal must also be calculated               
-          if linearJump == true then oppositeVal = -val end
+    --------------------------------------------------------------------------------------------
+    -- This script creates an Undo point whenever the target envelope or time selection changes.
+    -- Except if it is the first envelope: An undo point should only be created AFTER the first 
+    --    envelope has been shaped.
+    -- Another undo point will be created when the script exits.
+    newSelection = false -- temporary
+    
+    env  = reaper.GetSelectedEnvelope(0)
+    if env == nil then return end
+    envNameOK, envName = reaper.GetEnvelopeName(env, "")    
+    
+    selectedAutoItemPrev = selectedAutoItem
+    selectedAutoItem = -1
+    for a = 0, reaper.CountAutomationItems(env)-1 do
+        local selected = reaper.GetSetAutomationItemInfo(env, a, "D_UISEL", 0, false)
+        if selected ~= 0 then 
+            if selectedAutoItem ~= -1 then return -- If more than one auto item selected, do nothing
+            else selectedAutoItem = a 
+            end
+        end
+    end    
+    
+    time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
+    local autoItemStart, autoItemEnd, noNeedToPreserveStartValue, noNeedToPreserveEndValue, timeWithinAutoItem
+    if selectedAutoItem ~= -1 then
+        autoItemStart = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
+        autoItemEnd   = autoItemStart + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
+        if time_start > autoItemStart-0.00000001 and time_start < autoItemStart+0.00000001 then 
+            time_start = autoItemStart
+            noNeedToPreserveStartValue = true    
+        end
+        if time_end > autoItemEnd-0.00000001 and time_end < autoItemEnd+0.00000001 then 
+            time_end = autoItemEnd-0.00000001
+            noNeedToPreservceEndValue = true
+        end
+        if (time_start >= autoItemStart and time_end <= autoItemEnd-0.00000001) then
+            timeWithinAutoItem = true
+        else
+            timeWithinAutoItem = false
+            time_start, time_end = autoItemStart, autoItemEnd-0.00000001
+        end
+        --[[
+        or (time_start > autoItemStart and time_end <= autoItemEnd-0.00000001)
+        then -- time selection is within automation item, but not 
+            preserveExistingEnvelopeInAutoItem = true
+        else
+            time_start = autoItemStart
+            time_end   = autoItemEnd - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
+            preserveExistingEnvelopeInAutoItem = false 
+        end]]
+    end
+    
+    if time_end <= time_start then return end -- If no time is selected, time_start = time_end = 0
+    
+    if env ~= envPrev or selectedAutoItem ~= selectedAutoItemPrev or time_start ~= timeStartPrev or time_end ~= timeEndPrev then
+        newSelection = true
+        startEnvPointFound = false
+        endEnvPointFound = false
         
-          -- fade goes to infinity when trying to calculate point beyond gen_time_end, 
-          --    so use timeFadeHack when calculating the point efter end_time.
-          fade_gain = 1.0
-          timeFadeHack = math.min(time, gen_time_end) 
-          if timeFadeHack - gen_time_start < timeseldur*fadindur then
-             fade_gain = 1.0/(timeseldur*fadindur)*(timeFadeHack - gen_time_start)
-          end
-          if timeFadeHack - gen_time_start > timeseldur - timeseldur*fadoutdur then
-             --!!fade_gain = 1.0-(1.0/(timeseldur*fadoutdur)*(timeFadeHack - fadoutstart_time - gen_time_start))
-             fade_gain = fade_gain * (1.0/(timeseldur*fadoutdur))*(gen_time_end - timeFadeHack)
-          end
-          
-          
-          --if time_to_interp<0.0 or time_to_interp>1.0 then
-          --  reaper.ShowConsoleMsg(time_to_interp.." ") end
-          amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp, "linear")
-          --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
-          val=0.5+(0.5*amp_to_use*fade_gain)*val
-          local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp, "linear")
-          local rangea=maxv-minv
-          val=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
-          local z=math.random()*randomness
-          val=val+(-randomness/2.0)+z
-          local tilt_ramp = (time - gen_time_start) / (timeseldur) --!!1.0/(gen_time_end-time_start) * (time-time_start)
-          local tilt_amount = -1.0+2.0*tilt
-          local tilt_delta = -tilt_amount+(2.0*tilt_amount)*time_to_interp --!!tilt_ramp
-          --val=val+tilt_delta
-          --[[local num_quansteps=3+quansteps*61
-          if num_quansteps<64 then
-            val=quantize_value(val,num_quansteps)
-          end]]
-          if quansteps ~= 1 then
-              val=quantize_value(val, 3 + math.ceil(quansteps*125), minv, maxv)
-          end          
-          
-          val=bound_value(minv,val,maxv)
-          val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
-          tension = segshape*pointTension  
-          
-          if linearJump == true then
-              oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
-              oppositeVal=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
-              oppositeVal=oppositeVal+(-randomness/2.0)+z
-              if quansteps ~= 1 then
-                   oppositeVal=quantize_value(oppositeVal,3 + math.ceil(quansteps*125), minv, maxv)
-              end
-              oppositeVal=bound_value(minv,oppositeVal,maxv)
-              oppositeVal = reaper.ScaleToEnvelopeMode(envscalingmode, oppositeVal)
-              --tension = segshape*pointTension -- override val's tension
-          end
-  
-          -- To insert envelope nodes, timebase==beat must be mapped back to timebase==time
-          --!!local instime=time
-          if ratemode>0.5 then
-              instime=reaper.TimeMap2_QNToTime(0, time)
-          else
-              instime = time
-          end
-  
-          -- Insert point in envelope        
-          -- And remember that takes envelopes require a time offset
-          if time < gen_time_end then
-              if linearJump == true then
-                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, 0, 0, true, true)
-                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
-                  prevVal = oppositeVal
-              else             
-                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, pointShape, tension, true, true)
-                  prevVal = val
-              end
-              prevTime = instime
-              prevShape = pointShape
-              prevTension = tension
-          else -- interpolate the last envelope point
-              isBeyondEnd = true
-              --[[if ratemode>0.5 then
-                endTime=reaper.TimeMap2_QNToTime(0, gen_time_end)  
-              else
-                endTime=gen_time_end
-              end]]
-              if prevShape == 0 then -- linear
-                  endVal = prevVal + (val-prevVal)*(time_end - prevTime)/(instime-prevTime)
-              elseif prevShape == 1 then -- square
-                  endVal = prevVal
-              elseif prevShape == 2 then -- slow start/end (seems to be sine?)
-                  local pifrac    = (math.pi)*(time_end - prevTime)/(instime-prevTime)
-                  local cosfrac = (1-math.cos(pifrac))/2
-                  endVal = prevVal + cosfrac*(val-prevVal)
-              else
-                  endVal = prevVal + (val-prevVal)*(time_end-prevTime)/(instime-prevTime)
-              end
-              -- What shape should the final point have, if endEnvPointFound == false?  
-              -- The script uses "square", which keeps the envelope flat till the next point.
-              reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
-              
-              -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
-              if preserveExistingEnvelope and endEnvPointFound and (selectedAutoItem == -1 or preserveExistingEnvelopeInAutoItem) then
-                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
-              end
-          end
-              
-              
-          
-          --oscphase=oscphase+1.0/((2*3.141592653)/(freqhz))
-          time=time+nextNodeStepSize
-          --time=time+(1.0/(freqhz*32))
-          ptcount=ptcount+1
-      end -- if val ~= false
-     
-  end -- while time<=gen_time_end
-   
-  --if last_used_parms==nil then last_used_params={"}
-  last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
-  reaper.Envelope_SortPointsEx(env, selectedAutoItem)
-  if envNameOK and envName == "Tempo map" then 
-      local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
-      if firstOK then
-          reaper.SetTempoTimeSigMarker(0, 0, timepos, -1, -1, bpm, timesig_num, timesig_denom, lineartempo)
-      end
-      reaper.GetSet_LoopTimeRange(true, false, time_start, time_end, false)
-      --convert_tempo_env_to_TempoTimeSigMarkers() end
-  end
-  reaper.UpdateTimeline()
+        if not firstNewSelection then
+            if envPrevName then
+                undoStr = "LFO Tool: " .. envPrevName
+            else
+                undoStr = "LFO Tool"
+            end  
+            reaper.Undo_OnStateChange2(0, undoStr)
+            firstNewSelection = false
+        end
+        envPrevName = envName
+        
+        timeStartPrev = time_start
+        timeEndPrev = time_end
+        envPrev = env
+        selectedAutoItemPrev = selectedAutoItem
+    end
+            
+        
+    -------------------------------------------------------------------------------
+    -- The reaper.InsertEnvelopePoint function uses time position relative to 
+    --    start of *take*, whereas the reaper.GetSet_LoopTimeRange function returns 
+    --    time relative to *project* start.
+    -- The following code therefore adjusts time_start and time_end
+    --    relative to take position.
+    -- The project's own time offset in seconds (Project settings -> 
+    --    Project start time) does not appear to have an effect - but must still
+    --    make sure about this...
+    local BRenv = reaper.BR_EnvAlloc(env, true)
+    local envTake = reaper.BR_EnvGetParentTake(BRenv)
+    _, _, _, _, _, _, BRenvMinValue, BRenvMaxValue, _, _, _ = reaper.BR_EnvGetProperties(BRenv)
+    reaper.BR_EnvFree(BRenv, false)
     
-  --
+    if envTake ~= nil then -- Envelope is take envelope
+        envItem = reaper.GetMediaItemTake_Item(envTake)
+        envItemOffset = reaper.GetMediaItemInfo_Value(envItem, "D_POSITION")
+        --envItemLength = reaper.GetMediaItemInfo_Value(envItem, "D_LENGTH")
+        --Does the "start offset in take of item" return value of the following function add any info?
+        --envTakeOffsetInItem = reaper.GetMediaItemTakeInfo_Value(envTake, "D_STARTOFFS")
+        timeOffset = envItemOffset --envTakeOffsetInItem + envItemOffset
+        -- The following lines would further restrict time selection to within
+        --    the position and length of the take (or item).  However, by leaving 
+        --    the time selection unrestricted allows the take to be expanded into
+        --    time selection without having to re-draw the envelope.
+        -- I am not sure how to get the length of an item, so time_end will be
+        --    restricted to item end, not take end.
+        --time_start = math.max(0, time_start - envTakeOffsetInItem - envItemOffset)
+        --time_end = math.min(envItemLength - envTakeOffsetInItem, time_end - envTakeOffsetInItem - envItemOffset)
+    else
+        timeOffset = 0
+    end
+    
+    ---------------------------------------------------------------------------------
+    -- The LFO tries to preserve existing envelope values outside the time selection.
+    -- To do so, it will preserve the outermost pre-existing envelope points at the 
+    --    edges of the selection.
+    -- If it cannot find such points, it will insert new points with values of the 
+    --    existing envelope.
+    -- NOTE: Certain envelope shapes, particularly the non-linear shapes, will not 
+    --    be perfectly preserved by inserting new edge points.
+    if newSelection and preserveExistingEnvelope and (selectedAutoItem == -1 or timeWithinAutoItem) then
+        startEnvPoint = nil
+        endEnvPoint = nil      
+        startEnvPoint = {}
+        endEnvPoint = {}
+        startEnvPointFound = false
+        endEnvPointFound = false
+        
+        reaper.Envelope_SortPoints(env)
+        local totalNumberOfPoints = reaper.CountEnvelopePointsEx(env, selectedAutoItem)
+        
+        if not noNeedToPreserveStartValue then
+            startEnvPoint = {shape = nil}
+            local closestPointBeforeStart = reaper.GetEnvelopePointByTimeEx(env, selectedAutoItem, time_start - timeOffset - 0.0000001)
+            --if i ~= -1 then
+            --_, _, _, startEnvPoint.shape, _, _ = reaper.GetEnvelopePoint(env, i)
+            for i = closestPointBeforeStart, totalNumberOfPoints do
+                local retval, timeOut, valueOut, shapeOut, _, _ = reaper.GetEnvelopePointEx(env, selectedAutoItem, i)
+                if retval then
+                    if not startEnvPoint.shape then startEnvPoint.shape = shapeOut end 
+                    if timeOut >= time_start - timeOffset - 0.00000001 and timeOut <= time_start - timeOffset + 0.00000001 then
+                        startEnvPointFound = true
+                        startEnvPoint.value = valueOut
+                        break
+                    elseif retval == true and timeOut > time_start - timeOffset + 0.00000001 then
+                        break
+                    end
+                end
+            end
+            -- If no point found at time start, interpolate envelope value to insert new point
+            if not startEnvPointFound then
+                local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_start-timeOffset, 0, 0)
+                --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
+                    startEnvPointFound = true
+                    startEnvPoint.value = valueOut
+                --end
+            end 
+        end
+        
+        if not noNeedToPreserveEndValue then
+            local closestPointBeforeOrAtEnd = reaper.GetEnvelopePointByTimeEx(env, selectedAutoItem, time_end - timeOffset)
+            for i = closestPointBeforeOrAtEnd, totalNumberOfPoints do
+                local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePointEx(env, selectedAutoItem, i)
+                -- Store the parameters of points < time_end, in case they nood to be used to interpolate a 
+                --    edge point to preserve existing envelope outside time selection
+                if retval then
+                    if timeOut < time_end - timeOffset - 0.00000001 then
+                        endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
+                    elseif timeOut < time_end - timeOffset + 0.00000001 then
+                        endEnvPointFound = true
+                        endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
+                    elseif timeOut >= time_end - timeOffset + 0.00000001 then
+                        break
+                    end
+                end
+            end
+            
+            -- If no point found, interpolate envelope value to insert new point
+            if endEnvPointFound == false then
+                local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_end-timeOffset, 0, 0)
+                --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
+                    endEnvPointFound = true
+                    endEnvPoint.value = valueOut
+                    if type(endEnvPoint.shape) ~= "number" then endEnvPoint.shape = 1 end -- If no shape was found earlier
+                    if type(endEnvPoint.tension) ~= "number" then endEnvPoint.tension = 0.5 end
+                --end
+            end 
+        end
+        
+    end -- if newSelection == true
+    
+    -- Remember that take envelopes require a time offset
+    reaper.DeleteEnvelopePointRangeEx(env, selectedAutoItem, time_start - timeOffset - 0.00000001, time_end - timeOffset + 0.00000001) -- time_start - phase?
+    
+    -- startEnvPoint (to preservce existing envelope values) must be inserted before 
+    --    the LFO's own points
+    if preserveExistingEnvelope and startEnvPointFound and not (startEnvPoint.shape == 1) then -- If square shape, not need to insert point
+        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
+    end
+    
+    
+    ------------------------------------------------------------------------------
+    -- OK, preservation is done, now can start calculating LFO's own point values.
+    envscalingmode=reaper.GetEnvelopeScalingMode(env)
+  
+    minv = BRenvMinValue
+    maxv = BRenvMaxValue
+    
+    -- Keep time_start and time_end in timebase, gen_time_start and gen_time_end is in time or beats.
+    local time, gen_time_start, gen_time_end
+    if ratemode>0.5 then
+      time=reaper.TimeMap_timeToQN(time_start)
+      gen_time_start = time
+      gen_time_end=reaper.TimeMap_timeToQN(time_end)
+    else
+      time=time_start
+      gen_time_start = time
+      gen_time_end=time_end
+    end 
+    
+    local timeseldur = gen_time_end - gen_time_start
+      
+    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+    local phaseStep = math.floor(phase * totalSteps)
+  
+    local segshape=-1.0+2.0*tilt
+    local ptcount=0
+    
+    if time <= gen_time_end then
+        isBeyondEnd = false else isBeyondEnd = true
+    end
+    
+    ---------------------------------------------------------------------------------------------------
+    -- The main loop that inserts points.
+    -- In order to interpolate the closing envelope point that will be inserted at end_time,
+    --    this loop must actually progress one step beyond the end time.  The point beyond end_time 
+    --    of course not be inserted, but will only be used to calculate the interpolated closing point.
+    while isBeyondEnd == false do
+  
+        -- Calculate the step size to next envelope node
+        -- The script's internal envelope value is between [0,1] and must be mapped to 
+        --    a period between [timeBaseMin, timeBaseMax] or [beatBaseMin,beatBaseMax].
+        -- This is done using a power curve: 
+        --    nextNodeStepSize = (1/(MINFREQ + (MAXFREQ-MINFREQ)*(freq_norm_to_use^FREQPOWER)) / totalSteps
+        time_to_interp = (1.0/timeseldur)*(time-gen_time_start) --!!time_start
+        
+        freq_norm_to_use=get_env_interpolated_value(egsliders[1].envelope,time_to_interp, rateInterpolationType)
+        if ratemode < 0.5 then
+            -- Timebase is time, so step size in seconds
+            nextNodeStepSize = (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
+        else
+            -- Timebase == beats, so step size in Quarter Notes
+            nextNodeStepSize = (4.0/(beatBaseMin + (beatBaseMax-beatBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
+        end
+  
+        ---------------------         
+        -- Get info for point
+        totalSteps, val, pointShape, pointTension, linearJump = shape_function[shapeSelected](ptcount-phaseStep)
+        -- Usually "false" values are skipped, but not if it is the very first point
+        --   Try to interpolate
+        if ptcount == 0 and val == false then
+            for i = 1, totalSteps-1 do
+                _, nextVal, nextShape, nextTension, nextJump = shape_function[shapeSelected](ptcount-phaseStep+i)
+                if nextVal ~= false then n=i break end
+            end
+            for i = 1, totalSteps-1 do
+                _, prevVal, prevShape, prevTension, prevJump = shape_function[shapeSelected](ptcount-phaseStep-i)
+                if prevVal ~= false then p=i break end
+            end
+            if nextVal ~= false and prevVal ~= false then -- if entire shape is "false", then don't bother
+                if prevJump then prevVal=-prevVal end
+                linearJump = false
+                if prevShape == 1 then -- square
+                    val = prevVal
+                elseif prevShape == 2 then -- sine
+                    val = prevVal + (nextVal-prevVal)*(1-math.cos(math.pi * p/(p+n)))/2
+                elseif prevShape == 3 then -- Fast start (aka inverse cubic)
+                    val = nextVal + (prevVal-nextVal)*((n/(p+n))^3)
+                elseif prevShape == 4 then -- Fast end (aka cubic)
+                    val = prevVal + (nextVal-prevVal)*((p/(p+n))^3)               
+                else -- Linear or Bézier: This interpolation will only be accurate for linear shapes
+                    val = prevVal + (nextVal-prevVal) * p / (p+n)
+                    pointTension = prevTension
+                end         
+            else
+                return(0) -- entire shape is false
+            end
+        
+        end  
+                
+        if val == false then -- Skip point
+            time=time+nextNodeStepSize
+            ptcount=ptcount+1   
+        else -- Point will be inserted. Must first calculate value
+        -- If linearJump, then oppositeVal must also be calculated               
+            if linearJump == true then oppositeVal = -val end
+          
+            -- fade goes to infinity when trying to calculate point beyond gen_time_end, 
+            --    so use timeFadeHack when calculating the point efter end_time.
+            fade_gain = 1.0
+            timeFadeHack = math.min(time, gen_time_end) 
+            if timeFadeHack - gen_time_start < timeseldur*fadindur then
+               fade_gain = 1.0/(timeseldur*fadindur)*(timeFadeHack - gen_time_start)
+            end
+            if timeFadeHack - gen_time_start > timeseldur - timeseldur*fadoutdur then
+               --!!fade_gain = 1.0-(1.0/(timeseldur*fadoutdur)*(timeFadeHack - fadoutstart_time - gen_time_start))
+               fade_gain = fade_gain * (1.0/(timeseldur*fadoutdur))*(gen_time_end - timeFadeHack)
+            end
+            
+            
+            --if time_to_interp<0.0 or time_to_interp>1.0 then
+            --  reaper.ShowConsoleMsg(time_to_interp.." ") end
+            amp_to_use = get_env_interpolated_value(egsliders[2].envelope,time_to_interp, "linear")
+            --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
+            val=0.5+(0.5*amp_to_use*fade_gain)*val
+            local center_to_use=get_env_interpolated_value(egsliders[3].envelope,time_to_interp, "linear")
+            local rangea=maxv-minv
+            val=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
+            local z=math.random()*randomness
+            val=val+(-randomness/2.0)+z
+            local tilt_ramp = (time - gen_time_start) / (timeseldur) --!!1.0/(gen_time_end-time_start) * (time-time_start)
+            local tilt_amount = -1.0+2.0*tilt
+            local tilt_delta = -tilt_amount+(2.0*tilt_amount)*time_to_interp --!!tilt_ramp
+            --val=val+tilt_delta
+            --[[local num_quansteps=3+quansteps*61
+            if num_quansteps<64 then
+              val=quantize_value(val,num_quansteps)
+            end]]
+            if quansteps ~= 1 then
+                val=quantize_value(val, 3 + math.ceil(quansteps*125), minv, maxv)
+            end          
+            
+            val=bound_value(minv,val,maxv)
+            val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
+            tension = segshape*pointTension  
+            
+            if linearJump == true then
+                oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
+                oppositeVal=minv+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
+                oppositeVal=oppositeVal+(-randomness/2.0)+z
+                if quansteps ~= 1 then
+                     oppositeVal=quantize_value(oppositeVal,3 + math.ceil(quansteps*125), minv, maxv)
+                end
+                oppositeVal=bound_value(minv,oppositeVal,maxv)
+                oppositeVal = reaper.ScaleToEnvelopeMode(envscalingmode, oppositeVal)
+                --tension = segshape*pointTension -- override val's tension
+            end
+    
+            -- To insert envelope nodes, timebase==beat must be mapped back to timebase==time
+            --!!local instime=time
+            if ratemode>0.5 then
+                instime=reaper.TimeMap2_QNToTime(0, time)
+            else
+                instime = time
+            end
+    
+            -- Insert point in envelope        
+            -- And remember that takes envelopes require a time offset
+            if time < gen_time_end then
+                if linearJump == true then
+                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, 0, 0, true, true)
+                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
+                    prevVal = oppositeVal
+                else             
+                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, pointShape, tension, true, true)
+                    prevVal = val
+                end
+                prevTime = instime
+                prevShape = pointShape
+                prevTension = tension
+            else -- interpolate the last envelope point
+                isBeyondEnd = true
+                --[[if ratemode>0.5 then
+                  endTime=reaper.TimeMap2_QNToTime(0, gen_time_end)  
+                else
+                  endTime=gen_time_end
+                end]]
+                if prevShape == 0 then -- linear
+                    endVal = prevVal + (val-prevVal)*(time_end - prevTime)/(instime-prevTime)
+                elseif prevShape == 1 then -- square
+                    endVal = prevVal
+                elseif prevShape == 2 then -- slow start/end (seems to be sine?)
+                    local pifrac    = (math.pi)*(time_end - prevTime)/(instime-prevTime)
+                    local cosfrac = (1-math.cos(pifrac))/2
+                    endVal = prevVal + cosfrac*(val-prevVal)
+                else
+                    endVal = prevVal + (val-prevVal)*(time_end-prevTime)/(instime-prevTime)
+                end
+                -- What shape should the final point have, if endEnvPointFound == false?  
+                -- The script uses "square", which keeps the envelope flat till the next point.
+                reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
+                
+                -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
+                if preserveExistingEnvelope and endEnvPointFound then
+                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
+                end
+            end
+                
+                
+            
+            --oscphase=oscphase+1.0/((2*3.141592653)/(freqhz))
+            time=time+nextNodeStepSize
+            --time=time+(1.0/(freqhz*32))
+            ptcount=ptcount+1
+        end -- if val ~= false
+       
+    end -- while time<=gen_time_end
+     
+    --if last_used_parms==nil then last_used_params={"}
+    last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
+    reaper.Envelope_SortPointsEx(env, selectedAutoItem)
+    if envNameOK and envName == "Tempo map" then 
+        local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
+        if firstOK then
+            reaper.SetTempoTimeSigMarker(0, 0, timepos, -1, -1, bpm, timesig_num, timesig_denom, lineartempo)
+        end
+        reaper.GetSet_LoopTimeRange(true, false, time_start, time_end, false)
+        --convert_tempo_env_to_TempoTimeSigMarkers() end
+    end
+    reaper.UpdateTimeline()
+      
+    --
 end
 
 ----------------------------------------------------------
@@ -1287,7 +1296,13 @@ function exit()
         reaper.RefreshToolbar2(sectionID, cmdID)
     end
     
-    reaper.Undo_OnStateChange("LFO Tool: Envelope",-1)
+    --reaper.Undo_OnStateChange("LFO Tool: Envelope",-1)
+    if envName then
+        undoStr = "LFO Tool: " .. envName
+    else
+        undoStr = "LFO Tool: Automation"
+    end
+    reaper.Undo_OnStateChange2(0, undoStr)
 end -- function exit()
 
 
