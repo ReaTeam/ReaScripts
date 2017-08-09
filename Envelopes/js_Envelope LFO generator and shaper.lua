@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.20
+Version: 1.30
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -11,10 +11,22 @@ About:
   LFO generator and shaper - Automation envelope version.
   
   Draw fancy LFO curves in REAPER's automation envelopes.
+  
     
   # Instructions
   
-  DRAWING ENVELOPES
+  SELECTION OF TARGET ENVELOPE
+  
+  The script can insert an LFO into either 1) a selected automation item, or 2) the time selection of the underlying envelope.
+  
+  To insert an LFO into the time selection, select an envelope and deselect all automation items.
+  
+  To insert an LFO into an automation item, select a single automation item.
+  
+  (The time selection and the target envelope or automation item can be changed while the script is running.)
+  
+  
+  DRAWING CURVES
   
   Leftclick in open space in the envelope drawing area to add an envelope node.
   
@@ -74,6 +86,8 @@ About:
     + Fixed bug in loading default curves with customized names (different from "default").
   * v1.20 (2017-08-06)
     + GUI window will open at last-used screen position.
+  * v1.30 (2017-08-09)
+    + Compatible with automation items.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -244,37 +258,45 @@ beatBaseMin = 0.5
 --     and the value was replaced by this constant
 clip = 1
                   
-helpText = "\n\nDRAWING ENVELOPES:"
-         .."\n\n  * Leftclick in open space in the envelope drawing area to add an envelope node."
-         .."\n\n  * Shift + Leftdrag to add multiple envelope nodes."
-         .."\n\n  * Alt + Leftclick (or -drag) to delete nodes."
-         .."\n\n  * Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered."
-         .."\n\n  * Move mousewheel while mouse hovers above node for fine adjustment."
-
-         .."\n\nUse a Ctrl modifier to edit all nodes simultaneously:"
-         .."\n\n  * Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position."
-         .."\n\n  * Ctrl + Rightclick to enter a precise custom value for all nodes."
-         .."\n\n  * Ctrl + Mousewheel for fine adjustment of all nodes simultaneously."
-         
-         .."\n\nVALUE AND TIME DISPLAY:"
-         .."\n\nThe precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node." 
-         .."\n\nRightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected."
-                 
-         .."\n\nLOADING AND SAVING CURVES:"
-         .."\n\nRight-click (outside envelope area) to open the Save/Load/Delete curve menu."
-         .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
-                 
-         .."\n\nCOPYING TO CC:"
-         .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
-        
-         .."\n\nFURTHER CUSTOMIZATION:"
-         .."\n\nFurther customization is possible - refer to the instructions in the script's USER AREA.\nThis includes:"
-         .."\n  * Easily adding custom LFO shapes."
-         .."\n  * Specifying the resolution of LFO shapes' phase steps."
-         .."\n  * Specifying the resolution of the mousewheel fine adjustment."
-         .."\n  * Changing interface colors."
-         .."\n  * Changing the default curve name."
-         .."\netc..."
+helpText = "SELECTION OF TARGET ENVELOPE:"
+          .."\n\nThe script can insert an LFO into either:"
+          .."\n\n  * a selected automation item, or"
+          .."\n\n  * the time selection of the underlying envelope."
+          .."\n\nTo insert an LFO into the time selection, select an envelope and deselect all automation items."
+          .."\n\nTo insert an LFO into an automation item, select a single automation item."
+          .."\n\n(The time selection and the target envelope or automation item can be changed while the script is running.)"
+          
+          .."\n\n\nDRAWING CURVES:"
+          .."\n\n  * Leftclick in open space in the envelope drawing area to add an envelope node."
+          .."\n\n  * Shift + Leftdrag to add multiple envelope nodes."
+          .."\n\n  * Alt + Leftclick (or -drag) to delete nodes."
+          .."\n\n  * Rightclick on an envelope node to open a dialog box in which a precise custom value can be entered."
+          .."\n\n  * Move mousewheel while mouse hovers above node for fine adjustment."
+          
+          .."\n\nUse a Ctrl modifier to edit all nodes simultaneously:"
+          .."\n\n  * Ctrl + Leftclick (or -drag) to set all nodes to the mouse Y position."
+          .."\n\n  * Ctrl + Rightclick to enter a precise custom value for all nodes."
+          .."\n\n  * Ctrl + Mousewheel for fine adjustment of all nodes simultaneously."
+          
+          .."\n\n\nVALUE AND TIME DISPLAY:"
+          .."\n\nThe precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node." 
+          .."\n\nRightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected."
+          
+          .."\n\n\nLOADING AND SAVING CURVES:"
+          .."\n\nRight-click (outside envelope area) to open the Save/Load/Delete curve menu."
+          .."\n\nOne of the saved curves can be loaded automatically at startup. By default, this curve must be named 'default'."
+          
+          .."\n\n\nCOPYING TO CC:"
+          .."\n\n'Real-time copy to CC' does not write directly to the CC lane. Instead, it copies from the active envelope to the last clicked CC lane. An envelope must therefore still be open and active."
+          
+          .."\n\n\nFURTHER CUSTOMIZATION:"
+          .."\n\nFurther customization is possible - refer to the instructions in the script's USER AREA.\nThis includes:"
+          .."\n  * Easily adding custom LFO shapes."
+          .."\n  * Specifying the resolution of LFO shapes' phase steps."
+          .."\n  * Specifying the resolution of the mousewheel fine adjustment."
+          .."\n  * Changing interface colors."
+          .."\n  * Changing the default curve name."
+          .."\netc..."
 
 -- mouse_cap values
 NOTHING = 0
@@ -838,17 +860,34 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   newSelection = false -- temporary
   env = nil
   
+  envPrev = env
   env=reaper.GetSelectedEnvelope(0)
-  if env==nil then 
-      return
-  elseif env ~= envPrev then 
+  if env==nil then return end
+  
+  selectedAutoItemPrev = selectedAutoItem
+  selectedAutoItem = -1
+  for a = 0, reaper.CountAutomationItems(env)-1 do
+      local selected = reaper.GetSetAutomationItemInfo(env, a, "D_UISEL", 0, false)
+      if selected ~= 0 then 
+          if selectedAutoItem ~= -1 then return -- If more than one auto item selected, do nothing
+          else selectedAutoItem = a 
+          end
+      end
+  end
+  
+  if env ~= envPrev or selectedAutoItem ~= selectedAutoItemPrev then 
       newSelection = true
       startEnvPointFound = false
       endEnvPointFound = false
-      envPrev = env
   end
       
-  time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
+  if selectedAutoItem == -1 then
+      time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)  
+  else 
+      time_start = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
+      time_end   = time_start + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false) - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
+  end
+  
   if time_end <= time_start then -- If no time is selected, time_start = time_end = 0
       return
   elseif time_start ~= timeStartPrev or time_end ~= timeEndPrev then -- What happens when only one edge is changed?
@@ -858,6 +897,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       timeStartPrev = time_start
       timeEndPrev = time_end
   end
+      
   
   -- If the LFO Tool has just been opened, firstNewSelection = nil
   if newSelection == true and not (firstNewSelection == true) then
@@ -906,7 +946,7 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   --    existing envelope.
   -- NOTE: Certain envelope shapes, particularly the non-linear shapes, will not 
   --    be perfectly preserved by inserting new edge points.
-  if newSelection == true then
+  if newSelection == true and selectedAutoItem == -1 then
       startEnvPoint = nil
       endEnvPoint = nil      
       startEnvPoint = {}
@@ -917,6 +957,24 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
       reaper.Envelope_SortPoints(env)
       local totalNumberOfPoints = reaper.CountEnvelopePoints(env)
       
+      startEnvPoint = {shape = nil}
+      local closestPointBeforeStart = reaper.GetEnvelopePointByTime(env, time_start - timeOffset - 0.0000001)
+      --if i ~= -1 then
+      --_, _, _, startEnvPoint.shape, _, _ = reaper.GetEnvelopePoint(env, i)
+      for i = closestPointBeforeStart, totalNumberOfPoints do
+          local retval, timeOut, valueOut, shapeOut, _, _ = reaper.GetEnvelopePoint(env, i)
+          if retval then
+              if not startEnvPoint.shape then startEnvPoint.shape = shapeOut end 
+              if timeOut >= time_start - timeOffset - 0.00000001 and timeOut <= time_start - timeOffset + 0.00000001 then
+                  startEnvPointFound = true
+                  startEnvPoint.value = valueOut
+                  break
+              elseif retval == true and timeOut > time_start - timeOffset + 0.00000001 then
+                  break
+              end
+          end
+      end
+      --[[
       local closestPointBeforeOrAtStart = reaper.GetEnvelopePointByTime(env, time_start - timeOffset)
       for i = closestPointBeforeOrAtStart, 0, -1 do
           local retval, timeOut, valueOut, _, _, _ = reaper.GetEnvelopePoint(env, i)
@@ -927,13 +985,13 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
               break
           end
       end
-      
-      -- If no point found, interpolate envelope value to insert new point
-      if startEnvPointFound == false then
+      ]]
+      -- If no point found at time start, interpolate envelope value to insert new point
+      if not startEnvPointFound then
           local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_start-timeOffset, 0, 0)
           --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
               startEnvPointFound = true
-              startEnvPoint = {value = valueOut}
+              startEnvPoint.value = valueOut
           --end
       end 
       
@@ -942,13 +1000,15 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           local retval, timeOut, valueOut, shapeOut, tensionOut, _ = reaper.GetEnvelopePoint(env, i)
           -- Store the parameters of points < time_end, in case they nood to be used to interpolate a 
           --    edge point to preserve existing envelope outside time selection
-          if retval == true and timeOut <= time_end - timeOffset then
-              endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
-          end
-          if retval == true and timeOut == time_end - timeOffset then
-              endEnvPointFound = true
-          elseif retval == true and timeOut > time_end - timeOffset then
-              break
+          if retval then
+              if timeOut < time_end - timeOffset - 0.00000001 then
+                  endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
+              elseif timeOut < time_end - timeOffset + 0.00000001 then
+                  endEnvPointFound = true
+                  endEnvPoint = {value = valueOut, shape = shapeOut, tension = tensionOut}
+              elseif timeOut >= time_end - timeOffset + 0.00000001 then
+                  break
+              end
           end
       end
       
@@ -966,11 +1026,11 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   end -- if newSelection == true
   
   -- Remember that take envelopes require a time offset
-  reaper.DeleteEnvelopePointRange(env, time_start - timeOffset,time_end+0.0001 - timeOffset) -- time_start - phase?
+  reaper.DeleteEnvelopePointRangeEx(env, selectedAutoItem, time_start - timeOffset - 0.00000001, time_end - timeOffset + 0.00000001) -- time_start - phase?
   
   -- startEnvPoint (to preservce existing envelope values) must be inserted before 
   --    the LFO's own points
-  if preserveExistingEnvelope == true and startEnvPointFound == true then
+  if preserveExistingEnvelope == true and selectedAutoItem == -1 and startEnvPointFound == true and not (startEnvPoint.shape == 1) then -- If square shape, not need to insert point
       reaper.InsertEnvelopePoint(env, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
   end
   
@@ -1134,11 +1194,11 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
           -- And remember that takes envelopes require a time offset
           if time < gen_time_end then
               if linearJump == true then
-                  reaper.InsertEnvelopePoint(env, instime-timeOffset, val, 0, 0, true, true)
-                  reaper.InsertEnvelopePoint(env, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
+                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, 0, 0, true, true)
+                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
                   prevVal = oppositeVal
               else             
-                  reaper.InsertEnvelopePoint(env, instime-timeOffset, val, pointShape, tension, true, true)
+                  reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, pointShape, tension, true, true)
                   prevVal = val
               end
               prevTime = instime
@@ -1164,10 +1224,10 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
               end
               -- What shape should the final point have, if endEnvPointFound == false?  
               -- The script uses "square", which keeps the envelope flat till the next point.
-              reaper.InsertEnvelopePoint(env, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
+              reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
               
               -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
-              if preserveExistingEnvelope == true and endEnvPointFound == true then
+              if preserveExistingEnvelope == true and selectedAutoItem == -1 and endEnvPointFound == true then
                   reaper.InsertEnvelopePoint(env, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
               end
           end
@@ -1184,11 +1244,19 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
    
   --if last_used_parms==nil then last_used_params={"}
   last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
-  reaper.Envelope_SortPoints(env)
+  reaper.Envelope_SortPointsEx(env, selectedAutoItem)
+  local envNameOK, envName = reaper.GetEnvelopeName(env, "")
+  if envNameOK and envName == "Tempo map" then 
+      local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
+      if firstOK then
+          reaper.SetTempoTimeSigMarker(0, 0, timepos, -1, -1, bpm, timesig_num, timesig_denom, lineartempo)
+      end
+      reaper.GetSet_LoopTimeRange(true, false, time_start, time_end, false)
+      --convert_tempo_env_to_TempoTimeSigMarkers() end
+  end
   reaper.UpdateTimeline()
     
-  --local envNameOK, envName = reaper.GetEnvelopeName(env, "")
-  --if envNameOK and envName == "Tempo map" then convert_tempo_env_to_TempoTimeSigMarkers() end
+  --
 end
 
 ----------------------------------------------------------
@@ -1272,6 +1340,7 @@ function update()
     and gfx.mouse_x > gfx.w-22 and gfx.mouse_y > gfx.h-22) 
     and firstClick == true then
         firstClick = false
+        reaper.ClearConsole()
         reaper.ShowConsoleMsg(helpText)
     end  
     
