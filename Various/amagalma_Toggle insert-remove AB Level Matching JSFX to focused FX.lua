@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX
 --
@@ -10,6 +10,8 @@
 
 --[[
  * Changelog:
+ * v1.02 (2017-08-09)
+  + Small improvements
  * v1.01 (2017-08-09)
   + Better handling of Track chunks >4MB (using eugen2777's workaround)
   + Some code optimization
@@ -68,11 +70,12 @@ local function NoUndoPoint() end
 local function InsertAB(FXGUID, track, what)
   if FXGUID and track then
     local source = {
-    "BYPASS 0 0",
-    "FXID_NEXT "..reaper.genGuid(),
+    "BYPASS 0 0 0",
     '<JS AB_LM_src "-- AB Source --"',
     "  0.000000 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ",
     ">",
+    "FLOATPOS 0 0 0 0",
+    "FXID "..reaper.genGuid(),
     "WAK 0"
     }
     local t = {}
@@ -93,7 +96,7 @@ local function InsertAB(FXGUID, track, what)
         break
       end
     end
-    for i = 6, 1, -1 do
+    for i = #source, 1, -1 do
       insert(t, pivot, source[i])
     end
     if what == "track" then
@@ -115,12 +118,13 @@ local function InsertAB(FXGUID, track, what)
     end
   -- Insert AB Control JSFX --
     local control = {
-    "BYPASS 0 0",
-    "FXID_NEXT "..reaper.genGuid(),
+    "BYPASS 0 0 0",
     '<JS AB_LM_cntrl "-- AB Control --"',
     "  0.000000 0.000000 300.000000 1.000000 - - - - - 0.000000 - - - - - - - - - -141.000000 -141.000000 -144.000000 -3.000000 -144.000000 - - - - - -141.000000 -141.000000 -144.000000 -3.000000 -144.000000 - - - - - 0.000000 1.000000 0.000000 - 0.000000 0.000000 - - - - 0.000000 0.000000 - - - - - - - - - - - - - No preset",
     ">",
     'PRESETNAME "No preset"',
+    "FLOATPOS 0 0 0 0",
+    "FXID "..reaper.genGuid(),
     "WAK 0"
     }
     FXEndLine = FXEndLine + 6
@@ -130,7 +134,7 @@ local function InsertAB(FXGUID, track, what)
         break
       end
     end
-    for i = 7, 1, -1 do
+    for i = #control, 1, -1 do
       insert(t, pivot, control[i])
     end
     chunk = concat(t, "\n")
