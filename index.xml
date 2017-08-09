@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="48c4250019664b15ada8741b01eb9f9fe2083865" name="ReaTeam Scripts">
+<index version="1" commit="58a79904e562ee62411e5bf03780a0fd75d55520" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -443,9 +443,9 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's automation envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 SELECTION OF TARGET ENVELOPE\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert an LFO into either 1) a selected automation item, or 2) the time selection of the underlying envelope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert LFOs into either 1) a selected automation item, or 2) the time selection of the underlying envelope.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into the time selection, select an envelope and deselect all automation items.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into an automation item, select a single automation item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds of the selected automation item, the LFO will be inserted into only the selected part of the automation item.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 (The time selection and the target envelope or automation item can be changed while the script is running.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING CURVES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
@@ -550,6 +550,10 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
       <version name="1.30" author="juliansader" time="2017-08-09T15:20:42Z">
         <changelog><![CDATA[+ Compatible with automation items.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27083af7c81e68ca364a7767e547dc902aa737de/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.31" author="juliansader" time="2017-08-09T16:01:57Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/58a79904e562ee62411e5bf03780a0fd75d55520/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
