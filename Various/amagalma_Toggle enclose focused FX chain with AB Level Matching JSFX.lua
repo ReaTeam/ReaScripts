@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus
 --
@@ -8,6 +8,11 @@
 --   - http://www.tb-software.com/TBProAudio/ab_lmjsfx.html
 -- @link http://forum.cockos.com/showthread.php?t=140268
 
+--[[
+ * Changelog:
+ * v1.01 (2017-08-09)
+  + Small improvements
+--]]
 
 -----------------------------------------------------------------------------
 local reaper = reaper
@@ -75,7 +80,7 @@ local function InsertAB(FXGUID, track, what)
     for line in chunk:gmatch('[^\n]+') do       
       t[#t+1] = line
     end
-    --local pivot
+    local pivot
     if what == "track" then
       for i = 23, #t do
         if find(t[i], "BYPASS %d %d %d") then
@@ -83,7 +88,7 @@ local function InsertAB(FXGUID, track, what)
           break
         end
       end
-      for i = 7, 1, -1 do
+      for i = #source, 1, -1 do
         insert(t, pivot, source[i])
       end
       for i = 24, 28 do
