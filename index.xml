@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b75ccf29c6506b306ea522b3079618ab4c12707d" name="ReaTeam Scripts">
+<index version="1" commit="fa658ac6aa881ba382eaccbf6f84bd1b81220af2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5289,6 +5289,23 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T18:33:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96ad93b4cd2b6b364e9edc2443bdcf127da301b1/Various/amagalma_Smooth%20scroll%20view%20right.eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-09T19:28:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fa658ac6aa881ba382eaccbf6f84bd1b81220af2/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
