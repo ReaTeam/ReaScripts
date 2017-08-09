@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.31
+Version: 1.32
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -89,7 +89,7 @@ About:
     + GUI window will open at last-used screen position.
   * v1.30 (2017-08-09)
     + Compatible with automation items.
-  * v1.31 (2017-08-09)
+  * v1.32 (2017-08-09)
     + LFO can be limited to time selection within automation item.
 ]]
 -- The archive of the full changelog is at the end of the script.
@@ -888,12 +888,12 @@ function generate(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadou
   time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
   if selectedAutoItem ~= -1 then
       local autoItemStart = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
-      local autoItemEnd   = time_start + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
+      local autoItemEnd   = autoItemStart + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
       if time_start > autoItemStart+0.00000001 and time_end < autoItemEnd-0.00000001 then
           preserveExistingEnvelopeInAutoItem = true
       else
           time_start = autoItemStart
-          time_end   = time_end - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
+          time_end   = autoItemEnd - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
           preserveExistingEnvelopeInAutoItem = false 
       end
   end
