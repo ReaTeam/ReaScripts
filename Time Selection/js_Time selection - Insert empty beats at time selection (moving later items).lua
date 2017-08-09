@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 0.96
+Version: 0.97
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -33,7 +33,7 @@ About:
   for all tracks, items and envelopes.
   
   # WARNING
-  The script may require several seconds to parse large projects (and, in particular, large MIDI items).
+  The script may require several seconds to parse large MIDI items.
 ]]
 
 --[[
@@ -49,6 +49,8 @@ About:
     + Empty space can be inserted either to the left or right of time selection (determined by edit cursor position).
   * v0.96 (2017-08-07)
     + MIDI notes that extend into but not beyond time selection, will not be extended.
+  * v0.97 (2017-08-09)
+    + Much faster execution in large projects.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -265,72 +267,50 @@ end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 -- Now for the timebase stuff.  Set timebase = Time for Project envelopes, all tracks and all items
--- Get project timebase settings, so that can be reset later.
+-- Original settings will be saved and later restored.
+-- Tempo envelope timebase need not be set, since the tempo envelope will be set directly.
+-- (AFAIK ReaScripts can in any case not set the tempo envelope timebase).
+-- Get project timebase settings.
 projectTimebaseTime     = reaper.GetToggleCommandStateEx(0, reaper.NamedCommandLookup("_SWS_AWTBASETIME"))
 projectTimebaseBeatsAll = reaper.GetToggleCommandStateEx(0, reaper.NamedCommandLookup("_SWS_AWTBASEBEATALL"))
 projectTimebaseBeatsPos = reaper.GetToggleCommandStateEx(0, reaper.NamedCommandLookup("_SWS_AWTBASEBEATPOS"))
 if projectTimebaseTime == 0 then
     reaper.Main_OnCommandEx(reaper.NamedCommandLookup("_SWS_AWTBASETIME"), -1, 0) -- Toggle once to set ON
 end
--- The track state chunk will be divided into 1) track header and 2) item-sized parts, in order to find each track and item's BEAT and NAME parameters
--- Each track and item's original timebase will be stored a new name, since item names are propagated to split child items, and the original timebase
---    can therefore be recovered after inserting empty space.
--- The original names will be stored in tNames.
-local tTracks = {}
-local tNames  = {}
+-- Track timebase
+local tTrackTimebases = {}
 for t = 0, reaper.CountTracks(0)-1 do
     local track = reaper.GetTrack(0, t)
-    if not reaper.ValidatePtr2(0, track, "MediaTrack*") then
-        reaper.MB("Could not get valid pointer to track " .. tostring(t+1) .. ".", "ERROR", 1)
-        return
-    else
-        tTracks[track] = {}
-        -- REAPER's native chunk function truncates long chunks!  Therefore must use SNM's SWS function.
-        --local okChunk, chunk = reaper.GetTrackStateChunk(track, "", false)
-        local fastStr = reaper.SNM_CreateFastString("")
-        local okChunk = reaper.SNM_GetSetObjectState(track, fastStr, false, false)
-        local chunk = reaper.SNM_GetFastString(fastStr)
-        reaper.SNM_DeleteFastString(fastStr)
-        if not okChunk then
-            reaper.MB("Could not load state chunk of track " .. tostring(t+1) .. ".", "ERROR", 1)
-            return
-        elseif not chunk:sub(chunk:len()-10):reverse():match("^%s*>") then
-            reaper.MB("Could not load state chunk of track " .. tostring(t+1) .. "."
-                   .. "\n\nThe state chunk ends with unexpected characters:\n" .. chunk:sub(chunk:len()-10)
-                   .. "\n\nChunk length = " .. tostring(chunk:len()), "ERROR", 1)
-            return
-        else
-            local prevPos, nextpos = 0, nil
-            repeat
-                nextPos = chunk:find("\n<ITEM\n", prevPos+4)
-                table.insert(tTracks[track], chunk:sub(prevPos+1, nextPos))
-                if not tTracks[track][#tTracks[track]]:match("\nNAME ") then
-                    reaper.MB("Could not parse state chunk of track " .. tostring(t+1) .. ': No "NAME" field found.', "ERROR", 1)
-                    return
-                end
-                prevPos = nextPos
-            until nextPos == nil
-            for i = 1, #tTracks[track] do
-                table.insert(tNames, tTracks[track][i]:match("\nNAME (.-)\n"))
-                local timebase = tTracks[track][i]:match("\nBEAT ([%d%-]+)\n")
-                if timebase then
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nNAME .-\n", "\nNAME \"timebase" .. timebase .. "@@@@@:" .. tostring(#tNames) .. "\"\n")
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nBEAT ([%d%-]+)\n", "\nBEAT 0\n", 1)
-                else
-                    -- If item does not have timebase info, insert new BEATS field
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nNAME .-\n", "\nNAME \"timebase9@@@@@:" .. tostring(#tNames) .. "\"\n" .. "BEAT 0\n")
-end end end end end
-
-for track, parts in pairs(tTracks) do
-  -- Apparently, the native SET chunk function works fine with large chunks
-    local setOK = reaper.SetTrackStateChunk(track, table.concat(parts), false)
-    --[[local chunk = reaper.SNM_CreateFastString(table.concat(parts))
-    local setOK = reaper.SNM_GetSetObjectState(track, chunk, true, false)]]
+    local timebase = reaper.GetMediaTrackInfo_Value(track, "C_BEATATTACHMODE") -- -1=def, 0=time, 1=allbeats, 2=beatsosonly
+    tTrackTimebases[track] = timebase
+    local setOK = reaper.SetMediaTrackInfo_Value(track, "C_BEATATTACHMODE", 0)
     if not setOK then
-        reaper.MB("Could not set the state chunk of all tracks.", "ERROR", 1)
+        reaper.MB("The script could not set the timebase of all tracks.", "ERROR", 1)
         tryToUndo = true
         goto quit
-end end
+    end
+end
+-- Item timebase.  (Store original timebase in item/take names, so that will be propagated to child items after splitting.)
+for i = 0, reaper.CountMediaItems(0)-1 do
+    local item = reaper.GetMediaItem(0, i)
+    local timebase = reaper.GetMediaItemInfo_Value(item, "C_BEATATTACHMODE") -- -1=def, 0=time, 1=allbeats, 2=beatsosonly
+    for t = 0, reaper.CountTakes(item)-1 do
+        local take = reaper.GetTake(item, t)
+        local retval, name = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
+        local setOK = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "@@Timebase=" .. string.format("%02i", timebase) .. "@@" .. name, true)
+        if not setOK then
+            reaper.MB("The script could not access the names of all takes.", "ERROR", 1)
+            tryToUndo = true
+            goto quit
+        end
+    end
+    local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", 0)
+    if not setOK then
+        reaper.MB("The script could not set the timebase of all items.", "ERROR", 1)
+        tryToUndo = true
+        goto quit
+    end
+end
 
 
 --------------------------------------------------
@@ -424,54 +404,35 @@ end
 --------------------------------------------
 --------------------------------------------
 -- Restore original track and item timebases
-tTracks = {}
-for t = 0, reaper.CountTracks(0)-1 do
-    local track = reaper.GetTrack(0, t)
-    if reaper.ValidatePtr2(0, track, "MediaTrack*") then
-        tTracks[track] = {}
-        --local okChunk, chunk = reaper.GetTrackStateChunk(track, "", false)
-        local fastStr = reaper.SNM_CreateFastString("")
-        local okChunk = reaper.SNM_GetSetObjectState(track, fastStr, false, false)
-        local chunk = reaper.SNM_GetFastString(fastStr)
-        if not okChunk then
-            reaper.MB("Could not load the state chunk of track " .. tostring(t+1) .. ".", "ERROR", 1)
+for track, timebase in pairs(tTrackTimebases) do
+    local setOK = reaper.SetMediaTrackInfo_Value(track, "C_BEATATTACHMODE", timebase)
+    if not setOK then
+        reaper.MB("The script could not access the timebase table of all tracks.", "ERROR", 1)
+        tryToUndo = true
+        goto quit
+    end
+end
+
+for i = 0, reaper.CountMediaItems(0)-1 do
+    local item = reaper.GetMediaItem(0, i)
+    local timebaseInteger
+    for t = 0, reaper.CountTakes(item)-1 do
+        local take = reaper.GetTake(item, t)
+        local retval, name = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
+        local timebase, origName = name:match("@@Timebase=([%d%-]+)@@(.*)")
+        if timebase then timebaseInteger = tonumber(timebase) end
+        if origName then reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", origName, true) end
+    end
+    if not timebaseInteger then
+        reaper.MB("The script could not re-access the timebases of all takes.", "ERROR", 1)
+        tryToUndo = true
+        goto quit
+    else
+        local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", timebaseInteger)
+        if not setOK then
+            reaper.MB("The script could not set the timebase of all items.", "ERROR", 1)
             tryToUndo = true
             goto quit
-        elseif not chunk:sub(chunk:len()-10):reverse():match("^%s*>") then
-            reaper.MB("Could not load state chunk of track " .. tostring(t+1) .. "."
-                   .. "\n\nThe state chunk ends with unexpected characters:\n" .. chunk:sub(chunk:len()-10)
-                   .. "\n\nChunk length = " .. tostring(chunk:len()), "ERROR", 1)
-            tryToUndo = true
-            goto quit
-        else
-            local prevPos = 0
-            repeat
-                nextPos = chunk:find("\n<ITEM\n", prevPos+4)
-                table.insert(tTracks[track], chunk:sub(prevPos+1, nextPos))
-                prevPos = nextPos
-            until nextPos == nil
-            for i = 1, #tTracks[track] do
-                local function gsubName(index)
-                    return tNames[tonumber(index)]
-                end
-                local timebase, index = tTracks[track][i]:match("timebase([%d%-]+)@@@@@:(%d+)")
-                index = tonumber(index)
-                if timebase == "9" then
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nNAME [^\n]-timebase[%d%-]+@@@@@:%d+.-\n", "\nNAME " .. tNames[index] .. "\n") --\nNAME \"temptimebase" .. timebase .. "@@@@@@@@@@%1\"\n", 1)
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nBEAT 0[%d]-\n", "\n", 1)
-                elseif timebase then
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nNAME [^\n]-timebase[%d%-]+@@@@@:%d+.-\n", "\nNAME " .. tNames[index] .. "\n") --\nNAME \"temptimebase" .. timebase .. "@@@@@@@@@@%1\"\n", 1)
-                    tTracks[track][i] = tTracks[track][i]:gsub("\nBEAT 0[%d]-\n", "\nBEAT " .. timebase .. "\n", 1)
-                end                   
-            end
-            local setOK = reaper.SetTrackStateChunk(track, table.concat(tTracks[track]), false)
-            --[[local chunk = reaper.SNM_CreateFastString(table.concat(tTracks[track]))
-            local setOK = reaper.SNM_GetSetObjectState(track, chunk, true, false)]]
-            if not setOK then
-                reaper.MB("Could not set the state chunk of all tracks.", "ERROR", 1)
-                tryToUndo = true
-                goto quit
-            end
         end
     end
 end
@@ -624,6 +585,8 @@ if tryToUndo then
         couldUndo = reaper.Undo_DoUndo2(0)
         if couldUndo == 0 then
             reaper.MB("Could not undo changes.  Please undo manually.", "ERROR", 1)
+        else
+            reaper.MB("Changes were automatically undone.", "Insert empty beats", 1)
         end
     end
 end
