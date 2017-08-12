@@ -72,6 +72,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [RCJacH/ReaScripts](https://github.com/RCJacH/ReaScripts/)
 - [RobU23/ReaScripts](https://github.com/RobU23/ReaScripts/)
+- [Sonic-Anomaly/Sonic-Anomaly-JSFX](https://github.com/Sonic-Anomaly/Sonic-Anomaly-JSFX)
 - [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
 
