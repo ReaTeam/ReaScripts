@@ -1,7 +1,7 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.40
-Author: juliansader
+Version: 1.41
+Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
 Donation: https://www.paypal.me/juliansader
@@ -89,9 +89,12 @@ About:
     + GUI window will open at last-used screen position.
   * v1.30 (2017-08-09)
     + Compatible with automation items.
+    + Requires REAPER v5.50 or higher.
   * v1.40 (2017-08-09)
     + LFO can be limited to time selection within automation item.
     + Undo points more informative.
+  * v1.41 (2017-08-16)
+    + Checks REAPER version and SWS installed.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1325,6 +1328,8 @@ already_removed_pt=false
 last_mouse_cap=0
 
 function update()
+    
+    gfx.update()
 
     ---------------------------------------------------------------------------
     -- First, test whether the script should exit
@@ -1971,7 +1976,7 @@ function update()
       end
   end
   last_mouse_cap=gfx.mouse_cap
-  gfx.update()
+  
   reaper.defer(update)
 end
 
@@ -2145,7 +2150,11 @@ if type(preserveExistingEnvelope) ~= "boolean" then
     reaper.ShowMessageBox("The setting 'preserveExistingEnvelope' must be either 'true' of 'false'.", "ERROR", 0) return(false) end
 if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
     reaper.ShowMessageBox("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) end
-       
+    
+if not reaper.APIExists("CountAutomationItems") then
+    reaper.ShowMessageBox("Versions 1.30 and higher of the script requires REAPER v5.50 or higher.", "ERROR", 0) return(false) end
+if not reaper.APIExists("BR_EnvAlloc") then
+    reaper.ShowMessageBox("This script requires the SWS/SNM extension.\n\nThe extension can be downloaded from \nwww.sws-extension.com.", "ERROR", 0) return(false) end
 
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
 if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
