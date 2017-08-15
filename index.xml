@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ebf3fa2035f32b14a2eb7e8ab69389bbc5631898" name="ReaTeam Scripts">
+<index version="1" commit="cfa4bc67a0608393385e55c735a7db0e25dac281" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -563,6 +563,10 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
         <changelog><![CDATA[+ LFO can be limited to time selection within automation item.
 + Undo points more informative.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebf3fa2035f32b14a2eb7e8ab69389bbc5631898/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.41" author="juliansader / Xenakios" time="2017-08-15T13:02:57Z">
+        <changelog><![CDATA[+ Checks REAPER version and SWS installed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfa4bc67a0608393385e55c735a7db0e25dac281/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
