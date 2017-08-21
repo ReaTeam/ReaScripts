@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX
 -- @author amagalma
--- @version 1.1
+-- @version 1.11
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus
 --
@@ -10,8 +10,10 @@
 
 --[[
  * Changelog:
+ * v1.11 (2017-08-21)
+  + Better co-operation with sister script: "amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX"
  * v1.1 (2017-08-21)
-  + Added the ability to either focus on previously focused FX or on AB_Cntrl JSFX. Setting is inside the script.
+  + Added the ability to either focus on previously focused FX or on AB_Cntrl JSFX. Setting inside the script
  * v1.01 (2017-08-09)
   + Small improvements
 --]]
@@ -278,14 +280,14 @@ end
 -- Main function -------------------------------------------------------------------------------
 local FXGUID, track, what, trackGUID, take = GetInfo()
 if track and trackGUID then
-  local ok, value = reaper.GetProjExtState(0, "AB JSFX Toggle Chain", trackGUID)
+  local ok, value = reaper.GetProjExtState(0, "AB JSFX Toggle", trackGUID)
   if ok and value == "1" then
     RemoveAB()
-    reaper.SetProjExtState(0, "AB JSFX Toggle Chain", trackGUID, "0")
+    reaper.SetProjExtState(0, "AB JSFX Toggle", trackGUID, "0")
   else
     reaper.Undo_BeginBlock()
     InsertAB(FXGUID, track, what, take)
-    reaper.SetProjExtState(0, "AB JSFX Toggle Chain", trackGUID, "1")
+    reaper.SetProjExtState(0, "AB JSFX Toggle", trackGUID, "1")
     reaper.Undo_EndBlock("Enclose focused FX Chain with AB JSFX", -1)
   end
 end
