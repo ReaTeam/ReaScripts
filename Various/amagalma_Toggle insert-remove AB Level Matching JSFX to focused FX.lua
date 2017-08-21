@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX
 -- @author amagalma
--- @version 1.15
+-- @version 1.11
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX
 --
