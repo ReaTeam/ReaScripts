@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX
 -- @author amagalma
--- @version 1.01
+-- @version 1.1
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus
 --
@@ -10,11 +10,17 @@
 
 --[[
  * Changelog:
+ * v1.1 (2017-08-21)
+  + Added the ability to either focus on previously focused FX or on AB_Cntrl JSFX. Setting is inside the script.
  * v1.01 (2017-08-09)
   + Small improvements
 --]]
 
------------------------------------------------------------------------------
+------------------------------------- USER SETTINGS --------------------------------------------
+-- Enter 0 for not to loose focus of the currently focused FX, OR 1 to focus on AB_Cntrl JSFX --
+local FocusFX = 1                                                                             --
+------------------------------------------------------------------------------------------------
+
 local reaper = reaper
 local find = string.find
 local insert = table.insert
@@ -22,7 +28,7 @@ local match = string.match
 local concat = table.concat
 local remove = table.remove
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function GetInfo()
   local FXGUID, what, trackGUID
   local focus, track, item, fxid = reaper.GetFocusedFX()
@@ -45,10 +51,10 @@ local function GetInfo()
   elseif focus == 0 then
     return nil
   end
-  return FXGUID, track, what, trackGUID
+  return FXGUID, track, what, trackGUID, take
 end
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function GetTrackChunk(track) -- eugen2777's workaround for chunks >4MB
   if not track then return end
   local fast_str, track_chunk
@@ -60,11 +66,11 @@ local function GetTrackChunk(track) -- eugen2777's workaround for chunks >4MB
   return track_chunk
 end
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function NoUndoPoint() end 
 
------------------------------------------------------------------------------
-local function InsertAB(FXGUID, track, what)
+------------------------------------------------------------------------------------------------
+local function InsertAB(FXGUID, track, what, take)
   if track then
     local source = {
     "BYPASS 0 0 0",
@@ -82,6 +88,7 @@ local function InsertAB(FXGUID, track, what)
     end
     local pivot
     if what == "track" then
+      local fxcount = reaper.TrackFX_GetCount(track)
       for i = 23, #t do
         if find(t[i], "BYPASS %d %d %d") then
           pivot = i
@@ -93,12 +100,18 @@ local function InsertAB(FXGUID, track, what)
       end
       for i = 24, 28 do
         if find(t[i], "SHOW %d") then
-          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
+          local show
+          if FocusFX == 0 then
+            show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
+          else
+            show = fxcount + 2
+          end
           t[i] = "SHOW "..show
           break
         end
       end
     elseif what == "item" then
+      local fxcount = reaper.TakeFX_GetCount(take)
       for i = 23, #t do
         if find(t[i], FXGUID) then
           pivot = i
@@ -122,7 +135,12 @@ local function InsertAB(FXGUID, track, what)
       end
       for i = pivot, 1, -1 do
         if find(t[i], "SHOW %d") then
-          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
+          local show
+          if FocusFX == 0 then
+            show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
+          else
+            show = fxcount + 2
+          end
           t[i] = "SHOW "..show
           break
         end
@@ -175,7 +193,7 @@ local function InsertAB(FXGUID, track, what)
   end
 end
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function RemoveAB()
   local focus, track, item, fxid = reaper.GetFocusedFX()
   if focus > 0 then
@@ -256,8 +274,9 @@ local function RemoveAB()
     reaper.defer(NoUndoPoint)
   end
 end
--- Main function ---------------------------------------------------------
-local FXGUID, track, what, trackGUID = GetInfo()
+
+-- Main function -------------------------------------------------------------------------------
+local FXGUID, track, what, trackGUID, take = GetInfo()
 if track and trackGUID then
   local ok, value = reaper.GetProjExtState(0, "AB JSFX Toggle Chain", trackGUID)
   if ok and value == "1" then
@@ -265,7 +284,7 @@ if track and trackGUID then
     reaper.SetProjExtState(0, "AB JSFX Toggle Chain", trackGUID, "0")
   else
     reaper.Undo_BeginBlock()
-    InsertAB(FXGUID, track, what)
+    InsertAB(FXGUID, track, what, take)
     reaper.SetProjExtState(0, "AB JSFX Toggle Chain", trackGUID, "1")
     reaper.Undo_EndBlock("Enclose focused FX Chain with AB JSFX", -1)
   end
