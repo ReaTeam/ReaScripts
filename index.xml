@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="416b41f3b2a2b5bdf6494056128aa2d7c8cda1d9" name="ReaTeam Scripts">
+<index version="1" commit="c190492548a6288765e67a0adea23a5b5bbc0b4b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5323,6 +5323,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <changelog><![CDATA[+ Small improvements]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e96e6be3e1e1e8072e92793afb17ba84c1163092/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
       </version>
+      <version name="1.11" author="amagalma" time="2017-08-21T21:06:06Z">
+        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3676c5fe35bb5032b3922284163ddb954dde5e/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
       <metadata>
@@ -5348,6 +5352,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.02" author="amagalma" time="2017-08-09T19:38:16Z">
         <changelog><![CDATA[+ Small improvements]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb49688f40f21ff930cc80a31f0be9121a6e7684/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.15" author="amagalma" time="2017-08-21T21:07:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c190492548a6288765e67a0adea23a5b5bbc0b4b/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
