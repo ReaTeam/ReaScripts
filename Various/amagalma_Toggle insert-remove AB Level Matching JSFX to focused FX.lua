@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX
 -- @author amagalma
--- @version 1.02
+-- @version 1.1
 -- @about
 --   # Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX
 --
@@ -10,6 +10,8 @@
 
 --[[
  * Changelog:
+ * v1.1 (2017-08-21)
+  + Added the ability to either focus on previously focused FX or on AB_Cntrl JSFX. Setting inside the script
  * v1.02 (2017-08-09)
   + Small improvements
  * v1.01 (2017-08-09)
@@ -17,7 +19,11 @@
   + Some code optimization
 --]]
 
------------------------------------------------------------------------------
+------------------------------------- USER SETTINGS --------------------------------------------
+-- Enter 0 for not to loose focus of the currently focused FX, OR 1 to focus on AB_Cntrl JSFX --
+local FocusFX = 1                                                                             --
+------------------------------------------------------------------------------------------------
+
 local reaper = reaper
 local find = string.find
 local insert = table.insert
@@ -25,7 +31,7 @@ local match = string.match
 local concat = table.concat
 local remove = table.remove
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function GetInfo()
   local FXGUID, what, trackGUID
   local focus, track, item, fxid = reaper.GetFocusedFX()
@@ -63,10 +69,10 @@ local function GetTrackChunk(track) -- eugen2777's workaround for chunks >4MB
   return track_chunk
 end
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function NoUndoPoint() end 
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function InsertAB(FXGUID, track, what)
   if FXGUID and track then
     local source = {
@@ -102,7 +108,7 @@ local function InsertAB(FXGUID, track, what)
     if what == "track" then
       for i = 24, 28 do
         if find(t[i], "SHOW %d") then
-          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
+          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1 + FocusFX)
           t[i] = "SHOW "..show
           break
         end
@@ -110,7 +116,7 @@ local function InsertAB(FXGUID, track, what)
     elseif what == "item" then
       for i = FXEndLine, 1, -1 do
         if find(t[i], "SHOW %d") then
-          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1)
+          local show = tostring(tonumber(match(t[i], "SHOW (%d)")) + 1 + FocusFX)
           t[i] = "SHOW "..show
           break
         end
@@ -142,7 +148,7 @@ local function InsertAB(FXGUID, track, what)
   end
 end
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 local function RemoveAB()
   local focus, track, item, fxid = reaper.GetFocusedFX()
   if focus > 0 then
@@ -224,7 +230,7 @@ local function RemoveAB()
   end
 end
 
--- Main function ---------------------------------------------------------
+-- Main function -------------------------------------------------------------------------------
 local FXGUID, track, what, trackGUID = GetInfo()
 if track and trackGUID then
   local ok, value = reaper.GetProjExtState(0, "AB JSFX Toggle", trackGUID)
