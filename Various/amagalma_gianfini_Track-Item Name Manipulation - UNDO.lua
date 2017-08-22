@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma, modified by gianfini
--- @version 2.66
+-- @version 2.7
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -16,6 +16,11 @@
 
 --[[
  * Changelog:
+ * v2.7 (2017-08-23)
+  + amagalma additions:
+  + Script remembers last window position
+  + Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
+  + Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"
  * v2.66 (2017-08-22)
   + Fixed Undo which was broken in v2.65
  * v2.65 (2017-08-22)
@@ -46,7 +51,7 @@
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
-version = "2.66"
+version = "2.7"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -1028,6 +1033,10 @@ local function main() -- MAIN FUNCTION
   end
   gfx.update()
   if gfx.getchar() >= 0 then reaper.defer(main)
+  else
+    local _, x, y, _, _ = gfx.dock(-1, 0, 0, 0, 0)
+    reaper.SetExtState("Track-Item Name Manipulation", "x position", x, 1)
+    reaper.SetExtState("Track-Item Name Manipulation", "y position", y, 1)
   end
 end
 
@@ -1051,7 +1060,15 @@ local function init() -- INITIALIZATION
   win_border = math.floor(strh/2)
   win_vert_border = math.floor(win_border*1.6)
   win_double_vert_border = win_border*2
-  Window_At_Center(win_w, win_h) -- gianfini wider window
+  local HasState1 = reaper.HasExtState("Track-Item Name Manipulation", "x position")
+  local HasState2 = reaper.HasExtState("Track-Item Name Manipulation", "y position")
+  if HasState1 and HasState2 then
+    local x = tonumber(reaper.GetExtState("Track-Item Name Manipulation", "x position"))
+    local y = tonumber(reaper.GetExtState("Track-Item Name Manipulation", "y position"))
+    gfx.init("Track/Item Name Manipulation v"..version, win_w, win_h, 0, x, y)
+  else
+    Window_At_Center(win_w, win_h)
+  end
   -- parameters: Button(x1,y1,w,h,state_count,state,visual_state,lbl,help_text)
   -- first raw Trim
   local label, help = "Trim Start", "Removes specified number of\ncharacters from the start"
@@ -1231,7 +1248,19 @@ local function init() -- INITIALIZATION
   end
   
   function replace_btn.onRClick()
-    InfoReplacePattern()
+    local HasState = reaper.HasExtState("Track-Item Name Manipulation", "Replace Help Is open")
+    if not HasState or (HasState == true and reaper.GetExtState("Track-Item Name Manipulation", "Replace Help Is open") == "0") then
+      local dir = ({reaper.get_action_context()})[2]:match("^(.*[/\\])")
+      local file = ({reaper.get_action_context()})[2]:match("^(.*[/\\])").."amagalma_Track-Item Name Manipulation Replace Help.lua"
+      local exists = reaper.file_exists(file)
+      if exists then -- load the Replace Help script
+        local ActionID = reaper.AddRemoveReaScript(true, 0, file, true)
+        reaper.Main_OnCommand(ActionID, 0)
+        reaper.AddRemoveReaScript(false, 0, file, true)
+      else -- open Reascript console showing the Replace Help
+        InfoReplacePattern()
+      end
+    end
   end
   
   function replace_btn.onClick()
