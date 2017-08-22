@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="878765f7e75b9b0f2df138795e4efa56e5b91b2d" name="ReaTeam Scripts">
+<index version="1" commit="eeaee70c8a4091084546bdd060eb82f9565051ed" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5112,6 +5112,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 + Edited the Replace Help. Help opens in the Console so that one can continue using the script when Help is displayed
 + Pressing the Commit button creates an undo point in Reaper's Undo History]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/878765f7e75b9b0f2df138795e4efa56e5b91b2d/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.66" author="amagalma, modified by gianfini" time="2017-08-22T10:48:42Z">
+        <changelog><![CDATA[+ Fixed Undo which was broken in v2.65]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eeaee70c8a4091084546bdd060eb82f9565051ed/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
