@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma, modified by gianfini
--- @version 2.7
+-- @version 2.71
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -13,10 +13,12 @@
 --  - When satisfied with the modifications COMMIT writes the values to tracks/items
 --
 -- @link http://forum.cockos.com/showthread.php?t=194414
+-- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
 
 --[[
  * Changelog:
- * v2.7 (2017-08-23)
+ * v2.71 (2017-08-23)
+  + Reapack header correction
   + amagalma additions:
   + Script remembers last window position
   + Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
@@ -51,7 +53,7 @@
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
-version = "2.7"
+version = "2.71"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
