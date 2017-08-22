@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma, modified by gianfini
--- @version 2.65
+-- @version 2.66
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).
@@ -16,6 +16,8 @@
 
 --[[
  * Changelog:
+ * v2.66 (2017-08-22)
+  + Fixed Undo which was broken in v2.65
  * v2.65 (2017-08-22)
   + Code tidying-up and optimization
   + Edited the Replace Help. Help opens in the Console so that one can continue using the script when Help is displayed
@@ -44,7 +46,7 @@
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
-version = "2.65"
+version = "2.66"
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -857,11 +859,28 @@ end
 
 function WriteModifiersStack() -- write all modifiers to track-items list (not to actual tracks-items) up to current undo-level
   --if undo_stack == 0 then return end  
-  if what == "tracks" then
-    if CheckTracks() then    
-      for i=0, trackCount-1 do
-        local trackId = reaper.GetSelectedTrack(0, i)
-        local newName = ToBeTrackNames[reaper.GetTrackGUID(trackId)] -- gianfini
+  if what == "tracks" and CheckTracks() then    
+    for i=0, trackCount-1 do
+      local trackId = reaper.GetSelectedTrack(0, i)
+      local newName = OriginalTrackNames[reaper.GetTrackGUID(trackId)] -- gianfini
+      if undo_stack > 0 then
+        for j=1, undo_stack do
+          local modifier = mod_stack_name[j]
+          local parm1 = mod_stack_parm1[j]
+          local parm2 = mod_stack_parm2[j]
+          prevName = newName
+          newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
+        end
+      end
+      -- Update list
+      ToBeTrackNames[reaper.GetTrackGUID(trackId)] = newName -- gianfini
+    end
+  elseif what == "items" and CheckItems() then           
+    for i=0, itemCount-1 do
+      local itemId = reaper.GetSelectedMediaItem(0, i)
+      local acttake = reaper.GetActiveTake(itemId)
+      if acttake then
+        local newName = OriginalItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]
         if undo_stack > 0 then
           for j=1, undo_stack do
             local modifier = mod_stack_name[j]
@@ -870,30 +889,9 @@ function WriteModifiersStack() -- write all modifiers to track-items list (not t
             prevName = newName
             newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
           end
-        end
+        end  
         -- Update list
-        ToBeTrackNames[reaper.GetTrackGUID(trackId)] = newName -- gianfini
-      end
-    end
-  else -- managing items
-    if CheckItems() then           
-      for i=0, itemCount-1 do
-        local itemId = reaper.GetSelectedMediaItem(0, i)
-        local acttake = reaper.GetActiveTake(itemId)
-        if acttake then
-          local newName = ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]
-          if undo_stack > 0 then
-            for j=1, undo_stack do
-              local modifier = mod_stack_name[j]
-              local parm1 = mod_stack_parm1[j]
-              local parm2 = mod_stack_parm2[j]
-              prevName = newName
-              newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
-            end
-          end  
-          -- Update list
-          ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)] = newName -- gianfini
-        end
+        ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)] = newName -- gianfini
       end
     end
   end
@@ -955,10 +953,12 @@ end
 local function init_tables()
   if what == "tracks" then
     ToBeTrackNames = AllTrackNames()
+    OriginalTrackNames = AllTrackNames()
     indexed_track = 1
     undo_stack = 0
   elseif what == "items" then
     ToBeItemNames = AllItemNames()
+    OriginalItemNames = AllItemNames()
     indexed_item = 1
     undo_stack = 0
   end
