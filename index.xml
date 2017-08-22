@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eeaee70c8a4091084546bdd060eb82f9565051ed" name="ReaTeam Scripts">
+<index version="1" commit="6346bcd46d18772258eca3b06f4134ac5b6c5d0c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5116,6 +5116,13 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="2.66" author="amagalma, modified by gianfini" time="2017-08-22T10:48:42Z">
         <changelog><![CDATA[+ Fixed Undo which was broken in v2.65]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eeaee70c8a4091084546bdd060eb82f9565051ed/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.7" author="amagalma, modified by gianfini" time="2017-08-22T23:31:20Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Script remembers last window position
++ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
++ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6346bcd46d18772258eca3b06f4134ac5b6c5d0c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
