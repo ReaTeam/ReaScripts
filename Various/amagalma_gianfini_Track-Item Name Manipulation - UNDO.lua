@@ -1,11 +1,11 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.8
+-- @version 2.81
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
---   - When satisfied with the modifications (which can be previewd in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History
+--   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History
 --
 -- @link http://forum.cockos.com/showthread.php?t=194414
 -- @link http://forum.cockos.com/showthread.php?t=190534
@@ -13,7 +13,7 @@
 
 --[[
  * Changelog:
- * v2.8 (2017-08-23)
+ * v2.81 (2017-08-23)
   + amagalma additions:
   + Added Redo functionality
   + a lot of code tidying-up & optimization
@@ -55,7 +55,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.8"
+local version = "2.81"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
