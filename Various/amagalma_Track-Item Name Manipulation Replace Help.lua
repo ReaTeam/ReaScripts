@@ -1,6 +1,6 @@
 -- @description amagalma_Track-Item Name Manipulation Replace Help
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # companion to "amagalma_gianfini_Track-Item Name Manipulation - UNDO" v2.7+
 -- @noindex true
@@ -11,7 +11,7 @@ local change = false
 local info = {
 "--- SINGLE LETTER CLASSES ------------------------------------------------------------------------",
 "",
-"• x  : (where x is not one of the magic characters ^$()%.[]*+-?) represents the character x itself",
+"• x  : (where x is not one of the magic characters ().%+-*?[]^$ represents the character x itself",
 "• .  : (a dot) represents all characters",
 "• %a : represents all letters",
 "• %c : represents all control characters",
@@ -35,7 +35,7 @@ local info = {
 "• [set]:  represents the class which is the union of all characters in set",
 "• [^set]: represents the complement of set",
 "",
-"• A range of characters can be specified with a -",
+"• A range of characters can be specified with a - (for example, [0-7]",
 "• All classes %x described above can also be used in set",
 "• All other characters in set represent themselves",
 "",
@@ -43,14 +43,13 @@ local info = {
 "",
 "• a single character class followed by * matches 0 or more repetitions of characters (longest",
 "  possible sequence)",
-"",
 "• a single character class followed by + matches 1 or more repetitions of characters in the",
 "  class (longest sequence)",
-"",
 "• a single character class followed by - is like * but matches the shortest possible sequence",
-"  (example: .*  = matches the whole name)",
+"• a single character class followed by ? matches 0 or 1 occurrence of a character in the class",
 "",
-"• ^ anchors the pattern to the beginning of the string",
+"• ^ in the beggining anchors the pattern to the beginning of the string.",
+"• $ at the end anchors the match at the end of the subject string."
 }
 
 ------------------------------------------------------------------------------------------------------
