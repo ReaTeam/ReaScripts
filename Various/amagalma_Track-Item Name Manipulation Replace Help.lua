@@ -1,6 +1,6 @@
 -- @description amagalma_Track-Item Name Manipulation Replace Help
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # companion to "amagalma_gianfini_Track-Item Name Manipulation - UNDO" v2.7+
 -- @noindex true
@@ -107,9 +107,9 @@ end
 local function Main()
   for i = 0, #info-1 do
     if i + 1 == 1 or i + 1 == 22 or i + 1 == 31 then
-      setcolor(255, 255, 250) -- titles color
+      setcolor(246, 247, 249) -- titles color
     else
-      setcolor(215, 215, 210) -- main text color
+      setcolor(218, 219, 221) -- main text color
     end
     setposition(fontsize*i*1.05 + 10)
     gfx.printf("%s", info[i+1])
@@ -141,7 +141,7 @@ function initialize()
     fontsize = tonumber(reaper.GetExtState("Track-Item Name Manipulation", "Replace Help Font Size"))
   end
   gfx.setfont(1, "Courier New", fontsize)
-  gfx.clear = rgb2num(40, 45, 40) -- background color
+  gfx.clear = rgb2num(32, 40, 69) -- background color
   local long = "• x  : (where x is not one of the magic characters ^$()%.[]*+-?) represents the character x itself"
   width, height = gfx.measurestr(info[3])
   local title = "Track-Item Manipulation - Replace Help"
