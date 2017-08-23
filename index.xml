@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0b9725a869232bc25c785e425eb9f366afd2ab3c" name="ReaTeam Scripts">
+<index version="1" commit="02c931c9d2a50726a5ec96b2493df44a2f8da2ab" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5091,12 +5091,12 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewd in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History\sa180\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=194414</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
       </metadata>
       <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:44:05Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/346f4d62416b679d65291a0a5df4c354dfb11e31/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
@@ -5132,6 +5132,13 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 + Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
         <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.8" author="amagalma &amp; gianfini" time="2017-08-23T16:54:44Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Added Redo functionality
++ a lot of code tidying-up & optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
