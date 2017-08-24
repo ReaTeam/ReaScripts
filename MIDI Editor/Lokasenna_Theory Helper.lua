@@ -1,16 +1,11 @@
 --[[
 Description: Theory Helper
-Version: 1.37
+Version: 1.38
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fix: Crash when attempting to Set the scale with no
-	     search results.
-	Fix: Mousewheel crashes with high-precision devices.
-	Fix: Mouse issues on macOS; os.clock() doesn't give
-		 the same values as on Windows.
-	Fix: Selecting a new scale wasn't switching to the
-		 correct scale.
+	Fix: "<bad string>" error on menu boxes in the Harmony tab
+		 (Or at least, I *think* I fixed it)
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -3731,7 +3726,9 @@ function GUI.Menubox:onwheel()
 			inc = -1
 		end	
 
-		if self.optarray[curopt] == "" or string.sub( self.optarray[curopt], 1, 1 ) == ">" then 
+		local opt = type(self.optarray[curopt]) == "table" and self.optarray[curopt][1] or self.optarray[curopt]
+
+		if opt == "" or string.sub( opt, 1, 1 ) == ">" then 
 			curopt = curopt - inc
 
 		else
