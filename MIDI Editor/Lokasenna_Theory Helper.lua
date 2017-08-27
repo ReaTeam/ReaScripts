@@ -5,7 +5,6 @@ Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
 	Fix: "<bad string>" error on menu boxes in the Harmony tab
-		 (Or at least, I *think* I fixed it)
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -4400,6 +4399,14 @@ local most_chords = 0
 -- Minimum width for the window = 7 chord buttons + the left panel + a bit
 local min_w = (btn_template[3] + btn_space_h) * 7 + 22 + line_x
 
+
+----------------------------------------
+------Anything that needs to be---------
+----------forward-declared--------------
+----------------------------------------
+local search_scales
+
+
 ----------------------------------------
 -------------Harmony stuff--------------
 ----------------------------------------
@@ -4768,7 +4775,11 @@ local function get_reascale(startup)
 			
 				line_pre = line:match("^(-?%d+)") or ""
 				line_name = line:match("\"(.+)\"") or ""
-				str_scale = line:match("%d*$") or ""
+				
+				-- End-of-line doesn't always work on Mac
+				--str_scale = line:match("%d*$") or ""
+				str_scale = line:match("\".+\"%s*(%d+)") or ""
+				
 				line_scale, line_size = convert_reascale(str_scale)
 				pass_scale, pass_size = convert_reascale(str_scale, true)
 			
@@ -4816,6 +4827,12 @@ local function get_reascale(startup)
 		else
 			scale_num = GUI.clamp(scale_num, 1, #reascale_arr)
 		end	
+		
+		if search_scales then 
+			
+			GUI.Msg("searching")
+			search_scales()
+		end
 	
 	else
 	
@@ -5062,7 +5079,8 @@ local function update_result_chk()
 end
 
 
-local function search_scales()
+--local function search_scales()
+search_scales = function()
 
 	-- Get a temporary
 	local chk_arr = GUI.Val("chk_search")
