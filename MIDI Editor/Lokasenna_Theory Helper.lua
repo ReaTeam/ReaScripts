@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.38
+Version: 1.39
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fix: "<bad string>" error on menu boxes in the Harmony tab
+	Fix: Issues loading/parsing Reascales on Mac.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -4828,11 +4828,7 @@ local function get_reascale(startup)
 			scale_num = GUI.clamp(scale_num, 1, #reascale_arr)
 		end	
 		
-		if search_scales then 
-			
-			GUI.Msg("searching")
-			search_scales()
-		end
+		search_scales()
 	
 	else
 	
