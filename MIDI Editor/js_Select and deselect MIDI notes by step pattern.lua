@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select and deselect MIDI notes by step pattern.lua
-Version: 1.20
+Version: 1.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/30964/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern%20-%20Measure%20divisions%20mode.gif
@@ -70,6 +70,8 @@ About:
     + GUI window will open at last-used position on screen.
   * v1.20 (2017-06-19)
     + Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.
+  * v1.21 (2017-08-26)
+    + Compatible with muted notes.
 ]]
 
 
@@ -467,8 +469,8 @@ local function updateNoteSelectionInEditor()
                     tMIDI[  tSelNotes[i].noteOnIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOnIndex]) | 1)
                     tMIDI[  tSelNotes[i].noteOffIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOffIndex]) | 1)
                 else
-                    tMIDI[  tSelNotes[i].noteOnIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOnIndex]) & 0)
-                    tMIDI[  tSelNotes[i].noteOffIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOffIndex]) & 0)
+                    tMIDI[  tSelNotes[i].noteOnIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOnIndex]) & 0xFE)
+                    tMIDI[  tSelNotes[i].noteOffIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOffIndex]) & 0xFE)
                 end
             end
         
@@ -480,8 +482,8 @@ local function updateNoteSelectionInEditor()
                     tMIDI[  tSelNotes[i].noteOnIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOnIndex]) | 1)
                     tMIDI[  tSelNotes[i].noteOffIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOffIndex]) | 1)
                 else
-                    tMIDI[  tSelNotes[i].noteOnIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOnIndex]) & 0)
-                    tMIDI[  tSelNotes[i].noteOffIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOffIndex]) & 0)
+                    tMIDI[  tSelNotes[i].noteOnIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOnIndex]) & 0xFE)
+                    tMIDI[  tSelNotes[i].noteOffIndex] = string.char(string.byte(tMIDI[  tSelNotes[i].noteOffIndex]) & 0xFE)
                 end
             end
         end
