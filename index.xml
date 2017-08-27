@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f92c119cb53281abdd486325be8c4d6292967e7" name="ReaTeam Scripts">
+<index version="1" commit="01d691be2b86f978883d42270675012911254fac" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3665,6 +3665,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.20" author="juliansader" time="2017-06-19T19:16:23Z">
         <changelog><![CDATA[+ Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ee1ff0959c58a1a88311e1bff2b36d77adc22589/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.21" author="juliansader" time="2017-08-27T14:13:20Z">
+        <changelog><![CDATA[+ Compatible with muted notes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/01d691be2b86f978883d42270675012911254fac/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
