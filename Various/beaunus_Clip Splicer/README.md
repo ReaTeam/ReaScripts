@@ -10,8 +10,10 @@ I first started doing this, my process was something like this:
 ### Setup
 
 1. Obtain a _script_ of the entire CD project.
-  * The script would define the layout of each __track__. Something like this: 
-  * [Instruction 1A], Cat, Dog, Elephant, ...
+  
+  The script would define the layout of each __track__. Something like this: 
+ 
+  [Instruction 1A], Cat, Dog, Elephant, ...
 1. Create a _skeleton_ REAPER session file that contained _Empty MIDI Items_ for
    each of the __components__ that would _eventually_ be recorded in the
    project.
@@ -38,10 +40,10 @@ proper place.  There were a few problems that still needed to be addressed.
 
 ### Editing
 
-1. For _every single clip_ in the project:
-  1. Manually trim the silence at the beginning and end of the clip.
-  1. Using _global ripple editing_, move the _following components_ to the
-     right, so they began where the previous __component__ ended.
+For _every single clip_ in the project:
+1. Manually trim the silence at the beginning and end of the clip.
+1. Using _global ripple editing_, move the _following components_ to the
+   right, so they began where the previous __component__ ended.
 
 As you may guess, that could take a _very_ long time if there were hundreds or
 thousands of _individual clips_ to edit.
