@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.39
+Version: 1.40
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fix: Issues loading/parsing Reascales on Mac.
+	Fix: Note velocity being sent as 128.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -5724,7 +5724,7 @@ GUI.elms = {
 	chk_follow =	GUI.Checklist:new(	15,	20, line_y + 128, nil, nil, "", "Use MIDI editor's key snap scale\n       (Disables some options)", "v", 0),
 
 	lbl_velocity = GUI.Label:new(		15,	28, line_y + 192, "Velocity:", 1, 3),
-	sldr_velocity = GUI.Slider:new(		15,	83, line_y + 196, 92, "", 0, 127, 128, 1, "h"),
+	sldr_velocity = GUI.Slider:new(		15,	83, line_y + 196, 92, "", 0, 127, 127, 1, "h"),
 
 
 	mnu_octave = GUI.Menubox:new(		15,	72, line_y + 242, 48, 20, "Octave:", oct_str, 4),
@@ -5780,7 +5780,7 @@ GUI.elms.tabs:update_sets(
 --GUI.Val("mnu_inversion", 3)
 GUI.Val("mnu_octave", 6)
 GUI.Val("mnu_chord_set", 3)
-GUI.Val("sldr_velocity", 128)
+GUI.Val("sldr_velocity", 127)
 
 GUI.elms.tabs.font_A = 6
 
@@ -6091,7 +6091,7 @@ local function btn_click(deg, chord, btn)
 	local offset = ( (GUI.elms.mnu_octave.numopts - GUI.Val("mnu_octave") + 1) * 12) + key
 	chan = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_chan")
 	
-	local user_vel = GUI.Val("sldr_velocity") - 1
+	local user_vel = GUI.Val("sldr_velocity")
 	vel = user_vel > 0 and user_vel or reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 
 	
 	local shift = GUI.mouse.cap&8==8
