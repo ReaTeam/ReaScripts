@@ -9,11 +9,9 @@ I first started doing this, my process was something like this:
 
 ### Setup
 
-1. Obtain a _script_ of the entire CD project.
-  
-  The script would define the layout of each __track__. Something like this: 
- 
-  [Instruction 1A], Cat, Dog, Elephant, ...
+1. Obtain a _script_ of the entire CD project. 
+   * The script would define the layout of each __track__. Something like this: 
+     * [Instruction 1A], Cat, Dog, Elephant, ...
 1. Create a _skeleton_ REAPER session file that contained _Empty MIDI Items_ for
    each of the __components__ that would _eventually_ be recorded in the
    project.
