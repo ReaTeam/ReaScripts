@@ -53,7 +53,7 @@ About:
     + Much faster execution in large projects.
   * v0.98 (2017-08-30)
     + Error message boxes display only OK, not OK and Cancel.
-    + Better compatability with looped items.
+    + Better compatability with items with empty extensions.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
