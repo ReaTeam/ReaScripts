@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 0.97
+Version: 0.98
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -51,10 +51,12 @@ About:
     + MIDI notes that extend into but not beyond time selection, will not be extended.
   * v0.97 (2017-08-09)
     + Much faster execution in large projects.
+  * v0.98 (2017-08-30)
+    + Error message boxes display only OK, not OK and Cancel.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
-    reaper.MB("The script requires the SWS/SNM extension.\n\nThe extension can be downloaded from www.sws-extension.com.", "ERROR", 1) 
+    reaper.MB("The script requires the SWS/SNM extension.\n\nThe extension can be downloaded from www.sws-extension.com.", "ERROR", 0) 
     return 
 end
 
@@ -85,12 +87,12 @@ end
 -- Parse tempo envelope to determine bpm at insertion point, and whether edge points need to be inserted
 -- First, get tempo envelope chunk
 local masterTrack = reaper.GetMasterTrack(0)
-if not reaper.ValidatePtr2(0, masterTrack, "MediaTrack*") then reaper.MB("The script could not find a master track.\n\nPlease report this bug.", "ERROR", 1) return end
+if not reaper.ValidatePtr2(0, masterTrack, "MediaTrack*") then reaper.MB("The script could not find a master track.\n\nPlease report this bug.", "ERROR", 0) return end
 local tempoEnv    = reaper.GetTrackEnvelopeByName(masterTrack, "Tempo map")
-if not reaper.ValidatePtr2(0, tempoEnv, "TrackEnvelope*") then reaper.MB("The script could not find the tempo envelope.\n\nPlease report this bug.", "ERROR", 1) return end
+if not reaper.ValidatePtr2(0, tempoEnv, "TrackEnvelope*") then reaper.MB("The script could not find the tempo envelope.\n\nPlease report this bug.", "ERROR", 0) return end
 reaper.Envelope_SortPoints(tempoEnv)
 local chunkOK, tempoChunk = reaper.GetEnvelopeStateChunk(tempoEnv, "", false)
-if not chunkOK then reaper.MB("The script could not load the state chunk of the tempo envelope.\n\nPlease report this bug.", "ERROR", 1) return end
+if not chunkOK then reaper.MB("The script could not load the state chunk of the tempo envelope.\n\nPlease report this bug.", "ERROR", 0) return end
 
 -- Temporarily remove point strings from chunk and store them in a table, where they can be more easily manipulated
 local tPoints = {}
@@ -285,7 +287,7 @@ for t = 0, reaper.CountTracks(0)-1 do
     tTrackTimebases[track] = timebase
     local setOK = reaper.SetMediaTrackInfo_Value(track, "C_BEATATTACHMODE", 0)
     if not setOK then
-        reaper.MB("The script could not set the timebase of all tracks.", "ERROR", 1)
+        reaper.MB("The script could not set the timebase of all tracks.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end
@@ -299,14 +301,14 @@ for i = 0, reaper.CountMediaItems(0)-1 do
         local retval, name = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
         local setOK = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "@@Timebase=" .. string.format("%02i", timebase) .. "@@" .. name, true)
         if not setOK then
-            reaper.MB("The script could not access the names of all takes.", "ERROR", 1)
+            reaper.MB("The script could not access the names of all takes.", "ERROR", 0)
             tryToUndo = true
             goto quit
         end
     end
     local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", 0)
     if not setOK then
-        reaper.MB("The script could not set the timebase of all items.", "ERROR", 1)
+        reaper.MB("The script could not set the timebase of all items.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end
@@ -344,7 +346,7 @@ for i = 0, reaper.CountMediaItems(0)-1 do
             if itemStart < spaceTimeStart then
                 local setPosOK = reaper.SetMediaItemPosition(item, spaceTimeEnd, false)
                 if not setPosOK then
-                    reaper.MB("The script could not protect the positions of all locked items.", "ERROR", 1)
+                    reaper.MB("The script could not protect the positions of all locked items.", "ERROR", 0)
                     tryToUndo = true
                     goto quit
                 end
@@ -358,7 +360,7 @@ for i = 0, reaper.CountMediaItems(0)-1 do
                         tMIDIItemPositions[item] = {position = itemStart, length = itemLength}
                         local setPosOK = reaper.SetMediaItemPosition(item, spaceTimeEnd, false)
                         if not setPosOK then
-                            reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 1)
+                            reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 0)
                             tryToUndo = true
                             goto quit
 end end end end end end end
@@ -376,7 +378,7 @@ reaper.Main_OnCommandEx(40200, -1, 0) -- Time selection: Insert empty space at t
 do -- goto doesn't like jumping past declaration of local variables, so let's try hiding stuff within a do-end block
     local setChunkOK = reaper.SetEnvelopeStateChunk(tempoEnv, tempoChunk, true)
     if not setChunkOK then
-        reaper.MB("ERROR", "Could not update tempo markers", 1)
+        reaper.MB("ERROR", "Could not update tempo markers", 0)
         tryToUndo = true
         goto quit
     end
@@ -394,7 +396,7 @@ end
 for item, position in pairs(tLockedItemPositions) do
     local setPosOK = reaper.SetMediaItemPosition(item, position, false)
     if not setPosOK then
-        reaper.MB("The script could not protect the positions of all locked items.", "ERROR", 1)
+        reaper.MB("The script could not protect the positions of all locked items.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end
@@ -407,7 +409,7 @@ end
 for track, timebase in pairs(tTrackTimebases) do
     local setOK = reaper.SetMediaTrackInfo_Value(track, "C_BEATATTACHMODE", timebase)
     if not setOK then
-        reaper.MB("The script could not access the timebase table of all tracks.", "ERROR", 1)
+        reaper.MB("The script could not access the timebase table of all tracks.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end
@@ -424,13 +426,13 @@ for i = 0, reaper.CountMediaItems(0)-1 do
         if origName then reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", origName, true) end
     end
     if not timebaseInteger then
-        reaper.MB("The script could not re-access the timebases of all takes.", "ERROR", 1)
+        reaper.MB("The script could not re-access the timebases of all takes.", "ERROR", 0)
         tryToUndo = true
         goto quit
     else
         local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", timebaseInteger)
         if not setOK then
-            reaper.MB("The script could not set the timebase of all items.", "ERROR", 1)
+            reaper.MB("The script could not set the timebase of all items.", "ERROR", 0)
             tryToUndo = true
             goto quit
         end
@@ -451,13 +453,13 @@ end
 for item, values in pairs(tMIDIItemPositions) do
     local setPosOK = reaper.SetMediaItemPosition(item, values.position, false)
     if not setPosOK then
-        reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 1)
+        reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end
     local setLengthOK = reaper.SetMediaItemLength(item, values.length+spaceLength, false)
     if not setLengthOK then
-        reaper.MB("The script could not change the lengths of all MIDI items.", "ERROR", 1)
+        reaper.MB("The script could not change the lengths of all MIDI items.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end    
@@ -471,7 +473,7 @@ for item, values in pairs(tMIDIItemPositions) do
             local spacePPQlength = spacePPQend - spacePPQstart
             local MIDIOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
             if not MIDIOK then
-                reaper.MB("The script could not load the raw MIDI data of all MIDI items.", "ERROR", 1)
+                reaper.MB("The script could not load the raw MIDI data of all MIDI items.", "ERROR", 0)
                 tryToUndo = true
                 goto quit
             else
@@ -562,7 +564,7 @@ for item, values in pairs(tMIDIItemPositions) do
                                 .. MIDIstring:sub(prevStrPos)
                     local setMIDIOK = reaper.MIDI_SetAllEvts(take, newMIDIstring)
                     if not setMIDIOK then
-                        reaper.MB("The script could not edit the raw MIDI data of all MIDI items.", "ERROR", 1)
+                        reaper.MB("The script could not edit the raw MIDI data of all MIDI items.", "ERROR", 0)
                         tryToUndo = true
                         goto quit
                     end
@@ -584,9 +586,9 @@ if tryToUndo then
     if reaper.Undo_CanUndo2(0) == "Insert empty beats in selection" then
         couldUndo = reaper.Undo_DoUndo2(0)
         if couldUndo == 0 then
-            reaper.MB("Could not undo changes.  Please undo manually.", "ERROR", 1)
+            reaper.MB("Could not undo changes.  Please undo manually.", "ERROR", 0)
         else
-            reaper.MB("Changes were automatically undone.", "Insert empty beats", 1)
+            reaper.MB("Changes were automatically undone.", "Insert empty beats", 0)
         end
     end
 end
