@@ -53,6 +53,7 @@ About:
     + Much faster execution in large projects.
   * v0.98 (2017-08-30)
     + Error message boxes display only OK, not OK and Cancel.
+    + Better compatability with looped items.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -417,7 +418,7 @@ end
 
 for i = 0, reaper.CountMediaItems(0)-1 do
     local item = reaper.GetMediaItem(0, i)
-    local timebaseInteger
+    local timebaseInteger = nil
     for t = 0, reaper.CountTakes(item)-1 do
         local take = reaper.GetTake(item, t)
         local retval, name = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
@@ -425,17 +426,21 @@ for i = 0, reaper.CountMediaItems(0)-1 do
         if timebase then timebaseInteger = tonumber(timebase) end
         if origName then reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", origName, true) end
     end
+    --[[
     if not timebaseInteger then
         reaper.MB("The script could not re-access the timebases of all takes.", "ERROR", 0)
         tryToUndo = true
         goto quit
     else
-        local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", timebaseInteger)
-        if not setOK then
-            reaper.MB("The script could not set the timebase of all items.", "ERROR", 0)
-            tryToUndo = true
-            goto quit
-        end
+    ]]
+    -- If an item is split within an empty extension, the later child item is simply named "Empty".
+    -- It is therefore possible to encounter items without timebase info in their names.
+    if not timebaseInteger then timebaseInteger = -1 end -- -1 is default
+    local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", timebaseInteger)
+    if not setOK then
+        reaper.MB("The script could not reset the timebase of all items.", "ERROR", 0)
+        tryToUndo = true
+        goto quit
     end
 end
 
