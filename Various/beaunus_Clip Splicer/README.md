@@ -24,7 +24,7 @@ At this point, I had a _skeleton_ of what the final project would look like.
 ### Recording
 
 1. Setup microphones to record each vocalist.
-1. Use the _marker/region list_ to move through the project. Filtering for
+1. Use the _Region/Marker Manager_ to move through the project. Filtering for
    __components__ that included the vocalist that I was recording.
 1. Record each clip in the position that it was intended.
 
@@ -70,8 +70,8 @@ _Clip Splicer_ is used to automatically assemble components into a REAPER
 project.
 
 The components are defined by a simple JSON file that can be created by hand, or
-by machine. For example, here's what a basic Clip Splicer JSON file might look
-like:
+by machine. For example, here's what a basic __Clip Splicer__ JSON file might 
+look like:
 
 ```json
 {
@@ -80,12 +80,12 @@ like:
   components: [
     {
       type: "CLIP",
-      name: "Word1",
       track: "Person1",
-      filename: "Person1-Word1.wav"
+      name: "Word1",
+      filename: "P1-W1.wav"
     }, 
     {
-      type: "PAUSE",
+      type: "SILENCE",
       name: "Pause after clip."
       length: 2
     }
@@ -97,17 +97,215 @@ this:
 
 ```
 →Regions→
-            |- - - - - - - - A region named "Simple example"  - - - - - - -|
-            |- - "CLIP: Person1 Word1" - -||- "PAUSE: Pause after clip."  -|
+            |- - - - - - - -  A region named "REGION: Simple example" - - - - - - -|
 →Timeline→
 ↓Tracks↓   
-Beethoven | |- Clip: "Person1-Word1.wav" -|
-Pause     |                                |- Empty MIDI Item (length 2s) -|
+Beethoven | |- - - - Clip: "P1-W1.wav" - - - - -|
+SILENCE   |                                      |-  Empty MIDI Item (length 2s)  -|
 ```
 Notice:
 * Regions are created to _contain_ their components.
-* Regions are created for _each_ component.
 * Clips are aligned _in sequence_, regardless of length.
 * Clips are put on the _proper track_.
 
+## A closer look at the JSON object
+
+__Clip Splicer__ attempts to model the data as simply as possible. Refer to
+http://www.json.org for some inspiration.
+
+Keep in mind that anything in your REAPER session that should be _ordered_ needs
+to be within an array in the JSON file. In the above example, the main REGION
+("Simple example") is the _only_ top-level REGION in the specification. A __Clip
+Splicer__ specification __*requires*__ a single, top-level REGION.
+
+There are three types of __Clip Splicer__ objects:
+
+1. REGION - Used as a _wrapper_ to surround internal components.
+1. CLIP - Used to represent an _audio file_.
+1. SILENCE - Used to represent a period of _silence_.
+
+One of the powerful features of __Clip Splicer__ is that REGIONs can be
+_nested_. For example, imagine this:
+
+* You are creating a single project that should contain 5 _discs_ (as in CDs).
+* Each _disc_ has a few dozen _tracks_ (as in tracks on a CD). 
+* Each _track_ has two _sections_:
+  * An _instructions_ section.
+  * A _content_ section.
+* Each _section_ has many CLIPs and SILENCEs.
+
+In the above example, there are _discs_, _tracks_, _sections_, _instructions_,
+_contents_, and _sections_. For all of those cases, _ordering_ is important.
+When you are navigating your REAPER session, you also want to be able to quickly
+move through the _Region/Marker Manager_ to get to all of the elements'
+positions.  When you want to render your project to it's final form, you also
+want to be able to render all of the _tracks_ as individual .wav files, and put
+them into properly named folders for each of the _discs_.
+
+This can all be done by _nesting_ REGIONs within each other. Just give all of
+the REGIONs an appropriate name. For example:
+
+* "DISC - Disc 01"
+* "TRACK - Track 00"
+
+When __Clip Splicer__ creates your REAPER project, all of the REGIONs will be
+named. You can filter the REGIONs that you want in the _Region / Marker
+Manager_.
+
+Here's a slightly more complex __Clip Splicer__ JSON file example:
+
+```
+{
+  type: "REGION",
+  name: "Slightly more complex example project.",
+  components: [
+    {
+      type: "REGION",
+      name: "DISC - Disc 01", 
+      components: [
+        {
+          type: "REGION",
+          name: "TRACK - Track 00",
+          components: [
+            {
+              type: "REGION",
+              name: "Instructions",
+              components: [
+                {
+                  type: "CLIP",
+                  filename: "Instruction 01.wav"
+                },
+                {
+                  type: "CLIP",
+                  filename: "Instruction 02.wav"
+                }
+              ]
+            },
+            {
+              type: "REGION",
+              name: "Content",
+              components: [
+                {
+                  type: "CLIP",
+                  filename: "Content 01.wav"
+                },
+                {
+                  type: "CLIP",
+                  filename: "Content 02.wav"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: "REGION",
+          name: "TRACK - Track 01", 
+          components: [ ... ]
+        }
+      ]
+    },
+    {
+      type: "REGION",
+      name: "DISC - Disc 02", 
+      components: [ ... ]
+    }
+  ]
+}
+```
+
+### JSON object members
+
+#### type
+
+The ```type``` member must be one of the following:
+
+* ```REGION```
+* ```CLIP```
+* ```SILENCE```
+
+Depending on the ```type``` of an object, __Clip Splicer__ will treat the object
+differently.
+
+For ```REGION``` objects, __Clip Splicer__ will:
+
+1. Start a _REAPER region_ at the beginning of the object.
+1. Render all of the _components_ within the object in their proper sequence.
+1. End the _REAPER region_ at the end of the last _component_.
+
+For ```CLIP``` objects, __Clip Splicer__ will:
+
+1. Look for the specified file.
+1. If the file exists, create a new _REAPER media item_ that contains the
+   specified file.
+1. If the file does not exist, create an empty _REAPER media item_ with 1 second
+   length in place of the missing file.
+   * Files that are missing will be added to the report of _unavailable files_
+     that is generated at the end of the rendering process.
+
+For ```SILENCE``` objects, __Clip Splicer__ will:
+
+1. Create a new _REAPER media item_ with the specified ```length```.
+1. Put the newly created _REAPER media item_ on a track called "SILENCE". 
+
+For both ```CLIP``` and ```SILENCE``` objects, __Clip Splicer__ will:
+
+* Put the newly created _REAPER media item_ on the specified ```track```.
+  * If there is no specified ```track```, the track "CLIP" or "SILENCE" will be
+    used.
+
+#### name
+
+The ```name``` member is treated differently for different ```type```s of
+objects.
+
+* For ```REGION``` objects, the ```name``` is applied to the _REAPER region_
+  name.
+* For ```CLIP``` and ```SILENCE``` objects, the name is applied to the _REAPER
+  media item_ name.
+  * For ```CLIP``` objects with no specified ```name```, the name "CLIP - 
+    {filename}" will be used.
+  * For ```SILENCE``` objects with no specified ```name```, the name "SILENCE -
+    length {x}" will be used.
+
+#### track
+
+The ```track``` member is treated differently for different ```type```s of
+objects.
+
+If a ```REGION``` object specifies a ```track```, all internal components within
+that ```REGION``` will _inherit_ the specified ```track```. Internal components
+can, however, _override_ their parent's ```track``` by _specifying a new_
+```track```.
+
+For ```CLIP``` and ```SILENCE``` objects, the ```track``` defines which _REAPER
+track_ will be used for the _REAPER media item_.
+
+#### filename
+
+The ```filename``` member applies only for ```CLIP``` objects.
+
+The ```filename``` defines where __Clip Splicer__ should look to find the audio
+file for this ```CLIP```.  The ```filename``` is relative to the ```path```. 
+
+#### path
+
+The ```path``` member applies only for ```REGION``` and ```CLIP``` objects.
+
+If a ```REGION``` object specifies a ```path```, all internal components within
+that ```REGION``` will _inherit_ the specified ```path```. Internal components
+can, however, _override_ their parent's ```path``` by specifying a new
+```path``` that begins with "/". Internal components can _extend_ their parent's
+path by specifying a new ```path``` that begins does __not__ begin with "/".
+
+All ```path```s are relative to the directory that contains the JSON file. 
+Similar to how *nix filesystem paths work, a ```path``` that begins with "/" is
+relative to the _root_. In this case, the _root_ is the JSON file's directory.
+
+#### length
+
+#### components
+
+# TODO
+- [ ] Give an example about how file paths work.
+- [ ] Define values that members can use.
 
