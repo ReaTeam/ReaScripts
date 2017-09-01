@@ -79,13 +79,13 @@ look like:
   name: "Simple example",
   components: [
     {
-      type: "CLIP",
+      type: "MEDIA ITEM",
       track: "Person1",
       name: "Word1",
       filename: "P1-W1.wav"
     }, 
     {
-      type: "SILENCE",
+      type: "MEDIA ITEM",
       name: "Pause after clip."
       length: 2
     }
@@ -100,13 +100,13 @@ this:
             |- - - - - - - -  A region named "REGION: Simple example" - - - - - - -|
 →Timeline→
 ↓Tracks↓   
-Beethoven | |- - - - Clip: "P1-W1.wav" - - - - -|
-SILENCE   |                                      |-  Empty MIDI Item (length 2s)  -|
+Beethoven | |- -  Media Item: "P1-W1.wav"  - - -|
+SILENCE   |                                      |-  Empty Media Item (length 2s) -|
 ```
 Notice:
 * Regions are created to _contain_ their components.
-* Clips are aligned _in sequence_, regardless of length.
-* Clips are put on the _proper track_.
+* Media Items are aligned _in sequence_, regardless of length.
+* Media Items are put on the _proper track_.
 
 ## A closer look at the JSON object
 
@@ -118,11 +118,10 @@ to be within an array in the JSON file. In the above example, the main REGION
 ("Simple example") is the _only_ top-level REGION in the specification. A __Clip
 Splicer__ specification __*requires*__ a single, top-level REGION.
 
-There are three types of __Clip Splicer__ objects:
+There are two types of __Clip Splicer__ objects:
 
 1. REGION - Used as a _wrapper_ to surround internal components.
-1. CLIP - Used to represent an _audio file_.
-1. SILENCE - Used to represent a period of _silence_.
+1. MEDIA ITEM - Used to represent an _audio file_ or a period of _silence_.
 
 One of the powerful features of __Clip Splicer__ is that REGIONs can be
 _nested_. For example, imagine this:
@@ -132,10 +131,10 @@ _nested_. For example, imagine this:
 * Each _track_ has two _sections_:
   * An _instructions_ section.
   * A _content_ section.
-* Each _section_ has many CLIPs and SILENCEs.
+* Each _section_ has many _clips_ and _silences_.
 
 In the above example, there are _discs_, _tracks_, _sections_, _instructions_,
-_contents_, and _sections_. For all of those cases, _ordering_ is important.
+and _contents_. For all of those cases, _ordering_ is important.
 When you are navigating your REAPER session, you also want to be able to quickly
 move through the _Region/Marker Manager_ to get to all of the elements'
 positions.  When you want to render your project to it's final form, you also
@@ -172,11 +171,11 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
               name: "Instructions",
               components: [
                 {
-                  type: "CLIP",
+                  type: "MEDIA ITEM",
                   filename: "Instruction 01.wav"
                 },
                 {
-                  type: "CLIP",
+                  type: "MEDIA ITEM",
                   filename: "Instruction 02.wav"
                 }
               ]
@@ -186,11 +185,11 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
               name: "Content",
               components: [
                 {
-                  type: "CLIP",
+                  type: "MEDIA ITEM",
                   filename: "Content 01.wav"
                 },
                 {
-                  type: "CLIP",
+                  type: "MEDIA ITEM",
                   filename: "Content 02.wav"
                 }
               ]
@@ -213,18 +212,45 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
 }
 ```
 
-### JSON object members
+### JSON objects
 
-#### type
-
-The ```type``` member must be one of the following:
+There are only 2 basic JSON object types:
 
 * ```REGION```
-* ```CLIP```
-* ```SILENCE```
+* ```MEDIA ITEM```
 
-Depending on the ```type``` of an object, __Clip Splicer__ will treat the object
-differently.
+#### REGION
+
+A ```REGION``` is used to _wrap_ and _contain_ a series of _components_. 
+
+Here are the valid members of a ```REGION``` object:
+
+* ```type``` (string) (__required__) : This _must_ be "REGION" in order to be
+  interpreted properly.
+* ```name``` (string) (optional) : If defined, the _REAPER Region_ will be named
+  "[name]"
+* ```track``` (string) (optional) : If specified, all components will be added to this
+  track, unless overridden. If not, the _inherited_ track will be used. If there
+  is no _inherited_ track, a track with no name will be used.
+* ```path``` (string) (optional) : If specified, all components' paths will be
+  relative to this path. If not, the _inherited_ path will be used.  If there is 
+  no _inherited_ path, the root path will be used. The root path is the 
+  location of the JSON file itself.
+* ```components``` (array) (optional) : If defined, the objects _within_ the array
+  will be interpreted and imported into this ```REGION```. If empty or 
+  undefined, the ```REGION``` will have length 0.
+
+Here's an example ```REGION``` with all the bells and whistles:
+
+```
+{
+  type: "REGION",
+  name: "Super Duper Region",
+  track: "Cowbell",
+  path: "clips/percussion/cowbell/",
+  components: [...]
+}
+```
 
 For ```REGION``` objects, __Clip Splicer__ will:
 
@@ -232,66 +258,45 @@ For ```REGION``` objects, __Clip Splicer__ will:
 1. Render all of the _components_ within the object in their proper sequence.
 1. End the _REAPER region_ at the end of the last _component_.
 
-For ```CLIP``` objects, __Clip Splicer__ will:
+#### MEDIA ITEM
 
-1. Look for the specified file.
-1. If the file exists, create a new _REAPER media item_ that contains the
-   specified file.
-1. If the file does not exist, create an empty _REAPER media item_ with 1 second
-   length in place of the missing file.
-   * Files that are missing will be added to the report of _unavailable files_
-     that is generated at the end of the rendering process.
+A ```MEDIA ITEM``` is used to represent an _audio file_ or _period of silence_.
 
-For ```SILENCE``` objects, __Clip Splicer__ will:
+Here are the valid member of a ```MEDIA ITEM``` object:
 
-1. Create a new _REAPER media item_ with the specified ```length```.
-1. Put the newly created _REAPER media item_ on a track called "SILENCE". 
+* ```type``` (string) (__required__) : This _must_ be "MEDIA ITEM" in order to be
+  interpreted properly.
+* ```name``` (string) (optional) : If defined, the _REAPER Media Item_ will be named
+  "[name]".
+* ```track``` (string) (optional) : If specified, this _REAPER Media Item_ will be 
+  added to this track. If not, the _inherited_ track will be used. If there
+  is no _inherited_ track, a track with no name will be used.
+* ```filename``` (string) (optional) : If specified, __Clip Splicer__ will look for a
+  file with the specified filename, relative to the path, and place it in the
+  _REAPER Media Item_. If not, an empty _REAPER Media Item_ will be used.
+* ```length``` (number) (optional) : If specified, the _REAPER Media Item_ will use
+  the specified length (in seconds). If not, the file's original length will be
+  used. If the specified length is _shorter_ than the file's length, the end of
+  the file will be truncated. If the specified length is _longer_ than the
+  file's length, the audio will be looped to reach the length.
+* ```mute``` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted. 
 
-For both ```CLIP``` and ```SILENCE``` objects, __Clip Splicer__ will:
+Here's an example ```MEDIA ITEM``` with all the bells and whistles.
 
-* Put the newly created _REAPER media item_ on the specified ```track```.
-  * If there is no specified ```track```, the track "CLIP" or "SILENCE" will be
-    used.
+```
+{
+  type: "MEDIA ITEM",
+  name: "Super Duper Item",
+  track: "Aux. Percussion",
+  filename: "TheFever.wav",
+  length: 1000,
+  mute: true
+}
+```
 
-#### name
+### path
 
-The ```name``` member is treated differently for different ```type```s of
-objects.
-
-* For ```REGION``` objects, the ```name``` is applied to the _REAPER region_
-  name.
-* For ```CLIP``` and ```SILENCE``` objects, the name is applied to the _REAPER
-  media item_ name.
-  * For ```CLIP``` objects with no specified ```name```, the name "CLIP - 
-    {filename}" will be used.
-  * For ```SILENCE``` objects with no specified ```name```, the name "SILENCE -
-    length {x}" will be used.
-
-#### track
-
-The ```track``` member is treated differently for different ```type```s of
-objects.
-
-If a ```REGION``` object specifies a ```track```, all internal components within
-that ```REGION``` will _inherit_ the specified ```track```. Internal components
-can, however, _override_ their parent's ```track``` by _specifying a new_
-```track```.
-
-For ```CLIP``` and ```SILENCE``` objects, the ```track``` defines which _REAPER
-track_ will be used for the _REAPER media item_.
-
-#### filename
-
-The ```filename``` member applies only for ```CLIP``` objects.
-
-The ```filename``` defines where __Clip Splicer__ should look to find the audio
-file for this ```CLIP```.  The ```filename``` is relative to the ```path```. 
-
-#### path
-
-The ```path``` member applies only for ```REGION``` and ```CLIP``` objects.
-
-If a ```REGION``` object specifies a ```path```, all internal components within
+If an object specifies a ```path```, all internal components within
 that ```REGION``` will _inherit_ the specified ```path```. Internal components
 can, however, _override_ their parent's ```path``` by specifying a new
 ```path``` that begins with "/". Internal components can _extend_ their parent's
@@ -300,12 +305,3 @@ path by specifying a new ```path``` that begins does __not__ begin with "/".
 All ```path```s are relative to the directory that contains the JSON file. 
 Similar to how *nix filesystem paths work, a ```path``` that begins with "/" is
 relative to the _root_. In this case, the _root_ is the JSON file's directory.
-
-#### length
-
-#### components
-
-# TODO
-- [ ] Give an example about how file paths work.
-- [ ] Define values that members can use.
-
