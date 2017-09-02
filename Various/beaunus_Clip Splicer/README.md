@@ -75,19 +75,19 @@ look like:
 
 ```json
 {
-  type: "REGION",
-  name: "Simple example",
-  components: [
+  "type": "REGION",
+  "name": "Simple example",
+  "components": [
     {
-      type: "MEDIA ITEM",
-      track: "Person1",
-      name: "Word1",
-      filename: "P1-W1.wav"
+      "type": "MEDIA ITEM",
+      "track": "Person1",
+      "name": "Word1",
+      "filename": "P1-W1.wav"
     }, 
     {
-      type: "MEDIA ITEM",
-      name: "Pause after clip."
-      length: 2
+      "type": "MEDIA ITEM",
+      "name": "Pause after clip.",
+      "length": 2
     }
   ]
 }
@@ -155,58 +155,58 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
 
 ```
 {
-  type: "REGION",
-  name: "Slightly more complex example project.",
-  components: [
+  "type": "REGION",
+  "name": "Slightly more complex example project.",
+  "components": [
     {
-      type: "REGION",
-      name: "DISC - Disc 01", 
-      components: [
+      "type": "REGION",
+      "name": "DISC - Disc 01", 
+      "components": [
         {
-          type: "REGION",
-          name: "TRACK - Track 00",
-          components: [
+          "type": "REGION",
+          "name": "TRACK - Track 00",
+          "components": [
             {
-              type: "REGION",
-              name: "Instructions",
-              components: [
+              "type": "REGION",
+              "name": "Instructions",
+              "components": [
                 {
-                  type: "MEDIA ITEM",
-                  filename: "Instruction 01.wav"
+                  "type": "MEDIA ITEM",
+                  "filename": "Instruction 01.wav"
                 },
                 {
-                  type: "MEDIA ITEM",
-                  filename: "Instruction 02.wav"
+                  "type": "MEDIA ITEM",
+                  "filename": "Instruction 02.wav"
                 }
               ]
             },
             {
-              type: "REGION",
-              name: "Content",
-              components: [
+              "type": "REGION",
+              "name": "Content",
+              "components": [
                 {
-                  type: "MEDIA ITEM",
-                  filename: "Content 01.wav"
+                  "type": "MEDIA ITEM",
+                  "filename": "Content 01.wav"
                 },
                 {
-                  type: "MEDIA ITEM",
-                  filename: "Content 02.wav"
+                  "type": "MEDIA ITEM",
+                  "filename": "Content 02.wav"
                 }
               ]
             }
           ]
         },
         {
-          type: "REGION",
-          name: "TRACK - Track 01", 
-          components: [ ... ]
+          "type": "REGION",
+          "name": "TRACK - Track 01", 
+          "components": [ ... ]
         }
       ]
     },
     {
-      type: "REGION",
-      name: "DISC - Disc 02", 
-      components: [ ... ]
+      "type": "REGION",
+      "name": "DISC - Disc 02", 
+      "components": [ ... ]
     }
   ]
 }
@@ -244,11 +244,11 @@ Here's an example ```REGION``` with all the bells and whistles:
 
 ```
 {
-  type: "REGION",
-  name: "Super Duper Region",
-  track: "Cowbell",
-  path: "clips/percussion/cowbell/",
-  components: [...]
+  "type": "REGION",
+  "name": "Super Duper Region",
+  "track": "Cowbell",
+  "path": "clips/percussion/cowbell/",
+  "components": [...]
 }
 ```
 
@@ -285,12 +285,12 @@ Here's an example ```MEDIA ITEM``` with all the bells and whistles.
 
 ```
 {
-  type: "MEDIA ITEM",
-  name: "Super Duper Item",
-  track: "Aux. Percussion",
-  filename: "TheFever.wav",
-  length: 1000,
-  mute: true
+  "type": "MEDIA ITEM",
+  "name": "Super Duper Item",
+  "track": "Aux. Percussion",
+  "filename": "TheFever.wav",
+  "length": 1000,
+  "mute": true
 }
 ```
 
