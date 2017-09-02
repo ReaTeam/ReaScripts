@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6ccdc6d55e736d3c391845f8af15a6ee136b1edf" name="ReaTeam Scripts">
+<index version="1" commit="c51d343de17ffd74cf5be3eed0e70ea4189c4fd2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -442,7 +442,12 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - Automation envelope version.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's automation envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 SELECTION OF TARGET ENVELOPE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert LFOs into either 1) a selected automation item, or 2) the time selection of the underlying envelope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into the time selection, select an envelope and deselect all automation items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds of the selected automation item, the LFO will be inserted into only the selected part of the automation item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The time selection and the target envelope or automation item can be changed while the script is running.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING CURVES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
@@ -537,6 +542,31 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
       <version name="1.11" author="juliansader" time="2017-03-02T20:12:34Z">
         <changelog><![CDATA[+ Fixed bug in loading default curves with customized names (different from "default").]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a04bef566d301c6580a67cd8be05e76acb7bd684/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.20" author="juliansader" time="2017-08-06T21:35:41Z">
+        <changelog><![CDATA[+ GUI window will open at last-used screen position.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f8692dedd519a6b6746e6f4b8f102c5aab62262/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.30" author="juliansader" time="2017-08-09T15:20:42Z">
+        <changelog><![CDATA[+ Compatible with automation items.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27083af7c81e68ca364a7767e547dc902aa737de/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.31" author="juliansader" time="2017-08-09T16:01:57Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/58a79904e562ee62411e5bf03780a0fd75d55520/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.32" author="juliansader" time="2017-08-09T16:44:09Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b75ccf29c6506b306ea522b3079618ab4c12707d/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.40" author="juliansader" time="2017-08-09T19:39:03Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.
++ Undo points more informative.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebf3fa2035f32b14a2eb7e8ab69389bbc5631898/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.41" author="juliansader / Xenakios" time="2017-08-15T13:02:57Z">
+        <changelog><![CDATA[+ Checks REAPER version and SWS installed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfa4bc67a0608393385e55c735a7db0e25dac281/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
@@ -779,6 +809,26 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="amagalma_Smart Crossfade.lua" type="script" desc="amagalma_Smart Crossfade">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items are adjacent then it creates a 10ms crossfade on the left side of the items' touch point\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items overlap then it creates a crossfade at the overlapping area\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many items in different tracks as you like\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one crossfade)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires SWS extensions\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-28T09:41:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ce3a1b7280f16bdc2833f0d9ad6e461d4579ab7/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+    </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
@@ -1096,6 +1146,21 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Properties">
+    <reapack name="amagalma_Group selected items vertically.lua" type="script" desc="amagalma_Group selected items vertically">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Groups selected items in different tracks vertically if they are aligned\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want each group to be randomly colored\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-06T17:57:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76c5bcd2dd9c7b620e8007a67474118d45214fcf/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
+      </version>
+    </reapack>
     <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
       <version name="1.0" author="IXix" time="2016-10-29T01:58:12Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
@@ -3621,6 +3686,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ee1ff0959c58a1a88311e1bff2b36d77adc22589/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
+      <version name="1.21" author="juliansader" time="2017-08-27T14:13:20Z">
+        <changelog><![CDATA[+ Compatible with muted notes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/01d691be2b86f978883d42270675012911254fac/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
       <version name="1.0" author="juliansader" time="2016-06-11T15:12:24Z">
@@ -4363,6 +4432,28 @@ Harmony\line
         <changelog><![CDATA[Fix: Crashes on first startup]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f9557c42b2fd09f94390905c3f90ae48b32b62a5/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
       </version>
+      <version name="1.37" author="Lokasenna" time="2017-08-24T00:02:05Z">
+        <changelog><![CDATA[Fix: Crash when attempting to Set the scale with no
+     search results.
+Fix: Mousewheel crashes with high-precision devices.
+Fix: Mouse issues on macOS; os.clock() doesn't give
+	 the same values as on Windows.
+Fix: Selecting a new scale wasn't switching to the
+	 correct scale.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ff3ef4da22d89e24ba2c520775c33275d1ae27fc/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.38" author="Lokasenna" time="2017-08-24T21:42:37Z">
+        <changelog><![CDATA[Fix: "<bad string>" error on menu boxes in the Harmony tab]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f1987c91561afebc0ae47f8fc0e6653acbad7b8f/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.39" author="Lokasenna" time="2017-08-27T23:43:54Z">
+        <changelog><![CDATA[Fix: Issues loading/parsing Reascales on Mac.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/10ff2b7dc181e5e527eb9cea102a54ffa1edfe8b/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.40" author="Lokasenna" time="2017-08-28T00:17:34Z">
+        <changelog><![CDATA[Fix: Note velocity being sent as 128.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f6dea9f7dc470969522a58011edd84fe586369cf/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
     </reapack>
     <reapack name="Mordi-ahmusic_Search selected notes in scale finder.lua" type="script" desc="Search selected notes in scale finder">
       <version name="1.1" author="Mordi &amp; AHmusic" time="2016-06-28T22:45:35Z">
@@ -4627,10 +4718,20 @@ Made by Mordi, Jan 2016]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script is a "beats version" of REAPER's native action "Time selection: Insert empty space at time selection (moving later items)".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is a "beats version" of REAPER's native action "Time selection: Insert empty space at time selection (moving later items)". The number of selected beats is precisely replicated in the empty space.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 REAPER's action inserts empty space that is equal to {\i time} duration of the time selection. If the time selection is not an exact multiple of beats (calculated in the tempo preceding the insert point), all later events (including tempo changes) will necessarily shift away from their beat positions.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script insert empty space equal to the number of {\i beats} in the time selection (in the tempo preceding the time selection). Later events will therefore remain on the beat.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 WARNING: This script is not fully compatible with linear tempo changes. The tempo change that precedes the time selection should be square, as should the tempo map's default point shape.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tempo map\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script duplicates the tempo envelope into the empty space, which has the result of inserting the exact number of selected {\i beats} in the time selection. Later events will therefore remain on the grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Insert position\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert the empty beats/space on either the left of the right of the time selection, depending position of the edit cursor relative to the time selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Locked items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will also detect locked items and can optionally protect such items against moving or splitting.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Timebase\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time for all tracks, items and envelopes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script may require several seconds to parse large MIDI items.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=191210</link>
@@ -4651,6 +4752,28 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="0.93" author="juliansader" time="2017-07-03T01:36:07Z">
         <changelog><![CDATA[+ Workaround for "Add edge points" bug in REAPER that deletes timesig markers at insertion point.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/71eb643ea050e5be9a8263b78b9ffa6aedf14a28/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.95" author="juliansader" time="2017-08-06T19:24:32Z">
+        <changelog><![CDATA[+ MIDI items are not split. Instead MIDI is shifted inside item. Script is threfore useful in MIDI editor.
++ Tempo envelope is duplicated into empty space, so that inserted space is equal to selected time as well as selected beats.
++ Compatible with linear tempo changes.
++ User does not need to make any changes to timebase before or after running script.
++ Locked items can be protected against moving or splitting.
++ Empty space can be inserted either to the left or right of time selection (determined by edit cursor position).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40da187532c6df64f49e3575886c68ab9b480111/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.96" author="juliansader" time="2017-08-08T19:35:12Z">
+        <changelog><![CDATA[+ MIDI notes that extend into but not beyond time selection, will not be extended.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e8acf404456ebf4aa28ddf130bbf8235c68178a3/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.97" author="juliansader" time="2017-08-09T08:24:42Z">
+        <changelog><![CDATA[+ Much faster execution in large projects.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3358f9e882a180fdc0c0c83b8dbeb7235ffd7995/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.98" author="juliansader" time="2017-08-30T10:20:00Z">
+        <changelog><![CDATA[+ Error message boxes display only OK, not OK and Cancel.
++ Better compatability with items with empty extensions.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c51d343de17ffd74cf5be3eed0e70ea4189c4fd2/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
@@ -5019,15 +5142,61 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History\sa180\par}
 }
 ]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=194414</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
       </metadata>
       <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:44:05Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/346f4d62416b679d65291a0a5df4c354dfb11e31/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.6" author="amagalma, modified by gianfini" time="2017-08-05T19:51:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c7337579a04ec0ff09dc70f5ba74350100e5449b/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.62" author="amagalma, modified by gianfini" time="2017-08-20T12:19:04Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/416b41f3b2a2b5bdf6494056128aa2d7c8cda1d9/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.65" author="amagalma, modified by gianfini" time="2017-08-22T02:40:48Z">
+        <changelog><![CDATA[+ Code tidying-up and optimization
++ Edited the Replace Help. Help opens in the Console so that one can continue using the script when Help is displayed
++ Pressing the Commit button creates an undo point in Reaper's Undo History]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/878765f7e75b9b0f2df138795e4efa56e5b91b2d/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.66" author="amagalma, modified by gianfini" time="2017-08-22T10:48:42Z">
+        <changelog><![CDATA[+ Fixed Undo which was broken in v2.65]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eeaee70c8a4091084546bdd060eb82f9565051ed/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.7" author="amagalma, modified by gianfini" time="2017-08-22T23:31:20Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Script remembers last window position
++ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
++ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6346bcd46d18772258eca3b06f4134ac5b6c5d0c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.71" author="amagalma, modified by gianfini" time="2017-08-22T23:44:28Z">
+        <changelog><![CDATA[+ Reapack header correction
++ amagalma additions:
++ Script remembers last window position
++ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
++ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.8" author="amagalma &amp; gianfini" time="2017-08-23T16:54:44Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Added Redo functionality
++ a lot of code tidying-up & optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.81" author="amagalma &amp; gianfini" time="2017-08-23T17:08:02Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Added Redo functionality
++ a lot of code tidying-up & optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0464787245d0f1c99e42f3dcad34d123562b5439/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0464787245d0f1c99e42f3dcad34d123562b5439/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
@@ -5047,6 +5216,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:29:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7be0d60481f498ab3039c145102a3ba565d1cdf9/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
       </version>
+      <version name="2.4" author="amagalma, modified by gianfini" time="2017-08-05T19:45:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0ecd0265285b1a6aac4bc4c319222529ca1fd52/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Implode items across tracks into takes (remove empty tracks).lua" type="script" desc="amagalma_Script: Implode items across tracks into takes (remove empty tracks)">
       <metadata>
@@ -5061,22 +5233,6 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T08:57:17Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54b8426bba0faf1df0342e5abb818703af3e7820/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Insert AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Insert AB Level Matching JSFX to focused FX">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts TBProAudio's AB Level Matching JSFX before and after focused FX\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-07-26T17:57:50Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6ef7fe151f8564a1f91c54f913637af3c606258a/Various/amagalma_Insert%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="amagalma_ReaNoir - Track/Item/Take coloring utility">
@@ -5187,23 +5343,6 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39bbe6c14d544151da677121f208045be7922300/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Remove AB Level Matching JSFX from focused FX chain.lua" type="script" desc="amagalma_Remove AB Level Matching JSFX from focused FX chain">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Removes TBProAudio's AB Level Matching JSFX from focused FX chain\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used alongside my "amagalma_Insert AB Level Matching JSFX to focused FX" action\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-07-29T00:53:13Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6455ad645dacbbb054352b7f487682f736123ebe/Various/amagalma_Remove%20AB%20Level%20Matching%20JSFX%20from%20focused%20FX%20chain.lua</source>
-      </version>
-    </reapack>
     <reapack name="amagalma_Smart automatic record mode.eel" type="script" desc="amagalma_Smart automatic record mode">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5253,6 +5392,64 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T18:33:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96ad93b4cd2b6b364e9edc2443bdcf127da301b1/Various/amagalma_Smooth%20scroll%20view%20right.eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-09T19:28:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fa658ac6aa881ba382eaccbf6f84bd1b81220af2/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-08-09T19:40:08Z">
+        <changelog><![CDATA[+ Small improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e96e6be3e1e1e8072e92793afb17ba84c1163092/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2017-08-21T21:06:06Z">
+        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3676c5fe35bb5032b3922284163ddb954dde5e/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-08T21:58:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/19aba4be0744b6ee2c52a19c9fd4e67e527e0ab1/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-08-09T15:35:49Z">
+        <changelog><![CDATA[+ Better handling of Track chunks >4MB (using eugen2777's workaround)
++ Some code optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e8caafefbe60bc02f43ca2f18b624a9c518adfbc/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-08-09T19:38:16Z">
+        <changelog><![CDATA[+ Small improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb49688f40f21ff930cc80a31f0be9121a6e7684/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.15" author="amagalma" time="2017-08-21T21:07:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c190492548a6288765e67a0adea23a5b5bbc0b4b/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2017-08-21T21:24:12Z">
+        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f26ad7c4abf157ccbf690787a990bcccdfb6a131/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
@@ -5548,6 +5745,23 @@ Web Interface:
       <version name="1.2.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
         <changelog><![CDATA[Name change for consistency]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create mix bus and reroute all selected tracks to it.lua" type="script" desc="Create mix bus and reroute all selected tracks to it">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then reroutes all selected tracks to it and disables their Master/Parent sends.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2017-08-06T22:29:49Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f27c1d3526362d51484922526cc276a08b30577/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20selected%20tracks%20to%20it.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create mix bus and reroute all top-level tracks to it.lua" type="script" desc="Create mix bus and reroute all top-level tracks to it">
@@ -6316,6 +6530,10 @@ RCJacH/ReaScripts
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/RobU23/ReaScripts/"}}{\fldrslt{\ul
 RobU23/ReaScripts
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Sonic-Anomaly/Sonic-Anomaly-JSFX"}}{\fldrslt{\ul
+Sonic-Anomaly/Sonic-Anomaly-JSFX
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.extremraym.com/en/downloads/category/reascripts/"}}{\fldrslt{\ul
