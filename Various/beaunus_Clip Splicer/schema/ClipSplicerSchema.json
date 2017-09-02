@@ -3,6 +3,9 @@
     "title": "Clip Splicer Specification",
     "type": "object",
     "properties": {
+        "path": {
+          "type": "string"
+        },
         "components": {
             "type": "array",
             "items": {
