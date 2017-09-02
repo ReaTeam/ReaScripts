@@ -1,0 +1,27 @@
+{
+    "components": [{
+        "type": "REGION",
+        "name": "Simple example",
+        "components": [{
+                "type": "MEDIA ITEM",
+                "track": "Person1",
+                "name": "Word1",
+                "filename": "P1-W1.wav"
+            },
+            {
+                "type": "MEDIA ITEM",
+                "name": "Pause after clip.",
+                "length": 2
+            },
+            {
+                "type": "REGION",
+                "components": [
+                  {
+                    "type": "MEDIA ITEM",
+                    "length": 50e-10
+                  }
+                ]
+            }
+        ]
+    }]
+}
