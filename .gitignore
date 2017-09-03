@@ -1,0 +1,5 @@
+.project
+.pydevproject
+.gitignore
+
+*.pyc
