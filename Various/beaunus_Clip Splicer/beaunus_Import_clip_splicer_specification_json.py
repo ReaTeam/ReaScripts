@@ -121,12 +121,14 @@ def render_file(filename, name, reaper_media_track, length, mute):
         # Adjust the length of the newly created media item, if necessary
         if length is not None:
             RPR_SetMediaItemLength(reaper_media_item, length, False)
-            RPR_SetEditCurPos(cursor_position_before + length, False, False)
+            RPR_SetEditCurPos(cursor_position_before + length, True, False)
         # Mute the newly created media item, if necessary
         if mute == True:
             RPR_SetMediaItemInfo_Value(reaper_media_item, "B_MUTE", True)
     # If the file doesn't exist, add an empty MIDI item in its place
     else:
+        if name is None:
+            name = ""
         render_empty_midi_item(name + " MISSING " + filename,
                                reaper_media_track, 10)
 
@@ -196,6 +198,7 @@ def render_region(region, path=None, track=None):
     RPR_AddProjectMarker(0, True, float(cursor_position_before),
                          float(RPR_GetCursorPosition()),
                          name, 0)
+    RPR_UpdateTimeline()
 
 
 def render_component(component, path=None, track=None):
