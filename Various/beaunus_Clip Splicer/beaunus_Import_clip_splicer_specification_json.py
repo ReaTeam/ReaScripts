@@ -263,6 +263,7 @@ def generate_missing_file_report(directory):
 def main():
     """Execute the script.
     """
+    RPR_Undo_BeginBlock()
     # Prompt the user for the JSON file that describes the Clip Splicer project
     filename = RPR_GetUserFileNameForRead(None, None, ".json")[1]
     directory = os.path.dirname(filename)
@@ -278,6 +279,7 @@ def main():
         # Render the components
         for component in specification["components"]:
             render_component(component, path)
+    RPR_Undo_EndBlock("Import Clip Splicer JSON file.", 0)
     generate_missing_file_report(directory)
 
 if __name__ == "__main__":
