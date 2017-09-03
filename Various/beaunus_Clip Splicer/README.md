@@ -75,21 +75,25 @@ look like:
 
 ```json
 {
-  "type": "REGION",
-  "name": "Simple example",
+  "title": "Simple Clip Splicer Example."
   "components": [
-    {
-      "type": "MEDIA ITEM",
-      "track": "Person1",
-      "name": "Word1",
-      "filename": "P1-W1.wav"
-    }, 
-    {
-      "type": "MEDIA ITEM",
-      "name": "Pause after clip.",
-      "length": 2
-    }
-  ]
+  {
+    "type": "REGION",
+    "name": "Simple example",
+    "components": [
+      {
+        "type": "MEDIA ITEM",
+        "track": "Person1",
+        "name": "Word1",
+        "filename": "P1-W1.wav"
+      }, 
+      {
+        "type": "MEDIA ITEM",
+        "name": "Pause after clip.",
+        "length": 2
+      }
+    ]
+  }
 }
 ```
 The above example would generate a REAPER session that looks something like
@@ -157,8 +161,9 @@ http://www.json.org for some inspiration.
 
 Keep in mind that anything in your REAPER session that should be _ordered_ needs
 to be within an array in the JSON file. In the above example, the main REGION
-("Simple example") is the _only_ top-level REGION in the specification. A __Clip
-Splicer__ specification __*requires*__ a single, top-level REGION.
+("Simple example") is the _only_ REGION in the specification's components. 
+A __Clip Splicer__ specification __*requires*__ at least one component in the
+"components" member.
 
 There are two types of __Clip Splicer__ objects:
 
