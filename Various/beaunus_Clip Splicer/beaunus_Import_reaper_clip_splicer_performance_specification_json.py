@@ -94,6 +94,8 @@ def render_file(filename, name, reaper_media_track, length, mute):
         if length is not None:
             RPR_SetMediaItemLength(reaper_media_item, length, False)
             RPR_SetEditCurPos(cursor_position_before + length, False, False)
+        if mute == True:
+            RPR_SetMediaItemInfo_Value(reaper_media_item, "B_MUTE", True)
     else:
         render_empty_midi_item(name + " MISSING " + filename,
                                reaper_media_track, 10)
