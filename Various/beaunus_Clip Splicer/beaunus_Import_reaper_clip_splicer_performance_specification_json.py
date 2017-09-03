@@ -156,9 +156,13 @@ def main():
     if filename != None:
         specification = load_file(filename)
         root_folder = os.path.dirname(os.path.realpath(filename))
+        if "path" in specification:
+            path = os.path.join(root_folder, specification["path"])
+        else:
+            path = root_folder
 
         for component in specification["components"]:
-            render_component(component, path=root_folder)
+            render_component(component, path)
 
 
 if __name__ == "__main__":
