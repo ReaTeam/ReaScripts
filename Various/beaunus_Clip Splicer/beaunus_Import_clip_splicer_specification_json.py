@@ -26,6 +26,26 @@ import inspect
 # A mapping of (string)->(int) for looking up trackidx
 tracks = dict()
 
+missing_files = dict()
+
+
+def add_file_to_missing_file_list(filename, reaper_media_track):
+    """Adds the specified file to the missing files register.
+
+    The missing files are sorted by the reaper_media_track on which they should
+    appear.
+
+    Args:
+        filename: The missing file's name
+        reaper_media_track: The track that the missing file should go on.
+    """
+    track_name = RPR_GetSetMediaTrackInfo_String(reaper_media_track, "P_NAME",
+                                                 None, False)[3]
+    if track_name not in missing_files:
+        missing_files[track_name] = list()
+    if filename not in missing_files[track_name]:
+        missing_files[track_name].append(filename)
+
 
 def load_file(filename):
     """Loads the specified file.
@@ -90,25 +110,30 @@ def render_empty_midi_item(name, reaper_media_track, length):
     RPR_SetEditCurPos(end_time, True, False)
 
 
-def render_file(filename, name, reaper_media_track, length, mute):
+def render_file(filename, path, name, reaper_media_track, length, mute):
     """Renders an audio file in the specified track.
 
     The cursor position will move to the end of the newly created media item.
 
     Args:
         filename: The filename for the file to be loaded.
+        path: The location of the file.
         name: The name that should be applied to the REAPER media item take.
         reaper_media_track: The track that the audio file should be put on.
         length: If specified, the desired length of the media item. If not
         specified, the default length of the audio.
         mute: Whether or not the media item should be muted
     """
-    # Add the audio file if the filename is valid
-    if (RPR_file_exists(filename)):
+    if path is not None:
+        full_filename = os.path.join(path, filename)
+    else:
+        full_filename = filename
+    # Add the audio file if the full_filename is valid
+    if (RPR_file_exists(full_filename)):
         # Add the media to the track
         RPR_SetOnlyTrackSelected(reaper_media_track)
         cursor_position_before = RPR_GetCursorPosition()
-        RPR_InsertMedia(filename, 0)
+        RPR_InsertMedia(full_filename, 0)
         # Get a reference to the recently added take
         new_item_index = RPR_GetTrackNumMediaItems(reaper_media_track) - 1
         reaper_media_item = RPR_GetTrackMediaItem(reaper_media_track,
@@ -131,6 +156,7 @@ def render_file(filename, name, reaper_media_track, length, mute):
             name = ""
         render_empty_midi_item(name + " MISSING " + filename,
                                reaper_media_track, 10)
+        add_file_to_missing_file_list(filename, reaper_media_track)
 
 
 def render_media_item(media_item, path=None, track=None):
@@ -153,8 +179,6 @@ def render_media_item(media_item, path=None, track=None):
         track = media_item["track"]
     if "filename" in media_item:
         filename = media_item["filename"]
-        if path is not None:
-            filename = os.path.join(path, filename)
     else:
         filename = None
     if "length" in media_item:
@@ -169,7 +193,7 @@ def render_media_item(media_item, path=None, track=None):
     reaper_media_track = RPR_GetTrack(0, get_trackidx(track))
     # Render the media item, based on whether or not there is a filename
     if filename is not None:
-        render_file(filename, name, reaper_media_track, length, mute)
+        render_file(filename, path, name, reaper_media_track, length, mute)
     else:
         render_empty_midi_item(name, reaper_media_track, length)
 
@@ -215,12 +239,33 @@ def render_component(component, path=None, track=None):
     if component["type"] == "MEDIA ITEM":
         render_media_item(component, path, track)
 
+def generate_missing_file_report(directory):
+    """Generates a txt file report of all the missing files for this project.
+
+    Arg:
+        directory: The directory that the report should be put it
+    """
+    report_filename = os.path.join(directory, 'REAPER Clip Splicer report ' +
+            str(datetime.datetime.now()) + ".txt")
+    report_file = open(report_filename, "w")
+    report_string = ""
+    report_string += "REAPER Clip Splicer report\n"
+    report_string += str(datetime.datetime.now()) + "\n\n"
+    report_string += "MISSING Files\n\n"
+    for track in missing_files:
+        report_string += track + "\n\n"
+        for missing_filename in missing_files[track]:
+            report_string += missing_filename + "\n"
+        report_string += "\n"
+    report_file.write(report_string)
+
 
 def main():
     """Execute the script.
     """
     # Prompt the user for the JSON file that describes the Clip Splicer project
     filename = RPR_GetUserFileNameForRead(None, None, ".json")[1]
+    directory = os.path.dirname(filename)
     # If a file is selected, load and render it
     if filename != None:
         specification = load_file(filename)
@@ -233,6 +278,7 @@ def main():
         # Render the components
         for component in specification["components"]:
             render_component(component, path)
+    generate_missing_file_report(directory)
 
 if __name__ == "__main__":
     main()
