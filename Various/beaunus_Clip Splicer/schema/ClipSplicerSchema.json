@@ -20,6 +20,7 @@
             }
         }
     },
+    "required": ["components"], 
     "definitions": {
         "region": {
             "type": "object",
