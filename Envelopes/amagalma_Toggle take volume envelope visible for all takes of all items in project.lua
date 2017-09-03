@@ -1,23 +1,32 @@
 -- @description amagalma_Toggle active take volume envelope visible for all items in project
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Toggles visibility of take volume envelopes for all takes of all items in project
 --
 --   - Equivalent to Start+Shift+Hyphen ("Show/hide Clip Gain Line") in Pro Tools
---   - Does not create undo points by default. Easily changeable in the end of the script.
+--   - Does not create undo points by default. Easily changeable inside the script.
 
 --[[
  * Changelog:
- * v1.01 (2017-0-11)
-  + fixed bug that would crop to active take when hiding empty envelope of first and active take in a multitake item
+ * v1.02 (2017-09-04)
+  +  easier creation or not of undo points
 --]]
 
+
+-- USER SETTINGS -------------------------------------------------------------------------------
+                                                                                              --
+local no_undo = 1 -- set to 1 for no undo points in history                                   --
+                                                                                              --
+------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------
 
 local reaper = reaper
 local add = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 -1 -1\nPT 0 1 0\n>"
 local remove = "<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 %-1 %-1\nPT 0 1 0\n>\n"
 
+------------------------------------------------------------------------------------------------
 
 local function CreateItemVolEnv(item)
   local _, chunk = reaper.GetItemStateChunk(item, "", false)
@@ -98,88 +107,87 @@ local function UnselectAllItems()
 end
 
 
-local function ToggleTakeVolEnvVisible()
-  local show = 0
-  local all_items = reaper.CountMediaItems(0)
-  if all_items == 0 then goto donothing end
-  if all_items > 0 then
-  SaveSelectedItemsToTable(table)
-  -- Find if any of the items has its vol env hidden
-    for i = 0, all_items-1 do
-      local item = reaper.GetMediaItem(0, i)
-      local take = reaper.GetActiveTake(item)
-      if take then
-        local VolEnv = reaper.GetTakeEnvelopeByName(take, "Volume")
-        if not VolEnv then
-          show = 1
-          goto dostuff
-        else
-          local _, chunk = reaper.GetEnvelopeStateChunk(VolEnv, "")
-          local visible = string.match(chunk, "\nVIS (%d).-\n")
-          if visible == "0" then
-            show =1
-            goto dostuff
-          end   
-        end
-      end
-    end
-  end
-  ::dostuff::
+------------------------------------------------------------------------------------------------
+
+-- Main function --
+reaper.PreventUIRefresh(1)
+local show = 0
+local all_items = reaper.CountMediaItems(0)
+if all_items == 0 then goto donothing end
+if all_items > 0 then
+SaveSelectedItemsToTable(table)
+-- Find if any of the items has its vol env hidden
   for i = 0, all_items-1 do
     local item = reaper.GetMediaItem(0, i)
-    local take_cnt = reaper.CountTakes(item)
-    if take_cnt > 0 then
-      active_take = reaper.GetActiveTake(item)
-      for j = 0, take_cnt-1 do
-        take = reaper.GetMediaItemTake(item, j)
-        if take_cnt > 1 then reaper.SetActiveTake(take) end
-        local VolEnv = reaper.GetTakeEnvelopeByName(take, "Volume")
-        if not VolEnv then
-          if show == 1 then 
-            if take_cnt == 1 then CreateItemVolEnv(item)
-            elseif take_cnt > 1 then CreateActiveTakeVolEnv(item)
-            end
-          end
-        else
-          if show == 1 then ShowTakeVolEnv(take)
-          elseif show == 0 then 
-            if take_cnt == 1 then
-              _, chunk = reaper.GetItemStateChunk(item, "", false)
-              if string.find(chunk, remove) then
-                RemoveItemVolEnv(item)
-                chunk = nil
-              else
-                HideTakeVolEnv(take)
-              end
-            elseif take_cnt > 1 then
-              _, chunk = reaper.GetItemStateChunk(item, "", false)
-              _, startafter = string.find(chunk, "TAKE SEL")
-              _ = nil
-              if not startafter then 
-                startafter = string.find(chunk, ">\n<VOLENV")-10 
-              end
-              if string.find(chunk, remove, startafter) then
-                RemoveActiveTakeVolEnv(item)
-                chunk = nil
-              else
-                HideTakeVolEnv(take)
-              end
-            end
-          end      
-        end
+    local take = reaper.GetActiveTake(item)
+    if take then
+      local VolEnv = reaper.GetTakeEnvelopeByName(take, "Volume")
+      if not VolEnv then
+        show = 1
+        goto dostuff
+      else
+        local _, chunk = reaper.GetEnvelopeStateChunk(VolEnv, "")
+        local visible = string.match(chunk, "\nVIS (%d).-\n")
+        if visible == "0" then
+          show =1
+          goto dostuff
+        end   
       end
-      reaper.SetActiveTake(active_take)
     end
   end
-  RestoreSelectedItemsFromTable(table)
-  ::donothing::
 end
-
--- Uncomment undos if you want Undo points to be created
---reaper.Undo_BeginBlock()
-reaper.PreventUIRefresh(1)
-ToggleTakeVolEnvVisible()
+::dostuff::
+for i = 0, all_items-1 do
+  local item = reaper.GetMediaItem(0, i)
+  local take_cnt = reaper.CountTakes(item)
+  if take_cnt > 0 then
+    active_take = reaper.GetActiveTake(item)
+    for j = 0, take_cnt-1 do
+      take = reaper.GetMediaItemTake(item, j)
+      if take_cnt > 1 then reaper.SetActiveTake(take) end
+      local VolEnv = reaper.GetTakeEnvelopeByName(take, "Volume")
+      if not VolEnv then
+        if show == 1 then 
+          if take_cnt == 1 then CreateItemVolEnv(item)
+          elseif take_cnt > 1 then CreateActiveTakeVolEnv(item)
+          end
+        end
+      else
+        if show == 1 then ShowTakeVolEnv(take)
+        elseif show == 0 then 
+          if take_cnt == 1 then
+            _, chunk = reaper.GetItemStateChunk(item, "", false)
+            if string.find(chunk, remove) then
+              RemoveItemVolEnv(item)
+              chunk = nil
+            else
+              HideTakeVolEnv(take)
+            end
+          elseif take_cnt > 1 then
+            _, chunk = reaper.GetItemStateChunk(item, "", false)
+            _, startafter = string.find(chunk, "TAKE SEL")
+            _ = nil
+            if not startafter then 
+              startafter = string.find(chunk, ">\n<VOLENV")-10 
+            end
+            if string.find(chunk, remove, startafter) then
+              RemoveActiveTakeVolEnv(item)
+              chunk = nil
+            else
+              HideTakeVolEnv(take)
+            end
+          end
+        end      
+      end
+    end
+    reaper.SetActiveTake(active_take)
+  end
+end
+RestoreSelectedItemsFromTable(table)
+::donothing::
+if no_undo == 1 then
+  function NoUndoPoint() end ; reaper.defer(NoUndoPoint)
+else
+  reaper.Undo_OnStateChange("Toggle active take volume envelope visible")
+end
 reaper.PreventUIRefresh(-1)
---reaper.Undo_EndBlock("Toggle active take volume envelope visible", -1)
--- Comment the line below if you have uncommented the Undo lines
-function NoUndoPoint() end ; reaper.defer(NoUndoPoint)
