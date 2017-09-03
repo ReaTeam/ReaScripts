@@ -108,6 +108,48 @@ Notice:
 * Media Items are aligned _in sequence_, regardless of length.
 * Media Items are put on the _proper track_.
 
+## Workflow
+
+### Import the specification into a REAPER session.
+
+1. Run the script `Script: beaunus_Import_reaper_clip_splicer_json.py`
+1. Select a .json file that contains a REAPER Clip Splicer specification.
+   + If you are having trouble importing your JSON file, try validating your
+     JSON file with schema/ClipSplicerSchema.json
+1. Examine the generated _missing file report_ to see what needs to be recorded.
+  - The report can be found in the same folder as the .json file.
+
+### Record the clips
+
+1. If the _missing file report_ is simple enough to manually trim each clip,
+simply record the clips without a lyrics track.
+1. If you want to automated the trimming process:
+  1. Import the _missing file report_ into a lyrics track in a REAPER
+  session.
+  1. Convert the lyrics to markers.
+     + `beaunus_Add markers for lyrics in selected items.lua`
+  1. Set a reasonable tempo. In fact a super slow tempo will allow lots of time
+     between clips.
+  1. Record the clips in order.
+     + You can easily navigate through the clip areas by using the marker
+       manager.
+
+### Trim and save the clips
+
+Performances should be __loudness normalized__ to -23LUFS.
+
+If you have used a lyrics track:
+
+1. Split the performance using dynamic split.
+1. Trim silence at the beginnings and ends of clips.
+1. Name the takes according to the marker that cuts them.
+   + `beaunus_Name item takes by last marker to cut item.lua`
+1. Select the recorded, trimmed, items.
+1. Render items
+
+After all the clips have been recorded, you can again 'Import the
+specification into a REAPER session.'
+
 ## A closer look at the JSON object
 
 __Clip Splicer__ attempts to model the data as simply as possible. Refer to
@@ -216,31 +258,31 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
 
 There are only 2 basic JSON object types:
 
-* ```REGION```
-* ```MEDIA ITEM```
+* `REGION`
+* `MEDIA ITEM`
 
 #### REGION
 
-A ```REGION``` is used to _wrap_ and _contain_ a series of _components_. 
+A `REGION` is used to _wrap_ and _contain_ a series of _components_. 
 
-Here are the valid members of a ```REGION``` object:
+Here are the valid members of a `REGION` object:
 
-* ```type``` (string) (__required__) : This _must_ be "REGION" in order to be
+* `type` (string) (__required__) : This _must_ be "REGION" in order to be
   interpreted properly.
-* ```name``` (string) (optional) : If defined, the _REAPER Region_ will be named
+* `name` (string) (optional) : If defined, the _REAPER Region_ will be named
   "[name]"
-* ```track``` (string) (optional) : If specified, all components will be added to this
+* `track` (string) (optional) : If specified, all components will be added to this
   track, unless overridden. If not, the _inherited_ track will be used. If there
   is no _inherited_ track, a track with no name will be used.
-* ```path``` (string) (optional) : If specified, all components' paths will be
+* `path` (string) (optional) : If specified, all components' paths will be
   relative to this path. If not, the _inherited_ path will be used.  If there is 
   no _inherited_ path, the root path will be used. The root path is the 
   location of the JSON file itself.
-* ```components``` (array) (optional) : If defined, the objects _within_ the array
-  will be interpreted and imported into this ```REGION```. If empty or 
-  undefined, the ```REGION``` will have length 0.
+* `components` (array) (optional) : If defined, the objects _within_ the array
+  will be interpreted and imported into this `REGION`. If empty or 
+  undefined, the `REGION` will have length 0.
 
-Here's an example ```REGION``` with all the bells and whistles:
+Here's an example `REGION` with all the bells and whistles:
 
 ```
 {
@@ -252,7 +294,7 @@ Here's an example ```REGION``` with all the bells and whistles:
 }
 ```
 
-For ```REGION``` objects, __Clip Splicer__ will:
+For `REGION` objects, __Clip Splicer__ will:
 
 1. Start a _REAPER region_ at the beginning of the object.
 1. Render all of the _components_ within the object in their proper sequence.
@@ -260,28 +302,28 @@ For ```REGION``` objects, __Clip Splicer__ will:
 
 #### MEDIA ITEM
 
-A ```MEDIA ITEM``` is used to represent an _audio file_ or _period of silence_.
+A `MEDIA ITEM` is used to represent an _audio file_ or _period of silence_.
 
-Here are the valid member of a ```MEDIA ITEM``` object:
+Here are the valid member of a `MEDIA ITEM` object:
 
-* ```type``` (string) (__required__) : This _must_ be "MEDIA ITEM" in order to be
+* `type` (string) (__required__) : This _must_ be "MEDIA ITEM" in order to be
   interpreted properly.
-* ```name``` (string) (optional) : If defined, the _REAPER Media Item_ will be named
+* `name` (string) (optional) : If defined, the _REAPER Media Item_ will be named
   "[name]".
-* ```track``` (string) (optional) : If specified, this _REAPER Media Item_ will be 
+* `track` (string) (optional) : If specified, this _REAPER Media Item_ will be 
   added to this track. If not, the _inherited_ track will be used. If there
   is no _inherited_ track, a track with no name will be used.
-* ```filename``` (string) (optional) : If specified, __Clip Splicer__ will look for a
+* `filename` (string) (optional) : If specified, __Clip Splicer__ will look for a
   file with the specified filename, relative to the path, and place it in the
   _REAPER Media Item_. If not, an empty _REAPER Media Item_ will be used.
-* ```length``` (number) (optional) : If specified, the _REAPER Media Item_ will use
+* `length` (number) (optional) : If specified, the _REAPER Media Item_ will use
   the specified length (in seconds). If not, the file's original length will be
   used. If the specified length is _shorter_ than the file's length, the end of
   the file will be truncated. If the specified length is _longer_ than the
   file's length, the audio will be looped to reach the length.
-* ```mute``` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted. 
+* `mute` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted. 
 
-Here's an example ```MEDIA ITEM``` with all the bells and whistles.
+Here's an example `MEDIA ITEM` with all the bells and whistles.
 
 ```
 {
@@ -296,12 +338,6 @@ Here's an example ```MEDIA ITEM``` with all the bells and whistles.
 
 ### path
 
-If an object specifies a ```path```, all internal components within
-that ```REGION``` will _inherit_ the specified ```path```. Internal components
-can, however, _override_ their parent's ```path``` by specifying a new
-```path``` that begins with "/". Internal components can _extend_ their parent's
-path by specifying a new ```path``` that begins does __not__ begin with "/".
-
-All ```path```s are relative to the directory that contains the JSON file. 
-Similar to how *nix filesystem paths work, a ```path``` that begins with "/" is
-relative to the _root_. In this case, the _root_ is the JSON file's directory.
+If an object specifies a `path`, all internal components within
+that `REGION` will _inherit_ the specified `path`. Internal components 
+can _extend_ their parent's path by specifying a new `path`.
