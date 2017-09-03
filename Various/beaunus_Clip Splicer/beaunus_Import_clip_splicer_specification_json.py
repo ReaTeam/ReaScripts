@@ -1,6 +1,7 @@
 # pylint: disable=trailing-whitespace
+# pylint: disable=line-too-long
 # pylint: disable=invalid-name
-# TODO: What are the repeats NOT the same length as the previous item?
+# pylint: disable=too-many-arguments
 """
 ReaScript Name: Import Clip Splicer JSON file
 About:
@@ -370,7 +371,6 @@ v2.0 (2017-09-03)
 import datetime
 import json
 import os
-import inspect
 
 # pylint: disable=pointless-string-statement
 # pylint: disable=undefined-variable
@@ -481,7 +481,7 @@ def render_file(filename, path, name, reaper_media_track, length, mute):
     else:
         full_filename = filename
     # Add the audio file if the full_filename is valid
-    if (RPR_file_exists(full_filename)):
+    if RPR_file_exists(full_filename):
         # Add the media to the track
         RPR_SetOnlyTrackSelected(reaper_media_track)
         cursor_position_before = RPR_GetCursorPosition()
@@ -500,7 +500,7 @@ def render_file(filename, path, name, reaper_media_track, length, mute):
             RPR_SetMediaItemLength(reaper_media_item, length, False)
             RPR_SetEditCurPos(cursor_position_before + length, True, False)
         # Mute the newly created media item, if necessary
-        if mute == True:
+        if mute:
             RPR_SetMediaItemInfo_Value(reaper_media_item, "B_MUTE", True)
     # If the file doesn't exist, add an empty MIDI item in its place
     else:
@@ -591,6 +591,7 @@ def render_component(component, path=None, track=None):
     if component["type"] == "MEDIA ITEM":
         render_media_item(component, path, track)
 
+
 def generate_missing_file_report(directory):
     """Generates a txt file report of all the missing files for this project.
 
@@ -598,7 +599,7 @@ def generate_missing_file_report(directory):
         directory: The directory that the report should be put it
     """
     report_filename = os.path.join(directory, 'REAPER Clip Splicer report ' +
-            str(datetime.datetime.now()) + ".txt")
+                                   str(datetime.datetime.now()) + ".txt")
     report_file = open(report_filename, "w")
     report_string = ""
     report_string += "REAPER Clip Splicer report\n"
