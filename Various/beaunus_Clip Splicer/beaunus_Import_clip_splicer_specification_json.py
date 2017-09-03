@@ -1,3 +1,5 @@
+# pylint: disable=pointless-string-statement
+# pylint: disable=undefined-variable
 # pylint: disable=trailing-whitespace
 # pylint: disable=line-too-long
 # pylint: disable=invalid-name
@@ -371,9 +373,6 @@ v2.0 (2017-09-03)
 import datetime
 import json
 import os
-
-# pylint: disable=pointless-string-statement
-# pylint: disable=undefined-variable
 
 # A mapping of (string)->(int) for looking up trackidx
 tracks = dict()
