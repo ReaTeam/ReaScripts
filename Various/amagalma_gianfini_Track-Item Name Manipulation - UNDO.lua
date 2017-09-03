@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.81
+-- @version 2.83
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
@@ -13,6 +13,14 @@
 
 --[[
  * Changelog:
+ * v2.83 (2017-08-28)
+  + gianfini fix:
+  + fixed single line editing clicking on list: help and click on empty line exception
+ * v2.82 (2017-08-27)
+  + gianfini fixes:
+  + Redo button Help sometime not updated or wrong when inactive
+  + Reset button now stays active when REDO is possible (and resets both undo and redo)
+  + Reset REDO when branching new modifiers: e.g. act1, act2, act3, undo, undo, act 4 : would result in resetting REDO avoiding Redoing act2 over act4 (as most Undo in Windows)
  * v2.81 (2017-08-23)
   + amagalma additions:
   + Added Redo functionality
@@ -55,7 +63,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.81"
+local version = "2.83"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -675,6 +683,7 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
   gfx.b = 0.45
   gfx.a = 1
   gfx.rect(tl_x, tl_y - math.floor(lsth_small/3), tl_w, tl_h + math.floor(lsth_small/3))
+  num_displayed_tracks = 0  -- gianfini must stay
   if what == "tracks" and CheckTracks_NM() then
     if (trackCount - indexed_track + 1) < max_lines then
       local btn_DOWN_can_move = 0 -- indicates if list can scroll down further (for graphic indication on btn)
@@ -699,6 +708,8 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
     else
       last_s_line = first_s_line + max_lines - 1
     end
+	
+	num_displayed_lines = last_s_line - first_s_line + 1  --gianfini this has to stay
     for i = first_s_line, last_s_line do
       local trt = reaper.GetSelectedTrack(0, i)
       local track_num = reaper.GetMediaTrackInfo_Value(trt,"IP_TRACKNUMBER")
@@ -728,6 +739,7 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
     else
       last_s_line = first_s_line + max_lines - 1
     end
+	num_displayed_lines = last_s_line - first_s_line + 1 -- gianfini: has to stay
     for i = first_s_line, last_s_line do
       local itemId = reaper.GetSelectedMediaItem(0, i)
       local acttake =  reaper.GetActiveTake(itemId)
@@ -773,6 +785,8 @@ function UpdateUndoHelp()
       modifier_name = "STRIP LEAD/TRAIL SPACES"
     elseif last_modifier == "single_line_edit" then
       modifier_name = "EDIT LINE NO. " .. parm2
+	elseif last_modifier == "clear" then  -- gianfini added
+	  modifier_name = "CLEAR"
     end  
     undo_btn.help_text = "Undo " .. modifier_name
   else
@@ -815,10 +829,12 @@ function UpdateRedoHelp()
       modifier_name = "STRIP LEAD/TRAIL SPACES"
     elseif last_modifier == "single_line_edit" then
       modifier_name = "EDIT LINE NO. " .. parm2
+	elseif last_modifier == "clear" then
+	  modifier_name = "CLEAR"  -- gianfini added
     end  
     redo_btn.help_text = "Redo " .. modifier_name
   else
-    redo_btn.help_text = "Nothing to undo"
+    redo_btn.help_text = "Nothing to redo" -- gianfini fix
   end
 end
 
@@ -878,6 +894,23 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
   return newName
 end
 
+function SaveNextRedo()  -- saves next redo data, to restore them in case no modification from a modifier
+	local next_redo = undo_stack + 1
+	if redo_stack > 0 then
+		next_redo_name = mod_stack_name[next_redo] 
+		next_redo_parm1 = mod_stack_parm1[next_redo]
+		next_redo_parm2 = mod_stack_parm2 [next_redo]
+	end
+end
+
+function RestoreNextRedo()
+	local next_redo = undo_stack + 1
+	if redo_stack > 0 then
+		mod_stack_name[next_redo] = next_redo_name
+		mod_stack_parm1[next_redo] = next_redo_parm1
+		mod_stack_parm2 [next_redo] = next_redo_parm2
+	end
+end
 
 function WriteCurrentModifier() -- write last modifier only to all tracks-items list
   has_changed = 0 -- indicate whether a change in track-items names has occurred or not
@@ -919,7 +952,11 @@ function WriteCurrentModifier() -- write last modifier only to all tracks-items 
   end
   if has_changed == 0 and undo_stack > 0 then
     undo_stack = undo_stack - 1
+	if redo_stack > 0 then RestoreNextRedo() end -- gianfini: needed to keep undo stack if no modification has been done by modifier
+  else
+    redo_stack = 0  --gianfini to reset undo when branching new modifications: as all undo usually work IF MODIFICATIONS ACTUALLY OCCURRED
   end
+  
   UpdateUndoHelp()
   UpdateRedoHelp()
 end
@@ -1002,16 +1039,17 @@ local function modify_single_line(line_num)
 end
 
 
-local function is_mouse_on_list_Down()
-  scroll_line_selected = math.floor((gfx.mouse_y - scroll_list_y + lsth_small) / lsth_small)
-  if (gfx.mouse_x > scroll_list_x and gfx.mouse_x < (scroll_list_x + scroll_list_w) and 
-  gfx.mouse_y > scroll_list_y and gfx.mouse_y < (scroll_list_y + scroll_list_h) and 
-  last_mouse_state == 0 and gfx.mouse_cap & 1 == 1) then
-    set_list_help_text()
-    return true
-  end  
+local function is_mouse_on_list_Down()  --gianfini: this has been reversed to original because the logic is to check mouse over to set help and return mouse button pressed 
+	fsmall()
+    local lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
+	
+	scroll_line_selected = math.floor((gfx.mouse_y - scroll_list_y + lsth_small) / lsth_small)
+	if (gfx.mouse_x > scroll_list_x and gfx.mouse_x < (scroll_list_x + scroll_list_w) and gfx.mouse_y > scroll_list_y and gfx.mouse_y < (scroll_list_y + scroll_list_h) and 
+	    last_mouse_state == 0) then
+		set_list_help_text()
+		if (gfx.mouse_cap & 1 == 1 and tonumber(num_displayed_lines) >= scroll_line_selected) then return true end
+	end	
 end
-
 
 local function init_tables()
   if what == "tracks" then
@@ -1077,10 +1115,14 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   
   if undo_stack > 0 then
     undo_btn:set_color_undo(1)
-    reset_btn:set_color_reset(1)
+	reset_btn:set_color_reset(1)
   else
     undo_btn:set_color_undo(0)
-    reset_btn:set_color_reset(0)
+    if redo_stack > 0 then
+		reset_btn:set_color_reset(1)  -- gianfini: added to align reset behavior when redo possible
+	else
+		reset_btn:set_color_reset(0)
+	end
   end
   
   if redo_stack > 0 then
@@ -1228,7 +1270,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   strip_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
 
   -- 8th raw: Reset, Undo/Redo and Commit -------------------------------------
-  local label, help = "RESET", "Reset all modifiers"
+  local label, help = "RESET", "Reset all modifiers and\nredo states"  -- gianfini: description adjusted as per behavior
   local width = (win_w -  3.5*win_border)/5
   local x_pos = win_border
   local y_pos = y_pos + btn_height + math.floor(win_vert_border*0.8)
@@ -1285,6 +1327,7 @@ local function init() -- INITIALIZATION ----------------------------------------
     what = "tracks"
     init_tables()
     undo_btn.help_text = "Nothing to undo"
+	redo_btn.help_text = "Nothing to redo"
     has_changed = 0
   end
   
@@ -1292,6 +1335,7 @@ local function init() -- INITIALIZATION ----------------------------------------
     what = "items"
     init_tables()
     undo_btn.help_text = "Nothing to undo"
+	redo_btn.help_text = "Nothing to redo"
     has_changed = 0
   end
 
@@ -1462,7 +1506,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
       if ok then
         if tonumber(number) ~= nil then
-          undo_stack = undo_stack + 1 
+      	  undo_stack = undo_stack + 1 
           mod_stack_name [undo_stack] = "trimstart"
           mod_stack_parm1 [undo_stack] = number
           mod_stack_parm2 [undo_stack] = ""
@@ -1547,12 +1591,14 @@ local function init() -- INITIALIZATION ----------------------------------------
   function reset_btn.onClick()
     init_tables()
     undo_btn.help_text = "Nothing to undo"
+	redo_btn.help_text = "Nothing to redo" -- gianfini fix
   end
   
   function undo_btn.onClick()
     if undo_stack > 0 then
       undo_stack = undo_stack - 1
       redo_stack = redo_stack + 1
+	  SaveNextRedo()  -- gianfini: needed to manage cornerstone case of modifier no actually modifying anything without having to reset the redo stack
     end
     WriteModifiersStack()
   end
@@ -1561,6 +1607,7 @@ local function init() -- INITIALIZATION ----------------------------------------
     if redo_stack > 0 then
       undo_stack = undo_stack + 1
       redo_stack = redo_stack - 1
+	  if redo_stack > 0 then SaveNextRedo() end  -- gianfini: needed to manage cornerstone case of modifier no actually modifying anything without having to reset the redo stack
     end
     WriteModifiersStack()
   end
@@ -1587,6 +1634,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       end
       init_tables()
       undo_btn.help_text = "Nothing to undo"
+	  redo_btn.help_text = "Nothing to redo"
       has_changed = 0
     end
   end
