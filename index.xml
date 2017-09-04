@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c1b528c972956554613294d45b7b6b52fad7c236" name="ReaTeam Scripts">
+<index version="1" commit="f10508ec6217d897fc458bea35986567cef5664a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5240,6 +5240,20 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </version>
       <version name="2.4" author="amagalma, modified by gianfini" time="2017-08-05T19:45:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0ecd0265285b1a6aac4bc4c319222529ca1fd52/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Works in a reverse direction to action "View: Go to track (MIDI CC/OSC only)" (993)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-04T09:14:56Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f10508ec6217d897fc458bea35986567cef5664a/Various/amagalma_Go%20to%20track%20(mousewheel%20only)%20reverse.eel</source>
       </version>
     </reapack>
     <reapack name="amagalma_Implode items across tracks into takes (remove empty tracks).lua" type="script" desc="amagalma_Script: Implode items across tracks into takes (remove empty tracks)">
