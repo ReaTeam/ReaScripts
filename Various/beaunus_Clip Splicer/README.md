@@ -75,7 +75,7 @@ look like:
 
 ```json
 {
-  "title": "Simple Clip Splicer Example."
+  "title": "Simple Clip Splicer Example.",
   "components": [
   {
     "type": "REGION",
