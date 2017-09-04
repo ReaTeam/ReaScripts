@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.25
+-- @version 1.26
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.25 (2017-09-04)
-  + better behavior when existing crossfades do not conform to wanted crossfade type/shape/time
+ * v1.26 (2017-09-04)
+  + undo point creation invludes time selection if it was requested to be removed after crossfading
 --]]
 
 
@@ -36,7 +36,7 @@ local sel_item = {}
 local selstart, selend = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 local item_cnt = reaper.CountSelectedMediaItems(0)
 local change = false -- to be used for undo point creation
-local timeselexists
+local timeselexists, timesel_removed
 
 ---------------------------------------------------------------------------------------------------
 
@@ -151,7 +151,12 @@ else
   end
   if remove_timesel == 1 and timeselexists == 1 then -- remove time selection
     reaper.GetSet_LoopTimeRange(true, false, selstart, selstart, false)
+    timesel_removed = 1
   end
-  reaper.Undo_OnStateChange("Smart Crossfade selected items")
+  if timesel_removed == 1 then
+    reaper.Undo_OnStateChangeEx("Smart Crossfade selected items", 4|8, -1)
+  else
+    reaper.Undo_OnStateChange("Smart Crossfade selected items")
+  end
   reaper.UpdateArrange()
 end
