@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2022470c4ee0217fe984eaa11dd1ca6d76f5bcd5" name="ReaTeam Scripts">
+<index version="1" commit="3293f27da8dd134b2af8a759f7470fb1daca2790" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -820,13 +820,14 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades selected items\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items are adjacent then it creates a 10ms crossfade on the left side of the items' touch point\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items are adjacent then it creates a crossfade (length defined by user) on the left side of the items' touch point\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items overlap then it creates a crossfade at the overlapping area\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many items in different tracks as you like\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one crossfade)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set in the script if you want to keep the time selection or remove it\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set in the script if you want to keep selected the previously selected items or not\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one change)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep the time selection or remove it\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep selected the previously selected items or not\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default crossfade length is set inside the script\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -847,6 +848,11 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.22" author="amagalma" time="2017-09-04T09:49:47Z">
         <changelog><![CDATA[+ improved behavior when there is a time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2022470c4ee0217fe984eaa11dd1ca6d76f5bcd5/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.24" author="amagalma" time="2017-09-04T10:28:36Z">
+        <changelog><![CDATA[+ better behavior when creating undo points
++ default crossfade time can be set inside the script]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3293f27da8dd134b2af8a759f7470fb1daca2790/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
