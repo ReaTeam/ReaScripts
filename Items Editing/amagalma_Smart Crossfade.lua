@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.24
+-- @version 1.25
 -- @about
 --   # Crossfades selected items
 --
@@ -15,9 +15,8 @@
 
 --[[
  * Changelog:
- * v1.24 (2017-09-04)
-  + better behavior when creating undo points
-  + default crossfade time can be set inside the script
+ * v1.25 (2017-09-04)
+  + better behavior when existing crossfades do not conform to wanted crossfade type/shape/time
 --]]
 
 
@@ -100,7 +99,7 @@ if item_cnt > 1 then
         if selstart ~= selend and selend > secondstart and selstart < firstend then
           timeselexists = 1
           local timesel = selend - selstart
-          if not FadeInOK(item, timesel) and not FadeOutOK(previousitem, timesel) then
+          if FadeInOK(item, timesel) == false or FadeOutOK(previousitem, timesel) == false then
             -- previous item
             reaper.SetMediaItemSelected(previousitem, true)
             reaper.ApplyNudge(0, 1, 3, 1, selend, 0, 0)
@@ -115,7 +114,7 @@ if item_cnt > 1 then
           end
         else
           if firstend == secondstart then -- items are adjacent
-            if not FadeInOK(item, xfadetime) and not FadeOutOK(previousitem, xfadetime) then
+            if FadeInOK(item, xfadetime) == false or FadeOutOK(previousitem, xfadetime) == false then
               reaper.SetMediaItemSelected(item, true)
               reaper.ApplyNudge(0, 1, 1, 1, secondstart - xfadetime, 0, 0)
               FadeIn(item, xfadetime)
@@ -125,7 +124,7 @@ if item_cnt > 1 then
             end       
           elseif firstend > secondstart then -- items are overlapping
             local overlap = firstend - secondstart
-            if not FadeInOK(item, overlap) and not FadeOutOK(previousitem, overlap) then
+            if FadeInOK(item, overlap) == false or FadeOutOK(previousitem, overlap) == false then
               FadeIn(item, overlap)
               FadeOut(previousitem, overlap)
               change = true
