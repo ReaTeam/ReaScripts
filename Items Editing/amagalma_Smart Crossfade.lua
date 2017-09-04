@@ -1,21 +1,23 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.22
+-- @version 1.24
 -- @about
 --   # Crossfades selected items
 --
---   - If items are adjacent then it creates a 10ms crossfade on the left side of the items' touch point
+--   - If items are adjacent then it creates a crossfade (length defined by user) on the left side of the items' touch point
 --   - If items overlap then it creates a crossfade at the overlapping area
 --   - If there is a time selection covering part of both items, then it crossfades at the time selection area
 --   - Can be used with as many items in different tracks as you like
---   - Smart undo point creation (only if there has been at least one crossfade)
---   - You can set in the script if you want to keep the time selection or remove it
---   - You can set in the script if you want to keep selected the previously selected items or not
+--   - Smart undo point creation (only if there has been at least one change)
+--   - You can set inside the script if you want to keep the time selection or remove it
+--   - You can set inside the script if you want to keep selected the previously selected items or not
+--   - Default crossfade length is set inside the script
 
 --[[
  * Changelog:
- * v1.22 (2017-09-04)
-  + improved behavior when there is a time selection
+ * v1.24 (2017-09-04)
+  + better behavior when creating undo points
+  + default crossfade time can be set inside the script
 --]]
 
 
@@ -23,6 +25,7 @@
                                                                                                  --
 local keep_selected  = 1 -- Set to 1 if you want to keep the items selected (else unselect all)  --
 local remove_timesel = 1 -- Set to 1 if you want to remove the time selection (else keep it)     --
+local xfadetime = 10 -- Set here default crossfade time in milliseconds                          --
                                                                                                  --
 ---------------------------------------------------------------------------------------------------
 
@@ -33,7 +36,7 @@ local reaper = reaper
 local sel_item = {}
 local selstart, selend = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 local item_cnt = reaper.CountSelectedMediaItems(0)
-local crossfaded = false -- to be used for undo point creation
+local change = false -- to be used for undo point creation
 local timeselexists
 
 ---------------------------------------------------------------------------------------------------
@@ -50,8 +53,31 @@ local function FadeOut(item, value)
   reaper.SetMediaItemInfo_Value(item, "D_FADEOUTDIR", 0)
 end
 
+local function FadeInOK(item, value)
+  local ok = false
+  if reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN") == value and
+     reaper.GetMediaItemInfo_Value(item, "C_FADEINSHAPE") == 7 and
+     reaper.GetMediaItemInfo_Value(item, "D_FADEINDIR") == 0
+  then
+    ok = true
+  end
+  return ok
+end
+
+local function FadeOutOK(item, value)
+  local ok = false
+  if reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN") == value and
+     reaper.GetMediaItemInfo_Value(item, "C_FADEOUTSHAPE") == 7 and
+     reaper.GetMediaItemInfo_Value(item, "D_FADEOUTDIR") == 0
+  then
+    ok = true
+  end
+  return ok
+end
+
 ---------------------------------------------------------------------------------------------------
 
+xfadetime = xfadetime*0.001
 if item_cnt > 1 then
   reaper.PreventUIRefresh(1)
   for i = 0, item_cnt-1 do
@@ -70,32 +96,40 @@ if item_cnt > 1 then
       if firstend < secondstart then -- items do not touch
         -- do nothing
       else
-        crossfaded = true
         -- time selection exists and covers parts of both items
         if selstart ~= selend and selend > secondstart and selstart < firstend then
           timeselexists = 1
           local timesel = selend - selstart
-          -- previous item
-          reaper.SetMediaItemSelected(previousitem, true)
-          reaper.ApplyNudge(0, 1, 3, 1, selend, 0, 0)
-          FadeOut(previousitem, timesel)
-          reaper.SetMediaItemSelected(previousitem, false)
-          -- item
-          reaper.SetMediaItemSelected(item, true)
-          reaper.ApplyNudge(0, 1, 1, 1, selstart, 0, 0)
-          FadeIn(item, timesel)
-          reaper.SetMediaItemSelected(item, false)
+          if not FadeInOK(item, timesel) and not FadeOutOK(previousitem, timesel) then
+            -- previous item
+            reaper.SetMediaItemSelected(previousitem, true)
+            reaper.ApplyNudge(0, 1, 3, 1, selend, 0, 0)
+            FadeOut(previousitem, timesel)
+            reaper.SetMediaItemSelected(previousitem, false)
+            -- item
+            reaper.SetMediaItemSelected(item, true)
+            reaper.ApplyNudge(0, 1, 1, 1, selstart, 0, 0)
+            FadeIn(item, timesel)
+            reaper.SetMediaItemSelected(item, false)
+            change = true
+          end
         else
           if firstend == secondstart then -- items are adjacent
-            reaper.SetMediaItemSelected(item, true)
-            reaper.ApplyNudge(0, 1, 1, 1, secondstart - 0.01, 0, 0)
-            FadeIn(item, 0.01)
-            reaper.SetMediaItemSelected(item, false)
-            FadeOut(previousitem, 0.01)        
+            if not FadeInOK(item, xfadetime) and not FadeOutOK(previousitem, xfadetime) then
+              reaper.SetMediaItemSelected(item, true)
+              reaper.ApplyNudge(0, 1, 1, 1, secondstart - xfadetime, 0, 0)
+              FadeIn(item, xfadetime)
+              reaper.SetMediaItemSelected(item, false)
+              FadeOut(previousitem, xfadetime)
+              change = true
+            end       
           elseif firstend > secondstart then -- items are overlapping
             local overlap = firstend - secondstart
-            FadeIn(item, overlap)
-            FadeOut(previousitem, overlap)
+            if not FadeInOK(item, overlap) and not FadeOutOK(previousitem, overlap) then
+              FadeIn(item, overlap)
+              FadeOut(previousitem, overlap)
+              change = true
+            end
           end
         end
       end
@@ -105,7 +139,7 @@ if item_cnt > 1 then
 end
 
 -- Undo point creation ----------------------------------------------------------------------------
-if crossfaded == false then
+if change == false then
   function NoUndoPoint() end
   reaper.defer(NoUndoPoint)
 else
