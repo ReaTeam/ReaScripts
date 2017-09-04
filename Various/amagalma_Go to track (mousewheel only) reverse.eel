@@ -1,0 +1,26 @@
+// @description amagalma_Go to track (mousewheel only) reverse
+// @author amagalma
+// @version 1.0
+// @about
+//   # Works in a reverse direction to action "View: Go to track (MIDI CC/OSC only)" (993)
+//
+
+function main()
+(
+  PreventUIRefresh(1);
+  lasttrack = GetLastTouchedTrack();
+  get_action_context(#filename,sectionID,cmdID,mode,resolution,val);
+  val > 0 ? // Mousewheel up
+  (
+  SetOnlyTrackSelected(lasttrack);
+  Main_OnCommand(40286,0); // Track: Go to previous track
+  )
+  : // Mousewheel down
+  (
+  SetOnlyTrackSelected(lasttrack);
+  Main_OnCommand(40285,0); // Track: Go to next track
+  );
+  PreventUIRefresh(-1);
+);
+
+defer("main()"); // No undo point creation
