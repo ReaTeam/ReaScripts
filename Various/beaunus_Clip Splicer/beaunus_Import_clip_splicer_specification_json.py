@@ -102,7 +102,7 @@ About:
           "length": 2
         }
       ]
-    }
+    }]
   }
   ```
   The above example would generate a REAPER session that looks something like
