@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="34ad2b3b89c4b1b642b4000a59e9af4741ec12c3" name="ReaTeam Scripts">
+<index version="1" commit="3a05715b0e009045a8832e2db3c02ff109084090" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -857,6 +857,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.25" author="amagalma" time="2017-09-04T10:47:30Z">
         <changelog><![CDATA[+ better behavior when existing crossfades do not conform to wanted crossfade type/shape/time]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34ad2b3b89c4b1b642b4000a59e9af4741ec12c3/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.26" author="amagalma" time="2017-09-04T11:04:26Z">
+        <changelog><![CDATA[+ undo point creation invludes time selection if it was requested to be removed after crossfading]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a05715b0e009045a8832e2db3c02ff109084090/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
