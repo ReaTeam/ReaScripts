@@ -1,0 +1,96 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "Clip Splicer Specification",
+    "type": "object",
+    "properties": {
+        "path": {
+          "type": "string"
+        },
+        "components": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "oneOf": [{
+                        "$ref": "#/definitions/region"
+                    },
+                    {
+                        "$ref": "#/definitions/mediaItem"
+                    }
+                ]
+            }
+        }
+    },
+    "required": ["components"], 
+    "definitions": {
+        "region": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "This must be 'REGION' in order to be interpreted properly",
+                    "type": "string",
+                    "pattern": "^REGION$"
+                },
+                "name": {
+                    "description": "If defined, the REAPER Region will be named '[name]'",
+                    "type": "string"
+                },
+                "track": {
+                    "description": "If specified, all components will be added to this track, unless overridden. If not, the inherited track will be used. If there is no inherited track, a track with no name will be used.",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "If specified, all components' paths will be relative to this path. If not, the inherited path will be used. If there is no inherited path, the root path will be used. The root path is the location of the JSON file itself.",
+                    "type": "string"
+                },
+                "components": {
+                    "description": "If defined, the objects within the array will be interpreted and imported into this REGION. If empty or undefined, the REGION will have length 0.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "oneOf": [{
+                                "$ref": "#/definitions/region"
+                            },
+                            {
+                                "$ref": "#/definitions/mediaItem"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": ["type"],
+            "additionalProperties": false
+        },
+        "mediaItem": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "This must be 'MEDIA ITEM' in order to be interpreted properly",
+                    "type": "string",
+                    "pattern": "^MEDIA ITEM$"
+                },
+                "name": {
+                    "description": "If defined, the REAPER Media Item will be named '[name]'",
+                    "type": "string"
+                },
+                "track": {
+                    "description": "If specified, the REAPER Media item will be added to this track. If not, the inherited track will be used. If there is no inherited track, a track with no name will be used.",
+                    "type": "string"
+                },
+                "filename": {
+                    "description": "If specified, Clip Splicer will look for a file with the specified filename, relative to the path, and place it in the REAPER Media Item. If not, an empty REAPER Media Item will be used.",
+                    "type": "string"
+                },
+                "length": {
+                    "description": "If specified, the REAPER Media Item will use the specified length (in seconds). If not, the file's original length will be used. If the specified length is shorter than the file's length, the end of the file will be truncated. If the specified length is longer than the file's length, the audio will be looped to reach the length.",
+                    "type": "number"
+                },
+                "mute": {
+                    "description": "If true, the REAPER Media Item will be muted.",
+                    "type": "boolean"
+                }
+            },
+            "required": ["type"],
+            "additionalProperties": false
+        }
+    }
+}
