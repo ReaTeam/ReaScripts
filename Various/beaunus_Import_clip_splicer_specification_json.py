@@ -357,6 +357,9 @@ About:
   can _extend_ their parent's path by specifying a new `path`.
 Author: beaunus
 Licence: GPL v3
+Provides:
+    beaunus_Clip_Splicer/example/*.json
+    beaunus_Clip_Splicer/schema/*.json
 REAPER: 5.0
 Version: 2.0
 
