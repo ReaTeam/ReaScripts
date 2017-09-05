@@ -1,0 +1,32 @@
+{
+    "title": "An example REAPER Clip Splicer specification.",
+    "path": "clips",
+    "components": [{
+        "type": "REGION",
+        "name": "Simple example",
+        "components": [{
+                "type": "MEDIA ITEM",
+                "track": "Person1",
+                "name": "Word1",
+                "length": 200,
+                "mute": true,
+                "filename": "P1-W1.wav"
+            },
+            {
+                "type": "MEDIA ITEM",
+                "track": "Person2",
+                "name": "Pause after clip.",
+                "length": 2
+            },
+            {
+                "type": "REGION",
+                "components": [
+                  {
+                    "type": "MEDIA ITEM",
+                    "length": 1e-1
+                  }
+                ]
+            }
+        ]
+    }]
+}
