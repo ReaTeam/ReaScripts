@@ -12,14 +12,14 @@ About:
   ## Motivation
 
   I make CDs for an English language school. A single track in a typical project
-  usually comprised a few __instructions__ followed by a lot of __words__, each 
-  with spaces for __repeats__ and __pauses__ to allow listeners to practice. When 
+  usually comprised a few __instructions__ followed by a lot of __words__, each
+  with spaces for __repeats__ and __pauses__ to allow listeners to practice. When
   I first started doing this, my process was something like this:
 
   ### Setup
 
-  1. Obtain a _script_ of the entire CD project. 
-     * The script would define the layout of each __track__. Something like this: 
+  1. Obtain a _script_ of the entire CD project.
+     * The script would define the layout of each __track__. Something like this:
        * [Instruction 1A], Cat, Dog, Elephant, ...
   1. Create a _skeleton_ REAPER session file that contained _Empty MIDI Items_ for
      each of the __components__ that would _eventually_ be recorded in the
@@ -79,7 +79,7 @@ About:
   project.
 
   The components are defined by a simple JSON file that can be created by hand, or
-  by machine. For example, here's what a basic __Clip Splicer__ JSON file might 
+  by machine. For example, here's what a basic __Clip Splicer__ JSON file might
   look like:
 
   ```json
@@ -95,7 +95,7 @@ About:
           "track": "Person1",
           "name": "Word1",
           "filename": "P1-W1.wav"
-        }, 
+        },
         {
           "type": "MEDIA ITEM",
           "name": "Pause after clip.",
@@ -112,7 +112,7 @@ About:
   →Regions→
               |- - - - - - - -  A region named "REGION: Simple example" - - - - - - -|
   →Timeline→
-  ↓Tracks↓   
+  ↓Tracks↓
   Beethoven | |- -  Media Item: "P1-W1.wav"  - - -|
   SILENCE   |                                      |-  Empty Media Item (length 2s) -|
   ```
@@ -170,7 +170,7 @@ About:
 
   Keep in mind that anything in your REAPER session that should be _ordered_ needs
   to be within an array in the JSON file. In the above example, the main REGION
-  ("Simple example") is the _only_ REGION in the specification's components. 
+  ("Simple example") is the _only_ REGION in the specification's components.
   A __Clip Splicer__ specification __*requires*__ at least one component in the
   "components" member.
 
@@ -183,7 +183,7 @@ About:
   _nested_. For example, imagine this:
 
   * You are creating a single project that should contain 5 _discs_ (as in CDs).
-  * Each _disc_ has a few dozen _tracks_ (as in tracks on a CD). 
+  * Each _disc_ has a few dozen _tracks_ (as in tracks on a CD).
   * Each _track_ has two _sections_:
     * An _instructions_ section.
     * A _content_ section.
@@ -216,7 +216,7 @@ About:
     "components": [
       {
         "type": "REGION",
-        "name": "DISC - Disc 01", 
+        "name": "DISC - Disc 01",
         "components": [
           {
             "type": "REGION",
@@ -254,14 +254,14 @@ About:
           },
           {
             "type": "REGION",
-            "name": "TRACK - Track 01", 
+            "name": "TRACK - Track 01",
             "components": [ ... ]
           }
         ]
       },
       {
         "type": "REGION",
-        "name": "DISC - Disc 02", 
+        "name": "DISC - Disc 02",
         "components": [ ... ]
       }
     ]
@@ -277,7 +277,7 @@ About:
 
   #### REGION
 
-  A `REGION` is used to _wrap_ and _contain_ a series of _components_. 
+  A `REGION` is used to _wrap_ and _contain_ a series of _components_.
 
   Here are the valid members of a `REGION` object:
 
@@ -289,11 +289,11 @@ About:
     track, unless overridden. If not, the _inherited_ track will be used. If there
     is no _inherited_ track, a track with no name will be used.
   * `path` (string) (optional) : If specified, all components' paths will be
-    relative to this path. If not, the _inherited_ path will be used.  If there is 
-    no _inherited_ path, the root path will be used. The root path is the 
+    relative to this path. If not, the _inherited_ path will be used.  If there is
+    no _inherited_ path, the root path will be used. The root path is the
     location of the JSON file itself.
   * `components` (array) (optional) : If defined, the objects _within_ the array
-    will be interpreted and imported into this `REGION`. If empty or 
+    will be interpreted and imported into this `REGION`. If empty or
     undefined, the `REGION` will have length 0.
 
   Here's an example `REGION` with all the bells and whistles:
@@ -324,7 +324,7 @@ About:
     interpreted properly.
   * `name` (string) (optional) : If defined, the _REAPER Media Item_ will be named
     "[name]".
-  * `track` (string) (optional) : If specified, this _REAPER Media Item_ will be 
+  * `track` (string) (optional) : If specified, this _REAPER Media Item_ will be
     added to this track. If not, the _inherited_ track will be used. If there
     is no _inherited_ track, a track with no name will be used.
   * `filename` (string) (optional) : If specified, __Clip Splicer__ will look for a
@@ -335,7 +335,7 @@ About:
     used. If the specified length is _shorter_ than the file's length, the end of
     the file will be truncated. If the specified length is _longer_ than the
     file's length, the audio will be looped to reach the length.
-  * `mute` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted. 
+  * `mute` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted.
 
   Here's an example `MEDIA ITEM` with all the bells and whistles.
 
@@ -353,7 +353,7 @@ About:
   ### path
 
   If an object specifies a `path`, all internal components within
-  that `REGION` will _inherit_ the specified `path`. Internal components 
+  that `REGION` will _inherit_ the specified `path`. Internal components
   can _extend_ their parent's path by specifying a new `path`.
 Author: beaunus
 Licence: GPL v3
@@ -516,7 +516,7 @@ def render_file(filename, path, name, reaper_media_track, length, mute):
 def render_media_item(media_item, path=None, track=None):
     """Render the specified media item.
 
-    The rendering process depends on the media item's type. 
+    The rendering process depends on the media item's type.
     The cursor position is moved to the end of the newly created media item.
 
     Args:
