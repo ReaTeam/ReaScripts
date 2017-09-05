@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3a05715b0e009045a8832e2db3c02ff109084090" name="ReaTeam Scripts">
+<index version="1" commit="f1460f9c230d0725352272270abeb2cae71293b6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5589,6 +5589,231 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T16:59:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74d96a0305ab27039d02c27386f88bc25239c1eb/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Clip Splicer\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Motivation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 I make CDs for an English language school. A single track in a typical project usually comprised a few {\b instructions} followed by a lot of {\b words}, each with spaces for {\b repeats} and {\b pauses} to allow listeners to practice. When I first started doing this, my process was something like this:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Setup\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Obtain a {\i script} of the entire CD project.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab The script would define the layout of each {\b track}. Something like this:\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab [Instruction 1A], Cat, Dog, Elephant, ...\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create a {\i skeleton} REAPER session file that contained {\i Empty MIDI Items} for each of the {\b components} that would {\i eventually} be recorded in the project.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Name the {\i Empty MIDI Items} according to the {\i word} that would {\i eventually} be recorded.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Put {\i regions} and {\i markers} on all the {\b components} and {\b tracks}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 At this point, I had a {\i skeleton} of what the final project would look like.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Recording\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Setup microphones to record each vocalist.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Use the {\i Region/Marker Manager} to move through the project. Filtering for {\b components} that included the vocalist that I was recording.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Record each clip in the position that it was intended.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 At this point, I had recorded clips whose {\i starting positions} were in the proper place. There were a few problems that still needed to be addressed.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The beginnings and endings of the clips had silent moments that needed to be edited out.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The lengths of the recorded clips was not the same as the length of the {\i EMPTY MIDI Item} that held its place.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Editing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For {\i every single clip} in the project:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Manually trim the silence at the beginning and end of the clip.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Using {\i global ripple editing}, move the {\i following components} to the right, so they began where the previous {\b component} ended.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As you may guess, that could take a {\i very} long time if there were hundreds or thousands of {\i individual clips} to edit.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, at this point, the session was ready to be mixed for audio.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Revisions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Revision requests often came in the form of:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Please make the pauses after {\i all the instructions} a bit longer.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Please re-record the word "cat" and replace {\i all instances} with the new recording.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Although revisions weren't terribly difficult to do, the amount of editing was still similar to the original amount of editing. Also, on a not-so-fast machine, editing files within a mixing session was often sluggish, with all the plugins running. Some sessions include gigabytes of .wav files loaded into memory. Some files appeared multiple times within the session.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Enter {\b Clip Splicer}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Overview\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\i Clip Splicer} is used to automatically assemble components into a REAPER project.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The components are defined by a simple JSON file that can be created by hand, or by machine. For example, here's what a basic {\b Clip Splicer} JSON file might look like:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "title": "Simple Clip Splicer Example.",\line
+  "components": [\line
+  \{\line
+    "type": "REGION",\line
+    "name": "Simple example",\line
+    "components": [\line
+      \{\line
+        "type": "MEDIA ITEM",\line
+        "track": "Person1",\line
+        "name": "Word1",\line
+        "filename": "P1-W1.wav"\line
+      \},\line
+      \{\line
+        "type": "MEDIA ITEM",\line
+        "name": "Pause after clip.",\line
+        "length": 2\line
+      \}\line
+    ]\line
+  \}]\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The above example would generate a REAPER session that looks something like this:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \u8594?Regions\u8594?\line
+            |- - - - - - - -  A region named "REGION: Simple example" - - - - - - -|\line
+\u8594?Timeline\u8594?\line
+\u8595?Tracks\u8595?\line
+Beethoven | |- -  Media Item: "P1-W1.wav"  - - -|\line
+SILENCE   |                                      |-  Empty Media Item (length 2s) -|\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Notice:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Regions are created to {\i contain} their components.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Media Items are aligned {\i in sequence}, regardless of length.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Media Items are put on the {\i proper track}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Workflow\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Import the specification into a REAPER session.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Run the script {\f1 Script: beaunus_Import_reaper_clip_splicer_json.py}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select a .json file that contains a REAPER Clip Splicer specification.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab If you are having trouble importing your JSON file, try validating your JSON file with schema/ClipSplicerSchema.json\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Examine the generated {\i missing file report} to see what needs to be recorded.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The report can be found in the same folder as the .json file.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Record the clips\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab If the {\i missing file report} is simple enough to manually trim each clip, simply record the clips without a lyrics track.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab If you want to automated the trimming process:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Import the {\i missing file report} into a lyrics track in a REAPER session.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Convert the lyrics to markers.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 beaunus_Add markers for lyrics in selected items.lua}\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Set a reasonable tempo. In fact a super slow tempo will allow lots of time between clips.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab Record the clips in order.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab You can easily navigate through the clip areas by using the marker manager.\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Trim and save the clips\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Performances should be {\b loudness normalized} to -23LUFS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you have used a lyrics track:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Split the performance using dynamic split.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Trim silence at the beginnings and ends of clips.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Name the takes according to the marker that cuts them.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 beaunus_Name item takes by last marker to cut item.lua}\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Select the recorded, trimmed, items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Render items\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After all the clips have been recorded, you can again 'Import the specification into a REAPER session.'\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 A closer look at the JSON object\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Clip Splicer} attempts to model the data as simply as possible. Refer to http://www.json.org for some inspiration.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Keep in mind that anything in your REAPER session that should be {\i ordered} needs to be within an array in the JSON file. In the above example, the main REGION ("Simple example") is the {\i only} REGION in the specification's components. A {\b Clip Splicer} specification {\b {\i requires}} at least one component in the "components" member.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two types of {\b Clip Splicer} objects:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab REGION - Used as a {\i wrapper} to surround internal components.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab MEDIA ITEM - Used to represent an {\i audio file} or a period of {\i silence}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the powerful features of {\b Clip Splicer} is that REGIONs can be {\i nested}. For example, imagine this:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You are creating a single project that should contain 5 {\i discs} (as in CDs).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each {\i disc} has a few dozen {\i tracks} (as in tracks on a CD).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each {\i track} has two {\i sections}:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab An {\i instructions} section.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab A {\i content} section.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each {\i section} has many {\i clips} and {\i silences}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the above example, there are {\i discs}, {\i tracks}, {\i sections}, {\i instructions}, and {\i contents}. For all of those cases, {\i ordering} is important. When you are navigating your REAPER session, you also want to be able to quickly move through the {\i Region/Marker Manager} to get to all of the elements' positions. When you want to render your project to it's final form, you also want to be able to render all of the {\i tracks} as individual .wav files, and put them into properly named folders for each of the {\i discs}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This can all be done by {\i nesting} REGIONs within each other. Just give all of the REGIONs an appropriate name. For example:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "DISC - Disc 01"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "TRACK - Track 00"\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When {\b Clip Splicer} creates your REAPER project, all of the REGIONs will be named. You can filter the REGIONs that you want in the {\i Region / Marker Manager}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here's a slightly more complex {\b Clip Splicer} JSON file example:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "type": "REGION",\line
+  "name": "Slightly more complex example project.",\line
+  "components": [\line
+    \{\line
+      "type": "REGION",\line
+      "name": "DISC - Disc 01",\line
+      "components": [\line
+        \{\line
+          "type": "REGION",\line
+          "name": "TRACK - Track 00",\line
+          "components": [\line
+            \{\line
+              "type": "REGION",\line
+              "name": "Instructions",\line
+              "components": [\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Instruction 01.wav"\line
+                \},\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Instruction 02.wav"\line
+                \}\line
+              ]\line
+            \},\line
+            \{\line
+              "type": "REGION",\line
+              "name": "Content",\line
+              "components": [\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Content 01.wav"\line
+                \},\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Content 02.wav"\line
+                \}\line
+              ]\line
+            \}\line
+          ]\line
+        \},\line
+        \{\line
+          "type": "REGION",\line
+          "name": "TRACK - Track 01",\line
+          "components": [ ... ]\line
+        \}\line
+      ]\line
+    \},\line
+    \{\line
+      "type": "REGION",\line
+      "name": "DISC - Disc 02",\line
+      "components": [ ... ]\line
+    \}\line
+  ]\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 JSON objects\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are only 2 basic JSON object types:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 REGION}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 MEDIA ITEM}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 REGION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A {\f1 REGION} is used to {\i wrap} and {\i contain} a series of {\i components}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here are the valid members of a {\f1 REGION} object:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 type} (string) ({\b required}) : This {\i must} be "REGION" in order to be interpreted properly.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 name} (string) (optional) : If defined, the {\i REAPER Region} will be named "[name]"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 track} (string) (optional) : If specified, all components will be added to this track, unless overridden. If not, the {\i inherited} track will be used. If there is no {\i inherited} track, a track with no name will be used.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 path} (string) (optional) : If specified, all components' paths will be relative to this path. If not, the {\i inherited} path will be used. If there is no {\i inherited} path, the root path will be used. The root path is the location of the JSON file itself.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 components} (array) (optional) : If defined, the objects {\i within} the array will be interpreted and imported into this {\f1 REGION}. If empty or undefined, the {\f1 REGION} will have length 0.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here's an example {\f1 REGION} with all the bells and whistles:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "type": "REGION",\line
+  "name": "Super Duper Region",\line
+  "track": "Cowbell",\line
+  "path": "clips/percussion/cowbell/",\line
+  "components": [...]\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For {\f1 REGION} objects, {\b Clip Splicer} will:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Start a {\i REAPER region} at the beginning of the object.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Render all of the {\i components} within the object in their proper sequence.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab End the {\i REAPER region} at the end of the last {\i component}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 MEDIA ITEM\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A {\f1 MEDIA ITEM} is used to represent an {\i audio file} or {\i period of silence}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here are the valid member of a {\f1 MEDIA ITEM} object:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 type} (string) ({\b required}) : This {\i must} be "MEDIA ITEM" in order to be interpreted properly.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 name} (string) (optional) : If defined, the {\i REAPER Media Item} will be named "[name]".\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 track} (string) (optional) : If specified, this {\i REAPER Media Item} will be added to this track. If not, the {\i inherited} track will be used. If there is no {\i inherited} track, a track with no name will be used.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 filename} (string) (optional) : If specified, {\b Clip Splicer} will look for a file with the specified filename, relative to the path, and place it in the {\i REAPER Media Item}. If not, an empty {\i REAPER Media Item} will be used.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 length} (number) (optional) : If specified, the {\i REAPER Media Item} will use the specified length (in seconds). If not, the file's original length will be used. If the specified length is {\i shorter} than the file's length, the end of the file will be truncated. If the specified length is {\i longer} than the file's length, the audio will be looped to reach the length.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 mute} (true/false) (optional) : If true, the {\i REAPER Media Item} will be muted.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here's an example {\f1 MEDIA ITEM} with all the bells and whistles.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "type": "MEDIA ITEM",\line
+  "name": "Super Duper Item",\line
+  "track": "Aux. Percussion",\line
+  "filename": "TheFever.wav",\line
+  "length": 1000,\line
+  "mute": true\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 path\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If an object specifies a {\f1 path}, all internal components within that {\f1 REGION} will {\i inherit} the specified {\f1 path}. Internal components can {\i extend} their parent's path by specifying a new {\f1 path}.\par}
+}
+]]></description>
+      </metadata>
+      <version name="2.0" author="beaunus" time="2017-09-05T04:23:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Import_clip_splicer_specification_json.py</source>
+        <source file="beaunus_Clip_Splicer/example/example.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/example/example.json</source>
+        <source file="beaunus_Clip_Splicer/schema/ClipSplicerSchema.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/schema/ClipSplicerSchema.json</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
