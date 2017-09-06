@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f1460f9c230d0725352272270abeb2cae71293b6" name="ReaTeam Scripts">
+<index version="1" commit="1e25caed514191ef1a40c1935dcbef233ee7be19" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5237,6 +5237,12 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 + fixed single line editing clicking on list: help and click on empty line exception]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
         <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.84" author="amagalma &amp; gianfini" time="2017-09-06T22:31:56Z">
+        <changelog><![CDATA[+ amagalma addition:
++ The script now supports empty items' notes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
