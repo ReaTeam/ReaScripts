@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.84
+-- @version 2.85
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
@@ -13,6 +13,9 @@
 
 --[[
  * Changelog:
+ * v2.85 (2017-09-07)
+  + amagalma addition:
+  + bug fix when dealing with multiline items' notes
  * v2.84 (2017-09-07)
   + amagalma addition:
   + The script now supports empty items' notes too
@@ -66,7 +69,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.84"
+local version = "2.85"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -483,6 +486,9 @@ fsmall()
 local lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces")
 
 
+local function IsTable(t) return type(t) == 'table' end
+
+
 local function Window_At_Center(w, h) -- Lokasenna function
   local l, t, r, b = 0, 0, w, h
   local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
@@ -561,13 +567,14 @@ local function AllItemNames()
       local _, name = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
       table[reaper.BR_GetMediaItemTakeGUID(acttake)] = name
     else
+      local t = {}
       local name = reaper.ULT_GetMediaItemNote(it)
-      table[reaper.BR_GetMediaItemGUID(it)] = name
+      for word in string.gmatch(name, "[^\n]+") do t[#t+1]= word end
+      table[reaper.BR_GetMediaItemGUID(it)] = t
     end
   end
   return table
 end
-
 
 -- Replace button Help if "amagalma_Track-Item Name Manipulation Replace Help.lua" cannot be loaded
 local function InfoReplacePattern()
@@ -743,7 +750,9 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
       if acttake then
         DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]))
       else
-        DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]))
+        local name = ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]
+        if IsTable(name) then name = table.concat(name) end
+        DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(name))
       end
     end
   end
@@ -784,7 +793,7 @@ function UpdateUndoHelp()
       modifier_name = "STRIP LEAD/TRAIL SPACES"
     elseif last_modifier == "single_line_edit" then
       modifier_name = "EDIT LINE NO. " .. parm2
-  elseif last_modifier == "clear" then  -- gianfini added
+  elseif last_modifier == "clear" then
     modifier_name = "CLEAR"
     end  
     undo_btn.help_text = "Undo " .. modifier_name
@@ -839,6 +848,7 @@ end
 
 
 function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply one modifier to a track-item name
+  if IsTable(prevName) then prevName = table.concat(prevName) end
   local newName = prevName
   local i = seq_number
   if modifier == "prefix" then
@@ -938,6 +948,7 @@ function WriteCurrentModifier() -- write last modifier only to all tracks-items 
         prevName = ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]
       else
         prevName = ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]
+        if IsTable(prevName) then table.concat(prevName) end
       end
       if undo_stack > 0 then
         local modifier = mod_stack_name[undo_stack]
@@ -1644,11 +1655,12 @@ local function init() -- INITIALIZATION ----------------------------------------
             reaper.ULT_SetMediaItemNote(itemId, tostring(ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]))
           end
         end
+        reaper.UpdateArrange()
         reaper.Undo_EndBlock("Item name manipulation", 4)
       end
       init_tables()
       undo_btn.help_text = "Nothing to undo"
-    redo_btn.help_text = "Nothing to redo"
+      redo_btn.help_text = "Nothing to redo"
       has_changed = 0
     end
   end
