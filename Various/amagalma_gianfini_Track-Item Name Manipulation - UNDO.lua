@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.85
+-- @version 2.86
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
@@ -13,6 +13,11 @@
 
 --[[
  * Changelog:
+ * v2.86 (2017-09-08)
+  + gianfini fix:
+  + fixed Commit doing nothing if last modifier didn't modify anything (but previous ones did modify the list)
+  + amagalma quick fix: (may need revision in the future)
+  + script crash when single-line editing a multiline item note
  * v2.85 (2017-09-07)
   + amagalma addition:
   + bug fix when dealing with multiline items' notes
@@ -69,7 +74,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.85"
+local version = "2.86"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -751,7 +756,7 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
         DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)]))
       else
         local name = ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]
-        if IsTable(name) then name = table.concat(name) end
+        if IsTable(name) then name = table.concat(name, " | ") end
         DrawTrackName(x_start + math.floor(lsth_small/3), y_start+math.floor((i-first_s_line)*lsth_small), tostring(name))
       end
     end
@@ -1037,7 +1042,7 @@ local function get_line_name(line_num)  -- get the text of line in scroll list a
     if acttake then
       return ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)], 0
     else
-      return ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)], 0
+      return table.concat(ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]), 0
     end
   end
 end
@@ -1636,7 +1641,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
   
   function commit_btn.onClick()
-    if has_changed == 1 then
+    if undo_stack > 0 then -- gianfini changed to check undo_stack and not has_changed
       if what == "tracks" and CheckTracks() then
         reaper.Undo_BeginBlock()
         for i=0, trackCount-1 do
