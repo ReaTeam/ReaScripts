@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5c29ffc265e5f0dd8d1b588d9827abde5cbcb898" name="ReaTeam Scripts">
+<index version="1" commit="d68603c752be75774d22bc883e745cab0c29879e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5249,6 +5249,14 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 + bug fix when dealing with multiline items' notes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
         <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.86" author="amagalma &amp; gianfini" time="2017-09-08T20:38:04Z">
+        <changelog><![CDATA[+ gianfini fix:
++ fixed Commit doing nothing if last modifier didn't modify anything (but previous ones did modify the list)
++ amagalma quick fix: (may need revision in the future)
++ script crash when single-line editing a multiline item note]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
