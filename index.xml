@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d68603c752be75774d22bc883e745cab0c29879e" name="ReaTeam Scripts">
+<index version="1" commit="32c66108368ad4a919f1eb1926975f338f535dc1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6548,6 +6548,25 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.0.1" author="Lokasenna" time="2017-04-05T11:34:32Z">
         <changelog><![CDATA[Bug fix]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c14d111d4191bc9a3ae066bf918c1166f5be400e/Various/Lokasenna_Scroll%20mixer%20to%20first%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tool that shows cursor position in relation to the item take's Source time\par}
+}
+]]></description>
+      </metadata>
+      <version name="2" author="PL9, modified by amagalma (v2)" time="2017-09-10T16:23:55Z">
+        <changelog><![CDATA[+ remembers last position and window size
++ resizeable via mouse-wheel
++ edit cursor can be moved to any user-defined source time position
++ directory where source file resides can be opened in explorer/finder
++ tooltips]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32c66108368ad4a919f1eb1926975f338f535dc1/Various/PL9-amagalma_Source%20Time%20Position%20Tool%20v2.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
