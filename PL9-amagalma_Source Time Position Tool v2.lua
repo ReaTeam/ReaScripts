@@ -10,13 +10,6 @@
 --   - v2: directory where source file resides can be opened in explorer/finder
 --   - v2: tooltips
 
-local reaper = reaper
-local change, fontsize
-local Section = "Source time position v2"
-local Key = "fontsize"
-local btn_down = false
-local version = 2
-
 --[[
  * Changelog:
  * v2 (2017-09-10)
@@ -27,6 +20,15 @@ local version = 2
   + tooltips
 --]]
 
+
+--------------------------------------------------------------------------------------------
+
+local reaper = reaper
+local change, fontsize
+local Section = "Source time position v2"
+local Key = "fontsize"
+local btn_down = false
+local version = 2
 
 --------------------------------------------------------------------------------------------
 
