@@ -1,0 +1,29 @@
+// Description: mousewheel solo in front dimming
+// Version: 1.0
+// Author: FnA
+// Changelog: Initial release
+// Link: Forum Thread http://forum.cockos.com/showthread.php?t=195464
+// About:
+//   Modeled on factory mousewheel action for Main section.
+//   Can be placed in MIDI editor and probably other sections as well. Step size and min/max limits in user variables below
+//   Thanks spk77 and Justin for example code in unrelated script for mousewheel.
+
+// User Variables ---------------------------------
+dB10 = 30;// step size. dB value x 10. 35 = 3.5dB, etc. use integers only.
+Hi_Limit = -1;// wont go above this. dB value x 10. 35 = 3.5dB, etc. use integers only.
+Lo_Limit = -600;// wont go below this. dB value x 10. 35 = 3.5dB, etc. use integers only.
+// End of User Variables --------------------------
+
+x = extension_api("SNM_GetIntConfigVar", "solodimdb10", 666);
+get_action_context(#foo,0,0, mode, res, val);
+
+val > 0 ? (
+  y = dB10 + x;
+  extension_api("SNM_SetIntConfigVar", "solodimdb10", y < Hi_Limit ? y : Hi_Limit);
+):(
+  y = -dB10 + x;
+  extension_api("SNM_SetIntConfigVar", "solodimdb10", y > Lo_Limit ? y : Lo_Limit);
+);
+
+function NoUndo()(abs(0));
+defer ("NoUndo()");
