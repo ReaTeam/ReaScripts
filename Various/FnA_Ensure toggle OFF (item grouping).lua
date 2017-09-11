@@ -1,4 +1,4 @@
--- Description: Ensure toggle OFF (item grouping).lua
+-- Description: Ensure toggle OFF (item grouping)
 -- Version: 1.0
 -- Author: FnA
 -- Changelog: Initial release
