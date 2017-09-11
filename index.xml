@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7782d6f989492506d1699b7699bf010b0db047d2" name="ReaTeam Scripts">
+<index version="1" commit="f2433e400d20af87200279a38f92b4dec68be9a4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5981,7 +5981,7 @@ Web Interface:
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/song_switcher.html</source>
       </version>
     </reapack>
-    <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping).lua">
+    <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -5994,10 +5994,10 @@ Web Interface:
       </metadata>
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
       </version>
     </reapack>
-    <reapack name="FnA_Ensure toggle ON (item grouping).lua" type="script" desc="Ensure toggle ON (item grouping).lua">
+    <reapack name="FnA_Ensure toggle ON (item grouping).lua" type="script" desc="Ensure toggle ON (item grouping)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -6010,10 +6010,10 @@ Web Interface:
       </metadata>
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
       </version>
     </reapack>
-    <reapack name="FnA_Solo in front dimming louder.eel" type="script" desc="solo in front dimming louder">
+    <reapack name="FnA_Solo in front dimming louder.eel" type="script" desc="Solo in front dimming louder">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -6026,10 +6026,10 @@ Web Interface:
       </metadata>
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Various/FnA_Solo%20in%20front%20dimming%20louder.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20louder.eel</source>
       </version>
     </reapack>
-    <reapack name="FnA_Solo in front dimming quieter.eel" type="script" desc="solo in front dimming quieter">
+    <reapack name="FnA_Solo in front dimming quieter.eel" type="script" desc="Solo in front dimming quieter">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -6042,10 +6042,10 @@ Web Interface:
       </metadata>
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Various/FnA_Solo%20in%20front%20dimming%20quieter.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20quieter.eel</source>
       </version>
     </reapack>
-    <reapack name="FnA_Solo in front dimming with mousewheel.eel" type="script" desc="mousewheel solo in front dimming">
+    <reapack name="FnA_Solo in front dimming with mousewheel.eel" type="script" desc="Mousewheel solo in front dimming">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -6058,7 +6058,7 @@ Web Interface:
       </metadata>
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Various/FnA_Solo%20in%20front%20dimming%20with%20mousewheel.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20with%20mousewheel.eel</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script" desc="AutoSend MIDI of selected track to a specific track">
