@@ -40,7 +40,7 @@ function iniRead(key, n)
   end
 
   return tonumber(({reaper.BR_Win32_GetPrivateProfileString(
-    'reaper', key, '0', iniFile)})[2])
+    'REAPER', key, '0', iniFile)})[2])
 end
 
 function boolValue(val, off, on)
