@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb82a12298ffb3dc923ab3addbd906cc841d0ff7" name="ReaTeam Scripts">
+<index version="1" commit="7f9d9d9b3af5436006a513b2061361881a487229" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -927,6 +927,12 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-09-12T00:48:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ab00d3c4b7b0823c224a3f24f0acaf6953b587e/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2017-09-12T08:01:37Z">
+        <changelog><![CDATA[Add "Save current" button
+Improve text legibility on Windows
+Remember window position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f9d9d9b3af5436006a513b2061361881a487229/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
