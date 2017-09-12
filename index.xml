@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7f9d9d9b3af5436006a513b2061361881a487229" name="ReaTeam Scripts">
+<index version="1" commit="cfde20df4f89e838e20fd182f94b7bbc415ded2a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6702,6 +6702,11 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tool that shows cursor position in relation to the item take's Source time\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab remembers last position and window size\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab resizeable via mouse-wheel\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab edit cursor can be moved to any user-defined source time position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab directory where source file resides can be opened in explorer/finder\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab tooltips\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -6712,6 +6717,10 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 + directory where source file resides can be opened in explorer/finder
 + tooltips]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32c66108368ad4a919f1eb1926975f338f535dc1/Various/PL9-amagalma_Source%20Time%20Position%20Tool%20v2.lua</source>
+      </version>
+      <version name="2.01" author="PL9, modified by amagalma (v2)" time="2017-09-12T15:05:39Z">
+        <changelog><![CDATA[+ Source file opens in Windows Explorer without a cmd window first]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfde20df4f89e838e20fd182f94b7bbc415ded2a/Various/PL9-amagalma_Source%20Time%20Position%20Tool%20v2.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
