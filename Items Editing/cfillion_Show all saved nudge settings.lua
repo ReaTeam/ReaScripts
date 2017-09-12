@@ -1,5 +1,9 @@
 -- @description Show all saved nudge settings
--- @version 1.0
+-- @version 1.1
+-- @changelog
+--   Add "Save current" button
+--   Improve text legibility on Windows
+--   Remember window position
 -- @author cfillion
 -- @link cfillion.ca https://cfillion.ca
 -- @donation https://www.paypal.me/cfillion
@@ -12,20 +16,22 @@
 local WHAT_MAP = {'position', 'left trim', 'left edge', 'right trim', 'contents',
   'duplicate', 'edit cursor', 'end position'}
 
-local UNIT_MAP =  {'milliseconds', 'seconds', 'grid units', 'notes'}
-UNIT_MAP[17] = 'measures.beats'
-UNIT_MAP[18] = 'samples'
-UNIT_MAP[19] = 'frames'
-UNIT_MAP[20] = 'pixels'
-UNIT_MAP[21] = 'item lengths'
-UNIT_MAP[22] = 'item selections'
+local UNIT_MAP =  {'milliseconds', 'seconds', 'grid units', 'notes',
+  [17]='measures.beats', [18]='samples', [19]='frames', [20]='pixels',
+  [21]='item lengths', [22]='item selections'}
 
 local NOTE_MAP = {'1/256', '1/128', '1/64', '1/32T', '1/32', '1/16T', '1/16',
   '1/8T', '1/8', '1/4T', '1/4', '1/2', 'whole'}
 
+local SAVE_ACTIONS = {41271, 41272, 41273, 41274, 41283, 41284, 41285, 41286}
+
 local WIN_PADDING = 10
 local BOX_PADDING = 7
 
+local EXT_SECTION = 'cfillion_show_nudge_settings'
+local EXT_WINDOW_STATE = 'windowState'
+
+local exit = false
 local mouseDown = false
 local mouseClick = false
 local iniFile = reaper.get_ini_file()
@@ -78,7 +84,9 @@ function snapTo(unit)
   return 'unit'
 end
 
-function loadSetting(n)
+function loadSetting(n, reload)
+  if setting.n == n and not reload then return end
+
   setting = {n=n}
 
   local nudge = iniRead('nudge', n)
@@ -100,20 +108,27 @@ function loadSetting(n)
   end
 end
 
-function box_rect(box)
+function saveCurrent()
+  reaper.Main_OnCommand(SAVE_ACTIONS[setting.n], 0)
+  loadSetting(setting.n, true)
+end
+
+function boxRect(box)
   local x, y = gfx.x, gfx.y
   local w, h = gfx.measurestr(box.text)
 
   w = w + (BOX_PADDING * 2)
-  h = 20
+  h = h + BOX_PADDING
 
   if box.w then w = box.w end
   if box.h then h = box.h end
 
+  if box.rtl then x = math.max(box.rtl, (gfx.w - w) - x) end
+
   return {x=x, y=y, w=w, h=h}
 end
 
-function draw_box(box)
+function drawBox(box)
   if not box.color then box.color = {255, 255, 255} end
 
   setColor(box.color)
@@ -131,13 +146,12 @@ function draw_box(box)
 end
 
 function box(box)
-  box.rect = box_rect(box)
-  draw_box(box)
+  box.rect = boxRect(box)
+  drawBox(box)
 end
 
-function button(label, active, callback)
-  local box = {text=label}
-  box.rect = box_rect(box)
+function button(box, active, callback)
+  box.rect = boxRect(box)
 
   local underMouse =
     gfx.mouse_x >= box.rect.x and
@@ -158,7 +172,7 @@ function button(label, active, callback)
     box.color = {220, 220, 220}
   end
 
-  draw_box(box)
+  drawBox(box)
 end
 
 function draw()
@@ -182,9 +196,15 @@ function draw()
   end
 
   gfx.x, gfx.y = WIN_PADDING, 60
-  button('Last', setting.n == 0, function() loadSetting(0) end)
+  button({text='Last'}, setting.n == 0, function() loadSetting(0) end)
   for i=1,8 do
-    button(i, setting.n == i, function() loadSetting(i) end)
+    button({text=i}, setting.n == i, function() loadSetting(i) end)
+  end
+
+  if setting.n > 0 then
+    local minX = gfx.x
+    gfx.x = WIN_PADDING
+    button({text='Save current', rtl=minX}, false, saveCurrent)
   end
 end
 
@@ -194,16 +214,17 @@ function setColor(color)
   gfx.b = color[3] / 255.0
 end
 
-function loop()
-  local char = gfx.getchar()
+function keyboardInput()
+  local key = gfx.getchar()
 
-  if char < 0 then
-    -- bye bye!
-    return false
-  elseif char >= string.byte('0') and char <= string.byte('8') then
-    loadSetting(char - string.byte('0'))
+  if key < 0 then
+    exit = true
+  elseif key >= string.byte('0') and key <= string.byte('8') then
+    loadSetting(key - string.byte('0'))
   end
+end
 
+function mouseInput()
   if mouseClick then
     mouseClick = false
   elseif gfx.mouse_cap == 1 then
@@ -214,20 +235,61 @@ function loop()
   elseif mouseClick then
     mouseClick = false
   end
+end
+
+function loop()
+  keyboardInput()
+  mouseInput()
+
+  if exit then return end
 
   if lastRefresh < os.time() then
-    loadSetting(setting.n)
+    loadSetting(setting.n, true)
     lastRefresh = os.time()
   end
 
   gfx.clear = 16777215
   draw()
   gfx.update()
-  reaper.defer(loop)
+
+  if not exit then
+    reaper.defer(loop)
+  else
+    gfx.quit()
+  end
 end
 
-loadSetting(0)
+function previousWindowState()
+  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
+  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
+end
 
-gfx.init(scriptName, 475, 90)
-gfx.setfont(1, 'sans-serif', 12)
+function saveWindowState()
+  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
+  local w, h = gfx.w, gfx.h
+  if dockState > 0 then
+    w, h = previousWindowState()
+  end
+
+  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
+    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
+end
+
+local w, h, dockState, x, y = previousWindowState()
+
+if w then
+  gfx.init(scriptName, w, h, dockState, x, y)
+else
+  gfx.init(scriptName, 475, 90)
+end
+
+if reaper.GetAppVersion():match('OSX') then
+  gfx.setfont(1, 'sans-serif', 12)
+else
+  gfx.setfont(1, 'sans-serif', 15)
+end
+
+reaper.atexit(saveWindowState)
+
+loadSetting(0)
 loop()
