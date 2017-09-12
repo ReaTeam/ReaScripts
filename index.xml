@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f3465edc169b7eb1bef91e66da48e03772da4ba1" name="ReaTeam Scripts">
+<index version="1" commit="0314ebd11a6b87955835e7aa020d07dbcce6f678" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -909,6 +909,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Show all saved nudge settings.lua" type="script" desc="Show all saved nudge settings">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Show every saved nudge settings\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Tip:} Switch to a different nudge setting with the 0-8 keys.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="screenshot">https://i.imgur.com/PrITgVt.png</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-09-12T00:48:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0314ebd11a6b87955835e7aa020d07dbcce6f678/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
