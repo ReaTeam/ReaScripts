@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.02
+-- @version 2.04
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -18,7 +18,8 @@
 --   - Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.
 --   - Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white
 --   - Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState
---   - Click Load SWS button to load SWSColor files
+--   - Click LD/SV SWS button to load SWSColor files
+--   - Right-Click LD/SV SWS button to save SWSColor files
 --   - Click SWS Colors button to open the SWS Color Management tool
 --   - Ability to dock the script to the left or to the right
 --   - Right-click sliders' area to toggle between RGB and HSL mode
@@ -27,11 +28,15 @@
 --   - Find in the script "MODE OF OPERATION" to set to Normal (RGB/HSL) or Compact (No Sliders) mode
 --   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
 --   - Click on "?" on right top corner to display information, Right-Click for manual
---
+
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
 --[[
  * Changelog:
+ * v2.04 (2017-06-20)
+  + Ctrl-clicking on Darker/Brighter buttons creates shaded/tinted gradient colors
+ * v2.03 (2017-06-20)
+  + can save SWS files (functionality added by user Gianfini)
  * v2.02 (2017-04-13)
   + bugfix: entering Hex codes when in HSL mode was not working
  * v2.01 (2017-04-09)
@@ -102,7 +107,7 @@
   + changed name to ReaNoir
 --]]
 
--- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion and Lokasenna!!! :)
+-- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
 
@@ -120,7 +125,7 @@
 
 
 
-version = "v2.02"
+version = "v2.04"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -886,6 +891,15 @@ end
         end
     end  
 
+  function SaveAsSWSPalette()
+      local name = tostring("")..","..tostring("")
+      local retval, newfile = reaper.GetUserInputs("Save as SWS:", 1, "Save New SWS Palette", name)          
+        if retval == true then
+          local newpalette_path = UserPalettes_path .. newfile .. ".SWSColor"             
+          SaveSWSColorFile(newpalette_path)
+        end
+    end 
+  
     function SavePalette_INIT()
         local SavePalette_x = GUI_centerx -1
         local SavePalette_y = GUI_centery + 246 -compact
@@ -928,11 +942,117 @@ end
       slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = r, g, b
     end
     
+    function TintShade(tintorshade)
+        if what == "tracks" then
+          local seltracks = reaper.CountSelectedTracks(0)
+          if seltracks > 2 then
+                local firsttrack = reaper.GetSelectedTrack(0, 0)
+                local firstcolor = reaper.GetMediaTrackInfo_Value(firsttrack, "I_CUSTOMCOLOR")
+                if firstcolor == 0 or nil then
+                  reaper.MB("The first selected track must already have a custom color in order to make a gradient!", "Error!", 0 )
+                else
+                  reaper.Undo_BeginBlock()                    
+                  local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor)
+                  local firstcolor_h, firstcolor_s, firstcolor_l = rgbToHsl(firstcolor_r/255, firstcolor_g/255, firstcolor_b/255)
+                  if math.abs(firstcolor_l-tintorshade) < 0.1 then
+                    reaper.MB("The first selected track should have a darker color in order to make tint gradient!", "Error!", 0 )
+                  else
+                    local lastcolor_r, lastcolor_g, lastcolor_b = hslToRgb(firstcolor_h, firstcolor_s, tintorshade)
+                    local r_step = (lastcolor_r*255-firstcolor_r)/(seltracks-1)
+                    local g_step = (lastcolor_g*255-firstcolor_g)/(seltracks-1)
+                    local b_step = (lastcolor_b*255-firstcolor_b)/(seltracks-1)
+                    for i=1,seltracks-1 do
+                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local track = reaper.GetSelectedTrack(0, i)
+                      reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
+                    end
+                    reaper.Undo_EndBlock("Color selected track(s) with gradient tint color", -1)
+                  end
+                end
+          else
+               reaper.MB( "Please select at least three tracks!", "Cannot create gradient colors!", 0 )
+          end
+        elseif what == "items" then
+          local selitems = reaper.CountSelectedMediaItems(0)
+          if selitems > 2 then
+              local item = reaper.GetSelectedMediaItem( 0, 0 )
+              local firstcolor = reaper.GetDisplayedMediaItemColor(item)
+              if firstcolor == 0 or nil then
+                reaper.MB("The first selected item must already have a custom color in order to make a gradient!", "Error!", 0 )
+              else
+                reaper.Undo_BeginBlock()
+                local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                local firstcolor_h, firstcolor_s, firstcolor_l = rgbToHsl(firstcolor_r/255, firstcolor_g/255, firstcolor_b/255)
+                if math.abs(firstcolor_l-tintorshade) < 0.1 then
+                  reaper.MB("The first selected track should have a darker color in order to make tint gradient!", "Error!", 0 )
+                else
+                  local lastcolor_r, lastcolor_g, lastcolor_b = hslToRgb(firstcolor_h, firstcolor_s, tintorshade)
+                  local r_step = (lastcolor_r*255-firstcolor_r)/(selitems-1)
+                  local g_step = (lastcolor_g*255-firstcolor_g)/(selitems-1)
+                  local b_step = (lastcolor_b*255-firstcolor_b)/(selitems-1)
+                  for i=1,selitems-1 do
+                    local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                    local item = reaper.GetSelectedMediaItem(0, i)
+                    local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                    local active_take = reaper.GetActiveTake(item)
+                    if active_take ~= nil then
+                      reaper.Main_OnCommand(41333, 0) -- Take: Set active take to default color
+                    end
+                    reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+                    reaper.UpdateArrange()
+                  end
+                  reaper.Undo_EndBlock("Color selected item(s) with gradient colors", -1)
+                end
+              end
+          else
+               reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
+          end
+        elseif what == "takes" then
+          local selitems = reaper.CountSelectedMediaItems(0)
+          if selitems < 1 then
+            reaper.MB("Not any items are selected!", "Error!", 0 )
+          else
+            for i=0,selitems-1 do
+              local item = reaper.GetSelectedMediaItem(0, i)
+              local take_cnt = reaper.CountTakes(item)
+              if take_cnt < 3 then
+                if found == 1 then found = 1 else found = 0 end
+              else
+                found = 1
+                local take = reaper.GetMediaItemTake( item, 0) -- get first take
+                local firstcolor = reaper.GetDisplayedMediaItemColor2( item, take)
+                local firstcolor_r, firstcolor_g, firstcolor_b = reaper.ColorFromNative(firstcolor|0x1000000)
+                local firstcolor_h, firstcolor_s, firstcolor_l = rgbToHsl(firstcolor_r/255, firstcolor_g/255, firstcolor_b/255)
+                local lastcolor_r, lastcolor_g, lastcolor_b = hslToRgb(firstcolor_h, firstcolor_s, tintorshade)
+                local r_step = (lastcolor_r*255-firstcolor_r)/(take_cnt-1)
+                local g_step = (lastcolor_g*255-firstcolor_g)/(take_cnt-1)
+                local b_step = (lastcolor_b*255-firstcolor_b)/(take_cnt-1)
+                reaper.Undo_BeginBlock()
+                for j=1, take_cnt-1 do
+                  local take = reaper.GetMediaItemTake( item, j)
+                  local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*j), math.floor(firstcolor_g+g_step*j), math.floor(firstcolor_b+b_step*j)
+                  local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
+                  reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", color|0x1000000)
+                  reaper.UpdateItemInProject( item )
+                  reaper.UpdateArrange()
+                end
+                reaper.Undo_EndBlock("Color takes of selected item(s) with tint gradient colors", -1)
+              end
+            end
+            if found == 0 then
+              reaper.MB( "Not any item with more than two takes was selected!", "Cannot create gradient colors!", 0 )
+            end
+          end
+          found = nil
+        end
+    end
+    
+    
     function Darker_INIT()
         local Darker_x = GUI_centerx -64
         local Darker_y = GUI_centery - 85
         local Darker_w = 56
-        local help = "Rclick to set Temp to Black"
+        local help = "Rclick->Black | Ctrl->Shades"
         Darker_btn = Button(Darker_x, Darker_y, Darker_w,22,2,0,0,"Darker",help,0,1)
         Darker_btn :set_label_color(0.8,0.8,0.8,1)
         Darker_btn.onClick = function ()
@@ -942,6 +1062,7 @@ end
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 0, 0, 0
         end
         Darker_btn.onCtrlClick = function ()
+          TintShade(0.08)
         end
     end
     
@@ -949,7 +1070,7 @@ end
         local Brighter_x = GUI_centerx -1
         local Brighter_y = GUI_centery - 85
         local Brighter_w = 56
-        local help = "Rclick to set Temp to White"
+        local help = "Rclick->White | Ctrl->Tints"
         Brighter_btn = Button(Brighter_x, Brighter_y, Brighter_w,22,2,0,0,"Brighter",help,0,1)
         Brighter_btn :set_label_color(0.8,0.8,0.8,1)
         Brighter_btn.onClick = function ()
@@ -959,6 +1080,7 @@ end
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = 1, 1, 1
         end
         Brighter_btn.onCtrlClick = function ()
+          TintShade(0.92)
         end
     end
     
@@ -980,13 +1102,14 @@ end
         local LoadSWS_x = GUI_centerx -77
         local LoadSWS_y = GUI_centery - 192
         local LoadSWS_w = 66
-        local help = ".SWSColor palette file"
-        LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"Load SWS",help,0,1)
+        local help = "LClick->Load | RClick->Save"
+        LoadSWS_btn = Button(LoadSWS_x, LoadSWS_y, LoadSWS_w,22,2,0,0,"LD/SV SWS",help,0,1)
         LoadSWS_btn :set_label_color(0.8,0.8,0.8,1)
         LoadSWS_btn.onClick = function ()
           LoadSWSColors()
         end
         LoadSWS_btn.onRClick = function ()
+          SaveAsSWSPalette()
         end
     end
     
@@ -997,6 +1120,14 @@ end
       return R,G,B
     end
     
+    --- gianfini: convert into int format as for SWS files ---
+    function RGBToInt (red, green, blue)
+      if((red < 0 or red > 255 or green < 0 or green > 255 or blue < 0 or blue > 255)) then
+        return 0
+      end      
+      local INTColor = blue*256*256 + green*256 + red
+      return INTColor
+    end
     
     function RandomColors_INIT()
       local RandomColors_x = GUI_centerx -72
@@ -1093,14 +1224,9 @@ end
        local GetColor_x = GUI_centerx -1
        local GetColor_y = GUI_centery + 128 - compact
        local GetColor_w = 65
-       local help = "Copy selected to temp color"
-       local help2 = "Lmb->Get selected | Rmb->Set"
-       if mode == "rgb" or mode == "hsl" then
-         GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
-       elseif mode == "compact" then
-         GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help2,0,1)
-       end
-       GetColor_btn :set_label_color(0.8,0.8,0.8,1)                 
+       local help = "Lmb->Get sel.| Rmb->OS Set"
+       GetColor_btn = Button(GetColor_x,GetColor_y,GetColor_w,22,2,0,0,"Get Color",help,0,1)
+       GetColor_btn:set_label_color(0.8,0.8,0.8,1)                 
        GetColor_btn.onClick = function ()         
           if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
@@ -1145,15 +1271,21 @@ end
           end
        end
        GetColor_btn.onRClick = function ()
-         if mode == "compact" then
-           local answer, color = reaper.GR_SelectColor()
-           if answer ~= 0 then
+          local answer, color = reaper.GR_SelectColor()
+          if answer ~= 0 then
             local R, G, B = reaper.ColorFromNative(color|0x1000000)
-            slider_btn_r.val = R/255 
-            slider_btn_g.val = G/255
-            slider_btn_b.val = B/255
-           end
-         end
+            if mode == "compact" or mode == "rgb" then
+              slider_btn_r.val = R/255 
+              slider_btn_g.val = G/255
+              slider_btn_b.val = B/255
+            elseif mode == "hsl" then
+              local h, s, l = rgbToHsl (R/255, G/255, B/255)
+              slider_btn_h.val = h
+              slider_btn_s.val = s
+              slider_btn_l.val = l 
+              slider_btn_a.val = 1
+            end
+          end
        end 
     end
   
@@ -1290,57 +1422,46 @@ end
                                       
 - part of the code is modification of codes by Spacemen Tree, spk77 & Em. Oga
 - special thanks to them and to X-Raym, cfillion and Lokasenna for their help!
+- thanks to Gianfini for his addition to export SWS Colorset files
 
                                                          ^^ Features: ^^
 
 - Palette of 24 Color Boxes + 1 Temporary Color Box (the big color box on top)
-
 - Click any of the color boxes to Color Tracks, Items or Takes and set it as
   Temporary Color
-  
 - Tracks/Items Mode is set automatically according to what was lastly clicked.
   The Takes mode is set and exited manually by the user
-  
 - Temporary Color can be adjusted by the Sliders and saved in to any of the
   24 Color Boxes
-  
 - Hex name of Temporary Color is shown and can be copied to clipboard in a
   SWS Auto Color/Icons ready format
-  
 - A color can be entered in the Temporary Color Box by entering its hex code too
-
 - ReaNoir can create Gradient Colors between existing track/item/take colors
-  and any of the Color Boxes (including the Temporary Box)
-  
+  and any of the Color Boxes (including the Temporary & Darker/Brighter boxes)
 - Ability to apply a random color selection to tracks/items/takes. No color is
   repeated before all 24 have been used
-  
 - Two available Slider Modes: RGB and HSL
-
 - Two available script modes: RGB/HSL and Compact (No Sliders). The mode is
   set inside the script in the "MODE OF OPERATION" section box
-  
 - When in Compact (No Sliders) Mode, Right-click Get Color Button to set
   Temporary Color Box's color
-  
 - Palettes can be loaded and saved as txt files. They reside in ReaNoir folder in
   the same path as the script
-  
 - Default palette is hard-coded into the script
-
 - Current palette is automatically saved as last_palette_on_exit.txt as a backup
   each time the script exits
-  
-- SWSColor files can be imported as ReaNoir palettes via the dedicated Load SWS
-  button. The 16 colors get loaded to the first 16 Color Boxes and the rest 8
+- SWSColor files can be imported as ReaNoir palettes using the LD/SV SWS
+  button.
+  The 16 colors get loaded to the first 16 Color Boxes and the rest 8
   Color Boxes get filled with gradient colors from the two gradient colors specified
-  in the SWSColor file
-  
+  in the SWSColor file  
+- ReaNoir palettes can be exported as SWSColor palettes by Right Clicking the 
+  LD/SV SWS button. The first 16 Color Boxes will be written in SWS format and
+  the two gradient colors will be taken from Color Box 17 (gradient start) and 
+  Color Box 24 (gradient end)
 - ReaNoir can be docked Left/Right or Float and remembers its position and
-  dock state, and last Slider Mode (RGB or HSL)
-  
+  dock state, and last Slider Mode (RGB or HSL)  
 - 3 available click modes: left click, right click and ctrl-left click
-
 - Information is displayed on top of ReaNoir when hovering mouse over
   buttons/sliders]]
             reaper.MB(Info, "Information", 0)
@@ -1363,9 +1484,11 @@ Hex Display ------------------------------------------------------------------
   #123456, # 123456 & 0x123456)
 - Right-click to copy Hex code to clipboard
 
-Load SWS Button: Load SWSColor file -----------------------------------------
+LD/SV SWS Button ------------------------------------------------------------
+- Left-click to load SWS Colorset palette
+- Right-click to save palette as .SWSColor file
 
-SWS Colors Button: Open SWS Color Management ---------------------------
+SWS Colors Button: Open SWS Color Management --------------------------
 
 Sliders Area -------------------------------------------------------------------
 - Left-click to change Temporary Color
@@ -1374,6 +1497,8 @@ Sliders Area -------------------------------------------------------------------
 Darker/Brighter buttons (in RGB mode) --------------------------------------
 - Left-click to darken/brighten Temporary Color
 - Right-click to set Temporary Color to Black/White
+- Ctrl-click to make gradient tinted/shaded colors from first selected
+  track/item/take color
 
 24 Color Boxes ---------------------------------------------------------------
 - Left-click to apply color
@@ -1385,10 +1510,9 @@ Random Color --------------------------------------------------------------
 - Apply random color selection from the palette
 
 Get Color --------------------------------------------------------------------
-- RGB/HSL mode: get first selected track/item/take color and load it to
+- Left-click to get first selected track/item/take color and load it to
   Temporary Color Box
-- Compact(No Sliders) mode: left-click the same. Right-click to define
-  Temporary Color Box's color
+- Right-click to define Temporary Color Box's color with OS utility
 
 Palette box: Shows loaded palette --------------------------------------------
 
@@ -1765,7 +1889,50 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
         end 
         file:close()              
     end
+    
+    ---- gianfini: added save SWS file ----     
+    function SaveSWSColorFile(palette_file)
+        file = io.open(palette_file,"w+")
+        ---- J Header -----
+        file:write("[SWS Color]", "\n")
         
+        ---- Collect data ---- 
+        local IntegerColorList = {}
+        local RtoInt = {}
+        local GtoInt = {}
+        local BtoInt = {}
+        for box_pos = 1,16 do
+            RtoInt [box_pos] = ColorBoxes [box_pos].r
+            GtoInt [box_pos] = ColorBoxes [box_pos].g
+            BtoInt [box_pos] = ColorBoxes [box_pos].b
+            Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
+            IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+            ---- Write to file ----
+            file:write("custcolor")
+            file:write(box_pos)
+            file:write("=")
+            file:write(IntegerColorList [box_pos], "\n")
+        end 
+        ---- Write the two gradient files ----
+        box_pos = 17
+        RtoInt [box_pos] = ColorBoxes [box_pos].r
+        GtoInt [box_pos] = ColorBoxes [box_pos].g
+        BtoInt [box_pos] = ColorBoxes [box_pos].b
+        Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
+        IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+        file:write("gradientStart=")
+        file:write(IntegerColorList [box_pos], "\n")
+        box_pos = 24
+        RtoInt [box_pos] = ColorBoxes [box_pos].r
+        GtoInt [box_pos] = ColorBoxes [box_pos].g
+        BtoInt [box_pos] = ColorBoxes [box_pos].b
+        Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
+        IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+        file:write("gradientEnd=")
+        file:write(IntegerColorList [box_pos], "\n")
+        file:close()              
+    end
+  
     function Write_Prefs()
         reaper.SetExtState("ReaNoir", "Dock", tostring(dock), 1)
         if mode ~= "compact" then reaper.SetExtState("ReaNoir", "Mode", mode, 1) end

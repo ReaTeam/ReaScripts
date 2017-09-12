@@ -1,12 +1,14 @@
--- Name: Toggle MIDI Preview on Transport Change.lua
--- Author: cfillion
--- Version: 1.1
--- Changelog:
+-- @description Toggle MIDI preview on transport change
+-- @author cfillion
+-- @version 1.1
+-- @changelog
 --   Fixed preview toggling when reopening the midi editor
+-- @links
+--   https://cfillion.tk
+--   Forum Thread http://forum.cockos.com/showthread.php?t=169896
+-- @donation https://www.paypal.me/cfillion
 --
 -- Send patches at <https://github.com/cfillion/reascripts>.
---
--- http://forum.cockos.com/showthread.php?t=169896
 
 local TOGGLE_CMD, last_state, do_toggle = 40041, false, false
 

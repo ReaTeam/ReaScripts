@@ -1,6 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a25eec49940dfd08a0ff44831f97d90884018f39" name="ReaTeam Scripts">
+<index version="1" commit="2ab00d3c4b7b0823c224a3f24f0acaf6953b587e" name="ReaTeam Scripts">
   <category name="Cursor">
+    <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Moves the edit cursor to the next grid line that is visible\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T23:21:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5ad4189858a3a611d2d004318570e0007853bc26/Cursor/amagalma_Move%20edit%20cursor%20to%20next%20visible%20grid%20line.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Move edit cursor to previous visible grid line.lua" type="script" desc="amagalma_Move edit cursor to previous visible grid line">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Moves the edit cursor to the previous grid line that is visible\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T23:20:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34cd46cc4d801d2cbef240f56c8d2f02673b2989/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
       <version name="1.0" author="cfillion" time="2016-10-04T23:08:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/118875073a1e0ca4ab202ee6212729fca2ccfa13/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
@@ -163,6 +191,191 @@
       </version>
     </reapack>
   </category>
+  <category name="Development">
+    <reapack name="cfillion_GFX Keyboard Inspector.lua" type="script" desc="GFX Keyboard Inspector">
+      <version name="1.0" author="cfillion" time="2017-06-09T21:48:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/cfillion_GFX%20Keyboard%20Inspector.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Interactive ReaScript (iReaScript)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script simulates a {\field{\*\fldinst{HYPERLINK "https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop"}}{\fldrslt{\ul
+REPL
+}}}
+ shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 http://i.imgur.com/RrGfulR.gif\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy/Paste from clipboard\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline input (functions, conditions...)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
+https://github.com/cfillion/reascripts
+}}}
+.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
+        <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bab6dccc9dd0e64959a919e193fd33d06eafd4ad/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.2" author="cfillion" time="2016-06-08T03:06:35Z">
+        <changelog><![CDATA[+ enhance formatting of arrays containing nil values
++ implement Delete key
++ implement word movement keys (Shift+Left and Shift+Right)
++ imply the return statement by default
++ limit maximum depth when formatting tables
++ protect against overriding of built-in variables]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7211142377827197c98a656217c8b16a0d556b46/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.3" author="cfillion" time="2016-07-15T02:34:49Z">
+        <changelog><![CDATA[+ added autocompletion with Tab key
++ added PageUp/PageDown keys to scroll faster
++ fix formatting of multiline text chunks
++ implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
++ preserve current input and history on .clear
++ protect against invalid access on reaper/gfx tables (thanks to X-Raym)
++ set global `_` variable to the first return value of last statement
++ support multi-line statements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4" author="cfillion" time="2016-08-18T01:21:36Z">
+        <changelog><![CDATA[+ autocomplete partial matches
++ don't execute empty code input (v0.3 regression)
++ enhance formatting of string values
++ fix input of tildes
++ increase maximum buffer size to 2048 lines
++ limit maximum size of tables values when formatting
++ optimize layout by only computing new or modified text segments
++ preserve current input when using Ctrl+L shortcut
++ prevent cursor positon from affecting text position
++ remove reaper/gfx proxy variable workaround (requires REAPER v5.23 [t=177319])
++ rewrite drawing & scrolling code
++ wait at least one second before blinking the cursor]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bfdb4ee178087033c0a4ca7fa005c231dd53b43/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.1" author="cfillion" time="2016-10-07T06:24:44Z">
+        <changelog><![CDATA[+ fix auto-completion of exact matches
++ fix caret display in multiline input
++ improve how partially visible lines affect the scrollbar
++ remember docked state (use `gfx.dock(N)` to put in dock)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6c99cdaf8a1facf4b9c3bea1df4557e94c68b825/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.2" author="cfillion" time="2016-10-08T00:15:15Z">
+        <changelog><![CDATA[+ fix formatting of zero-indexed table
++ fix formatting of zero-sized (yet non-empty) tables
++ override global 'print' function
++ use braces instead of non-lua brackets for tables with numeric indexes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/47168e1db8b06fc5b6df35196733d092f3f3fb5d/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.4.3" author="cfillion" time="2016-10-14T04:18:29Z">
+        <changelog><![CDATA[fix drawing of multiline input after code execution]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c396e3ec5ee15e112466183a75de2b6b4a7758/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.5" author="cfillion" time="2016-12-13T03:26:51Z">
+        <changelog><![CDATA[add Copy/Paste/Clear/Dock/Close actions to the right click context menu
+display errors using bold font
+document the built-in functions and variables in .help
+fix formatting of \t and \r in strings when they are followed by numbers
+implement (fix) display of empty lines
+remember window position, size and docked state
+store every return values in _ global variable]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.6" author="cfillion" time="2017-01-20T23:22:20Z">
+        <changelog><![CDATA[allow .clear to be recorded in the history
+do not crash on clipboard read/write failure (eg. 32-bit windows)
+don't evaluate command/actions while in a lua block
+implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
+remove extra newline inserted when executing an empty command since v0.5]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c29a701329b5a410f6edf81fbbf32468b5cf2574/Various/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.6.1" author="cfillion" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[fix division by zero when wrapping lines starting with a zero-length character
+fix invisible \t (tabs) on windows
+fix ugly font on windows]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Gets the last script that was run via 'Run Lua script in debug mode' and attempts to open it in debug mode again; a replacement for Reaper's native action 'ReaScript: Run last ReaScript (EEL or Lua)', since scripts can't get that filename from REAPER.ini directly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.1.1" author="Lokasenna" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Run Lua script in debug mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Lets users open a compatible .lua script in debug mode, to assist in diagnosing errors, crashes, etc.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.1.1" author="Lokasenna" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[Name change for consistency]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Script Compiler.lua" type="script" desc="Script compiler">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Simplifies the process of working with and distributing additional library files for Lua scripters, by scanning your script for a few specific commands and using them to copy the external libraries' contents directly into the base script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the forum thread for a more detailed explanation.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=185264">Forum thread</link>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="2.0" author="Lokasenna" time="2017-06-09T21:48:23Z">
+        <changelog><![CDATA[Better bug checking
+Offers an alternative syntax for libraries that might be less cumbersome]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/Lokasenna_Script%20Compiler.lua</source>
+      </version>
+    </reapack>
+  </category>
   <category name="Envelopes">
     <reapack name="amagalma_Toggle active take volume envelope visible for selected item(s).lua" type="script" desc="amagalma_Toggle active take volume envelope visible for selected item(s)">
       <metadata>
@@ -207,7 +420,7 @@
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles visibility of take volume envelopes for all takes of all items in project\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Equivalent to Start+Shift+Hyphen ("Show/hide Clip Gain Line") in Pro Tools\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Does not create undo points by default. Easily changeable in the end of the script.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Does not create undo points by default. Easily changeable inside the script.\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -217,6 +430,10 @@
       <version name="1.01" author="amagalma" time="2017-04-12T07:59:19Z">
         <changelog><![CDATA[+ fixed bug that would crop to active take when hiding empty envelope of first and active take in a multitake item]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4a94561684b24027415f1709821820cfddc5fa1c/Envelopes/amagalma_Toggle%20take%20volume%20envelope%20visible%20for%20all%20takes%20of%20all%20items%20in%20project.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-09-03T23:38:31Z">
+        <changelog><![CDATA[+  easier creation or not of undo points]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c1b528c972956554613294d45b7b6b52fad7c236/Envelopes/amagalma_Toggle%20take%20volume%20envelope%20visible%20for%20all%20takes%20of%20all%20items%20in%20project.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
@@ -229,7 +446,12 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - Automation envelope version.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's automation envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 SELECTION OF TARGET ENVELOPE\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert LFOs into either 1) a selected automation item, or 2) the time selection of the underlying envelope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into the time selection, select an envelope and deselect all automation items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds of the selected automation item, the LFO will be inserted into only the selected part of the automation item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The time selection and the target envelope or automation item can be changed while the script is running.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 DRAWING CURVES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Alt + Leftclick (or -drag) to delete nodes.\par}
@@ -324,6 +546,31 @@
       <version name="1.11" author="juliansader" time="2017-03-02T20:12:34Z">
         <changelog><![CDATA[+ Fixed bug in loading default curves with customized names (different from "default").]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a04bef566d301c6580a67cd8be05e76acb7bd684/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.20" author="juliansader" time="2017-08-06T21:35:41Z">
+        <changelog><![CDATA[+ GUI window will open at last-used screen position.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f8692dedd519a6b6746e6f4b8f102c5aab62262/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.30" author="juliansader" time="2017-08-09T15:20:42Z">
+        <changelog><![CDATA[+ Compatible with automation items.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27083af7c81e68ca364a7767e547dc902aa737de/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.31" author="juliansader" time="2017-08-09T16:01:57Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/58a79904e562ee62411e5bf03780a0fd75d55520/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.32" author="juliansader" time="2017-08-09T16:44:09Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b75ccf29c6506b306ea522b3079618ab4c12707d/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.40" author="juliansader" time="2017-08-09T19:39:03Z">
+        <changelog><![CDATA[+ LFO can be limited to time selection within automation item.
++ Undo points more informative.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebf3fa2035f32b14a2eb7e8ab69389bbc5631898/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="1.41" author="juliansader / Xenakios" time="2017-08-15T13:02:57Z">
+        <changelog><![CDATA[+ Checks REAPER version and SWS installed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfa4bc67a0608393385e55c735a7db0e25dac281/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
@@ -456,6 +703,34 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="cfillion_Repair missing JSFX files in current project.lua" type="script" desc="Repair missing JSFX files in the current project">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Repair missing JSFX files in the current project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script scans the current project file for broken JSFX references and prompts for the new location of each unique missing JSFX found.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A fixed copy of the project file is created (OriginalName-jsfix.RPP).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script supports JSFX located either in the resource folder or in the project directory.\par}
+}
+]]></description>
+        <link rel="website">https://cfillion.ca</link>
+        <link rel="donation">https://www.paypal.me/cfillion/10</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-06-09T22:58:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d9eff91857cf9372d1d695893faa68011c3e775f/FX/cfillion_Repair%20missing%20JSFX%20files%20in%20current%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Show ReaPack about dialog for the focused JSFX.lua" type="script" desc="Show ReaPack about dialog for the focused JSFX">
+      <metadata>
+        <link rel="website">https://cfillion.ca</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="0.1beta" author="cfillion" time="2017-07-05T01:23:38Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2f6e0b0c055ed224f21de909b1c65b901090794/FX/cfillion_Show%20ReaPack%20about%20dialog%20for%20the%20focused%20JSFX.lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 Pitch Offset">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -538,6 +813,76 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="amagalma_Implode shorter items as takes of one longer item on the same track.lua" type="script" desc="amagalma_Implode shorter items as takes of one longer item on the same track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Implodes shorter items as takes of one longer item, maintaining splits and item colors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab All items must be on the same track\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works for one long item and as many as you want shorter items to be embeded\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-11T13:30:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aae7663cd40aa73794305fd791af67ad5de85c08/Items%20Editing/amagalma_Implode%20shorter%20items%20as%20takes%20of%20one%20longer%20item%20on%20the%20same%20track.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-11T23:42:53Z">
+        <changelog><![CDATA[+ Fixed bug when shorter item was at the very start or very end of the longer one]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f3465edc169b7eb1bef91e66da48e03772da4ba1/Items%20Editing/amagalma_Implode%20shorter%20items%20as%20takes%20of%20one%20longer%20item%20on%20the%20same%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Smart Crossfade.lua" type="script" desc="amagalma_Smart Crossfade">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items are adjacent then it creates a crossfade (length defined by user) on the left side of the items' touch point\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items overlap then it creates a crossfade at the overlapping area\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many items in different tracks as you like\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one change)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep the time selection or remove it\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep selected the previously selected items or not\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default crossfade length is set inside the script\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-28T09:41:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ce3a1b7280f16bdc2833f0d9ad6e461d4579ab7/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.2" author="amagalma" time="2017-09-03T20:58:08Z">
+        <changelog><![CDATA[+ fixed bugs
++ no need for SWS extensions
++ you can set in the script if you want to keep the time selection or remove it
++ you can set in the script if you want to keep selected the previously selected items or not]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e467b31967badb943feb7984d0c252e8c92c6b61/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.21" author="amagalma" time="2017-09-03T22:56:00Z">
+        <changelog><![CDATA[+ default crossfade shape: equal power]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/53d92d2102396486706eeb62f504bbe15a478b06/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.22" author="amagalma" time="2017-09-04T09:49:47Z">
+        <changelog><![CDATA[+ improved behavior when there is a time selection]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2022470c4ee0217fe984eaa11dd1ca6d76f5bcd5/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.24" author="amagalma" time="2017-09-04T10:28:36Z">
+        <changelog><![CDATA[+ better behavior when creating undo points
++ default crossfade time can be set inside the script]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3293f27da8dd134b2af8a759f7470fb1daca2790/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.25" author="amagalma" time="2017-09-04T10:47:30Z">
+        <changelog><![CDATA[+ better behavior when existing crossfades do not conform to wanted crossfade type/shape/time]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34ad2b3b89c4b1b642b4000a59e9af4741ec12c3/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.26" author="amagalma" time="2017-09-04T11:04:26Z">
+        <changelog><![CDATA[+ undo point creation invludes time selection if it was requested to be removed after crossfading]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a05715b0e009045a8832e2db3c02ff109084090/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+    </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
@@ -566,6 +911,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
       </version>
     </reapack>
+    <reapack name="cfillion_Show all saved nudge settings.lua" type="script" desc="Show all saved nudge settings">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Show every saved nudge settings\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Tip:} Switch to a different nudge setting with the 0-8 keys.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="screenshot">https://i.imgur.com/PrITgVt.png</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-09-12T00:48:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ab00d3c4b7b0823c224a3f24f0acaf6953b587e/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -581,6 +944,96 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-03-13T23:18:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Unselect First-Last Selected Item.lua" type="script" desc="Unselect first/last selected item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This package script makes two actions in Action List, shown in "Provides:" below selected items are indexed left to right before advancing to next track\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="FnA_Unselect First Selected Item.lua">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Items%20Editing/FnA_Unselect%20First-Last%20Selected%20Item.lua</source>
+        <source main="main" file="FnA_Unselect Last Selected Item.lua">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Items%20Editing/FnA_Unselect%20First-Last%20Selected%20Item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Area selection - Cycle between inserting and deleting temporary empty items.lua" type="script" desc="js_Area selection - Cycle between inserting and deleting temporary empty items.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script facilitates "Area selection" and "Area copy"; i.e. moving or duplicating all items and automation in the time selection of selected tracks, including automation from tracks without any items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script cycles between\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab inserting temporary empty items into the time selection of selected tracks, and\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab deleting all temporary items from the project.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the temporary items are inserted, Crtl-drag can be used to copy the items and automation to their new position or even to other tracks. Pre-existing envelope points in the paste target area will be overwritten.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select time and tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script to insert temporary items across the time selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab Ctrl-drag the items to their new position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Run the script again to remove the (duplicated) temporary items.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-07-03T16:37:49Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0de6baa3426bf70d1bd7034d61e052d9a8fe7210/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2017-07-09T18:38:52Z">
+        <changelog><![CDATA[+ Temporary items will be deleted even if no tracks are selected.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e960e584c06098708b5a278f5f29777f94bc5cd2/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Copies all items and automation from the time selection of selected tracks to the position of the edit cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All automation, even from tracks without any items, will be copied.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: A potential problem is that pre-existing envelope points in the area where the automation is pasted will not be overwritten, so old and new points will be mixed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select the area to be copied (i.e. select time and tracks), place edit cursor at paste position, and run script.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-07-01T14:11:10Z">
+        <changelog><![CDATA[+ Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e1d3dbfdc9bb9f5dcdcf996bf937db4690b7687f/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua" type="script" desc="js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script inserts CCs with chased values in all {\i used} channels and lanes of selected MIDI items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is particularly useful before splitting items at the edit cursor, to ensure that the new items on the right will start playback with the same CC values as before splitting.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (Note: In calculating the chased values, muted events are ignored.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script may cause changes to overlapping notes. (However, splitting items will in any case cause the same changes.) Users should always be wary of overlapping notes, since these are not admissable according to the MIDI standards, and are often changed in unpredictable ways by scripts and native MIDI editing functions.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-07-12T00:41:26Z">
+        <changelog><![CDATA[* Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/57de251811b0f83cabb14fa9dedaa742dd0bd96e/Items%20Editing/js_Edit%20-%20Insert%20chased%20CCs%20at%20edit%20cursor%20in%20selected%20MIDI%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua" type="script" desc="js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua">
@@ -782,6 +1235,21 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Properties">
+    <reapack name="amagalma_Group selected items vertically.lua" type="script" desc="amagalma_Group selected items vertically">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Groups selected items in different tracks vertically if they are aligned\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want each group to be randomly colored\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-06T17:57:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76c5bcd2dd9c7b620e8007a67474118d45214fcf/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
+      </version>
+    </reapack>
     <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
       <version name="1.0" author="IXix" time="2016-10-29T01:58:12Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
@@ -944,6 +1412,30 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
       </version>
+      <version name="1.0.1" author="beaunus" time="2017-08-03T05:39:04Z">
+        <changelog><![CDATA[+ Fix "u/0005 appears at beginning of all markers" bug]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6ccdc6d55e736d3c391845f8af15a6ee136b1edf/Markers/beaunus_Add%20markers%20for%20lyrics%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Export markers to mkvmerge simple chapter format.lua" type="script" desc="Export markers to mkvmerge simple chapter format">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Usage Instructions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Create your markers\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run this script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Paste the generated text into a text file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Run the following command to merge your video with the chapter text file: `mkvmerge input.mov --chapters chapters.txt --default-language eng -o output.mpv\sa180\par}
+}
+]]></description>
+        <link rel="website">http://cfillion.ca</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-05-29T23:19:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ae979728a0d27c316a35ec8d75d717ea71858899/Markers/cfillion_Export%20markers%20to%20mkvmerge%20simple%20chapter%20format.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Insert regions at markers and vice versa in time selection.lua" type="script" desc="Insert regions at markers and vice versa in time selection">
       <metadata>
@@ -1007,10 +1499,15 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2d27078ac43b679c3083a0e1c2bac91b0f2bc93c/MIDI%20Editor/cfillion_Set%20space%20between%20selected%20notes%20from%20grid%20size.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Toggle MIDI Preview on Transport Change.lua" type="script" desc="Toggle MIDI Preview on Transport Change.lua">
-      <version name="1.1" author="cfillion" time="2016-06-05T01:28:45Z">
+    <reapack name="cfillion_Toggle MIDI preview on transport change.lua" type="script" desc="Toggle MIDI preview on transport change">
+      <metadata>
+        <link rel="website">https://cfillion.tk</link>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=169896">Forum Thread</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.1" author="cfillion" time="2017-07-20T21:35:07Z">
         <changelog><![CDATA[Fixed preview toggling when reopening the midi editor]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/473915a806cd9cb6e9e5ad075c8ba9f1b54fea7c/MIDI%20Editor/cfillion_Toggle%20MIDI%20Preview%20on%20Transport%20Change.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/86c4db661ab152d6615d6ee056fcbcf16ffc9082/MIDI%20Editor/cfillion_Toggle%20MIDI%20preview%20on%20transport%20change.lua</source>
       </version>
     </reapack>
     <reapack name="gofer_spk77_Smooth CCs.eel" type="script" desc="Smooth CCs">
@@ -1092,6 +1589,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ Fixed ReaPack header info.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
       <metadata>
@@ -1163,6 +1664,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ Fixed ReaPack name and header info.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e93fb8fa9e9b3bfdb989b1568186b77f8d9b27eb/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with linear or power curve.lua" type="script" desc="js_Arch selected events in lane under mouse with linear or power curve.lua">
       <metadata>
@@ -1230,6 +1735,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ More extensive instructions in header.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
       </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with sine curve.lua" type="script" desc="js_Arch selected events in lane under mouse with sine curve.lua">
       <metadata>
@@ -1296,6 +1805,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="3.12" author="juliansader" time="2017-03-18T18:30:42Z">
         <changelog><![CDATA[+ More extensive instructions in header.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
+      </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script" desc="js_Compress or expand selected CC or velocity events using mousewheel.lua">
@@ -1387,6 +1900,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="3.12" author="juliansader" time="2017-03-18T18:30:42Z">
         <changelog><![CDATA[+ Fixed ReaPack header info.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script" desc="js_Deselect all MIDI events outside time selection (from all tracks).lua">
@@ -1547,6 +2064,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ More extensive instructions in header.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.30" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -1652,6 +2173,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ More extensive instructions in header.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
+      <version name="3.30" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
       <metadata>
@@ -1743,6 +2268,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ More extensive instructions in header.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.30" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.      ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
       <metadata>
@@ -1833,6 +2362,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="3.24" author="juliansader" time="2017-03-18T18:30:42Z">
         <changelog><![CDATA[+ More extensive instructions in header.           ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.30" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.         ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -2117,9 +2650,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu also includes an option to skip redundant CCs while drawing the LFO.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
@@ -2149,6 +2683,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b833091b3812f11ed2d710ccb5b4483bbaa9bac5/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.10" author="juliansader" time="2017-06-03T22:27:49Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/585753673a5814b4d2955971204fe257992bd4d4/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.11" author="juliansader" time="2017-06-04T11:00:56Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.20" author="juliansader" time="2017-06-18T15:27:55Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
       <metadata>
@@ -2176,9 +2728,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu also includes an option to skip redundant CCs while drawing the LFO.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
@@ -2208,6 +2761,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b833091b3812f11ed2d710ccb5b4483bbaa9bac5/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="2.10" author="juliansader" time="2017-06-03T22:27:49Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b35b45e228d3fb2483538b7c26a0340ca661004d/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.11" author="juliansader" time="2017-06-04T11:00:56Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.20" author="juliansader" time="2017-06-18T15:27:55Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
       <metadata>
@@ -2235,9 +2806,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu also includes an option to skip redundant CCs while drawing the LFO.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
@@ -2271,6 +2843,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b833091b3812f11ed2d710ccb5b4483bbaa9bac5/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.10" author="juliansader" time="2017-06-03T22:27:49Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1749eae0a344045af5bf3096cc11202b02395833/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.11" author="juliansader" time="2017-06-04T11:00:56Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.20" author="juliansader" time="2017-06-18T15:27:55Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
       <metadata>
@@ -2298,9 +2888,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu also includes an option to skip redundant CCs while drawing the LFO.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
@@ -2334,6 +2925,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b833091b3812f11ed2d710ccb5b4483bbaa9bac5/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="2.10" author="juliansader" time="2017-06-03T22:27:49Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/346c0982ae60a85e5211bb68e1097905015f1c3e/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.11" author="juliansader" time="2017-06-04T11:00:56Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.20" author="juliansader" time="2017-06-18T15:27:55Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
       <metadata>
@@ -2361,9 +2970,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu also includes an option to skip redundant CCs while drawing the LFO.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
@@ -2397,6 +3007,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b833091b3812f11ed2d710ccb5b4483bbaa9bac5/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.10" author="juliansader" time="2017-06-03T22:27:49Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d3cea5e8c7e355a4bd8d6f9802dd203f655c2b54/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.11" author="juliansader" time="2017-06-04T11:00:56Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.20" author="juliansader" time="2017-06-18T15:27:55Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
       <metadata>
@@ -2424,9 +3052,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 The precise Rate, Amplitude or Center of the hot node, as well as the precise time position, can be displayed above the node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Rightclick in open space in the envelope area to open a menu in which the Rate and time display formats can be selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LOADING AND SAVING CURVES\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Right-click (outside envelope area) to open the Save/Load/Delete curve menu.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Click on the menu button at bottom left (or right-click anywhere outside envelope area) to open the Save/Load/Delete curve menu.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 One of the saved curves can be loaded automatically at startup. By default, this curve must be named "default".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 FURTHER CUSTOMIZATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The menu also includes an option to skip redundant CCs while drawing the LFO.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Further customization is possible - see the instructions in the script's USER AREA.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This include:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Easily adding custom LFO shapes.\par}
@@ -2459,6 +3088,24 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="2.02" author="juliansader" time="2017-02-28T14:22:53Z">
         <changelog><![CDATA[+ First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b833091b3812f11ed2d710ccb5b4483bbaa9bac5/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.10" author="juliansader" time="2017-06-03T22:27:49Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d46acdb2aa2ad81c4bcaa304cb659170d736b5fa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.11" author="juliansader" time="2017-06-04T11:00:56Z">
+        <changelog><![CDATA[+ New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1d52159b817dbbc6a54122ed0d5e4ded2af8ffbf/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.20" author="juliansader" time="2017-06-18T15:27:55Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d41e79841636171000ce51e8d67ca864cda3eb3b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.21" author="juliansader" time="2017-06-18T16:36:15Z">
+        <changelog><![CDATA[+ Option to skip redundant CCs.
++ GUI window will open at last-used screen position.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/39726c898d5549676a67e251b88a28f847db843b/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
@@ -2532,6 +3179,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Interpret note-ons with velocity=0 as note-offs.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3709ebc577017def028719beaf760053f06b18bd/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
+      <version name="1.10" author="juliansader" time="2017-06-18T17:02:14Z">
+        <changelog><![CDATA[+ GUI window will open at last-used screen coordinates.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/091e8cb00b1348157c1ff8bd34ccda3aba32103a/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
       <metadata>
@@ -2564,6 +3215,82 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.01" author="juliansader" time="2017-01-31T07:05:58Z">
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ed16e46e3422c111931966c68cba8360626c1c3e/MIDI%20Editor/js_Move%20all%20selected%20events%20in%20active%20take%20together%20with%20mouse.lua</source>
+      </version>
+      <version name="1.10" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Move%20all%20selected%20events%20in%20active%20take%20together%20with%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Navigate - Select next note in same channel.lua" type="script" desc="js_Navigate - Select next note in same channel.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select next note", but only selects notes within same channel as currently selected note.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
+        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/63f17c31ad8f9015f4ccf20b29546fee4d38d16a/MIDI%20Editor/js_Navigate%20-%20Select%20next%20note%20in%20same%20channel.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Navigate - Select next note in same voice.lua" type="script" desc="js_Navigate - Select next note in same voice.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select next note", but only selects notes within same voice as currently selected note.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
+        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fea3a03ff2ae678493cd21bd02951902ae8c467c/MIDI%20Editor/js_Navigate%20-%20Select%20next%20note%20in%20same%20voice.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Navigate - Select previous note in same channel.lua" type="script" desc="js_Navigate - Select previous note in same channel.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select previous note", but only selects notes within same channel as currently selected note.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
+        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/55d7e0fc8268ff8197123a88eee4e421b7076d2a/MIDI%20Editor/js_Navigate%20-%20Select%20previous%20note%20in%20same%20channel.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Navigate - Select previous note in same voice.lua" type="script" desc="js_Navigate - Select previous note in same voice.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select previous note", but only selects notes within same voice as currently selected note.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
+        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c5f7da2d30e560a10c2d5e6f6be8999d9b8be33c/MIDI%20Editor/js_Navigate%20-%20Select%20previous%20note%20in%20same%20voice.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
@@ -2998,22 +3725,28 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script selects and deselects notes, based on a step pattern that the user can draw in a GUI.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script selects and deselects notes, based on a pattern that the user can draw in a GUI.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 For example, the pattern can be drawn to select notes 1, 3 and 4 in a six-step pattern.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The length of the pattern as well as the steps that will be selected are determined by the user. (The maximum pattern length is 99 steps.)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Notes that start within one grid length of each other are regarded as one unit (e.g. chord or glissando), and will be selected/deselected together.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script offers two modes: "Step pattern" and "Measure division", which can be toggled by clicking on the "Mode" text in the GUI. In "Measure division" mode, notes are selected and deselected based on their beat positions in the measure.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In Step pattern mode, notes that start within one grid length of each other are regarded as one unit (e.g. chord or glissando), and will be selected/deselected together.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 First, select the note on which the step pattern must be applied. (Of course, some of these notes will later be deselected by the script.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Then, run the script and draw the desired pattern - the note selection will be updated in real time.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When you need to work with a new set of notes, simply click the "Load new set of notes" text.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 If no notes are selected when the script is started, or if the indices of the notes in the take change (for example, if notes are added to or deleted from the take), the script will dim out the step pattern display, and wait for the user to load a new set of notes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If no notes are selected when the script is started, the script will dim out the step pattern display, and wait for the user to load a new set of notes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To draw patterns that are longer than the initial size of the GUI, simply widen the GUI.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 HINT\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To toggle between the two modes, "Step pattern" and "Measure division", simply click the "Mode" text at the top of the GUI.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NEW IN VERSION 1.20:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user can freely edit CCs or velocities in the MIDI editor while a set of notes is loaded, without having to reload the notes after editing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the pitches or positions of the loaded {\i notes} are edited in the MIDI editor, it may confuse the script, but the script will try to add any {\i selected} and edited notes to the set of loaded, active notes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Therefore, if you change the pitch of some of the loaded notes, simply ensure that these notes are still selected when clicking in the GUI again, and these edited notes will remain loaded.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 TIP:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works well with the "js_Deselect all notes outside time selection (from all takes).lua" script. Use the piano roll keys to select all notes in a range of pitches, and then run the Deselect script to limit the note selection to the time selection.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
-        <link rel="screenshot">http://stash.reaper.fm/28189/Select%20MIDI%20notes%20by%20step%20pattern.gif</link>
+        <link rel="screenshot">http://stash.reaper.fm/30964/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern%20-%20Measure%20divisions%20mode.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="0.9" author="juliansader" time="2016-08-01T13:43:29Z">
@@ -3028,6 +3761,23 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Updated header and "About" info to ReaPack 1.1 format.
 + Notes that start exactly one grid unit apart, are not regarded as one unit/chord/glissando.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.00" author="juliansader" time="2017-06-17T19:37:08Z">
+        <changelog><![CDATA[+ Much faster execution in takes with large number of MIDI events, using new API of REAPER v5.32.
++ New mode: "Measure divisions", which selects notes based on beat positions in measure. ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/52ab936fb13981066d9107a08ecf090c40f601f0/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.10" author="juliansader" time="2017-06-18T16:51:17Z">
+        <changelog><![CDATA[+ GUI window will open at last-used position on screen.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/43be869e56f147664cc30d9a1f2773eaa52e2bdb/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.20" author="juliansader" time="2017-06-19T19:16:23Z">
+        <changelog><![CDATA[+ Notes do not need to be reloaded after editing velocities or CCs in the MIDI editor.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ee1ff0959c58a1a88311e1bff2b36d77adc22589/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.21" author="juliansader" time="2017-08-27T14:13:20Z">
+        <changelog><![CDATA[+ Compatible with muted notes.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/01d691be2b86f978883d42270675012911254fac/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
@@ -3107,6 +3857,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="2.02" author="juliansader" time="2017-01-30T08:24:06Z">
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3dd078d1b8fe8ab7b0d29acce3c877be8e72b6de/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+      </version>
+      <version name="2.10" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Split selected notes by drawing a line with the mouse.lua" type="script" desc="js_Split selected notes by drawing a line with the mouse.lua">
@@ -3260,6 +4014,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ More extensive instructions in header.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/75d1ff87c7a11760d6b468b430af9c3fac1cd720/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.    ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/144a4f27445ba05b303f83262e9e42549b5bf735/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
       <metadata>
@@ -3319,6 +4077,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="3.11" author="juliansader" time="2017-01-30T08:24:06Z">
         <changelog><![CDATA[+ Improved reset of toolbar button.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c603b4a231565c12169912fe5afa91b50d12edd/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
+        <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Trim notes by drawing a line with the mouse.lua" type="script" desc="js_Trim notes by drawing a line with the mouse.lua">
@@ -3759,6 +4521,28 @@ Harmony\line
         <changelog><![CDATA[Fix: Crashes on first startup]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f9557c42b2fd09f94390905c3f90ae48b32b62a5/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
       </version>
+      <version name="1.37" author="Lokasenna" time="2017-08-24T00:02:05Z">
+        <changelog><![CDATA[Fix: Crash when attempting to Set the scale with no
+     search results.
+Fix: Mousewheel crashes with high-precision devices.
+Fix: Mouse issues on macOS; os.clock() doesn't give
+	 the same values as on Windows.
+Fix: Selecting a new scale wasn't switching to the
+	 correct scale.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ff3ef4da22d89e24ba2c520775c33275d1ae27fc/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.38" author="Lokasenna" time="2017-08-24T21:42:37Z">
+        <changelog><![CDATA[Fix: "<bad string>" error on menu boxes in the Harmony tab]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f1987c91561afebc0ae47f8fc0e6653acbad7b8f/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.39" author="Lokasenna" time="2017-08-27T23:43:54Z">
+        <changelog><![CDATA[Fix: Issues loading/parsing Reascales on Mac.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/10ff2b7dc181e5e527eb9cea102a54ffa1edfe8b/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
+      <version name="1.40" author="Lokasenna" time="2017-08-28T00:17:34Z">
+        <changelog><![CDATA[Fix: Note velocity being sent as 128.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f6dea9f7dc470969522a58011edd84fe586369cf/MIDI%20Editor/Lokasenna_Theory%20Helper.lua</source>
+      </version>
     </reapack>
     <reapack name="Mordi-ahmusic_Search selected notes in scale finder.lua" type="script" desc="Search selected notes in scale finder">
       <version name="1.1" author="Mordi &amp; AHmusic" time="2016-06-28T22:45:35Z">
@@ -3936,6 +4720,14 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="cfillion_Toggle take FX 4 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%204%20bypass%20for%20selected%20items.lua</source>
         <source main="main" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/f4038365379b015def478a5e2f65bc4ac32667fb/Takes%20Properties/cfillion_Toggle%20take%20FX%205%20bypass%20for%20selected%20items.lua</source>
       </version>
+      <version name="1.0.1" author="cfillion" time="2017-06-04T00:49:43Z">
+        <changelog><![CDATA[More efficient packaging of the slots for ReaPack.]]></changelog>
+        <source main="main" file="cfillion_Toggle take FX 1 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 2 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 3 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 4 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+        <source main="main" file="cfillion_Toggle take FX 5 bypass for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/6acdf31f093d7484292c6497b9f47d00d76ddde2/Takes%20Properties/cfillion_Toggle%20take%20FX%20bypass%20for%20selected%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="Mordi_Add count of same-named takes to selected takes names (starting from 1).lua" type="script" desc="Add count of same-named takes to selected takes names (starting from 1)">
       <metadata>
@@ -4008,6 +4800,71 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="js_Time selection - Insert empty beats at time selection (moving later items).lua" type="script" desc="js_Time selection - Insert empty beats at time selection (moving later items).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is a "beats version" of REAPER's native action "Time selection: Insert empty space at time selection (moving later items)". The number of selected beats is precisely replicated in the empty space.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's action inserts empty space that is equal to {\i time} duration of the time selection. If the time selection is not an exact multiple of beats (calculated in the tempo preceding the insert point), all later events (including tempo changes) will necessarily shift away from their beat positions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tempo map\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script duplicates the tempo envelope into the empty space, which has the result of inserting the exact number of selected {\i beats} in the time selection. Later events will therefore remain on the grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Insert position\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can insert the empty beats/space on either the left of the right of the time selection, depending position of the edit cursor relative to the time selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Locked items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will also detect locked items and can optionally protect such items against moving or splitting.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Timebase\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time for all tracks, items and envelopes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script may require several seconds to parse large MIDI items.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=191210</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2017-06-30T23:57:03Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e80204fe10f641b2071ab813ad5dc110cf904cd8/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2017-07-01T00:23:34Z">
+        <changelog><![CDATA[+ Changed the header Description a little.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/246b91dc56b0fb969d06f3d9857224fd113ea830/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.92" author="juliansader" time="2017-07-02T18:54:17Z">
+        <changelog><![CDATA[+ Workaround for "Add edge points" bug in REAPER that deletes timesig markers at insertion point.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0a9db00cda7ea5208fbb30c9cad5d969ba0a84b/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.93" author="juliansader" time="2017-07-03T01:36:07Z">
+        <changelog><![CDATA[+ Workaround for "Add edge points" bug in REAPER that deletes timesig markers at insertion point.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/71eb643ea050e5be9a8263b78b9ffa6aedf14a28/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.95" author="juliansader" time="2017-08-06T19:24:32Z">
+        <changelog><![CDATA[+ MIDI items are not split. Instead MIDI is shifted inside item. Script is threfore useful in MIDI editor.
++ Tempo envelope is duplicated into empty space, so that inserted space is equal to selected time as well as selected beats.
++ Compatible with linear tempo changes.
++ User does not need to make any changes to timebase before or after running script.
++ Locked items can be protected against moving or splitting.
++ Empty space can be inserted either to the left or right of time selection (determined by edit cursor position).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40da187532c6df64f49e3575886c68ab9b480111/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.96" author="juliansader" time="2017-08-08T19:35:12Z">
+        <changelog><![CDATA[+ MIDI notes that extend into but not beyond time selection, will not be extended.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e8acf404456ebf4aa28ddf130bbf8235c68178a3/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.97" author="juliansader" time="2017-08-09T08:24:42Z">
+        <changelog><![CDATA[+ Much faster execution in large projects.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3358f9e882a180fdc0c0c83b8dbeb7235ffd7995/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.98" author="juliansader" time="2017-08-30T10:20:00Z">
+        <changelog><![CDATA[+ Error message boxes display only OK, not OK and Cancel.
++ Better compatability with items with empty extensions.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c51d343de17ffd74cf5be3eed0e70ea4189c4fd2/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
@@ -4073,28 +4930,6 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Tracks Properties">
-    <reapack name="amagalma_Track Name Manipulation.lua" type="script" desc="amagalma_Track Name Manipulation">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track names have been changed when you close the script or if track names have been changed when you change track selection.\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-04-08T19:37:15Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5af687a459403d1ad77b483a48fd242e6323cdc8/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
-      </version>
-      <version name="1.1" author="amagalma" time="2017-04-13T18:34:19Z">
-        <changelog><![CDATA[+ added Number button to add index numbering as a prefix or suffix]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b2a928ba8a5a3f69d53a7ef1c60eaa126147d59b/Tracks%20Properties/amagalma_Track%20Name%20Manipulation.lua</source>
-      </version>
-    </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Tracks%20Properties/Argitoth_Set%20number%20of%20channels%20for%20selected%20tracks.eel</source>
@@ -4152,6 +4987,11 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/66addd3305db6f4ea486760214f272a6a31c8759/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively%20(background).lua</source>
         <source file="cfillion_Select destination tracks of selected tracks sends recursively (logic).lua">https://github.com/ReaTeam/ReaScripts/raw/66addd3305db6f4ea486760214f272a6a31c8759/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively%20(logic).lua</source>
       </version>
+      <version name="1.1.1" author="cfillion" time="2017-06-04T02:08:42Z">
+        <changelog><![CDATA[Simpler packaging using new ReaPack features (no other code changes).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Select source tracks of selected tracks receives recursively.lua" type="script" desc="Select source tracks of selected tracks receives recursively">
       <metadata>
@@ -4167,6 +5007,11 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/78d02b17af007aa1e483eb009df23ee623edba1f/Tracks%20Properties/cfillion_Select%20source%20tracks%20of%20selected%20tracks%20receives%20recursively.lua</source>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/78d02b17af007aa1e483eb009df23ee623edba1f/Tracks%20Properties/cfillion_Select%20source%20tracks%20of%20selected%20tracks%20receives%20recursively%20(background).lua</source>
         <source file="cfillion_Select source tracks of selected tracks receives recursively (logic).lua">https://github.com/ReaTeam/ReaScripts/raw/78d02b17af007aa1e483eb009df23ee623edba1f/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively%20(logic).lua</source>
+      </version>
+      <version name="1.0.2" author="cfillion" time="2017-06-04T02:08:42Z">
+        <changelog><![CDATA[Simpler packaging using new ReaPack features (no other code changes).]]></changelog>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle track FX bypass by name.lua" type="script" desc="Toggle track FX bypass by name">
@@ -4191,13 +5036,34 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7bc709df5dbff69d45053136810469ff66bba6a/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Toggle visiblity of empty non-folder tracks.lua" type="script" desc="Toggle visiblity of empty non-folder tracks">
+    <reapack name="cfillion_Toggle visibility of empty non-folder tracks.lua" type="script" desc="Toggle visibility of empty non-folder tracks">
       <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle visibility of empty non-folder tracks\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script toggles the TCP and MCP visibility of tracks matching all of the following criteria:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track has no FX on it\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track does not contain any media item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track has no envelopes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track is not a folder\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Track is not record armed\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A variant of the script is provided which additionally requires tracks to contain the character \u8226? (bullet) in their name. Custom variants can be created by copying the script with the desired track name search string between the apostrophes in the filename.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca/">cfillion.ca</link>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=187651">Forum Thread</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-02-09T04:14:35Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0421f9b54196fced24dd157cb1f7b9af21c7d887/Tracks%20Properties/cfillion_Toggle%20visiblity%20of%20empty%20non-folder%20tracks.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2017-06-22T08:50:21Z">
+        <changelog><![CDATA[Fixed embarassing typo in the name ('visiblity' -> 'visibility')
+Added a "matching '•'" variant of the script at the request of blumpy]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5204d3b1df83c41efb0c5c4ed73f026b5cf389cd/Tracks%20Properties/cfillion_Toggle%20visibility%20of%20empty%20non-folder%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle visibility of empty non-folder tracks matching '•'.lua">https://github.com/ReaTeam/ReaScripts/raw/5204d3b1df83c41efb0c5c4ed73f026b5cf389cd/Tracks%20Properties/cfillion_Toggle%20visibility%20of%20empty%20non-folder%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
@@ -4210,24 +5076,25 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8e2229f0a1d22703f66384444eb84caa86c7a09d/Tracks%20Properties/js_Autoincrement%20MIDI%20send%20channels%20of%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Propagate note names of last clicked track to all selected tracks.lua" type="script" desc="js_Propagate note names of last clicked track to all selected tracks.lua">
+    <reapack name="js_Propagate note and CC names of last clicked track to all selected tracks.lua" type="script" desc="js_Propagate note and CC names of last clicked track to all selected tracks.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Propagates the note names of last clicked track to all selected tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Propagates the note and CC names of last clicked track to all selected tracks.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script will open a dialog box in which the user can:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab confirm or change the source track, and\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab select whether all existing note names in the selected tracks should be removed.\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=181276</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
-      <version name="1.00" author="juliansader" time="2016-09-12T23:03:11Z">
-        <changelog><![CDATA[+ Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/75a1d5a222d3e277668c0d741ec2317bf707df28/Tracks%20Properties/js_Propagate%20note%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
+      <version name="1.10" author="juliansader" time="2017-07-16T20:09:09Z">
+        <changelog><![CDATA[+ Updated to propagate CC names as well as note names.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c057f7a5e1e4cdc2193c3bff32609eb1782a90e4/Tracks%20Properties/js_Propagate%20note%20and%20CC%20names%20of%20last%20clicked%20track%20to%20all%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua" type="script" desc="js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua">
@@ -4305,6 +5172,14 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main" file="spk77_Set solo for send 4.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%204.lua</source>
         <source main="main" file="spk77_Set solo for send 5.lua">https://github.com/ReaTeam/ReaScripts/raw/cfb6d4ba001a84325aff41628faef273a0a59447/Tracks%20Properties/spk77_Set%20solo%20for%20send%205.lua</source>
       </version>
+      <version name="0.1.1" author="spk77" time="2017-06-04T01:33:19Z">
+        <changelog><![CDATA[ReaPack packaging enhancement by cfillion (no other code change).]]></changelog>
+        <source main="main" file="spk77_Set solo for send 1.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 2.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 3.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 4.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+        <source main="main" file="spk77_Set solo for send 5.lua">https://github.com/ReaTeam/ReaScripts/raw/88197dfc496e6c281597e3d8e26e59e327e74d79/Tracks%20Properties/spk77_Set%20solo%20for%20send%20X.lua</source>
+      </version>
     </reapack>
     <reapack name="spk77_Set track names to first item (active take) name.eel" type="script" desc="Set track names to first item (active take) name">
       <version name="0.2014.8.21" time="2015-12-02T21:24:29Z">
@@ -4349,6 +5224,131 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/Airon_Colour%20Swatch.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_gianfini_Track-Item Name Manipulation - UNDO.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation - UNDO">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
+      </metadata>
+      <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:44:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/346f4d62416b679d65291a0a5df4c354dfb11e31/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.6" author="amagalma, modified by gianfini" time="2017-08-05T19:51:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c7337579a04ec0ff09dc70f5ba74350100e5449b/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.62" author="amagalma, modified by gianfini" time="2017-08-20T12:19:04Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/416b41f3b2a2b5bdf6494056128aa2d7c8cda1d9/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.65" author="amagalma, modified by gianfini" time="2017-08-22T02:40:48Z">
+        <changelog><![CDATA[+ Code tidying-up and optimization
++ Edited the Replace Help. Help opens in the Console so that one can continue using the script when Help is displayed
++ Pressing the Commit button creates an undo point in Reaper's Undo History]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/878765f7e75b9b0f2df138795e4efa56e5b91b2d/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.66" author="amagalma, modified by gianfini" time="2017-08-22T10:48:42Z">
+        <changelog><![CDATA[+ Fixed Undo which was broken in v2.65]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eeaee70c8a4091084546bdd060eb82f9565051ed/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.7" author="amagalma, modified by gianfini" time="2017-08-22T23:31:20Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Script remembers last window position
++ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
++ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6346bcd46d18772258eca3b06f4134ac5b6c5d0c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+      </version>
+      <version name="2.71" author="amagalma, modified by gianfini" time="2017-08-22T23:44:28Z">
+        <changelog><![CDATA[+ Reapack header correction
++ amagalma additions:
++ Script remembers last window position
++ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
++ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.8" author="amagalma &amp; gianfini" time="2017-08-23T16:54:44Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Added Redo functionality
++ a lot of code tidying-up & optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.81" author="amagalma &amp; gianfini" time="2017-08-23T17:08:02Z">
+        <changelog><![CDATA[+ amagalma additions:
++ Added Redo functionality
++ a lot of code tidying-up & optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0464787245d0f1c99e42f3dcad34d123562b5439/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0464787245d0f1c99e42f3dcad34d123562b5439/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.83" author="amagalma &amp; gianfini" time="2017-09-03T21:12:40Z">
+        <changelog><![CDATA[+ gianfini fix:
++ fixed single line editing clicking on list: help and click on empty line exception]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.84" author="amagalma &amp; gianfini" time="2017-09-06T22:31:56Z">
+        <changelog><![CDATA[+ amagalma addition:
++ The script now supports empty items' notes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.85" author="amagalma &amp; gianfini" time="2017-09-07T20:07:31Z">
+        <changelog><![CDATA[+ amagalma addition:
++ bug fix when dealing with multiline items' notes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.86" author="amagalma &amp; gianfini" time="2017-09-08T20:38:04Z">
+        <changelog><![CDATA[+ gianfini fix:
++ fixed Commit doing nothing if last modifier didn't modify anything (but previous ones did modify the list)
++ amagalma quick fix: (may need revision in the future)
++ script crash when single-line editing a multiline item note]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=194414</link>
+      </metadata>
+      <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:29:02Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7be0d60481f498ab3039c145102a3ba565d1cdf9/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
+      </version>
+      <version name="2.4" author="amagalma, modified by gianfini" time="2017-08-05T19:45:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0ecd0265285b1a6aac4bc4c319222529ca1fd52/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Works in a reverse direction to action "View: Go to track (MIDI CC/OSC only)" (993)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-04T09:14:56Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f10508ec6217d897fc458bea35986567cef5664a/Various/amagalma_Go%20to%20track%20(mousewheel%20only)%20reverse.eel</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Implode items across tracks into takes (remove empty tracks).lua" type="script" desc="amagalma_Script: Implode items across tracks into takes (remove empty tracks)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4385,7 +5385,8 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Palette is automatically saved to last_palette_on_exit.txt as a backup. If you try to load last_palette_on_exit, then you are prompted to save it with a new name.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click Darker/Brighter buttons to make Temporary Color brighter or darker. Right-click them to make it black/white\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script saves user palettes in a directory called ReaNoir in the same path as the script. Preferences are saved to ExtState\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click Load SWS button to load SWSColor files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click LD/SV SWS button to load SWSColor files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-Click LD/SV SWS button to save SWSColor files\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click SWS Colors button to open the SWS Color Management tool\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to dock the script to the left or to the right\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click sliders' area to toggle between RGB and HSL mode\par}
@@ -4396,7 +5397,6 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on "?" on right top corner to display information, Right-Click for manual\sa180\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=189602</link>
       </metadata>
       <version name="1.50" author="amagalma" time="2017-03-25T19:36:58Z">
         <changelog><![CDATA[+ preliminary work for HSL mode for sliders (coming in next version)
@@ -4460,6 +5460,40 @@ Made by Mordi, Jan 2016]]></changelog>
         <changelog><![CDATA[+ bugfix: entering Hex codes when in HSL mode was not working]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1638e3956be7107f741c89c900cc5063de51ba4f/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
+      <version name="2.02g" author="amagalma" time="2017-06-20T12:28:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e9dea77b418f3cb0cdc7a8b6cb5af22e5839d1c/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.03" author="amagalma" time="2017-06-20T12:43:56Z">
+        <changelog><![CDATA[+ can save SWS files (functionality added by user Gianfini)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/87b0cec84826b203ed3b2d97e4319d1c633e56cf/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.04" author="amagalma" time="2017-06-20T15:54:35Z">
+        <changelog><![CDATA[+ Ctrl-clicking on Darker/Brighter buttons creates shaded/tinted gradient colors]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39bbe6c14d544151da677121f208045be7922300/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Smart automatic record mode.eel" type="script" desc="amagalma_Smart automatic record mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Sets intelligently the record mode:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If there is a time selection after play or edit cursor then mode = time selection auto punch\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If there is a selected item inside the time selection then mode = sel item auto punch\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If no time selection but selected item after play or edit cursor then mode = sel item auto punch\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If no time sel and no sel item after play or edit cursor then mode = normal\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If already recording then running the script stops recording\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T13:19:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b477c5cd006012efe98b0af37419995874ad5321/Various/amagalma_Smart%20automatic%20record%20mode.eel</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-06-30T15:57:58Z">
+        <changelog><![CDATA[+ fixed problem when using the script to stop recording]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4df7dee986b3dcd70b2ae593e014cf0a819bb6dc/Various/amagalma_Smart%20automatic%20record%20mode.eel</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
       <metadata>
@@ -4489,6 +5523,64 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96ad93b4cd2b6b364e9edc2443bdcf127da301b1/Various/amagalma_Smooth%20scroll%20view%20right.eel</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-09T19:28:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fa658ac6aa881ba382eaccbf6f84bd1b81220af2/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-08-09T19:40:08Z">
+        <changelog><![CDATA[+ Small improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e96e6be3e1e1e8072e92793afb17ba84c1163092/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2017-08-21T21:06:06Z">
+        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3676c5fe35bb5032b3922284163ddb954dde5e/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-08-08T21:58:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/19aba4be0744b6ee2c52a19c9fd4e67e527e0ab1/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-08-09T15:35:49Z">
+        <changelog><![CDATA[+ Better handling of Track chunks >4MB (using eugen2777's workaround)
++ Some code optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e8caafefbe60bc02f43ca2f18b624a9c518adfbc/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-08-09T19:38:16Z">
+        <changelog><![CDATA[+ Small improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb49688f40f21ff930cc80a31f0be9121a6e7684/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.15" author="amagalma" time="2017-08-21T21:07:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c190492548a6288765e67a0adea23a5b5bbc0b4b/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2017-08-21T21:24:12Z">
+        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f26ad7c4abf157ccbf690787a990bcccdfb6a131/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4505,6 +5597,298 @@ Made by Mordi, Jan 2016]]></changelog>
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Track-Item Name Manipulation.lua" type="script" desc="amagalma_Track-Item Name Manipulation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
+      </metadata>
+      <version name="1.1" author="amagalma" time="2017-07-30T21:10:21Z">
+        <changelog><![CDATA[- Fixed crash when dealing with empty items
+- Changed color scheme
+- Added Clear button (clears all names)
+- Added Keep button (trims names and keeps only the number of characters defined)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/77057a6b6839dd24e19b437e9e216a2ee1f82374/Various/amagalma_Track-Item%20Name%20Manipulation.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Play (with memory - no undo).lua" type="script" desc="amagalma_Transport Play (with memory - no undo)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Plays and stores starting position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T16:58:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4aa703845bf012c9d9d74cd8b17f732dfd21c3b/Various/amagalma_Transport%20Play%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Play-Stop (with memory - no undo).lua" type="script" desc="amagalma_Transport Play-Stop (with memory - no undo)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Plays or Stops and stores starting or ending position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T16:59:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8c0007592901d5dfd72e7b15ae23c4c9a11b68/Various/amagalma_Transport%20Play-Stop%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Stop - Toggle position (with memory - no undo).lua" type="script" desc="amagalma_Transport Stop - Toggle position (with memory - no undo)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Stops and toggles between starting and ending position.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-06-30T16:59:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74d96a0305ab27039d02c27386f88bc25239c1eb/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Clip Splicer\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Motivation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 I make CDs for an English language school. A single track in a typical project usually comprised a few {\b instructions} followed by a lot of {\b words}, each with spaces for {\b repeats} and {\b pauses} to allow listeners to practice. When I first started doing this, my process was something like this:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Setup\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Obtain a {\i script} of the entire CD project.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab The script would define the layout of each {\b track}. Something like this:\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab [Instruction 1A], Cat, Dog, Elephant, ...\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create a {\i skeleton} REAPER session file that contained {\i Empty MIDI Items} for each of the {\b components} that would {\i eventually} be recorded in the project.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Name the {\i Empty MIDI Items} according to the {\i word} that would {\i eventually} be recorded.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Put {\i regions} and {\i markers} on all the {\b components} and {\b tracks}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 At this point, I had a {\i skeleton} of what the final project would look like.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Recording\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Setup microphones to record each vocalist.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Use the {\i Region/Marker Manager} to move through the project. Filtering for {\b components} that included the vocalist that I was recording.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Record each clip in the position that it was intended.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 At this point, I had recorded clips whose {\i starting positions} were in the proper place. There were a few problems that still needed to be addressed.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The beginnings and endings of the clips had silent moments that needed to be edited out.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The lengths of the recorded clips was not the same as the length of the {\i EMPTY MIDI Item} that held its place.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Editing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For {\i every single clip} in the project:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Manually trim the silence at the beginning and end of the clip.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Using {\i global ripple editing}, move the {\i following components} to the right, so they began where the previous {\b component} ended.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As you may guess, that could take a {\i very} long time if there were hundreds or thousands of {\i individual clips} to edit.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, at this point, the session was ready to be mixed for audio.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Revisions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Revision requests often came in the form of:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Please make the pauses after {\i all the instructions} a bit longer.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Please re-record the word "cat" and replace {\i all instances} with the new recording.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Although revisions weren't terribly difficult to do, the amount of editing was still similar to the original amount of editing. Also, on a not-so-fast machine, editing files within a mixing session was often sluggish, with all the plugins running. Some sessions include gigabytes of .wav files loaded into memory. Some files appeared multiple times within the session.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Enter {\b Clip Splicer}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Overview\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\i Clip Splicer} is used to automatically assemble components into a REAPER project.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The components are defined by a simple JSON file that can be created by hand, or by machine. For example, here's what a basic {\b Clip Splicer} JSON file might look like:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "title": "Simple Clip Splicer Example.",\line
+  "components": [\line
+  \{\line
+    "type": "REGION",\line
+    "name": "Simple example",\line
+    "components": [\line
+      \{\line
+        "type": "MEDIA ITEM",\line
+        "track": "Person1",\line
+        "name": "Word1",\line
+        "filename": "P1-W1.wav"\line
+      \},\line
+      \{\line
+        "type": "MEDIA ITEM",\line
+        "name": "Pause after clip.",\line
+        "length": 2\line
+      \}\line
+    ]\line
+  \}]\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The above example would generate a REAPER session that looks something like this:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \u8594?Regions\u8594?\line
+            |- - - - - - - -  A region named "REGION: Simple example" - - - - - - -|\line
+\u8594?Timeline\u8594?\line
+\u8595?Tracks\u8595?\line
+Beethoven | |- -  Media Item: "P1-W1.wav"  - - -|\line
+SILENCE   |                                      |-  Empty Media Item (length 2s) -|\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Notice:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Regions are created to {\i contain} their components.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Media Items are aligned {\i in sequence}, regardless of length.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Media Items are put on the {\i proper track}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Workflow\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Import the specification into a REAPER session.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Run the script {\f1 Script: beaunus_Import_reaper_clip_splicer_json.py}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select a .json file that contains a REAPER Clip Splicer specification.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab If you are having trouble importing your JSON file, try validating your JSON file with schema/ClipSplicerSchema.json\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Examine the generated {\i missing file report} to see what needs to be recorded.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The report can be found in the same folder as the .json file.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Record the clips\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab If the {\i missing file report} is simple enough to manually trim each clip, simply record the clips without a lyrics track.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab If you want to automated the trimming process:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Import the {\i missing file report} into a lyrics track in a REAPER session.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Convert the lyrics to markers.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 beaunus_Add markers for lyrics in selected items.lua}\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Set a reasonable tempo. In fact a super slow tempo will allow lots of time between clips.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab Record the clips in order.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab You can easily navigate through the clip areas by using the marker manager.\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Trim and save the clips\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Performances should be {\b loudness normalized} to -23LUFS.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you have used a lyrics track:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Split the performance using dynamic split.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Trim silence at the beginnings and ends of clips.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Name the takes according to the marker that cuts them.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\f1 beaunus_Name item takes by last marker to cut item.lua}\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Select the recorded, trimmed, items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Render items\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After all the clips have been recorded, you can again 'Import the specification into a REAPER session.'\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 A closer look at the JSON object\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Clip Splicer} attempts to model the data as simply as possible. Refer to http://www.json.org for some inspiration.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Keep in mind that anything in your REAPER session that should be {\i ordered} needs to be within an array in the JSON file. In the above example, the main REGION ("Simple example") is the {\i only} REGION in the specification's components. A {\b Clip Splicer} specification {\b {\i requires}} at least one component in the "components" member.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two types of {\b Clip Splicer} objects:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab REGION - Used as a {\i wrapper} to surround internal components.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab MEDIA ITEM - Used to represent an {\i audio file} or a period of {\i silence}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One of the powerful features of {\b Clip Splicer} is that REGIONs can be {\i nested}. For example, imagine this:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You are creating a single project that should contain 5 {\i discs} (as in CDs).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each {\i disc} has a few dozen {\i tracks} (as in tracks on a CD).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each {\i track} has two {\i sections}:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab An {\i instructions} section.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab A {\i content} section.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Each {\i section} has many {\i clips} and {\i silences}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the above example, there are {\i discs}, {\i tracks}, {\i sections}, {\i instructions}, and {\i contents}. For all of those cases, {\i ordering} is important. When you are navigating your REAPER session, you also want to be able to quickly move through the {\i Region/Marker Manager} to get to all of the elements' positions. When you want to render your project to it's final form, you also want to be able to render all of the {\i tracks} as individual .wav files, and put them into properly named folders for each of the {\i discs}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This can all be done by {\i nesting} REGIONs within each other. Just give all of the REGIONs an appropriate name. For example:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "DISC - Disc 01"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "TRACK - Track 00"\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When {\b Clip Splicer} creates your REAPER project, all of the REGIONs will be named. You can filter the REGIONs that you want in the {\i Region / Marker Manager}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here's a slightly more complex {\b Clip Splicer} JSON file example:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "type": "REGION",\line
+  "name": "Slightly more complex example project.",\line
+  "components": [\line
+    \{\line
+      "type": "REGION",\line
+      "name": "DISC - Disc 01",\line
+      "components": [\line
+        \{\line
+          "type": "REGION",\line
+          "name": "TRACK - Track 00",\line
+          "components": [\line
+            \{\line
+              "type": "REGION",\line
+              "name": "Instructions",\line
+              "components": [\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Instruction 01.wav"\line
+                \},\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Instruction 02.wav"\line
+                \}\line
+              ]\line
+            \},\line
+            \{\line
+              "type": "REGION",\line
+              "name": "Content",\line
+              "components": [\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Content 01.wav"\line
+                \},\line
+                \{\line
+                  "type": "MEDIA ITEM",\line
+                  "filename": "Content 02.wav"\line
+                \}\line
+              ]\line
+            \}\line
+          ]\line
+        \},\line
+        \{\line
+          "type": "REGION",\line
+          "name": "TRACK - Track 01",\line
+          "components": [ ... ]\line
+        \}\line
+      ]\line
+    \},\line
+    \{\line
+      "type": "REGION",\line
+      "name": "DISC - Disc 02",\line
+      "components": [ ... ]\line
+    \}\line
+  ]\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 JSON objects\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are only 2 basic JSON object types:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 REGION}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 MEDIA ITEM}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 REGION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A {\f1 REGION} is used to {\i wrap} and {\i contain} a series of {\i components}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here are the valid members of a {\f1 REGION} object:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 type} (string) ({\b required}) : This {\i must} be "REGION" in order to be interpreted properly.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 name} (string) (optional) : If defined, the {\i REAPER Region} will be named "[name]"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 track} (string) (optional) : If specified, all components will be added to this track, unless overridden. If not, the {\i inherited} track will be used. If there is no {\i inherited} track, a track with no name will be used.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 path} (string) (optional) : If specified, all components' paths will be relative to this path. If not, the {\i inherited} path will be used. If there is no {\i inherited} path, the root path will be used. The root path is the location of the JSON file itself.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 components} (array) (optional) : If defined, the objects {\i within} the array will be interpreted and imported into this {\f1 REGION}. If empty or undefined, the {\f1 REGION} will have length 0.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here's an example {\f1 REGION} with all the bells and whistles:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "type": "REGION",\line
+  "name": "Super Duper Region",\line
+  "track": "Cowbell",\line
+  "path": "clips/percussion/cowbell/",\line
+  "components": [...]\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For {\f1 REGION} objects, {\b Clip Splicer} will:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Start a {\i REAPER region} at the beginning of the object.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Render all of the {\i components} within the object in their proper sequence.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab End the {\i REAPER region} at the end of the last {\i component}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 MEDIA ITEM\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A {\f1 MEDIA ITEM} is used to represent an {\i audio file} or {\i period of silence}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here are the valid member of a {\f1 MEDIA ITEM} object:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 type} (string) ({\b required}) : This {\i must} be "MEDIA ITEM" in order to be interpreted properly.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 name} (string) (optional) : If defined, the {\i REAPER Media Item} will be named "[name]".\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 track} (string) (optional) : If specified, this {\i REAPER Media Item} will be added to this track. If not, the {\i inherited} track will be used. If there is no {\i inherited} track, a track with no name will be used.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 filename} (string) (optional) : If specified, {\b Clip Splicer} will look for a file with the specified filename, relative to the path, and place it in the {\i REAPER Media Item}. If not, an empty {\i REAPER Media Item} will be used.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 length} (number) (optional) : If specified, the {\i REAPER Media Item} will use the specified length (in seconds). If not, the file's original length will be used. If the specified length is {\i shorter} than the file's length, the end of the file will be truncated. If the specified length is {\i longer} than the file's length, the audio will be looped to reach the length.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 mute} (true/false) (optional) : If true, the {\i REAPER Media Item} will be muted.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Here's an example {\f1 MEDIA ITEM} with all the bells and whistles.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "type": "MEDIA ITEM",\line
+  "name": "Super Duper Item",\line
+  "track": "Aux. Percussion",\line
+  "filename": "TheFever.wav",\line
+  "length": 1000,\line
+  "mute": true\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 path\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If an object specifies a {\f1 path}, all internal components within that {\f1 REGION} will {\i inherit} the specified {\f1 path}. Internal components can {\i extend} their parent's path by specifying a new {\f1 path}.\par}
+}
+]]></description>
+      </metadata>
+      <version name="2.0" author="beaunus" time="2017-09-05T04:23:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Import_clip_splicer_specification_json.py</source>
+        <source file="beaunus_Clip_Splicer/example/example.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/example/example.json</source>
+        <source file="beaunus_Clip_Splicer/schema/ClipSplicerSchema.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/schema/ClipSplicerSchema.json</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
@@ -4532,126 +5916,6 @@ Try harder to fit the button in very small windows]]></changelog>
         <changelog><![CDATA[Show the button even if the window cannot fit the text
 Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
-      </version>
-    </reapack>
-    <reapack name="cfillion_Interactive ReaScript.lua" type="script" desc="Interactive ReaScript (iReaScript)">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Interactive ReaScript (iReaScript)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script simulates a {\field{\*\fldinst{HYPERLINK "https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop"}}{\fldrslt{\ul
-REPL
-}}}
- shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 http://i.imgur.com/RrGfulR.gif\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Colored output\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy/Paste from clipboard\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline input (functions, conditions...)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
-https://github.com/cfillion/reascripts
-}}}
-.\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
-        <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
-        <link rel="donation">https://www.paypal.me/cfillion</link>
-      </metadata>
-      <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
-        <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bab6dccc9dd0e64959a919e193fd33d06eafd4ad/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.2" author="cfillion" time="2016-06-08T03:06:35Z">
-        <changelog><![CDATA[+ enhance formatting of arrays containing nil values
-+ implement Delete key
-+ implement word movement keys (Shift+Left and Shift+Right)
-+ imply the return statement by default
-+ limit maximum depth when formatting tables
-+ protect against overriding of built-in variables]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7211142377827197c98a656217c8b16a0d556b46/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.3" author="cfillion" time="2016-07-15T02:34:49Z">
-        <changelog><![CDATA[+ added autocompletion with Tab key
-+ added PageUp/PageDown keys to scroll faster
-+ fix formatting of multiline text chunks
-+ implement clipboard read/write with Ctrl+C and Ctrl+V (works best on OS X)
-+ preserve current input and history on .clear
-+ protect against invalid access on reaper/gfx tables (thanks to X-Raym)
-+ set global `_` variable to the first return value of last statement
-+ support multi-line statements]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9386f5a783eb026a97af2c7cde1bdd6f6bc4ad0e/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4" author="cfillion" time="2016-08-18T01:21:36Z">
-        <changelog><![CDATA[+ autocomplete partial matches
-+ don't execute empty code input (v0.3 regression)
-+ enhance formatting of string values
-+ fix input of tildes
-+ increase maximum buffer size to 2048 lines
-+ limit maximum size of tables values when formatting
-+ optimize layout by only computing new or modified text segments
-+ preserve current input when using Ctrl+L shortcut
-+ prevent cursor positon from affecting text position
-+ remove reaper/gfx proxy variable workaround (requires REAPER v5.23 [t=177319])
-+ rewrite drawing & scrolling code
-+ wait at least one second before blinking the cursor]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bfdb4ee178087033c0a4ca7fa005c231dd53b43/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4.1" author="cfillion" time="2016-10-07T06:24:44Z">
-        <changelog><![CDATA[+ fix auto-completion of exact matches
-+ fix caret display in multiline input
-+ improve how partially visible lines affect the scrollbar
-+ remember docked state (use `gfx.dock(N)` to put in dock)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6c99cdaf8a1facf4b9c3bea1df4557e94c68b825/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4.2" author="cfillion" time="2016-10-08T00:15:15Z">
-        <changelog><![CDATA[+ fix formatting of zero-indexed table
-+ fix formatting of zero-sized (yet non-empty) tables
-+ override global 'print' function
-+ use braces instead of non-lua brackets for tables with numeric indexes]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/47168e1db8b06fc5b6df35196733d092f3f3fb5d/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.4.3" author="cfillion" time="2016-10-14T04:18:29Z">
-        <changelog><![CDATA[fix drawing of multiline input after code execution]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3c396e3ec5ee15e112466183a75de2b6b4a7758/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.5" author="cfillion" time="2016-12-13T03:26:51Z">
-        <changelog><![CDATA[add Copy/Paste/Clear/Dock/Close actions to the right click context menu
-display errors using bold font
-document the built-in functions and variables in .help
-fix formatting of \t and \r in strings when they are followed by numbers
-implement (fix) display of empty lines
-remember window position, size and docked state
-store every return values in _ global variable]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccfbf01a7cd4006676d11ae0b19dc8b3eb386f62/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.6" author="cfillion" time="2017-01-20T23:22:20Z">
-        <changelog><![CDATA[allow .clear to be recorded in the history
-do not crash on clipboard read/write failure (eg. 32-bit windows)
-don't evaluate command/actions while in a lua block
-implement !ACTION for Main actions, !!ACTION for MIDI Editor actions
-remove extra newline inserted when executing an empty command since v0.5]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c29a701329b5a410f6edf81fbbf32468b5cf2574/Various/cfillion_Interactive%20ReaScript.lua</source>
-      </version>
-      <version name="0.6.1" author="cfillion" time="2017-02-02T15:40:36Z">
-        <changelog><![CDATA[fix division by zero when wrapping lines starting with a zero-length character
-fix invisible \t (tabs) on windows
-fix ugly font on windows]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2558a4f8cfcce27caf1eae57c8bab133c480287c/Various/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
@@ -4737,6 +6001,86 @@ Web Interface:
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/song_switcher.html</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Ensure toggle ON (item grouping).lua" type="script" desc="Ensure toggle ON (item grouping)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is OFF, thus either setting it ON, or leaving it ON. Generally for use in custom actions.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Solo in front dimming louder.eel" type="script" desc="Solo in front dimming louder">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Limits and step size modeled on factory mousewheel action for main section. Decreases solo in front dimming. In other words, makes non-soloed tracks louder\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=195464">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20louder.eel</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Solo in front dimming quieter.eel" type="script" desc="Solo in front dimming quieter">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Limits and step size modeled on factory mousewheel action for main section. Increases solo in front dimming. In other words, makes non-soloed tracks quieter\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=195464">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20quieter.eel</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Solo in front dimming with mousewheel.eel" type="script" desc="Mousewheel solo in front dimming">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Modeled on factory mousewheel action for Main section. Can be placed in MIDI editor and probably other sections as well. Step size and min/max limits in user variables below Thanks spk77 and Justin for example code in unrelated script for mousewheel.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=195464">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20with%20mousewheel.eel</source>
       </version>
     </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script" desc="AutoSend MIDI of selected track to a specific track">
@@ -4835,6 +6179,23 @@ Web Interface:
       <version name="1.2.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
         <changelog><![CDATA[Name change for consistency]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Create%20action%20to%20open%20a%20file...%20.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create mix bus and reroute all selected tracks to it.lua" type="script" desc="Create mix bus and reroute all selected tracks to it">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then reroutes all selected tracks to it and disables their Master/Parent sends.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2017-08-06T22:29:49Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f27c1d3526362d51484922526cc276a08b30577/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20selected%20tracks%20to%20it.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create mix bus and reroute all top-level tracks to it.lua" type="script" desc="Create mix bus and reroute all top-level tracks to it">
@@ -5243,6 +6604,14 @@ Fixed:
         <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/85db53468351fba92b205eb9c2d6caf6dba8d21f/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
         <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/85db53468351fba92b205eb9c2d6caf6dba8d21f/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
       </version>
+      <version name="2.7.3" author="Lokasenna" time="2017-07-22T22:01:25Z">
+        <changelog><![CDATA[Fixed:
+- Crash when pressing key bind for the center button with
+  no center button in the current menu]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aa1e7faa32443282af3f3c9e26fe677c0b568693/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/aa1e7faa32443282af3f3c9e26fe677c0b568693/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/aa1e7faa32443282af3f3c9e26fe677c0b568693/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
       <metadata>
@@ -5295,54 +6664,6 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Gets the last script that was run via 'Run Lua script in debug mode' and attempts to open it in debug mode again; a replacement for Reaper's native action 'ReaScript: Run last ReaScript (EEL or Lua)', since scripts can't get that filename from REAPER.ini directly.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:40Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67e146f0d8c840a69d719113fb1a4e7f0fc94cc6/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-      <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
-        <changelog><![CDATA[Name change for consistency]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20last%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Run Lua script in debug mode.lua" type="script" desc="Run Lua script in debug mode">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Lets users open a compatible .lua script in debug mode, to assist in diagnosing errors, crashes, etc.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Script developers: Your script just needs to check if the global variable 'debug_mode' is true:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (near the top of your script) if debug_mode then ...set appropriate debug flags, etc... end\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0.0" author="Lokasenna" time="2017-02-09T16:31:29Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/379b77e168e248c759a41a6a7281dbbb6159a0a8/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-      <version name="1.1.0" author="Lokasenna" time="2017-02-10T05:01:23Z">
-        <changelog><![CDATA[Stores the last script to an ExtState; for companion script]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3bde81f8ccdc3be7c1aae4693437117ce36c47f4/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-      <version name="1.1.1" author="Lokasenna" time="2017-04-05T04:27:30Z">
-        <changelog><![CDATA[Name change for consistency]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e126c7c46837d260072538e071003c7e6c776b63/Various/Lokasenna_Run%20Lua%20script%20in%20debug%20mode.lua</source>
-      </version>
-    </reapack>
     <reapack name="Lokasenna_Scroll mixer to first selected track.lua" type="script" desc="Scroll mixer to first selected track">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5362,6 +6683,25 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.0.1" author="Lokasenna" time="2017-04-05T11:34:32Z">
         <changelog><![CDATA[Bug fix]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c14d111d4191bc9a3ae066bf918c1166f5be400e/Various/Lokasenna_Scroll%20mixer%20to%20first%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tool that shows cursor position in relation to the item take's Source time\par}
+}
+]]></description>
+      </metadata>
+      <version name="2" author="PL9, modified by amagalma (v2)" time="2017-09-10T16:23:55Z">
+        <changelog><![CDATA[+ remembers last position and window size
++ resizeable via mouse-wheel
++ edit cursor can be moved to any user-defined source time position
++ directory where source file resides can be opened in explorer/finder
++ tooltips]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32c66108368ad4a919f1eb1926975f338f535dc1/Various/PL9-amagalma_Source%20Time%20Position%20Tool%20v2.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
@@ -5645,6 +6985,10 @@ RCJacH/ReaScripts
 RobU23/ReaScripts
 }}}
 \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Sonic-Anomaly/Sonic-Anomaly-JSFX"}}{\fldrslt{\ul
+Sonic-Anomaly/Sonic-Anomaly-JSFX
+}}}
+\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.extremraym.com/en/downloads/category/reascripts/"}}{\fldrslt{\ul
 X-Raym/ReaScripts-Premium
 }}}
@@ -5672,6 +7016,10 @@ berthu/ReaScripts
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ChrAfonso/REAPER_punches_and_streamers"}}{\fldrslt{\ul
 ChrAfonso/REAPER_punches_and_streamers
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/davidhealey/reascript"}}{\fldrslt{\ul
+davidhealey/reascript
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/GoranKovac/ReaScripts"}}{\fldrslt{\ul

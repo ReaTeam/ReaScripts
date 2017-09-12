@@ -72,6 +72,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [RCJacH/ReaScripts](https://github.com/RCJacH/ReaScripts/)
 - [RobU23/ReaScripts](https://github.com/RobU23/ReaScripts/)
+- [Sonic-Anomaly/Sonic-Anomaly-JSFX](https://github.com/Sonic-Anomaly/Sonic-Anomaly-JSFX)
 - [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
 
@@ -82,6 +83,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [berthu/ReaScripts](https://github.com/berthu/ReaScripts)
 - [ChrAfonso/REAPER_punches_and_streamers](https://github.com/ChrAfonso/REAPER_punches_and_streamers)
+- [davidhealey/reascript](https://github.com/davidhealey/reascript)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
 - [JamesHEure/Reascript](https://github.com/JamesHEure/Reascript)

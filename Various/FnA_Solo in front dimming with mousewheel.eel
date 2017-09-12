@@ -1,4 +1,3 @@
-// Description: Mousewheel solo in front dimming
 // Version: 1.0.1
 // Author: FnA
 // Changelog: Initial release
@@ -8,7 +7,6 @@
 //   Modeled on factory mousewheel action for Main section.
 //   Step size and min/max limits in user variables below
 //   Thanks spk77 and Justin for example code in unrelated script for mousewheel.
-// MetaPackage: true
 // Provides:
 //   [main=main,midi_editor] . > FnA_Solo in front dimming with mousewheel.eel
 
@@ -31,4 +29,3 @@ val > 0 ? (
 
 function NoUndo()(abs(0));
 defer ("NoUndo()");
-

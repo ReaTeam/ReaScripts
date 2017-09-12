@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Arch selected events in lane under mouse with linear or power curve.lua
-Version: 3.12
+Version: 3.20
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28025/Arch%20events.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -107,6 +107,8 @@ About:
     + Improved reset of toolbar button.
   * v3.12 (2017-03-18)
     + More extensive instructions in header.
+  * v3.20 (2017-07-23)
+    + Mouse cursor changes to indicate that script is running. 
 ]]
 
 -- USER AREA 
@@ -245,6 +247,9 @@ local m_min = math.min
 local m_max = math.max 
 local m_pi  = math.pi
 
+-- User preferences that can be customized in the js_MIDI editing preferences script
+local mustDrawCustomCursor
+
   
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
@@ -277,6 +282,11 @@ local function loop_trackMouseMovement()
     --              Therefore, clean the take *before* calling the function!
     takeIsCleared = true
     reaper.MIDI_SetAllEvts(take, AllNotesOffString)
+    -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
+    if mustDrawCustomCursor then
+        local mouseXpos, mouseYpos = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip("Λ", mouseXpos+7, mouseYpos+8, true)
+    end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
         _, mouseNewPitch, mouseNewCClane, mouseNewCCvalue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
@@ -594,6 +604,9 @@ end -- loop_trackMouseMovement()
 --############################################################################################
 ----------------------------------------------------------------------------------------------
 function onexit()
+    
+    -- Remove tooltip 'custom cursor'
+    reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
     -- Remember that the take was cleared before calling BR_GetMouseCursorContext
     --    So upload MIDI again.
@@ -1558,6 +1571,17 @@ else
     gridOrigPPQpos = math.floor(mouseOrigPPQpos + 0.5)
 end  
 ]] 
+
+---------------------------------------------------------------------------
+-- Must the mouse cursor be changed to indicate that the script is running?
+-- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+-- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+--    and this may appear inelegant to the user.
+if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+    mustDrawCustomCursor = false
+else
+    mustDrawCustomCursor = true
+end
 
 ---------------------------------------------------------------------------
 -- OK, tests passed, and it seems like this script will do something, 

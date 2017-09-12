@@ -1,10 +1,10 @@
 --[[
 Description: Theory Helper
-Version: 1.32
+Version: 1.40
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fix: Crashes on first startup
+	Fix: Note velocity being sent as 128.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -1291,7 +1291,7 @@ GUI.Update = function (elm)
 				else	
 				
 					-- Double clicked?
-					if GUI.mouse.downtime and os.clock() - GUI.mouse.downtime < 0.20 then
+					if GUI.mouse.downtime and reaper.time_precise() - GUI.mouse.downtime < 0.10 then
 	
 						GUI.mouse.downtime = nil
 						GUI.mouse.dbl_clicked = true
@@ -1332,7 +1332,7 @@ GUI.Update = function (elm)
 			GUI.mouse.dbl_clicked = false
 			GUI.mouse.ox, GUI.mouse.oy = -1, -1
 			GUI.mouse.lx, GUI.mouse.ly = -1, -1
-			GUI.mouse.downtime = os.clock()
+			GUI.mouse.downtime = reaper.time_precise()
 
 		end
 		
@@ -1349,7 +1349,7 @@ GUI.Update = function (elm)
 				else
 		
 						-- Double clicked?
-					if GUI.mouse.r_downtime and os.clock() - GUI.mouse.r_downtime < 0.20 then
+					if GUI.mouse.r_downtime and reaper.time_precise() - GUI.mouse.r_downtime < 0.20 then
 						
 						GUI.mouse.r_downtime = nil
 						GUI.mouse.r_dbl_clicked = true
@@ -1390,7 +1390,7 @@ GUI.Update = function (elm)
 			GUI.mouse.r_dbl_clicked = false
 			GUI.mouse.r_ox, GUI.mouse.r_oy = -1, -1
 			GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
-			GUI.mouse.r_downtime = os.clock()
+			GUI.mouse.r_downtime = reaper.time_precise()
 
 		end
 
@@ -1409,7 +1409,7 @@ GUI.Update = function (elm)
 
 				else	
 					-- Double clicked?
-					if GUI.mouse.m_downtime and os.clock() - GUI.mouse.m_downtime < 0.20 then
+					if GUI.mouse.m_downtime and reaper.time_precise() - GUI.mouse.m_downtime < 0.20 then
 
 						GUI.mouse.m_downtime = nil
 						GUI.mouse.m_dbl_clicked = true
@@ -1451,7 +1451,7 @@ GUI.Update = function (elm)
 			GUI.mouse.m_dbl_clicked = false
 			GUI.mouse.m_ox, GUI.mouse.m_oy = -1, -1
 			GUI.mouse.m_lx, GUI.mouse.m_ly = -1, -1
-			GUI.mouse.m_downtime = os.clock()
+			GUI.mouse.m_downtime = reaper.time_precise()
 
 		end
 
@@ -3675,6 +3675,11 @@ function GUI.Menubox:onmouseup()
 	
 	local curopt = gfx.showmenu(menu_str)
 	
+--[[	
+	
+	-- This appears to be redundant. Not sure if something in Reaper changed,
+	-- or what... I could swear it used to be important. Whatever.
+	
 	if #sep_arr > 0 then
 		for i = 1, #sep_arr do
 			if curopt >= sep_arr[i] then
@@ -3684,7 +3689,8 @@ function GUI.Menubox:onmouseup()
 			end
 		end
 	end
-	
+]]--
+
 	if curopt ~= 0 then self.retval = curopt end
 
 	self.focus = false
@@ -3702,6 +3708,9 @@ end
 -- Menubox - Mousewheel
 function GUI.Menubox:onwheel()
 	
+	-- Avert a crash if there aren't at least two items in the menu
+	if not self.optarray[2] then return end
+	
 	local curopt = self.retval - GUI.mouse.inc
 	local inc = (GUI.mouse.inc > 0) and 1 or -1
 
@@ -3716,7 +3725,9 @@ function GUI.Menubox:onwheel()
 			inc = -1
 		end	
 
-		if self.optarray[curopt] == "" or string.sub( self.optarray[curopt], 1, 1 ) == ">" then 
+		local opt = type(self.optarray[curopt]) == "table" and self.optarray[curopt][1] or self.optarray[curopt]
+
+		if opt == "" or string.sub( opt, 1, 1 ) == ">" then 
 			curopt = curopt - inc
 
 		else
@@ -3727,9 +3738,7 @@ function GUI.Menubox:onwheel()
 		
 	end
 	
-
-	
-	self.retval = curopt
+	self.retval = curopt	
 	
 	GUI.redraw_z[self.z] = true	
 end
@@ -4151,7 +4160,7 @@ end
 -- Tabframe - Mousewheel
 function GUI.Tabframe:onwheel()
 
-	self.state = self.state + (dir == "h" and GUI.mouse.inc or -GUI.mouse.inc)
+	self.state = GUI.round(self.state + (dir == "h" and GUI.mouse.inc or -GUI.mouse.inc))
 	
 	if self.state < 1 then self.state = 1 end
 	if self.state > self.numopts then self.state = self.numopts end
@@ -4389,6 +4398,14 @@ local most_chords = 0
 
 -- Minimum width for the window = 7 chord buttons + the left panel + a bit
 local min_w = (btn_template[3] + btn_space_h) * 7 + 22 + line_x
+
+
+----------------------------------------
+------Anything that needs to be---------
+----------forward-declared--------------
+----------------------------------------
+local search_scales
+
 
 ----------------------------------------
 -------------Harmony stuff--------------
@@ -4758,7 +4775,11 @@ local function get_reascale(startup)
 			
 				line_pre = line:match("^(-?%d+)") or ""
 				line_name = line:match("\"(.+)\"") or ""
-				str_scale = line:match("%d*$") or ""
+				
+				-- End-of-line doesn't always work on Mac
+				--str_scale = line:match("%d*$") or ""
+				str_scale = line:match("\".+\"%s*(%d+)") or ""
+				
 				line_scale, line_size = convert_reascale(str_scale)
 				pass_scale, pass_size = convert_reascale(str_scale, true)
 			
@@ -4806,6 +4827,8 @@ local function get_reascale(startup)
 		else
 			scale_num = GUI.clamp(scale_num, 1, #reascale_arr)
 		end	
+		
+		search_scales()
 	
 	else
 	
@@ -5052,7 +5075,8 @@ local function update_result_chk()
 end
 
 
-local function search_scales()
+--local function search_scales()
+search_scales = function()
 
 	-- Get a temporary
 	local chk_arr = GUI.Val("chk_search")
@@ -5195,6 +5219,13 @@ end
 
 
 local function set_result()
+	
+	if #result_arr < 1 then
+		
+		reaper.ShowMessageBox("There are no results for the current search.", "Whoops", 0)
+		return
+		
+	end
 	
 	scale_num = result_arr[GUI.Val("mnu_result")][2]
 	
@@ -5486,9 +5517,14 @@ end
 -- to determine the new notes' pitches.
 function harm_sel_notes()
 	
+	local sel_notes = get_sel_notes()	
+	
 	reaper.Undo_BeginBlock()
 	
-	local sel_notes = get_sel_notes()
+	if #sel_notes == 0 then
+		reaper.ShowMessageBox("Couldn't find any selected notes.", "whoops", 0)
+		return
+	end
 	
 	reaper.MIDI_SelectAll(cur_take, false)
 	
@@ -5514,6 +5550,11 @@ function prev_sel_notes()
 	-- Get all selected notes
 	local sel_notes = get_sel_notes()
 	local add_notes = {}
+
+	if #sel_notes == 0 then
+		reaper.ShowMessageBox("Couldn't find any selected notes.", "whoops", 0)
+		return
+	end
 
 	for i = 1, #sel_notes do
 	
@@ -5683,7 +5724,7 @@ GUI.elms = {
 	chk_follow =	GUI.Checklist:new(	15,	20, line_y + 128, nil, nil, "", "Use MIDI editor's key snap scale\n       (Disables some options)", "v", 0),
 
 	lbl_velocity = GUI.Label:new(		15,	28, line_y + 192, "Velocity:", 1, 3),
-	sldr_velocity = GUI.Slider:new(		15,	83, line_y + 196, 92, "", 0, 127, 128, 1, "h"),
+	sldr_velocity = GUI.Slider:new(		15,	83, line_y + 196, 92, "", 0, 127, 127, 1, "h"),
 
 
 	mnu_octave = GUI.Menubox:new(		15,	72, line_y + 242, 48, 20, "Octave:", oct_str, 4),
@@ -5739,7 +5780,7 @@ GUI.elms.tabs:update_sets(
 --GUI.Val("mnu_inversion", 3)
 GUI.Val("mnu_octave", 6)
 GUI.Val("mnu_chord_set", 3)
-GUI.Val("sldr_velocity", 128)
+GUI.Val("sldr_velocity", 127)
 
 GUI.elms.tabs.font_A = 6
 
@@ -5872,8 +5913,6 @@ end
 function GUI.elms.chk_result:onmouseup() return 0 end
 
 
--- Appending new stuff to an existing method
--- Mind = blown
 
 function GUI.elms.chk_search:onmouseup()
 	
@@ -6052,7 +6091,7 @@ local function btn_click(deg, chord, btn)
 	local offset = ( (GUI.elms.mnu_octave.numopts - GUI.Val("mnu_octave") + 1) * 12) + key
 	chan = reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_chan")
 	
-	local user_vel = GUI.Val("sldr_velocity") - 1
+	local user_vel = GUI.Val("sldr_velocity")
 	vel = user_vel > 0 and user_vel or reaper.MIDIEditor_GetSetting_int(cur_wnd, "default_note_vel") 
 	
 	local shift = GUI.mouse.cap&8==8
@@ -6447,7 +6486,7 @@ local function Main()
 		GUI.mouse.down = false
 		GUI.mouse.ox, GUI.mouse.oy = -1, -1
 		GUI.mouse.lx, GUI.mouse.ly = -1, -1
-		GUI.mouse.uptime = os.clock()
+		GUI.mouse.uptime = reaper.time_precise()
 				
 
 		-- Center the instruction and no-chord labels below the buttons
