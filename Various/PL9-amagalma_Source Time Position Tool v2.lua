@@ -1,17 +1,19 @@
 -- @description PL9-amagalma_Source Time Position Tool v2
 -- @author PL9, modified by amagalma (v2)
--- @version 2
+-- @version 2.01
 -- @about
 --   # Tool that shows cursor position in relation to the item take's Source time
+--   - remembers last position and window size
+--   - resizeable via mouse-wheel
+--   - edit cursor can be moved to any user-defined source time position
+--   - directory where source file resides can be opened in explorer/finder
+--   - tooltips
+
 
 --[[
  * Changelog:
- * v2 (2017-09-10)
-  + remembers last position and window size
-  + resizeable via mouse-wheel
-  + edit cursor can be moved to any user-defined source time position
-  + directory where source file resides can be opened in explorer/finder
-  + tooltips
+ * v2.01 (2017-09-12)
+  + Source file opens in Windows Explorer without a cmd window first
 --]]
 
 
@@ -196,12 +198,13 @@ function show_take_filename(x, y, take)
         gfx.a = 0.7
       end
       gfx.printf(filename)
-      if leftclick then
+      if leftclick and filename then
         local separator, action, path
         if string.match(reaper.GetOS(), "Win")  == "Win" then
           path = string.match(filename, ".+\\"):gsub("\\", "\\\\")
-          os.execute('start "" "'..path..'"')
-          --reaper.ExecProcess('cmd.exe /C start "" "'..path..'"', 0)
+          --reaper.ShowConsoleMsg(path)
+          --os.execute('start "" "'..path..'"')
+          reaper.ExecProcess('cmd.exe /C start "" "'..path..'"', 0)
         else
           path = string.match(filename, ".+/")
           os.execute('open "" "'..path..'"')
