@@ -1,12 +1,16 @@
-// Description: mousewheel solo in front dimming
-// Version: 1.0
+// Description: Mousewheel solo in front dimming
+// Version: 1.0.1
 // Author: FnA
 // Changelog: Initial release
+//   Change to package including midi editor action
 // Link: Forum Thread http://forum.cockos.com/showthread.php?t=195464
 // About:
 //   Modeled on factory mousewheel action for Main section.
-//   Can be placed in MIDI editor and probably other sections as well. Step size and min/max limits in user variables below
+//   Step size and min/max limits in user variables below
 //   Thanks spk77 and Justin for example code in unrelated script for mousewheel.
+// MetaPackage: true
+// Provides:
+//   [main=main,midi_editor] . > FnA_Solo in front dimming with mousewheel.eel
 
 // User Variables ---------------------------------
 dB10 = 30;// step size. dB value x 10. 35 = 3.5dB, etc. use integers only.
@@ -27,3 +31,4 @@ val > 0 ? (
 
 function NoUndo()(abs(0));
 defer ("NoUndo()");
+
