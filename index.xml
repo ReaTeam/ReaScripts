@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cfde20df4f89e838e20fd182f94b7bbc415ded2a" name="ReaTeam Scripts">
+<index version="1" commit="73cc1948f06b9db2134ffdcd54efa46b6d105ba0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6693,6 +6693,15 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.0.1" author="Lokasenna" time="2017-04-05T11:34:32Z">
         <changelog><![CDATA[Bug fix]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c14d111d4191bc9a3ae066bf918c1166f5be400e/Various/Lokasenna_Scroll%20mixer%20to%20first%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Install all known ReaPack repositories.lua" type="script" desc="Install all known repositories for ReaPack">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-09-13T09:53:01Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73cc1948f06b9db2134ffdcd54efa46b6d105ba0/Various/mpl_Install%20all%20known%20ReaPack%20repositories.lua</source>
       </version>
     </reapack>
     <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
