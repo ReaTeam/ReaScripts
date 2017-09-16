@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.26
+-- @version 1.27
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.26 (2017-09-04)
-  + undo point creation invludes time selection if it was requested to be removed after crossfading
+ * v1.27 (2017-09-17)
+  + fixed bug when one selected item encloses another
 --]]
 
 
@@ -90,9 +90,12 @@ if item_cnt > 1 then
     -- check if item and previous item are on the same track
     if reaper.GetMediaItem_Track(item) == reaper.GetMediaItem_Track(previousitem) then
       local secondstart = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      local secondend = secondstart + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
       local firststart = reaper.GetMediaItemInfo_Value(previousitem, "D_POSITION")
       local firstend = firststart + reaper.GetMediaItemInfo_Value(previousitem, "D_LENGTH")
       if firstend < secondstart then -- items do not touch
+        -- do nothing
+      elseif firststart < secondstart and firstend > secondend then -- one item encloses the other
         -- do nothing
       else
         -- time selection exists and covers parts of both items
