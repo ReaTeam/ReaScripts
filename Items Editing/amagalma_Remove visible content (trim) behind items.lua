@@ -1,16 +1,23 @@
 -- @description amagalma_Remove visible content (trim) behind items
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Removes content behind selected items only if the edit is visible in the arrange view
 --   - No edits are done if they are not visible in the arrange view
 
 -- @link: https://forum.cockos.com/showthread.php?p=1886294#post1886294
 
+--[[
+ * Changelog:
+ * v1.01 (2017-09-16)
+  + fixed bug when working with many overlapping selected items
+--]]
+
 ---------------------------------------------------------------------------------------
 
 local reaper = reaper
 local Selected_items = {}
+local Sel_item_GUID = {}
 local ToDelete = {}
 
 ---------------------------------------------------------------------------------------
@@ -25,9 +32,11 @@ function Store_SelItems()
   local sel_item_cnt = reaper.CountSelectedMediaItems( 0 )
   if sel_item_cnt > 0 then
     -- Store selected items
-    for i = 0, sel_item_cnt do
+    for i = 0, sel_item_cnt-1 do
       local selitem = reaper.GetSelectedMediaItem( 0, i )
       Selected_items[#Selected_items+1] = selitem
+      local GUID = reaper.BR_GetMediaItemGUID( selitem )
+      Sel_item_GUID[GUID] = true
     end
   end
 end
@@ -63,7 +72,7 @@ for i = 1, #Selected_items do
       local item_ch = reaper.GetTrackMediaItem( track, j )
       local chStart = reaper.GetMediaItemInfo_Value( item_ch, "D_POSITION" )
       local chEnd = chStart + reaper.GetMediaItemInfo_Value( item_ch, "D_LENGTH" )
-      local selected_ch = reaper.IsMediaItemSelected( item_ch )
+      local selected_ch = Sel_item_GUID[reaper.BR_GetMediaItemGUID( item_ch )] or false
       -- do not compare item with itself, compare only with unselected items
       if item_ch ~= Selected_items[i] and not selected_ch then       
         ---- Cases: ----
