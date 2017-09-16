@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.27
+-- @version 1.28
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.27 (2017-09-17)
-  + fixed bug when one selected item encloses another
+ * v1.28 (2017-09-17)
+  + fixed bug when a time selection enclosed more than two items in a row
 --]]
 
 
@@ -99,7 +99,7 @@ if item_cnt > 1 then
         -- do nothing
       else
         -- time selection exists and covers parts of both items
-        if selstart ~= selend and selend > secondstart and selstart < firstend then
+        if selstart ~= selend and selend > secondstart and selend <= secondend and selstart < firstend and selstart >= firststart then
           timeselexists = 1
           local timesel = selend - selstart
           if FadeInOK(item, timesel) == false or FadeOutOK(previousitem, timesel) == false then
