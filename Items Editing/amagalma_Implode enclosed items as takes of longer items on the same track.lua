@@ -1,6 +1,6 @@
 -- @description amagalma_Implode enclosed items as takes of longer items on the same track
 -- @author amagalma
--- @version 1.1
+-- @version 1.2
 -- @about
 --   # Implodes enclosed items as takes of longer or equal length items, preserving item size and item/take colors
 --   - Can be used with as many tracks and items as you like
@@ -9,8 +9,9 @@
 
 --[[
  * Changelog:
- * v1.1 (2017-09-17)
-  + action now works with items with more than one takes too
+ * v1.2 (2017-09-17)
+  + prevent script crashing if it encounters empty items
+  + ensure that last take of enclosed item is the last take of the new item
 --]]
 
 -----------------------------------------------------------------------------------
@@ -55,6 +56,10 @@ function Store_Properties()
             local Start = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
             local End = Start + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
             local takes = reaper.CountTakes( item )
+            if takes < 1 then
+              reaper.MB( "Please, make sure you have not selected any empty items!", "Cannot implode empty items as takes", 0 )
+              return
+            end
             Item[#Item+1] = {Item = item, Start = Start, End = End, Takes = takes}
             store = true
           end
@@ -84,6 +89,7 @@ if Tr and #Selected_items > 1 then
       local shortstart = Tr[tr].item[it].Start
       local shortend = Tr[tr].item[it].End
       local shorttakes = Tr[tr].item[it].Takes
+      local shortlasttakesource = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake(item, shorttakes-1))
       for tk = 0, shorttakes-1 do
         local source = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake( item, tk ))
         local color
@@ -136,10 +142,14 @@ if Tr and #Selected_items > 1 then
         reaper.SetMediaItemSelected(longest, true )
         reaper.Main_OnCommand(40543,0) -- Take: Implode items on same track into takes
         local newitem = reaper.GetSelectedMediaItem( 0, 0 )
-        if reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake( newitem, 0 )) ~= longestsource then
-          reaper.Main_OnCommand(41354,0) -- Item: Rotate take lanes backward
-        end
         local take_cnt = reaper.CountTakes( newitem )
+        -- Ensure that 1st take of enclosing long item stays being the 1st take of the new item
+        local counter = 0
+        while reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake(newitem, take_cnt-1)) ~= shortlasttakesource do
+          reaper.Main_OnCommand(41354,0) -- Item: Rotate take lanes backward
+          counter = counter + 1
+          if counter == 20 then break end  -- prevent Reaper hunging up in case something goes wrong
+        end
         -- color the takes according to their source (connection stores in Colors table)
         for tk = 0, take_cnt-1 do
           local source = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake(newitem,tk ))
