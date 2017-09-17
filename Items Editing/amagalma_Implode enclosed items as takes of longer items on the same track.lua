@@ -1,11 +1,17 @@
 -- @description amagalma_Implode enclosed items as takes of longer items on the same track
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
 -- @about
---   # Implodes enclosed items as takes of a longer items, maintaining item size and item colors
---   - Can be used with as many tracks and items you like
+--   # Implodes enclosed items as takes of longer or equal length items, preserving item size and item/take colors
+--   - Can be used with as many tracks and items as you like
 --   - You can set in the script if you want newly created items to be selected after operation finishes
---   - Currently works with single-take items
+--   - Works with items with more than one takes too
+
+--[[
+ * Changelog:
+ * v1.1 (2017-09-17)
+  + action now works with items with more than one takes too
+--]]
 
 -----------------------------------------------------------------------------------
 
@@ -48,8 +54,8 @@ function Store_Properties()
           if reaper.IsMediaItemSelected( item ) then
             local Start = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
             local End = Start + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
-            local color = reaper.GetDisplayedMediaItemColor( item )
-            Item[#Item+1] = {Item = item, Start = Start, End = End, Color = color}
+            local takes = reaper.CountTakes( item )
+            Item[#Item+1] = {Item = item, Start = Start, End = End, Takes = takes}
             store = true
           end
         end
@@ -73,11 +79,23 @@ if Tr and #Selected_items > 1 then
   end
   for tr = 1, #Tr do
     for it = 2, #Tr[tr].item do
+      local Colors = {}
       local item = Tr[tr].item[it].Item -- enclosed item
       local shortstart = Tr[tr].item[it].Start
       local shortend = Tr[tr].item[it].End
-      local shortcolor = Tr[tr].item[it].Color
-      local longest, longstart, longend, longcolor
+      local shorttakes = Tr[tr].item[it].Takes
+      for tk = 0, shorttakes-1 do
+        local source = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake( item, tk ))
+        local color
+        -- store take colors relative to their source
+        if shorttakes < 2 then
+          color = reaper.GetDisplayedMediaItemColor( item )
+        else
+          color = reaper.GetMediaItemTakeInfo_Value(reaper.GetMediaItemTake(item, tk), "I_CUSTOMCOLOR")
+        end
+        Colors[#Colors+1] = {Source = source, Color = color}
+      end
+      local longest, longstart, longend, longtakes
       local found = false
       -- find enclosing item
       for lg = 1, #Tr[tr].item-1 do
@@ -85,9 +103,20 @@ if Tr and #Selected_items > 1 then
         if longest ~= item then -- do not compare item to itself
           longstart = Tr[tr].item[lg].Start
           longend = Tr[tr].item[lg].End
-          longcolor = Tr[tr].item[lg].Color
+          longtakes = Tr[tr].item[lg].Takes
           if shortstart >= longstart and shortend <= longend then
             found = true
+            -- store take colors relative to their source (add to Colors table)
+            for tk = 0, longtakes-1 do
+              local source = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake( longest, tk ))
+              local color
+              if longtakes < 2 then
+                color = reaper.GetDisplayedMediaItemColor( item )
+              else
+                color = reaper.GetMediaItemTakeInfo_Value(reaper.GetMediaItemTake(longest, tk), "I_CUSTOMCOLOR")
+              end
+              Colors[#Colors+1] = {Source = source, Color = color}
+            end
             break
           elseif longstart > shortstart then
             break -- item is after "enclosed item", so it cannot be an enclosing one!
@@ -95,7 +124,6 @@ if Tr and #Selected_items > 1 then
         end
       end
       if found then -- there is an enclosing item
-        local needtofix
         if shortstart ~= longstart then
           longest = reaper.SplitMediaItem( longest, shortstart )
         end
@@ -112,16 +140,14 @@ if Tr and #Selected_items > 1 then
           reaper.Main_OnCommand(41354,0) -- Item: Rotate take lanes backward
         end
         local take_cnt = reaper.CountTakes( newitem )
-        -- color the takes accordingly
+        -- color the takes according to their source (connection stores in Colors table)
         for tk = 0, take_cnt-1 do
-          local color
-          local source = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake( newitem, tk ))
-          if source == itemsource then
-            color = shortcolor
-          elseif source == longestsource then
-            color = longcolor
+          local source = reaper.GetMediaItemTake_Source(reaper.GetMediaItemTake(newitem,tk ))
+          for cl = 1, #Colors do
+            if Colors[cl].Source == source then
+              reaper.SetMediaItemTakeInfo_Value(reaper.GetMediaItemTake(newitem,tk), "I_CUSTOMCOLOR", Colors[cl].Color)
+            end
           end
-          reaper.SetMediaItemTakeInfo_Value( reaper.GetMediaItemTake( newitem, tk ), "I_CUSTOMCOLOR", color )
         end
         reaper.SetActiveTake(reaper.GetMediaItemTake( newitem, take_cnt-1 ))
         reaper.SetMediaItemSelected(newitem, false )
