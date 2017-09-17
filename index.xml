@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="462f5505d104326f8445d7850efe6017473187a3" name="ReaTeam Scripts">
+<index version="1" commit="5131bfdb22b37563bf5e3baf89a403342d39b611" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -819,15 +819,19 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Implodes enclosed items as takes of a longer items, maintaining item size and item colors\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many tracks and items you like\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Implodes enclosed items as takes of longer or equal length items, preserving item size and item/take colors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many tracks and items as you like\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set in the script if you want newly created items to be selected after operation finishes\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Currently works with single-take items\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with items with more than one takes too\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-09-17T11:56:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/462f5505d104326f8445d7850efe6017473187a3/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-17T18:14:28Z">
+        <changelog><![CDATA[+ action now works with items with more than one takes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5131bfdb22b37563bf5e3baf89a403342d39b611/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove content (trim) behind items preserving crossfades.lua" type="script" desc="amagalma_Remove content (trim) behind items preserving crossfades">
