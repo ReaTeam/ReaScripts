@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="24b42e8d95b6bdd7ed7148bc8aa36213c77118b4" name="ReaTeam Scripts">
+<index version="1" commit="3d72e8b23315b025a0110d3dc93b0caa1de34bf3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -324,7 +324,7 @@ paste on middle click
 persist history between sessions
 reimplement copy/paste using my new API functions (SWS v1.9.6+)
 support non-string arguments to Lua's error function]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24b42e8d95b6bdd7ed7148bc8aa36213c77118b4/Development/cfillion_Interactive%20ReaScript.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3d72e8b23315b025a0110d3dc93b0caa1de34bf3/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
