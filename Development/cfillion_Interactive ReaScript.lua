@@ -50,7 +50,7 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  VERSION = '0.6.1',
+  VERSION = '0.6.2',
 
   MARGIN = 3,
   MAXLINES = 2048,
