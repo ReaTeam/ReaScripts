@@ -1,6 +1,6 @@
 -- @description amagalma_Remove content (trim) behind items preserving crossfades
 -- @author amagalma
--- @version 1.02
+-- @version 1.03
 -- @about
 --   # Removes content behind selected items only if there is not a crossfade
 --   - Undo point is created ony if something changed
@@ -9,8 +9,8 @@
 
 --[[
  * Changelog:
- * v1.02 (2017-09-19)
-  + fixed bug when "trim behind items" is enabled
+ * v1.03 (2017-09-19)
+  + fixed bug not trimming when there were a fade-in and fade-out in both items and the fades were not crossing (no crossfade)
 --]]
 
 ---------------------------------------------------------------------------------------
@@ -22,8 +22,11 @@ local ToDelete = {}
 
 ---------------------------------------------------------------------------------------
 
+local debug = 0
 function M(v)
-  reaper.ShowConsoleMsg(tostring(v).."\n")
+  if debug == 1 then
+    reaper.ShowConsoleMsg(tostring(v).."\n")
+  end
 end
 
 ---------------------------------------------------------------------------------------
@@ -80,14 +83,14 @@ for i = 1, #Selected_items do
       ---- Cases: ----
       -- checked item is contained
       if chStart >= Start and chEnd <= End then
-        --M("checked item is contained")
+        M("checked item is contained")
         -- Store items in table for deletion after item iteration finishes
         ToDelete[#ToDelete+1] = {track = track, item = item_ch}
         create_undo = true
       -- checked item touches item's End and there is no crossfade
-      elseif (in_len_ch ~= out_len or out_len == 0)and out_time >= in_time_ch and
+      elseif out_time >= in_time_ch and
               chStart >= Start and chStart < End and chEnd > End then
-        --M("checked item touches item's End")
+        M("checked item touches item's End")
         reaper.SetMediaItemSelected(item_ch, true)
         reaper.ApplyNudge(0, 1, 1, 1, End, false, 0)
         reaper.SetMediaItemSelected(item_ch, false)
@@ -97,9 +100,9 @@ for i = 1, #Selected_items do
         end
         create_undo = true
       -- checked item touches item's Start and there is no crossfade
-      elseif (out_len_ch ~= in_len or in_len == 0) and in_time <= out_time_ch and
+      elseif in_time <= out_time_ch and
               chEnd > Start and chEnd <= End and chStart < Start then
-        --M("checked item touches item's Start")
+        M("checked item touches item's Start")
         reaper.SetMediaItemSelected(item_ch, true)
         reaper.ApplyNudge(0, 1, 3, 1, Start, false, 0)
         reaper.SetMediaItemSelected(item_ch, false)
@@ -110,7 +113,7 @@ for i = 1, #Selected_items do
         create_undo = true
       -- checked item encloses selected item
       elseif chStart < Start and chEnd > End then
-        --M("checked item encloses selected item")
+        M("checked item encloses selected item")
         local new_item = reaper.SplitMediaItem( item_ch, Start )
         reaper.SetMediaItemSelected(new_item, true)
         reaper.ApplyNudge(0, 1, 1, 1, End, false, 0)
@@ -118,7 +121,7 @@ for i = 1, #Selected_items do
         create_undo = true
       -- checked item has nothing to do with selected item
       else
-        --M("checked item has nothing to do with selected item")
+        M("checked item has nothing to do with selected item")
         -- do nothing
       end
       ----------------
