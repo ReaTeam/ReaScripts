@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="749a5022aa6fbdf7b13d15a23531cf943a79b7b7" name="ReaTeam Scripts">
+<index version="1" commit="0c29c5b80b11f59ff7fa16667ed0a11b1326dc68" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -870,6 +870,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.02" author="amagalma" time="2017-09-19T08:05:27Z">
         <changelog><![CDATA[+ fixed bug when "trim behind items" is enabled]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7041aa2d34e0d10040e65b4bbf092e2fcddee916/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2017-09-19T08:26:54Z">
+        <changelog><![CDATA[+ fixed bug not trimming when there were a fade-in and fade-out in both items and the fades were not crossing (no crossfade)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c29c5b80b11f59ff7fa16667ed0a11b1326dc68/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove visible content (trim) behind items.lua" type="script" desc="amagalma_Remove visible content (trim) behind items">
