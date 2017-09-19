@@ -1,6 +1,6 @@
 -- @description amagalma_Remove visible content (trim) behind items
 -- @author amagalma
--- @version 1.02
+-- @version 1.03
 -- @about
 --   # Removes content behind selected items only if the edit is visible in the arrange view
 --   - No edits are done if they are not visible in the arrange view
@@ -9,8 +9,8 @@
 
 --[[
  Changelog:
- * v1.02 (2017-09-19)
-  + fixed bug when "trim behind items" is enabled
+ * v1.03 (2017-09-19)
+  + when an item to be trimmed has a fade in/out, fade is removed after trimming
 --]]
 
 ---------------------------------------------------------------------------------------
@@ -22,8 +22,11 @@ local ToDelete = {}
 
 ---------------------------------------------------------------------------------------
 
+local debug = 0
 function M(v)
-  reaper.ShowConsoleMsg(tostring(v).."\n")
+  if debug == 1 then
+    reaper.ShowConsoleMsg(tostring(v).."\n")
+  end
 end
 
 ---------------------------------------------------------------------------------------
@@ -60,7 +63,11 @@ for i = 1, #Selected_items do
   --check if selected item's start is in view
   local StartIn, EndIn = false, false
   local Start = reaper.GetMediaItemInfo_Value( Selected_items[i], "D_POSITION" )
-  local End = Start + reaper.GetMediaItemInfo_Value( Selected_items[i], "D_LENGTH" )  
+  local End = Start + reaper.GetMediaItemInfo_Value( Selected_items[i], "D_LENGTH" )
+  local in_len = reaper.GetMediaItemInfo_Value( Selected_items[i], "D_FADEINLEN" )
+  local in_time = Start + in_len
+  local out_len = reaper.GetMediaItemInfo_Value( Selected_items[i], "D_FADEOUTLEN" )
+  local out_time = End - out_len
   if Start > Arrange_start and Start < Arrange_end then
   StartIn = true
   end
@@ -78,31 +85,39 @@ for i = 1, #Selected_items do
       local chEnd = chStart + reaper.GetMediaItemInfo_Value( item_ch, "D_LENGTH" )
       local selected_ch = Sel_item_GUID[reaper.BR_GetMediaItemGUID( item_ch )] or false
       -- do not compare item with itself, compare only with unselected items
-      if item_ch ~= Selected_items[i] and not selected_ch then       
+      if item_ch ~= Selected_items[i] and not selected_ch then
+        local in_len_ch = reaper.GetMediaItemInfo_Value( item_ch, "D_FADEINLEN" )
+        local in_time_ch = chStart + in_len_ch
+        local out_len_ch = reaper.GetMediaItemInfo_Value( item_ch, "D_FADEOUTLEN" )
+        local out_time_ch = chEnd - out_len_ch     
         ---- Cases: ----
         -- checked item is contained
         if chStart >= Start and chEnd <= End then
-          --M("checked item is contained")
+          M("checked item is contained")
           -- Store items in table for deletion after item iteration finishes
           ToDelete[#ToDelete+1] = {track = track, item = item_ch}
           create_undo = true
         -- checked item touches item's End
         elseif EndIn and chStart >= Start and chStart < End and chEnd > End then
-          --M("checked item touches item's End")
+          M("checked item touches item's End")
           reaper.SetMediaItemSelected(item_ch, true)
           reaper.ApplyNudge(0, 1, 1, 1, End, false, 0)
           reaper.SetMediaItemSelected(item_ch, false)
+          -- remove fade in of trimmed item
+          reaper.SetMediaItemInfo_Value( item_ch, "D_FADEINLEN", 0 )
           create_undo = true
         -- checked item touches item's Start
         elseif StartIn and chEnd > Start and chEnd <= End and chStart < Start then
-          --M("checked item touches item's Start")
+          M("checked item touches item's Start")
           reaper.SetMediaItemSelected(item_ch, true)
           reaper.ApplyNudge(0, 1, 3, 1, Start, false, 0)
           reaper.SetMediaItemSelected(item_ch, false)
+          -- remove fade out of trimmed item
+          reaper.SetMediaItemInfo_Value( item_ch, "D_FADEOUTLEN", 0 )
           create_undo = true
         -- checked item encloses selected item
         elseif chStart < Start and chEnd > End then
-          --M("checked item encloses selected item")
+          M("checked item encloses selected item")
           local new_item = reaper.SplitMediaItem( item_ch, Start )
           reaper.SetMediaItemSelected(new_item, true)
           reaper.ApplyNudge(0, 1, 1, 1, End, false, 0)
@@ -110,7 +125,7 @@ for i = 1, #Selected_items do
           create_undo = true
         -- checked item has nothing to do with selected item
         else
-          --M("checked item has nothing to do with selected item")
+          M("checked item has nothing to do with selected item")
           -- do nothing
         end
         ----------------
