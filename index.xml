@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0a65f838554f494f25e246ed09b40e4b49fa243" name="ReaTeam Scripts">
+<index version="1" commit="749a5022aa6fbdf7b13d15a23531cf943a79b7b7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -867,6 +867,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ fixed bug when working with many overlapping selected items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df71b4b70ef5a7160eb81a8272234c967b08fd19/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
       </version>
+      <version name="1.02" author="amagalma" time="2017-09-19T08:05:27Z">
+        <changelog><![CDATA[+ fixed bug when "trim behind items" is enabled]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7041aa2d34e0d10040e65b4bbf092e2fcddee916/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Remove visible content (trim) behind items.lua" type="script" desc="amagalma_Remove visible content (trim) behind items">
       <metadata>
@@ -885,6 +889,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.01" author="amagalma" time="2017-09-16T17:27:49Z">
         <changelog><![CDATA[+ fixed bug when working with many overlapping selected items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fdb449eb940813ff0101ed94378544ad96d21bef/Items%20Editing/amagalma_Remove%20visible%20content%20(trim)%20behind%20items.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-09-19T08:08:10Z">
+        <changelog><![CDATA[+ fixed bug when "trim behind items" is enabled]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/749a5022aa6fbdf7b13d15a23531cf943a79b7b7/Items%20Editing/amagalma_Remove%20visible%20content%20(trim)%20behind%20items.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smart Crossfade.lua" type="script" desc="amagalma_Smart Crossfade">
