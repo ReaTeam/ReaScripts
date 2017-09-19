@@ -1,6 +1,6 @@
 -- @description amagalma_Remove content (trim) behind items preserving crossfades
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Removes content behind selected items only if there is not a crossfade
 --   - Undo point is created ony if something changed
@@ -9,8 +9,8 @@
 
 --[[
  * Changelog:
- * v1.01 (2017-09-16)
-  + fixed bug when working with many overlapping selected items
+ * v1.02 (2017-09-19)
+  + fixed bug when "trim behind items" is enabled
 --]]
 
 ---------------------------------------------------------------------------------------
@@ -45,6 +45,10 @@ end
 
 Store_SelItems()
 reaper.PreventUIRefresh( 1 )
+local trimstate = reaper.GetToggleCommandStateEx( 0, 41117) -- get Options: Toggle trim behind items state
+if trimstate == 1 then
+  reaper.Main_OnCommand(41121, 0) -- Options: Disable trim behind items when editing
+end
 -- Unselect selected items (Needed for ApplyNudge!!!)
 for i = 1, #Selected_items do
   reaper.SetMediaItemSelected(Selected_items[i], false)
@@ -132,6 +136,9 @@ end
 -- Re-select previously selected items -------------------
 for i = 1, #Selected_items do
   reaper.SetMediaItemSelected(Selected_items[i], true)
+end
+if trimstate == 1 then
+  reaper.Main_OnCommand(41120,0) -- Re-enable trim behind items (if it was enabled)
 end
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
