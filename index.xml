@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f1460f9c230d0725352272270abeb2cae71293b6" name="ReaTeam Scripts">
+<index version="1" commit="e19338dac25bfc948c1beb1a0708de82f90da631" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -222,7 +222,7 @@ REPL
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see https://forum.cockos.com/showthread.php?t=177319)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Send patches at {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reascripts"}}{\fldrslt{\ul
@@ -231,7 +231,7 @@ https://github.com/cfillion/reascripts
 .\par}
 }
 ]]></description>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
         <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
@@ -315,6 +315,16 @@ remove extra newline inserted when executing an empty command since v0.5]]></cha
 fix invisible \t (tabs) on windows
 fix ugly font on windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.6.2" author="cfillion" time="2017-09-18T03:06:40Z">
+        <changelog><![CDATA[add "About iReaScript (F1)" context menu entry and shortcut (ReaPack v1.2+)
+don't crash when pasting \r\n
+don't display a completely blank line when an empty error string is given
+paste on middle click
+persist history between sessions
+reimplement copy/paste using my new API functions (SWS v1.9.6+)
+support non-string arguments to Lua's error function]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3d72e8b23315b025a0110d3dc93b0caa1de34bf3/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
@@ -813,6 +823,86 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="amagalma_Implode enclosed items as takes of longer items on the same track.lua" type="script" desc="amagalma_Implode enclosed items as takes of longer items on the same track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Implodes enclosed items as takes of longer or equal length items, preserving item size and item/take colors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many tracks and items as you like\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set in the script if you want newly created items to be selected after operation finishes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works with items with more than one takes too\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-17T11:56:38Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/462f5505d104326f8445d7850efe6017473187a3/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-17T18:14:28Z">
+        <changelog><![CDATA[+ action now works with items with more than one takes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5131bfdb22b37563bf5e3baf89a403342d39b611/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
+      </version>
+      <version name="1.2" author="amagalma" time="2017-09-17T19:25:48Z">
+        <changelog><![CDATA[+ prevent script crashing if it encounters empty items
++ ensure that last take of enclosed item is the last take of the new item]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93d335f83ad051d9821fa015f273a0aa6f7f7348/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Remove content (trim) behind items preserving crossfades.lua" type="script" desc="amagalma_Remove content (trim) behind items preserving crossfades">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Removes content behind selected items only if there is not a crossfade\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo point is created ony if something changed\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-16T16:53:14Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f66e23ccb34d29226992c080154e5775932eba5/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-09-16T17:25:06Z">
+        <changelog><![CDATA[+ fixed bug when working with many overlapping selected items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df71b4b70ef5a7160eb81a8272234c967b08fd19/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-09-19T08:05:27Z">
+        <changelog><![CDATA[+ fixed bug when "trim behind items" is enabled]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7041aa2d34e0d10040e65b4bbf092e2fcddee916/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2017-09-19T08:26:54Z">
+        <changelog><![CDATA[+ fixed bug not trimming when there were a fade-in and fade-out in both items and the fades were not crossing (no crossfade)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c29c5b80b11f59ff7fa16667ed0a11b1326dc68/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Remove visible content (trim) behind items.lua" type="script" desc="amagalma_Remove visible content (trim) behind items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Removes content behind selected items only if the edit is visible in the arrange view\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab No edits are done if they are not visible in the arrange view\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-16T14:56:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/97b6cb92c1c59aacefa14889cafb238aa61a9424/Items%20Editing/amagalma_Remove%20visible%20content%20(trim)%20behind%20items.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2017-09-16T17:27:49Z">
+        <changelog><![CDATA[+ fixed bug when working with many overlapping selected items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fdb449eb940813ff0101ed94378544ad96d21bef/Items%20Editing/amagalma_Remove%20visible%20content%20(trim)%20behind%20items.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2017-09-19T08:08:10Z">
+        <changelog><![CDATA[+ fixed bug when "trim behind items" is enabled]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/749a5022aa6fbdf7b13d15a23531cf943a79b7b7/Items%20Editing/amagalma_Remove%20visible%20content%20(trim)%20behind%20items.lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2017-09-19T08:42:20Z">
+        <changelog><![CDATA[+ when an item to be trimmed has a fade in/out, fade is removed after trimming]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e19338dac25bfc948c1beb1a0708de82f90da631/Items%20Editing/amagalma_Remove%20visible%20content%20(trim)%20behind%20items.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Smart Crossfade.lua" type="script" desc="amagalma_Smart Crossfade">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -822,7 +912,7 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades selected items\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items are adjacent then it creates a crossfade (length defined by user) on the left side of the items' touch point\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items overlap then it creates a crossfade at the overlapping area\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area (items do not have to touch necessarily)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many items in different tracks as you like\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one change)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep the time selection or remove it\par}
@@ -862,6 +952,20 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <changelog><![CDATA[+ undo point creation invludes time selection if it was requested to be removed after crossfading]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a05715b0e009045a8832e2db3c02ff109084090/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
+      <version name="1.27" author="amagalma" time="2017-09-16T21:51:35Z">
+        <changelog><![CDATA[+ fixed bug when one selected item encloses another]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5e13743ab381f42779c76d71388ebc044559ebd/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.28" author="amagalma" time="2017-09-16T22:04:32Z">
+        <changelog><![CDATA[+ fixed bug when a time selection enclosed more than two items in a row]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c8dcdb2fd41a6908e261d990ce562ba4788326e5/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.30" author="amagalma" time="2017-09-19T07:49:13Z">
+        <changelog><![CDATA[+ fixed bug when "Trim behind items" was enabled
++ fixed loosing item selection, in case no change to any items had happened
++ now items can be crossfaded when there is a time selection touching both items, even if the two items do not touch each other]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d0a65f838554f494f25e246ed09b40e4b49fa243/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
@@ -891,6 +995,30 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
       </version>
     </reapack>
+    <reapack name="cfillion_Show all saved nudge settings.lua" type="script" desc="Show all saved nudge settings">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Show every saved nudge settings\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Tip:} Switch to a different nudge setting with the 0-8 keys.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="screenshot">https://i.imgur.com/PrITgVt.png</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-09-12T00:48:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ab00d3c4b7b0823c224a3f24f0acaf6953b587e/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2017-09-12T08:01:37Z">
+        <changelog><![CDATA[Add "Save current" button
+Improve text legibility on Windows
+Remember window position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f9d9d9b3af5436006a513b2061361881a487229/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -906,6 +1034,23 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-03-13T23:18:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Unselect First-Last Selected Item.lua" type="script" desc="Unselect first/last selected item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This package script makes two actions in Action List, shown in "Provides:" below selected items are indexed left to right before advancing to next track\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="FnA_Unselect First Selected Item.lua">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Items%20Editing/FnA_Unselect%20First-Last%20Selected%20Item.lua</source>
+        <source main="main" file="FnA_Unselect Last Selected Item.lua">https://github.com/ReaTeam/ReaScripts/raw/7782d6f989492506d1699b7699bf010b0db047d2/Items%20Editing/FnA_Unselect%20First-Last%20Selected%20Item.lua</source>
       </version>
     </reapack>
     <reapack name="js_Area selection - Cycle between inserting and deleting temporary empty items.lua" type="script" desc="js_Area selection - Cycle between inserting and deleting temporary empty items.lua">
@@ -5238,6 +5383,26 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
         <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
+      <version name="2.84" author="amagalma &amp; gianfini" time="2017-09-06T22:31:56Z">
+        <changelog><![CDATA[+ amagalma addition:
++ The script now supports empty items' notes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.85" author="amagalma &amp; gianfini" time="2017-09-07T20:07:31Z">
+        <changelog><![CDATA[+ amagalma addition:
++ bug fix when dealing with multiline items' notes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="2.86" author="amagalma &amp; gianfini" time="2017-09-08T20:38:04Z">
+        <changelog><![CDATA[+ gianfini fix:
++ fixed Commit doing nothing if last modifier didn't modify anything (but previous ones did modify the list)
++ amagalma quick fix: (may need revision in the future)
++ script crash when single-line editing a multiline item note]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
       <metadata>
@@ -5928,6 +6093,90 @@ Web Interface:
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/song_switcher.html</source>
       </version>
     </reapack>
+    <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Ensure toggle ON (item grouping).lua" type="script" desc="Ensure toggle ON (item grouping)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is OFF, thus either setting it ON, or leaving it ON. Generally for use in custom actions.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Solo in front dimming louder.eel" type="script" desc="Solo in front dimming louder">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Limits and step size modeled on factory mousewheel action for main section. Decreases solo in front dimming. In other words, makes non-soloed tracks louder\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=195464">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20louder.eel</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Solo in front dimming quieter.eel" type="script" desc="Solo in front dimming quieter">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Limits and step size modeled on factory mousewheel action for main section. Increases solo in front dimming. In other words, makes non-soloed tracks quieter\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=195464">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20quieter.eel</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Solo in front dimming with mousewheel.eel" type="script" desc="Mousewheel solo in front dimming">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Modeled on factory mousewheel action for Main section. Step size and min/max limits in user variables below Thanks spk77 and Justin for example code in unrelated script for mousewheel.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=195464">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Solo%20in%20front%20dimming%20with%20mousewheel.eel</source>
+      </version>
+      <version name="1.0.1" author="FnA" time="2017-09-12T01:52:08Z">
+        <changelog><![CDATA[Change to package including midi editor action]]></changelog>
+        <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/eb82a12298ffb3dc923ab3addbd906cc841d0ff7/Various/FnA_Solo%20in%20front%20dimming%20with%20mousewheel.eel</source>
+      </version>
+    </reapack>
     <reapack name="HeDa_AutoSend.lua" type="script" desc="AutoSend MIDI of selected track to a specific track">
       <version name="0.1" author="Hector Corcin (HeDa)" time="2016-02-18T02:02:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aa1de9c015d0e716584ee0c8425bf579b339dd54/Various/HeDa_AutoSend.lua</source>
@@ -6528,6 +6777,43 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="1.0.1" author="Lokasenna" time="2017-04-05T11:34:32Z">
         <changelog><![CDATA[Bug fix]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c14d111d4191bc9a3ae066bf918c1166f5be400e/Various/Lokasenna_Scroll%20mixer%20to%20first%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Install all known ReaPack repositories.lua" type="script" desc="Install all known repositories for ReaPack">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-09-13T09:53:01Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73cc1948f06b9db2134ffdcd54efa46b6d105ba0/Various/mpl_Install%20all%20known%20ReaPack%20repositories.lua</source>
+      </version>
+    </reapack>
+    <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Tool that shows cursor position in relation to the item take's Source time\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab remembers last position and window size\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab resizeable via mouse-wheel\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab edit cursor can be moved to any user-defined source time position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab directory where source file resides can be opened in explorer/finder\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab tooltips\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="2" author="PL9, modified by amagalma (v2)" time="2017-09-10T16:23:55Z">
+        <changelog><![CDATA[+ remembers last position and window size
++ resizeable via mouse-wheel
++ edit cursor can be moved to any user-defined source time position
++ directory where source file resides can be opened in explorer/finder
++ tooltips]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/32c66108368ad4a919f1eb1926975f338f535dc1/Various/PL9-amagalma_Source%20Time%20Position%20Tool%20v2.lua</source>
+      </version>
+      <version name="2.01" author="PL9, modified by amagalma (v2)" time="2017-09-12T15:05:39Z">
+        <changelog><![CDATA[+ Source file opens in Windows Explorer without a cmd window first]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfde20df4f89e838e20fd182f94b7bbc415ded2a/Various/PL9-amagalma_Source%20Time%20Position%20Tool%20v2.lua</source>
       </version>
     </reapack>
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">

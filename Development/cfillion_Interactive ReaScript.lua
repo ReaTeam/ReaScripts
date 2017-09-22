@@ -1,11 +1,15 @@
--- @version 0.6.1
+-- @description Interactive ReaScript (iReaScript)
+-- @version 0.6.2
 -- @author cfillion
 -- @changelog
---   fix division by zero when wrapping lines starting with a zero-length character
---   fix invisible \t (tabs) on windows
---   fix ugly font on windows
--- @description Interactive ReaScript (iReaScript)
--- @link Forum Thread http://forum.cockos.com/showthread.php?t=177324
+--   add "About iReaScript (F1)" context menu entry and shortcut (ReaPack v1.2+)
+--   don't crash when pasting \r\n
+--   don't display a completely blank line when an empty error string is given
+--   paste on middle click
+--   persist history between sessions
+--   reimplement copy/paste using my new API functions (SWS v1.9.6+)
+--   support non-string arguments to Lua's error function
+-- @link Forum Thread https://forum.cockos.com/showthread.php?t=177324
 -- @donation https://www.paypal.me/cfillion
 -- @screenshot http://i.imgur.com/RrGfulR.gif
 -- @about
@@ -33,7 +37,7 @@
 --
 --   ## Known Issues/Limitations
 --
---   - Some errors cannot be caught (see http://forum.cockos.com/showthread.php?t=177319)
+--   - Some errors cannot be caught (see https://forum.cockos.com/showthread.php?t=177319)
 --   - This tool cannot be used to open a new GFX window
 --
 --   ## Contributing
@@ -46,12 +50,12 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript',
-  VERSION = '0.6.1',
+  VERSION = '0.6.2',
 
   MARGIN = 3,
   MAXLINES = 2048,
   MAXDEPTH = 3, -- maximum array depth
-  MAXLEN = 1024, -- maximum array size
+  MAXLEN = 2048, -- maximum array size
   INDENT = 2,
   INDENT_THRESHOLD = 5,
   PROMPT = '> ',
@@ -99,10 +103,21 @@ local ireascript = {
   KEY_RIGHT = 1919379572,
   KEY_TAB = 9,
   KEY_UP = 30064,
+  KEY_F1 = 26161,
+
+  MIDDLE_CLICK = 64,
+  RIGHT_CLICK = 2,
 
   EXT_SECTION = 'cfillion_ireascript',
   EXT_WINDOW_STATE = 'window_state',
   EXT_LAST_DOCK = 'last_dock',
+
+  HISTORY_FILE = ({reaper.get_action_context()})[2] .. '.history',
+  HISTORY_LIMIT = 1000,
+
+  NO_CLIPBOARD_API = 'Copy/paste requires SWS v2.9.6 or newer',
+  NO_REAPACK_API = 'ReaPack v1.2+ is required to use this feature',
+  MANUALLY_INSTALLED = 'iReaScript must be installed through ReaPack to use this feature',
 }
 
 print = function(...)
@@ -147,6 +162,23 @@ function ireascript.replay()
   end
 end
 
+function ireascript.about()
+  if not reaper.ReaPack_GetOwner then
+    reaper.internalError(ireascript.NO_REAPACK_API)
+    return
+  end
+
+  local owner = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
+
+  if not owner then
+    ireascript.internalError(ireascript.MANUALLY_INSTALLED)
+    return
+  end
+
+  reaper.ReaPack_AboutInstalledPackage(owner)
+  reaper.ReaPack_FreeEntry(owner)
+end
+
 function ireascript.exit()
   gfx.quit()
 end
@@ -165,6 +197,10 @@ function ireascript.reset(banner)
     ireascript.push(string.format('%s v%s by cfillion\n',
       ireascript.TITLE, ireascript.VERSION))
     ireascript.push('Type Lua code, !ACTION or .help\n')
+  end
+
+  if #ireascript.history == 0 then
+    ireascript.readHistory()
   end
 
   ireascript.prompt()
@@ -269,6 +305,8 @@ function ireascript.keyboard()
     ireascript.paste()
   elseif char == ireascript.KEY_TAB then
     ireascript.complete()
+  elseif char == ireascript.KEY_F1 then
+    ireascript.about()
   elseif char >= ireascript.KEY_INPUTRANGE_FIRST and char <= ireascript.KEY_INPUTRANGE_LAST then
     local before, after = ireascript.splitInput()
     ireascript.input = before .. string.char(char) .. after
@@ -517,7 +555,7 @@ function ireascript.contextMenu()
   if dockState > 0 then dockFlag = '!' end
 
   local menu = string.format(
-    'Copy (^C)|Paste (^V)||Clear (^L)||%sDock window|Close iReaScript (^D)',
+    'Copy (^C)|Paste (^V)||Clear (^L)||%sDock window|About iReaScript (F1)|Close iReaScript (^D)',
     dockFlag
   )
 
@@ -537,6 +575,7 @@ function ireascript.contextMenu()
         gfx.dock(0)
       end
     end,
+    ireascript.about,
     ireascript.exit,
   }
 
@@ -563,8 +602,12 @@ function ireascript.loop()
   end
 
   if gfx.mouse_cap ~= ireascript.mouse_cap then
-    if gfx.mouse_cap & 2 == 0 and ireascript.mouse_cap & 2 == 2 then
+    if ireascript.isMouseCap(ireascript.RIGHT_CLICK) then
       ireascript.contextMenu()
+    end
+
+    if ireascript.isMouseCap(ireascript.MIDDLE_CLICK) then
+      ireascript.paste()
     end
 
     ireascript.mouse_cap = gfx.mouse_cap
@@ -579,6 +622,10 @@ function ireascript.loop()
   ireascript.scrollTo(ireascript.scroll) -- refreshed bound check
 
   gfx.update()
+end
+
+function ireascript.isMouseCap(flag)
+  return gfx.mouse_cap & flag == 0 and ireascript.mouse_cap & flag == flag
 end
 
 function ireascript.resetFormat()
@@ -733,6 +780,39 @@ function ireascript.moveCaret(pos)
   end
 end
 
+function ireascript.readHistory()
+  local file, err = io.open(ireascript.HISTORY_FILE, 'r')
+  if not file then return -1 end
+
+  ireascript.history = {}
+
+  for line in file:lines() do
+    if #ireascript.history >= ireascript.HISTORY_LIMIT then break end
+    table.insert(ireascript.history, line)
+  end
+
+  file:close()
+  return #ireascript.history
+end
+
+function ireascript.writeHistory()
+  local file, err = io.open(ireascript.HISTORY_FILE, 'w')
+  if not file then return false end
+
+  local count = math.min(#ireascript.history, ireascript.HISTORY_LIMIT)
+  for i=1, count do
+    file:write(string.format('%s\n', ireascript.history[i]))
+  end
+
+  file:close()
+  return count
+end
+
+function ireascript.pushHistory(line)
+  table.insert(ireascript.history, 1, line)
+  ireascript.hindex = 0
+end
+
 function ireascript.historyJump(pos)
   if pos < 0 or pos > #ireascript.history then
     return
@@ -760,13 +840,7 @@ function ireascript.eval(nested)
   elseif code:sub(0, 1) == ireascript.ACTION_PREFIX then
     ireascript.execAction(code:sub(2))
   else
-    local err = ireascript.lua(code)
-
-    if err then
-      ireascript.errorFormat()
-      ireascript.push(err)
-      ireascript.nl()
-    else
+    if ireascript.lua(code) then
       reaper.TrackList_AdjustWindows(false)
       reaper.UpdateArrange()
     end
@@ -774,8 +848,7 @@ function ireascript.eval(nested)
 
   if nested then return end
 
-  table.insert(ireascript.history, 1, ireascript.input)
-  ireascript.hindex = 0
+  ireascript.pushHistory(ireascript.input)
   ireascript.input = ''
 
   if ireascript.lines == 0 then
@@ -866,15 +939,34 @@ function ireascript.lua(code)
     ireascript.nl()
     ireascript.prepend = ''
   else
-    if values:sub(-5) == '<eof>' and ireascript.input:len() > 0 then
+    local hasMessage = type(values) == 'string'
+
+    if hasMessage and values:sub(-5) == '<eof>' and ireascript.input:len() > 0 then
       ireascript.prepend = code
       return
     else
       ireascript.prepend = ''
     end
 
-    return values:sub(20)
+    ireascript.errorFormat()
+
+    if hasMessage then
+      if values:len() >= 20 then
+        ireascript.push(values:sub(20))
+      else
+        ireascript.push('\x20')
+      end
+    else
+      ireascript.push('error')
+      ireascript.resetFormat()
+      ireascript.push(' ')
+      ireascript.format(values)
+    end
+
+    ireascript.nl()
   end
+
+  return ok
 end
 
 function ireascript.format(value)
@@ -883,37 +975,7 @@ function ireascript.format(value)
   local t = type(value)
 
   if t == 'table' then
-    local i, array, last = 0, true, 0
-
-    for k,v in pairs(value) do
-      if type(k) == 'number' and k > 0 then
-        i = i + (k - last) - 1
-        last = k
-      else
-        array = false
-      end
-
-      i = i + 1
-    end
-
-    if ireascript.flevel == nil then
-      ireascript.flevel = 1
-    elseif ireascript.flevel >= ireascript.MAXDEPTH then
-      ireascript.errorFormat()
-      ireascript.push('...')
-      return
-    else
-      ireascript.flevel = ireascript.flevel + 1
-    end
-
-    if array then
-      ireascript.formatArray(value, i)
-    else
-      ireascript.formatTable(value, i)
-    end
-
-    ireascript.flevel = ireascript.flevel - 1
-
+    ireascript.formatAnyTable(value)
     return
   elseif value == nil then
     ireascript.foreground = ireascript.COLOR_YELLOW
@@ -924,6 +986,11 @@ function ireascript.format(value)
     value = string.format('<%s>', value)
   elseif t == 'string' then
     ireascript.foreground = ireascript.COLOR_GREEN
+
+    if value:len() > ireascript.MAXLEN then
+      value = value:sub(1, ireascript.MAXLEN) .. '...'
+    end
+
     value = string.format('%q', value):
       gsub("\\\n", '\\n'):
       gsub('\\0*13', '\\r'):
@@ -931,6 +998,39 @@ function ireascript.format(value)
   end
 
   ireascript.push(tostring(value))
+end
+
+function ireascript.formatAnyTable(value)
+  local i, array, last = 0, true, 0
+
+  for k,v in pairs(value) do
+    if type(k) == 'number' and k > 0 then
+      i = i + (k - last) - 1
+      last = k
+    else
+      array = false
+    end
+
+    i = i + 1
+  end
+
+  if ireascript.flevel == nil then
+    ireascript.flevel = 1
+  elseif ireascript.flevel >= ireascript.MAXDEPTH then
+    ireascript.errorFormat()
+    ireascript.push('...')
+    return
+  else
+    ireascript.flevel = ireascript.flevel + 1
+  end
+
+  if array then
+    ireascript.formatArray(value, i)
+  else
+    ireascript.formatTable(value, i)
+  end
+
+  ireascript.flevel = ireascript.flevel - 1
 end
 
 function ireascript.formatArray(value, size)
@@ -1035,53 +1135,22 @@ function ireascript.useColor(color)
 end
 
 function ireascript.copy()
-  local tool
-
-  if ireascript.ismacos() then
-    tool = 'pbcopy'
-  elseif ireascript.iswindows() then
-    tool = 'clip'
+  if reaper.CF_SetClipboard then
+    reaper.CF_SetClipboard(ireascript.code())
+  else
+    ireascript.internalError(ireascript.NO_CLIPBOARD_API)
   end
-
-  local proc, error = io.popen(tool, 'w')
-
-  if not proc then
-    ireascript.removeCaret()
-    ireascript.nl()
-    ireascript.errorFormat()
-    ireascript.push(error)
-    ireascript.nl()
-    ireascript.prompt()
-    return
-  end
-
-  proc:write(ireascript.code())
-  proc:close()
 end
 
 function ireascript.paste()
-  local tool
-
-  if ireascript.ismacos() then
-    tool = 'pbpaste'
-  elseif ireascript.iswindows() then
-    tool = 'powershell -windowstyle hidden -Command Get-Clipboard'
-  end
-
-  local first = true
-  local proc, error = io.popen(tool, 'r')
-
-  if not proc then
-    ireascript.removeCaret()
-    ireascript.nl()
-    ireascript.errorFormat()
-    ireascript.push(error)
-    ireascript.nl()
-    ireascript.prompt()
+  if not reaper.CF_GetClipboard then
+    ireascript.internalError(ireascript.NO_CLIPBOARD_API)
     return
   end
 
-  for line in proc:lines() do
+  local clipboard, first = reaper.CF_GetClipboard(''), true
+
+  for line in ireascript.each_lines(clipboard) do
     if line:len() > 0 then
       if first then
         first = false
@@ -1097,8 +1166,16 @@ function ireascript.paste()
       ireascript.moveCaret(ireascript.caret + line:len())
     end
   end
+end
 
-  proc:close()
+function ireascript.internalError(msg)
+  ireascript.removeCaret()
+  ireascript.nl()
+  ireascript.errorFormat()
+  ireascript.push(string.format('internal error: %s', msg))
+  ireascript.nl()
+  ireascript.prompt()
+  return
 end
 
 function ireascript.complete()
@@ -1198,42 +1275,43 @@ function ireascript.contains(table, val)
 end
 
 function ireascript.each_lines(text)
-  local pos, offset, finished = -1, 0, false
+  local offset, finished = 0, false
+  local from, to = -1
 
   return function()
     if finished then return end
 
-    pos = text:find('[\r\n]', pos + 1)
+    from, to = text:find('\r?\n', from + 1)
 
-    if not pos then
+    if not from then
       finished = true
       return text:sub(offset)
     end
 
-    local line = text:sub(offset, pos - 1)
-    offset = pos + 1
+    local line = text:sub(offset, from - 1)
+    offset = to + 1
     return line
   end
 end
 
-function previousWindowState()
+function ireascript.previousWindowState()
   local state = tostring(reaper.GetExtState(
     ireascript.EXT_SECTION, ireascript.EXT_WINDOW_STATE))
   return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
 end
 
-function saveWindowState()
+function ireascript.saveWindowState()
   local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
   local w, h = gfx.w, gfx.h
   if dockState > 0 then
-    w, h = previousWindowState()
+    w, h = ireascript.previousWindowState()
   end
 
   reaper.SetExtState(ireascript.EXT_SECTION, ireascript.EXT_WINDOW_STATE,
     string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
 end
 
-local w, h, dockState, x, y = previousWindowState()
+local w, h, dockState, x, y = ireascript.previousWindowState()
 
 if w then
   gfx.init(ireascript.TITLE, w, h, dockState, x, y)
@@ -1252,4 +1330,7 @@ end
 -- GO!!
 ireascript.run()
 
-reaper.atexit(saveWindowState)
+reaper.atexit(function()
+  ireascript.saveWindowState()
+  ireascript.writeHistory()
+end)
