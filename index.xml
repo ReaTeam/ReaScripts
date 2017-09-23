@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="96e264ec6e25c46b5b3006ecae343ed16d8efd33" name="ReaTeam Scripts">
+<index version="1" commit="b3d069f26b399572bc86e308b34fd89a23a81176" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5567,6 +5567,23 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="2.04" author="amagalma" time="2017-06-20T15:54:35Z">
         <changelog><![CDATA[+ Ctrl-clicking on Darker/Brighter buttons creates shaded/tinted gradient colors]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39bbe6c14d544151da677121f208045be7922300/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Sets the playrate to simulate a tempo entered by the user\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Playrate has effect as long as the script window is open\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Upon window closure, the playrate returns to 1\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "preserve pitch in audio items" is enabled as long as the script runs\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-23T23:46:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3d069f26b399572bc86e308b34fd89a23a81176/Various/amagalma_Simulate%20tempo%20with%20playrate.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smart automatic record mode.eel" type="script" desc="amagalma_Smart automatic record mode">
