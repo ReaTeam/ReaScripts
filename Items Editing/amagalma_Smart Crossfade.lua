@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.30
+-- @version 1.31
 -- @about
 --   # Crossfades selected items
 --
@@ -15,10 +15,8 @@
 
 --[[
  * Changelog:
- * v1.30 (2017-09-19)
-  + fixed bug when "Trim behind items" was enabled
-  + fixed loosing item selection, in case no change to any items had happened
-  + now items can be crossfaded when there is a time selection touching both items, even if the two items do not touch each other
+ * v1.31 (2017-09-23)
+  + fixed misbehavior when there were "autofades" in items
 --]]
 
 
@@ -43,12 +41,14 @@ local timeselexists, timesel_removed
 ---------------------------------------------------------------------------------------------------
 
 local function FadeIn(item, value)
+  reaper.SetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO", 0)
   reaper.SetMediaItemInfo_Value(item, "D_FADEINLEN", value)
   reaper.SetMediaItemInfo_Value(item, "C_FADEINSHAPE", 7)
   reaper.SetMediaItemInfo_Value(item, "D_FADEINDIR", 0)
 end
 
 local function FadeOut(item, value)
+  reaper.SetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO", 0)
   reaper.SetMediaItemInfo_Value(item, "D_FADEOUTLEN", value)
   reaper.SetMediaItemInfo_Value(item, "C_FADEOUTSHAPE", 7)
   reaper.SetMediaItemInfo_Value(item, "D_FADEOUTDIR", 0)
@@ -58,7 +58,8 @@ local function FadeInOK(item, value)
   local ok = false
   if reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN") == value and
      reaper.GetMediaItemInfo_Value(item, "C_FADEINSHAPE") == 7 and
-     reaper.GetMediaItemInfo_Value(item, "D_FADEINDIR") == 0
+     reaper.GetMediaItemInfo_Value(item, "D_FADEINDIR") == 0 and
+     reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN_AUTO") == 0
   then
     ok = true
   end
@@ -69,7 +70,8 @@ local function FadeOutOK(item, value)
   local ok = false
   if reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN") == value and
      reaper.GetMediaItemInfo_Value(item, "C_FADEOUTSHAPE") == 7 and
-     reaper.GetMediaItemInfo_Value(item, "D_FADEOUTDIR") == 0
+     reaper.GetMediaItemInfo_Value(item, "D_FADEOUTDIR") == 0 and
+     reaper.GetMediaItemInfo_Value(item, "D_FADEOUTLEN_AUTO") == 0
   then
     ok = true
   end
@@ -148,7 +150,6 @@ if item_cnt > 1 then
   if trimstate == 1 then
     reaper.Main_OnCommand(41120,0) -- Re-enable trim behind items (if it was enabled)
   end
-  reaper.PreventUIRefresh(-1)
 end
 
 -- Undo point creation ----------------------------------------------------------------------------
@@ -157,15 +158,14 @@ if change == false then
   for i = 1, #sel_item do
     reaper.SetMediaItemSelected(sel_item[i], true)
   end
+  reaper.PreventUIRefresh(-1)
   function NoUndoPoint() end
   reaper.defer(NoUndoPoint)
 else
   if keep_selected == 1 then -- keep selected the previously selected items
-    reaper.PreventUIRefresh(1)
     for i = 1, #sel_item do
       reaper.SetMediaItemSelected(sel_item[i], true)
     end
-    reaper.PreventUIRefresh(-1)
   end
   if remove_timesel == 1 and timeselexists == 1 then -- remove time selection
     reaper.GetSet_LoopTimeRange(true, false, selstart, selstart, false)
@@ -176,5 +176,6 @@ else
   else
     reaper.Undo_OnStateChange("Smart Crossfade selected items")
   end
+  reaper.PreventUIRefresh(-1)
   reaper.UpdateArrange()
 end
