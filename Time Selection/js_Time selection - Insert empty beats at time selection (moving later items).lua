@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 0.98
+Version: 0.99
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -27,6 +27,7 @@ About:
   
   # MIDI items
   MIDI items will *not* be split. Instead, the MIDI will be shifted *inside* the item. The script can therefore be used in the MIDI editor
+  (NB: The current version of the script cannot yet insert beats into items that mix MIDI takes with audio takes and/or take envelopes.)
   
   # Timebase
   The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time
@@ -54,6 +55,9 @@ About:
   * v0.98 (2017-08-30)
     + Error message boxes display only OK, not OK and Cancel.
     + Better compatability with items with empty extensions.
+  * v.99 (2017-09-24)
+    + Fixed bug when tempo map in time selection starts and ends on linear nodes with exact same values.
+    + Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -226,7 +230,7 @@ if spaceStartsAtMeasure and (
                                           .. "0" .. " "
                                           .. "5" -- 1=New measure / timesig + 4=Allow partial measure
                                           .. startMetronome)
-elseif endBPM ~= startBPM or startShape ~= endShape then
+elseif endBPM ~= startBPM or startShape == LINEAR or endShape == LINEAR then
     table.insert(tPointsJuncture, "\nPT " .. tostring(spaceTimeEnd) .. " " 
                                           .. tostring(startBPM) .. " " 
                                           .. string.format("%i", startShape))
@@ -256,9 +260,9 @@ reaper.Undo_BeginBlock2(0)
 reaper.PreventUIRefresh(1)
 
 
-------------------------------------------------------------------------------
-------------------------------------------------------------------------------
--- Must the empty space e inserted to the left or right of the time selection?
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- Must the empty space be inserted to the left or right of the time selection?
 -- Use position of edit cursor the decide.
 local editCursorPosition = reaper.GetCursorPositionEx(0)
 if editCursorPosition > (spaceTimeStart+spaceTimeEnd)/2 then
@@ -316,10 +320,11 @@ for i = 0, reaper.CountMediaItems(0)-1 do
 end
 
 
---------------------------------------------------
---------------------------------------------------
--- Handle locked items - based on script by spk77:
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+-- Handle locked items and MIDI items - based on script by spk77:
 --    "spk77_Insert empty space at time selection (prevent moving locked items).eel"
+-- Also check whether items combines MIDI takes with audio and/or take envelopes.  The current version of the script cannot yet handle such items.
 tLockedItemPositions = {} 
 tMIDIItemPositions = {}
 for i = 0, reaper.CountMediaItems(0)-1 do
@@ -355,16 +360,36 @@ for i = 0, reaper.CountMediaItems(0)-1 do
         -- Check if MIDI that may be split
         else
             if itemStart < spaceTimeStart and itemEnd > spaceTimeStart then -- only bother with items that overlap and will therefore be split
+                local gotMIDI, gotAudio, gotEnvelopes = false, false, false
                 for t = 0, reaper.CountTakes(item)-1 do
                     local take = reaper.GetTake(item, t)
-                    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
-                        tMIDIItemPositions[item] = {position = itemStart, length = itemLength}
-                        local setPosOK = reaper.SetMediaItemPosition(item, spaceTimeEnd, false)
-                        if not setPosOK then
-                            reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 0)
-                            tryToUndo = true
-                            goto quit
-end end end end end end end
+                    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") then
+                        if reaper.TakeIsMIDI(take) then
+                            gotMIDI = true
+                            if reaper.CountTakeEnvelopes(take) > 0 then
+                                gotEnvelopes = true
+                            end
+                            
+                            tMIDIItemPositions[item] = {position = itemStart, length = itemLength}
+                            local setPosOK = reaper.SetMediaItemPosition(item, spaceTimeEnd, false)
+                            if not setPosOK then
+                                reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 0)
+                                tryToUndo = true
+                                goto quit
+                            end
+                        else
+                            gotAudio = true
+                        end -- if reaper.TakeIsMIDI(take)
+                    end -- if reaper.ValidatePtr2              
+                end -- for t = 0, reaper.CountTakes(item)-1
+                
+                if gotMIDI and (gotAudio or gotEnvelopes) then
+                    reaper.MB("The current version of the script cannot yet insert beats into items that mix MIDI takes with audio takes and/or take envelopes.", "ERROR", 0)
+                    tryToUndo = true
+                    goto quit
+                end
+            end -- if itemStart < spaceTimeStart and itemEnd > spaceTimeStart
+end end end 
 
 
 -------------------------------------------------------------------------
