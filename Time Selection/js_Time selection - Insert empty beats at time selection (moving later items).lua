@@ -55,7 +55,7 @@ About:
   * v0.98 (2017-08-30)
     + Error message boxes display only OK, not OK and Cancel.
     + Better compatability with items with empty extensions.
-  * v.99 (2017-09-24)
+  * v0.99 (2017-09-24)
     + Fixed bug when tempo map in time selection starts and ends on linear nodes with exact same values.
     + Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.
 ]]
