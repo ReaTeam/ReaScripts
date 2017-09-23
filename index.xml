@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f32976262f7ce1c2ddc2a2905be483e01671b86" name="ReaTeam Scripts">
+<index version="1" commit="96e264ec6e25c46b5b3006ecae343ed16d8efd33" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4910,7 +4910,7 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Locked items\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script will also detect locked items and can optionally protect such items against moving or splitting.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI items\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor (NB: The current version of the script cannot yet insert beats into items that mix MIDI takes with audio takes and/or take envelopes.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Timebase\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time for all tracks, items and envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
@@ -4957,6 +4957,9 @@ Made by Mordi, Jan 2016]]></changelog>
         <changelog><![CDATA[+ Error message boxes display only OK, not OK and Cancel.
 + Better compatability with items with empty extensions.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c51d343de17ffd74cf5be3eed0e70ea4189c4fd2/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.99" author="juliansader" time="2017-09-23T23:33:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96e264ec6e25c46b5b3006ecae343ed16d8efd33/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
