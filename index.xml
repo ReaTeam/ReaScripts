@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b3d069f26b399572bc86e308b34fd89a23a81176" name="ReaTeam Scripts">
+<index version="1" commit="ab193616672db8207604d6cb1f2ce444940d9fe1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4959,7 +4959,9 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c51d343de17ffd74cf5be3eed0e70ea4189c4fd2/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
       <version name="0.99" author="juliansader" time="2017-09-23T23:33:42Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96e264ec6e25c46b5b3006ecae343ed16d8efd33/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+        <changelog><![CDATA[+ Fixed bug when tempo map in time selection starts and ends on linear nodes with exact same values.
++ Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab193616672db8207604d6cb1f2ce444940d9fe1/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
