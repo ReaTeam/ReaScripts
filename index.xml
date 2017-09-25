@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3e2de70295f1052ecbfb22d31843d44fe07c2843" name="ReaTeam Scripts">
+<index version="1" commit="76fa7b8ef6e29ed45ce63666e3cc6208c21bbaea" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5809,6 +5809,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </version>
       <version name="1.1" author="amagalma" time="2017-09-25T13:43:10Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882e8fe0994c3dca8fc1e230d4e90580df5e7651/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2017-09-25T14:13:28Z">
+        <changelog><![CDATA[+ different behavior depending on "amagalma_Toggle behavior of Play-Stop buttons" state]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76fa7b8ef6e29ed45ce63666e3cc6208c21bbaea/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
