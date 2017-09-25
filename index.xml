@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ab193616672db8207604d6cb1f2ce444940d9fe1" name="ReaTeam Scripts">
+<index version="1" commit="3e2de70295f1052ecbfb22d31843d44fe07c2843" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5639,6 +5639,21 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96ad93b4cd2b6b364e9edc2443bdcf127da301b1/Various/amagalma_Smooth%20scroll%20view%20right.eel</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Toggle behavior of Play-Stop buttons.lua" type="script" desc="amagalma_Toggle behavior of Play-Stop buttons">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles behavior of Play-Stop actions between amagalma's custom or Reaper's default\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-25T13:43:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e2de70295f1052ecbfb22d31843d44fe07c2843/Various/amagalma_Toggle%20behavior%20of%20Play-Stop%20buttons.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5751,6 +5766,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.0" author="amagalma" time="2017-06-30T16:58:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4aa703845bf012c9d9d74cd8b17f732dfd21c3b/Various/amagalma_Transport%20Play%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
+      <version name="1.1" author="amagalma" time="2017-09-25T13:41:07Z">
+        <changelog><![CDATA[+ when resuming play after pause, cursor position is saved in memory as new starting point]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0a51bb4143655a57a536ec774c38205c0a92b3e/Various/amagalma_Transport%20Play%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Transport Play-Stop (with memory - no undo).lua" type="script" desc="amagalma_Transport Play-Stop (with memory - no undo)">
       <metadata>
@@ -5759,12 +5778,19 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Plays or Stops and stores starting or ending position\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab if "amagalma_Toggle behavior of Play-Stop buttons" is enabled then Stop leaves the cursor at last play cursor position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab if disabled then edit cursor stays at the start point (Reaper's default)\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T16:59:09Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8c0007592901d5dfd72e7b15ae23c4c9a11b68/Various/amagalma_Transport%20Play-Stop%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-25T13:42:04Z">
+        <changelog><![CDATA[+ when resuming play after pause, cursor position is saved in memory as new starting point
++ different behavior depending on "amagalma_Toggle behavior of Play-Stop buttons" state]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1388c78c17a39357779689e845d4005cd0c514eb/Various/amagalma_Transport%20Play-Stop%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Stop - Toggle position (with memory - no undo).lua" type="script" desc="amagalma_Transport Stop - Toggle position (with memory - no undo)">
@@ -5780,6 +5806,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T16:59:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74d96a0305ab27039d02c27386f88bc25239c1eb/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-25T13:43:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882e8fe0994c3dca8fc1e230d4e90580df5e7651/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
