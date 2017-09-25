@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="76fa7b8ef6e29ed45ce63666e3cc6208c21bbaea" name="ReaTeam Scripts">
+<index version="1" commit="27a133236587ce2ba7388b7e1d71a4ffa0367cec" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -969,6 +969,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.31" author="amagalma" time="2017-09-23T20:24:12Z">
         <changelog><![CDATA[+ fixed misbehavior when there were "autofades" in items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0f32976262f7ce1c2ddc2a2905be483e01671b86/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.32" author="amagalma" time="2017-09-25T19:48:44Z">
+        <changelog><![CDATA[+ fixed occasional problem with adjacent items not crossfading (I think I have found a bug in Reaper)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27a133236587ce2ba7388b7e1d71a4ffa0367cec/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
