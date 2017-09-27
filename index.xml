@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="58eb6fa85cceb5001142498ae6b07c31581213c3" name="ReaTeam Scripts">
+<index version="1" commit="b7f66795e1b3c65feac4b0012cfd9097a12676b2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5587,13 +5587,19 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Sets the playrate to simulate a tempo entered by the user\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Playrate has effect as long as the script window is open\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click the script window to start again\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Upon window closure, the playrate returns to 1\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "preserve pitch in audio items" is enabled as long as the script runs\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "preserve pitch in audio items" is enabled as long as the script runs\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manual changes in the playrate show the resulting tempo in the script's window\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-09-23T23:46:13Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3d069f26b399572bc86e308b34fd89a23a81176/Various/amagalma_Simulate%20tempo%20with%20playrate.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-27T18:29:54Z">
+        <changelog><![CDATA[+ Manual changes in the playrate show the resulting tempo in the script's window]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b7f66795e1b3c65feac4b0012cfd9097a12676b2/Various/amagalma_Simulate%20tempo%20with%20playrate.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smart automatic record mode.eel" type="script" desc="amagalma_Smart automatic record mode">
