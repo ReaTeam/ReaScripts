@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.32
+-- @version 1.33
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.32 (2017-09-25)
-  + fixed occasional problem with adjacent items not crossfading (I think I have found a bug in Reaper)
+ * v1.33 (2017-09-27)
+  + if there is a gap smaller or equal to the xfade time (default:10ms) between two items, then they are considered as adjacent
 --]]
 
 
@@ -101,7 +101,7 @@ if item_cnt > 1 then
       local secondend = secondstart + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
       local firststart = reaper.GetMediaItemInfo_Value(previousitem, "D_POSITION")
       local firstend = firststart + reaper.GetMediaItemInfo_Value(previousitem, "D_LENGTH")
-      if firstend < secondstart - 0.00001 then --and (selstart == selend or (firstend < selstart and secondstart > selend)) then
+      if firstend < secondstart - xfadetime and (selstart == selend or (firstend < selstart and secondstart > selend)) then
         -- items do not touch and there is no time selection covering parts of both items
         -- do nothing
       elseif firststart < secondstart and firstend > secondend then
@@ -126,13 +126,18 @@ if item_cnt > 1 then
             change = true
           end
         else
-          if math.abs(firstend - secondstart) < 0.00001 then -- items are adjacent
+          if math.abs(firstend - secondstart) <= xfadetime then -- items are adjacent (or there is a gap smaller or equal to the crossfade time)
             if FadeInOK(item, xfadetime) == false or FadeOutOK(previousitem, xfadetime) == false then
+              -- previous item (ensure it ends exactly at the start of the next item)
+              reaper.SetMediaItemSelected(previousitem, true)
+              reaper.ApplyNudge(0, 1, 3, 1, secondstart, 0, 0)
+              FadeOut(previousitem, xfadetime)
+              reaper.SetMediaItemSelected(previousitem, false)
+              -- item
               reaper.SetMediaItemSelected(item, true)
               reaper.ApplyNudge(0, 1, 1, 1, secondstart - xfadetime, 0, 0)
               FadeIn(item, xfadetime)
               reaper.SetMediaItemSelected(item, false)
-              FadeOut(previousitem, xfadetime)
               change = true
             end       
           elseif firstend > secondstart then -- items are overlapping
