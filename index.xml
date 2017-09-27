@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="27a133236587ce2ba7388b7e1d71a4ffa0367cec" name="ReaTeam Scripts">
+<index version="1" commit="58eb6fa85cceb5001142498ae6b07c31581213c3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -973,6 +973,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.32" author="amagalma" time="2017-09-25T19:48:44Z">
         <changelog><![CDATA[+ fixed occasional problem with adjacent items not crossfading (I think I have found a bug in Reaper)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27a133236587ce2ba7388b7e1d71a4ffa0367cec/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.33" author="amagalma" time="2017-09-27T16:32:08Z">
+        <changelog><![CDATA[+ if there is a gap smaller or equal to the xfade time (default:10ms) between two items, then they are considered as adjacent]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/58eb6fa85cceb5001142498ae6b07c31581213c3/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
