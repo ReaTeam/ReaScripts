@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="da9389bf5f78b59e1d7dde3cd90253eec53fde2d" name="ReaTeam Scripts">
+<index version="1" commit="2adeb993ba139f8b3cc17266b6fe1ea434dbd30a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -823,6 +823,22 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="amagalma_Delete crossfade under mouse cursor.lua" type="script" desc="amagalma_Delete crossfade under mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Deletes the crossfade (if any) under the mouse cursor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab creates undo only if a crossfade was deleted\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab does not work for multiple selected or grouped items atm\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-27T23:24:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2adeb993ba139f8b3cc17266b6fe1ea434dbd30a/Items%20Editing/amagalma_Delete%20crossfade%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Implode enclosed items as takes of longer items on the same track.lua" type="script" desc="amagalma_Implode enclosed items as takes of longer items on the same track">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
