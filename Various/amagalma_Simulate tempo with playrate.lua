@@ -1,6 +1,6 @@
 -- @description amagalma_Simulate tempo with playrate
 -- @author amagalma
--- @version 1.1
+-- @version 1.11
 -- @about
 --   # Sets the playrate to simulate a tempo entered by the user
 --   - Playrate has effect as long as the script window is open
@@ -11,7 +11,7 @@
 
 --[[
  * Changelog:
- * v1.1 (2017-09-27)
+ * v1.11 (2017-09-27)
   + Manual changes in the playrate show the resulting tempo in the script's window
 --]]
 
@@ -64,6 +64,7 @@ function main()
 end
 
 -------------------------------------------------------------------------------------------
+
 preserve = reaper.GetToggleCommandStateEx(0, 40671) -- preserve pitch in audio items when changing master playrate
 function init()
   tempo = reaper.Master_GetTempo()
@@ -92,5 +93,7 @@ function init()
     main()
   end
 end
+
+-------------------------------------------------------------------------------------------
 
 init()
