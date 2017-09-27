@@ -6,7 +6,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 ## Contributors
 
 - [Argitoth](http://forum.cockos.com/member.php?u=7973)
-- [beaunus](https://github.com/beaunus) ([website](https://www.beaunus.com/))
+- [beaunus](https://forum.cockos.com/member.php?u=14475) ([website](https://www.beaunus.com/), [github](https://github.com/beaunus/))
 - [Breeder](http://forum.cockos.com/member.php?u=27094)
 - [cfillion](http://forum.cockos.com/member.php?u=98780) ([website](https://cfillion.ca), [donate](https://www.paypal.me/cfillion))
 - [gofer](http://forum.cockos.com/member.php?u=9328)
