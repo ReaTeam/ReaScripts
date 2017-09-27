@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e19338dac25bfc948c1beb1a0708de82f90da631" name="ReaTeam Scripts">
+<index version="1" commit="27a133236587ce2ba7388b7e1d71a4ffa0367cec" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -965,6 +965,14 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 + fixed loosing item selection, in case no change to any items had happened
 + now items can be crossfaded when there is a time selection touching both items, even if the two items do not touch each other]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d0a65f838554f494f25e246ed09b40e4b49fa243/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.31" author="amagalma" time="2017-09-23T20:24:12Z">
+        <changelog><![CDATA[+ fixed misbehavior when there were "autofades" in items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0f32976262f7ce1c2ddc2a2905be483e01671b86/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.32" author="amagalma" time="2017-09-25T19:48:44Z">
+        <changelog><![CDATA[+ fixed occasional problem with adjacent items not crossfading (I think I have found a bug in Reaper)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/27a133236587ce2ba7388b7e1d71a4ffa0367cec/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
@@ -4906,7 +4914,7 @@ Made by Mordi, Jan 2016]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Locked items\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script will also detect locked items and can optionally protect such items against moving or splitting.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MIDI items\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MIDI items will {\i not} be split. Instead, the MIDI will be shifted {\i inside} the item. The script can therefore be used in the MIDI editor (NB: The current version of the script cannot yet insert beats into items that mix MIDI takes with audio takes and/or take envelopes.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Timebase\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The user does not need to make any changes to the timebase before or after running the script. Items will be moved as if Timebase=Time for all tracks, items and envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 WARNING\par}
@@ -4953,6 +4961,11 @@ Made by Mordi, Jan 2016]]></changelog>
         <changelog><![CDATA[+ Error message boxes display only OK, not OK and Cancel.
 + Better compatability with items with empty extensions.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c51d343de17ffd74cf5be3eed0e70ea4189c4fd2/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="0.99" author="juliansader" time="2017-09-23T23:33:42Z">
+        <changelog><![CDATA[+ Fixed bug when tempo map in time selection starts and ends on linear nodes with exact same values.
++ Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab193616672db8207604d6cb1f2ce444940d9fe1/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
@@ -5562,6 +5575,23 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39bbe6c14d544151da677121f208045be7922300/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Sets the playrate to simulate a tempo entered by the user\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Playrate has effect as long as the script window is open\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Upon window closure, the playrate returns to 1\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "preserve pitch in audio items" is enabled as long as the script runs\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-23T23:46:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b3d069f26b399572bc86e308b34fd89a23a81176/Various/amagalma_Simulate%20tempo%20with%20playrate.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Smart automatic record mode.eel" type="script" desc="amagalma_Smart automatic record mode">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5611,6 +5641,21 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T18:33:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96ad93b4cd2b6b364e9edc2443bdcf127da301b1/Various/amagalma_Smooth%20scroll%20view%20right.eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle behavior of Play-Stop buttons.lua" type="script" desc="amagalma_Toggle behavior of Play-Stop buttons">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles behavior of Play-Stop actions between amagalma's custom or Reaper's default\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my "Transport (with memory - no undo)" scripts\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-09-25T13:43:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e2de70295f1052ecbfb22d31843d44fe07c2843/Various/amagalma_Toggle%20behavior%20of%20Play-Stop%20buttons.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
@@ -5725,6 +5770,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.0" author="amagalma" time="2017-06-30T16:58:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4aa703845bf012c9d9d74cd8b17f732dfd21c3b/Various/amagalma_Transport%20Play%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
+      <version name="1.1" author="amagalma" time="2017-09-25T13:41:07Z">
+        <changelog><![CDATA[+ when resuming play after pause, cursor position is saved in memory as new starting point]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0a51bb4143655a57a536ec774c38205c0a92b3e/Various/amagalma_Transport%20Play%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Transport Play-Stop (with memory - no undo).lua" type="script" desc="amagalma_Transport Play-Stop (with memory - no undo)">
       <metadata>
@@ -5733,12 +5782,19 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Plays or Stops and stores starting or ending position\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used in conjunction with my other "Transport (with memory - no undo)" scripts\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab if "amagalma_Toggle behavior of Play-Stop buttons" is enabled then Stop leaves the cursor at last play cursor position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab if disabled then edit cursor stays at the start point (Reaper's default)\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T16:59:09Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8c0007592901d5dfd72e7b15ae23c4c9a11b68/Various/amagalma_Transport%20Play-Stop%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-25T13:42:04Z">
+        <changelog><![CDATA[+ when resuming play after pause, cursor position is saved in memory as new starting point
++ different behavior depending on "amagalma_Toggle behavior of Play-Stop buttons" state]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1388c78c17a39357779689e845d4005cd0c514eb/Various/amagalma_Transport%20Play-Stop%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Stop - Toggle position (with memory - no undo).lua" type="script" desc="amagalma_Transport Stop - Toggle position (with memory - no undo)">
@@ -5754,6 +5810,13 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T16:59:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74d96a0305ab27039d02c27386f88bc25239c1eb/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-09-25T13:43:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/882e8fe0994c3dca8fc1e230d4e90580df5e7651/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2017-09-25T14:13:28Z">
+        <changelog><![CDATA[+ different behavior depending on "amagalma_Toggle behavior of Play-Stop buttons" state]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76fa7b8ef6e29ed45ce63666e3cc6208c21bbaea/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
