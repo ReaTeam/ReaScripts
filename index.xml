@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2adeb993ba139f8b3cc17266b6fe1ea434dbd30a" name="ReaTeam Scripts">
+<index version="1" commit="31477e100918c388bee74beda393be70563cae66" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -612,6 +612,36 @@ added support for all track envelopes]]></changelog>
       <version name="0.2" author="spk77" time="2016-07-03T19:49:38Z">
         <changelog><![CDATA[+ fixed function name]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5436bdbf286281e918f7853902212f128d2e57c9/Envelopes/spk77_Delete%20track%20FX%20envelope%20points%20in%20time%20selection%20(last%20focused%20FX)%20.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Envelopes/Automation Items">
+    <reapack name="cfillion_Automation item selection bundle.lua" type="script" desc="Automation item selection bundle (10 actions)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Automation item selection bundle\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides in total 10 actions for selecting automation items in the selected envelope lane. See the Contents tab for the list and for the exact name of the actions.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Actions for selecting and moving to the next or previous AIs\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Actions for preserving the current selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Actions for cycling through the AIs in the selected pool\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Actions for selecting all AIs or all AIs in the selected pool\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-10-01T00:13:40Z">
+        <source main="main" file="cfillion_Select and move to next automation item.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Select and move to next automation item in pool.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Select and move to previous automation item.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Select and move to previous automation item in pool.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Add next automation item to selection.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Add next automation item in pool to selection.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Add previous automation item to selection.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Add previous automation item in pool to selection.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Select all automation items.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+        <source main="main" file="cfillion_Select all automation items in pool.lua">https://github.com/ReaTeam/ReaScripts/raw/31477e100918c388bee74beda393be70563cae66/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
       </version>
     </reapack>
   </category>
