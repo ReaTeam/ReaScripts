@@ -15,14 +15,18 @@
 -- @about
 --   # Automation item selection bundle
 --
---   This package provides in total 10 actions for selecting automation items in
---   the selected envelope lane. See the Contents tab for the list and for the
---   exact name of the actions.
+--   This package provides a total of 10 actions for selecting automation items
+--   in the selected envelope lane. See the Contents tab for the list and for
+--   the exact name of the actions.
 --
 --   - Actions for selecting and moving to the next or previous AIs
 --   - Actions for preserving the current selection
 --   - Actions for cycling through the AIs in the selected pool
 --   - Actions for selecting all AIs or all AIs in the selected pool
+-- @link
+--   cfillion's website https://cfillion.ca
+--   Original request https://github.com/reaper-oss/sws/issues/899
+-- @donate https://www.paypal.me/cfillion/
 
 local UNDO_STATE_TRACKCFG = 1
 
