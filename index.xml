@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="55b639e627d1147cb6b8ed86de2d5e4eb7e88260" name="ReaTeam Scripts">
+<index version="1" commit="93043ae9c9ca6b894b8afb46184372541b926502" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -616,6 +616,22 @@ added support for all track envelopes]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes/Automation Items">
+    <reapack name="amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope.lua" type="script" desc="amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts automation items in time selection for the selected tracks and selected envelope\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab There must be a selected envelope and a time selection set for the script to work\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creates undo only if succeded\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-10-03T00:46:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93043ae9c9ca6b894b8afb46184372541b926502/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20time%20selection%20for%20selected%20tracks%20and%20selected%20envelope.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Automation item selection bundle.lua" type="script" desc="Automation item selection bundle (10 actions)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
