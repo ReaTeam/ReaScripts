@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua
-Version: 2.21
+Version: 2.30
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -86,6 +86,8 @@ About:
   v2.21 (2017-06-19)
     + Option to skip redundant CCs.
     + GUI window will open at last-used screen position.
+  v2.30 (2017-10-03)
+    + Keep nodes in order while moving hot node.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1417,15 +1419,29 @@ function loop_GetInputsAndUpdate()
               if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==LEFTBUTTON then
                   local pt_x = (1.0/captured_control.w())*(gfx.mouse_x-captured_control.x())
                   local pt_y = (1.0/captured_control.h())*(gfx.mouse_y-captured_control.y())
-                  ept = captured_control.envelope[captured_control.hotpoint]
+                  local ept = tempcontrol.envelope[tempcontrol.hotpoint]
+                  ept[2]=math.min(1, math.max(0, 1.0-pt_y))
                   if tempcontrol.hotpoint == 1 then 
                       ept[1]=0
                   elseif tempcontrol.hotpoint == #tempcontrol.envelope then
                       ept[1]=1
                   else
                       ept[1]=math.min(1, math.max(0, pt_x))
+                      -- Did the hotpoint pass beyond another point?  If so, re-sort the envelope
+                      -- (These explicit tests are faster than calling sort_envelope for the entire envelope.)
+                      ::checkPointsForSorting::
+                          if ept[1] < tempcontrol.envelope[tempcontrol.hotpoint-1][1] then
+                              tempcontrol.envelope[tempcontrol.hotpoint] = tempcontrol.envelope[tempcontrol.hotpoint-1]
+                              tempcontrol.envelope[tempcontrol.hotpoint-1] = ept
+                              tempcontrol.hotpoint = tempcontrol.hotpoint - 1
+                              goto checkPointsForSorting
+                          elseif ept[1] > tempcontrol.envelope[tempcontrol.hotpoint+1][1] then
+                              tempcontrol.envelope[tempcontrol.hotpoint] = tempcontrol.envelope[tempcontrol.hotpoint+1]
+                              tempcontrol.envelope[tempcontrol.hotpoint+1] = ept
+                              tempcontrol.hotpoint = tempcontrol.hotpoint + 1
+                              goto checkPointsForSorting
+                          end
                   end
-                  ept[2]=math.min(1, math.max(0, 1.0-pt_y))
                   dogenerate=true
                   firstClick = false
                   --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
