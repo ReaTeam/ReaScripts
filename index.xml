@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2fd671190b3eae2cbaa3bfee33d7b133c8fa106e" name="ReaTeam Scripts">
+<index version="1" commit="752fafa0f47dc808d44d6c887e8fd03391ee0a85" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -444,6 +444,23 @@ Offers an alternative syntax for libraries that might be less cumbersome]]></cha
       <version name="1.02" author="amagalma" time="2017-09-03T23:38:31Z">
         <changelog><![CDATA[+  easier creation or not of undo points]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c1b528c972956554613294d45b7b6b52fad7c236/Envelopes/amagalma_Toggle%20take%20volume%20envelope%20visible%20for%20all%20takes%20of%20all%20items%20in%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle volume envelope visibility for selected tracks or items depending on mouse position.lua" type="script" desc="amagalma_Toggle volume envelope visibility for selected tracks/items depending on mouse position">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles volume envelope visibility for the selected tracks or items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If mouse is over Arrange, then it toggles selected items' volume envelopes' visibility\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If mouse is over TCP, then it toggles selected tracks' volume envelopes' visibility\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo point is created if needed and is named accordingly\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-10-03T14:04:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/752fafa0f47dc808d44d6c887e8fd03391ee0a85/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
