@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua
-Version: 2.30
+Version: 2.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -88,6 +88,8 @@ About:
     + GUI window will open at last-used screen position.
   v2.30 (2017-10-03)
     + Keep nodes in order while moving hot node.
+  v2.31 (2017-10-03)
+    + Keep edge nodes in order when inserting new nodes.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1377,11 +1379,18 @@ function loop_GetInputsAndUpdate()
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  tempcontrol.envelope[#tempcontrol.envelope+1]={math.min(1, math.max(0, pt_x)),
-                                                                 math.min(1, math.max(0, 1.0-pt_y)) }
+                  pt_x = math.min(1, math.max(0, pt_x))
+                  pt_y = math.min(1, math.max(0, 1.0-pt_y))
+                  -- Insert new points *before* last node, so that sorting isn't necessary.
+                  for p = 1, #tempcontrol.envelope-1 do
+                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
+                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
+                          break
+                      end
+                  end
                   dogenerate=true
                   already_added_pt=true
-                  sort_envelope(tempcontrol.envelope)
+                  --sort_envelope(tempcontrol.envelope)
                   firstClick = false
               end
               
@@ -1394,11 +1403,18 @@ function loop_GetInputsAndUpdate()
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  tempcontrol.envelope[#tempcontrol.envelope+1]={math.min(1, math.max(0, pt_x)),
-                                                                 math.min(1, math.max(0, 1.0-pt_y)) }
+                  pt_x = math.min(1, math.max(0, pt_x))
+                  pt_y = math.min(1, math.max(0, 1.0-pt_y))
+                  -- Insert new points *before* last node, so that sorting isn't necessary.
+                  for p = 1, #tempcontrol.envelope-1 do
+                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
+                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
+                          break
+                      end
+                  end
                   dogenerate=true
                   already_added_pt=true
-                  sort_envelope(tempcontrol.envelope)
+                  --sort_envelope(tempcontrol.envelope)
                   firstClick = false
               end
               
