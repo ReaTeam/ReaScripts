@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 1.50
+Version: 1.51
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -97,6 +97,8 @@ About:
     + Checks REAPER version and SWS installed.
   * v1.50 (2017-10-03)
     + Keep nodes in order while moving hot node.
+  * v1.51 (2017-10-03)
+    + Keep edge nodes in order when inserting new nodes.    
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -845,7 +847,20 @@ end -- function convert_tempo_env_to_TempoTimeSigMarkers
 
 
 function sort_envelope(env)
-  table.sort(env,function(a,b) return a[1]<b[1] end)
+  local function sortHelper(a, b)
+      if a[1] < b[1] then return true
+      --[[elseif a[1] == b[1] then
+          aIndex, bIndex = 0, 0
+          for p = 1, #env do
+              if a == env[p] then aIndex = p break end
+          end
+          for p = 1, #env do
+              if b == env[p] then bIndex = p break end
+          end
+          if aIndex < bIndex then return true end]]
+      end
+  end
+  table.sort(env, sortHelper)
 end
 
 last_used_params={}
@@ -1486,11 +1501,18 @@ function update()
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  tempcontrol.envelope[#tempcontrol.envelope+1]={math.min(1, math.max(0, pt_x)),
-                                                                 math.min(1, math.max(0, 1.0-pt_y)) }
+                  pt_x = math.min(1, math.max(0, pt_x))
+                  pt_y = math.min(1, math.max(0, 1.0-pt_y))
+                  -- Insert new points *before* last node, so that sorting isn't necessary.
+                  for p = 1, #tempcontrol.envelope-1 do
+                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
+                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
+                          break
+                      end
+                  end
                   dogenerate=true
                   already_added_pt=true
-                  sort_envelope(tempcontrol.envelope)
+                  --sort_envelope(tempcontrol.envelope)
                   firstClick = false
               end
               
@@ -1503,11 +1525,18 @@ function update()
                   --reaper.ShowConsoleMsg("gonna add point ")
                   local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
                   local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  tempcontrol.envelope[#tempcontrol.envelope+1]={math.min(1, math.max(0, pt_x)),
-                                                                 math.min(1, math.max(0, 1.0-pt_y)) }
+                  pt_x = math.min(1, math.max(0, pt_x))
+                  pt_y = math.min(1, math.max(0, 1.0-pt_y))
+                  -- Insert new points *before* last node, so that sorting isn't necessary.
+                  for p = 1, #tempcontrol.envelope-1 do
+                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
+                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
+                          break
+                      end
+                  end
                   dogenerate=true
                   already_added_pt=true
-                  sort_envelope(tempcontrol.envelope)
+                  --sort_envelope(tempcontrol.envelope)
                   firstClick = false
               end
               
