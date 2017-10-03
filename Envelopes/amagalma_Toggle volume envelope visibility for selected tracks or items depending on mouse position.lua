@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle volume envelope visibility for selected tracks/items depending on mouse position
 -- @author amagalma
--- @version 1.0
+-- @version 1.001
 -- @about
 --   # Toggles volume envelope visibility for the selected tracks or items
 --
@@ -67,10 +67,12 @@ end
 local function SetItemTakeVolEnvVis()
   local sel_items = reaper.CountSelectedMediaItems(0)
   if sel_items > 0 then
+    reaper.PreventUIRefresh( 1 )
     for i = 0, sel_items-1 do
       local item = reaper.GetSelectedMediaItem(0, i)
       ToggleVisibility(item)
     end
+    reaper.PreventUIRefresh( -1 )
   end
 end
 
