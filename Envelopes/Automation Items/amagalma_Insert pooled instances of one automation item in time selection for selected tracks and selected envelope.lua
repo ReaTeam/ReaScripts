@@ -1,15 +1,21 @@
 -- @description amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Inserts automation items in time selection for the selected tracks and selected envelope
 --   - There must be a selected envelope and a time selection set for the script to work
 --   - Creates undo only if succeded
 
+--[[
+ * Changelog:
+ * v1.01 (2017-10-03)
+  + undo point creation improvement
+--]]
+
 -------------------------------------------------------------------------------------------
 
 local reaper = reaper
-local done = false
+local done = -1
 
 -------------------------------------------------------------------------------------------
 
@@ -20,6 +26,7 @@ local track_cnt = reaper.CountSelectedTracks( 0 )
 if sel_env and timeStart ~= timeEnd then
   local sel_env_track = reaper.Envelope_GetParentTrack( sel_env )
   reaper.InsertAutomationItem( sel_env, -1, timeStart, timeEnd-timeStart )
+  done = 0
   local _, env_name = reaper.GetEnvelopeName( sel_env, "" )
   local ai_cnt =  reaper.CountAutomationItems( sel_env )
   local pool_id
@@ -36,7 +43,7 @@ if sel_env and timeStart ~= timeEnd then
       local env = reaper.GetTrackEnvelopeByName( track, env_name )
       if env then
         reaper.InsertAutomationItem( env, pool_id, timeStart, timeEnd-timeStart )
-        done = true
+        done = done + 1
       end
     end
   end
@@ -45,7 +52,9 @@ reaper.UpdateArrange()
 
 -------------------------------------------------------------------------------------------
 
-if done then
+if done > 0 then
   reaper.GetSet_LoopTimeRange( true, false, 0, 0, false )
   reaper.Undo_OnStateChangeEx2( 0, "Insert pooled instances of one automation item for selected tracks", 1|8 , -1 )
+elseif done == 0 then
+  reaper.Undo_OnStateChangeEx2( 0, "Insert automation item", 1 , -1 )
 end
