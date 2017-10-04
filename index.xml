@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0223ae657cb6e29426e507b5586dc2fe016325b8" name="ReaTeam Scripts">
+<index version="1" commit="ef2c8a5b96cd6c7f26212c670836514f39c0fe76" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -36,6 +36,10 @@
       <version name="1.0.1" author="cfillion" time="2016-10-07T06:16:07Z">
         <changelog><![CDATA[disable creation of undo point]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c930c4d2d1f7b63e7c3ae0db83d5544447e99bd/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
+      </version>
+      <version name="1.0.2" author="cfillion" time="2017-10-04T06:47:01Z">
+        <changelog><![CDATA[update to use my new cross-platform clipboard API function (SWS v2.9.5+)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ef2c8a5b96cd6c7f26212c670836514f39c0fe76/Cursor/cfillion_Copy%20current%20position%20to%20clipboard.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move edit cursor ahead five seconds.lua" type="script" desc="Move edit cursor ahead five seconds">
