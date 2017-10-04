@@ -309,7 +309,7 @@ function draw()
   end
 
   rtlToolbar(WIN_PADDING, {
-    {text='Edit', active=isEditing, shortcut=string.byte('e'), callback=editCurrent},
+    {text='Edit', active=isEditing, shortcut=KEY_SPACE, callback=editCurrent},
     {text='?', shortcut=KEY_F1, callback=help},
   })
 
