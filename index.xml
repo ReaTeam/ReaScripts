@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4ce960d72babd462f5dd4ab1ad52751066afb358" name="ReaTeam Scripts">
+<index version="1" commit="a72a6e981f7a8f47de24216d404d375bc80bd239" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1145,9 +1145,10 @@ save automatically when the native nudge dialog is closed]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3702f18772acda0009a11fc68f58587f7dd308bf/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
       <version name="2.0.1" author="cfillion" time="2017-10-04T05:51:48Z">
-        <changelog><![CDATA[show value of the copies setting in nudge/duplicate mode
-close the nudge dialog without saving when clicking on the edit button]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4ce960d72babd462f5dd4ab1ad52751066afb358/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <changelog><![CDATA[close the nudge dialog without saving when clicking on the edit button
+highlight the corresponding button when triggering a keyboard shortcut
+show value of the copies setting in nudge/duplicate mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a72a6e981f7a8f47de24216d404d375bc80bd239/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
