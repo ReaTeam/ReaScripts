@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1829341137faea227f1e14f1384ce971bf2303b0" name="ReaTeam Scripts">
+<index version="1" commit="3702f18772acda0009a11fc68f58587f7dd308bf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1117,7 +1117,7 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Switch to a different nudge setting with the {\b 0-8} keys\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Edit the current nudge setting by pressing {\b Space}\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Nudge with the {\b left/right arrow} keys\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Close the window with *{\i Escape}\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Close the window with {\b Escape}\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Caveats\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The "Last" tab may be out of sync with the effective last nudge settings. This is because the native "Nudge left/right by saved nudge dialog settings X" actions do not save the nudge settings in reaper.ini when they change the last used settings.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There is no reliable way for a script to detect whether the last nudge settings are out of sync. A workaround for forcing REAPER to save its settings is to open and close the native nudge dialog.\par}
@@ -1142,7 +1142,7 @@ Remember window position]]></changelog>
 add space, left, right and escape keyboard shortcuts
 refresh only once the nudge dialog is closed rather than every second
 save automatically when the native nudge dialog is closed]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1829341137faea227f1e14f1384ce971bf2303b0/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3702f18772acda0009a11fc68f58587f7dd308bf/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
