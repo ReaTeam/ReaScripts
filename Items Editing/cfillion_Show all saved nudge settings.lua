@@ -15,6 +15,10 @@
 --   This script allows viewing, editing and using all nudge setting presets in
 --   a single window.
 --
+--   The edit feature opens the native nudge settings dialog with the current
+--   settings filled. The new settings are automatically saved into the selected
+--   slot once the native dialog is closed.
+--
 --   ## Keyboard Shortcuts
 --
 --   - Switch to a different nudge setting with the **0-8** keys
