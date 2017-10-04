@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a1b891a82641e189dd3c831b9f72d6d2ef56a226" name="ReaTeam Scripts">
+<index version="1" commit="1829341137faea227f1e14f1384ce971bf2303b0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1112,6 +1112,7 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Show all saved nudge settings\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script allows viewing, editing and using all nudge setting presets in a single window.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The edit feature opens the native nudge settings dialog with the current settings filled. The new settings are automatically saved into the selected slot once the native dialog is closed.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Keyboard Shortcuts\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Switch to a different nudge setting with the {\b 0-8} keys\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Edit the current nudge setting by pressing {\b Space}\par}
@@ -1141,7 +1142,7 @@ Remember window position]]></changelog>
 add space, left, right and escape keyboard shortcuts
 refresh only once the nudge dialog is closed rather than every second
 save automatically when the native nudge dialog is closed]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a1b891a82641e189dd3c831b9f72d6d2ef56a226/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1829341137faea227f1e14f1384ce971bf2303b0/Items%20Editing/cfillion_Show%20all%20saved%20nudge%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Split selected non-locked items at edit cursor.lua" type="script" desc="Split selected non-locked items at edit cursor">
