@@ -1,8 +1,9 @@
 -- @description Show all saved nudge settings
 -- @version 2.0.1
 -- @changelog
---   show value of the copies setting in nudge/duplicate mode
 --   close the nudge dialog without saving when clicking on the edit button
+--   highlight the corresponding button when triggering a keyboard shortcut
+--   show value of the copies setting in nudge/duplicate mode
 -- @author cfillion
 -- @link cfillion.ca https://cfillion.ca
 -- @donation https://www.paypal.me/cfillion
@@ -61,6 +62,7 @@ local KEY_SPACE = 0x20
 local KEY_ESCAPE = 0x1b
 local KEY_LEFT = 0x6c656674
 local KEY_RIGHT = 0x72676874
+local KEY_F1 = 0x6631
 
 local EXT_SECTION = 'cfillion_show_nudge_settings'
 local EXT_WINDOW_STATE = 'windowState'
@@ -250,7 +252,7 @@ function box(box)
   drawBox(box)
 end
 
-function button(box, active, callback)
+function button(box)
   if not box.rect then box.rect = boxRect(box) end
 
   local underMouse =
@@ -259,14 +261,18 @@ function button(box, active, callback)
     gfx.mouse_y >= box.rect.y and
     gfx.mouse_y < box.rect.y + box.rect.h
 
-  if mouseClick and underMouse then
-    callback()
-    active = true
+  local kbTrigger = key == box.shortcut
+
+  if (mouseClick and underMouse) or kbTrigger then
+    box.callback()
+    if box.active ~= nil then
+      box.active = true
+    end
   end
 
-  if active then
+  if box.active then
     box.color = {150, 175, 225}
-  elseif underMouse and mouseDown then
+  elseif (underMouse and mouseDown) or kbTrigger then
     box.color = {120, 120, 120}
   else
     box.color = {220, 220, 220}
@@ -281,28 +287,30 @@ function rtlToolbar(x, btns)
 
   for i=#btns,1,-1 do
     local btn = btns[i]
-    btn[1].rect = boxRect(btn[1])
-    gfx.x = btn[1].rect.x - btn[1].rect.w - BOX_PADDING
+    btn.rect = boxRect(btn)
+    gfx.x = btn.rect.x - btn.rect.w - BOX_PADDING
   end
 
   gfx.x = math.max(leftmost, gfx.x + BOX_PADDING)
 
   for _,btn in ipairs(btns) do
-    btn[1].rect.x = gfx.x
-    button(table.unpack(btn))
+    btn.rect.x = gfx.x
+    button(btn)
   end
 end
 
 function draw()
   gfx.x, gfx.y = WIN_PADDING, WIN_PADDING
-  button({text='Last'}, setting.n == 0, function() loadSetting(0) end)
+  button({text='Last', active=setting.n == 0, shortcut=string.byte('0'),
+    callback=function() loadSetting(0) end})
   for i=1,8 do
-    button({text=i}, setting.n == i, function() loadSetting(i) end)
+    button({text=i, active=setting.n == i, shortcut=string.byte(i),
+      callback=function() loadSetting(i) end})
   end
 
   rtlToolbar(WIN_PADDING, {
-    {{text='Edit'}, isEditing, editCurrent},
-    {{text='?'}, false, help},
+    {text='Edit', active=isEditing, shortcut=string.byte('e'), callback=editCurrent},
+    {text='?', shortcut=KEY_F1, callback=help},
   })
 
   gfx.x, gfx.y = WIN_PADDING, 38
@@ -327,8 +335,8 @@ function draw()
   end
 
   rtlToolbar(WIN_PADDING, {
-    {{text='< Nudge left'}, false, nudgeLeft},
-    {{text='Nudge right >'}, false, nudgeRight},
+    {text='< Nudge left', shortcut=KEY_LEFT, callback=nudgeLeft},
+    {text='Nudge right >', shortcut=KEY_RIGHT, callback=nudgeRight},
   })
 end
 
@@ -339,20 +347,12 @@ function setColor(color)
 end
 
 function keyboardInput()
-  local key = gfx.getchar()
+  key = gfx.getchar()
 
   if key < 0 then
     exit = true
-  elseif key >= string.byte('0') and key <= string.byte('8') then
-    loadSetting(key - string.byte('0'))
-  elseif key == KEY_LEFT then
-    nudgeLeft()
-  elseif key == KEY_RIGHT then
-    nudgeRight()
   elseif key == KEY_ESCAPE then
     gfx.quit()
-  elseif key == KEY_SPACE then
-    editCurrent()
   end
 end
 
