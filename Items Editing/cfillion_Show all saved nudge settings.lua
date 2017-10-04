@@ -1,6 +1,7 @@
 -- @description Show all saved nudge settings
 -- @version 2.0.1
 -- @changelog
+--   change shortcut for editing current nudge setting to 'n' key
 --   close the nudge dialog without saving when clicking on the edit button
 --   highlight the corresponding button when triggering a keyboard shortcut
 --   show value of the copies setting in nudge/duplicate mode
@@ -22,9 +23,9 @@
 --   ## Keyboard Shortcuts
 --
 --   - Switch to a different nudge setting with the **0-8** keys
---   - Edit the current nudge setting by pressing **Space**
+--   - Edit the current nudge setting by pressing **n**
 --   - Nudge with the **left/right arrow** keys
---   - Close the window with **Escape**
+--   - Close the script with **Escape**
 --
 --   ## Caveats
 --
@@ -58,7 +59,6 @@ local RNUDGE_ACTIONS = {last=41249, bank1=41275, bank2=41287}
 local WIN_PADDING = 10
 local BOX_PADDING = 7
 
-local KEY_SPACE = 0x20
 local KEY_ESCAPE = 0x1b
 local KEY_LEFT = 0x6c656674
 local KEY_RIGHT = 0x72676874
@@ -309,7 +309,7 @@ function draw()
   end
 
   rtlToolbar(WIN_PADDING, {
-    {text='Edit', active=isEditing, shortcut=KEY_SPACE, callback=editCurrent},
+    {text='Edit', active=isEditing, shortcut=string.byte('n'), callback=editCurrent},
     {text='?', shortcut=KEY_F1, callback=help},
   })
 
