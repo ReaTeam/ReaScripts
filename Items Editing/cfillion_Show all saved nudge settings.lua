@@ -1,17 +1,40 @@
 -- @description Show all saved nudge settings
--- @version 1.1
+-- @version 2.0
 -- @changelog
---   Add "Save current" button
---   Improve text legibility on Windows
---   Remember window position
+--   add edit, help (?), nudge left/right buttons [p=1893726]
+--   add space, left, right and escape keyboard shortcuts
+--   refresh only once the nudge dialog is closed rather than every second
+--   save automatically when the native nudge dialog is closed
 -- @author cfillion
 -- @link cfillion.ca https://cfillion.ca
 -- @donation https://www.paypal.me/cfillion
--- @screenshot https://i.imgur.com/PrITgVt.png
+-- @screenshot https://i.imgur.com/5o3OIyf.png
 -- @about
---   # Show every saved nudge settings
+--   # Show all saved nudge settings
 --
---   **Tip:** Switch to a different nudge setting with the 0-8 keys.
+--   This script allows viewing, editing and using all nudge setting presets in
+--   a single window.
+--
+--   ## Keyboard Shortcuts
+--
+--   - Switch to a different nudge setting with the **0-8** keys
+--   - Edit the current nudge setting by pressing **Space**
+--   - Nudge with the **left/right arrow** keys
+--   - Close the window with **Escape*
+--
+--   ## Caveats
+--
+--   The "Last" tab may be out of sync with the effective last nudge settings.
+--   This is because the native "Nudge left/right by saved nudge dialog settings X"
+--   actions do not save the nudge settings in reaper.ini when they change the
+--   last used settings.
+--
+--   There is no reliable way for a script to detect whether the last nudge
+--   settings are out of sync. A workaround for forcing REAPER to save its
+--   settings is to open and close the native nudge dialog.
+--
+--   Furthermore, REAPER does not store the nudge amout when using the "Set" mode
+--   in the native nudge dialog. The script displays "N/A" in this case.
 
 local WHAT_MAP = {'position', 'left trim', 'left edge', 'right trim', 'contents',
   'duplicate', 'edit cursor', 'end position'}
@@ -23,10 +46,18 @@ local UNIT_MAP =  {'milliseconds', 'seconds', 'grid units', 'notes',
 local NOTE_MAP = {'1/256', '1/128', '1/64', '1/32T', '1/32', '1/16T', '1/16',
   '1/8T', '1/8', '1/4T', '1/4', '1/2', 'whole'}
 
-local SAVE_ACTIONS = {41271, 41272, 41273, 41274, 41283, 41284, 41285, 41286}
+local NUDGEDLG_ACTION = 41228
+local SAVE_ACTIONS = {last=0, bank1=41271, bank2=41283}
+local LNUDGE_ACTIONS = {last=41250, bank1=41279, bank2=41291}
+local RNUDGE_ACTIONS = {last=41249, bank1=41275, bank2=41287}
 
 local WIN_PADDING = 10
 local BOX_PADDING = 7
+
+local KEY_SPACE = 0x20
+local KEY_ESCAPE = 0x1b
+local KEY_LEFT = 0x6c656674
+local KEY_RIGHT = 0x72676874
 
 local EXT_SECTION = 'cfillion_show_nudge_settings'
 local EXT_WINDOW_STATE = 'windowState'
@@ -36,7 +67,7 @@ local mouseDown = false
 local mouseClick = false
 local iniFile = reaper.get_ini_file()
 local setting = {}
-local lastRefresh = os.time()
+local isEditing = false
 
 local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
 
@@ -85,7 +116,8 @@ function snapTo(unit)
 end
 
 function loadSetting(n, reload)
-  if setting.n == n and not reload then return end
+  local changed = setting.n ~= n
+  if not changed and not reload then return end
 
   setting = {n=n}
 
@@ -108,9 +140,76 @@ function loadSetting(n, reload)
   end
 end
 
+function action(ids)
+  local base
+
+  if setting.n == 0 then
+    return ids.last
+  elseif setting.n < 5 then
+    base = ids.bank1
+  else
+    base = ids.bank2
+  end
+
+  return base + ((setting.n - 1) % 4)
+end
+
+function nudgeLeft()
+  reaper.Main_OnCommand(action(LNUDGE_ACTIONS), 0)
+end
+
+function nudgeRight()
+  reaper.Main_OnCommand(action(RNUDGE_ACTIONS), 0)
+end
+
+function setAsLast()
+  local count = reaper.CountSelectedMediaItems(0)
+  local selection = {}
+  for i=0,count - 1 do
+    local item = reaper.GetSelectedMediaItem(0, 0)
+    table.insert(selection, item)
+    reaper.SetMediaItemSelected(item, false)
+  end
+
+  nudgeRight()
+
+  for _,item in ipairs(selection) do
+    reaper.SetMediaItemSelected(item, true)
+  end
+end
+
+function editCurrent()
+  if isEditing then return end
+
+  if setting.n > 0 then
+    setAsLast()
+  end
+
+  reaper.Main_OnCommand(NUDGEDLG_ACTION, 0)
+end
+
 function saveCurrent()
-  reaper.Main_OnCommand(SAVE_ACTIONS[setting.n], 0)
+  reaper.Main_OnCommand(action(SAVE_ACTIONS), 0)
   loadSetting(setting.n, true)
+end
+
+function help()
+  if not reaper.ReaPack_GetOwner then
+    reaper.MB('This feature requires ReaPack v1.2 or newer.', scriptName, 0)
+    return
+  end
+
+  local owner = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
+
+  if not owner then
+    reaper.MB(string.format(
+      'This feature is unavailable because "%s" was not installed using ReaPack.',
+      scriptName), scriptName, 0)
+    return
+  end
+
+  reaper.ReaPack_AboutInstalledPackage(owner)
+  reaper.ReaPack_FreeEntry(owner)
 end
 
 function boxRect(box)
@@ -122,8 +221,6 @@ function boxRect(box)
 
   if box.w then w = box.w end
   if box.h then h = box.h end
-
-  if box.rtl then x = math.max(box.rtl, (gfx.w - w) - x) end
 
   return {x=x, y=y, w=w, h=h}
 end
@@ -151,7 +248,7 @@ function box(box)
 end
 
 function button(box, active, callback)
-  box.rect = boxRect(box)
+  if not box.rect then box.rect = boxRect(box) end
 
   local underMouse =
     gfx.mouse_x >= box.rect.x and
@@ -175,8 +272,37 @@ function button(box, active, callback)
   drawBox(box)
 end
 
+function rtlToolbar(x, btns)
+  local leftmost = gfx.x
+  gfx.x = (gfx.w - x)
+
+  for i=#btns,1,-1 do
+    local btn = btns[i]
+    btn[1].rect = boxRect(btn[1])
+    gfx.x = btn[1].rect.x - btn[1].rect.w - BOX_PADDING
+  end
+
+  gfx.x = math.max(leftmost, gfx.x + BOX_PADDING)
+
+  for _,btn in ipairs(btns) do
+    btn[1].rect.x = gfx.x
+    button(table.unpack(btn))
+  end
+end
+
 function draw()
   gfx.x, gfx.y = WIN_PADDING, WIN_PADDING
+  button({text='Last'}, setting.n == 0, function() loadSetting(0) end)
+  for i=1,8 do
+    button({text=i}, setting.n == i, function() loadSetting(i) end)
+  end
+
+  rtlToolbar(WIN_PADDING, {
+    {{text='Edit'}, isEditing, editCurrent},
+    {{text='?'}, false, help},
+  })
+
+  gfx.x, gfx.y = WIN_PADDING, 38
   box({w=70, text=boolValue(setting.mode, 'Nudge', 'Set')})
   box({w=100, text=mapValue(setting.what, WHAT_MAP)})
   box({noborder=true, text=boolValue(setting.mode, 'by:', 'to:')})
@@ -186,7 +312,7 @@ function draw()
   end
   box({w=gfx.w - gfx.x - WIN_PADDING, text=mapValue(setting.unit, UNIT_MAP)})
 
-  gfx.x, gfx.y = WIN_PADDING - BOX_PADDING, 35
+  gfx.x, gfx.y = WIN_PADDING - BOX_PADDING, 66
   box({text=string.format('Snap to %s: %s', snapTo(setting.unit),
     boolValue(setting.snap)), noborder=true})
 
@@ -195,17 +321,10 @@ function draw()
     box({text=string.format('Relative set: %s', boolValue(setting.rel)), noborder=true})
   end
 
-  gfx.x, gfx.y = WIN_PADDING, 60
-  button({text='Last'}, setting.n == 0, function() loadSetting(0) end)
-  for i=1,8 do
-    button({text=i}, setting.n == i, function() loadSetting(i) end)
-  end
-
-  if setting.n > 0 then
-    local minX = gfx.x
-    gfx.x = WIN_PADDING
-    button({text='Save current', rtl=minX}, false, saveCurrent)
-  end
+  rtlToolbar(WIN_PADDING, {
+    {{text='< Nudge left'}, false, nudgeLeft},
+    {{text='Nudge right >'}, false, nudgeRight},
+  })
 end
 
 function setColor(color)
@@ -221,7 +340,24 @@ function keyboardInput()
     exit = true
   elseif key >= string.byte('0') and key <= string.byte('8') then
     loadSetting(key - string.byte('0'))
+  elseif key == KEY_LEFT then
+    nudgeLeft()
+  elseif key == KEY_RIGHT then
+    nudgeRight()
+  elseif key == KEY_ESCAPE then
+    gfx.quit()
+  elseif key == KEY_SPACE then
+    editCurrent()
   end
+end
+
+function detectEdit()
+  local state = reaper.GetToggleCommandState(NUDGEDLG_ACTION) == 1
+  if isEditing and not state then
+    saveCurrent()
+  end
+
+  isEditing = state
 end
 
 function mouseInput()
@@ -238,15 +374,11 @@ function mouseInput()
 end
 
 function loop()
+  detectEdit()
   keyboardInput()
   mouseInput()
 
   if exit then return end
-
-  if lastRefresh < os.time() then
-    loadSetting(setting.n, true)
-    lastRefresh = os.time()
-  end
 
   gfx.clear = 16777215
   draw()
@@ -280,7 +412,7 @@ local w, h, dockState, x, y = previousWindowState()
 if w then
   gfx.init(scriptName, w, h, dockState, x, y)
 else
-  gfx.init(scriptName, 475, 90)
+  gfx.init(scriptName, 475, 97)
 end
 
 if reaper.GetAppVersion():match('OSX') then
