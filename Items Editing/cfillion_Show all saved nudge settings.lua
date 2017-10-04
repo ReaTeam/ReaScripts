@@ -24,7 +24,7 @@
 --   - Switch to a different nudge setting with the **0-8** keys
 --   - Edit the current nudge setting by pressing **Space**
 --   - Nudge with the **left/right arrow** keys
---   - Close the window with **Escape*
+--   - Close the window with **Escape**
 --
 --   ## Caveats
 --
