@@ -1,8 +1,8 @@
 -- @description Show all saved nudge settings
 -- @version 2.1
 -- @changelog
---   add actions for nudging left/right by last selected settings
---   disable Nudge left/right buttons when in Set mode
+--   add actions for nudging left/right by last selected settings [p=1893932]
+--   disable Nudge left/right buttons when in Set mode [p=1893932]
 --   don't override the Last settings when the edit it cancelled into a slot
 --   remember the previously selected slot
 --   show "Saved!" message for 2 seconds after saving settings into a slot
