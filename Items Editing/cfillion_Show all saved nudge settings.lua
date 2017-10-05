@@ -11,6 +11,7 @@
 -- @donation https://www.paypal.me/cfillion
 -- @screenshot https://i.imgur.com/5o3OIyf.png
 -- @provides
+--   [main] .
 --   [main] . > cfillion_Nudge left by selected saved nudge dialog settings.lua
 --   [main] . > cfillion_Nudge right by selected saved nudge dialog settings.lua
 -- @about
