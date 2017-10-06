@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="355acf209662c49017da086845be96f958246f30" name="ReaTeam Scripts">
+<index version="1" commit="5eb0770e527d5c51b50ea579606e9d49d40f967f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -27,6 +27,20 @@
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T23:20:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34cd46cc4d801d2cbef240f56c8d2f02673b2989/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Seek play cursor in arrange view (when playing).eel" type="script" desc="amagalma_Seek play cursor in arrange view (when playing)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Positions the play cursor at the first sixth of the arrange view if out of view when playing\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-10-06T01:28:22Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5eb0770e527d5c51b50ea579606e9d49d40f967f/Cursor/amagalma_Seek%20play%20cursor%20in%20arrange%20view%20(when%20playing).eel</source>
       </version>
     </reapack>
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
