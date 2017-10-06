@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="692a1a6dfc3c6a759342611839674157c99a696b" name="ReaTeam Scripts">
+<index version="1" commit="c5490d439297699615e9796062a82f05ac7703b6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -701,6 +701,10 @@ added support for all track envelopes]]></changelog>
 + added setting inside the script to remove or keep time selection after action end
 + script header correction]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/692a1a6dfc3c6a759342611839674157c99a696b/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20time%20selection%20for%20selected%20tracks%20and%20selected%20envelope.lua</source>
+      </version>
+      <version name="1.12" author="amagalma" time="2017-10-06T16:45:07Z">
+        <changelog><![CDATA[+ fixed script bug (deleting selected env points) created by the work-around of a Reaper bug]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5490d439297699615e9796062a82f05ac7703b6/Envelopes/Automation%20Items/amagalma_Insert%20pooled%20instances%20of%20one%20automation%20item%20in%20time%20selection%20for%20selected%20tracks%20and%20selected%20envelope.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Automation item selection bundle.lua" type="script" desc="Automation item selection bundle (10 actions)">
