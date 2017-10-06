@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5eb0770e527d5c51b50ea579606e9d49d40f967f" name="ReaTeam Scripts">
+<index version="1" commit="132dfa46a87b34c121827263950c0c1e9e303a99" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -236,9 +236,10 @@ REPL
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Error catching\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Multiline input (functions, conditions...)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Pretty print return values\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scrolling\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run actions (!command_id, !!midi_editor_action)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Text wrapping for long lines\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Some errors cannot be caught (see https://forum.cockos.com/showthread.php?t=177319)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This tool cannot be used to open a new GFX window\sa180\par}
@@ -249,8 +250,9 @@ https://github.com/cfillion/reascripts
 .\par}
 }
 ]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=177324">Forum Thread</link>
-        <link rel="screenshot">http://i.imgur.com/RrGfulR.gif</link>
+        <link rel="screenshot">https://i.imgur.com/RrGfulR.gif</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
       <version name="0.1" author="cfillion" time="2016-05-25T00:25:33Z">
@@ -343,6 +345,20 @@ persist history between sessions
 reimplement copy/paste using my new API functions (SWS v1.9.6+)
 support non-string arguments to Lua's error function]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3d72e8b23315b025a0110d3dc93b0caa1de34bf3/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.7" author="cfillion" time="2017-10-06T01:36:40Z">
+        <changelog><![CDATA[add "Select all" action to the context menu (also Ctrl+A)
+avoid clearing the clipboard
+clear selection when pressing Escape
+copy selected text instead of current input if non-empty
+display table keys in alphabetical order
+implement text selection!
+paste from selection (if non-empty) on middle click
+remove duplicate entries in history
+select word under cursor on double click
+set cursor to I-beam
+sort by key alphabetically when displaying table values]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/132dfa46a87b34c121827263950c0c1e9e303a99/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
