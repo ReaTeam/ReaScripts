@@ -1,16 +1,14 @@
 -- @description amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope
 -- @author amagalma
--- @version 1.11
+-- @version 1.12
 -- @about
 --   # Inserts automation items in time selection for the selected tracks and selected envelope
 --   - There must be a selected envelope and a time selection set for the script to work
 
 --[[
  * Changelog:
- * v1.11 (2017-10-06)
-  + work-around for Reaper bug: https://forum.cockos.com/showthread.php?t=196794
-  + added setting inside the script to remove or keep time selection after action end
-  + script header correction
+ * v1.12 (2017-10-06)
+  + fixed script bug (deleting selected env points) created by the work-around of a Reaper bug
 --]]
 
 ----------------------------- USER SETTINGS -----------------------------------------------
@@ -29,6 +27,7 @@ if sel_env and timeStart ~= timeEnd then
   local _, envchunk = reaper.GetEnvelopeStateChunk( sel_env, "", false )
   local env_name = string.match (envchunk, "[^\n]+")
   local sel_env_track = reaper.Envelope_GetParentTrack( sel_env )
+  reaper.Main_OnCommand(40331, 0) -- Envelope: Unselect all points
   reaper.InsertAutomationItem( sel_env, -1, timeStart, timeEnd-timeStart )
   local ai_cnt =  reaper.CountAutomationItems( sel_env )
   local pool_id
