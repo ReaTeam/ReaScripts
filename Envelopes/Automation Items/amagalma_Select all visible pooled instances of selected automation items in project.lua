@@ -1,8 +1,14 @@
 -- @description amagalma_Select all visible pooled instances of selected automation items in project
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Selects all the pooled duplicates of the selected automation items across all tracks
 --   - Automation items must exist in the same kind of envelope
+
+--[[
+ * Changelog:
+ * v1.01 (2017-10-06)
+  + fixed bug caused by typo
+--]]
 
 --------------------------------------------------------------------------------------------
 
@@ -29,7 +35,7 @@ if sel_env then
             found = true
           end
         end
-        if not found then pools[#pool+1] = pool_id end
+        if not found then pools[#pools+1] = pool_id end
       else
         pools[1] = pool_id
       end
