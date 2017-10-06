@@ -1,16 +1,16 @@
 -- @description amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope
 -- @author amagalma
--- @version 1.1
+-- @version 1.11
 -- @about
 --   # Inserts automation items in time selection for the selected tracks and selected envelope
 --   - There must be a selected envelope and a time selection set for the script to work
---   - Creates undo only if succeded
 
 --[[
  * Changelog:
- * v1.1 (2017-10-06)
+ * v1.11 (2017-10-06)
   + work-around for Reaper bug: https://forum.cockos.com/showthread.php?t=196794
   + added setting inside the script to remove or keep time selection after action end
+  + script header correction
 --]]
 
 ----------------------------- USER SETTINGS -----------------------------------------------
