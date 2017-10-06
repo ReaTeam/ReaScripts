@@ -1,0 +1,15 @@
+// @description amagalma_Seek play cursor in arrange view (when playing)
+// @author amagalma
+// @version 1.0
+// @about
+//   # Positions the play cursor at the first sixth of the arrange view if out of view when playing
+//
+
+state = GetPlayStateEx( 0 );
+state & 1 == 1 || state & 4 == 4 ? (
+  GetSet_ArrangeView2( 0, 0, 0, 0, start, end );
+  wide = end - start;
+  cursor = GetPlayPosition();
+  extension_api("BR_SetArrangeView", 0, cursor - wide/6, cursor + wide*5/6 );
+);
+function NoUndo()(abs(0)); defer("NoUndo()");
