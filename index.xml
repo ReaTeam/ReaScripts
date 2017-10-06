@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e0f98acb4e9b801556307331dabf1b869dd0a51" name="ReaTeam Scripts">
+<index version="1" commit="d550468f5a264300637efd896164747c53afc0ab" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -720,6 +720,10 @@ added support for all track envelopes]]></changelog>
       </metadata>
       <version name="1.0" time="2017-10-06T17:07:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7e0f98acb4e9b801556307331dabf1b869dd0a51/Envelopes/Automation%20Items/amagalma_Select%20all%20visible%20pooled%20instances%20of%20selected%20automation%20items%20in%20project.lua</source>
+      </version>
+      <version name="1.01" time="2017-10-06T18:04:20Z">
+        <changelog><![CDATA[+ fixed bug caused by typo]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d550468f5a264300637efd896164747c53afc0ab/Envelopes/Automation%20Items/amagalma_Select%20all%20visible%20pooled%20instances%20of%20selected%20automation%20items%20in%20project.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Automation item selection bundle.lua" type="script" desc="Automation item selection bundle (10 actions)">
