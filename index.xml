@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0af7959298aeade417103851322248ba2adb0d83" name="ReaTeam Scripts">
+<index version="1" commit="2e81160f8a6b892422128347cbf8b821c7b7584d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5858,7 +5858,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Left-click the script window to start again\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Upon window closure, the playrate returns to 1\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "preserve pitch in audio items" is enabled as long as the script runs\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manual changes in the playrate show the resulting tempo in the script's window\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manual changes in the playrate show the resulting tempo in the script's window\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Spacebar toggles Transport: Play/Stop\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mousewheel increases/decreases simulated tempo by 0.5bpm\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -5872,6 +5874,11 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.11" author="amagalma" time="2017-09-27T18:37:31Z">
         <changelog><![CDATA[+ Manual changes in the playrate show the resulting tempo in the script's window]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/da9389bf5f78b59e1d7dde3cd90253eec53fde2d/Various/amagalma_Simulate%20tempo%20with%20playrate.lua</source>
+      </version>
+      <version name="1.2" author="amagalma" time="2017-10-07T12:14:04Z">
+        <changelog><![CDATA[+ Added Space key support for Play/Stop
++ Added mousewheel support. +-0.5bpm]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2e81160f8a6b892422128347cbf8b821c7b7584d/Various/amagalma_Simulate%20tempo%20with%20playrate.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smart automatic record mode.eel" type="script" desc="amagalma_Smart automatic record mode">
