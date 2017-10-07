@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c750f7d968f4aaa72711de64745449d6314c6c0c" name="ReaTeam Scripts">
+<index version="1" commit="2324df14fbab73a3ffb480bb9c1acca4091b0da9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5731,13 +5731,18 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Script: Implodes items across tracks into takes, removes empty tracks and inherits their height\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Script: Implodes items across tracks into takes, removes empty tracks and inherits their height (optional)\par}
 }
 ]]></description>
         <link rel="screenshot">http://stash.reaper.fm/30479/amagalma_Implode%20items%20across%20tracks%20into%20takes%20%28remove%20empty%20tracks%29.gif</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-13T08:57:17Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54b8426bba0faf1df0342e5abb818703af3e7820/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-10-07T21:39:56Z">
+        <changelog><![CDATA[+ takes now inherit their previous displayed color
++ you can set in the script if you want the resulting track to inherit all removed tracks' heights combined or not]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2324df14fbab73a3ffb480bb9c1acca4091b0da9/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="amagalma_ReaNoir - Track/Item/Take coloring utility">
