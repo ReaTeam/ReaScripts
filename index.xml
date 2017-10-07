@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bf42dc7df19839519055ee960e3e7faa4138a42f" name="ReaTeam Scripts">
+<index version="1" commit="c750f7d968f4aaa72711de64745449d6314c6c0c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -27,20 +27,6 @@
       </metadata>
       <version name="1.0" author="amagalma" time="2017-06-30T23:20:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34cd46cc4d801d2cbef240f56c8d2f02673b2989/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Seek play cursor in arrange view (when playing).eel" type="script" desc="amagalma_Seek play cursor in arrange view (when playing)">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Positions the play cursor at the first sixth of the arrange view if out of view when playing\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-10-06T01:28:22Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5eb0770e527d5c51b50ea579606e9d49d40f967f/Cursor/amagalma_Seek%20play%20cursor%20in%20arrange%20view%20(when%20playing).eel</source>
       </version>
     </reapack>
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
@@ -182,6 +168,21 @@
       <version name="1.0" author="Lokasenna" time="2017-03-31T12:35:21Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbfb8ce09c396bcf78cc688c3c0c71ef1bbb763c/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Place play cursor into view (when playing) or Center edit cursor (when stopped).eel" type="script" desc="amagalma_Place play cursor into view (when playing) or Center edit cursor (when stopped)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If playing: positions the play cursor at the first sixth of the arrange view\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 If stopped: centers the edit cursor at the middle of the arrange view, if possible\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2017-10-07T13:15:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c750f7d968f4aaa72711de64745449d6314c6c0c/Cursor/Place%20play%20cursor%20into%20view%20(when%20playing)%20or%20Center%20edit%20cursor%20(when%20stopped).eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor back by 1 frame (or 1 beat).eel" type="script" desc="Move edit cursor back by 1 frame (or 1 beat)">
