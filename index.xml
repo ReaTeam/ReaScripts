@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="58810d51ca0b19b565118b6173b0db01d05dc295" name="ReaTeam Scripts">
+<index version="1" commit="0af7959298aeade417103851322248ba2adb0d83" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -227,7 +227,7 @@ REPL
 }}}
  shell for Lua ReaScript inside of REAPER, for quickly experimenting code and API functions.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 http://i.imgur.com/RrGfulR.gif\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://i.imgur.com/RrGfulR.gif\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Autocompletion\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Code history\par}
@@ -359,6 +359,13 @@ select word under cursor on double click
 set cursor to I-beam
 sort by key alphabetically when displaying table values]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/132dfa46a87b34c121827263950c0c1e9e303a99/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.7.1" author="cfillion" time="2017-10-07T01:27:31Z">
+        <changelog><![CDATA[don't select to the buffer end when a partial line is diplayed at the bottom
+fix crash when displaying table with mixed key types
+fix length counting of tables containing mixed key types
+use Lua-compatible syntax for displaying keys in tables]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0af7959298aeade417103851322248ba2adb0d83/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
