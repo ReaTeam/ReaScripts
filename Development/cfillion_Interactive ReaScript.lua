@@ -1,18 +1,11 @@
 -- @description Interactive ReaScript (iReaScript)
--- @version 0.7
+-- @version 0.7.1
 -- @author cfillion
 -- @changelog
---   add "Select all" action to the context menu (also Ctrl+A)
---   avoid clearing the clipboard
---   clear selection when pressing Escape
---   copy selected text instead of current input if non-empty
---   display table keys in alphabetical order
---   implement text selection!
---   paste from selection (if non-empty) on middle click
---   remove duplicate entries in history
---   select word under cursor on double click
---   set cursor to I-beam
---   sort by key alphabetically when displaying table values
+--   don't select to the buffer end when a partial line is diplayed at the bottom
+--   fix crash when displaying table with mixed key types
+--   fix length counting of tables containing mixed key types
+--   use Lua-compatible syntax for displaying keys in tables
 -- @links
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
@@ -26,7 +19,7 @@
 --
 --   ## Screenshot
 --
---   http://i.imgur.com/RrGfulR.gif
+--   https://i.imgur.com/RrGfulR.gif
 --
 --   ## Main Features
 --
@@ -56,8 +49,9 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 
 local ireascript = {
   -- settings
-  TITLE = 'Interactive ReaScript',
-  VERSION = '0.7',
+  TITLE = 'Interactive ReaScript (iReaScript)',
+  NAME = 'Interactive ReaScript',
+  VERSION = '0.7.1',
 
   MARGIN = 3,
   MAXLINES = 2048,
@@ -70,17 +64,17 @@ local ireascript = {
   CMD_PREFIX = '.',
   ACTION_PREFIX = '!',
 
-  COLOR_BLACK = {12, 12, 12},
-  COLOR_BLUE = {88, 124, 212},
-  COLOR_DEFAULT = {190, 190, 190},
-  COLOR_GREEN = {90, 173, 87},
-  COLOR_MAGENTA = {175, 95, 95},
-  COLOR_ORANGE = {255, 93, 40},
-  COLOR_RED = {255, 85, 85},
-  COLOR_WHITE = {255, 255, 255},
-  COLOR_YELLOW = {199, 199, 0},
-  COLOR_SCROLL = {190, 190, 190},
-  COLOR_SELECTION = {20, 40, 105},
+  COLOR_BLACK     = {012, 012, 012},
+  COLOR_BLUE      = {088, 124, 212},
+  COLOR_DEFAULT   = {190, 190, 190},
+  COLOR_GREEN     = {090, 173, 087},
+  COLOR_MAGENTA   = {175, 095, 095},
+  COLOR_ORANGE    = {255, 093, 040},
+  COLOR_RED       = {255, 085, 085},
+  COLOR_WHITE     = {255, 255, 255},
+  COLOR_YELLOW    = {199, 199, 000},
+  COLOR_SCROLL    = {190, 190, 190},
+  COLOR_SELECTION = {020, 040, 105},
 
   -- internal constants
   SG_NEWLINE = 1,
@@ -163,8 +157,8 @@ function ireascript.help()
 
   ireascript.nl()
   ireascript.push('Built-in functions and variables:\n')
-  helpLine("print(...)", "Print any number of values", 11)
-  helpLine("_", "Last return value", 11)
+  helpLine('print(...)', 'Print any number of values', 11)
+  helpLine('_', 'Last return values', 11)
 end
 
 function ireascript.replay()
@@ -211,7 +205,7 @@ function ireascript.reset(banner)
     ireascript.resetFormat()
 
     ireascript.push(string.format('%s v%s by cfillion\n',
-      ireascript.TITLE, ireascript.VERSION))
+      ireascript.NAME, ireascript.VERSION))
     ireascript.push('Type Lua code, !ACTION or .help\n')
   end
 
@@ -1103,18 +1097,7 @@ function ireascript.format(value)
 end
 
 function ireascript.formatAnyTable(value)
-  local i, array, last = 0, true, 0
-
-  for k,v in pairs(value) do
-    if type(k) == 'number' and k > 0 then
-      i = i + (k - last) - 1
-      last = k
-    else
-      array = false
-    end
-
-    i = i + 1
-  end
+  local size, isArray = ireascript.realTableSize(value)
 
   if ireascript.flevel == nil then
     ireascript.flevel = 1
@@ -1126,11 +1109,7 @@ function ireascript.formatAnyTable(value)
     ireascript.flevel = ireascript.flevel + 1
   end
 
-  if array then
-    ireascript.formatArray(value, i)
-  else
-    ireascript.formatTable(value, i)
-  end
+  (isArray and ireascript.formatArray or ireascript.formatTable)(value, size)
 
   ireascript.flevel = ireascript.flevel - 1
 end
@@ -1197,9 +1176,10 @@ function ireascript.formatTable(value, size)
       ireascript.push(string.format('%d more...', size - i))
       break
     else
+      ireascript.push('[')
       ireascript.format(k)
       ireascript.resetFormat()
-      ireascript.push('=')
+      ireascript.push(']=')
       ireascript.format(v)
 
       i = i + 1
@@ -1374,7 +1354,7 @@ function ireascript.lineAt(ypos)
     if lines > ireascript.scroll then
       local lineTop = lineBottom - line.height
 
-      if lineTop <= ypos and lineBottom >= ypos then
+      if lineTop <= ypos then
         return line
       end
 
@@ -1570,12 +1550,46 @@ function ireascript.contains(table, val)
   return false
 end
 
+function ireascript.realTableSize(table)
+  local i, array, last = 0, true, 0
+
+  for k,v in pairs(table) do
+    if type(k) == 'number' and k > 0 then
+      i = i + (k - last) - 1
+      last = k
+    else
+      array = false
+      i = 0
+      break
+    end
+
+    i = i + 1
+  end
+
+  if not array then
+    for k,v in pairs(table) do
+      i = i + 1
+    end
+  end
+
+  return i, array
+end
+
+function ireascript.anySort(a, b)
+  if type(a) ~= 'number' or type(b) ~= 'number' then
+    a = tostring(a)
+    b = tostring(b)
+  end
+
+  return a < b
+end
+
 function ireascript.sortedPairs(t)
   local keys = {}
   for key,_ in pairs(t) do
     table.insert(keys, key)
   end
-  table.sort(keys)
+  table.sort(keys, ireascript.anySort)
 
   local it, state, n = ipairs(keys)
 
