@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.33
+-- @version 1.34
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.33 (2017-09-27)
-  + if there is a gap smaller or equal to the xfade time (default:10ms) between two items, then they are considered as adjacent
+ * v1.34 (2017-10-12)
+  + fixed missing in some occasions creating crossfade when items are adjacent
 --]]
 
 
@@ -127,19 +127,17 @@ if item_cnt > 1 then
           end
         else
           if math.abs(firstend - secondstart) <= xfadetime then -- items are adjacent (or there is a gap smaller or equal to the crossfade time)
-            if FadeInOK(item, xfadetime) == false or FadeOutOK(previousitem, xfadetime) == false then
-              -- previous item (ensure it ends exactly at the start of the next item)
-              reaper.SetMediaItemSelected(previousitem, true)
-              reaper.ApplyNudge(0, 1, 3, 1, secondstart, 0, 0)
-              FadeOut(previousitem, xfadetime)
-              reaper.SetMediaItemSelected(previousitem, false)
-              -- item
-              reaper.SetMediaItemSelected(item, true)
-              reaper.ApplyNudge(0, 1, 1, 1, secondstart - xfadetime, 0, 0)
-              FadeIn(item, xfadetime)
-              reaper.SetMediaItemSelected(item, false)
-              change = true
-            end       
+            -- previous item (ensure it ends exactly at the start of the next item)
+            reaper.SetMediaItemSelected(previousitem, true)
+            reaper.ApplyNudge(0, 1, 3, 1, secondstart, 0, 0)
+            FadeOut(previousitem, xfadetime)
+            reaper.SetMediaItemSelected(previousitem, false)
+            -- item
+            reaper.SetMediaItemSelected(item, true)
+            reaper.ApplyNudge(0, 1, 1, 1, secondstart - xfadetime, 0, 0)
+            FadeIn(item, xfadetime)
+            reaper.SetMediaItemSelected(item, false)
+            change = true    
           elseif firstend > secondstart then -- items are overlapping
             local overlap = firstend - secondstart
             if FadeInOK(item, overlap) == false or FadeOutOK(previousitem, overlap) == false then
