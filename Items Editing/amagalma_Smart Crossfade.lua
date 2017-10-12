@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.35
+-- @version 1.36
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.35 (2017-10-12)
-  + hopefully,all problems caused by floating point maths should have been fixed now
+ * v1.36 (2017-10-12)
+  + small fix (again) when dealing with adjacent items
 --]]
 
 
@@ -37,6 +37,7 @@ local selstart, selend = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 local item_cnt = reaper.CountSelectedMediaItems(0)
 local change = false -- to be used for undo point creation
 local timeselexists, timesel_removed
+local debug = false
 
 ---------------------------------------------------------------------------------------------------
 
@@ -82,7 +83,7 @@ local function CrossfadeOK(item, previousitem, secondstart, firstend, xfadetime)
   local ok = false
   local prev_fadelen = reaper.GetMediaItemInfo_Value(previousitem, "D_FADEOUTLEN")
   local next_fadelen = reaper.GetMediaItemInfo_Value(item, "D_FADEINLEN")
-  if prev_fadelen == next_fadelen and
+  if prev_fadelen > 0 and next_fadelen == prev_fadelen and
      math.abs((firstend - prev_fadelen) - secondstart) <= 0.001
   then
     ok = true
@@ -116,14 +117,14 @@ if item_cnt > 1 then
       if firstend < secondstart - xfadetime and (selstart == selend or (firstend < selstart and secondstart > selend)) then
         -- items do not touch and there is no time selection covering parts of both items
         -- do nothing
-        --reaper.ShowConsoleMsg("not touch\n")
+        if debug then reaper.ShowConsoleMsg("not touch\n") end
       elseif firststart < secondstart and firstend > secondend then
         -- one item encloses the other
         -- do nothing
-        --reaper.ShowConsoleMsg("enclosure\n")
+        if debug then reaper.ShowConsoleMsg("enclosure\n") end
       elseif selstart ~= selend and selend >= secondstart and selend <= secondend and selstart <= firstend and selstart >= firststart then
         -- time selection exists and covers parts of both items
-        --reaper.ShowConsoleMsg("inside time selection\n")
+        if debug then reaper.ShowConsoleMsg("inside time selection\n") end
         timeselexists = 1
         local timesel = selend - selstart
         if FadeInOK(item, timesel) == false or FadeOutOK(previousitem, timesel) == false then
@@ -141,7 +142,7 @@ if item_cnt > 1 then
         end
       elseif secondstart >= firstend and secondstart <= firstend + xfadetime
         then -- items are adjacent (or there is a gap smaller or equal to the crossfade time)
-        --reaper.ShowConsoleMsg("adjacent\n")
+        if debug then reaper.ShowConsoleMsg("adjacent\n") end
         if CrossfadeOK(item, previousitem, secondstart, firstend, xfadetime) == false then
           -- previous item (ensure it ends exactly at the start of the next item)
           reaper.SetMediaItemSelected(previousitem, true)
@@ -157,7 +158,7 @@ if item_cnt > 1 then
         end
       elseif firstend > secondstart then -- items are overlapping
         local overlap = firstend - secondstart
-        --reaper.ShowConsoleMsg("overlap\n")
+        if debug then reaper.ShowConsoleMsg("overlap\n") end
         if FadeInOK(item, overlap) == false or FadeOutOK(previousitem, overlap) == false then
           FadeIn(item, overlap)
           FadeOut(previousitem, overlap)
