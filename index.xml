@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c752647d62ce5ce04f8108f367ae4f7204e39893" name="ReaTeam Scripts">
+<index version="1" commit="ccd50ddd990ed91d39e35be5749dd20811aad406" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1354,6 +1354,28 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="0.91" author="juliansader" time="2017-07-09T18:38:52Z">
         <changelog><![CDATA[+ Temporary items will be deleted even if no tracks are selected.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e960e584c06098708b5a278f5f29777f94bc5cd2/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (excluding hidden track envelopes).lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (excluding hidden track envelopes).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Copies all items and automation from the time selection of selected tracks to the position of the edit cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All automation, even from tracks without any items, will be copied.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: A potential problem is that pre-existing envelope points in the area where the automation is pasted will not be overwritten, so old and new points will be mixed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select the area to be copied (i.e. select time and tracks), place edit cursor at paste position, and run script.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.91" author="juliansader" time="2017-10-14T11:29:59Z">
+        <changelog><![CDATA[+ New version that excludes hidden track envelopes.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccd50ddd990ed91d39e35be5749dd20811aad406/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor%20(excluding%20hidden%20track%20envelopes).lua</source>
       </version>
     </reapack>
     <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua">
