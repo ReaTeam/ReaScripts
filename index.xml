@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6e1921ab9c9f9559025252b71eee6253f087bc1b" name="ReaTeam Scripts">
+<index version="1" commit="e645b832ed0d770e8e72b171f0894301b590a9d0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -211,20 +211,6 @@
     </reapack>
   </category>
   <category name="Development">
-    <reapack name="amagalma_Find custom action or script name by its ID.lua" type="script" desc="amagalma_Find custom action or script name by its ID">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Searches in your reaper-kb.ini file to find the action name of the provided ID\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" time="2017-10-18T15:57:55Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6e1921ab9c9f9559025252b71eee6253f087bc1b/Development/amagalma_Find%20custom%20action%20or%20script%20name%20by%20its%20ID.lua</source>
-      </version>
-    </reapack>
     <reapack name="cfillion_GFX Keyboard Inspector.lua" type="script" desc="GFX Keyboard Inspector">
       <version name="1.0" author="cfillion" time="2017-06-09T21:48:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec262f9480695aef743f25cb818a3c88dd3c431/Development/cfillion_GFX%20Keyboard%20Inspector.lua</source>
