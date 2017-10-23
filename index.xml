@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2a84f3bffa992e58a37739a1f2a1c02a425c9c31" name="ReaTeam Scripts">
+<index version="1" commit="d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -919,6 +919,18 @@ added support for all track envelopes]]></changelog>
       </metadata>
       <version name="0.1beta" author="cfillion" time="2017-07-05T01:23:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2f6e0b0c055ed224f21de909b1c65b901090794/FX/cfillion_Show%20ReaPack%20about%20dialog%20for%20the%20focused%20JSFX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Toggle monitoring FX bypass.lua" type="script" desc="Toggle monitoring FX bypass (8 actions)">
+      <version name="1.0" author="cfillion" time="2017-10-23T16:12:33Z">
+        <source main="main" file="cfillion_Toggle monitoring FX 1 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 2 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 3 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 4 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 5 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 6 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 7 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+        <source main="main" file="cfillion_Toggle monitoring FX 8 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 Pitch Offset">
