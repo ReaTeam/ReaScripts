@@ -3,14 +3,14 @@
 ## Motivation
 
 I make CDs for an English language school. A single track in a typical project
-usually comprised a few __instructions__ followed by a lot of __words__, each 
-with spaces for __repeats__ and __pauses__ to allow listeners to practice. When 
+usually comprised a few __instructions__ followed by a lot of __words__, each
+with spaces for __repeats__ and __pauses__ to allow listeners to practice. When
 I first started doing this, my process was something like this:
 
 ### Setup
 
-1. Obtain a _script_ of the entire CD project. 
-   * The script would define the layout of each __track__. Something like this: 
+1. Obtain a _script_ of the entire CD project.
+   * The script would define the layout of each __track__. Something like this:
      * [Instruction 1A], Cat, Dog, Elephant, ...
 1. Create a _skeleton_ REAPER session file that contained _Empty MIDI Items_ for
    each of the __components__ that would _eventually_ be recorded in the
@@ -70,7 +70,7 @@ _Clip Splicer_ is used to automatically assemble components into a REAPER
 project.
 
 The components are defined by a simple JSON file that can be created by hand, or
-by machine. For example, here's what a basic __Clip Splicer__ JSON file might 
+by machine. For example, here's what a basic __Clip Splicer__ JSON file might
 look like:
 
 ```json
@@ -86,7 +86,7 @@ look like:
         "track": "Person1",
         "name": "Word1",
         "filename": "P1-W1.wav"
-      }, 
+      },
       {
         "type": "MEDIA ITEM",
         "name": "Pause after clip.",
@@ -103,8 +103,8 @@ this:
 →Regions→
             |- - - - - - - -  A region named "REGION: Simple example" - - - - - - -|
 →Timeline→
-↓Tracks↓   
-Beethoven | |- -  Media Item: "P1-W1.wav"  - - -|
+↓Tracks↓
+Person1   | |- -  Media Item: "P1-W1.wav"  - - -|
 SILENCE   |                                      |-  Empty Media Item (length 2s) -|
 ```
 Notice:
@@ -161,7 +161,7 @@ http://www.json.org for some inspiration.
 
 Keep in mind that anything in your REAPER session that should be _ordered_ needs
 to be within an array in the JSON file. In the above example, the main REGION
-("Simple example") is the _only_ REGION in the specification's components. 
+("Simple example") is the _only_ REGION in the specification's components.
 A __Clip Splicer__ specification __*requires*__ at least one component in the
 "components" member.
 
@@ -174,7 +174,7 @@ One of the powerful features of __Clip Splicer__ is that REGIONs can be
 _nested_. For example, imagine this:
 
 * You are creating a single project that should contain 5 _discs_ (as in CDs).
-* Each _disc_ has a few dozen _tracks_ (as in tracks on a CD). 
+* Each _disc_ has a few dozen _tracks_ (as in tracks on a CD).
 * Each _track_ has two _sections_:
   * An _instructions_ section.
   * A _content_ section.
@@ -207,7 +207,7 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
   "components": [
     {
       "type": "REGION",
-      "name": "DISC - Disc 01", 
+      "name": "DISC - Disc 01",
       "components": [
         {
           "type": "REGION",
@@ -245,14 +245,14 @@ Here's a slightly more complex __Clip Splicer__ JSON file example:
         },
         {
           "type": "REGION",
-          "name": "TRACK - Track 01", 
+          "name": "TRACK - Track 01",
           "components": [ ... ]
         }
       ]
     },
     {
       "type": "REGION",
-      "name": "DISC - Disc 02", 
+      "name": "DISC - Disc 02",
       "components": [ ... ]
     }
   ]
@@ -268,7 +268,7 @@ There are only 2 basic JSON object types:
 
 #### REGION
 
-A `REGION` is used to _wrap_ and _contain_ a series of _components_. 
+A `REGION` is used to _wrap_ and _contain_ a series of _components_.
 
 Here are the valid members of a `REGION` object:
 
@@ -280,11 +280,11 @@ Here are the valid members of a `REGION` object:
   track, unless overridden. If not, the _inherited_ track will be used. If there
   is no _inherited_ track, a track with no name will be used.
 * `path` (string) (optional) : If specified, all components' paths will be
-  relative to this path. If not, the _inherited_ path will be used.  If there is 
-  no _inherited_ path, the root path will be used. The root path is the 
+  relative to this path. If not, the _inherited_ path will be used.  If there is
+  no _inherited_ path, the root path will be used. The root path is the
   location of the JSON file itself.
 * `components` (array) (optional) : If defined, the objects _within_ the array
-  will be interpreted and imported into this `REGION`. If empty or 
+  will be interpreted and imported into this `REGION`. If empty or
   undefined, the `REGION` will have length 0.
 
 Here's an example `REGION` with all the bells and whistles:
@@ -315,7 +315,7 @@ Here are the valid member of a `MEDIA ITEM` object:
   interpreted properly.
 * `name` (string) (optional) : If defined, the _REAPER Media Item_ will be named
   "[name]".
-* `track` (string) (optional) : If specified, this _REAPER Media Item_ will be 
+* `track` (string) (optional) : If specified, this _REAPER Media Item_ will be
   added to this track. If not, the _inherited_ track will be used. If there
   is no _inherited_ track, a track with no name will be used.
 * `filename` (string) (optional) : If specified, __Clip Splicer__ will look for a
@@ -326,7 +326,7 @@ Here are the valid member of a `MEDIA ITEM` object:
   used. If the specified length is _shorter_ than the file's length, the end of
   the file will be truncated. If the specified length is _longer_ than the
   file's length, the audio will be looped to reach the length.
-* `mute` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted. 
+* `mute` (true/false) (optional) : If true, the _REAPER Media Item_ will be muted.
 
 Here's an example `MEDIA ITEM` with all the bells and whistles.
 
@@ -343,6 +343,6 @@ Here's an example `MEDIA ITEM` with all the bells and whistles.
 
 ### path
 
-If an object specifies a `path`, all internal components within
-that `REGION` will _inherit_ the specified `path`. Internal components 
-can _extend_ their parent's path by specifying a new `path`.
+If an object specifies a `path`, all internal components within that `REGION`
+will _inherit_ the specified `path`. Internal components can _extend_ their
+parent's path by specifying a new `path`.
