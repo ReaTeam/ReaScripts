@@ -1,17 +1,16 @@
 -- @description Interactive ReaScript (iReaScript)
--- @version 0.6.2
+-- @version 0.7.1
 -- @author cfillion
 -- @changelog
---   add "About iReaScript (F1)" context menu entry and shortcut (ReaPack v1.2+)
---   don't crash when pasting \r\n
---   don't display a completely blank line when an empty error string is given
---   paste on middle click
---   persist history between sessions
---   reimplement copy/paste using my new API functions (SWS v1.9.6+)
---   support non-string arguments to Lua's error function
--- @link Forum Thread https://forum.cockos.com/showthread.php?t=177324
+--   don't select to the buffer end when a partial line is diplayed at the bottom
+--   fix crash when displaying table with mixed key types
+--   fix length counting of tables containing mixed key types
+--   use Lua-compatible syntax for displaying keys in tables
+-- @links
+--   cfillion.ca https://cfillion.ca
+--   Forum Thread https://forum.cockos.com/showthread.php?t=177324
 -- @donation https://www.paypal.me/cfillion
--- @screenshot http://i.imgur.com/RrGfulR.gif
+-- @screenshot https://i.imgur.com/RrGfulR.gif
 -- @about
 --   # Interactive ReaScript (iReaScript)
 --
@@ -20,7 +19,7 @@
 --
 --   ## Screenshot
 --
---   http://i.imgur.com/RrGfulR.gif
+--   https://i.imgur.com/RrGfulR.gif
 --
 --   ## Main Features
 --
@@ -31,9 +30,10 @@
 --   - Error catching
 --   - Multiline input (functions, conditions...)
 --   - Pretty print return values
---   - Scrolling
---   - Text wrapping
 --   - Run actions (!command_id, !!midi_editor_action)
+--   - Scrolling
+--   - Text selection
+--   - Text wrapping for long lines
 --
 --   ## Known Issues/Limitations
 --
@@ -49,8 +49,9 @@ local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
 
 local ireascript = {
   -- settings
-  TITLE = 'Interactive ReaScript',
-  VERSION = '0.6.2',
+  TITLE = 'Interactive ReaScript (iReaScript)',
+  NAME = 'Interactive ReaScript',
+  VERSION = '0.7.1',
 
   MARGIN = 3,
   MAXLINES = 2048,
@@ -63,20 +64,23 @@ local ireascript = {
   CMD_PREFIX = '.',
   ACTION_PREFIX = '!',
 
-  COLOR_BLACK = {12, 12, 12},
-  COLOR_BLUE = {88, 124, 212},
-  COLOR_DEFAULT = {190, 190, 190},
-  COLOR_GREEN = {90, 173, 87},
-  COLOR_MAGENTA = {175, 95, 95},
-  COLOR_ORANGE = {255, 93, 40},
-  COLOR_RED = {255, 85, 85},
-  COLOR_WHITE = {255, 255, 255},
-  COLOR_YELLOW = {199, 199, 0},
-  COLOR_SCROLL = {190, 190, 190},
+  COLOR_BLACK     = {012, 012, 012},
+  COLOR_BLUE      = {088, 124, 212},
+  COLOR_DEFAULT   = {190, 190, 190},
+  COLOR_GREEN     = {090, 173, 087},
+  COLOR_MAGENTA   = {175, 095, 095},
+  COLOR_ORANGE    = {255, 093, 040},
+  COLOR_RED       = {255, 085, 085},
+  COLOR_WHITE     = {255, 255, 255},
+  COLOR_YELLOW    = {199, 199, 000},
+  COLOR_SCROLL    = {190, 190, 190},
+  COLOR_SELECTION = {020, 040, 105},
 
   -- internal constants
   SG_NEWLINE = 1,
   SG_BUFNEWLINE = 2,
+
+  IDC_IBEAM = 32513,
 
   FONT_NORMAL = 1,
   FONT_BOLD = 2,
@@ -85,6 +89,8 @@ local ireascript = {
 
   KEY_BACKSPACE = 8,
   KEY_CLEAR = 144,
+  KEY_ESCAPE = 27,
+  KEY_CTRLA = 1,
   KEY_CTRLC = 3,
   KEY_CTRLD = 4,
   KEY_CTRLL = 12,
@@ -105,8 +111,10 @@ local ireascript = {
   KEY_UP = 30064,
   KEY_F1 = 26161,
 
-  MIDDLE_CLICK = 64,
-  RIGHT_CLICK = 2,
+  MIDDLE_BTN = 64,
+  LEFT_BTN = 1,
+  RIGHT_BTN = 2,
+  DOUBLECLICK_TIME = 0.2,
 
   EXT_SECTION = 'cfillion_ireascript',
   EXT_WINDOW_STATE = 'window_state',
@@ -114,6 +122,8 @@ local ireascript = {
 
   HISTORY_FILE = ({reaper.get_action_context()})[2] .. '.history',
   HISTORY_LIMIT = 1000,
+
+  WORD_SEPARATORS = '%s"\'<>:;,!&|=/\\%(%)%%%+%-%*%?%[%]%^%$',
 
   NO_CLIPBOARD_API = 'Copy/paste requires SWS v2.9.6 or newer',
   NO_REAPACK_API = 'ReaPack v1.2+ is required to use this feature',
@@ -147,8 +157,8 @@ function ireascript.help()
 
   ireascript.nl()
   ireascript.push('Built-in functions and variables:\n')
-  helpLine("print(...)", "Print any number of values", 11)
-  helpLine("_", "Last return value", 11)
+  helpLine('print(...)', 'Print any number of values', 11)
+  helpLine('_', 'Last return values', 11)
 end
 
 function ireascript.replay()
@@ -185,7 +195,7 @@ end
 
 function ireascript.reset(banner)
   ireascript.buffer = {}
-  ireascript.lines = 0
+  ireascript.lineCount = 0
   ireascript.page = 0
   ireascript.scroll = 0
   ireascript.wrappedBuffer = {w = 0}
@@ -195,7 +205,7 @@ function ireascript.reset(banner)
     ireascript.resetFormat()
 
     ireascript.push(string.format('%s v%s by cfillion\n',
-      ireascript.TITLE, ireascript.VERSION))
+      ireascript.NAME, ireascript.VERSION))
     ireascript.push('Type Lua code, !ACTION or .help\n')
   end
 
@@ -220,7 +230,9 @@ function ireascript.run()
   ireascript.history = {}
   ireascript.hindex = 0
   ireascript.lastMove = os.time()
-  ireascript.mouse_cap = 0
+  ireascript.mouseCap = 0
+  ireascript.selection = nil
+  ireascript.lastClick = 0.0
 
   ireascript.reset(true)
   ireascript.loop()
@@ -307,6 +319,10 @@ function ireascript.keyboard()
     ireascript.complete()
   elseif char == ireascript.KEY_F1 then
     ireascript.about()
+  elseif char == ireascript.KEY_CTRLA then
+    ireascript.selectAll()
+  elseif char == ireascript.KEY_ESCAPE then
+    ireascript.selection = nil
   elseif char >= ireascript.KEY_INPUTRANGE_FIRST and char <= ireascript.KEY_INPUTRANGE_LAST then
     local before, after = ireascript.splitInput()
     ireascript.input = before .. string.char(char) .. after
@@ -326,22 +342,14 @@ function ireascript.nextBoundary(input, from)
   end
 end
 
-function ireascript.draw(offset)
-  ireascript.useColor(ireascript.COLOR_BLACK)
-  gfx.rect(0, 0, gfx.w, gfx.h)
-
-  gfx.x = ireascript.MARGIN
-  gfx.y = gfx.h - (offset or 0)
-
+function ireascript.wrappedLines()
   local lineEnd = #ireascript.wrappedBuffer
   local nl = lineEnd + 1 -- past the end of the buffer
-  local lines, lineHeight = 0, 0
-  local lastSkipped, before, after = nil, 0, 0
 
-  ireascript.page = 0
+  return function()
+    if nl < 1 then return end
 
-  while nl > 0 do
-    lineHeight = 0
+    local lineHeight = 0
 
     while nl > 0 do
       local segment = ireascript.wrappedBuffer[nl]
@@ -358,8 +366,30 @@ function ireascript.draw(offset)
       nl = nl - 1
     end
 
-    local lineStart = nl + 1
+    local line = {front=nl + 1, back=lineEnd, height=lineHeight}
 
+    lineEnd = nl - 1
+    nl = lineEnd
+
+    return line
+  end
+end
+
+function ireascript.draw(offset)
+  ireascript.useColor(ireascript.COLOR_BLACK)
+  gfx.rect(0, 0, gfx.w, gfx.h)
+
+  gfx.x = ireascript.MARGIN
+  gfx.y = gfx.h - (offset or 0)
+  ireascript.pageBottom = gfx.y
+
+  local lines, lineHeight = 0, 0
+  local lastSkipped, before, after = nil, 0, 0
+
+  ireascript.page = 0
+
+  for line in ireascript.wrappedLines() do
+    lineHeight = line.height
     lines = lines + 1
 
     if lines > ireascript.scroll then
@@ -368,30 +398,26 @@ function ireascript.draw(offset)
       if gfx.y > 0 then
         -- only count 100% visible lines
         ireascript.page = ireascript.page + 1
-        ireascript.drawLine(lineStart, lineEnd, lineHeight)
+        ireascript.drawLine(line)
       elseif gfx.y > -lineHeight then
         -- partially visible line at the top
         before = before + math.abs(gfx.y)
-        ireascript.drawLine(lineStart, lineEnd, lineHeight)
+        ireascript.drawLine(line)
       else
         before = before + lineHeight
       end
     else
       after = after + lineHeight
-      lastSkipped = {lineStart, lineEnd, lineHeight}
+      lastSkipped = line
     end
-
-    lineEnd = nl - 1
-    nl = lineEnd
   end
 
   if offset then
     if lastSkipped then
       -- draw incomplete line below scrolling
-      lineStart, lineEnd = lastSkipped[1], lastSkipped[2]
       gfx.x, gfx.y = ireascript.MARGIN, gfx.h - offset
-      after = after - (lastSkipped[3] - offset)
-      ireascript.drawLine(lineStart, lineEnd, lastSkipped[3])
+      after = after - (lastSkipped.height - offset)
+      ireascript.drawLine(lastSkipped)
     end
 
     -- simulate how many lines would be needed to fill the window
@@ -404,11 +430,36 @@ function ireascript.draw(offset)
   ireascript.scrollbar(before, after)
 end
 
-function ireascript.drawLine(lineStart, lineEnd, lineHeight)
+function ireascript.segmentSelection(segmentIndex)
+  local selected = ireascript.selection and
+    segmentIndex >= ireascript.selection[1].segment and
+    segmentIndex <= ireascript.selection[2].segment
+
+  if not selected then return end
+
+  local isFirst = segmentIndex == ireascript.selection[1].segment
+  local isLast = segmentIndex == ireascript.selection[2].segment
+
+  local segment, width = ireascript.wrappedBuffer[segmentIndex]
+
+  if type(segment) == 'table' then
+    width = segment.w
+  else
+    width = 10
+  end
+
+  local start = isFirst and ireascript.selection[1].offset or 0
+  local stop = isLast and ireascript.selection[2].offset or width
+
+  return start, stop
+end
+
+function ireascript.drawLine(line)
   local now = os.time()
 
-  for i=lineStart,lineEnd do
+  for i=line.front,line.back do
     local segment = ireascript.wrappedBuffer[i]
+    local selectionStart, selectionEnd = ireascript.segmentSelection(i)
 
     if type(segment) == 'table' then
       ireascript.useFont(segment.font)
@@ -416,14 +467,22 @@ function ireascript.drawLine(lineStart, lineEnd, lineHeight)
       ireascript.useColor(segment.bg)
       gfx.rect(gfx.x, gfx.y, segment.w, segment.h)
 
+      if selectionStart then
+        ireascript.useColor(ireascript.COLOR_SELECTION)
+        gfx.rect(gfx.x + selectionStart, gfx.y, selectionEnd - selectionStart, line.height)
+      end
+
       ireascript.useColor(segment.fg)
 
       if segment.caret and (now % 2 == 0 or now - ireascript.lastMove < 1) then
         local w, _ = gfx.measurestr(segment.text:sub(0, segment.caret))
-        ireascript.drawCaret(gfx.x + w, gfx.y, lineHeight)
+        ireascript.drawCaret(gfx.x + w, gfx.y, line.height)
       end
 
       gfx.drawstr(segment.text)
+    elseif segment == ireascript.SG_BUFNEWLINE and selectionStart then
+      ireascript.useColor(ireascript.COLOR_SELECTION)
+      gfx.rect(gfx.x , gfx.y, selectionEnd, line.height)
     end
   end
 end
@@ -469,6 +528,7 @@ function ireascript.update()
     end
   end
 
+  ireascript.selection = nil
   ireascript.wrappedBuffer.w = gfx.w
 
   local leftmost = ireascript.MARGIN
@@ -555,13 +615,12 @@ function ireascript.contextMenu()
   if dockState > 0 then dockFlag = '!' end
 
   local menu = string.format(
-    'Copy (^C)|Paste (^V)||Clear (^L)||%sDock window|About iReaScript (F1)|Close iReaScript (^D)',
+    'Copy (^C)|Paste (^V)||Select all (^A)||Clear (^L)||%sDock window|About iReaScript (F1)|Close iReaScript (^D)',
     dockFlag
   )
 
   local actions = {
-    ireascript.copy, ireascript.paste,
-    function() ireascript.reset() end,
+    ireascript.copy, ireascript.paste, ireascript.selectAll, ireascript.reset,
     function()
       if dockState == 0 then
         local lastDock = tonumber(reaper.GetExtState(
@@ -584,11 +643,7 @@ function ireascript.contextMenu()
   if actions[index] then actions[index]() end
 end
 
-function ireascript.loop()
-  if ireascript.keyboard() then
-    reaper.defer(ireascript.loop)
-  end
-
+function ireascript.mouseWheel()
   if gfx.mouse_wheel ~= 0 then
     local lines = math.ceil(math.abs(gfx.mouse_wheel) / 24)
 
@@ -600,17 +655,43 @@ function ireascript.loop()
 
     gfx.mouse_wheel = 0
   end
+end
 
-  if gfx.mouse_cap ~= ireascript.mouse_cap then
-    if ireascript.isMouseCap(ireascript.RIGHT_CLICK) then
-      ireascript.contextMenu()
+function ireascript.mouseBtnEvent()
+  if ireascript.isMouseDown(ireascript.LEFT_BTN) then
+    ireascript.mouseDownPoint = ireascript.pointUnderMouse()
+  elseif ireascript.isMouseUp(ireascript.LEFT_BTN) then
+    local now = reaper.time_precise()
+
+    if ireascript.lastClick > now - ireascript.DOUBLECLICK_TIME then
+      ireascript.selectWord(ireascript.pointUnderMouse())
+    else
+      ireascript.lastClick = now
     end
+  end
 
-    if ireascript.isMouseCap(ireascript.MIDDLE_CLICK) then
-      ireascript.paste()
-    end
+  if ireascript.isMouseUp(ireascript.MIDDLE_BTN) then
+    ireascript.paste(true)
+  end
 
-    ireascript.mouse_cap = gfx.mouse_cap
+  if ireascript.isMouseUp(ireascript.RIGHT_BTN) then
+    ireascript.contextMenu()
+  end
+end
+
+function ireascript.loop()
+  if ireascript.keyboard() then
+    reaper.defer(ireascript.loop)
+  end
+
+  ireascript.mouseWheel()
+
+  if gfx.mouse_cap ~= ireascript.mouseCap then
+    ireascript.mouseBtnEvent()
+
+    ireascript.mouseCap = gfx.mouse_cap
+  elseif ireascript.isMouseDrag(ireascript.LEFT_BTN) then
+    ireascript.selectRange(ireascript.mouseDownPoint, ireascript.pointUnderMouse())
   end
 
   if ireascript.wrappedBuffer.w ~= gfx.w then
@@ -624,8 +705,16 @@ function ireascript.loop()
   gfx.update()
 end
 
-function ireascript.isMouseCap(flag)
-  return gfx.mouse_cap & flag == 0 and ireascript.mouse_cap & flag == flag
+function ireascript.isMouseDown(flag)
+  return gfx.mouse_cap & flag == flag and ireascript.mouseCap & flag == 0
+end
+
+function ireascript.isMouseDrag(flag)
+  return gfx.mouse_cap & flag == flag
+end
+
+function ireascript.isMouseUp(flag)
+  return gfx.mouse_cap & flag == 0 and ireascript.mouseCap & flag == flag
 end
 
 function ireascript.resetFormat()
@@ -647,7 +736,7 @@ function ireascript.highlightFormat()
 end
 
 function ireascript.nl()
-  if ireascript.lines >= ireascript.MAXLINES then
+  if ireascript.lineCount >= ireascript.MAXLINES then
     local buf = ireascript.removeUntil(ireascript.buffer, ireascript.SG_NEWLINE)
     local wrap, nlCount = ireascript.removeUntil(ireascript.wrappedBuffer, ireascript.SG_BUFNEWLINE)
 
@@ -658,7 +747,7 @@ function ireascript.nl()
       ireascript.from.wrapped = ireascript.from.wrapped - wrap
     end
   else
-    ireascript.lines = ireascript.lines + 1
+    ireascript.lineCount = ireascript.lineCount + 1
   end
 
   ireascript.buffer[#ireascript.buffer + 1] = ireascript.SG_NEWLINE
@@ -671,7 +760,7 @@ function ireascript.push(contents)
 
   local index = 0
 
-  for line in ireascript.each_lines(contents) do
+  for line in ireascript.lines(contents) do
     if index > 0 then ireascript.nl() end
     index = index + 1
 
@@ -809,6 +898,13 @@ function ireascript.writeHistory()
 end
 
 function ireascript.pushHistory(line)
+  for i=1,math.min(50, #ireascript.history) do
+    if ireascript.history[i] == line then
+      table.remove(ireascript.history, i)
+      i = i - 1
+    end
+  end
+
   table.insert(ireascript.history, 1, line)
   ireascript.hindex = 0
 end
@@ -851,7 +947,7 @@ function ireascript.eval(nested)
   ireascript.pushHistory(ireascript.input)
   ireascript.input = ''
 
-  if ireascript.lines == 0 then
+  if ireascript.lineCount == 0 then
     -- buffer got reset (.clear)
     ireascript.input = ''
   end
@@ -1001,18 +1097,7 @@ function ireascript.format(value)
 end
 
 function ireascript.formatAnyTable(value)
-  local i, array, last = 0, true, 0
-
-  for k,v in pairs(value) do
-    if type(k) == 'number' and k > 0 then
-      i = i + (k - last) - 1
-      last = k
-    else
-      array = false
-    end
-
-    i = i + 1
-  end
+  local size, isArray = ireascript.realTableSize(value)
 
   if ireascript.flevel == nil then
     ireascript.flevel = 1
@@ -1024,11 +1109,7 @@ function ireascript.formatAnyTable(value)
     ireascript.flevel = ireascript.flevel + 1
   end
 
-  if array then
-    ireascript.formatArray(value, i)
-  else
-    ireascript.formatTable(value, i)
-  end
+  (isArray and ireascript.formatArray or ireascript.formatTable)(value, size)
 
   ireascript.flevel = ireascript.flevel - 1
 end
@@ -1078,7 +1159,7 @@ function ireascript.formatTable(value, size)
     doIndent()
   end
 
-  for k,v in pairs(value) do
+  for k,v in ireascript.sortedPairs(value) do
     if i > 1 then
       ireascript.resetFormat()
 
@@ -1095,9 +1176,10 @@ function ireascript.formatTable(value, size)
       ireascript.push(string.format('%d more...', size - i))
       break
     else
+      ireascript.push('[')
       ireascript.format(k)
       ireascript.resetFormat()
-      ireascript.push('=')
+      ireascript.push(']=')
       ireascript.format(v)
 
       i = i + 1
@@ -1135,25 +1217,37 @@ function ireascript.useColor(color)
 end
 
 function ireascript.copy()
-  if reaper.CF_SetClipboard then
-    reaper.CF_SetClipboard(ireascript.code())
-  else
+  if not reaper.CF_SetClipboard then
     ireascript.internalError(ireascript.NO_CLIPBOARD_API)
+    return
+  end
+
+  local selectedText = ireascript.selectedText()
+  local clipboard = selectedText and selectedText or ireascript.code()
+
+  if clipboard:len() > 0 then
+    reaper.CF_SetClipboard(clipboard)
   end
 end
 
-function ireascript.paste()
+function ireascript.paste(selection)
   if not reaper.CF_GetClipboard then
     ireascript.internalError(ireascript.NO_CLIPBOARD_API)
     return
   end
 
-  local clipboard, first = reaper.CF_GetClipboard(''), true
+  local isFirst, clipboard = true, nil
 
-  for line in ireascript.each_lines(clipboard) do
+  if selection and ireascript.selection then
+    clipboard = ireascript.selectedText()
+  else
+    clipboard = reaper.CF_GetClipboard('')
+  end
+
+  for line in ireascript.lines(clipboard) do
     if line:len() > 0 then
-      if first then
-        first = false
+      if isFirst then
+        isFirst = false
       else
         ireascript.removeCaret()
         ireascript.nl()
@@ -1250,6 +1344,188 @@ function ireascript.complete()
   ireascript.prompt()
 end
 
+function ireascript.lineAt(ypos)
+  local lineBottom = ireascript.pageBottom
+  local lines = 0
+
+  for line in ireascript.wrappedLines() do
+    lines = lines + 1
+
+    if lines > ireascript.scroll then
+      local lineTop = lineBottom - line.height
+
+      if lineTop <= ypos then
+        return line
+      end
+
+      lineBottom = lineTop
+    end
+
+    -- past the top of the screen
+    if lineBottom <= 0 then return end
+  end
+end
+
+function ireascript.segmentAt(line, xpos)
+  local lineLeft = 0
+  for i=line.front,line.back do
+    local segment = ireascript.wrappedBuffer[i]
+
+    if type(segment) == 'table' then
+      local lineRight = lineLeft + segment.w
+
+      if lineLeft <= xpos and lineRight >= xpos then
+        return i, lineLeft
+      end
+
+      lineLeft = lineRight
+    end
+  end
+end
+
+function ireascript.characterAt(segment, xpos)
+  local charLeft = 0
+
+  ireascript.useFont(segment.font)
+
+  for i=1,segment.text:len() do
+    local charRight = gfx.measurestr(segment.text:sub(1, i))
+
+    if charLeft <= xpos and charRight >= xpos then
+      return i, charLeft
+    end
+
+    charLeft = charRight
+  end
+end
+
+function ireascript.bufferStartPoint()
+  return {segment=1, char=0, offset=0}
+end
+
+function ireascript.bufferEndPoint()
+  local bufSize = #ireascript.wrappedBuffer
+  local lastSeg = ireascript.wrappedBuffer[bufSize]
+
+  return {segment=bufSize, char=lastSeg.text:len() + 1, offset=lastSeg.w}
+end
+
+function ireascript.pointUnderMouse()
+  local mouseX = math.max(ireascript.MARGIN, math.min(gfx.mouse_x, gfx.w))
+  local mouseY = math.max(ireascript.MARGIN, math.min(gfx.mouse_y, gfx.h))
+
+  local line = ireascript.lineAt(mouseY)
+  if not line then
+    return ireascript.bufferEndPoint()
+  end
+
+  local segIndex, segX = ireascript.segmentAt(line, mouseX)
+
+  if segIndex then
+    local segment = ireascript.wrappedBuffer[segIndex]
+    local char, offset = ireascript.characterAt(segment, mouseX - segX)
+
+    return {segment=segIndex, char=char, offset=offset}
+  else
+    local segment = ireascript.wrappedBuffer[line.back]
+
+    if segment == ireascript.SG_BUFNEWLINE then
+      line.back = line.back - 1
+      segment = ireascript.wrappedBuffer[line.back]
+    end
+
+    if type(segment) == 'table' then
+      return {segment=line.back, char=segment.text:len() + 1, offset=segment.w}
+    else
+      return {segment=line.back, char=0, offset=0}
+    end
+  end
+end
+
+function ireascript.comparePoints(a, b)
+  if a.segment == b.segment then
+    return a.offset < b.offset
+  else
+    return a.segment < b.segment
+  end
+end
+
+function ireascript.selectRange(a, b)
+  if ireascript.comparePoints(a, b) == ireascript.comparePoints(b, a) then
+    -- both points are identical, clear selection
+    ireascript.selection = nil
+  else
+    ireascript.selection = {a, b}
+    table.sort(ireascript.selection, ireascript.comparePoints)
+  end
+end
+
+function ireascript.selectWord(point)
+  local segment = ireascript.wrappedBuffer[point.segment]
+  if type(segment) ~= 'table' then return end
+
+  local match = string.format('[%s]', ireascript.WORD_SEPARATORS)
+  if segment.text:sub(point.char, point.char):match(match) then
+    -- select only whitespace if the point is between words
+    match = string.format('[^%s]', ireascript.WORD_SEPARATORS)
+  end
+
+  local before = segment.text:sub(1, point.char):reverse()
+  local wordStart = before:find(match)
+  if wordStart then
+    wordStart = before:len() - wordStart + 2
+  else
+    wordStart = 1
+  end
+
+  local wordEnd = segment.text:find(match, point.char) or (segment.text:len() + 1)
+
+  ireascript.useFont(segment.font)
+  local startOffset = gfx.measurestr(segment.text:sub(1, wordStart - 1))
+  local stopOffset = gfx.measurestr(segment.text:sub(1, wordEnd - 1))
+
+  local start = {segment=point.segment, char=wordStart, offset=startOffset}
+  local stop = {segment=point.segment, char=wordEnd, offset=stopOffset}
+
+  ireascript.selectRange(start, stop)
+end
+
+function ireascript.selectedText()
+  if not ireascript.selection then return end
+
+  local text = ''
+
+  for i=ireascript.selection[1].segment,ireascript.selection[2].segment do
+    local segment = ireascript.wrappedBuffer[i]
+
+    if type(segment) == 'table' then
+      local start, stop
+
+      if i == ireascript.selection[1].segment then
+        start = ireascript.selection[1].char
+      else
+        start = 0
+      end
+
+      if i == ireascript.selection[2].segment then
+        stop = ireascript.selection[2].char - 1
+      else
+        stop = segment.text:len()
+      end
+
+      text = text .. segment.text:sub(start, stop)
+    elseif segment == ireascript.SG_BUFNEWLINE then
+      text = text .. "\n"
+    end
+  end
+
+  return text
+end
+
+function ireascript.selectAll()
+  ireascript.selection = {ireascript.bufferStartPoint(), ireascript.bufferEndPoint()}
+end
+
 function ireascript.iswindows()
   return reaper.GetOS():find('Win') ~= nil
 end
@@ -1274,7 +1550,60 @@ function ireascript.contains(table, val)
   return false
 end
 
-function ireascript.each_lines(text)
+function ireascript.realTableSize(table)
+  local i, array, last = 0, true, 0
+
+  for k,v in pairs(table) do
+    if type(k) == 'number' and k > 0 then
+      i = i + (k - last) - 1
+      last = k
+    else
+      array = false
+      i = 0
+      break
+    end
+
+    i = i + 1
+  end
+
+  if not array then
+    for k,v in pairs(table) do
+      i = i + 1
+    end
+  end
+
+  return i, array
+end
+
+function ireascript.anySort(a, b)
+  if type(a) ~= 'number' or type(b) ~= 'number' then
+    a = tostring(a)
+    b = tostring(b)
+  end
+
+  return a < b
+end
+
+function ireascript.sortedPairs(t)
+  local keys = {}
+  for key,_ in pairs(t) do
+    table.insert(keys, key)
+  end
+  table.sort(keys, ireascript.anySort)
+
+  local it, state, n = ipairs(keys)
+
+  return function()
+    local newn, key = it(state, n)
+    n = newn
+
+    if key then
+      return key, t[key]
+    end
+  end
+end
+
+function ireascript.lines(text)
   local offset, finished = 0, false
   local from, to = -1
 
@@ -1318,6 +1647,8 @@ if w then
 else
   gfx.init(ireascript.TITLE, 550, 350)
 end
+
+gfx.setcursor(ireascript.IDC_IBEAM)
 
 if ireascript.iswindows() then
   gfx.setfont(ireascript.FONT_NORMAL, 'Consolas', 16)

@@ -1,6 +1,6 @@
 -- @description amagalma_Simulate tempo with playrate
 -- @author amagalma
--- @version 1.11
+-- @version 1.2
 -- @about
 --   # Sets the playrate to simulate a tempo entered by the user
 --   - Playrate has effect as long as the script window is open
@@ -8,11 +8,14 @@
 --   - Upon window closure, the playrate returns to 1
 --   - "preserve pitch in audio items" is enabled as long as the script runs
 --   - Manual changes in the playrate show the resulting tempo in the script's window
+--   - Spacebar toggles Transport: Play/Stop
+--   - Mousewheel increases/decreases simulated tempo by 0.5bpm
 
 --[[
  * Changelog:
- * v1.11 (2017-09-27)
-  + Manual changes in the playrate show the resulting tempo in the script's window
+ * v1.2 (2017-10-07)
+  + Added Space key support for Play/Stop
+  + Added mousewheel support. +-0.5bpm
 --]]
 
 -------------------------------------------------------------------------------------------
@@ -34,7 +37,21 @@ function main()
   if fra == 0 then newtempo = int end
   local wt, ht = gfx.measurestr(newtempo)
   gfx.x = w1 + 10 + (w - w2 - w1 - wt)/2
-  gfx.drawstr(newtempo)  
+  gfx.drawstr(newtempo)
+  -- Mouse wheel support +-0.5 bpm
+  if gfx.mouse_wheel > 0 then
+    gfx.mouse_wheel = 0
+    if (newtempo + 0.5)/tempo <= 4 then
+      newtempo = newtempo + 0.5
+      reaper.CSurf_OnPlayRateChange( newtempo/tempo )
+    end
+  elseif gfx.mouse_wheel < 0 then
+    gfx.mouse_wheel = 0
+    if (newtempo - 0.5)/tempo >= 0.25 then
+      newtempo = newtempo - 0.5
+      reaper.CSurf_OnPlayRateChange( newtempo/tempo )
+    end
+  end
   if gfx.mouse_cap & 1 == 1 and not btn_down then
       btn_down = true
     elseif gfx.mouse_cap & 1 == 0 and btn_down then
@@ -50,6 +67,9 @@ function main()
   if playrate ~= newplayrate then
     newplayrate = playrate
     newtempo = tempo*newplayrate
+  end
+  if gfx.getchar() == 32 then -- Space key
+    reaper.Main_OnCommand(40044, 0) -- Transport: Play/stop
   end
   if gfx.getchar() ~= 27 and gfx.getchar() >= 0 then
     reaper.defer(main) 
@@ -70,7 +90,7 @@ function init()
   tempo = reaper.Master_GetTempo()
   local ok, retvals = reaper.GetUserInputs("Simulate tempo with playrate", 1, "Enter desired tempo (bpm):", "" )
   newtempo = tonumber(retvals)
-  if ok and type(newtempo) == "number" and newtempo >= 1 and newtempo <= 960 then
+  if ok and type(newtempo) == "number" and newtempo >= 0 then
     newplayrate = newtempo/tempo
     if newplayrate < 0.25 then
       newplayrate = 0.25

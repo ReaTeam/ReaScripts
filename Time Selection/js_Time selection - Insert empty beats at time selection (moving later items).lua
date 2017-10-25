@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 0.99
+Version: 1.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -58,6 +58,8 @@ About:
   * v0.99 (2017-09-24)
     + Fixed bug when tempo map in time selection starts and ends on linear nodes with exact same values.
     + Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.
+  * v1.00 (2017-10-03)
+    + Also adjust Master track envelopes as if Timebase=time.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -293,6 +295,17 @@ for t = 0, reaper.CountTracks(0)-1 do
     local setOK = reaper.SetMediaTrackInfo_Value(track, "C_BEATATTACHMODE", 0)
     if not setOK then
         reaper.MB("The script could not set the timebase of all tracks.", "ERROR", 0)
+        tryToUndo = true
+        goto quit
+    end
+end
+-- Master track timebase
+do
+    local timebase = reaper.GetMediaTrackInfo_Value(masterTrack, "C_BEATATTACHMODE") -- -1=def, 0=time, 1=allbeats, 2=beatsosonly
+    tTrackTimebases[masterTrack] = timebase
+    local setOK = reaper.SetMediaTrackInfo_Value(masterTrack, "C_BEATATTACHMODE", 0)
+    if not setOK then
+        reaper.MB("The script could not set the timebase of the Master track.", "ERROR", 0)
         tryToUndo = true
         goto quit
     end

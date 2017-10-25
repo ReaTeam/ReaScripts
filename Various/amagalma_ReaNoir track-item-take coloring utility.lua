@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.04
+-- @version 2.05
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,78 +33,8 @@
 
 --[[
  * Changelog:
- * v2.04 (2017-06-20)
-  + Ctrl-clicking on Darker/Brighter buttons creates shaded/tinted gradient colors
- * v2.03 (2017-06-20)
-  + can save SWS files (functionality added by user Gianfini)
- * v2.02 (2017-04-13)
-  + bugfix: entering Hex codes when in HSL mode was not working
- * v2.01 (2017-04-09)
-  + small bugfix for OSX
- * v2.0 (2017-04-05)
-  + added Information button on right top corner
-  + GetColor now gets correctly the first selected track/item/take color when many are selected
- * v2.0beta (2017-04-04)
-  + Coloring actions now create undo points in Reaper's Undo History
-  + Better handling of empty items when applying gradient colors to many items in Takes Mode
-  + Random colors when in Takes Mode now can color Empty items too (empty items have no takes)
-  + Fixed bug when applying random colors to tracks
- * v1.95 (2017-04-04)
-  + Added Random color button: select random colors from the current palette (no color is repeated until all 24 have been used)
-  + Removed "select only one track/item" pop-ups when Getting Color. It gets the first selected one
-  + Changed behavior of Right-Click Temporary Color box in Items Mode to set all takes of items to default color
- * v1.90 (2017-04-03)
-  + Added Compact (No Sliders) mode (set in the script)
-  + Last slider Mode (RGB or HSL) is now remembered when loading
- * v1.85 (2017-04-02)
-  + Added ability to make gradient colors for takes too
-  + Gradient function now works for Temporary Color Box too
- * v1.75 (2017-03-31)
-  + Added ability to make gradient colors from first selected track/item/take's color to the ctrl-clicked color box
- * v1.66 (2017-03-29)
-  + Fixed bug when Getting Color in HSL mode
- * v1.65 (2017-03-29)
-  + Takes mode button is now green to contrast the manual mode with Tracks/Items mode (red) which is automatic
-  + Information displayed on top of ReaNoir when hovering mouse over buttons/sliders
- * v1.63 (2017-03-27)
-  + No more annoying pop-up when changing mode between RGB<->HSL
- * v1.62 (2017-03-27)
-  + Reanoir opens in the correct folders when loading SWSColors or user palettes (thanks Lokasenna! :) )
- * v1.61 (2017-03-26)
-  + fixed bug when trying to save a palette loaded from an SWSColor file
- * v1.60 (2017-03-26)
-  + added HSL sliders - right click sliders' area to toggle
- * v1.50 (2017-03-25)
-  + preliminary work for HSL mode for sliders (coming in next version)
-  + fixed bug when entering hex numbers
- * v1.45 (2017-03-25)
-  + when script opens, if the previous loaded file was SWSColor, it gets loaded  as an "unsaved palette"
-  + corrected gradient creation for SWSColor files
- * v1.42 (2017-03-24)
-  + ReaNoir does not steal focus when firstly launched
- * v1.41 (2017-03-24)
-  + improved docking
- * v1.40 (2017-03-24)
-  + improvement for ReaNoir not stealing focus
-  + ReaNoir remembers last window position
-  + fixed some bugs
- * v1.35 (2017-03-23)
-  + various optimizations in the code
-  + swapped order of LoadSWS and SWS Colors so that LoadSWS is on the left side like the Load button
-  + better error handling
-  + ReaNoir does not steal focus from Reaper
- * v1.30 (2017-03-22)
-  + Added button to open SWS Color Management
-  + Added ability and button to import SWSColor files (16 colors & 8 gradient colors)
- * v1.20 (2017-03-22)
-  + Added buttons to make temporary color brighter or darker (HSL luminance +- 3.3%)
- * v1.15 (2017-03-21)
-  + Right-click Temporary Color (big color box) to reset color to default
- * v1.1 (2017-03-21)
-  + fixed crash if not placed in same folder with original script
-  + moved Preferences to ExtState
-  + various bug fixes
-  + changed name to ReaNoir
+ * v2.05 (2017-10-07)
+  + Make use of cfillion's new CF_SetClipboard function to copy hex code to clipboard
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
@@ -506,7 +436,8 @@ GUI_xend = 186
 GUI_ystart = 5
 GUI_yend = 690 - compact
 GUI_centerx = GUI_xend/2 + GUI_xstart
-GUI_centery = GUI_yend/2 + GUI_ystart + compact/2                 
+GUI_centery = GUI_yend/2 + GUI_ystart + compact/2
+CopiedClipboard = false          
 
 ------------------------------------------
 --------- ColorBoxes Variables -----------
@@ -1773,7 +1704,13 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           gfx.set(0.8,0.8,0.8,1)
           gfx.x = HEXinfo_x +38
           gfx.y = HEXinfo_y -50
-          gfx.drawstr("\n" .. Hex_display)
+          if not CopiedClipboard then
+            gfx.drawstr("\n" .. Hex_display)
+          else
+            gfx.x = gfx.x - 13
+            gfx.drawstr("\n copied to clip")
+            CopiedClipboard = false
+          end
         -- Hex Border
           gfx.set(0.4,0.4,0.4,1)
           gfx.rect(HEXinfo_x + 18, HEXinfo_y - 38,94,21,0)
@@ -1787,7 +1724,9 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           HEXinfo_btn = Button(HEXinfo_x +20, HEXinfo_y-36, 90,17,2,0,0,"",help,0,1)
               HEXinfo_btn.onRClick = function ()
                 local sws = string.gsub(Hex_display, "#%s", "0x")
-                reaper.GetUserInputs("Copy SWS ready hex color code", 1, "Press Ctrl+C to copy the code", sws) 
+                reaper.CF_SetClipboard( sws )
+                CopiedClipboard = true
+                --reaper.GetUserInputs("Copy SWS ready hex color code", 1, "Press Ctrl+C to copy the code", sws) 
               end
               HEXinfo_btn.onClick = function ()
                 local sucess, answer = reaper.GetUserInputs("Hex color code", 1, "Paste color code here:", "")
