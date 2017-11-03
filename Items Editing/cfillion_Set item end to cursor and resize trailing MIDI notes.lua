@@ -1,9 +1,10 @@
 -- @description Set item end to cursor and resize trailing MIDI notes
 -- @author cfillion
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Avoid creating zero-length items when cursor is at the item's start
 -- @website
 --   cfillion.ca https://cfillion.ca/
---   Request Post https://forum.cockos.com/showthread.php?t=199045
+--   Request Thread https://forum.cockos.com/showthread.php?t=199045
 -- @donate https://www.paypal.me/cfillion
 -- @about
 --   Similar to the native "Item: Set item end to cursor" action except for these differences:
@@ -36,14 +37,15 @@ function extendItem(item, to)
   local from = start + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
   local resized = false
 
-  if start > to then return end
+  if start >= to then return end
 
   for takeIndex = 0, reaper.CountTakes(item) - 1 do
     local take = reaper.GetMediaItemTake(item, takeIndex)
 
     if reaper.TakeIsMIDI(take) then
       if not resized then
-        reaper.MIDI_SetItemExtents(item, reaper.TimeMap_timeToQN(start), reaper.TimeMap_timeToQN(to))
+        reaper.MIDI_SetItemExtents(item,
+          reaper.TimeMap_timeToQN(start), reaper.TimeMap_timeToQN(to))
         resized = true
       end
 
@@ -58,7 +60,9 @@ function extendItem(item, to)
   end
 end
 
-local selItems, cursorPos = reaper.CountSelectedMediaItems(0), reaper.GetCursorPosition()
+local selItems = reaper.CountSelectedMediaItems(0)
+local cursorPos = reaper.GetCursorPosition()
+
 if selItems < 1 then
   reaper.defer(function() end) -- disable implicit undo point
   return
