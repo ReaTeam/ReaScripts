@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e7cbe0c66458db56fd582e124d40528aad624931" name="ReaTeam Scripts">
+<index version="1" commit="ac023e92b01bc8ebddca8df3036a16cd5550a46b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1268,6 +1268,25 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Set item end to cursor and resize trailing MIDI notes.lua" type="script" desc="Set item end to cursor and resize trailing MIDI notes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Similar to the native "Item: Set item end to cursor" action except for these differences:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab MIDI takes are resized\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Note touching the item end are resized\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca/">cfillion.ca</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=199045">Request Post</link>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-11-02T23:58:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ac023e92b01bc8ebddca8df3036a16cd5550a46b/Items%20Editing/cfillion_Set%20item%20end%20to%20cursor%20and%20resize%20trailing%20MIDI%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Show all saved nudge settings.lua" type="script" desc="Show all saved nudge settings">
