@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ac023e92b01bc8ebddca8df3036a16cd5550a46b" name="ReaTeam Scripts">
+<index version="1" commit="2560e22481f40dd1e2fb88ce35938cb49a10eee1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1282,11 +1282,15 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 }
 ]]></description>
         <link rel="website" href="https://cfillion.ca/">cfillion.ca</link>
-        <link rel="website" href="https://forum.cockos.com/showthread.php?t=199045">Request Post</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=199045">Request Thread</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2017-11-02T23:58:43Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ac023e92b01bc8ebddca8df3036a16cd5550a46b/Items%20Editing/cfillion_Set%20item%20end%20to%20cursor%20and%20resize%20trailing%20MIDI%20notes.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2017-11-03T15:51:58Z">
+        <changelog><![CDATA[Avoid creating zero-length items when cursor is at the item's start]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2560e22481f40dd1e2fb88ce35938cb49a10eee1/Items%20Editing/cfillion_Set%20item%20end%20to%20cursor%20and%20resize%20trailing%20MIDI%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Show all saved nudge settings.lua" type="script" desc="Show all saved nudge settings">
