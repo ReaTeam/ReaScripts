@@ -1,10 +1,16 @@
 -- @description amagalma_Edit Group Management Utility
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
 -- @about
 --   # Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
 
 -- @link https://forum.cockos.com/showthread.php?t=195797
+
+--[[
+ * Changelog:
+ * v1.1 (2017-11-06)
+  + support for activating groups via dedicated actions in Action List
+--]]
 
 -- Special Thanks to: Spacemen Tree and spk77
 
@@ -12,7 +18,7 @@
 
 local reaper = reaper
 local math = math
-local version = "1.0"
+local version = "1.1"
 
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -636,9 +642,8 @@ function Initialize_OPTIONS()
       Select_all_tracks(0) -- unselect
       SelAllTracksToggle = not SelAllTracksToggle
       for recall = 1, tracks do
-      guid = MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup] [recall]
-      --M(guid) 
-      tr = reaper.BR_GetMediaTrackByGUID(0, guid)
+      local guid = MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup] [recall]
+      local tr = reaper.BR_GetMediaTrackByGUID(0, guid)
         if tr == nil then                         
           if MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup][recall] ~=nil
           then table.remove(MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup], recall)
@@ -835,24 +840,28 @@ function addClick_One(btn,group)
   end 
 end
 
+function EnableGroup(page, group)
+  if ACTIVEpage == -1 then EXECUTE_AllTracks() end
+   if group == ACTIVEgroup and ACTIVEpage == page then
+     Select_all_tracks(0)  -- Unselect all tracks
+     EXECUTE_Ungroup(ACTIVEpage,ACTIVEgroup)
+     reaper.UpdateArrange()
+     ACTIVEgroup = 0
+     ACTIVEpage = 0
+     RestoreGroupedItems()
+     Initialize_Groups()
+   else
+     SaveGroupedItems()
+     EXECUTE_Recall(page,group)
+   end
+end
+
 function groupClick_One(btn,group)
   btn.onClick = function ()
-        if ACTIVEpage == -1 then EXECUTE_AllTracks() end
-        if group == ACTIVEgroup and ACTIVEpage == 1 then
-          Select_all_tracks(0)  -- Unselect all tracks
-          EXECUTE_Ungroup(ACTIVEpage,ACTIVEgroup)
-          reaper.UpdateArrange()
-          ACTIVEgroup = 0
-          ACTIVEpage = 0
-          RestoreGroupedItems()
-          Initialize_Groups()
-        else
-          SaveGroupedItems()
-          EXECUTE_Recall(1,group)
-        end
+    EnableGroup(1, group)
   end 
   btn.onRClick = function ()                           
-        EXECUTE_Rename_Group(btn,group)
+    EXECUTE_Rename_Group(btn,group)
   end  
 end 
 
@@ -937,18 +946,7 @@ end
 
 function groupClick_Two(btn,group)   
   btn.onClick = function ()
-  if group == ACTIVEgroup and ACTIVEpage == 2 then
-    Select_all_tracks(0)  -- Unselect all tracks
-    EXECUTE_Ungroup(ACTIVEpage,ACTIVEgroup)
-    reaper.UpdateArrange()
-    ACTIVEgroup = 0
-    ACTIVEpage = 0
-    RestoreGroupedItems()
-    Initialize_Groups()
-  else
-    SaveGroupedItems()
-    EXECUTE_Recall(2,group)
-  end
+    EnableGroup(2, group)
   end 
   btn.onRClick = function ()           
     --M("RENAME GROUP")
@@ -1037,18 +1035,7 @@ end
                   
 function groupClick_Three(btn,group)   
   btn.onClick = function ()
-  if group == ACTIVEgroup and ACTIVEpage == 3 then
-    Select_all_tracks(0)  -- Unselect all tracks
-    EXECUTE_Ungroup(ACTIVEpage,ACTIVEgroup)
-    reaper.UpdateArrange()
-    ACTIVEgroup = 0
-    ACTIVEpage = 0
-    RestoreGroupedItems()
-    Initialize_Groups()
-  else
-    SaveGroupedItems()
-    EXECUTE_Recall(3,group)
-  end
+    EnableGroup(3, group)
   end 
   btn.onRClick = function ()  
     --M("RENAME GROUP")
@@ -1461,6 +1448,7 @@ function MAIN()
   UI_DRAW_OPS()
   UI_DOCKER()
   
+  
   if PAGE_mode == 1 then UI_GROUP_PAGE_One()
   elseif PAGE_mode == 2 then UI_GROUP_PAGE_Two()
   elseif PAGE_mode == 3 then UI_GROUP_PAGE_Three()
@@ -1473,9 +1461,15 @@ function MAIN()
   if gfx.mouse_cap & 1 == 0 and gfx.mouse_cap & 2 == 0 then
   last_mouse_state = 0
   else last_mouse_state = 1 
-  end 
+  end
   
   gfx.update()
+   
+  if reaper.HasExtState( "Edit Groups", "Active group" ) then
+    local act_group = tonumber(reaper.GetExtState("Edit Groups", "Active group"))
+    EnableGroup(1, act_group)
+    reaper.DeleteExtState( "Edit Groups", "Active group", false )
+  end
   
   if gfx.getchar() >= 0 then reaper.defer(MAIN)
   else
