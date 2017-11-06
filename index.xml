@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6421c77eedbf2c49cfc8e929fe9f98ea4263cbcb" name="ReaTeam Scripts">
+<index version="1" commit="cd8e609895356d02fed958da04aff1a2512aa7e7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5738,6 +5738,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-11-04T19:04:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6421c77eedbf2c49cfc8e929fe9f98ea4263cbcb/Various/amagalma_Edit%20Group%20Management%20Utility.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2017-11-06T14:24:24Z">
+        <changelog><![CDATA[+ support for activating groups via dedicated actions in Action List]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd8e609895356d02fed958da04aff1a2512aa7e7/Various/amagalma_Edit%20Group%20Management%20Utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation - UNDO.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation - UNDO">
