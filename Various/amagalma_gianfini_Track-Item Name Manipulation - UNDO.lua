@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.86
+-- @version 2.87
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
@@ -13,68 +13,15 @@
 
 --[[
  * Changelog:
- * v2.86 (2017-09-08)
-  + gianfini fix:
-  + fixed Commit doing nothing if last modifier didn't modify anything (but previous ones did modify the list)
-  + amagalma quick fix: (may need revision in the future)
-  + script crash when single-line editing a multiline item note
- * v2.85 (2017-09-07)
-  + amagalma addition:
-  + bug fix when dealing with multiline items' notes
- * v2.84 (2017-09-07)
-  + amagalma addition:
-  + The script now supports empty items' notes too
- * v2.83 (2017-08-28)
-  + gianfini fix:
-  + fixed single line editing clicking on list: help and click on empty line exception
- * v2.82 (2017-08-27)
-  + gianfini fixes:
-  + Redo button Help sometime not updated or wrong when inactive
-  + Reset button now stays active when REDO is possible (and resets both undo and redo)
-  + Reset REDO when branching new modifiers: e.g. act1, act2, act3, undo, undo, act 4 : would result in resetting REDO avoiding Redoing act2 over act4 (as most Undo in Windows)
- * v2.81 (2017-08-23)
-  + amagalma additions:
-  + Added Redo functionality
-  + a lot of code tidying-up & optimization
- * v2.71 (2017-08-23)
-  + Reapack header correction
-  + amagalma additions:
-  + Script remembers last window position
-  + Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
-  + Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"
- * v2.66 (2017-08-22)
-  + Fixed Undo which was broken in v2.65
- * v2.65 (2017-08-22)
-  + Code tidying-up and optimization
-  + Edited the Replace Help. Help opens in the Console so that one can continue using the script when Help is displayed
-  + Pressing the Commit button creates an undo point in Reaper's Undo History
- * v2.62 (2017-08-20)
-  + Added ability to keep scrolling names when keeping left button pressed (by amagalma)
-  + Added Clear button (clears all names)
- * v2.6 (2017-08-02)
-  + Small tweaks here and there
- * v2.5 (2017-08-01)
-  + Added help for Replace pattern symbols, added single line non-destructive edit from list
- * v2.4 (2017-07-31)
-  + Adjusted UNDO to avoid useless undo points
-  + Improved button behavior when inactive
-  + Fixed cornerstone bugs
- * v2.3 (2017-07-30)
-  + Added KEEP modifier from Amagalma script
-  + Version 'U' with multilevel UNDO
- * v2.2 (2017-07-29)
-  + Fixed handling empty items: no crash anymore
- * v2.1 (2017-07-28)
-  + Fixed continous "select track/item" windows. Improved switch between tracks and items
- * v2.0 (2017-07-26)
-  + Non desctructive mode implemented + graphic changes
+ * v2.87 (2017-11-11)
+  + amagalma fix: commas can now be used in Replace as long as they are escaped with a ~ (ex. ~,)
 --]]
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.86"
+local version = "2.87"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -586,6 +533,7 @@ local function InfoReplacePattern()
   local info = [[
 ----- Track/item Name Manipulation: Replace Pattern Help -----
 
+• comma (,) must be escaped with a ~ (~,) otherwise is ignored!
 
 --- SINGLE LETTER CLASSES ------------------------------------
 
@@ -1438,7 +1386,12 @@ local function init() -- INITIALIZATION ----------------------------------------
       if ok then
         if retvals ~= ",," and retvals ~= "," then
           local words = {}
-          for word in retvals:gmatch("[^,]+") do table.insert(words, word) end
+          retvals = string.gsub(retvals, "~,", "#@c@#")
+          for word in retvals:gmatch("[^,]+") do
+          word = string.gsub(word, "#@c@#", ",")
+          reaper.ShowConsoleMsg(word .. "\n")
+            table.insert(words, word)
+          end
           local replaceOld = words[1]
           local replaceWith = words[2] or ""   
           if string.sub(retvals, 1, 1) == "," then
