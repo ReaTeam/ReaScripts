@@ -1,6 +1,6 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.87
+-- @version 2.88
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
@@ -13,15 +13,15 @@
 
 --[[
  * Changelog:
- * v2.87 (2017-11-11)
-  + amagalma fix: commas can now be used in Replace as long as they are escaped with a ~ (ex. ~,)
+ * v2.88 (2017-11-14)
+  + fixed Reascript Console left open when using Replace
 --]]
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.87"
+local version = "2.88"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -1389,7 +1389,6 @@ local function init() -- INITIALIZATION ----------------------------------------
           retvals = string.gsub(retvals, "~,", "#@c@#")
           for word in retvals:gmatch("[^,]+") do
           word = string.gsub(word, "#@c@#", ",")
-          reaper.ShowConsoleMsg(word .. "\n")
             table.insert(words, word)
           end
           local replaceOld = words[1]
