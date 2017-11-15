@@ -8,6 +8,7 @@ local state = reaper.GetToggleCommandStateEx( 0, cmd )
 
 if state ~= 1 then
   reaper.Main_OnCommand(cmd, 0) -- open Edit Group Management Utility
+  reaper.SetCursorContext( 1 )
 end
 local groupId = ({reaper.get_action_context()})[2]:match('Toggle Edit Group (%d+)')
 reaper.SetExtState( "Edit Groups", "Active group", groupId, false )
