@@ -29,7 +29,7 @@
 
 local reaper = reaper
 local math = math
-local version = "1.2"
+local version = "1.21"
 
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
