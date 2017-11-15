@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7d3c4365583254f35275969a5b0d5e4d1ea9c490" name="ReaTeam Scripts">
+<index version="1" commit="e55f6e8aaaff27653b831924d0543f0204f7a87e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5787,6 +5787,21 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main" file="Toggle Edit Group 6 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/7d3c4365583254f35275969a5b0d5e4d1ea9c490/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
         <source main="main" file="Toggle Edit Group 7 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/7d3c4365583254f35275969a5b0d5e4d1ea9c490/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
         <source main="main" file="Toggle Edit Group 8 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/7d3c4365583254f35275969a5b0d5e4d1ea9c490/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+      </version>
+      <version name="1.22" author="amagalma" time="2017-11-15T21:06:27Z">
+        <changelog><![CDATA[+ TCP and MCP Buttons now latch
++ Moved Toggle Edit Group 1-8 actions into the package
++ bundled "Toggle Edit Group" actions now open the Management Utility if not already open
++ focus is given to Arrange view when using "Toggle Edit Group" actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Edit%20Group%20Management%20Utility.lua</source>
+        <source main="main" file="Toggle Edit Group 1 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 2 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 3 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 4 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 5 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 6 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 7 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
+        <source main="main" file="Toggle Edit Group 8 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_gianfini_Track-Item Name Manipulation - UNDO.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation - UNDO">
