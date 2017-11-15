@@ -1,4 +1,4 @@
--- @description Edit Group Management Utility _ amagalma
+-- @description Edit Group Management Utility_amagalma
 -- @version 1.2
 -- @author amagalma
 -- @about Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
