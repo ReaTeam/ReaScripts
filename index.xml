@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="507734bfd13ef8524cf009e8c02c0067995f00af" name="ReaTeam Scripts">
+<index version="1" commit="cc488ba105872bef64ace12127759c08577a92b2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6126,118 +6126,6 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="amagalma" time="2017-09-25T13:43:59Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e2de70295f1052ecbfb22d31843d44fe07c2843/Various/amagalma_Toggle%20behavior%20of%20Play-Stop%20buttons.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 1 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:36:46Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/688834b57ed60f05c3dfc27e42ee580b50c47b89/Various/amagalma_Toggle%20Edit%20Group%201%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 2 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:36:16Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/567a239001e6fc3a708c110c64a21fcd15b9ea10/Various/amagalma_Toggle%20Edit%20Group%202%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 3 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:35:52Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b265518a781e2b93e3b453cd7d463ee42f47668/Various/amagalma_Toggle%20Edit%20Group%203%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 4 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:35:07Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/db123a5a57bc3492c240bacfedd5f05ceeb0d6c6/Various/amagalma_Toggle%20Edit%20Group%204%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 5 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:34:44Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/adf74b7fc656d863a480e1a1dbcc790bf5618e30/Various/amagalma_Toggle%20Edit%20Group%205%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 6 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:34:18Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/79e069fceb26deed4814ec338a84a19df598be0f/Various/amagalma_Toggle%20Edit%20Group%206%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 7 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:33:51Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b2001fb64fa131561edfdeae66db3bc900e3d46/Various/amagalma_Toggle%20Edit%20Group%207%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle Edit Group 8 (amagalma_Edit Group Management Utility).lua" type="script">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 to be used with amagalma_Edit Group Management Utility\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-06T14:33:23Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b9ade1baee59bdf8c3a26c6bc3ddf8d286f400f/Various/amagalma_Toggle%20Edit%20Group%208%20(amagalma_Edit%20Group%20Management%20Utility).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
