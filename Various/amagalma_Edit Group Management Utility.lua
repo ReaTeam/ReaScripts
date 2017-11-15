@@ -1,24 +1,34 @@
--- @description amagalma_Edit Group Management Utility
+-- @description Edit Group Management Utility _ amagalma
+-- @version 1.2
 -- @author amagalma
--- @version 1.1
--- @about
---   # Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
+-- @about Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
+-- @link Forum thread https://forum.cockos.com/showthread.php?t=195797
+-- @provides
+--   [main] .
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 1 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 2 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 3 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 4 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 5 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 6 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 7 (Edit Group Management Utility _ amagalma).lua
+--   [main] amagalma_Toggle Edit Group (Edit Group Management Utility).lua > Toggle Edit Group 8 (Edit Group Management Utility _ amagalma).lua
 
--- @link https://forum.cockos.com/showthread.php?t=195797
 
 --[[
  * Changelog:
- * v1.1 (2017-11-06)
-  + support for activating groups via dedicated actions in Action List
+ * v1.2 (2017-11-15)
+  + TCP and MCP Buttons now latch
+  + Moved Toggle Edit Group 1-8 actions into the package
 --]]
 
--- Special Thanks to: Spacemen Tree and spk77
+-- Special Thanks to: Spacemen Tree, spk77 and cfillion
 
 -------------------------------------------------------------------------------------------------------------
 
 local reaper = reaper
 local math = math
-local version = "1.1"
+local version = "1.2"
 
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
@@ -305,9 +315,9 @@ local MATRIX_TempStoreTracks = {} --- create matrix for storing tracks in each g
 
 local MATRIX_labels = {}  --- GROUPS LABELS MATRIX
   
-  for row = 1,48 do
-    table.insert(MATRIX_labels, { }) -- insert new row
-  end  
+for row = 1,48 do
+  table.insert(MATRIX_labels, { }) -- insert new row
+end  
                  
 local MATRIX_groupone = {}   --- Matrices where the groups and the corresponding pages
 local MATRIX_grouptwo = {}   --- will be alocated
@@ -323,8 +333,12 @@ local Tracks_Visible_TCP = {}
 local Tracks_Visible_MCP = {}
 local TCP_mode = 0
 local MCP_mode = 0
+local done_tcp_hide = 0
+local done_mcp_hide = 0
 local PAGE_mode = 1
 local ACTIVEgroup, ACTIVEpage = 0, 0
+local ACTIVEgroupLast, ACTIVEpageLast = 0, 0
+local change_group
           
 -------------------------------------------------------------------------------------------------------------
 -- Functions --
@@ -451,6 +465,7 @@ function Initialize_ALLTRACKS()
   alltracks_btn:set_label_color(0.4,0.8,0.9,1)
   alltracks_btn.onClick = function () 
       EXECUTE_AllTracks()
+      reaper.SetCursorContext(1)
   end
 end
 
@@ -539,6 +554,82 @@ function RestoreGroupedItems()
   end
 end
 
+function TCP_Hide()
+  if (TCP_mode == 1 and ACTIVEpage > 0 and ACTIVEgroup > 0) and change_group == 1 then
+    local tracks = MATRIX_GroupMatrixSize [ACTIVEpage] [ACTIVEgroup]
+    local TracksOfGroup = {}
+    for i = 1, tracks do
+      local guid = MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup] [i]
+      TracksOfGroup[guid] = true
+    end
+    local all_tracks_cnt = reaper.CountTracks( 0 )
+    for i = 0, all_tracks_cnt -1 do
+      local track = reaper.GetTrack( 0, i )
+      local GUID = reaper.GetTrackGUID( track )
+      if done_tcp_hide == 0 then
+        Tracks_Visible_TCP[GUID] = reaper.IsTrackVisible( track, false ) and 1 or 0
+      end
+      if TracksOfGroup[GUID] then
+        reaper.SetMediaTrackInfo_Value( track, "B_SHOWINTCP", 1 )
+      else
+        reaper.SetMediaTrackInfo_Value( track, "B_SHOWINTCP", 0 )
+      end
+    end
+    reaper.TrackList_AdjustWindows(0)
+    reaper.UpdateArrange()
+    change_group = 0
+    done_tcp_hide = 1
+  elseif (TCP_mode == 0 and done_tcp_hide == 1)
+  or TCP_mode == 1 and done_tcp_hide == 1 and ACTIVEpage == 0 and ACTIVEgroup == 0 then
+    for guid, vis in pairs(Tracks_Visible_TCP) do
+      local track = reaper.BR_GetMediaTrackByGUID( 0, guid )
+      reaper.SetMediaTrackInfo_Value( track, "B_SHOWINTCP", vis )                      
+    end
+    reaper.TrackList_AdjustWindows(0)
+    reaper.UpdateArrange()
+    Tracks_Visible_TCP = {}
+    done_tcp_hide = 0
+    TCP_mode = 0
+  end
+end
+
+function MCP_Hide()
+  if (MCP_mode == 1 and ACTIVEpage > 0 and ACTIVEgroup > 0) and change_group == 1 then
+    local tracks = MATRIX_GroupMatrixSize [ACTIVEpage] [ACTIVEgroup]
+    local TracksOfGroup = {}
+    for i = 1, tracks do
+      local guid = MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup] [i]
+      TracksOfGroup[guid] = true
+    end
+    local all_tracks_cnt = reaper.CountTracks( 0 )
+    for i = 0, all_tracks_cnt -1 do
+      local track = reaper.GetTrack( 0, i )
+      local GUID = reaper.GetTrackGUID( track )
+      if done_mcp_hide == 0 then
+        Tracks_Visible_MCP[GUID] = reaper.IsTrackVisible( track, true ) and 1 or 0
+      end
+      if TracksOfGroup[GUID] then
+        reaper.SetMediaTrackInfo_Value( track, "B_SHOWINMIXER", 1 )
+      else
+        reaper.SetMediaTrackInfo_Value( track, "B_SHOWINMIXER", 0 )
+      end
+    end
+    reaper.TrackList_AdjustWindows(0)
+    change_group = 0
+    done_mcp_hide = 1
+  elseif (MCP_mode == 0 and done_mcp_hide == 1)
+  or MCP_mode == 1 and done_mcp_hide == 1 and ACTIVEpage == 0 and ACTIVEgroup == 0 then
+    for guid, vis in pairs(Tracks_Visible_MCP) do
+      local track = reaper.BR_GetMediaTrackByGUID( 0, guid )
+      reaper.SetMediaTrackInfo_Value( track, "B_SHOWINMIXER", vis )                      
+    end
+    reaper.TrackList_AdjustWindows(0)
+    Tracks_Visible_MCP = {}
+    done_mcp_hide = 0
+    MCP_mode = 0
+  end
+end
+
 function Initialize_OPTIONS()
   local x_options =8
   local y_options = 81
@@ -552,42 +643,10 @@ function Initialize_OPTIONS()
   TCP_GUI:set_color(0,0,0,0.1) 
   TCP_GUI:set_label_color(0.4,0.8,0.9,1)
   TCP_GUI.onClick= function ()
-    if TCP_mode == 0 then  
-      if ACTIVEpage > 0 and ACTIVEgroup > 0 then
-        local tracks = MATRIX_GroupMatrixSize [ACTIVEpage] [ACTIVEgroup]
-        local TracksOfGroup = {}
-        for i = 1, tracks do
-          local guid = MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup] [i]
-          TracksOfGroup[guid] = true
-        end
-        local all_tracks_cnt = reaper.CountTracks( 0 )
-        reaper.PreventUIRefresh(1)
-        for i = 0, all_tracks_cnt -1 do
-          local track = reaper.GetTrack( 0, i )
-          local GUID = reaper.GetTrackGUID( track )
-          Tracks_Visible_TCP[GUID] = reaper.IsTrackVisible( track, false ) and 1 or 0
-          if TracksOfGroup[GUID] then
-            reaper.SetMediaTrackInfo_Value( track, "B_SHOWINTCP", 1 )
-          else
-            reaper.SetMediaTrackInfo_Value( track, "B_SHOWINTCP", 0 )
-          end
-        end
-        reaper.PreventUIRefresh(-1)
-        reaper.TrackList_AdjustWindows(0)
-        reaper.UpdateArrange()
-        TCP_mode = 1
-      end
+    if TCP_mode == 0 then
+      TCP_mode = 1 
     else
-      reaper.PreventUIRefresh(1)
-      for guid, vis in pairs(Tracks_Visible_TCP) do
-        local track = reaper.BR_GetMediaTrackByGUID( 0, guid )
-        reaper.SetMediaTrackInfo_Value( track, "B_SHOWINTCP", vis )                      
-      end
-      reaper.PreventUIRefresh(-1)
-      reaper.TrackList_AdjustWindows(0)
-      reaper.UpdateArrange()
       TCP_mode = 0
-      Tracks_Visible_TCP = {}
     end
   end
   local help = "Toggle Show only the active group in MCP"
@@ -595,40 +654,10 @@ function Initialize_OPTIONS()
   MCP_GUI:set_color(0,0,0,0.1) 
   MCP_GUI:set_label_color(0.4,0.8,0.9,1)
   MCP_GUI.onClick= function ()
-    if MCP_mode == 0 then  
-      if ACTIVEpage > 0 and ACTIVEgroup > 0 then
-        local tracks = MATRIX_GroupMatrixSize [ACTIVEpage] [ACTIVEgroup]
-        local TracksOfGroup = {}
-        for i = 1, tracks do
-          local guid = MATRIX_StoredTracksGroups [ACTIVEpage] [ACTIVEgroup] [i]
-          TracksOfGroup[guid] = true
-        end
-        local all_tracks_cnt = reaper.CountTracks( 0 )
-        reaper.PreventUIRefresh(1)
-        for i = 0, all_tracks_cnt -1 do
-          local track = reaper.GetTrack( 0, i )
-          local GUID = reaper.GetTrackGUID( track )
-          Tracks_Visible_MCP[GUID] = reaper.IsTrackVisible( track, true ) and 1 or 0
-          if TracksOfGroup[GUID] then
-            reaper.SetMediaTrackInfo_Value( track, "B_SHOWINMIXER", 1 )
-          else
-            reaper.SetMediaTrackInfo_Value( track, "B_SHOWINMIXER", 0 )
-          end
-        end
-        reaper.PreventUIRefresh(-1)
-        reaper.TrackList_AdjustWindows(0)
-        MCP_mode = 1
-      end
+    if MCP_mode == 0 then
+      MCP_mode = 1 
     else
-      reaper.PreventUIRefresh(1)
-      for guid, vis in pairs(Tracks_Visible_MCP) do
-        local track = reaper.BR_GetMediaTrackByGUID( 0, guid )
-        reaper.SetMediaTrackInfo_Value( track, "B_SHOWINMIXER", vis )                      
-      end
-      reaper.PreventUIRefresh(-1)
-      reaper.TrackList_AdjustWindows(0)
       MCP_mode = 0
-      Tracks_Visible_MCP = {}
     end
   end
   local help = "Toggle select tracks of active group"
@@ -849,6 +878,9 @@ function EnableGroup(page, group)
      ACTIVEgroup = 0
      ACTIVEpage = 0
      RestoreGroupedItems()
+     ACTIVEgroupLast, ACTIVEpageLast = ACTIVEgroup, ACTIVEpage
+     ACTIVEgroup = 0
+     ACTIVEpage = 0
      Initialize_Groups()
    else
      SaveGroupedItems()
@@ -1167,10 +1199,8 @@ end
 function EXECUTE_Recall(ID_page,ID_group)                  
   local tracks = MATRIX_GroupMatrixSize [ID_page] [ID_group]
   if tracks == 0 or tracks == nil then
-    --M("No groups stored")
-    --M(tracks)                 
+    --M("No groups stored")              
   else
-    --M(tracks)
     Select_all_tracks(0)  -- Unselect all tracks
     EXECUTE_Ungroup(ACTIVEpage,ACTIVEgroup)
     reaper.PreventUIRefresh(1)
@@ -1213,6 +1243,7 @@ function EXECUTE_Recall(ID_page,ID_group)
     end
     reaper.PreventUIRefresh(-1)
     reaper.UpdateArrange()
+    ACTIVEgroupLast, ACTIVEpageLast = ACTIVEgroup, ACTIVEpage
     ACTIVEpage = ID_page
     ACTIVEgroup = ID_group
     SelAllTracksToggle = true
@@ -1462,6 +1493,16 @@ function MAIN()
   last_mouse_state = 0
   else last_mouse_state = 1 
   end
+  
+  if (ACTIVEgroupLast ~= ACTIVEgroup and ACTIVEgroup > 0 and ACTIVEpage > 0) 
+  or (ACTIVEpageLast ~= ACTIVEpage and ACTIVEgroup > 0 and ACTIVEpage > 0)
+  then
+    change_group = 1
+  else
+    change_group = 0
+  end
+  TCP_Hide()
+  MCP_Hide()
   
   gfx.update()
    
