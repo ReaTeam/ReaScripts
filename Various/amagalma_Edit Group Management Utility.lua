@@ -1,5 +1,5 @@
 -- @description Edit Group Management Utility_amagalma
--- @version 1.21
+-- @version 1.22
 -- @author amagalma
 -- @about Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=195797
@@ -17,10 +17,11 @@
 
 --[[
  * Changelog:
- * v1.21 (2017-11-15)
+ * v1.22 (2017-11-15)
   + TCP and MCP Buttons now latch
   + Moved Toggle Edit Group 1-8 actions into the package
   + bundled "Toggle Edit Group" actions now open the Management Utility if not already open
+  + focus is given to Arrange view when using "Toggle Edit Group" actions
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77 and cfillion
@@ -29,7 +30,7 @@
 
 local reaper = reaper
 local math = math
-local version = "1.21"
+local version = "1.22"
 
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
 -- class.lua
