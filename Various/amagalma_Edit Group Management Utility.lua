@@ -1,5 +1,5 @@
 -- @description Edit Group Management Utility_amagalma
--- @version 1.2
+-- @version 1.21
 -- @author amagalma
 -- @about Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=195797
@@ -17,9 +17,10 @@
 
 --[[
  * Changelog:
- * v1.2 (2017-11-15)
+ * v1.21 (2017-11-15)
   + TCP and MCP Buttons now latch
   + Moved Toggle Edit Group 1-8 actions into the package
+  + bundled "Toggle Edit Group" actions now open the Management Utility if not already open
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77 and cfillion
@@ -1467,6 +1468,11 @@ function Initialization()
     Initialize_GROUP_PAGE_Three(MATRIX_labels[32+mk],mk)
   end
   Initialize_Groups()
+
+local _, _, section, cmdID, _, _, _ = reaper.get_action_context()  
+reaper.SetToggleCommandState( section, cmdID, 1 ) -- Set ON
+reaper.RefreshToolbar2( section, cmdID )
+
 end
 
 -------------------------------------------------------------------------------------------------------------
@@ -1524,6 +1530,9 @@ function MAIN()
     local position = tostring(math.floor(x) .. " " .. math.floor(y))
     reaper.SetExtState( "Edit Groups", "Position", position, true )
     gfx.quit()
+    local _, _, section, cmdID, _, _, _ = reaper.get_action_context()  
+    reaper.SetToggleCommandState( section, cmdID, 0 ) -- Set OFF
+    reaper.RefreshToolbar2( section, cmdID )
   end    
 end
 
