@@ -11,6 +11,6 @@
 reaper.Undo_BeginBlock()
 reaper.Main_OnCommandEx(40726, 0, 0) -- Envelope: Insert 4 envelope points at time selection
 for i = 1, 200 do
-  reaper.Main_OnCommandEx(41180, 0, 0) -- Envelopes: Move selected points down a little bit
+  reaper.Main_OnCommandEx(41180, 0, 0) -- Envelopes: Move selected points up a little bit
 end
 reaper.Undo_EndBlock('Set envelope to maximum value within time selection', 1)
