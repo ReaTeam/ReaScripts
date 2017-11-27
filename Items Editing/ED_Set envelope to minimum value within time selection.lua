@@ -1,8 +1,8 @@
 --[[
- * @description: Set envelope to minimum value within time selection
- * @about: This script will set all envelope points within time selection to minimum value, including edges of time selection. Works on both track and take envelopes.
- * @author: EvilDragon
- * @version: 1.0
+ * @description Set envelope to minimum value within time selection
+ * @about This script will set all envelope points within time selection to minimum value, including edges of time selection. Works on both track and take envelopes.
+ * @author EvilDragon
+ * @version 1.0
  * Licence: GPL v3
  * REAPER: 5.0+
  * Extensions: none required
