@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua
+ReaScript name: LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse)
 Version: 2.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
