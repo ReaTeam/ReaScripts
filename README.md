@@ -5,22 +5,23 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 
 ## Contributors
 
-- [Argitoth](http://forum.cockos.com/member.php?u=7973)
+- [Argitoth](https://forum.cockos.com/member.php?u=7973)
 - [beaunus](https://forum.cockos.com/member.php?u=14475) ([website](https://www.beaunus.com/), [github](https://github.com/beaunus/))
-- [Breeder](http://forum.cockos.com/member.php?u=27094)
-- [cfillion](http://forum.cockos.com/member.php?u=98780) ([website](https://cfillion.ca), [donate](https://www.paypal.me/cfillion))
-- [gofer](http://forum.cockos.com/member.php?u=9328)
-- [HeDa](http://forum.cockos.com/member.php?u=47822) ([donate](https://www.patreon.com/heda?ty=h))
-- [JamesHEure](http://forum.cockos.com/member.php?u=3734)
-- [juliansader](http://forum.cockos.com/member.php?u=14710) ([donate](https://paypal.me/juliansader))
-- [Lokasenna](http://forum.cockos.com/member.php?u=10417) ([donate](https://paypal.me/Lokasenna))
-- [mordi](http://forum.cockos.com/member.php?u=91120)
-- [mpl](http://forum.cockos.com/member.php?u=70694) ([donate](https://www.paypal.me/donate2mpl))
+- [Breeder](https://forum.cockos.com/member.php?u=27094)
+- [cfillion](https://forum.cockos.com/member.php?u=98780) ([website](https://cfillion.ca), [donate](https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaTeam%20Scripts))
+- [EvilDragon](https://forum.cockos.com/member.php?u=14505)
+- [gofer](https://forum.cockos.com/member.php?u=9328)
+- [HeDa](https://forum.cockos.com/member.php?u=47822) ([donate](https://www.patreon.com/heda?ty=h))
+- [JamesHEure](https://forum.cockos.com/member.php?u=3734)
+- [juliansader](https://forum.cockos.com/member.php?u=14710) ([donate](https://paypal.me/juliansader))
+- [Lokasenna](https://forum.cockos.com/member.php?u=10417) ([donate](https://paypal.me/Lokasenna))
+- [mordi](https://forum.cockos.com/member.php?u=91120)
+- [mpl](https://forum.cockos.com/member.php?u=70694) ([donate](https://www.paypal.me/donate2mpl))
 - [Nagasaki45](https://github.com/Nagasaki45) ([website](http://www.tomgurion.me/))
-- [nofish](http://forum.cockos.com/member.php?u=6870)
-- [planetnine](http://forum.cockos.com/member.php?u=6549)
-- [spk77](http://forum.cockos.com/member.php?u=49553) ([donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted))
-- [X-Raym](http://forum.cockos.com/member.php?u=58284) ([website](http://extremraym.com/), [donate](http://www.extremraym.com/en/donation/))
+- [nofish](https://forum.cockos.com/member.php?u=6870)
+- [planetnine](https://forum.cockos.com/member.php?u=6549)
+- [spk77](https://forum.cockos.com/member.php?u=49553) ([donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted))
+- [X-Raym](https://forum.cockos.com/member.php?u=58284) ([website](http://extremraym.com/), [donate](http://www.extremraym.com/en/donation/))
 
 ## Installation
 
@@ -32,7 +33,7 @@ copy and paste this URL in Extensions > ReaPack > Import a repository:
 https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
 ```
 
-- [ReaPack user guide](https://github.com/cfillion/reapack/wiki)
+- [ReaPack user guide](https://reapack.com/user-guide)
 
 ## Discussing
 
