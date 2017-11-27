@@ -1,5 +1,5 @@
--- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
--- @author amagalma & gianfini
+-- @description Track/item name manipulation (undo)
+-- @author amagalma, gianfini
 -- @version 2.88
 -- @about
 --   # Utility to manipulate track or item names
