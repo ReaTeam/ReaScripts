@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Deselect all MIDI events outside time selection (from all tracks).lua
+ReaScript name: Deselect all MIDI events outside time selection (from all tracks)
 Version: 2.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
