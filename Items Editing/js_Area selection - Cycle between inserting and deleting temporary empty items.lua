@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Area selection - Cycle between inserting and deleting temporary empty items.lua
+ReaScript name: Area selection - Cycle between inserting and deleting temporary empty items
 Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=193258
