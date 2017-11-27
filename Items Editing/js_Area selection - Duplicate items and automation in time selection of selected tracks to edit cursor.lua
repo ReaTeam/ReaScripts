@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua
+ReaScript name: Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor
 Version: 0.90
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=193258
