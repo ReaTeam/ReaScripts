@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Deselect all MIDI except in active channel of active take.lua
+ReaScript name: Deselect all MIDI except in active channel of active take
 Version: 1.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
