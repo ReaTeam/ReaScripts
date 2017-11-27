@@ -1,4 +1,4 @@
--- @description amagalma_Track-Item Name Manipulation Replace Help
+-- @description Track-Item Name Manipulation Replace Help
 -- @author amagalma
 -- @version 1.03
 -- @about
