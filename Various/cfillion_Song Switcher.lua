@@ -1,4 +1,4 @@
--- @description Song Switcher
+-- @description Song switcher
 -- @version 1.4
 -- @changelog
 --   * only show mousedown button effect for the left button
