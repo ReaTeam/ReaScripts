@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e55f6e8aaaff27653b831924d0543f0204f7a87e" name="ReaTeam Scripts">
+<index version="1" commit="84d8946e4e0de423295c4a49f91d86146dc59a6e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1384,6 +1384,62 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       </metadata>
       <version name="1.0" author="cfillion" time="2017-03-13T23:18:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Fairly self-explanatory - this script will select all items that have take FX loaded in the active take (item remains unselected if it has take FX in inactive takes).\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Select%20items%20with%20take%20FX%20in%20active%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Select items with take FX.lua" type="script" desc="Select items with take FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Fairly self-explanatory - this script will select all items that have take FX loaded in any take - active or not.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Select%20items%20with%20take%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Set envelope to maximum value within time selection.lua" type="script" desc="Set envelope to minimum value within time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will set all envelope points within time selection to maximum value, including edges of time selection. Works on both track and take envelopes.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Set%20envelope%20to%20maximum%20value%20within%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Set envelope to minimum value within time selection.lua" type="script" desc="Set envelope to minimum value within time selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will set all envelope points within time selection to minimum value, including edges of time selection. Works on both track and take envelopes.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Set%20envelope%20to%20minimum%20value%20within%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Unselect First-Last Selected Item.lua" type="script" desc="Unselect first/last selected item">
