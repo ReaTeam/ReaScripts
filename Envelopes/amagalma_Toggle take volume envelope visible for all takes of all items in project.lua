@@ -1,4 +1,4 @@
--- @description amagalma_Toggle active take volume envelope visible for all items in project
+-- @description Toggle active take volume envelope visible for all items in project
 -- @author amagalma
 -- @version 1.02
 -- @about
