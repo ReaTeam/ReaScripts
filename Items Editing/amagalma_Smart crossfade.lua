@@ -1,4 +1,4 @@
--- @description amagalma_Smart Crossfade
+-- @description Smart crossfade
 -- @author amagalma
 -- @version 1.36
 -- @about
