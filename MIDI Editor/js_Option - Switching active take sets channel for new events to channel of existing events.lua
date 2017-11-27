@@ -1,5 +1,5 @@
 --[[
-ReaScript name:  js_Option - Switching active take sets channel for new events to channel of existing events.lua
+ReaScript name:  Options: Switching active take sets channel for new events to channel of existing events
 Version: 1.12
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=178256
