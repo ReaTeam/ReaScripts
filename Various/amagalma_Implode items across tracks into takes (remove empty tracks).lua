@@ -1,4 +1,4 @@
--- @description amagalma_Script: Implode items across tracks into takes (remove empty tracks)
+-- @description Implode items across tracks into takes (remove empty tracks)
 -- @author amagalma
 -- @version 1.1
 -- @about
