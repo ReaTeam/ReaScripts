@@ -1,5 +1,5 @@
 --[[
-Description: Adjust ReaSamplomatic 5000 Pitch Offset
+Description: Adjust RS5k pitch offset
 Version: 1.3
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
