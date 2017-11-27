@@ -1,5 +1,5 @@
--- @description amagalma_gianfini_Track-Item Name Manipulation
--- @author amagalma, modified by gianfini
+-- @description Track/item name manipulation
+-- @author amagalma, gianfini
 -- @version 2.4
 -- @about
 --   # Utility to manipulate track or item names
