@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
+ReaScript name: Time selection: Insert empty beats at time selection (moving later items)
 Version: 1.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
