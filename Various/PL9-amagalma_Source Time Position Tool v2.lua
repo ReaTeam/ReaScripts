@@ -1,5 +1,5 @@
 -- @description Source time position tool v2
--- @author PL9, amagalma
+-- @author mpl, amagalma
 -- @version 2.01
 -- @about
 --   # Tool that shows cursor position in relation to the item take's Source time
