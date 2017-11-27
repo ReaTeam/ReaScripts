@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Notation - Set beaming of selected notes to custom rhythm (using grid as margin).lua
+ReaScript name: Notation: Set beaming of selected notes to custom rhythm (using grid as margin)
 Version: 1.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
