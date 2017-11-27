@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84d8946e4e0de423295c4a49f91d86146dc59a6e" name="ReaTeam Scripts">
+<index version="1" commit="1e8278bfa649101dfa0c83d1caa49f9770822bf2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1395,9 +1395,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\pard \ql \f0 \sa180 \li0 \fi0 Fairly self-explanatory - this script will select all items that have take FX loaded in the active take (item remains unselected if it has take FX in inactive takes).\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
       </metadata>
       <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Select%20items%20with%20take%20FX%20in%20active%20take.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e8278bfa649101dfa0c83d1caa49f9770822bf2/Items%20Editing/ED_Select%20items%20with%20take%20FX%20in%20active%20take.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX.lua" type="script" desc="Select items with take FX">
@@ -1409,9 +1410,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\pard \ql \f0 \sa180 \li0 \fi0 Fairly self-explanatory - this script will select all items that have take FX loaded in any take - active or not.\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
       </metadata>
       <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Select%20items%20with%20take%20FX.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e8278bfa649101dfa0c83d1caa49f9770822bf2/Items%20Editing/ED_Select%20items%20with%20take%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Set envelope to maximum value within time selection.lua" type="script" desc="Set envelope to minimum value within time selection">
@@ -1423,9 +1425,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\pard \ql \f0 \sa180 \li0 \fi0 This script will set all envelope points within time selection to maximum value, including edges of time selection. Works on both track and take envelopes.\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
       </metadata>
       <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Set%20envelope%20to%20maximum%20value%20within%20time%20selection.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e8278bfa649101dfa0c83d1caa49f9770822bf2/Items%20Editing/ED_Set%20envelope%20to%20maximum%20value%20within%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Set envelope to minimum value within time selection.lua" type="script" desc="Set envelope to minimum value within time selection">
@@ -1437,9 +1440,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\pard \ql \f0 \sa180 \li0 \fi0 This script will set all envelope points within time selection to minimum value, including edges of time selection. Works on both track and take envelopes.\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
       </metadata>
       <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84d8946e4e0de423295c4a49f91d86146dc59a6e/Items%20Editing/ED_Set%20envelope%20to%20minimum%20value%20within%20time%20selection.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e8278bfa649101dfa0c83d1caa49f9770822bf2/Items%20Editing/ED_Set%20envelope%20to%20minimum%20value%20within%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Unselect First-Last Selected Item.lua" type="script" desc="Unselect first/last selected item">
@@ -5639,6 +5643,21 @@ Made by Mordi, Jan 2016]]></changelog>
 Added a "matching '•'" variant of the script at the request of blumpy]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5204d3b1df83c41efb0c5c4ed73f026b5cf389cd/Tracks%20Properties/cfillion_Toggle%20visibility%20of%20empty%20non-folder%20tracks.lua</source>
         <source main="main" file="cfillion_Toggle visibility of empty non-folder tracks matching '•'.lua">https://github.com/ReaTeam/ReaScripts/raw/5204d3b1df83c41efb0c5c4ed73f026b5cf389cd/Tracks%20Properties/cfillion_Toggle%20visibility%20of%20empty%20non-folder%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Toggle free item positioning mode with track name marker.lua" type="script" desc="Toggle free item positioning mode with track name marker">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will enable FIPM for selected track(s) and add a [F] prefix to the track names to show they are in that mode\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2017-11-27T09:51:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e8278bfa649101dfa0c83d1caa49f9770822bf2/Tracks%20Properties/ED_Toggle%20free%20item%20positioning%20mode%20with%20track%20name%20marker.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
