@@ -2,7 +2,7 @@
  * @description Toggle free item positioning mode with track name marker
  * @about This script will enable FIPM for selected track(s) and add a [F] prefix to the track names to show they are in that mode
  * @author EvilDragon
- * @donate [link](https://www.paypal.me/EvilDragon)
+ * @donate https://www.paypal.me/EvilDragon
  * @version 1.0
  * Licence: GPL v3
  * REAPER: 5.0+
