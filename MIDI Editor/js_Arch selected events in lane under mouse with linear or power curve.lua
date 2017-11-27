@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Arch selected events in lane under mouse with linear or power curve.lua
+ReaScript name: Arch selected events in lane under mouse with linear or power curve
 Version: 3.20
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28025/Arch%20events.gif
