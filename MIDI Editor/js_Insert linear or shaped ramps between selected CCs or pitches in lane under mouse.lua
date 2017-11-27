@@ -1,5 +1,5 @@
 --[[
-ReaScript name:  js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua
+ReaScript name:  Insert linear or shaped ramps between selected CCs or pitches in lane under mouse
 Version: 3.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
