@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Tilt selected CCs or velocities to mouse position.lua
+ReaScript name: Tilt selected CCs or velocities to mouse position
 Version: 3.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
