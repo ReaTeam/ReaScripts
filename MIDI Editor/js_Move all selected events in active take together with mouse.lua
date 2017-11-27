@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Move all selected events in active take together with mouse.lua
+ReaScript name: Move all selected events in active take together with mouse
 Version: 1.10
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29102/Move%20events%20to%20mouse%20position.gif
