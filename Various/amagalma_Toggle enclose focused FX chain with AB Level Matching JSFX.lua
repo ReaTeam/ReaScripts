@@ -1,4 +1,4 @@
--- @description amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX
+-- @description Toggle enclose focused FX chain with AB Level Matching JSFX
 -- @author amagalma
 -- @version 1.11
 -- @about
