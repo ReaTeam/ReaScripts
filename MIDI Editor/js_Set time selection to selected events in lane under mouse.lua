@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  Set time selection to selected events in lane under mouse.
+ * ReaScript Name:  Set time selection to selected events in lane under mouse
  * Description:  Set time selection to selected events in lane under mouse.
  * Instructions:  The script should be linked to a shortcut key (instead of a menu button), since the 
  *                    mouse must be positioned over the target lane when the script is activated.
