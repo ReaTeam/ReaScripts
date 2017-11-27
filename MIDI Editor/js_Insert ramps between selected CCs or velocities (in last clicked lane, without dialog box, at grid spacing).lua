@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Insert ramps between selected CCs or velocities (in last clicked lane, without dialog box, at grid spacing).lua
+ReaScript name: Insert ramps between selected CCs or velocities (in last clicked lane, without dialog box, at grid spacing)
 Version: 3.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
