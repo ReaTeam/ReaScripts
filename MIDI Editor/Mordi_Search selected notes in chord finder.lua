@@ -1,4 +1,4 @@
--- @description Search selected notes in chord finder
+-- @description Search selected notes in Chord Finder
 -- @version 1.1
 -- @author Mordi
 -- @changelog
