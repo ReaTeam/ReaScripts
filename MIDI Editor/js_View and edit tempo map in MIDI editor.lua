@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_View and edit tempo map in MIDI editor.lua
+ReaScript name: View and edit tempo map in MIDI editor
 Version: 0.90
 Author: juliansader
 Screenshot: http://stash.reaper.fm/30160/Script%20-%20View%20and%20edit%20tempo%20map%20in%20MIDI%20editor.gif
