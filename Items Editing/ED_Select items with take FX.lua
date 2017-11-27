@@ -2,6 +2,7 @@
  * @description Select items with take FX
  * @about Fairly self-explanatory - this script will select all items that have take FX loaded in any take - active or not.
  * @author EvilDragon
+ * @donate https://www.paypal.me/EvilDragon
  * @version 1.0
  * Licence: GPL v3
  * REAPER: 5.0+
