@@ -1,4 +1,4 @@
--- @description amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX
+-- @description Toggle insert/remove AB Level Matching JSFX to focused FX
 -- @author amagalma
 -- @version 1.11
 -- @about
