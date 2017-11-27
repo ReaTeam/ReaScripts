@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_1-sided warp (accelerate) selected events in lane under mouse.lua
+ReaScript name: 1-sided warp (accelerate) selected events in lane under mouse
 Version: 3.20
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29080/Warp%203.00%20-%20left%20and%20right%2C%20or%20up%20and%20down.gif
