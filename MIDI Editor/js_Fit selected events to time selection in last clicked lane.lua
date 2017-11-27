@@ -1,5 +1,5 @@
 --[[
-ReaScript name:  js_Fit all selected events to time selection in last clicked lane.lua
+ReaScript name:  Fit all selected events to time selection in last clicked lane
 Version: 2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

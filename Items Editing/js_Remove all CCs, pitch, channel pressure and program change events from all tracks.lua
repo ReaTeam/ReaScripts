@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Remove all CCs, pitch, channel pressure and program change events from all tracks.lua
+ReaScript name: Remove all CC, pitch, channel pressure and program change events from all tracks
 Version: 2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=179065

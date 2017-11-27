@@ -1,4 +1,4 @@
--- @description amagalma_Transport Play-Stop (with memory - no undo)
+-- @description Transport: Play/stop (with memory - no undo)
 -- @author amagalma
 -- @version 1.1
 -- @about

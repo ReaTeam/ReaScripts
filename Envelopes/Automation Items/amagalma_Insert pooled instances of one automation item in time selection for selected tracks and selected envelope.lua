@@ -1,4 +1,4 @@
--- @description amagalma_Insert pooled instances of one automation item in time selection for selected tracks and selected envelope
+-- @description Insert pooled instances of one automation item in time selection for selected tracks and selected envelope
 -- @author amagalma
 -- @version 1.13
 -- @about

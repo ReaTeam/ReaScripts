@@ -1,5 +1,5 @@
 --[[
-ReaScript Name:  js_Trim notes by drawing a line with the mouse.lua
+ReaScript Name:  Trim notes by drawing a line with the mouse
 Version: 2.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

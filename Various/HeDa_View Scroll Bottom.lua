@@ -1,5 +1,5 @@
 --[[
-   * ReaScript Name: View Scroll Bottom
+   * ReaScript Name: Scroll view to bottom
    * Lua script for Cockos REAPER
    * Author: HeDa
    * Author URI: http://forum.cockos.com/member.php?u=47822
@@ -26,4 +26,4 @@ reaper.PreventUIRefresh(1)
 	reaper.Main_OnCommand(40913,0) -- scroll into view
 	Restore_Selected_Tracks(tracks) 
 reaper.PreventUIRefresh(-1)
-reaper.Undo_EndBlock2(0, "Scroll Bottom", -1)
+reaper.Undo_EndBlock2(0, "Scroll view to bottom", -1)

@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Notation - Set displayed length of selected notes to custom value.lua
+ReaScript name: Notation: Set displayed length of selected notes to custom value
 Version: 1.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25

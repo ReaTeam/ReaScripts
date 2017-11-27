@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Notation - Set display length of selected notes to double and add staccato articulation.lua
+ReaScript name: Notation: Set display length of selected notes to double and add staccato articulation
 Version: 1.2
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25

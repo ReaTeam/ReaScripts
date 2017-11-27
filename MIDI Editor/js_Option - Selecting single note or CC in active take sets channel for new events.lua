@@ -1,5 +1,5 @@
 --[[
-ReaScript name:  js_Option - Selecting single note or CC in active take sets channel for new events.lua
+ReaScript name:  Options: Selecting single note or CC in active take sets channel for new events
 Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=178256

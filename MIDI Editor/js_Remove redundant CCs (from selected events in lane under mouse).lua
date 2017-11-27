@@ -1,5 +1,5 @@
 --[[
-Reascript name:  js_Remove redundant CCs (from selected events in lane under mouse).lua
+Reascript name:  Remove redundant CCs (from selected events in lane under mouse)
 Version: 3.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

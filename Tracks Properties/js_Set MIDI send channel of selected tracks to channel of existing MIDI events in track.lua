@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Set MIDI send channel of selected tracks to channel of existing MIDI events in track.lua
+ * ReaScript Name:  Set MIDI send channel of selected tracks to channel of existing MIDI events in track
  * Description:  Sets MIDI send channel of selected tracks to channel of existing MIDI events in track.
  *               Particularly useful when opening large MIDI files, to ensure that each track's MIDI is 1) sent to a 
  *                  single channel, and 2) sent to a different channel than other tracks' MIDI.

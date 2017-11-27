@@ -1,4 +1,4 @@
--- @description amagalma_Snap MIDI item(s) edges to grid without changing content position
+-- @description Snap MIDI item(s) edges to grid without changing content position
 -- @author amagalma
 -- @version 1.0
 -- @about

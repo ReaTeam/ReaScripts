@@ -2,7 +2,7 @@
 -- @author spk77
 -- @changelog
 --   initial release
--- @description Export item names and time stamps to a text file
+-- @description Export item names and timestamps to a text file
 -- @website
 --   Forum Thread http://forum.cockos.com/showthread.php?t=180003
 -- @about

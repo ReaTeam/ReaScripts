@@ -1,4 +1,4 @@
--- @description amagalma_Remove content (trim) behind items preserving crossfades
+-- @description Remove content (trim) behind items preserving crossfades
 -- @author amagalma
 -- @version 1.03
 -- @about

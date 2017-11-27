@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Zoom MIDI editor to 5 measures at mouse position.lua
+ReaScript name: Zoom MIDI editor to 5 measures at mouse position
 Version: 1.10
 Author: juliansader
 Website:

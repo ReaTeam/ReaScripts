@@ -1,5 +1,5 @@
 --[[
-Reascript name: js_Notation - Select all notes that have customized display lengths or positions.lua
+Reascript name: Notation: Select all notes that have customized display lengths or positions
 Version: 2.00
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

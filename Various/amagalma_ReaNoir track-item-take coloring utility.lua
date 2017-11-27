@@ -1,4 +1,4 @@
--- @description amagalma_ReaNoir - Track/Item/Take coloring utility
+-- @description ReaNoir (track/item/take coloring utility)
 -- @author amagalma
 -- @version 2.05
 -- @about

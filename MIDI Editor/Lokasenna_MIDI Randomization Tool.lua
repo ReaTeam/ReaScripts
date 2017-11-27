@@ -1,5 +1,5 @@
 --[[
-Description: MIDI Randomization Tool
+Description: MIDI randomization tool
 Version: 1.0.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna

@@ -1,7 +1,7 @@
 --[[
-ReaScript name: js_Envelope LFO generator and shaper.lua
+ReaScript name: Envelope LFO generator and shaper
 Version: 1.51
-Author: juliansader / Xenakios
+Author: juliansader, Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
 Donation: https://www.paypal.me/juliansader

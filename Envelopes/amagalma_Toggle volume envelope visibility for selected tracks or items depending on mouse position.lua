@@ -1,4 +1,4 @@
--- @description amagalma_Toggle volume envelope visibility for selected tracks/items depending on mouse position
+-- @description Toggle volume envelope visibility for selected tracks/items depending on mouse position
 -- @author amagalma
 -- @version 1.001
 -- @about

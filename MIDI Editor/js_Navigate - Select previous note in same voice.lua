@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Navigate - Select previous note in same voice.lua
+ReaScript name: Navigate: Select previous note in same voice
 Version: 0.90
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191780

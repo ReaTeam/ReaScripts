@@ -1,4 +1,4 @@
--- @description amagalma_Toggle behavior of Play-Stop buttons
+-- @description Toggle behavior of play/stop buttons
 -- @author amagalma
 -- @version 1.0
 -- @about

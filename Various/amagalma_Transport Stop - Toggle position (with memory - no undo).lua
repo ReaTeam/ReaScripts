@@ -1,4 +1,4 @@
--- @description amagalma_Transport Stop - Toggle position (with memory - no undo)
+-- @description Transport: Stop - toggle position (with memory - no undo)
 -- @author amagalma
 -- @version 1.11
 -- @about

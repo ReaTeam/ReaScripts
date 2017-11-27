@@ -1,4 +1,4 @@
--- @description Big Repeat Button
+-- @description Big repeat button
 -- @version 1.0.3
 -- @author cfillion
 -- @changelog

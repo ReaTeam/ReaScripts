@@ -1,4 +1,4 @@
--- @description amagalma_Move edit cursor to next visible grid line
+-- @description Move edit cursor to next visible grid line
 -- @author amagalma
 -- @version 1.0
 -- @about

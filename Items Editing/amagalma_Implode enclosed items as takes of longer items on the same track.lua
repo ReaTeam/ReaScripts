@@ -1,4 +1,4 @@
--- @description amagalma_Implode enclosed items as takes of longer items on the same track
+-- @description Implode enclosed items as takes of longer items on the same track
 -- @author amagalma
 -- @version 1.2
 -- @about

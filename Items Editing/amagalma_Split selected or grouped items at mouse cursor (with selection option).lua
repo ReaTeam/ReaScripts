@@ -1,4 +1,4 @@
--- @description amagalma_Split selected or grouped items at mouse cursor (with selection option)
+-- @description Split selected or grouped items at mouse cursor (with selection option)
 -- @author amagalma
 -- @version 1.0
 -- @about

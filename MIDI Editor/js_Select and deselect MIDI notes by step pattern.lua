@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Select and deselect MIDI notes by step pattern.lua
+ReaScript name: Select and deselect MIDI notes by step pattern
 Version: 1.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

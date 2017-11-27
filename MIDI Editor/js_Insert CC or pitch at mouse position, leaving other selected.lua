@@ -1,6 +1,6 @@
 --[[
- * ReaScript Name:  js_Insert CC or pitch at mouse position, leaving other selected.lua
- * Description:  A simple script to insert a CC events, while leaving other events selected.
+ * ReaScript Name:  Insert CC or pitch bend at mouse position, leaving other events selected
+ * Description:  A simple script to insert CC events, while leaving other events selected.
  *               Strangely, current (v5.20) versions of REAPER does not offer any mouse modifiers 
  *                   for inserting CC events while keeping already-selected events selected.  
  *                   (Compare the "Insert note, leaving other notes selected" mouse action for notes.)

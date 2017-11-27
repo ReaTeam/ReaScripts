@@ -1,5 +1,5 @@
 --[[
- * ReaScript Name:  js_Autoincrement MIDI send channels of selected tracks
+ * ReaScript Name:  Autoincrement MIDI send channels of selected tracks
  * Description:  Autoincrements the MIDI send channels of selected tracks.
  *               Particularly useful when opening large MIDI files, to ensure that each track's MIDI is 1) sent to a 
  *                  single channel, and 2) sent to a different channel than other tracks' MIDI.

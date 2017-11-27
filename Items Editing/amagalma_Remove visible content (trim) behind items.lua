@@ -1,4 +1,4 @@
--- @description amagalma_Remove visible content (trim) behind items
+-- @description Remove visible content (trim) behind items
 -- @author amagalma
 -- @version 1.03
 -- @about

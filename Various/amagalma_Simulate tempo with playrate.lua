@@ -1,4 +1,4 @@
--- @description amagalma_Simulate tempo with playrate
+-- @description Simulate tempo with playrate
 -- @author amagalma
 -- @version 1.2
 -- @about

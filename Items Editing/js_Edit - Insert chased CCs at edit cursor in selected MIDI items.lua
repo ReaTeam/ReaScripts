@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua
+ReaScript name: Insert chased CCs at edit cursor in selected MIDI items
 Version: 0.90
 Author: juliansader
 Donation: https://www.paypal.me/juliansader

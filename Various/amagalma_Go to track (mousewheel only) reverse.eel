@@ -1,8 +1,8 @@
-// @description amagalma_Go to track (mousewheel only) reverse
+// @description Go to track reverse (mousewheel only) 
 // @author amagalma
 // @version 1.0
 // @about
-//   # Works in a reverse direction to action "View: Go to track (MIDI CC/OSC only)" (993)
+//   # Works in reverse direction to action "View: Go to track (MIDI CC/OSC only)" (993)
 //
 
 function main()

@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua
+ReaScript name: Run the 'js_lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel)
 Version: 1.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

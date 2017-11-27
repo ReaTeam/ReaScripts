@@ -1,4 +1,4 @@
--- @description amagalma_Select all visible synchronous pooled instances of selected automation items across tracks
+-- @description Select all visible synchronous pooled instances of selected automation items across tracks
 -- @version 1.0
 -- @about
 --   # Selects all the pooled duplicates of the selected automation items across all tracks

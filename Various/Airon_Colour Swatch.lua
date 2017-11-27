@@ -1,19 +1,17 @@
--- @description Colour Swatch
+-- @description Color Swatch
 -- @version 1.61
 -- @author Airon
 -- @changelog
---    + spk77: fixed colour swatch reset (forum.cockos.com/showpost.php?p=1694646&postcount=282)
+--    + spk77: fixed color swatch reset (forum.cockos.com/showpost.php?p=1694646&postcount=282)
 
 --[[
-* ReaScript Name: Colour Swatch Window
-* Author: Airon
 * Licence: GPL v3
 * REAPER: 5.0
 * Extensions: None
 * Description: Colour Swatch window for context sensitive colouring of tracks or items
 * Instructions:
 *   FULL AUTHOR LIST:
-*   Airon, SPK77, Heda, Evil Dragon and many more in the JS/Reascript forum
+*   Airon, SPK77, Heda, EvilDragon and many more in the JS/Reascript forum
 *
 *   Will remember the state it was left in the next time the window is opened again.
 *   Can be reset to defaults by clicking on the text in the upper middle "Reset"

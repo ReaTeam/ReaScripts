@@ -1,8 +1,8 @@
 -- @version 0.1
--- @author Hector Corcin (HeDa)
+-- @author HeDa
 -- @changelog
 --   + init beta release
--- @description Automatically assigns a track with a certain name to all Regions in the Region Render Matrix
+-- @description Automatically assign a track with a certain name to all regions in Region Render Matrix
 -- @link Forum Thread http://forum.cockos.com/showthread.php?t=180502
 -- @website https://reaper.hector-corcin.com
 

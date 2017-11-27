@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Compress or expand selected CC or velocity events using mousewheel.lua
+ReaScript name: Compress or expand selected CC or velocity events using mousewheel
 Version: 3.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878

@@ -1,4 +1,4 @@
--- @description amagalma_Find action or script name by its Command ID
+-- @description Find action or script name by its command ID
 -- @author amagalma
 -- @version 1.0
 -- @about

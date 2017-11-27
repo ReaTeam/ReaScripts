@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_2-sided warp (and stretch) selected events in lane under mouse.lua
+ReaScript name: 2-sided warp (and stretch) selected events in lane under mouse
 Version: 3.20
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27593/2-sided%20warp%20%28and%20stretch%29%20-%20Copy.gif

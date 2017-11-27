@@ -1,6 +1,6 @@
 --[[
- * ReaScript Name: Folder Record/Monitor Arming Childs
- * Author: SPK77, SeXan
+ * ReaScript Name: Folder record and monitor arm to children
+ * Author: spk77, SeXan
  * Licence: GPL v3
  * REAPER: 5.0
  * Extensions: None
