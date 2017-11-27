@@ -1,8 +1,8 @@
 --[[
- * @description: Select items with take FX in active take
- * @about: Fairly self-explanatory - this script will select all items that have take FX loaded in the active take (item remains unselected if it has take FX in inactive takes).
- * @author: EvilDragon
- * @version: 1.0
+ * @description Select items with take FX in active take
+ * @about Fairly self-explanatory - this script will select all items that have take FX loaded in the active take (item remains unselected if it has take FX in inactive takes).
+ * @author EvilDragon
+ * @version 1.0
  * Licence: GPL v3
  * REAPER: 5.0+
  * Extensions: SWS required
