@@ -1,5 +1,5 @@
 --[[
-Description: Theory Helper
+Description: Theory helper
 Version: 1.40
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
