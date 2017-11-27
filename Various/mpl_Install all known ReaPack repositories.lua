@@ -1,6 +1,6 @@
 -- @version 1.0
--- @author MPL
--- @description Install all known repositories for ReaPack
+-- @author mpl
+-- @description Install all known ReaPack repositories
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --   + init
