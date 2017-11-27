@@ -9,7 +9,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 - [beaunus](https://forum.cockos.com/member.php?u=14475) ([website](https://www.beaunus.com/), [github](https://github.com/beaunus/))
 - [Breeder](https://forum.cockos.com/member.php?u=27094)
 - [cfillion](https://forum.cockos.com/member.php?u=98780) ([website](https://cfillion.ca), [donate](https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaTeam%20Scripts))
-- [EvilDragon](https://forum.cockos.com/member.php?u=14505)
+- [EvilDragon](https://forum.cockos.com/member.php?u=14505) ([donate](https://www.paypal.me/EvilDragon))
 - [gofer](https://forum.cockos.com/member.php?u=9328)
 - [HeDa](https://forum.cockos.com/member.php?u=47822) ([donate](https://www.patreon.com/heda?ty=h))
 - [JamesHEure](https://forum.cockos.com/member.php?u=3734)
