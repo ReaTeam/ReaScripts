@@ -1,4 +1,4 @@
--- @description amagalma_Delete crossfade under mouse cursor
+-- @description Delete crossfade under mouse cursor
 -- @author amagalma
 -- @version 1.0
 -- @about
