@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Zoom MIDI editor to 5 measures at mouse position.lua
-Version: 1.10
+Version: 1.20
 Author: juliansader
 Website:
   Simple but useful MIDI editor tools http://forum.cockos.com/showthread.php?t=176878
@@ -33,6 +33,8 @@ Changelog:
     + Initial release
   * v1.10 (2016-09-16)
     + Zooming creates undo point
+  * v1.20 (2017-11-30)
+    + Compatible with the setting "Move edit cursor to start of time selection on time selection change"
 ]]
 
 -- USER AREA
@@ -50,19 +52,22 @@ if editor ~= nil then
     -- Store any pre-existing loop range
     loopStart, loopEnd = reaper.GetSet_LoopTimeRange2(0, false, true, 0, 0, false)
     
-    reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
     -- Possible bug: MIDI editor does not immediately update after
     --    calling Main actions to move edit cursor, such as
     --    reaper.Main_OnCommandEx(41041, -1, 0) -- Move edit cursor to start of current measure
-    -- This script therefore uses only Main actions to move the cursor.
+    reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
     reaper.Main_OnCommandEx(40837, -1, 0) -- Move edit cursor to start of next measure (no seek)
-    
-    for i = 1, number_of_measures/2 do
-        reaper.Main_OnCommandEx(40839, -1, 0) -- Move edit cursor forward one measure (no seek(
+    for i = 1, (number_of_measures-1)/2 do
+        reaper.Main_OnCommandEx(40839, -1, 0) -- Move edit cursor forward one measure (no seek)
     end
     reaper.Main_OnCommandEx(40223, -1, 0) -- Loop points: Set end point
     
-    for i = 1, number_of_measures do
+    -- If "Move edit cursor to start of time selection on time selection change" is ON,
+    --   and time selection follows loop selection,
+    --   cursor position may have changed when setting loop point, so reset position.
+    reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
+    reaper.Main_OnCommandEx(40838, -1, 0) -- Move edit cursor to start of current measure (no seek)
+    for i = 1, (number_of_measures-1)/2 do
         reaper.Main_OnCommandEx(40840, -1, 0) -- Move edit cursor back one measure (no seek)
     end
     reaper.Main_OnCommandEx(40222, -1, 0) -- Loop points: Set start point
