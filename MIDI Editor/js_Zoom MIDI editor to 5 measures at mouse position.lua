@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Zoom MIDI editor to 5 measures at mouse position.lua
-Version: 1.20
+Version: 1.21
 Author: juliansader
 Website:
   Simple but useful MIDI editor tools http://forum.cockos.com/showthread.php?t=176878
@@ -35,6 +35,8 @@ Changelog:
     + Zooming creates undo point
   * v1.20 (2017-11-30)
     + Compatible with the setting "Move edit cursor to start of time selection on time selection change"
+  * v1.21 (2017-12-01)
+    + Accurate zooming to even number of measures
 ]]
 
 -- USER AREA
@@ -57,7 +59,7 @@ if editor ~= nil then
     --    reaper.Main_OnCommandEx(41041, -1, 0) -- Move edit cursor to start of current measure
     reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
     reaper.Main_OnCommandEx(40837, -1, 0) -- Move edit cursor to start of next measure (no seek)
-    for i = 1, (number_of_measures-1)/2 do
+    for i = 1, math.floor((number_of_measures-1)/2) do
         reaper.Main_OnCommandEx(40839, -1, 0) -- Move edit cursor forward one measure (no seek)
     end
     reaper.Main_OnCommandEx(40223, -1, 0) -- Loop points: Set end point
@@ -67,7 +69,7 @@ if editor ~= nil then
     --   cursor position may have changed when setting loop point, so reset position.
     reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
     reaper.Main_OnCommandEx(40838, -1, 0) -- Move edit cursor to start of current measure (no seek)
-    for i = 1, (number_of_measures-1)/2 do
+    for i = 1, math.ceil((number_of_measures-1)/2) do
         reaper.Main_OnCommandEx(40840, -1, 0) -- Move edit cursor back one measure (no seek)
     end
     reaper.Main_OnCommandEx(40222, -1, 0) -- Loop points: Set start point
