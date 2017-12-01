@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="199aba540d608cdb5853fec5bf228a82d217a0ff" name="ReaTeam Scripts">
+<index version="1" commit="5875a3d107187ba16e084f1e2c0a2626d8632ea8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1990,6 +1990,21 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-01-22T22:09:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc7ac785008e27d4d7a726cb1a0a45f2c26b14d7/Markers/Lokasenna_Fill%20time%20selection%20with%20markers.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Create tempo-map from markers.lua" type="script" desc="Create tempo-map from markers (and remove markers)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will take all of your markers and create a tempo-map by detecting the tempo between each one. It also removes the markers.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made by Mordi, Nov 2017 Thanks to X-Raym for some snippets\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2017-12-01T03:58:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5875a3d107187ba16e084f1e2c0a2626d8632ea8/Markers/Mordi_Create%20tempo-map%20from%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Duplicate previous marker.lua" type="script" desc="Duplicate previous marker">
