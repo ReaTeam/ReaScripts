@@ -46,7 +46,7 @@ Changelog:
     + Accurate zoom if number of measures is even.
     + Mouse can be placed in arrange view (if SWS extension is installed).
   * v1.23 (2017-12-01)
-    + Refactored to minimize calling actions.
+    + Refactored to avoid calling buggy native actions.
 ]]
 
 -- USER AREA
