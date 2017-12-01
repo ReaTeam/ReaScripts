@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5084720b91e2ae382bd5391c77b2c440534f5a64" name="ReaTeam Scripts">
+<index version="1" commit="2b2cb907e74ded834c44c7ad9ff94a6eb6131765" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4826,6 +4826,7 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=176878">Simple but useful MIDI editor tools</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.0" author="juliansader" time="2016-09-15T20:25:49Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
@@ -4842,6 +4843,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.21" author="juliansader" time="2017-12-01T09:21:21Z">
         <changelog><![CDATA[+ Accurate zooming to even number of measures]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5084720b91e2ae382bd5391c77b2c440534f5a64/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
+      </version>
+      <version name="1.22" author="juliansader" time="2017-12-01T12:14:08Z">
+        <changelog><![CDATA[+ Accurate zoom if number of measures is even.
++ Mouse can be placed in arrange view (if SWS extension is installed).]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2b2cb907e74ded834c44c7ad9ff94a6eb6131765/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Convert current scale to ix_scale.lua" type="script" desc="Convert current scale to ix_scale">
