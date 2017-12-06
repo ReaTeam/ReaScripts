@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9bda8cbef71f84aa25e32f1c9af44f354d6bfbd6" name="ReaTeam Scripts">
+<index version="1" commit="e4d829bb655bc9397d015d7bd4c6ac58e59a8f3d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4819,9 +4819,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 {\pard \ql \f0 \sa180 \li0 \fi0 When the MIDI editor's active take is switched via the track list to a take that is out of view, the MIDI editor will automatically "Zoom to content". If the newly active MIDI take is very large, "Zoom to content" provides a nice overview of the entire item, so that the user can easily locate the relevant MIDI data. However, zooming in again can be a hassle.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Similarly, when opening multiple MIDI items simultaneously (with Preferences -> MIDI Editor -> Open all selected items), the MIDI editor will "zoom to content", trying to fit all the items into the viewport.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script is therefore intended to provide an easy, one-click action to zoom in, without requiring the user to change the note, time or loop selection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can either zoom to the mouse position, ir to the edit cursor position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is over a part of the interface that has position info (i.e. the arrange view, the ruler, or the MIDI editor's "notes" or "cc" areas), the MIDI editor will zoom to the mouse position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned anywhere else (for example the "track list" area of the MIDI editor), the MIDI editor will scroll and zoom to the current position of the edit cursor. (Zooming to the edit cursor is particularly useful for returning to the last edit position, after inadvertently scrolling to a faraway item.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Simply point the mouse to the appropriate position in the MIDI item and press the linked shortcut or mouse modifier.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The mouse can be positioned in the MIDI editor or (if the SWS extension is installed) in the Arrange view.\line Since the script will work if the mouse is in the Arrange view, the script can be run immediately after click-opening MIDI items, and the MIDI editor will zoom to the clicked position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Simply move the mouse to the position that you want to edit, and press the linked shortcut or mouse modifier.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 In the script's USER AREA, the user can change the number of measures that the script zooms to, and these modified scripts can be saved under different names and linked to different shortcuts or mouse modifiers.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Warning\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script temporarily changes the loop region, so it may be safer to avoid running the script during playback or recording.\par}
@@ -4854,6 +4856,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.23" author="juliansader" time="2017-12-01T15:35:44Z">
         <changelog><![CDATA[+ Refactored to avoid calling buggy native actions.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9bda8cbef71f84aa25e32f1c9af44f354d6bfbd6/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
+      </version>
+      <version name="1.30" author="juliansader" time="2017-12-06T14:59:59Z">
+        <changelog><![CDATA[+ If mouse is not over arrange view, ruler, or MIDI editor's notes or cc area, scroll to current position of edit cursor.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e4d829bb655bc9397d015d7bd4c6ac58e59a8f3d/MIDI%20Editor/js_Zoom%20MIDI%20editor%20to%205%20measures%20at%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Convert current scale to ix_scale.lua" type="script" desc="Convert current scale to ix_scale">
