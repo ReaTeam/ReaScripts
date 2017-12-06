@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Zoom MIDI editor to 5 measures at mouse position.lua
-Version: 1.23
+Version: 1.30
 Author: juliansader
 Website: Simple but useful MIDI editor tools http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -17,13 +17,17 @@ About:
   This script is therefore intended to provide an easy, one-click action to zoom in, without requiring 
   the user to change the note, time or loop selection.
   
-  # Instructions
-  Simply point the mouse to the appropriate position in the MIDI item and press the linked shortcut 
-  or mouse modifier.
+  The script can either zoom to the mouse position, ir to the edit cursor position:
   
-  The mouse can be positioned in the MIDI editor or (if the SWS extension is installed) in the Arrange view.  
-  Since the script will work if the mouse is in the Arrange view, the script can be run immediately after
-  click-opening MIDI items, and the MIDI editor will zoom to the clicked position.
+  If the mouse is over a part of the interface that has position info (i.e. the arrange view, the ruler, 
+  or the MIDI editor's "notes" or "cc" areas), the MIDI editor will zoom to the mouse position.  
+  
+  If the mouse is positioned anywhere else (for example the "track list" area of the MIDI editor), 
+  the MIDI editor will scroll and zoom to the current position of the edit cursor.
+  (Zooming to the edit cursor is particularly useful for returning to the last edit position, after inadvertently scrolling to a faraway item.)
+  
+  # Instructions
+  Simply move the mouse to the position that you want to edit, and press the linked shortcut or mouse modifier.
   
   In the script's USER AREA, the user can change the number of measures that the script zooms to, and
   these modified scripts can be saved under different names and linked to different shortcuts or mouse 
@@ -46,7 +50,9 @@ Changelog:
     + Accurate zoom if number of measures is even.
     + Mouse can be placed in arrange view (if SWS extension is installed).
   * v1.23 (2017-12-01)
-    + Refactored to avoid calling buggy native actions.
+    + Refactored to minimize calling actions.
+  * v1.30 (2017-12-06)
+    + If mouse is not over arrange view, ruler, or MIDI editor's notes or cc area, scroll to current position of edit cursor.
 ]]
 
 -- USER AREA
@@ -56,39 +62,48 @@ number_of_measures = 5
 -------------------
 
 --------------------------------------
-editor = reaper.MIDIEditor_GetActive()
-if editor ~= nil then
-    
-    reaper.Undo_BeginBlock2(0)
-    reaper.PreventUIRefresh(1)
-    
-    -- Store any pre-existing loop range
-    loopStart, loopEnd = reaper.GetSet_LoopTimeRange2(0, false, true, 0, 0, false)
-    
-    -- Is the mouse in the MIDI editor, or in the arrange view?
-    if reaper.APIExists("BR_GetMouseCursorContext") then
-        window, segment, details = reaper.BR_GetMouseCursorContext()
-    end
-    
-    -- AFAIK it is not possible to get the mouse time position directly, without using the edit cursor
-    if window ~= "midi_editor" then
-        reaper.Main_OnCommandEx(40513, -1, 0) -- Move edit cursor to mouse cursor (obey snapping)
-    else
-        reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
-    end
-    mouseTimePos = reaper.GetCursorPositionEx(0)
-    beats, measures = reaper.TimeMap2_timeToBeats(0, mouseTimePos)
-    
-    -- Zoom!
-    zoomStart = reaper.TimeMap2_beatsToTime(0, 0, measures-math.floor(number_of_measures/2))
-    zoomEnd   = reaper.TimeMap2_beatsToTime(0, 0, measures+math.ceil(number_of_measures/2))
-    reaper.GetSet_LoopTimeRange2(0, true, true, zoomStart, zoomEnd, false)
-    reaper.MIDIEditor_OnCommand(editor, 40726) -- Zoom to project loop selection
-    
-    -- Reset the pre-existing loop range
-    reaper.GetSet_LoopTimeRange2(0, true, true, loopStart, loopEnd, false)
-    
-    reaper.PreventUIRefresh(-1)
-    reaper.UpdateTimeline()
-    reaper.Undo_EndBlock2(0, "Zoom to 5 measures at mouse position", -1)
+-- Is SWS installed?
+if not reaper.APIExists("BR_GetMouseCursorContext") then
+    reaper.MB("This script requires the SWS/S&M extension, which adds all kinds of nifty features to REAPER.\n\nThe extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+    return
 end
+    
+-- Is there an active MIDI editor?
+editor = reaper.MIDIEditor_GetActive()
+if editor == nil then return end
+    
+-- Checks OK, so start undo block
+reaper.Undo_BeginBlock2(0)
+reaper.PreventUIRefresh(1)
+
+-- Store any pre-existing loop range
+loopStart, loopEnd = reaper.GetSet_LoopTimeRange2(0, false, true, 0, 0, false)
+
+-- Is the mouse in the MIDI editor, or in the arrange view?
+window, segment, details = reaper.BR_GetMouseCursorContext()
+
+-- If the mouse is over a part of the interface that has position (arrange view, ruler or MIDI editor "notes" or "cc" area),
+--    scroll to mouse position.  Otherwise, scroll to current edit position.
+-- AFAIK it is not possible to get the mouse time position directly, without using the edit cursor
+if window == "midi_editor" and segment ~= "unknown" then -- Is in MIDI editor?
+    reaper.MIDIEditor_OnCommand(editor, 40443) -- Move edit cursor to mouse cursor
+elseif window == "arrange" or window == "ruler" then -- Is in arrange?
+    reaper.Main_OnCommandEx(40513, -1, 0) -- Move edit cursor to mouse cursor (obey snapping)
+-- else
+--  don't move edit cursor, so will scroll to current edit cursor    
+end
+mouseTimePos = reaper.GetCursorPositionEx(0)
+beats, measures = reaper.TimeMap2_timeToBeats(0, mouseTimePos)
+
+-- Zoom!
+zoomStart = reaper.TimeMap2_beatsToTime(0, 0, measures-math.floor(number_of_measures/2))
+zoomEnd   = reaper.TimeMap2_beatsToTime(0, 0, measures+math.ceil(number_of_measures/2))
+reaper.GetSet_LoopTimeRange2(0, true, true, zoomStart, zoomEnd, false)
+reaper.MIDIEditor_OnCommand(editor, 40726) -- Zoom to project loop selection
+
+-- Reset the pre-existing loop range
+reaper.GetSet_LoopTimeRange2(0, true, true, loopStart, loopEnd, false)
+
+reaper.PreventUIRefresh(-1)
+reaper.UpdateTimeline()
+reaper.Undo_EndBlock2(0, "Zoom to 5 measures at mouse position", -1)
