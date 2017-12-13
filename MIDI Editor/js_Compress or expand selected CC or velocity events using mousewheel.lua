@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Compress or expand selected CC or velocity events using mousewheel.lua
-Version: 3.20
+Version: 3.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27603/Compress%20or%20expand%20CCs%20or%20velocity%20using%20mousewheel%20-%20Copy.gif
@@ -121,6 +121,8 @@ About:
     + Fixed ReaPack header info.
   * v3.20 (2017-07-23)
     + Mouse cursor changes to indicate that script is running. 
+  * v3.21 (2017-12-14)
+    + Tweak mouse cursor icon.
 ]]
 
 -- USER AREA:
@@ -295,7 +297,7 @@ local function loop_trackMouseMovement()
     -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
     if mustDrawCustomCursor then
         local mouseXpos, mouseYpos = reaper.GetMousePosition()
-        reaper.TrackCtl_SetToolTip("Ξ", mouseXpos+7, mouseYpos+8, true)
+        reaper.TrackCtl_SetToolTip(" Ξ", mouseXpos+7, mouseYpos+8, true)
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
