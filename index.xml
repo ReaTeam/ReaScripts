@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7111b27ea45a1582dee574870b2ccc36910b9768" name="ReaTeam Scripts">
+<index version="1" commit="e5418013727081cae70bd867929df0e3c68fbba9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3719,6 +3719,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="2.31" author="juliansader" time="2017-10-03T21:27:02Z">
         <changelog><![CDATA[+ Keep edge nodes in order when inserting new nodes.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1421c686f7c0b53855f98f0a6e8dca5a81ef6a66/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.32" author="juliansader" time="2017-12-13T22:38:09Z">
+        <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e5418013727081cae70bd867929df0e3c68fbba9/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
