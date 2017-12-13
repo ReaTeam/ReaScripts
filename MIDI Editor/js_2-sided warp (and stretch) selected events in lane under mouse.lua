@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_2-sided warp (and stretch) selected events in lane under mouse.lua
-Version: 3.20
+Version: 3.21
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27593/2-sided%20warp%20%28and%20stretch%29%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -81,6 +81,8 @@ About:
     + Fixed ReaPack name and header info.
   * v3.20 (2017-07-23)
     + Mouse cursor changes to indicate that script is running. 
+  * v3.21 (2017-12-14)
+    + Tweak mouse cursor icon.
 ]]
 
 
@@ -240,7 +242,7 @@ local function loop_trackMouseMovement()
     -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
     if mustDrawCustomCursor then
         local mouseXpos, mouseYpos = reaper.GetMousePosition()
-        reaper.TrackCtl_SetToolTip("»«", mouseXpos+7, mouseYpos+8, true)
+        reaper.TrackCtl_SetToolTip(" »«", mouseXpos+7, mouseYpos+8, true)
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
