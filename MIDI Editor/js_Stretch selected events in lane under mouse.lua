@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.20
+Version: 3.21
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -101,6 +101,8 @@ About:
     + More extensive instructions in header.
   * v3.20 (2017-07-23)
     + Mouse cursor changes to indicate that script is running.    
+  * v3.21 (2017-12-14)
+    + Tweak mouse cursor icon.
 ]]
 
 ---------------------------------------
@@ -284,9 +286,9 @@ local function loop_trackMouseMovement()
     if mustDrawCustomCursor then
         local mouseXpos, mouseYpos = reaper.GetMousePosition()
         if stretchLEFT or stretchRIGHT then
-            reaper.TrackCtl_SetToolTip("↔", mouseXpos+7, mouseYpos+8, true)
+            reaper.TrackCtl_SetToolTip(" ↔", mouseXpos+7, mouseYpos+8, true)
         else
-            reaper.TrackCtl_SetToolTip("↕", mouseXpos+7, mouseYpos+8, true) 
+            reaper.TrackCtl_SetToolTip(" ↕", mouseXpos+7, mouseYpos+8, true) 
         end
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
