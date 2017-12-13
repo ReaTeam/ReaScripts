@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e4d829bb655bc9397d015d7bd4c6ac58e59a8f3d" name="ReaTeam Scripts">
+<index version="1" commit="0e901e0f863e7e435af5aaa09727a79948bfc9f9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2347,6 +2347,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
       </version>
+      <version name="3.21" author="juliansader" time="2017-12-13T22:30:49Z">
+        <changelog><![CDATA[+ Tweak mouse cursor icon.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0e901e0f863e7e435af5aaa09727a79948bfc9f9/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script" desc="js_Compress or expand selected CC or velocity events using mousewheel.lua">
       <metadata>
@@ -2441,6 +2445,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running. ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+      </version>
+      <version name="3.21" author="juliansader" time="2017-12-13T22:30:25Z">
+        <changelog><![CDATA[+ Tweak mouse cursor icon.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/610b3b62f433ef7f39228abf488fbfaeeff0383a/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script" desc="js_Deselect all MIDI events outside time selection (from all tracks).lua">
@@ -2605,6 +2613,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.31" author="juliansader" time="2017-12-13T22:26:29Z">
+        <changelog><![CDATA[+ Tweak mouse cursor icon.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8cbf694f53bd13fee4de09edd802def4b1041fe5/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -2713,6 +2725,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="3.30" author="juliansader" time="2017-07-23T12:17:56Z">
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.  ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.31" author="juliansader" time="2017-12-13T22:27:45Z">
+        <changelog><![CDATA[+ Tweak mouse cursor icon.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/6596682ba4143c33f60c4807b3155c6f860bd4fd/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
@@ -4603,6 +4619,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/144a4f27445ba05b303f83262e9e42549b5bf735/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
+      <version name="3.21" author="juliansader" time="2017-12-13T22:29:00Z">
+        <changelog><![CDATA[+ Tweak mouse cursor icon.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e2f0cc8b74b3e4fec32a6d91089fd7f1044adc72/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
       <metadata>
@@ -4666,6 +4686,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="3.20" author="juliansader" time="2017-07-23T12:17:56Z">
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="3.21" author="juliansader" time="2017-12-13T22:29:37Z">
+        <changelog><![CDATA[+ Tweak mouse cursor icon.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/aa34ed8342fd313b0c99950a463723ff093e595d/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Trim notes by drawing a line with the mouse.lua" type="script" desc="js_Trim notes by drawing a line with the mouse.lua">
