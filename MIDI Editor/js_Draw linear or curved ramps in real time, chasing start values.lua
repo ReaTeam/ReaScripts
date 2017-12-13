@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw linear or curved ramps in real time, chasing start values.lua
-Version: 3.30
+Version: 3.31
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -169,7 +169,9 @@ About:
   * v3.24 (2017-03-18)
     + More extensive instructions in header.
   * v3.30 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running.     
+    + Mouse cursor changes to indicate that script is running.   
+  * v3.31 (2017-12-14)
+    + Tweak mouse cursor icon.
 ]]
 
 ----------------------------------------
@@ -325,7 +327,7 @@ local function loop_trackMouseMovement()
     -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
     if mustDrawCustomCursor then
         local mouseXpos, mouseYpos = reaper.GetMousePosition()
-        reaper.TrackCtl_SetToolTip(" ∕ ", mouseXpos+7, mouseYpos+8, true)
+        reaper.TrackCtl_SetToolTip(" ⁄", mouseXpos+7, mouseYpos+8, true)
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
