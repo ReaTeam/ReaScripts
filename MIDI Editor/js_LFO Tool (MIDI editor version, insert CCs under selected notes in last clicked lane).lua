@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua
-Version: 2.31
+Version: 2.32
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif
@@ -91,6 +91,8 @@ About:
     + Keep nodes in order while moving hot node.
   v2.31 (2017-10-03)
     + Keep edge nodes in order when inserting new nodes.    
+  v2.32 (2017-12-13)
+    + Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1150,7 +1152,7 @@ end
 
 function exit()
 
-   -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
+    -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
     local docked, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
     if docked == 0 and type(xPos) == "number" and type(yPos) == "number" then
         -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
@@ -1158,6 +1160,12 @@ function exit()
     end
     gfx.quit()
     
+    -- New versions of the SWS extension provide a function to focus the MIDI editor!
+    --    This will prevent shortcuts from accidentally being sent to the Main window. 
+    if reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.SN_FocusMIDIEditor()
+    end
+  
     -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
     --    causing infinitely extended notes or zero-length notes.
     -- Fortunately, these bugs were seemingly all fixed in v5.32.
