@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f1fb685b630ce0f2d7035d8734cfe9d4dc6e4c5a" name="ReaTeam Scripts">
+<index version="1" commit="0457844816122a563def3997222cc19e1cc3af6b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -931,6 +931,9 @@ added support for all track envelopes]]></changelog>
       <version name="0.1beta" author="cfillion" time="2017-07-05T01:23:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2f6e0b0c055ed224f21de909b1c65b901090794/FX/cfillion_Show%20ReaPack%20about%20dialog%20for%20the%20focused%20JSFX.lua</source>
       </version>
+      <version name="0.1" author="cfillion" time="2017-12-15T16:59:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0457844816122a563def3997222cc19e1cc3af6b/FX/cfillion_Show%20ReaPack%20about%20dialog%20for%20the%20focused%20JSFX.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Toggle monitoring FX bypass.lua" type="script" desc="Toggle monitoring FX bypass (8 actions)">
       <version name="1.0" author="cfillion" time="2017-10-23T16:12:33Z">
@@ -1285,6 +1288,25 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Move selected items to a FIPM lane.lua" type="script" desc="Move selected items to a FIPM lane">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script provides a set of two actions for moving the selected media items to the top or bottom FIPM lane of the track. Each lane is half of the track's height.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 FIPM (Free Item Positioning Mode) is enabled on the tracks as required.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=200756">Request Thread</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD&amp;item_name=FIPM+-+Move+selected+items+to+a+given+lane</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2017-12-15T16:59:47Z">
+        <source main="main" file="cfillion_Move selected items to top FIPM lane (half track height).lua">https://github.com/ReaTeam/ReaScripts/raw/0457844816122a563def3997222cc19e1cc3af6b/Items%20Editing/cfillion_Move%20selected%20items%20to%20a%20FIPM%20lane.lua</source>
+        <source main="main" file="cfillion_Move selected items to bottom FIPM lane (half track height).lua">https://github.com/ReaTeam/ReaScripts/raw/0457844816122a563def3997222cc19e1cc3af6b/Items%20Editing/cfillion_Move%20selected%20items%20to%20a%20FIPM%20lane.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set item end to cursor and resize trailing MIDI notes.lua" type="script" desc="Set item end to cursor and resize trailing MIDI notes">
