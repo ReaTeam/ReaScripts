@@ -1370,6 +1370,7 @@ if not (type(lastTipVersion) == "number") or lastTipVersion < 3.30 then
               .. "\n\n(This message will only be displayed once).", 
               "New feature notification", 0)
     reaper.SetExtState("js_1-sided warp", "Last tip version", "3.30", true)
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
     return
 end
 
