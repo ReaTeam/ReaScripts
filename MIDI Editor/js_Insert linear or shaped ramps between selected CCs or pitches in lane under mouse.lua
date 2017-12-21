@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua
-Version: 3.01
+Version: 3.03
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif
@@ -74,6 +74,8 @@ About:
     + Fixed bug when custom 'shape' is number.
   * v3.02 (2017-03-13)
     + In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.  
+  * v3.03 (2017-12-21)
+    + Return focus to MIDI editor after closing dialog box.
 ]] 
 
 -- USER AREA
@@ -926,8 +928,8 @@ end -- if showDialogBox == true
 if showDialogBox == true then 
     local retval = getUserInputs() 
     if not retval then return end
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
 end
-
 
 -----------------------------------------------------------------
 -- Calculate remaining grid variables, after getting user inputs.

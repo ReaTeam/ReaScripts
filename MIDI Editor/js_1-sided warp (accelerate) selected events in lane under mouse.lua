@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_1-sided warp (accelerate) selected events in lane under mouse.lua
-Version: 3.21
+Version: 3.30
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29080/Warp%203.00%20-%20left%20and%20right%2C%20or%20up%20and%20down.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -9,6 +9,7 @@ Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 About:
   # Description
+
   A Lua script for warping the positions or values of MIDI CCs and velocities.
   
   Events positions can be warped horizontally (to the left or right), and event values can be warp vertically (up or down).
@@ -20,7 +21,13 @@ About:
   * Useful for accelerating a series of evenly spaced notes.
   * Useful for changing the curve shape of LFOs.
 
+  Since v3.30, the script can apply two different acceleration curves.
+  * The mousewheel can be used to switch between the curves.
+  * Both of the curves are invertible, so events that were warped can later be re-selected and re-warped back to their original positions.
+
+
   # Instructions
+
   1) Select the target events that will be warped (the script works on any CCs, notes, text or sysex events).
   2) Position mouse over the target area (in the case of notes, either the notes area or the velocity lane).
   3) Press the shortcut key. (Do not press any mouse button.)
@@ -33,6 +40,8 @@ About:
   If the mouse movement is not detected accurately (perhaps due to retina display or jerky mouse), 
       the setting "MouseMovementResolution" in the User Area can be increased.
       
+
+  KEYBOARD SHORTCUT
         
   There are two ways in which this script can be run:  
   
@@ -59,6 +68,26 @@ About:
   (The first time that the script is stopped, REAPER will pop up a dialog box 
     asking whether to terminate or restart the script.  Select "Terminate"
     and "Remember my answer for this script".)   
+
+
+  MOUSEWHEEL MODIFIER
+  
+  A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an
+  Action, similar to how keyboard shortcuts are assigned.
+  
+  As is the case with keyboard shortcuts, the script can either be controlled via its own
+  mousewheel modifier, or via the mousewheel modifier that is linked to the "js_Run..." control script.
+  
+  Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user 
+  must remember several modifier combinations, one for each script.  (Mousewheel modifiers such as 
+  Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)
+  
+  An easier option is to link a single mousewheel+modifier shortcut to the "js_Run..." script, 
+  and this single mousewheel+modifier can then be used to control any of the other "lane under mouse" scripts. 
+  
+  NOTE: The mousewheel modifier that is assigned to the "js_Run..." script can be used to control 
+      the other scripts, including the Arching scripts, even if these scripts
+      were started from their own keyboard shortcuts.
     
     
   PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
@@ -98,6 +127,9 @@ About:
     + Mouse cursor changes to indicate that script is running. 
   * v3.21 (2017-12-14)
     + Tweak mouse cursor icon.
+  * v3.30 (2017-12-21)
+    + Two different acceleration curves that can be switched using mousewheel.
+    + Slghtly faster execution in inline editor and multi-take items.
 ]]
 
 
@@ -225,8 +257,19 @@ local sourceLengthTicks -- = reaper.BR_GetMidiSourceLenPPQ(take)
 local loopStartPPQpos -- Start of loop iteration under mouse
 local takeIsCleared = false --Flag to record whether the take has been cleared (and must therefore be uploaded again before quitting)
 
+-- The functions MIDI_SetAllEvts and BR_GetMouseCursorContext (both of which will be called
+--    in each iteration of this script) get considerably slowed down by extra data in non-active takes.
+-- (Presumably, both have to deal with the full MIDI chunk.)
+-- To speed these function up, the non-active takes will therefore temporarily be cleared of all MIDI data.
+-- The MIDI data will be stored in this table and restored when the script exists.
+local tOtherTakes = {}
+
 -- Some internal stuff that will be used to set up everything
 local _, item, take, editor, isInline
+
+-- From version 3.30, the script can switch between two curve types using the mousewheel. This variable toggles between true and false.
+local curveType = true 
+local prevMousewheel
 
 -- I am not sure that declaring functions local really helps to speed things up...
 local s_unpack = string.unpack
@@ -234,13 +277,17 @@ local s_pack   = string.pack
 local t_insert = table.insert -- myTable[i] = X is actually much faster than t_insert(myTable, X)
 local m_floor  = math.floor
 
--- User preferences that can be customized in the js_MIDI editing preferences script
-local mustDrawCustomCursor
 
+-- User preferences that can be customized in the js_MIDI editing preferences script
+local mustDrawCustomCursor = true
+local clearNonActiveTakes  = true
   
 --#############################################################################################
 -----------------------------------------------------------------------------------------------
--- The function that will be 'deferred' to run continuously
+-- The function that will track mouse movement and draw MIDI during each defer cycle.
+--
+-- The function returns true if the looping can continue, and false if the script should quit.
+--
 -- There are three bottlenecks that impede the speed of this function:
 --    Minor: reaper.BR_GetMouseCursorContext(), which must unfortunately unavoidably be called before 
 --           reaper.BR_GetMouseCursorContext_MIDI(), and which (surprisingly) gets much slower as the 
@@ -256,11 +303,11 @@ local mustDrawCustomCursor
 --           it may be helpful to temporarily make all non-active takes invisible. 
 -- The Lua script parts of this function - even if it calculates thousands of events per cycle,
 --    make up only a small fraction of the execution time.
-local function loop_trackMouseMovement()
+local function trackMouseAndDrawMIDI()
 
     -------------------------------------------------------------------------------------------
     -- The js_Run... script can communicate with and control the other js_ scripts via ExtState
-    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(false) end
 
     -------------------------------------------
     -- Track the new mouse (vertical) position.
@@ -294,7 +341,7 @@ local function loop_trackMouseMovement()
     --    will complete the function before quitting.
     if laneIsPIANOROLL then
         if not (segment == "notes") then 
-            return 
+            return false
         end
     elseif segment == "notes" 
         or (details == "cc_lane" and mouseNewCClaneID < mouseOrigCClaneID and mouseNewCClaneID >= 0) 
@@ -305,49 +352,29 @@ local function loop_trackMouseMovement()
         mouseNewCCvalue = laneMin
         mustQuitAfterDrawingOnceMore = true        
     elseif mouseNewCClane ~= mouseOrigCClane then
-        return
+        return false
     elseif mouseNewCCvalue == -1 then 
         mouseNewCCvalue = laneMax -- If -1, it means that the mouse is over the separator above the lane.
     end
-
+    
     -----------------------------        
     -- Has mousewheel been moved?     
     -- The script can detect mousewheel in two ways: 
     --    * by being linked directly to a mousewheel mouse modifier (return mousewheel movement with reaper.get_action_context)
     --    * or via the js_Run... script that can run and control the other js_ scripts (return movement via ExtState)
-    --[[ 
-    -- Warping doesn't follow mousewheel, so this part is commented out.
-    is_new, _, _, _, _, _, moved = reaper.get_action_context()
+    is_new, _, _, _, _, _, mousewheel = reaper.get_action_context()
     if not is_new then -- then try getting from script
-        moved = tonumber(reaper.GetExtState("js_Mouse actions", "Mousewheel"))
-        if moved == nil then moved = 0 end
+        mousewheel = tonumber(reaper.GetExtState("js_Mouse actions", "Mousewheel"))
+        reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false) -- Reset after getting update
     end
-    reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false) -- Reset after getting update
-    if moved > 0 then mouseWheel = mouseWheel + 0.2
-    elseif moved < 0 then mouseWheel = mouseWheel - 0.2
-    end
-    ]]
-    
-    ------------------------------------------
-    -- Get mouse new PPQ (horizontal) position
-    mouseNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position())
-    mouseNewPPQpos = mouseNewPPQpos - loopStartPPQpos
-    if mouseNewPPQpos < 0 then mouseNewPPQpos = 0
-    elseif mouseNewPPQpos > sourceLengthTicks-1 then mouseNewPPQpos = sourceLengthTicks-1
-    else mouseNewPPQpos = math.floor(mouseNewPPQpos + 0.5)
-    end
-    --[[ -- Span-to-grid is not relevant to warping script
-    if isSnapEnabled then
-        local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
-        local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
-        gridNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-    -- Otherwise, destination PPQ is exact mouse position
-    else 
-        gridNewPPQpos = mouseNewPPQpos
-    end -- if isSnapEnabled
-    ]]
-
-    ---------------------------------------------------------------
+    if not (type(mousewheel) == "number") then mousewheel = 0 end
+    -- Prevent curve from flipping multiple times per mousewheel movement
+    if (mousewheel > 0 and prevMousewheel <= 0) or (mousewheel < 0 and prevMousewheel >= 0)
+        then curveType = not curveType 
+    end -- Flip curve type in mousewheel is moved in any direction.
+    prevMousewheel = mousewheel
+  
+    ------------------------------------------------------------------
     -- Calculate the new raw MIDI data, and write the tableEditedMIDI!
     ---------------------------------------------------------------- THIS IS THE PART THAT CAN EASILY BE MODDED !! ------------------------
     tableEditedMIDI = {} -- Clean previous tableEditedMIDI
@@ -357,6 +384,25 @@ local function loop_trackMouseMovement()
     local lastPPQpos = 0
     
     if warpLEFTRIGHT then
+    
+        ------------------------------------------
+        -- Get mouse new PPQ (horizontal) position
+        mouseNewPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position())
+        mouseNewPPQpos = mouseNewPPQpos - loopStartPPQpos
+        if mouseNewPPQpos < 0 then mouseNewPPQpos = 0
+        elseif mouseNewPPQpos > sourceLengthTicks-1 then mouseNewPPQpos = sourceLengthTicks-1
+        else mouseNewPPQpos = math.floor(mouseNewPPQpos + 0.5)
+        end
+        --[[ -- Span-to-grid is not relevant to warping script
+        if isSnapEnabled then
+            local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
+            local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+            gridNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
+        -- Otherwise, destination PPQ is exact mouse position
+        else 
+            gridNewPPQpos = mouseNewPPQpos
+        end -- if isSnapEnabled
+        ]]
         
         -- The warping uses a power function, and the power variable is determined
         --     by calculating to what power 0.5 must be raised to reach the 
@@ -365,22 +411,24 @@ local function loop_trackMouseMovement()
         --     would follow the mouse position.
         -- The PPQ range of the selected events is used as reference to calculate
         --     magnitude of mouse movement.
-        -- Why use absolute value?  Since 0.5 with power<1 gives a nicer, more 'musical looking'
-        --     shape than power>1.
-        local mouseMovement = mouseNewPPQpos-mouseOrigPPQpos -- Positive if moved to right, negative if moved to left
-        local mouseAbsRatio = 0.5 + math.abs(mouseMovement/origPPQrange)
+        local power
+        local mouseRelativeMovement = (mouseNewPPQpos-mouseOrigPPQpos)/origPPQrange
         -- Prevent warping too much, so that all CCs don't end up in a solid block
-        if mouseAbsRatio > 0.99 then mouseAbsRatio = 0.99 end
-        local power = math.log(mouseAbsRatio, 0.5)
-         
+        if mouseRelativeMovement > 0.49 then mouseRelativeMovement = 0.49 elseif mouseRelativeMovement < -0.49 then mouseRelativeMovement = -0.49 end
+        if curveType then
+            power = math.log(0.5 + mouseRelativeMovement, 0.5)
+        else
+            power = math.log(0.5 - mouseRelativeMovement, 0.5)
+        end
+
         for i = 1, #tablePPQs do
         
             if mouseMovement == 0 then
                 newPPQpos = tablePPQs[i]
-            elseif mouseMovement < 0 then
-                newPPQpos = m_floor(origPPQrightmost - (((origPPQrightmost - tablePPQs[i])/origPPQrange)^power)*origPPQrange + 0.5)
-            else -- mouseMovement > 0
+            elseif curveType then --mouseMovement < 0 then
                 newPPQpos = m_floor(origPPQleftmost + (((tablePPQs[i] - origPPQleftmost)/origPPQrange)^power)*origPPQrange + 0.5)
+            else -- mouseMovement > 0
+                newPPQpos = m_floor(origPPQrightmost - (((origPPQrightmost - tablePPQs[i])/origPPQrange)^power)*origPPQrange + 0.5)
             end
             
             offset = newPPQpos - lastPPQpos
@@ -396,12 +444,12 @@ local function loop_trackMouseMovement()
                 
                 if mouseMovement == 0 then
                     newNoteOffPPQpos = noteOffPPQpos
-                elseif mouseMovement < 0 then 
-                    newNoteOffPPQpos = m_floor(origPPQrightmost - (((origPPQrightmost - noteOffPPQpos)/origPPQrange)^power)*origPPQrange + 0.5)
-                else -- mouseMovement > 0
+                elseif curveType then --mouseMovement < 0 then
                     newNoteOffPPQpos = m_floor(origPPQleftmost + (((noteOffPPQpos - origPPQleftmost)/origPPQrange)^power)*origPPQrange + 0.5)
+                else -- mouseMovement > 0
+                    newNoteOffPPQpos = m_floor(origPPQrightmost - (((origPPQrightmost - noteOffPPQpos)/origPPQrange)^power)*origPPQrange + 0.5)
                 end
-                
+
                 -- Insert note-on 
                 c = c + 1 
                 tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])    
@@ -424,12 +472,17 @@ local function loop_trackMouseMovement()
                  
     else -- warpUPDOWN
     
-        local mouseMovement = mouseNewCCvalue-mouseOrigCCvalue -- Positive if moved to right, negative if moved to left
-        local mouseAbsRatio = 0.5 - math.abs(mouseMovement/(laneMax-laneMin))
-    
+        local mouseRelativeMovement = (mouseNewCCvalue-mouseOrigCCvalue)/(laneMax-laneMin) -- Positive if moved to right, negative if moved to left
         -- Prevent warping too much, so that all CCs don't end up in a solid block
-        if mouseAbsRatio < 0.001 then mouseAbsRatio = 0.001 end
-        local power = math.log(mouseAbsRatio, 0.5)
+        if mouseRelativeMovement > 0.49 then mouseRelativeMovement = 0.49 elseif mouseRelativeMovement < -0.49 then mouseRelativeMovement = -0.49 end
+    
+        local power
+        if curveType then
+            power = math.log(0.5 + mouseRelativeMovement, 0.5)
+        else
+            power = math.log(0.5 - mouseRelativeMovement, 0.5)
+        end
+        
         
         lastPPQpos = 0
                     
@@ -437,10 +490,10 @@ local function loop_trackMouseMovement()
                        
             if mouseMovement == 0 then
                 newValue = tableValues[i]
-            elseif mouseMovement > 0 then 
-                newValue = m_floor(origValueMax - (((origValueMax - tableValues[i])/origValueRange)^power)*origValueRange + 0.5)
+            elseif curveType then 
+                newValue = m_floor(origValueMin + (((tableValues[i] - origValueMin)/origValueRange)^power)*origValueRange + 0.5)            
             else -- mouseMovement > 0
-                newValue = m_floor(origValueMin + (((tableValues[i] - origValueMin)/origValueRange)^power)*origValueRange + 0.5)
+                newValue = m_floor(origValueMax - (((origValueMax - tableValues[i])/origValueRange)^power)*origValueRange + 0.5)            
             end
             if newValue > laneMax then newValue = laneMax
             elseif newValue < laneMin then newValue = laneMin
@@ -493,16 +546,34 @@ local function loop_trackMouseMovement()
                                   .. s_pack("i4", newRemainOffset)
                                   .. remainMIDIstringSub5)
     takeIsCleared = false
-    if isInline then reaper.UpdateArrange() end
+    if isInline then reaper.UpdateItemInProject(item) end
+
+    if mustQuitAfterDrawingOnceMore then return false else return true end
+
+end -- trackMouseAndDrawMIDI()
 
 
-    ---------------------------------------------------------
+--#######################################################################################
+-----------------------------------------------------------------------------------------
+function loop_pcall()
+    -- Since new versions of the script temporarily clear all MIDI from non-active takes, 
+    --    it is important to ensure that, if things go wrong, the script can restore the cleared takes
+    --    (otherwise the user may not notice the missing MIDI util it is too late).
+    -- Therefore use pcall to call the main trackMouseAndDrawMIDI function.
+    local errorFree, mustContinue = pcall(trackMouseAndDrawMIDI)
+    
     -- Continuously loop the function - if don't need to quit
-    if mustQuitAfterDrawingOnceMore then return
-    else reaper.runloop(loop_trackMouseMovement)
+    if not errorFree then
+        reaper.MB("Error while tracking mouse movement.\n\nOriginal MIDI data will be restored.\n\n", "ERROR", 0)
+        reaper.MIDI_SetAllEvts(take, MIDIstring)
+        takeIsCleared = false
+        return
+    elseif not mustContinue then 
+        return
+    else 
+        reaper.runloop(loop_pcall)
     end
-
-end -- loop_trackMouseMovement()
+end
 
 
 --############################################################################################
@@ -512,14 +583,20 @@ function onexit()
     -- Remove tooltip 'custom cursor'
     reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
-    -- Remember that the take was cleared before calling BR_GetMouseCursorContext
-    --    So upload MIDI again.
+    -- For safety, the very first step that must be performed when quitting,
+    --    is to restore all MIDI to the cleared non-active takes.
+    for otherTake, otherMIDI in pairs(tOtherTakes) do
+        reaper.MIDI_SetAllEvts(otherTake, otherMIDI)
+    end 
+    
+    -- Remember that the ctive take was cleared before calling BR_GetMouseCursorContext
+    --    So may need to upload MIDI again.
     if takeIsCleared then
         reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
                                       .. s_pack("i4", newRemainOffset)
                                       .. remainMIDIstringSub5)
     end
-                                  
+                                 
     --[[Archive: Since v5.32, MIDI_Sort will be fixed, so no need to use workarounds
                   such as calling the "Invert selection" action.
                                       
@@ -560,7 +637,7 @@ function onexit()
                               .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
     end
         
-    if isInline then reaper.UpdateArrange() end  
+    if isInline then reaper.UpdateItemInProject(item) end  
      
     -- Communicate with the js_Run.. script that this script is exiting
     reaper.DeleteExtState("js_Mouse actions", "Status", true)
@@ -1281,10 +1358,24 @@ reaper.defer(avoidUndo)
 --    determines direction of warping.
 local mouseXorig, mouseYorig = reaper.GetMousePosition()
 
+----------------------------------------------------
+-- Display notification about new mousewheel feature
+local lastTipVersion = tonumber(reaper.GetExtState("js_1-sided warp", "Last tip version"))
+--if type(lastTipVersion) == "string" then lastTipVersion = tonumber(lastTipVersion) end
+if not (type(lastTipVersion) == "number") or lastTipVersion < 3.30 then
+    reaper.MB("* This updated version of the 1-sided warp script can apply two different acceleration curves."
+              .. "\n\n* The mousewheel can be used to switch between the curves."
+              .. "\n(The mousewheel shortcut can be linked to this js_1-sided warp script directly, or to the js_Run... master control script"
+              .. "\n\n* Both of the curves are invertible, so events that were warped can later be re-selected and re-warped back to their original positions." 
+              .. "\n\n(This message will only be displayed once).", 
+              "New feature notification", 0)
+    reaper.SetExtState("js_1-sided warp", "Last tip version", "3.30", true)
+    return
+end
+
 ----------------------------------------------------------------------------
 -- Check whether SWS is available, as well as the required version of REAPER
-version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
-if version == nil or version < 5.32 then
+if not reaper.APIExists("MIDI_GetAllEvts") then
     reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
                           .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
                           , "ERROR", 0)
@@ -1498,11 +1589,11 @@ end
 -- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
 -- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
 --    and this may appear inelegant to the user.
-if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+--[[if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
     mustDrawCustomCursor = false
 else
     mustDrawCustomCursor = true
-end
+end]]
 
 ---------------------------------------------------------------------------
 -- OK, tests passed, and it seems like this script will do something, 
@@ -1515,6 +1606,30 @@ if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
     prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
     reaper.SetToggleCommandState(sectionID, cmdID, 1)
     reaper.RefreshToolbar2(sectionID, cmdID)
+end
+
+-------------------------------------------------------------------------------------------
+-- The functions MIDI_SetAllEvts and BR_GetMouseCursorContext (both of which will be called
+--    in each iteration of this script) get considerably slowed down by extra data in non-active takes.
+-- (Presumably, both have to deal with the full MIDI chunk.)
+-- To speed these function up, the non-active takes will therefore temporarily be cleared of all MIDI data.
+-- The MIDI data will be returned when the script exists.
+if not (reaper.GetExtState("js_Mouse actions", "Clear non-active takes") == "false") then
+    for t = 0, reaper.CountTakes(item)-1 do
+        local otherTake = reaper.GetTake(item, t)
+        if otherTake ~= take then --and reaper.TakeIsMIDI(otherTake) then
+            -- In rare circumstances, source length may differ between takes, if user changed loop points of individual takes.
+            local otherSourceLen = reaper.BR_GetMidiSourceLenPPQ(otherTake)
+            if otherSourceLen > 0 then -- If not a MIDI take, will return -1
+                local gotMIDIOK, otherTakeMIDI = reaper.MIDI_GetAllEvts(otherTake, "")
+                if gotMIDIOK then
+                    tOtherTakes[otherTake] = otherTakeMIDI
+                    otherSourceLen = math.floor(otherSourceLen)
+                    reaper.MIDI_SetAllEvts(otherTake, string.pack("i4Bi4BBB", otherSourceLen, 0, 3, 0xB0, 0x7B, 0x00))
+                end
+            end
+        end
+    end
 end
 
 ----------------------------------------------------------------------
@@ -1543,4 +1658,4 @@ end
 -- (But first, reset the mousewheel movement.)
 is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
 
-loop_trackMouseMovement()
+loop_pcall()

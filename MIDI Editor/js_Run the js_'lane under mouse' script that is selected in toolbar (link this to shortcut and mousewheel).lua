@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua
-Version: 1.20
+Version: 1.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: 
@@ -28,6 +28,8 @@ About:
        ~ Draw sine curve in real time (chasing start values)
        ~ Split notes
        ~ Split selected notes
+       ~ Arch
+       ~ Arch sine
        ~ Remove redundancies (in lane under mouse)
        
    Any user-customized variants of these scripts can also be added to the toolbar.
@@ -76,6 +78,8 @@ About:
     + Header updated to ReaPack 1.1 format.
   v1.20 (2017-01-30)
     + The mousewheel modifier that is linked to this script can now control any js "under mouse" script, even if that script was called from its own keyboard shortcut.
+  v1.21 (2017-12-21)
+    + Broadcast first mousewheel movement to linked scripts.
 ]]
 
 -------------------------------------------
@@ -102,6 +106,9 @@ function onexit()
     -- When this script is terminated (usually by pressing its keyabord shortcut a second time), 
     --    it must signal any js_MIDI scripts that it launched to quit.
     reaper.SetExtState("js_Mouse actions", "Status", "Must quit", false)
+    --reaper.ShowConsoleMsg("\nArmed: " .. reaper.GetExtState("js_Mouse actions", "Armed commandID"))
+    --reaper.ShowConsoleMsg("\n\nPrevious: " .. reaper.GetExtState("js_Mouse actions", "Previous commandIDs"))
+    --reaper.ShowConsoleMsg("\n\nStatus: " .. reaper.GetExtState("js_Mouse actions", "Status"))
 end
 
 
@@ -110,17 +117,17 @@ end
 ---------------------------------------------------------
 -- function main()
 
-_, _, sectionID, _, _, _, _ = reaper.get_action_context()
+isnew, _, sectionID, _, _, _, val = reaper.get_action_context() -- If called via mousewheel, get first mousewheel movement
 if sectionID == nil or sectionID == -1 then return end
 
 editor = reaper.MIDIEditor_GetActive()
 if editor == nil then return end
 
 -- If one of the "under mouse" scripts is already running, don't call a new script, only broadcast mousewheel.
--- (First reset the mousewheel state.)
 if reaper.GetExtState("js_Mouse actions", "Status") == "Running" then
 
-    reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false)
+    if not (type(val) == "number") then val = 0 end
+    reaper.SetExtState("js_Mouse actions", "Mousewheel", tostring(val), false)
     reaper.atexit(onexit)
     loop_trackMousewheelAndExitState()
     
@@ -139,6 +146,8 @@ else
         reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
         return
     end
+    
+    --reaper.ShowConsoleMsg(armedCommandID)
     
     -- Check whether the commandIDs of any previously selected js_MIDI scripts have been stored,
     --    and make sure that their toolbar buttons have been deactivated.
