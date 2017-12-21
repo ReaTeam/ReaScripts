@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3ab2d9759f96c82b8ead5ae2e2cfa8fa9c0381b4" name="ReaTeam Scripts">
+<index version="1" commit="c7d6334e7b842993daaee9975b51a0fba020293e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2173,7 +2173,7 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="3.30" author="juliansader" time="2017-12-21T21:01:43Z">
         <changelog><![CDATA[+ Two different acceleration curves that can be switched using mousewheel.
 + Slghtly faster execution in inline editor and multi-take items.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3ab2d9759f96c82b8ead5ae2e2cfa8fa9c0381b4/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c7d6334e7b842993daaee9975b51a0fba020293e/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
