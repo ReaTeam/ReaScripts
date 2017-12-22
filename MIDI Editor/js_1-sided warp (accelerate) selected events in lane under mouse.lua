@@ -1365,9 +1365,9 @@ local lastTipVersion = tonumber(reaper.GetExtState("js_1-sided warp", "Last tip 
 if not (type(lastTipVersion) == "number") or lastTipVersion < 3.30 then
     reaper.MB("* This updated version of the 1-sided warp script can apply two different acceleration curves."
               .. "\n\n* The mousewheel can be used to switch between the curves."
-              .. "\n(The mousewheel shortcut can be linked to this js_1-sided warp script directly, or to the js_Run... master control script"
+              .. "\n(The mousewheel shortcut can be linked to this js_1-sided warp script directly, or to the js_Run... master control script.)"
               .. "\n\n* Both of the curves are invertible, so events that were warped can later be re-selected and re-warped back to their original positions." 
-              .. "\n\n(This message will only be displayed once).", 
+              .. "\n\n(This message will only be displayed once.)", 
               "New feature notification", 0)
     reaper.SetExtState("js_1-sided warp", "Last tip version", "3.30", true)
     if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
