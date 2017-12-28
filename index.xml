@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="79638cc3710b346adec69e96b02fa99b30666493" name="ReaTeam Scripts">
+<index version="1" commit="3677d197dc60605853c0e562cc8d13e5220a2d5c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3834,7 +3834,9 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\pard \ql \f0 \sa180 \li0 \fi0 In addition, the script clearly shows the take's default insert channel, and allows the user to change the channel. (From REAPER v2.54 onward, this crucial setting will also be available by default in the MIDI editor itself.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default colors of the GUI, as well as the default size, can be customized in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The default colors of the GUI, as well as the font size, can be customized in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When opening, the script will recall its last-used position and size.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the script GUI is docked, REAPER's own pin-on-top button can be used to keep the docker on top and the script visible at all times. If the script GUI is not docked, 3rd party apps that pin windows on top, such as "FileBox eXtender" (on Windows), can be used.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, particularly if the take contains many thousands of MIDI events. The GUI therefore provides a "Pause" checkbox, which will pause the realtime updating.\par}
 }
 ]]></description>
@@ -3901,6 +3903,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 + Note names follow "MIDI octave name display offset" in Preferences/
 + GUI window will recall last-used size.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/79638cc3710b346adec69e96b02fa99b30666493/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
+      <version name="1.21" author="juliansader" time="2017-12-28T17:09:03Z">
+        <changelog><![CDATA[+ Display Time (min;sec) format in high precision.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3677d197dc60605853c0e562cc8d13e5220a2d5c/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
