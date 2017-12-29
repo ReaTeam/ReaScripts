@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3677d197dc60605853c0e562cc8d13e5220a2d5c" name="ReaTeam Scripts">
+<index version="1" commit="b882f393cdb5e03ed370d8c2d644905ab4c7ac06" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3907,6 +3907,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.21" author="juliansader" time="2017-12-28T17:09:03Z">
         <changelog><![CDATA[+ Display Time (min;sec) format in high precision.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3677d197dc60605853c0e562cc8d13e5220a2d5c/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
+      <version name="1.22" author="juliansader" time="2017-12-29T12:25:22Z">
+        <changelog><![CDATA[+ Time format: Samples respects project start time and measure.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b882f393cdb5e03ed370d8c2d644905ab4c7ac06/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
