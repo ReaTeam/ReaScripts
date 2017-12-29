@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.21
+Version: 1.22
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -89,6 +89,8 @@ About:
     + GUI window will recall last-used size.
   * v1.21 (2017-12-28)
     + Display Time (min;sec) format in high precision.
+  * v1.22 (2017-12-29)
+    + Time format: Samples respects project start time and measure.
 ]]
 
 -- USER AREA
@@ -259,19 +261,22 @@ local function timeStr(take, ppq, format)
         [4] = "Time (min.sec)",
         [5] = "Samples",
         [6] = "h ; m ; s ; frames",
-        [7] = "Ticks"}
+        [7] = "Ticks (from take start)"}
         ]]
-    -- Own addition: 6=Ticks
     
     -- format_timestr_pos returns strings that are not in the same format as 
     --    how the MIDI editor's Properties window displays position.
     -- Therefore extra format options were added: 
+    
     -- Also, "M:B:time" format is imprecise since it rounds the time, this will also be changed. 
+    
+    -- NB! format_timestr_pos does not take into account Project settings -> "Project start time" and "Project start measure"!
     
     -- BTW, all this string formatting stuff takes a mere few microseconds, so doesn't affect responsiveness at all.
     if format == -1 then
         return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", -1):gsub(":", " ; ")
-    elseif format == 0 then -- Custom format measure:beat:ticks
+    -- Custom format measure:beat:ticks
+    elseif format == 0 then 
         local measureStr, beatStr = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 2):match("([%d%-]+)[%.%:](%d+)")
         local measures, beats = tonumber(measureStr)-projStartMeasure, tonumber(beatStr)-1
         local beatTime = reaper.TimeMap2_beatsToTime(0, beats, measures)
@@ -285,7 +290,8 @@ local function timeStr(take, ppq, format)
             ticksStr = string.format("%03.4f", ticks)
         end]]
         return (measureStr .. " ; " .. beatStr .. " ; " .. ticksStr)
-    elseif format == 1 then -- measure:beat:seconds
+    -- Measure:beat:seconds
+    elseif format == 1 then 
         local t1 = reaper.time_precise()
         local eventTime = reaper.MIDI_GetProjTimeFromPPQPos(take, ppq)
         -- Why use format_timestr_pos instead of TimeMap2_timeToBeats?  
@@ -293,17 +299,20 @@ local function timeStr(take, ppq, format)
         local measureStr, beatStr = reaper.format_timestr_pos(eventTime, "", 2):match("([%d%-]+)[%.%:](%d+)")
         local measures, beats = tonumber(measureStr)-projStartMeasure, tonumber(beatStr)-1
         local beatTime  = reaper.TimeMap2_beatsToTime(0, beats, measures)
-        local timeStr = string.format("%.11f", eventTime-beatTime):gsub("%.?0+$", "") -- gsub removes trailing zeroes and decimal point
+        local timeStr = string.format("%.10f", eventTime-beatTime):gsub("%.?0+$", "") -- gsub removes trailing zeroes and decimal point (use slightly lower precision so that string fits into GUI)
         if timeStr == "-0" then timeStr = "0" end
         --if (timeStr == "-0.000000000" or timeStr == "0.000000000") then timeStr = "0" end
         timeTaken = reaper.time_precise() - t1
         return (measureStr .. " ; " .. beatStr .. " ; " .. timeStr)
+    -- Measures.Beats.Cents
     elseif format == 2 then -- Measures.Beats.Cents
         return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 2):gsub("%.", " ; ")
-    elseif format == 3 then -- seconds
+    -- Seconds (full floating point precision)
+    elseif format == 3 then 
         --return tostring(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime)
-        return string.format("%.11f", reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime):gsub("%.?0+$", "") -- gsub removes trailing zeroes and decimal point
-    elseif format == 4 then -- Time (min ; seconds)
+        return string.format("%.11f", reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime):gsub("%.?0+$", "") .. " s" -- gsub removes trailing zeroes and decimal point
+    -- Time (min ; seconds)
+    elseif format == 4 then 
         local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime
         if timePos >= 0 then
             local minutes = timePos // 60
@@ -314,12 +323,17 @@ local function timeStr(take, ppq, format)
             local seconds = (-minutes*60) - timePos
             return string.format("-%im %.11f", minutes, seconds):gsub("%.?0+$", "") .. "s"-- gsub removes trailing zeroes and decimal point
         end
-    elseif format == 5 then
-        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 4)
-    elseif format == 6 then
+    -- Samples
+    --    Something very weird is going on with format_timestr_pos: 
+    --    after experimentation I discovered that projStartTime be SUBTRACTED instead of added?
+    elseif format == 5 then 
+        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) - projStartTime, "", 4)
+    -- h:m:s:f
+    elseif format == 6 then 
         return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 5):gsub(":", " ; ")
-    elseif format == 7 then -- ticks
-        return string.format("%.11f", ppq):gsub("%.?0+$", "") --gsub("%.%d+", ""))
+    -- Ticks (from take start)
+    elseif format == 7 then 
+        return string.format("%.11f", ppq):gsub("%.?0+$", "") -- ppq should always be integer, but format just in case...
     end
 end
 
