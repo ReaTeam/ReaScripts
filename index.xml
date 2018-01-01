@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b882f393cdb5e03ed370d8c2d644905ab4c7ac06" name="ReaTeam Scripts">
+<index version="1" commit="391f00b797da15db45d517da820cd83e88669edf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5417,6 +5417,48 @@ Made by Mordi, Jan 2016]]></changelog>
     <reapack name="Argitoth_Split selected items at stretch markers.eel" type="script" desc="Split selected items at stretch markers">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/Argitoth_Split%20selected%20items%20at%20stretch%20markers.eel</source>
+      </version>
+    </reapack>
+    <reapack name="js_Convert all stretch markers in selected items to slopes with starting rate 1.0, to protect transients.lua" type="script" desc="js_Convert all stretch markers in selected items to slopes with starting rate 1.0, to protect transients.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A script for easy, one-click conversion of stretch markers in selected items to slopes with starting rate 1.0.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By setting a starting rate of 1.0, time-stretching artefacts on the transient immediately after the marker are minimized.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (Of course, as is the case for any time-stretch tactic, other artefacts may still arise.)\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?p=1932922&amp;postcount=77</link>
+        <link rel="screenshot">https://stash.reaper.fm/32594/Convert%20all%20stretch%20markers%20to%20slopes.JPG</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="1.00" author="juliansader" time="2018-01-01T00:08:07Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/391f00b797da15db45d517da820cd83e88669edf/Stretch%20Markers/js_Convert%20all%20stretch%20markers%20in%20selected%20items%20to%20slopes%20with%20starting%20rate%201.0,%20to%20protect%20transients.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Convert all stretch markers in take under mouse to slopes with starting rate 1.0, to protect transients.lua" type="script" desc="js_Convert all stretch markers in take under mouse to slopes with starting rate 1.0, to protect transients.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A script for easy, one-click conversion of stretch markers in take under mouse to slopes with starting rate 1.0.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By setting a starting rate of 1.0, time-stretching artefacts on the transient immediately after the marker are minimized.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (Of course, as is the case for any time-stretch tactic, other artefacts may still arise.)\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?p=1932922&amp;postcount=77</link>
+        <link rel="screenshot">https://stash.reaper.fm/32594/Convert%20all%20stretch%20markers%20to%20slopes.JPG</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="1.00" author="juliansader" time="2018-01-01T00:08:07Z">
+        <changelog><![CDATA[+ Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/391f00b797da15db45d517da820cd83e88669edf/Stretch%20Markers/js_Convert%20all%20stretch%20markers%20in%20take%20under%20mouse%20to%20slopes%20with%20starting%20rate%201.0,%20to%20protect%20transients.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy stretch markers from selected item to other items in group.eel" type="script" desc="Copy stretch markers from selected item to other items in group">
