@@ -15,6 +15,8 @@ About:
   By setting a starting rate of 1.0, time-stretching artefacts on the transient immediately after the marker are minimized.
   
   (Of course, as is the case for any time-stretch tactic, other artefacts may still arise.)
+
+  For easy use during editing, this script can be linked to a mouse modifier (such as shift+ctrl+double click) in the "Media item stretch marker" context.
 ]] 
 
 --[[
