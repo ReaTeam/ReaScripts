@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Convert all stretch markers in take under mouse to slopes with starting rate 1.0, to protect transients.lua
-Version: 1.00
+Version: 1.01
 Author: juliansader
 Screenshot: https://stash.reaper.fm/32594/Convert%20all%20stretch%20markers%20to%20slopes.JPG
 Website: https://forum.cockos.com/showthread.php?p=1932922&postcount=77
@@ -20,7 +20,9 @@ About:
 --[[
   Changelog:
   * v1.00 (2018-01-01)
-    + Initial Release
+    + Initial Release.
+  * v1.01 (2018-01-01)
+    + Little undo tweak.
 ]]
 
 if not reaper.APIExists("BR_TakeAtMouseCursor") then
