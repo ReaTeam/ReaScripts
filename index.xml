@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="391f00b797da15db45d517da820cd83e88669edf" name="ReaTeam Scripts">
+<index version="1" commit="8fcc782fdf0207407c7e926d2411101358900fc3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5458,7 +5458,11 @@ Made by Mordi, Jan 2016]]></changelog>
       </metadata>
       <version name="1.00" author="juliansader" time="2018-01-01T00:08:07Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/391f00b797da15db45d517da820cd83e88669edf/Stretch%20Markers/js_Convert%20all%20stretch%20markers%20in%20take%20under%20mouse%20to%20slopes%20with%20starting%20rate%201.0,%20to%20protect%20transients.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ba89c668d5f0b11f55aa03233e89fee6f9328689/Stretch%20Markers/js_Convert%20all%20stretch%20markers%20in%20take%20under%20mouse%20to%20slopes%20with%20starting%20rate%201.0,%20to%20protect%20transients.lua</source>
+      </version>
+      <version name="1.01" author="juliansader" time="2018-01-01T03:07:10Z">
+        <changelog><![CDATA[+ Little undo tweak.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8fcc782fdf0207407c7e926d2411101358900fc3/Stretch%20Markers/js_Convert%20all%20stretch%20markers%20in%20take%20under%20mouse%20to%20slopes%20with%20starting%20rate%201.0,%20to%20protect%20transients.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy stretch markers from selected item to other items in group.eel" type="script" desc="Copy stretch markers from selected item to other items in group">
