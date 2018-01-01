@@ -23,14 +23,15 @@ About:
     + Initial Release
 ]]
 
-reaper.Undo_BeginBlock2(0)
 if not reaper.APIExists("BR_TakeAtMouseCursor") then
     reaper.MB("This script requires the SWS/S&M extension, which can be downloaded from\n\nwww.sws-extension.org", "ERROR", 0)
     return
 end
 take = reaper.BR_TakeAtMouseCursor()
 if not reaper.ValidatePtr2(0, take, "MediaItem_Take*") then return end
-for s = 0, reaper.GetTakeNumStretchMarkers(take)-2 do
+numStretchMarkers = reaper.GetTakeNumStretchMarkers(take)
+if numStretchMarkers == 0 then return end
+for s = 0, numStretchMarkers-2 do
     _, takePos, sourcePos = reaper.GetTakeStretchMarker(take, s)
     _, nextTakePos, nextSourcePos = reaper.GetTakeStretchMarker(take, s+1)
     -- The API slope paramater is different from the slope value given in the mouse cursor tooltip.
@@ -38,8 +39,9 @@ for s = 0, reaper.GetTakeNumStretchMarkers(take)-2 do
     slope = 1-(nextTakePos-takePos)/(nextSourcePos-sourcePos)
     reaper.SetTakeStretchMarkerSlope(take, s, slope)
 end
-reaper.UpdateItemInProject(reaper.GetMediaItemTake_Item(take))
-reaper.Undo_EndBlock2(0, "Convert stretch markers to slopes", -1)
+item = reaper.GetMediaItemTake_Item(take)
+reaper.UpdateItemInProject(item)
+reaper.Undo_OnStateChange_Item(0, "Convert stretch markers to slopes", item)
 
 
 
