@@ -13,8 +13,6 @@ if item then
 	local itemDuration = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
 	local itemEnd = itemStart + itemDuration
 
-	-- fit=reaper.SetProjectMarkerByIndex2(0, selectedregion-1, true, itemStart, itemEnd, Regions[selectedregion].index,  Regions[selectedregion].name,  Regions[selectedregion].color, 0)
-	
 	local markeridx, regionidx = reaper.GetLastMarkerAndCurRegion(0, reaper.GetCursorPosition())
 	local retval, isrgnOut, posOut, rgnendOut, nameOut, markrgnindexnumberOut, colorOut = reaper.EnumProjectMarkers3(0, regionidx)
 	if retval>0 then 
