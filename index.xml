@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0dd615be06232c166e02b642b1a25283967025e1" name="ReaTeam Scripts">
+<index version="1" commit="15dd689ceaa7a88f03e1047a365c4c2c032d4f10" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7057,6 +7057,9 @@ Web Interface:
     <reapack name="HeDa_Crop Region to selected item.lua" type="script" desc="Crop selected region to selected item">
       <version name="1.0" author="HeDa" time="2016-02-15T19:13:46Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b82c5cfd7faf04ea89544460dc8105b3ff01c675/Various/HeDa_Crop%20Region%20to%20selected%20item.lua</source>
+      </version>
+      <version name="2.0" author="HeDa" time="2018-01-09T11:04:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/15dd689ceaa7a88f03e1047a365c4c2c032d4f10/Various/HeDa_Crop%20Region%20to%20selected%20item.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_View Scroll Bottom.lua" type="script" desc="View Scroll Bottom">
