@@ -1,34 +1,31 @@
---[[
- * ReaScript Name: Load region render matrix slot n
- * Description: Allows quick storage and recall of reaper render matrix.
- * Instructions: Make track selections in region matrix, use the "complementary Save region render matrix slot n" to save the setup. 
-      Use the 'load' scripts to recall.
- * Author: Ausbaxter
- * Author URI: https://forum.cockos.com/member.php?u=107072
- * Repository: GitHub > Ausbaxter
- * Repository URL: https://github.com/ausbaxter/Reascripts
- * File URI: https://github.com/ausbaxter/Reascripts/Region Render Matrix/Load region render matrix slot 1
- * Licence: GPL v3
- * REAPER: 5.xx
- * Extensions: SWS Extension
- * Version: 1.0
---]]
- 
---[[
- * Changelog:
- * v1.0 (2018-01-09)
-  + Initial Release
---]]
---------------------User Area---------------------------------------------------------------------------
---To create more save slots duplicate this script and change the slot number variable
+--@description Recall region render matrix (9 actions)
+--@version 1.0
+--@author ausbaxter
+--@about
+--    # Save and load region render matrix to project
+--
+--    This package provides actions to save, load and reset Reaper's region
+--    render matrix.
+--@provides
+--    [main] . > ausbaxter_Recall region render matrix (slot 1).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 2).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 3).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 4).lua
+--    [main] . > ausbaxter_Reset region render matrix.lua
+--    [main] . > ausbaxter_Save region render matrix (slot 1).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 2).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 3).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 4).lua
+--@changelog
+--  + Initial release
 
-slot_number = 1 --only use integers
-
+local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
+local slot = tonumber(script_name:match("slot (%d+)"))  
 
 --------------------------------------------------------------------------------------------------------
 function Msg(msg) --debug
     --reaper.ShowConsoleMsg("")
-    reaper.ShowConsoleMsg(msg .. "\n")
+    reaper.ShowConsoleMsg(tostring(msg) .. "\n")
 end
 
 function TableCopy(table)--returns a copy of a table, enables passing by value behavior
@@ -88,6 +85,7 @@ function RestoreRenderMatrix(table)
                 reaper.SetRegionRenderMatrix(0, r_idx, m_track, 1)
             else
                 track = reaper.BR_GetMediaTrackByGUID(0, track_GUID )
+                Msg(track)
                 reaper.SetRegionRenderMatrix(0, r_idx, track, 1)
             end
         end
@@ -111,8 +109,9 @@ end
 
 
 function Main()
+    reaper.Undo_BeginBlock()
     reaper.TrackList_AdjustWindows( false ) --for updating the matrix without mouse over.
-    local slot = string.match(slot_number, "%d*")
+    local slot = string.match(slot, "%d*")
     retval, matrix_state = reaper.GetProjExtState(0, "RegionRenderMatrixState", "MatrixState" .. slot)
     if matrix_state ~= "" then
         rm_table = DeserializeData(matrix_state)
@@ -122,6 +121,7 @@ function Main()
         reaper.ReaScriptError("Region Render Matrix save not found for slot " .. slot)
     end
     reaper.TrackList_AdjustWindows( true )
+    reaper.Undo_EndBlock("Recall region render matrix",1)
 end
 
 Main()

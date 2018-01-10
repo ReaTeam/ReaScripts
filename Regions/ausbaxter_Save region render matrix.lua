@@ -1,28 +1,26 @@
---[[
- * ReaScript Name: Save region render matrix slot n
- * Description: Allows quick storage and recall of reaper render matrix.
- * Instructions: Make track selections in region matrix, use the 'save' scripts to save the setup. 
-      Use the complementary 'load' scripts to recall.
- * Author: Ausbaxter
- * Author URI: https://forum.cockos.com/member.php?u=107072
- * Repository: GitHub > Ausbaxter
- * Repository URL: https://github.com/ausbaxter/Reascripts
- * File URI: https://github.com/ausbaxter/Reascripts/Region Render Matrix/Save region render matrix slot 2
- * Licence: GPL v3
- * REAPER: 5.xx
- * Extensions: SWS Extension
- * Version: 1.0
---]]
- 
---[[
- * Changelog:
- * v1.0 (2018-01-09)
-  + Initial Release
---]]
---------------------User Area---------------------------------------------------------------------------
---To create more save slots duplicate this script and change the slot number variable
+--@description Recall region render matrix (9 actions)
+--@version 1.0
+--@author ausbaxter
+--@about
+--    # Save and load region render matrix to project
+--
+--    This package provides actions to save, load and reset Reaper's region
+--    render matrix.
+--@provides
+--    [main] . > ausbaxter_Recall region render matrix (slot 1).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 2).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 3).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 4).lua
+--    [main] . > ausbaxter_Reset region render matrix.lua
+--    [main] . > ausbaxter_Save region render matrix (slot 1).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 2).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 3).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 4).lua
+--@changelog
+--  + Initial release
 
-slot_number = 2 --only use integers
+local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
+local slot = tonumber(script_name:match("slot (%d+)")) 
 
 
 --------------------------------------------------------------------------------------------------------
@@ -99,9 +97,11 @@ function SerializeData(table)--formats region table into string to enable storin
 end
 
 function Main()
-    local slot = string.match(slot_number, "%d*")
+    reaper.Undo_BeginBlock()
+    local slot = string.match(slot, "%d*")
     local matrix_state = SerializeData(GetRegionRenderMatrix())
     reaper.SetProjExtState(0, "RegionRenderMatrixState", "MatrixState" .. slot, matrix_state)
+    reaper.Undo_EndBlock("Save region render matrix",1)
 end
 
 Main()

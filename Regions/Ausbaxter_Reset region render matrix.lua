@@ -1,23 +1,25 @@
---[[
- * ReaScript Name: Reset region render matrix
- * Description: Clears all enabled tracks from the region render matrix
- * Instructions: run
- * Author: Ausbaxter
- * Author URI: https://forum.cockos.com/member.php?u=107072
- * Repository: GitHub > Ausbaxter
- * Repository URL: https://github.com/ausbaxter/Reascripts
- * File URI: https://github.com/ausbaxter/Reascripts/Region Render Matrix/Reset region render matrix
- * Licence: GPL v3
- * REAPER: 5.xx
- * Extensions:
- * Version: 1.0
---]]
- 
---[[
- * Changelog:
- * v1.0 (2018-01-09)
-  + Initial Release
---]]
+--@description Recall region render matrix (9 actions)
+--@version 1.0
+--@author ausbaxter
+--@about
+--    # Save and load region render matrix to project
+--
+--    This package provides actions to save, load and reset Reaper's region
+--    render matrix.
+--@provides
+--    [main] . > ausbaxter_Recall region render matrix (slot 1).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 2).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 3).lua
+--    [main] . > ausbaxter_Recall region render matrix (slot 4).lua
+--    [main] . > ausbaxter_Reset region render matrix.lua
+--    [main] . > ausbaxter_Save region render matrix (slot 1).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 2).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 3).lua
+--    [main] . > ausbaxter_Save region render matrix (slot 4).lua
+--@changelog
+--  + Initial release
+
+--------------------------------------------------------------------------------------------------------
 
 function GetRegions()--returns a table of regions in order to get real region indexes
     local marker_count = reaper.CountProjectMarkers(0)
@@ -32,6 +34,7 @@ function GetRegions()--returns a table of regions in order to get real region in
 end
 
 function Main()
+    reaper.Undo_BeginBlock()
     --resets matrix without requiring mouse over
     reaper.TrackList_AdjustWindows( false ) --thanks x-raym!
     t_regions  = GetRegions()
@@ -47,6 +50,7 @@ function Main()
         end
     end
     reaper.TrackList_AdjustWindows( true )
+    reaper.Undo_EndBlock("Reset region render matrix",1)
 end
 
 Main()
