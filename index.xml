@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="15dd689ceaa7a88f03e1047a365c4c2c032d4f10" name="ReaTeam Scripts">
+<index version="1" commit="655ab632514f97c1963b64a0b5aa82855e7d9567" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6963,7 +6963,7 @@ Web Interface:
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions. See discussion thread for changes needed for MIDI Editor version. Media Explorer/Inline Editor not possible.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
@@ -6972,6 +6972,10 @@ Web Interface:
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
       </version>
+      <version name="1.02" author="FnA" time="2018-01-10T05:46:48Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5250de6f2674921094bf2175309d75406fad818a/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
+      </version>
     </reapack>
     <reapack name="FnA_Ensure toggle ON (item grouping).lua" type="script" desc="Ensure toggle ON (item grouping)">
       <metadata>
@@ -6979,7 +6983,7 @@ Web Interface:
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is OFF, thus either setting it ON, or leaving it ON. Generally for use in custom actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is OFF, thus either setting it ON, or leaving it ON. Generally for use in custom actions. See discussion thread for changes needed for MIDI Editor version. Media Explorer/Inline Editor version not possible.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
@@ -6987,6 +6991,10 @@ Web Interface:
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
+      </version>
+      <version name="1.02" author="FnA" time="2018-01-10T05:48:08Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/655ab632514f97c1963b64a0b5aa82855e7d9567/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Solo in front dimming louder.eel" type="script" desc="Solo in front dimming louder">
