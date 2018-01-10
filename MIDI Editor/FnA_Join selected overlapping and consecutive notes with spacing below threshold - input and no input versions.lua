@@ -1,4 +1,4 @@
--- Description: Join Only Selected Notes With Spacing Below Threshold - Input and No Input Versions.lua
+-- Description: Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions
 -- Version: 1.0
 -- Author: FnA
 -- Changelog: Initial release
@@ -11,7 +11,7 @@
 --   Input integer into the input box version to allow that number of ticks at most between notes to be joined
 -- MetaPackage: true
 -- Provides:
---   [main=midi_editor] . > FnA_Join selected overlapping and adjacent notes.lua
+--   [main=midi_editor] . > FnA_Join selected overlapping and consecutive (adjacent) notes.lua
 --   [main=midi_editor] . > FnA_Join selected overlapping and consecutive notes with spacing below threshold (input box).lua
 
 local filename = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
