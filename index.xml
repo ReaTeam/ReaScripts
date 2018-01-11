@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0b6c54efc4fcad2edcaffb53fa8ee750d16fd24d" name="ReaTeam Scripts">
+<index version="1" commit="ff7a2d509c80612bd9711d869dbfc1e05cf7ad03" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2079,7 +2079,7 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This package script makes two actions in Action List, shown in "Provides:" below The scripts should join only selected notes. Unselected overlapping notes may be re-sorted in a fashion similar to what happens when using Undo in the MIDI Editor or changing Active Item via Tracklist The scripts should join only unmuted notes to unmuted notes and muted to muted Input integer into the input box version to allow that number of ticks at most between notes to be joined\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package script makes two actions in the MIDI Editor Action List. The scripts should join only selected notes. Unselected overlapping notes may be re-sorted in a fashion similar to what happens when using Undo in the MIDI Editor or changing Active Item via Tracklist. The scripts should join only unmuted notes to unmuted notes and muted to muted. Input integer into the input box version to allow that number of ticks at most between notes to be joined.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=143366">Forum Thread</link>
@@ -2088,6 +2088,11 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="midi_editor" file="FnA_Join selected overlapping and consecutive (adjacent) notes.lua">https://github.com/ReaTeam/ReaScripts/raw/0b6c54efc4fcad2edcaffb53fa8ee750d16fd24d/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
         <source main="midi_editor" file="FnA_Join selected overlapping and consecutive notes with spacing below threshold (input box).lua">https://github.com/ReaTeam/ReaScripts/raw/0b6c54efc4fcad2edcaffb53fa8ee750d16fd24d/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
+      </version>
+      <version name="1.0.1" author="FnA" time="2018-01-11T05:52:51Z">
+        <changelog><![CDATA[Fix syntax error in lines 116 and 133. About section improvements.]]></changelog>
+        <source main="midi_editor" file="FnA_Join selected overlapping and consecutive (adjacent) notes.lua">https://github.com/ReaTeam/ReaScripts/raw/ff7a2d509c80612bd9711d869dbfc1e05cf7ad03/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
+        <source main="midi_editor" file="FnA_Join selected overlapping and consecutive notes with spacing below threshold (input box).lua">https://github.com/ReaTeam/ReaScripts/raw/ff7a2d509c80612bd9711d869dbfc1e05cf7ad03/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
       </version>
     </reapack>
     <reapack name="gofer_spk77_Smooth CCs.eel" type="script" desc="Smooth CCs">
