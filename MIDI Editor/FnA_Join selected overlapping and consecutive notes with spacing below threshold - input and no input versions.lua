@@ -1,14 +1,14 @@
 -- Description: Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions
--- Version: 1.0
+-- Version: 1.0.1
 -- Author: FnA
--- Changelog: Initial release
+-- Changelog: Fix syntax error in lines 116 and 133. About section improvements.
 -- Link: Forum Thread http://forum.cockos.com/showthread.php?t=143366
 -- About:
---   This package script makes two actions in Action List, shown in "Provides:" below
---   The scripts should join only selected notes. Unselected overlapping notes may be re-sorted
---   in a fashion similar to what happens when using Undo in the MIDI Editor or changing Active Item via Tracklist
---   The scripts should join only unmuted notes to unmuted notes and muted to muted
---   Input integer into the input box version to allow that number of ticks at most between notes to be joined
+--   This package script makes two actions in the MIDI Editor Action List.
+--   The scripts should join only selected notes. Unselected overlapping notes may be re-sorted 
+--   in a fashion similar to what happens when using Undo in the MIDI Editor or changing Active Item via Tracklist. 
+--   The scripts should join only unmuted notes to unmuted notes and muted to muted. 
+--   Input integer into the input box version to allow that number of ticks at most between notes to be joined.
 -- MetaPackage: true
 -- Provides:
 --   [main=midi_editor] . > FnA_Join selected overlapping and consecutive (adjacent) notes.lua
@@ -112,7 +112,7 @@ end -- function Fn_Join_Selected_Notes(take,MJS)
 
 ---------------------------------------------------------------
 local MJS -- "Max Join Spacing"
-if isInput == true then
+if isInput then
   local retval, input_str = reaper.GetUserInputs("Join Selected Notes", 1, "Max Spacing (Ticks)", "0")
   if retval == true then MJS = tonumber(input_str) else MJS = nil end
 else
@@ -129,6 +129,6 @@ else
   function noundo() end
   reaper.defer(noundo)
 end
-if isInput == true and reaper.APIExists("SN_FocusMIDIEditor") then
+if isInput and reaper.APIExists("SN_FocusMIDIEditor") then
   reaper.SN_FocusMIDIEditor() 
 end -- because input box returns focus to Main
