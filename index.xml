@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="367b439e2c5f5007a444dce7685886226b0a0adf" name="ReaTeam Scripts">
+<index version="1" commit="2ea50cd32ae61da29c4589ffc7e2e92375ab6470" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6664,6 +6664,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.11" author="amagalma" time="2017-09-25T14:13:28Z">
         <changelog><![CDATA[+ different behavior depending on "amagalma_Toggle behavior of Play-Stop buttons" state]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76fa7b8ef6e29ed45ce63666e3cc6208c21bbaea/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
+      </version>
+    </reapack>
+    <reapack name="ausbaxter_Render item columns.lua" type="script" desc="Render item columns">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Render Item Columns\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides a gui interface to render columns of selected items. Has optional tail length, rename capabilities, and its also possible to add regions based on item columns. GUI created using Lokasenna's GUI 2.0. https://forum.cockos.com/showthread.php?t=177772\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="ausbaxter" time="2018-01-12T15:21:18Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ea50cd32ae61da29c4589ffc7e2e92375ab6470/Various/ausbaxter_Render%20item%20columns.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
