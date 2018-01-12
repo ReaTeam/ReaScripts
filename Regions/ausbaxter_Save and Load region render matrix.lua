@@ -89,7 +89,6 @@ function RestoreRenderMatrix(table)
                 reaper.SetRegionRenderMatrix(0, r_idx, m_track, 1)
             else
                 track = reaper.BR_GetMediaTrackByGUID(0, track_GUID )
-                Msg(track)
                 reaper.SetRegionRenderMatrix(0, r_idx, track, 1)
             end
         end
@@ -113,7 +112,6 @@ end
 
 function Load()
     reaper.Undo_BeginBlock()
-    reaper.TrackList_AdjustWindows( false ) --for updating the matrix without mouse over.
     local slot = string.match(slot, "%d*")
     retval, matrix_state = reaper.GetProjExtState(0, "RegionRenderMatrixState", "MatrixState" .. slot)
     if matrix_state ~= "" then
@@ -123,7 +121,6 @@ function Load()
     else
         reaper.ReaScriptError("Region Render Matrix save not found for slot " .. slot)
     end
-    reaper.TrackList_AdjustWindows( true )
     reaper.Undo_EndBlock("Recall region render matrix",1)
 end
 
@@ -182,6 +179,7 @@ end
 --------------------------------------------------------------------------------------------------------
 
 function Main()
+    reaper.TrackList_AdjustWindows( false )
     if script_name:match("Load") then
         Load()
     elseif script_name:match("Save") then
@@ -189,6 +187,7 @@ function Main()
     elseif script_name:match("Reset") then
         ResetRenderMatrix()
     end
+    reaper.TrackList_AdjustWindows( false )
 end
 
 Main()
