@@ -1,4 +1,4 @@
---@description ausbaxter_Render item columns
+--@description Render item columns
 --@version 1.0
 --@author ausbaxter
 --@about
@@ -6,8 +6,6 @@
 --
 --    This package provides a gui interface to render columns of selected items. Has optional tail length, rename capabilities, and its also possible to add regions based on item columns.
 --    GUI created using Lokasenna's GUI 2.0. https://forum.cockos.com/showthread.php?t=177772
---@provides
---    ausbaxter_Render item columns.lua
 --@changelog
 --  + Initial release
 
