@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ff7a2d509c80612bd9711d869dbfc1e05cf7ad03" name="ReaTeam Scripts">
+<index version="1" commit="367b439e2c5f5007a444dce7685886226b0a0adf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5408,6 +5408,30 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Regions">
+    <reapack name="ausbaxter_Save and Load region render matrix.lua" type="script" desc="Save and Load region render matrix (9 actions)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Save and load region render matrix to project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides actions to save, load and reset Reaper's region render matrix.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="ausbaxter" time="2018-01-12T07:03:55Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Reset region render matrix.lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Nudge start or end of regions in time selection.lua" type="script" desc="Nudge start or end of regions in time selection">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=186689">Forum Thread</link>
