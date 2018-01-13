@@ -3,6 +3,7 @@ ReaScript name: js_Select CC lanes to show in selected MIDI items.lua
 Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
+Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
 Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 Provides: main=main,midi_editor,midi_inlineeditor
