@@ -58,8 +58,8 @@ About:
 
     colorForeground = {0.8, 0.8, 0, 1}
     colorUsedClear  = {1, 0.5, 0, 1} --{0.8, 0.8, 0, 1}
-    colorApply      = {1, 0.5, 0, 1}
-    colorBackground = {0.1, 0.1, 0.1, 1}
+    colorApply      = {1, 0, 0, 1}
+    colorBackground = {0.08, 0.08, 0.08, 1}
     
     itemsToEdit = "all selected" -- "under mouse" or "all selected"
     
@@ -266,12 +266,24 @@ function drawGUI()
             local lane = 32*column + row
             if lane == 187 or lane == 189 then
                 setColor(colorUsedClear)
-                gfx.rect(gfx.x, gfx.y, rectWidth, rectHeight, true)
+                gfx.line(gfx.x, gfx.y, gfx.x+rectWidth-1, gfx.y)
+                gfx.line(gfx.x, gfx.y, gfx.x, gfx.y+rectHeight-1)
+                gfx.r, gfx.g, gfx.b = gfx.r*0.8, gfx.g*0.8, gfx.b*0.8 -- a bit darker
+                gfx.rect(gfx.x+1, gfx.y+1, rectWidth-2, rectHeight-2, true)
+                gfx.r, gfx.g, gfx.b = gfx.r*0.7, gfx.g*0.7, gfx.b*0.7 -- a bit darker
+                gfx.line(gfx.x, gfx.y+rectHeight-1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
+                gfx.line(gfx.x+rectWidth-1, gfx.y, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
                 setColor(colorBackground)
                 gfx.drawstr(tNames[lane], 5, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
             elseif lane == 191 then
                 setColor(colorApply)
-                gfx.rect(gfx.x, gfx.y, rectWidth, rectHeight, true)
+                gfx.line(gfx.x, gfx.y, gfx.x+rectWidth-1, gfx.y)
+                gfx.line(gfx.x, gfx.y, gfx.x, gfx.y+rectHeight-1)
+                gfx.r, gfx.g, gfx.b = gfx.r*0.8, gfx.g*0.8, gfx.b*0.8 -- a bit darker
+                gfx.rect(gfx.x+1, gfx.y+1, rectWidth-2, rectHeight-2, true)
+                gfx.r, gfx.g, gfx.b = gfx.r*0.7, gfx.g*0.7, gfx.b*0.7 -- a bit darker
+                gfx.line(gfx.x, gfx.y+rectHeight-1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
+                gfx.line(gfx.x+rectWidth-1, gfx.y, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
                 setColor(colorBackground)
                 gfx.drawstr(tNames[lane], 5, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
             else
