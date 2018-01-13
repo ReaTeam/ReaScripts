@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="addd3dfc3502b874d0c4562ef31aec5b6ef7e3e4" name="ReaTeam Scripts">
+<index version="1" commit="1c969bd0b16bdb95b95f3f0c5a6caf2930cc6b3a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5443,7 +5443,7 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="0.93" author="juliansader" time="2018-01-13T21:12:13Z">
         <changelog><![CDATA[+ Recall last-used GUI dimensions]]></changelog>
-        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/addd3dfc3502b874d0c4562ef31aec5b6ef7e3e4/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20MIDI%20item%20under%20mouse.lua</source>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1c969bd0b16bdb95b95f3f0c5a6caf2930cc6b3a/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20MIDI%20item%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Select CC lanes to show in selected MIDI items.lua" type="script" desc="js_Select CC lanes to show in selected MIDI items.lua">
@@ -5481,7 +5481,7 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="0.93" author="juliansader" time="2018-01-13T21:12:07Z">
         <changelog><![CDATA[+ Recall last-used GUI dimensions]]></changelog>
-        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/354f70e222e148d68947b05d7bdd86da8ef78f7e/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20selected%20MIDI%20items.lua</source>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/88f934357cc7b3cf8b2e6bab7790ec122877d7a1/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20selected%20MIDI%20items.lua</source>
       </version>
     </reapack>
   </category>
