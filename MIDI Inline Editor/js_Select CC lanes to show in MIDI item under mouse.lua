@@ -1,9 +1,8 @@
 --[[
 ReaScript name: js_Select CC lanes to show in selected MIDI items.lua
-Version: 0.91
+Version: 0.92
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
-Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
 Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 Provides: main=main,midi_editor,midi_inlineeditor
@@ -22,15 +21,19 @@ About:
   
   CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
   
-  v = velocity
-  p = pitchbend
-  m = CC1, modwheel
-  e = CC11, expression
-  s = CC64, sustain (sostenuto) pedal
-  n = notation
-  
-  c = clear all
-  u = show only used lanes
+      v = Velocity
+      p = Pitchbend
+      m = CC1, Modwheel
+      e = CC11, Expression
+      s = CC64, Sustain (sostenuto) pedal
+      n = Notation
+      t = Text
+      b = Bank/program select
+      
+      c = Clear all
+      u = Show only used lanes
+      esc   = Exit without applying changes
+      enter = Exit and apply changes
 ]] 
 
 --[[
@@ -39,6 +42,8 @@ About:
     + Initial Release
   * v0.91 (2018-01-13)
     + Fix: item under mouse is not open in inline editor
+  * v0.92 (2018-01-13)
+    + Show startup tips
 ]]
 
 
@@ -46,7 +51,7 @@ About:
 -- Settings that the user can customize
 
     colorForeground = {0.8, 0.8, 0, 1}
-    colorUsedClear  = {1, 0.5, 0, 1}
+    colorUsedClear  = {1, 0.5, 0, 1} --{0.8, 0.8, 0, 1}
     colorApply      = {1, 0.5, 0, 1}
     colorBackground = {0.1, 0.1, 0.1, 1}
     
@@ -176,7 +181,9 @@ local tShortcuts = {[118] = function() tToggles[VEL] = not tToggles[VEL] end, --
                     [109] = function() tToggles[1] = not tToggles[1] end, -- m = modwheel
                     [101] = function() tToggles[11] = not tToggles[11] end, -- e = expression
                     [115] = function() tToggles[64] = not tToggles[64] end, -- s = sustain (sostenuto) pedal
+                    [98]  = function() tToggles[BANKPROG] = not tToggles[BANKPROG] end, -- b = bank/program select
                     [110] = function() tToggles[NOTATION] = not tToggles[NOTATION] end, -- n = notation
+                    [116] = function() tToggles[TEXT] = not tToggles[TEXT] end,
                     [99]  = function() tToggles = {} end, -- c = clear all
                     [117] = function() tToggles = {} for i,k in pairs(tUsedCCs) do tToggles[i] = k end end -- u = show only used lanes
                    }             
@@ -465,14 +472,40 @@ function exit()
 end
 
 
----------------------------------------------------------
----------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+
+-- Get mouse position and chunks before showing startup tips (since mouse will move)
 getAllChunks()
 numChunks = countChunks()
 if numChunks == 0 then return elseif numChunks == 1 then setTogglesToCurrentlyVisible() end
-
 findUsedLanes()
 
+-- Show new version tips
+lastTipVersion = tonumber(reaper.GetExtState("Select CC lanes to show", "Last tip version")) or 0
+if lastTipVersion < 0.92 then
+    reaper.MB([[CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
+  
+    v = Velocity
+    p = Pitchbend
+    m = CC1, Modwheel
+    e = CC11, Expression
+    s = CC64, Sustain (sostenuto) pedal
+    n = Notation
+    t = Text
+    b = Bank/program select
+    
+    c = Clear all
+    u = Show only used lanes
+    esc   = Exit without applying changes
+    enter = Exit and apply changes
+  
+(This startup tip will only be displayed once. For more information, please refer to the Description and Instructions inside the script file.)]], "Startup tips: v0.92", 0)
+
+    reaper.SetExtState("Select CC lanes to show", "Last tip version", 0.92, true)
+end
+
+-- Start the GUI!
 gfx.init("Select CC lanes to show", 960, 504, 0)
 drawGUI()
 
