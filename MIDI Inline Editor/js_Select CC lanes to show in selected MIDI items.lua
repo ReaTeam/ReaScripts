@@ -5,7 +5,7 @@ Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
-Provides: main=main,midi_editor,midi_inlineeditor
+Provides: [main=main,midi_editor,midi_inlineeditor]
 About:
   # DESCRIPTION
   
