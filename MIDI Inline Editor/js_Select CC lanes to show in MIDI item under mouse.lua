@@ -1,6 +1,6 @@
 --[[
-ReaScript name: js_Select CC lanes to show in selected MIDI items.lua
-Version: 0.92
+ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
+Version: 0.93
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
@@ -16,6 +16,8 @@ About:
   This script provides a much faster way to select CC lanes visibility for all selected MIDI items simultaneously.
   
   The script's GUI shows all CC lanes, and also indicates which CC types are used by the selected items.
+  
+  The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.
 
   # INSTRUCTIONS
   
@@ -25,15 +27,17 @@ About:
       p = Pitchbend
       m = CC1, Modwheel
       e = CC11, Expression
-      s = CC64, Sustain (sostenuto) pedal
+      h = CC64, Hold/Sustain pedal
+      1-9 = CCs 1-9
       n = Notation
       t = Text
+      s = Sysex
       b = Bank/program select
       
       c = Clear all
       u = Show only used lanes
       esc   = Exit without applying changes
-      enter = Exit and apply changes
+      enter or a = Exit and apply changes
 ]] 
 
 --[[
@@ -44,6 +48,8 @@ About:
     + Fix: item under mouse is not open in inline editor
   * v0.92 (2018-01-13)
     + Show startup tips
+  * v0.93 (2018-01-13)
+    + Recall last-used GUI dimensions
 ]]
 
 
@@ -105,7 +111,7 @@ local tNames = {[0] = "Bank Select (MSB)",
                 [40] = "Balance (LSB)",
                 [42] = "Pan (LSB)",
                 [43] = "Expression (LSB)",
-                [64] = "Sustain Pedal (on/off)",
+                [64] = "Hold Pedal (on/off)",
                 [65] = "Portamento (on/off)",
                 [66] = "Sostenuto (on/off)",
                 [67] = "Soft Pedal (on/off)",
@@ -180,14 +186,44 @@ local tShortcuts = {[118] = function() tToggles[VEL] = not tToggles[VEL] end, --
                     [112] = function() tToggles[PITCH] = not tToggles[PITCH] end, -- p = pitchbend
                     [109] = function() tToggles[1] = not tToggles[1] end, -- m = modwheel
                     [101] = function() tToggles[11] = not tToggles[11] end, -- e = expression
-                    [115] = function() tToggles[64] = not tToggles[64] end, -- s = sustain (sostenuto) pedal
-                    [98]  = function() tToggles[BANKPROG] = not tToggles[BANKPROG] end, -- b = bank/program select
+                    [104] = function() tToggles[64] = not tToggles[64] end, -- h = hold/sustain pedal
+                    [49]  = function() tToggles[1] = not tToggles[1] end,
+                    [50]  = function() tToggles[2] = not tToggles[2] end,
+                    [51]  = function() tToggles[3] = not tToggles[3] end,
+                    [52]  = function() tToggles[4] = not tToggles[4] end,
+                    [53]  = function() tToggles[5] = not tToggles[5] end,
+                    [54]  = function() tToggles[6] = not tToggles[6] end,
+                    [55]  = function() tToggles[7] = not tToggles[7] end,
+                    [56]  = function() tToggles[8] = not tToggles[8] end,
+                    [57]  = function() tToggles[9] = not tToggles[9] end,
+                    [58]  = function() tToggles[BANKPROG] = not tToggles[BANKPROG] end, -- b = bank/program select
                     [110] = function() tToggles[NOTATION] = not tToggles[NOTATION] end, -- n = notation
                     [116] = function() tToggles[TEXT] = not tToggles[TEXT] end,
+                    [115] = function() tToggles[SYSEX] = not tToggles[SYSEX] end,
                     [99]  = function() tToggles = {} end, -- c = clear all
                     [117] = function() tToggles = {} for i,k in pairs(tUsedCCs) do tToggles[i] = k end end -- u = show only used lanes
                    }             
 
+
+tips092 = [[CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
+  
+    v = Velocity
+    p = Pitchbend
+    m = CC1, Modwheel
+    e = CC11, Expression
+    h = CC64, Hold/Sustain pedal
+    1-9 = CCs 1-9
+    n = Notation
+    t = Text
+    s = Sysex
+    b = Bank/program select
+    
+    c = Clear all
+    u = Show only used lanes
+    esc   = Exit without applying changes
+    enter or a = Exit and apply changes
+  
+(This startup tip will only be displayed once. For more information, please refer to the Description and Instructions inside the script file.)]]
 
 ------------------------
 function setColor(color)
@@ -435,7 +471,7 @@ function loop()
     
     if c == -1 or c == 27 then -- GUI closed or ESC: quit without applying
         return
-    elseif c == 13 then -- enter
+    elseif c == 13 or c == 97 then -- enter or a: apply and quit
         applyTogglesToAllItemChunks()
         return
     elseif tShortcuts[c] then
@@ -466,6 +502,10 @@ end
 
 ---------------
 function exit()
+    -- Find and store the last-used dimensions of the GUI window, so that it can be re-opened at the same position
+    if type(prevW) == "number" and type(prevH) == "number" then
+        reaper.SetExtState("Select CC lanes to show", "Last dimensions", string.format("%i", math.floor(prevW+0.5)) .. "," .. string.format("%i", math.floor(prevH+0.5)), true)
+    end
     gfx.quit()
     reaper.UpdateArrange()
     reaper.Undo_OnStateChange2(0, "Select CC lanes to show") 
@@ -474,6 +514,7 @@ end
 
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
+-- function main()
 
 -- Get mouse position and chunks before showing startup tips (since mouse will move)
 getAllChunks()
@@ -484,29 +525,18 @@ findUsedLanes()
 -- Show new version tips
 lastTipVersion = tonumber(reaper.GetExtState("Select CC lanes to show", "Last tip version")) or 0
 if lastTipVersion < 0.92 then
-    reaper.MB([[CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
-  
-    v = Velocity
-    p = Pitchbend
-    m = CC1, Modwheel
-    e = CC11, Expression
-    s = CC64, Sustain (sostenuto) pedal
-    n = Notation
-    t = Text
-    b = Bank/program select
-    
-    c = Clear all
-    u = Show only used lanes
-    esc   = Exit without applying changes
-    enter = Exit and apply changes
-  
-(This startup tip will only be displayed once. For more information, please refer to the Description and Instructions inside the script file.)]], "Startup tips: v0.92", 0)
-
+    reaper.MB(tips092, "Startup tips: v0.92", 0)
     reaper.SetExtState("Select CC lanes to show", "Last tip version", 0.92, true)
 end
 
 -- Start the GUI!
-gfx.init("Select CC lanes to show", 960, 504, 0)
+lastWidth, lastHeight = (reaper.GetExtState("Select CC lanes to show", "Last dimensions")):match("(%d+),(%d+)")
+if lastWidth and lastHeight then
+    GUIWidth, GUIHeight = tonumber(lastWidth), tonumber(lastHeight)
+else
+    GUIWidth, GUIHeight = 960, 504
+end
+gfx.init("Select CC lanes to show", GUIWidth, GUIHeight, 0)
 drawGUI()
 
 reaper.atexit(exit)
