@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select CC lanes to show in selected MIDI items.lua
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
@@ -36,6 +36,8 @@ About:
   Changelog:
   * v0.90 (2018-01-13)
     + Initial Release
+  * v0.91 (2018-01-13)
+    + Fix: item under mouse is not open in inline editor
 ]]
 
 
@@ -360,23 +362,20 @@ function getAllChunks()
     if itemsToEdit == "under mouse" then
         if not reaper.APIExists("BR_GetMouseCursorContext") then
             reaper.MB("This scripts requires the SWS/S&M extension, which can be downloaded from\n\nwww.sws-extension.org", "ERROR", 0)
+            reaper.SNM_DeleteFastString(fastStr)
             return
         end
-        local window, segment, details = reaper.BR_GetMouseCursorContext()
-        if window == "midi_editor" then
-            -- In old versions of SWS, BR_GetMouseCursorContext_MIDI is buggy and doesn't return first value
-            local buggyAlternative, isInline = reaper.BR_GetMouseCursorContext_MIDI()
-            if type(isInline) ~= "boolean" then isInline = buggyAlternative end
-            if isInline then
-                local item = reaper.BR_ItemAtMouseCursor()
-                if reaper.ValidatePtr2(0, item, "MediaItem*") then
-                    local chunkOK = reaper.SNM_GetSetObjectState(item, fastStr, false, false)
-                    if chunkOK then 
-                        local chunk = reaper.SNM_GetFastString(fastStr)
-                        tChunks[item] = chunk
-                    end
-                end 
-            else
+        
+        local item = reaper.BR_ItemAtMouseCursor()
+        if reaper.ValidatePtr2(0, item, "MediaItem*") then
+            local chunkOK = reaper.SNM_GetSetObjectState(item, fastStr, false, false)
+            if chunkOK then 
+                local chunk = reaper.SNM_GetFastString(fastStr)
+                tChunks[item] = chunk
+            end
+        else -- check if mouse is perhaps over MIDI editor
+            local window, segment, details = reaper.BR_GetMouseCursorContext()
+            if window == "midi_editor" then
                 local editor = reaper.MIDIEditor_GetActive()
                 if editor ~= nil then
                     local take = reaper.MIDIEditor_GetTake(editor)
