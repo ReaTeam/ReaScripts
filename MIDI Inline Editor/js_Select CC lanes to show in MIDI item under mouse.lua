@@ -46,8 +46,8 @@ About:
 -- Settings that the user can customize
 
     colorForeground = {0.8, 0.8, 0, 1}
-    colorUsedClear  = {0.8, 0, 0.8, 1}
-    colorApply      = {1, 0, 0, 1}
+    colorUsedClear  = {1, 0.5, 0, 1}
+    colorApply      = {1, 0.5, 0, 1}
     colorBackground = {0.1, 0.1, 0.1, 1}
     
     itemsToEdit = "under mouse" -- "under mouse" or "all selected"
