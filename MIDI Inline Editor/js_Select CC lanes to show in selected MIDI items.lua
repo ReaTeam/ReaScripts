@@ -443,6 +443,11 @@ function getAllChunks()
     end end end end
     
     reaper.SNM_DeleteFastString(fastStr)
+  
+    -- Check whether items have MIDI takes
+    for item, chunk in pairs(tChunks) do
+        if not chunk:find("<SOURCE MIDI") then tChunks[item] = nil end
+    end
 end
 
 ----------------------
