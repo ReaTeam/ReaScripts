@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2ea50cd32ae61da29c4589ffc7e2e92375ab6470" name="ReaTeam Scripts">
+<index version="1" commit="addd3dfc3502b874d0c4562ef31aec5b6ef7e3e4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5404,6 +5404,84 @@ Made by Mordi, Jan 2016]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/MIDI%20Editor/spk77_Split%20selected%20takes%20to%20MIDI%20notes%20boundaries.eel</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="MIDI Inline Editor">
+    <reapack name="js_Select CC lanes to show in MIDI item under mouse.lua" type="script" desc="js_Select CC lanes to show in MIDI item under mouse.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not provide native actions to select which CC lanes to display inside MIDI items in the arrange view, or even in the inline MIDI editor. By default, CC lane display is linked to the last-used settings in the (full, not inline) MIDI editor, for each item individually. Therefore, to change CC lane visibility, the user has to open the MIDI editor for each item, and apply the change in the MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script provides a much faster way to select CC lanes visibility for all selected MIDI items simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script's GUI shows all CC lanes, and also indicates which CC types are used by the selected items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 v = Velocity\line
+p = Pitchbend\line
+m = CC1, Modwheel\line
+e = CC11, Expression\line
+h = CC64, Hold/Sustain pedal\line
+1-9 = CCs 1-9\line
+n = Notation\line
+t = Text\line
+s = Sysex\line
+b = Bank/program select\line
+\line
+c = Clear all\line
+u = Show only used lanes\line
+esc   = Exit without applying changes\line
+enter or a = Exit and apply changes\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.93" author="juliansader" time="2018-01-13T21:12:13Z">
+        <changelog><![CDATA[+ Recall last-used GUI dimensions]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/addd3dfc3502b874d0c4562ef31aec5b6ef7e3e4/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20MIDI%20item%20under%20mouse.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Select CC lanes to show in selected MIDI items.lua" type="script" desc="js_Select CC lanes to show in selected MIDI items.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not provide native actions to select which CC lanes to display inside MIDI items in the arrange view, or even in the inline MIDI editor. By default, CC lane display is linked to the last-used settings in the (full, not inline) MIDI editor, for each item individually. Therefore, to change CC lane visibility, the user has to open the MIDI editor for each item, and apply the change in the MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script provides a much faster way to select CC lanes visibility for all selected MIDI items simultaneously.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script's GUI shows all CC lanes, and also indicates which CC types are used by the selected items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 v = Velocity\line
+p = Pitchbend\line
+m = CC1, Modwheel\line
+e = CC11, Expression\line
+h = CC64, Hold/Sustain pedal\line
+1-9 = CCs 1-9\line
+n = Notation\line
+t = Text\line
+s = Sysex\line
+b = Bank/program select\line
+\line
+c = Clear all\line
+u = Show only used lanes\line
+esc   = Exit without applying changes\line
+enter or a = Exit and apply changes\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.93" author="juliansader" time="2018-01-13T21:12:07Z">
+        <changelog><![CDATA[+ Recall last-used GUI dimensions]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/354f70e222e148d68947b05d7bdd86da8ef78f7e/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20selected%20MIDI%20items.lua</source>
       </version>
     </reapack>
   </category>
