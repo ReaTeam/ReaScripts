@@ -1,9 +1,8 @@
 --[[
-ReaScript name: js_Select channel for new events for inline MIDI editor under mouse.lua
-Version: 0.90
+ReaScript name: js_Select MIDI channel for new events for inline MIDI editor under mouse.lua
+Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
-Screenshot: https://stash.reaper.fm/32690/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.png
 Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 Provides: [main=main,midi_editor,midi_inlineeditor] .
@@ -27,6 +26,9 @@ About:
 --[[
   Changelog:
   * v0.90 (2018-01-14)
+    + Initial release
+  * v0.91 (2018-01-14)
+    + Small bug fix for items with filter off
 ]]
 
 
@@ -116,11 +118,11 @@ CFGEDIT 1 1 0 0 0 0 1 1 3 1 1 1 -265 433 1109 1209 0 0 0 1 0 0 0 0 0 0.5 0 0 1 6
 -- Toggle filter
 if userChoice == 2 then
     newChannel = channel
-    newFilter = (filter == 0 and (1<<(newChannel-1))) or 0                                
+    newFilter = ((filter == 0) and (1<<(newChannel-1))) or 0                                
 -- Change channel
 elseif type(userChoice) == "number" and userChoice%1 == 0 and userChoice >= 3 and userChoice <= 18 then
     newChannel = userChoice-2
-    newFilter = (filter == 0 and 0) or (1<<(newChannel-1)) -- If filter is not active, don't activate                 
+    newFilter = ((filter == 0) and 0) or (1<<(newChannel-1)) -- If filter is not active, don't activate                 
 -- Else, quit
 else 
     return
@@ -130,8 +132,9 @@ end
 -----------------------------
 -- Edit chunk (for all takes)
 chunk = chunk:gsub("(\nCFGEDIT [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ )[%-%d]+ ", 
-                   "%1" .. string.format("%i", newChannel) .. " ")
-chunk = chunk:gsub("\nEVTFILTER [%-%d]+ ", "\nEVTFILTER " .. string.format("%i", newFilter) .. " ")
+                   "%1" .. string.format("%i", newChannel) .. " ") -- CFGEDIT numbers channels 1-16
+chunk = chunk:gsub("(\nEVTFILTER )[%-%d]+( [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ )[%-%d]+ ", 
+                   "%1" .. string.format("%i", newFilter) .. "%2" .. string.format("%i", newChannel-1) .. " ") -- EVTFILTER numbers channels 0-15
 reaper.SetItemStateChunk(item, chunk, false)
 reaper.UpdateItemInProject(item)
 
