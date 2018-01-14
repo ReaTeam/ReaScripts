@@ -1,8 +1,9 @@
 --[[
 ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
-Version: 0.93
+Version: 0.94
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
+Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
 Extensions:  SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 Provides: [main=main,midi_editor,midi_inlineeditor] .
@@ -13,9 +14,10 @@ About:
   By default, CC lane display is linked to the last-used settings in the (full, not inline) MIDI editor, for each item individually. 
   Therefore, to change CC lane visibility, the user has to open the MIDI editor for each item, and apply the change in the MIDI editor.
   
-  This script provides a much faster way to select CC lanes visibility for all selected MIDI items simultaneously.
+  This script provides a much faster way to select CC lanes visibility while working in the MIDI Inline Editor.
   
-  The script's GUI shows all CC lanes, and also indicates which CC types are used by the selected items.
+  The script's GUI lists all CC lanes, and also indicates which CC types are used by the items.
+  (Note: the latter feature does not yet work in items with external .mid source files.)
   
   The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.
 
@@ -36,7 +38,7 @@ About:
       
       c = Clear all
       u = Show only used lanes
-      esc   = Exit without applying changes
+      esc = Exit without applying changes
       enter or a = Exit and apply changes
 ]] 
 
@@ -50,6 +52,8 @@ About:
     + Show startup tips
   * v0.93 (2018-01-13)
     + Recall last-used GUI dimensions
+  * v0.94 (2018-01-14)
+    + Script automatically installed in Main, MIDI editor and Inline Editor sections
 ]]
 
 
@@ -272,7 +276,7 @@ function drawGUI()
                 gfx.rect(gfx.x+1, gfx.y+1, rectWidth-2, rectHeight-2, true)
                 gfx.r, gfx.g, gfx.b = gfx.r*0.7, gfx.g*0.7, gfx.b*0.7 -- a bit darker
                 gfx.line(gfx.x, gfx.y+rectHeight-1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
-                gfx.line(gfx.x+rectWidth-1, gfx.y, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
+                gfx.line(gfx.x+rectWidth-1, gfx.y+1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
                 setColor(colorBackground)
                 gfx.drawstr(tNames[lane], 5, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
             elseif lane == 191 then
@@ -283,7 +287,7 @@ function drawGUI()
                 gfx.rect(gfx.x+1, gfx.y+1, rectWidth-2, rectHeight-2, true)
                 gfx.r, gfx.g, gfx.b = gfx.r*0.7, gfx.g*0.7, gfx.b*0.7 -- a bit darker
                 gfx.line(gfx.x, gfx.y+rectHeight-1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
-                gfx.line(gfx.x+rectWidth-1, gfx.y, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
+                gfx.line(gfx.x+rectWidth-1, gfx.y+1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
                 setColor(colorBackground)
                 gfx.drawstr(tNames[lane], 5, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
             else
