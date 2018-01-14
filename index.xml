@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e5a3209447b58fd618bbd86e9e7d574a2a5a1686" name="ReaTeam Scripts">
+<index version="1" commit="b1e676e5895bf85a32d43e0ae06ed375e584862a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5494,7 +5494,7 @@ enter or a = Exit and apply changes\par}
         <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0edec7533a7260a7df3f0f0295e07666e280ff92/MIDI%20Inline%20Editor/js_Select%20CC%20lanes%20to%20show%20in%20selected%20MIDI%20items.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Select channel for new events for inline MIDI editor under mouse.lua" type="script" desc="js_Select channel for new events for inline MIDI editor under mouse.lua">
+    <reapack name="js_Select channel for new events for inline MIDI editor under mouse.lua" type="script" desc="js_Select MIDI channel for new events for inline MIDI editor under mouse.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -5508,11 +5508,14 @@ enter or a = Exit and apply changes\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
-        <link rel="screenshot">https://stash.reaper.fm/32690/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.png</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="0.90" author="juliansader" time="2018-01-14T13:30:00Z">
         <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e5a3209447b58fd618bbd86e9e7d574a2a5a1686/MIDI%20Inline%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2018-01-14T14:07:18Z">
+        <changelog><![CDATA[+ Small bug fix for items with filter off]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b1e676e5895bf85a32d43e0ae06ed375e584862a/MIDI%20Inline%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
       </version>
     </reapack>
   </category>
