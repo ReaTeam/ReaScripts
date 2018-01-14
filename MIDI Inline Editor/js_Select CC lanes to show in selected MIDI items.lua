@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select CC lanes to show in selected MIDI items.lua
-Version: 0.94
+Version: 0.95
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
@@ -54,6 +54,8 @@ About:
     + Recall last-used GUI dimensions
   * v0.94 (2018-01-14)
     + Script automatically installed in Main, MIDI editor and Inline Editor sections
+  * v0.95 (2018-01-14)
+    + If called from main MIDI editor, re-focus editor after exit
 ]]
 
 
@@ -436,7 +438,7 @@ function getAllChunks()
         else -- check if mouse is perhaps over MIDI editor
             local window, segment, details = reaper.BR_GetMouseCursorContext()
             if window == "midi_editor" then
-                local editor = reaper.MIDIEditor_GetActive()
+                editor = reaper.MIDIEditor_GetActive() -- Not local, so that script can check whether called from main MIDI editor
                 if editor ~= nil then
                     local take = reaper.MIDIEditor_GetTake(editor)
                     if reaper.ValidatePtr2(0, take, "MediaItem_Take*") then
@@ -527,8 +529,15 @@ function exit()
     if type(prevW) == "number" and type(prevH) == "number" then
         reaper.SetExtState("Select CC lanes to show", "Last dimensions", string.format("%i", math.floor(prevW+0.5)) .. "," .. string.format("%i", math.floor(prevH+0.5)), true)
     end
+  
     gfx.quit()
     reaper.UpdateArrange()
+
+    -- Re-focus MIDI editor (current API can unfortunately not focus inline editor)
+    if editor and reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.SN_FocusMIDIEditor()
+    end
+  
     reaper.Undo_OnStateChange2(0, "Select CC lanes to show") 
 end
 
