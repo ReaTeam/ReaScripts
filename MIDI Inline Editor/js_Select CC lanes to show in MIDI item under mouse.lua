@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
-Version: 0.94
+Version: 0.95
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
