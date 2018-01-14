@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select MIDI channel for new events for inline MIDI editor under mouse.lua
-Version: 0.91
+Version: 0.92
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
@@ -19,8 +19,13 @@ About:
   while working in the inline MIDI editor.
   
   
-  Warning: In items with multiple MIDI takes, it is possible that the script does not determine the current channel and filter settings correctly.
+  Warnings:
+  
+  * In items with multiple MIDI takes, it is possible that the script does not determine the current channel and filter settings correctly.
   Changing the filter and channel will still work.
+  
+  * Inline MIDI editors easily lose focus, and keyboard shortcuts will then inadvertently pass through to the Main section.
+  Click in the inline editor after changing channel to re-focus the editor. 
 ]] 
 
 --[[
@@ -29,6 +34,8 @@ About:
     + Initial release
   * v0.91 (2018-01-14)
     + Small bug fix for items with filter off
+  * v0.92 (2018-01-14)
+    + New option to enable or disable event filter
 ]]
 
 
@@ -70,10 +77,10 @@ reaper.SNM_DeleteFastString(fastStr)
 channelStr = chunk:match("\nCFGEDIT [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ (%d+) ")
 channel = tonumber(channelStr)
 
-filterStr = chunk:match("\nEVTFILTER (%d+) ")
+filterStr, filterActive = chunk:match("\nEVTFILTER (%d+) [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ ([01]) ")
 filter = tonumber(filterStr)
 
-if not (channel and channel >= 1 and channel <= 16 and filter) then
+if not (channel and channel >= 1 and channel <= 16 and filter and filterActive) then
     reaper.MB("The item under the mouse has not yet been opened in an inline MIDI editor", "ERROR", 0)
     return
 end
@@ -84,8 +91,9 @@ end
 reaper.Undo_BeginBlock2(0)
 
 -- Assemble menu string
-menuStr = "#Set channel for new events||Edit only active channel||1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|"
+menuStr = "#Set channel for new events||Event filter||Edit only active channel||1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|"
 menuStr = menuStr:gsub("|"..channelStr.."|", "|!"..channelStr.."|")
+if filterActive == "1" then menuStr = menuStr:gsub("Event", "!Event") end
 if filter ~= 0 then menuStr = menuStr:gsub("Edit", "!Edit") end
 
 -- Get user inputs.  GUI does not look slick and 'native', so try to position dropdown menu OVER script GUI.
@@ -116,13 +124,24 @@ CFGEDIT 1 1 0 0 0 0 1 1 3 1 1 1 -265 433 1109 1209 0 0 0 1 0 0 0 0 0 0.5 0 0 1 6
     
 ----------------
 -- Toggle filter
-if userChoice == 2 then
+if userChoice == 2 then -- toggle event filter
     newChannel = channel
-    newFilter = ((filter == 0) and (1<<(newChannel-1))) or 0                                
+    if filterActive == "0" then
+        newFilterActive = "1"
+        newFilter = 1<<(newChannel-1)
+    else
+        newFilterActive = "0"
+        newFilter = filter
+    end
+elseif userChoice == 3 then -- toggle edit only active channel
+    newChannel = channel
+    newFilter = ((filter == 0) and (1<<(newChannel-1))) or 0   
+    newFilterActive = filterActive                             
 -- Change channel
 elseif type(userChoice) == "number" and userChoice%1 == 0 and userChoice >= 3 and userChoice <= 18 then
-    newChannel = userChoice-2
-    newFilter = ((filter == 0) and 0) or (1<<(newChannel-1)) -- If filter is not active, don't activate                 
+    newChannel = userChoice-3
+    newFilter = ((filter == 0) and 0) or (1<<(newChannel-1)) -- If filter is not active, don't activate  
+    newFilterActive = filterActive                
 -- Else, quit
 else 
     return
@@ -133,8 +152,10 @@ end
 -- Edit chunk (for all takes)
 chunk = chunk:gsub("(\nCFGEDIT [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ )[%-%d]+ ", 
                    "%1" .. string.format("%i", newChannel) .. " ") -- CFGEDIT numbers channels 1-16
-chunk = chunk:gsub("(\nEVTFILTER )[%-%d]+( [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ )[%-%d]+ ", 
-                   "%1" .. string.format("%i", newFilter) .. "%2" .. string.format("%i", newChannel-1) .. " ") -- EVTFILTER numbers channels 0-15
+chunk = chunk:gsub("(\nEVTFILTER )[%-%d]+( [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ [%-%.%d]+ )[%-%d]+ [%-%d]+ ", 
+                   "%1" .. string.format("%i", newFilter) .. 
+                   "%2" .. string.format("%i", newChannel-1) .. " " ..
+                   newFilterActive .. " ") -- EVTFILTER numbers channels 0-15
 reaper.SetItemStateChunk(item, chunk, false)
 reaper.UpdateItemInProject(item)
 
