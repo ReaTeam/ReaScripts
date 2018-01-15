@@ -63,6 +63,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [Claudiohbsantos/Claudiohbsantos-Scripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
+- [Erriez/erriez-reaper-jsfx](https://github.com/Erriez/erriez-reaper-jsfx)
 - [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
 - [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
 - [geraintluff/jsfx](https://github.com/geraintluff/jsfx)
