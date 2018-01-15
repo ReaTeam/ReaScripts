@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select MIDI channel for new events for inline MIDI editor under mouse.lua
-Version: 0.92
+Version: 0.93
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
@@ -36,6 +36,8 @@ About:
     + Small bug fix for items with filter off
   * v0.92 (2018-01-14)
     + New option to enable or disable event filter
+  * v0.93 (2018-01-15)
+    + If called from main MIDI editor, return focus to editor on exit
 ]]
 
 
@@ -50,7 +52,7 @@ item = reaper.BR_ItemAtMouseCursor()
 if not reaper.ValidatePtr2(0, item, "MediaItem*") then -- Hidden feature: can also use script in full MIDI editor
     local window = reaper.BR_GetMouseCursorContext()
     if window == "midi_editor" then
-        local editor = reaper.MIDIEditor_GetActive()
+        editor = reaper.MIDIEditor_GetActive() -- Not local, so that script can check whether called from main MIDI editor
         if editor then
             local take = reaper.MIDIEditor_GetTake(editor)
             if reaper.ValidatePtr2(0, take, "MediaItem_Take*") then
@@ -164,7 +166,9 @@ reaper.UpdateItemInProject(item)
 -- The dropdown list removes focus from the Inline Editor, 
 --    so must try to return focus.  
 -- Current API cannot yet give focus to item not under mouse.)
-if item == reaper.BR_ItemAtMouseCursor() then
+if editor then
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+elseif item == reaper.BR_ItemAtMouseCursor() then
     reaper.Main_OnCommandEx(40911, -1, 0) -- Focus item under mouse cursor
 end
 
