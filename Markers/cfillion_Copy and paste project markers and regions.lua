@@ -1,15 +1,20 @@
 -- @description Copy/paste project markers and/or regions
--- @version 1.0
+-- @version 1.1
+-- @changelog Add an action for pasting at edit cursor [p=1942248]
 -- @author cfillion
 -- @links
 --   cfillion.ca https://cfillion.ca/
 --   Request Thread https://forum.cockos.com/showthread.php?t=201983
+-- @screenshots
+--   Basic usage https://i.imgur.com/NLqUYov.gif
+--   Paste at edit cursor https://i.imgur.com/EV9LspW.gif
 -- @donate https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Set+item+playback+rate+from+semitones
 -- @provides
 --   . > cfillion_Copy project markers and regions in time selection.lua
 --   . > cfillion_Copy project markers in time selection.lua
 --   . > cfillion_Copy project regions in time selection.lua
 --   . > cfillion_Paste project markers and regions.lua
+--   . > cfillion_Paste project markers and regions at edit cursor.lua
 -- @about
 --   This script provides four actions to copy and paste project markers and/or
 --   regions in the time selection. All markers and/or regions in the project are
@@ -19,6 +24,7 @@
 --   - Copy project markers in time selection
 --   - Copy project regions in time selection
 --   - Paste project markers and regions
+--   - Paste project markers and regions at edit cursor
 
 local UNDO_STATE_MISCCFG = 8
 local EXT_SECTION = 'cfillion_copy_paste_markers'
@@ -44,6 +50,7 @@ end
 
 function paste()
   local markers = readClipboard()
+  local relative, offset = script_name:match('at edit cursor')
 
   if #markers < 1 then
     reaper.MB("Marker clipboard is empty!", script_name, 0)
@@ -53,6 +60,18 @@ function paste()
   reaper.Undo_BeginBlock()
 
   for i, marker in ipairs(markers) do
+    if relative then
+      if not offset then
+        offset = marker[2] - reaper.GetCursorPosition()
+      end
+
+      marker[2] = marker[2] - offset
+
+      if marker[1] then -- move the region's end
+        marker[3] = marker[3] - offset
+      end
+    end
+
     reaper.AddProjectMarker2(0, table.unpack(marker))
   end
 
