@@ -8,8 +8,8 @@
 --   cfillion.ca https://cfillion.ca/
 --   Request Thread https://forum.cockos.com/showthread.php?t=201983
 -- @screenshots
---   Basic usage https://i.imgur.com/NLqUYov.gif
---   Paste at edit cursor https://i.imgur.com/EV9LspW.gif
+--   Basic usage https://i.imgur.com/dSyRnKe.gif
+--   Paste at edit cursor https://i.imgur.com/Zdu5VIF.gif
 -- @donate https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Set+item+playback+rate+from+semitones
 -- @provides
 --   . > cfillion_Copy project markers and regions in time selection.lua
