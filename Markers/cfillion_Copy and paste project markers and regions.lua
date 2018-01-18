@@ -1,6 +1,8 @@
 -- @description Copy/paste project markers and/or regions
--- @version 1.1
--- @changelog Add an action for pasting at edit cursor [p=1942248]
+-- @version 1.1.1
+-- @changelog
+--   Fix markers being copied past the end of the time selection [p=1942313]
+--   Renumber markers and regions when pasting
 -- @author cfillion
 -- @links
 --   cfillion.ca https://cfillion.ca/
@@ -17,8 +19,9 @@
 --   . > cfillion_Paste project markers and regions at edit cursor.lua
 -- @about
 --   This script provides actions to copy and paste project markers and/or
---   regions in the time selection. All markers and/or regions in the project are
---   copied if no time selection is set.
+--   regions in the time selection. All markers and/or regions in the project
+--   are copied if no time selection is set. The IDs are automatically
+--   incremented when pasting.
 --
 --   - Copy project markers and regions in time selection
 --   - Copy project markers in time selection
@@ -51,6 +54,7 @@ end
 function paste()
   local markers = readClipboard()
   local relative, offset = script_name:match('at edit cursor')
+  local _, markerId, regionId = reaper.CountProjectMarkers(0)
 
   if #markers < 1 then
     reaper.MB("Marker clipboard is empty!", script_name, 0)
@@ -60,6 +64,7 @@ function paste()
   reaper.Undo_BeginBlock()
 
   for i, marker in ipairs(markers) do
+    -- paste at edit cursor
     if relative then
       if not offset then
         offset = marker[2] - reaper.GetCursorPosition()
@@ -67,9 +72,18 @@ function paste()
 
       marker[2] = marker[2] - offset
 
-      if marker[1] then -- move the region's end
+      if marker[1] then -- move the region end
         marker[3] = marker[3] - offset
       end
+    end
+
+    -- renumber the requested index
+    if marker[1] then
+      regionId = regionId + 1
+      marker[5] = regionId
+    else
+      markerId = markerId + 1
+      marker[5] = markerId
     end
 
     reaper.AddProjectMarker2(0, table.unpack(marker))
@@ -148,7 +162,11 @@ end
 function testPos(startpos, endpos)
   local tstart, tend = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 
-  return startpos >= tstart and (tend == 0 or endpos == 0 or endpos <= tend)
+  if endpos == 0 then
+    endpos = startpos
+  end
+
+  return startpos >= tstart and (tend == 0 or endpos <= tend)
 end
 
 (script_name:match('Copy') and copy or paste)()
