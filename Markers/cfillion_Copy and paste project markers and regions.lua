@@ -16,7 +16,7 @@
 --   . > cfillion_Paste project markers and regions.lua
 --   . > cfillion_Paste project markers and regions at edit cursor.lua
 -- @about
---   This script provides four actions to copy and paste project markers and/or
+--   This script provides actions to copy and paste project markers and/or
 --   regions in the time selection. All markers and/or regions in the project are
 --   copied if no time selection is set.
 --
