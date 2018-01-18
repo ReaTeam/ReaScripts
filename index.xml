@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6fae20ca25f4ad9927d01934a62eaa4cea0727b2" name="ReaTeam Scripts">
+<index version="1" commit="06d83d8b16669dd31d2bc80885f8768deedd8917" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5825,6 +5825,23 @@ enter or a = Exit and apply changes\par}
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="cfillion_Insert empty space from time selection at edit cursor (moving later items).lua" type="script" desc="Insert empty space from time selection at edit cursor (moving later items)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a wrapper around the native action "Time selection: Insert empty space at time selection (moving later items)". Empty space is inserted at edit cursor instead of at the start of the time selection.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca/">cfillion.ca</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=1942464">Request Post</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD&amp;item_name=ReaScript%3A+Insert+empty+space+from+time+selection+at+edit+cursor</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2018-01-18T22:13:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/06d83d8b16669dd31d2bc80885f8768deedd8917/Time%20Selection/cfillion_Insert%20empty%20space%20from%20time%20selection%20at%20edit%20cursor%20(moving%20later%20items).lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Time selection - Insert empty beats at time selection (moving later items).lua" type="script" desc="js_Time selection - Insert empty beats at time selection (moving later items).lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
