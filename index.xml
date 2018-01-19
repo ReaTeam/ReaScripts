@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="06d83d8b16669dd31d2bc80885f8768deedd8917" name="ReaTeam Scripts">
+<index version="1" commit="1d831d29f82cb92cb9eff3354d61d51347798ab1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -814,6 +814,15 @@ Add actions selecting/adding to selection the automation item under edit and mou
         <source main="main" file="cfillion_Unselect all automation items in pool.lua">https://github.com/ReaTeam/ReaScripts/raw/57bc7e15454172d11cdf71c0ca182044522703b1/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
         <source main="main" file="cfillion_Unselect all automation items under edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/57bc7e15454172d11cdf71c0ca182044522703b1/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
         <source main="main" file="cfillion_Unselect all automation items under mouse cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/57bc7e15454172d11cdf71c0ca182044522703b1/Envelopes/Automation%20Items/cfillion_Automation%20item%20selection%20bundle.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Move right edge of selected automation items to end of time selection.lua" type="script" desc="Move right edge of selected automation items to end of time selection">
+      <metadata>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD&amp;item_name=ReaScript%3A+Move+right+edge+of+selected+automation+items+to+end+of+time+selection</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2018-01-19T16:50:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1d831d29f82cb92cb9eff3354d61d51347798ab1/Envelopes/Automation%20Items/cfillion_Move%20right%20edge%20of%20selected%20automation%20items%20to%20end%20of%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="Select all visible synchronous pooled instances of selected automation items across tracks.lua" type="script" desc="amagalma_Select all visible synchronous pooled instances of selected automation items across tracks">
