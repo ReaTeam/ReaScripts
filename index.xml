@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e3228d727744b7ec9406c91f6f295f72f4828b4" name="ReaTeam Scripts">
+<index version="1" commit="bed854149597aa4c8bae9f908977920becdbdf2b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7164,6 +7164,25 @@ Try harder to fit the button in very small windows]]></changelog>
         <changelog><![CDATA[Show the button even if the window cannot fit the text
 Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Project underrun monitor (xrun).lua" type="script" desc="Project underrun monitor (xrun)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Project underrun monitor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script keeps track of the project time where an audio or media buffer underrun occured. Markers can optionally be created. The reported time and marker position accuracy is limited by the polling speed of ReaScripts which is around 30Hz.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=1942953">Request Thread</link>
+        <link rel="screenshot">https://i.imgur.com/ECoEWks.gif</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD&amp;item_name=ReaScript%3A+Project+underrun+monitor+(xrun)</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2018-01-20T22:59:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bed854149597aa4c8bae9f908977920becdbdf2b/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
