@@ -3,7 +3,7 @@
  * @about Fairly self-explanatory - this script will select all items that have take FX loaded in the active take (item remains unselected if it has take FX in inactive takes).
  * @author EvilDragon
  * @donate https://www.paypal.me/EvilDragon
- * @version 1.0
+ * @version 1.0.1
  * Licence: GPL v3
  * REAPER: 5.0+
  * Extensions: SWS required
@@ -20,8 +20,10 @@ if itemcount ~= nil then
     item = reaper.GetMediaItem(0, i - 1)
     if item ~= nil then
       take = reaper.GetActiveTake(item)
-      if reaper.BR_GetTakeFXCount(take) ~= 0 then
-        reaper.SetMediaItemSelected(item, true)
+      if take then
+        if reaper.BR_GetTakeFXCount(take) ~= 0 then
+          reaper.SetMediaItemSelected(item, true)
+        end
       end
     end
   end -- for
