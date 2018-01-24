@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2c2ac261fa75509baa81b5094dc8528378ce5565" name="ReaTeam Scripts">
+<index version="1" commit="98edcd0df39f740be72fd73f9dcaacaceef55967" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3206,26 +3206,44 @@ Renumber markers and regions when pasting]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Useful for quickly adding ramps between 'nodes'.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Useful for smoothing transitions between CCs that were drawn at low resolution.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script starts with a dialog box in which the user can set:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the lane to use ("under mouse" at start of script, or "last clicked")\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the CC density (using either the MIDI editor's grid or the default value in Preferences -> CC density),\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the shape of the ramp (as a sine, linear or power function),\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab whether the new events should be selected, and\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab whether redundant events should be skipped.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (Any extraneous CCs between selected events are deleted)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In the velocity lane, the script will not insert new notes, but will set velocities of existing notes to ramp from leftmost and rightmost notes.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 For faster one-click execution, skip the dialog box by setting "showDialogBox" to "false" in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp properties can also be defined in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Combine with warping script to easily insert all kinds of weird shapes.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Useful for quickly adding ramps between 'nodes'.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Useful for smoothing transitions between CCs that were drawn at low resolution.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "Insert ramps" scripts are available in several variants (all of which can be dowloaded via ReaPack). For example:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Some variants start with a dialog box in which the user can customize several features;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Other variants are single-click functions that immediately apply the default settings.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The user can create additional variants with customized settings, by editing the default settings in the the scripts' "USER AREA" and saving the edited versions as new scripts.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This variant uses mousewheel and mouse movement to shape the ramps (similar to REAPER's "mouse modifier" actions such as "Linear ramp CC events"):\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Moving the mousewheel toggles between sine (aka "slow start / slow end") curves and linear (aka "triangle") curves.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Moving the mouse left or right warps the ramp CCs left or right, thereby creating "fast start / slow end" or "slow start / fast end" curves, respectively.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Notes:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap-to-grid is ENabled in the MIDI editor, new CCs will be inserted at grid spacing.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap-to-grid is DISabled, new CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Any extraneous CCs between selected events will deleted.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By default, newly inserted CCs will be selected. (Can be changed in the script's USER AREA.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By default, redundant events will be skipped. (Can be changed in the script's USER AREA.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Select the "node" CCs between which ramps will be inserted.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Position mouse over the target CC lane (in the case of notes, either the notes area or the velocity lane).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab Press the shortcut key. (Do not press any mouse button.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab Move the mouse or mousewheel to shape the ramps.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 5)\tx360\tab To stop the script, move the mouse out of the CC lane, or press the shortcut key again.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 KEYBOARD SHORTCUT\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse",can each be linked to a toolbar button.\sa180\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own easy-to-remember shortcut key, such as "shift+V".\line (Using the standard steps of linking any REAPER action to a shortcut key.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
+{\pard \ql \f0 \sa180 \li720 \fi-360 \endash \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
+{\pard \ql \f0 \sa180 \li720 \fi-360 \endash \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
+{\pard \ql \f0 \sa180 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL MODIFIER\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an Action, similar to how keyboard shortcuts are assigned.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As is the case with keyboard shortcuts, the script can either be controlled via its own mousewheel modifier, or via the mousewheel modifier that is linked to the "js_Run..." control script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user must remember several modifier combinations, one for each script. (Mousewheel modifiers such as Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An easier option is to link a single mousewheel+modifier shortcut to the "js_Run..." script, and this single mousewheel+modifier can then be used to control any of the other "lane under mouse" scripts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: The mousewheel modifier that is assigned to the "js_Run..." script can be used to control the other scripts, including the Arching scripts, even if these scripts were started from their own keyboard shortcuts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -3277,6 +3295,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="3.03" author="juliansader" time="2017-12-21T21:01:43Z">
         <changelog><![CDATA[+ Return focus to MIDI editor after closing dialog box.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3ab2d9759f96c82b8ead5ae2e2cfa8fa9c0381b4/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="3.30" author="juliansader" time="2018-01-24T14:14:24Z">
+        <changelog><![CDATA[+ Ramps can be shaped by mouse and mousewheel movement.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/98edcd0df39f740be72fd73f9dcaacaceef55967/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua" type="script" desc="js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua">
