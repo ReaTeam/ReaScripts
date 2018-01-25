@@ -92,6 +92,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
 - [JamesHEure/Reascript](https://github.com/JamesHEure/Reascript)
+- [JoepVanlier/Hackey-Trackey](https://github.com/JoepVanlier/Hackey-Trackey)
 - [kronihias/ambix](https://github.com/kronihias/ambix)
 - [Lazzle/ReaMIDI](https://github.com/Lazzle/ReaMIDI)
 - [lossius/js-plugins](https://github.com/lossius/js-plugins)
