@@ -1,8 +1,7 @@
 -- @description Automation item selection bundle
--- @version 1.2
+-- @version 1.3
 -- @changelog
---   Add "all tracks" variants to select/unselect all scripts
---   Improve "under mouse cursor" variants to work over any envelope
+--   Add selection actions for AIs inside time selection
 -- @author cfillion
 -- @provides
 --   . > cfillion_Select and move to next automation item.lua
@@ -18,22 +17,24 @@
 --   . > cfillion_Add all automation items under mouse cursor to selection.lua
 --
 --   . > cfillion_Select all automation items.lua
+--   . > cfillion_Select all automation items (all tracks).lua
 --   . > cfillion_Select all automation items in pool.lua
+--   . > cfillion_Select all automation items in pool (all tracks).lua
 --   . > cfillion_Select all automation items under edit cursor.lua
+--   . > cfillion_Select all automation items under edit cursor (all tracks).lua
+--   . > cfillion_Select all automation items under mouse cursor (any envelope).lua
+--   . > cfillion_Select all automation items in time selection.lua
+--   . > cfillion_Select all automation items in time selection (all tracks).lua
 --
 --   . > cfillion_Unselect all automation items.lua
---   . > cfillion_Unselect all automation items in pool.lua
-
---   . > cfillion_Select all automation items (all tracks).lua
---   . > cfillion_Select all automation items in pool (all tracks).lua
---   . > cfillion_Select all automation items under edit cursor (all tracks).lua
---
 --   . > cfillion_Unselect all automation items (all tracks).lua
+--   . > cfillion_Unselect all automation items in pool.lua
 --   . > cfillion_Unselect all automation items in pool (all tracks).lua
+--   . > cfillion_Unselect all automation items under edit cursor.lua
 --   . > cfillion_Unselect all automation items under edit cursor (all tracks).lua
---
---   . > cfillion_Select all automation items under mouse cursor (any envelope).lua
 --   . > cfillion_Unselect all automation items under mouse cursor (any envelope).lua
+--   . > cfillion_Unselect all automation items in time selection.lua
+--   . > cfillion_Unselect all automation items in time selection (all tracks).lua
 -- @about
 --   # Automation item selection bundle
 --
@@ -64,6 +65,7 @@ local unselectMode = name:match('Unselect')
 local editCursorMode = name:match('under edit cursor')
 local mouseCursorMode = name:match('under mouse cursor')
 local allTracksMode = name:match('all tracks') or name:match('any envelope')
+local timeMode = name:match('time selection')
 
 function testCursorPosition(env, startTime, endTime)
   local curPos
@@ -82,6 +84,18 @@ function testCursorPosition(env, startTime, endTime)
   end
 
   return startTime <= curPos and endTime >= curPos
+end
+
+function testTimeSelection(env, startTime, endTime)
+  if not timeMode then
+    return true
+  end
+
+  if not tstart then
+    tstart, tend = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+  end
+
+  return tstart ~= tend and startTime <= tend and endTime >= tstart
 end
 
 function enumSelectedEnvelope()
@@ -138,6 +152,7 @@ for env, i in (allTracksMode and enumAllEnvelopes or enumSelectedEnvelope)() do
   local startTime = reaper.GetSetAutomationItemInfo(env, i, 'D_POSITION', 0, false)
   local length = reaper.GetSetAutomationItemInfo(env, i, 'D_LENGTH', 0, false)
   local underCursor = testCursorPosition(env, startTime, startTime + length)
+  local inTimeSel = testTimeSelection(env, startTime, startTime + length)
 
   if poolMode then
     bucketId = reaper.GetSetAutomationItemInfo(env, i, 'D_POOL_ID', 0, false)
@@ -151,7 +166,7 @@ for env, i in (allTracksMode and enumAllEnvelopes or enumSelectedEnvelope)() do
     table.insert(currentSel, {env=env, id=i})
   end
 
-  if (not selected or entireBucketMode or unselectMode) and underCursor then
+  if (not selected or entireBucketMode or unselectMode) and underCursor and inTimeSel then
     local ai = {env=env, id=i, pos=startTime}
 
     if buckets[bucketId] then
