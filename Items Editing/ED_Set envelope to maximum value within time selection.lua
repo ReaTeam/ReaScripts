@@ -1,5 +1,5 @@
 --[[
- * @description Set envelope to minimum value within time selection
+ * @description Set envelope to maximum value within time selection
  * @about This script will set all envelope points within time selection to maximum value, including edges of time selection. Works on both track and take envelopes.
  * @author EvilDragon
  * @donate https://www.paypal.me/EvilDragon
