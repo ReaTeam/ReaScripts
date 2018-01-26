@@ -1,6 +1,6 @@
 --[[
-ReaScript name: js_Select CC lanes to show in selected MIDI items.lua
-Version: 0.95
+ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
+Version: 0.96
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
@@ -14,9 +14,9 @@ About:
   By default, CC lane display is linked to the last-used settings in the (full, not inline) MIDI editor, for each item individually. 
   Therefore, to change CC lane visibility, the user has to open the MIDI editor for each item, and apply the change in the MIDI editor.
   
-  This script provides a much faster way to select CC lanes visibility for all selected MIDI items simultaneously.
+  This script provides a much faster way to select CC lanes visibility while working in the MIDI Inline Editor.
   
-  The script's GUI lists all CC lanes, and also indicates which CC types are used by the selected items.
+  The script's GUI lists all CC lanes, and also indicates which CC types are used by the items.
   (Note: the latter feature does not yet work in items with external .mid source files.)
   
   The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.
@@ -56,6 +56,8 @@ About:
     + Script automatically installed in Main, MIDI editor and Inline Editor sections
   * v0.95 (2018-01-14)
     + If called from main MIDI editor, re-focus editor after exit
+  * v0.96 (2018-01-25)
+    + Automatically load customized CC names if all items are in single track
 ]]
 
 
@@ -210,8 +212,7 @@ local tShortcuts = {[118] = function() tToggles[VEL] = not tToggles[VEL] end, --
                     [117] = function() tToggles = {} for i,k in pairs(tUsedCCs) do tToggles[i] = k end end -- u = show only used lanes
                    }             
 
-
-tips092 = [[CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
+helpText = [[CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
   
     v = Velocity
     p = Pitchbend
@@ -228,8 +229,13 @@ tips092 = [[CC lanes can be selected by clicking with the mouse, or by using the
     u = Show only used lanes
     esc   = Exit without applying changes
     enter or a = Exit and apply changes
+    
+The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.]]
+
+tips092 = helpText .. "\n\nTo view these tips again, right-click in the script GUI."
+                   .. "\n\nFor more information, please refer to the Description and Instructions inside the script file."
+
   
-(This startup tip will only be displayed once. For more information, please refer to the Description and Instructions inside the script file.)]]
 
 ------------------------
 function setColor(color)
@@ -270,7 +276,7 @@ function drawGUI()
             gfx.x = BORDER + column*columnWidth
             gfx.y = BORDER + row*rowHeight
             local lane = 32*column + row
-            if lane == 187 or lane == 189 then
+            if lane == 187 or lane == 189 then -- Draw the "Only used" and "Clear" buttons separately with 3D shadows
                 setColor(colorUsedClear)
                 gfx.line(gfx.x, gfx.y, gfx.x+rectWidth-1, gfx.y)
                 gfx.line(gfx.x, gfx.y, gfx.x, gfx.y+rectHeight-1)
@@ -281,7 +287,7 @@ function drawGUI()
                 gfx.line(gfx.x+rectWidth-1, gfx.y+1, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
                 setColor(colorBackground)
                 gfx.drawstr(tNames[lane], 5, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
-            elseif lane == 191 then
+            elseif lane == 191 then -- "Apply" button
                 setColor(colorApply)
                 gfx.line(gfx.x, gfx.y, gfx.x+rectWidth-1, gfx.y)
                 gfx.line(gfx.x, gfx.y, gfx.x, gfx.y+rectHeight-1)
@@ -294,7 +300,7 @@ function drawGUI()
                 gfx.drawstr(tNames[lane], 5, gfx.x+rectWidth-1, gfx.y+rectHeight-1)
             else
                 if tUsedCCs[lane] then str = "● " else str = "   " end
-                if tNumbers[lane] then str = str .. tNumbers[lane] .. ":" end
+                if tNumbers[lane] then str = str .. tNumbers[lane] .. ": " end
                 if tNames[lane] then str = str .. tNames[lane] end
                 if tToggles[lane] then
                     setColor(colorForeground)
@@ -393,7 +399,7 @@ function applyTogglesToAllItemChunks()
             
             local laneHeightStr = " " .. string.format("%i", MIDIEditorCCLaneHeight) .. " " .. string.format("%i", inlineCCLaneHeight)
                     
-            -- Do 160 to 168 first, since I prefer these lane to be on top
+            -- Do 160 to 168 first, since I prefer these lanes to be on top
             for lane = 160, 168 do
                 if tToggles[lane] then
                     chunkLaneNumber = tCrossRefGUIToChunk[lane] or lane
@@ -469,12 +475,20 @@ function getAllChunks()
 end
 
 ----------------------
-function countChunks()
-    local count = 0
+function countChunksAndTracks()
+    local tTracks = {}
+    local numChunks, numTracks = 0, 0
     for item, chunk in pairs(tChunks) do
-        count = count + 1
+        numChunks = numChunks + 1
+        local track = reaper.GetMediaItemTrack(item)
+        if reaper.ValidatePtr2(0, track, "MediaTrack*") then
+            if not tTracks[track] then
+                tTracks[track] = true
+                numTracks = numTracks + 1
+            end
+        end
     end
-    return count
+    return numChunks, numTracks
 end
 
 ---------------------------------------
@@ -516,11 +530,42 @@ function loop()
             for i = 0, 170 do tToggles[i] = tUsedCCs[i] end
         end
         drawGUI()
+    elseif gfx.mouse_cap&2 == 2 and not mouseAlreadyDown then -- right mouse click
+        reaper.MB(helpText, "Help:  Select CC lanes to show", 0)
     elseif gfx.mouse_cap&1 == 0 then
         mouseAlreadyDown = false
     end
     
     reaper.runloop(loop)
+end
+
+-----------------------------
+function getCCNamesForTrack()
+    local item, chunk = next(tChunks)
+    if reaper.ValidatePtr2(0, item, "MediaItem*") then
+        channelStr = chunk:match("\nCFGEDIT [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ (%d+) ")
+        channel = tonumber(channelStr)
+        if not channel then channel = 0 end
+        local track = reaper.GetMediaItemTrack(item)
+        if reaper.ValidatePtr2(0, track, "MediaTrack*") then
+            for cc = 0, 127 do
+                local name = reaper.GetTrackMIDINoteNameEx(0, track, cc+128, 0)
+                if name then
+                    tNames[cc] = name
+    end end end end
+    
+    -- Update 14bit CC lane names.  14bit lanes will only have names if the MSB and LSB lanes have similar names.
+    for i = 128, 159 do
+        if type(tNames[i-128]) == "string"
+        and type(tNames[i-96]) == "string" 
+        and tNames[i-128] ~= ""
+        and tNames[i-128]:gsub("[mlsbMLSB%s%p%c]", "") == tNames[i-96]:gsub("[mlsbMLSB%s%p%c]", "") 
+        then 
+            tNames[i] = tNames[i-128]:gsub("MSB", ""):gsub("msb", ""):gsub("[%p%s%c]*$", "") .. " (14bit)"
+        else
+            tNames[i] = nil
+        end
+    end
 end
 
 ---------------
@@ -532,7 +577,7 @@ function exit()
   
     gfx.quit()
     reaper.UpdateArrange()
-
+  
     -- Re-focus MIDI editor (current API can unfortunately not focus inline editor)
     if editor and reaper.APIExists("SN_FocusMIDIEditor") then
         reaper.SN_FocusMIDIEditor()
@@ -544,12 +589,22 @@ end
 
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
+-- Here execution starts!
 -- function main()
 
 -- Get mouse position and chunks before showing startup tips (since mouse will move)
 getAllChunks()
-numChunks = countChunks()
-if numChunks == 0 then return elseif numChunks == 1 then setTogglesToCurrentlyVisible() end
+
+numChunks, numTracks = countChunksAndTracks()
+if numChunks == 0 then -- no selected items
+    return 
+elseif numChunks == 1 then -- only one item, so can customize
+    setTogglesToCurrentlyVisible() 
+end
+
+-- If only one track, can customize CC names
+if numTracks == 1 then getCCNamesForTrack() end
+
 findUsedLanes()
 
 -- Show new version tips
