@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0d3d4055007d540efd14da2deac84f55d1dcb0f3" name="ReaTeam Scripts">
+<index version="1" commit="9547ae499879279c3dbfa2d1a507c4929427471e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6999,6 +6999,11 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.0" author="ausbaxter" time="2018-01-12T15:21:18Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ea50cd32ae61da29c4589ffc7e2e92375ab6470/Various/ausbaxter_Render%20item%20columns.lua</source>
+      </version>
+      <version name="1.1" author="ausbaxter" time="2018-01-27T21:47:42Z">
+        <changelog><![CDATA[Handle bad item selection for in-place rendering
+Folder structure is maintained when using in-place rendering]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9547ae499879279c3dbfa2d1a507c4929427471e/Various/ausbaxter_Render%20item%20columns.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
