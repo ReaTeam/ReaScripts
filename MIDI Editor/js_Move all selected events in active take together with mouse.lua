@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Move all selected events in active take together with mouse.lua
-Version: 1.10
+Version: 1.11
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29102/Move%20events%20to%20mouse%20position.gif
 Website: http://forum.cockos.com/showthread.php?t=184629
@@ -52,7 +52,9 @@ About:
   * v1.01 (2017-01-30)
     + Improved reset of toolbar button.
   * v1.10 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running.     
+    + Mouse cursor changes to indicate that script is running.   
+  * v1.11 (2018-01-26)
+    + A bit nicer mouse cursor icon.  
 ]]
 
 ---------------------------------------
@@ -144,8 +146,8 @@ local function loop_trackMouseMovement()
     -- Tooltip position is changed immediately before getting mouse cursor context, to prevent cursor from being above tooltip.
     if mustDrawCustomCursor then
         local mouseXpos, mouseYpos = reaper.GetMousePosition()
-        reaper.TrackCtl_SetToolTip("↔", mouseXpos+7, mouseYpos+8, true)
-    end
+        reaper.TrackCtl_SetToolTip(" ‹-›", mouseXpos+7, mouseYpos+8, true)
+    end 
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     
     ----------------------------------------------------------------------------------
