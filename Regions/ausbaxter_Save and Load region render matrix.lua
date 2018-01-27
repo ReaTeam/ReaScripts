@@ -1,5 +1,9 @@
 --@description Save and Load region render matrix (9 actions)
+<<<<<<< HEAD
 --@version 1.0.1
+=======
+--@version 1.0
+>>>>>>> bfbb34af2700f343d175f06a07813e95a4f192e5
 --@author ausbaxter
 --@about
 --    # Save and load region render matrix to project
@@ -89,6 +93,10 @@ function RestoreRenderMatrix(table)
                 reaper.SetRegionRenderMatrix(0, r_idx, m_track, 1)
             else
                 track = reaper.BR_GetMediaTrackByGUID(0, track_GUID )
+<<<<<<< HEAD
+=======
+                Msg(track)
+>>>>>>> bfbb34af2700f343d175f06a07813e95a4f192e5
                 reaper.SetRegionRenderMatrix(0, r_idx, track, 1)
             end
         end
@@ -112,6 +120,10 @@ end
 
 function Load()
     reaper.Undo_BeginBlock()
+<<<<<<< HEAD
+=======
+    reaper.TrackList_AdjustWindows( false ) --for updating the matrix without mouse over.
+>>>>>>> bfbb34af2700f343d175f06a07813e95a4f192e5
     local slot = string.match(slot, "%d*")
     retval, matrix_state = reaper.GetProjExtState(0, "RegionRenderMatrixState", "MatrixState" .. slot)
     if matrix_state ~= "" then
@@ -121,6 +133,10 @@ function Load()
     else
         reaper.ReaScriptError("Region Render Matrix save not found for slot " .. slot)
     end
+<<<<<<< HEAD
+=======
+    reaper.TrackList_AdjustWindows( true )
+>>>>>>> bfbb34af2700f343d175f06a07813e95a4f192e5
     reaper.Undo_EndBlock("Recall region render matrix",1)
 end
 
@@ -179,7 +195,10 @@ end
 --------------------------------------------------------------------------------------------------------
 
 function Main()
+<<<<<<< HEAD
     reaper.TrackList_AdjustWindows( false )
+=======
+>>>>>>> bfbb34af2700f343d175f06a07813e95a4f192e5
     if script_name:match("Load") then
         Load()
     elseif script_name:match("Save") then
@@ -187,7 +206,10 @@ function Main()
     elseif script_name:match("Reset") then
         ResetRenderMatrix()
     end
+<<<<<<< HEAD
     reaper.TrackList_AdjustWindows( false )
+=======
+>>>>>>> bfbb34af2700f343d175f06a07813e95a4f192e5
 end
 
 Main()

@@ -1,12 +1,12 @@
 -- Description: Ensure toggle OFF (item grouping)
--- Version: 1.0
+-- Version: 1.02
 -- Author: FnA
 -- Changelog: Initial release
 -- Link: Forum Thread (somewhat indirectly) http://forum.cockos.com/showthread.php?t=191368
 -- About:
 --   An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List)
 --   only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions.
-
+--   See discussion thread for changes needed for MIDI Editor version. Media Explorer/Inline Editor not possible.
 -- User Variables ---------------------------------
 -- Paste Command ID from Action List between quotes:
 local Command_ID = "1156"

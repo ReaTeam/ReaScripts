@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="15dd689ceaa7a88f03e1047a365c4c2c032d4f10" name="ReaTeam Scripts">
+<index version="1" commit="2ea50cd32ae61da29c4589ffc7e2e92375ab6470" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2071,6 +2071,28 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.1" author="cfillion" time="2017-07-20T21:35:07Z">
         <changelog><![CDATA[Fixed preview toggling when reopening the midi editor]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/86c4db661ab152d6615d6ee056fcbcf16ffc9082/MIDI%20Editor/cfillion_Toggle%20MIDI%20preview%20on%20transport%20change.lua</source>
+      </version>
+    </reapack>
+    <reapack name="FnA_Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions.lua" type="script" desc="Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This package script makes two actions in the MIDI Editor Action List. The scripts should join only selected notes. Unselected overlapping notes may be re-sorted in a fashion similar to what happens when using Undo in the MIDI Editor or changing Active Item via Tracklist. The scripts should join only unmuted notes to unmuted notes and muted to muted. Input integer into the input box version to allow that number of ticks at most between notes to be joined.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/showthread.php?t=143366">Forum Thread</link>
+      </metadata>
+      <version name="1.0" author="FnA" time="2018-01-10T20:08:39Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="midi_editor" file="FnA_Join selected overlapping and consecutive (adjacent) notes.lua">https://github.com/ReaTeam/ReaScripts/raw/0b6c54efc4fcad2edcaffb53fa8ee750d16fd24d/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
+        <source main="midi_editor" file="FnA_Join selected overlapping and consecutive notes with spacing below threshold (input box).lua">https://github.com/ReaTeam/ReaScripts/raw/0b6c54efc4fcad2edcaffb53fa8ee750d16fd24d/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
+      </version>
+      <version name="1.0.1" author="FnA" time="2018-01-11T05:52:51Z">
+        <changelog><![CDATA[Fix syntax error in lines 116 and 133. About section improvements.]]></changelog>
+        <source main="midi_editor" file="FnA_Join selected overlapping and consecutive (adjacent) notes.lua">https://github.com/ReaTeam/ReaScripts/raw/ff7a2d509c80612bd9711d869dbfc1e05cf7ad03/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
+        <source main="midi_editor" file="FnA_Join selected overlapping and consecutive notes with spacing below threshold (input box).lua">https://github.com/ReaTeam/ReaScripts/raw/ff7a2d509c80612bd9711d869dbfc1e05cf7ad03/MIDI%20Editor/FnA_Join%20selected%20overlapping%20and%20consecutive%20notes%20with%20spacing%20below%20threshold%20-%20input%20and%20no%20input%20versions.lua</source>
       </version>
     </reapack>
     <reapack name="gofer_spk77_Smooth CCs.eel" type="script" desc="Smooth CCs">
@@ -5386,6 +5408,30 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="Regions">
+    <reapack name="ausbaxter_Save and Load region render matrix.lua" type="script" desc="Save and Load region render matrix (9 actions)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Save and load region render matrix to project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides actions to save, load and reset Reaper's region render matrix.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="ausbaxter" time="2018-01-12T07:03:55Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Reset region render matrix.lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Nudge start or end of regions in time selection.lua" type="script" desc="Nudge start or end of regions in time selection">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=186689">Forum Thread</link>
@@ -6620,6 +6666,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76fa7b8ef6e29ed45ce63666e3cc6208c21bbaea/Various/amagalma_Transport%20Stop%20-%20Toggle%20position%20(with%20memory%20-%20no%20undo).lua</source>
       </version>
     </reapack>
+    <reapack name="ausbaxter_Render item columns.lua" type="script" desc="Render item columns">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Render Item Columns\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides a gui interface to render columns of selected items. Has optional tail length, rename capabilities, and its also possible to add regions based on item columns. GUI created using Lokasenna's GUI 2.0. https://forum.cockos.com/showthread.php?t=177772\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="ausbaxter" time="2018-01-12T15:21:18Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ea50cd32ae61da29c4589ffc7e2e92375ab6470/Various/ausbaxter_Render%20item%20columns.lua</source>
+      </version>
+    </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -6963,7 +7025,7 @@ Web Interface:
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is ON, thus either setting it OFF, or leaving it OFF. Generally for use in custom actions. See discussion thread for changes needed for MIDI Editor version. Media Explorer/Inline Editor not possible.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
@@ -6972,6 +7034,10 @@ Web Interface:
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
       </version>
+      <version name="1.02" author="FnA" time="2018-01-10T05:46:48Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5250de6f2674921094bf2175309d75406fad818a/Various/FnA_Ensure%20toggle%20OFF%20(item%20grouping).lua</source>
+      </version>
     </reapack>
     <reapack name="FnA_Ensure toggle ON (item grouping).lua" type="script" desc="Ensure toggle ON (item grouping)">
       <metadata>
@@ -6979,7 +7045,7 @@ Web Interface:
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is OFF, thus either setting it ON, or leaving it ON. Generally for use in custom actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An example of a script which toggles a Toggle action (having an ON/OFF "State" in the Action List) only if the action is OFF, thus either setting it ON, or leaving it ON. Generally for use in custom actions. See discussion thread for changes needed for MIDI Editor version. Media Explorer/Inline Editor version not possible.\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=191368">Forum Thread (somewhat indirectly)</link>
@@ -6987,6 +7053,10 @@ Web Interface:
       <version name="1.0" author="FnA" time="2017-09-11T21:00:44Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2433e400d20af87200279a38f92b4dec68be9a4/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
+      </version>
+      <version name="1.02" author="FnA" time="2018-01-10T05:48:08Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/655ab632514f97c1963b64a0b5aa82855e7d9567/Various/FnA_Ensure%20toggle%20ON%20(item%20grouping).lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Solo in front dimming louder.eel" type="script" desc="Solo in front dimming louder">
