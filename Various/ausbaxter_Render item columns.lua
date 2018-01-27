@@ -1,12 +1,16 @@
---@description Render item columns
---@version 1.0
+--@description ausbaxter_Render item columns
+--@version 1.1
 --@author ausbaxter
 --@about
 --    # Render Item Columns
 --
 --    This package provides a gui interface to render columns of selected items. Has optional tail length, rename capabilities, and its also possible to add regions based on item columns.
 --    GUI created using Lokasenna's GUI 2.0. https://forum.cockos.com/showthread.php?t=177772
+--@provides
+--    ausbaxter_Render item columns.lua
 --@changelog
+--  Handle bad item selection for in-place rendering
+--  Folder structure is maintained when using in-place rendering
 --  + Initial release
 
 local section = "\n\n"
@@ -3166,11 +3170,15 @@ local preview_rgns ={}
 ----------------------------------------Version Display----------------------------------------------------
 local clock_trigger = true
 local version_switch = 1
-local ver = "v1.0 "
-local date = "01/06/18"
+local ver = "v1.1 "
+local date = "01/26/18"
 local author = "by ausbaxter"
 local gui = "GUI library by lokasenna"
 --------------------------------------------Script---------------------------------------------------------
+function msg(m)
+    reaper.ShowConsoleMsg(tostring(m))
+end
+
 
 function Initialize()
     item_count = reaper.CountSelectedMediaItems()
@@ -3178,6 +3186,7 @@ function Initialize()
     item_columns = {}
     track_count = reaper.CountTracks(0) - 1
     media_tracks = {}
+    parent_tk_check = {}
     render_track = nil
     dest_track = nil
     folder_is_child = true
@@ -3256,10 +3265,10 @@ function GetItemPosition(item)
   
 end
 
-function InsertTrackIntoTable(this_track, check)
+function InsertTrackIntoTable(t, this_track, check)
 
     local track_found = false
-    for i, track in ipairs(media_tracks) do                                                                       --check if trying to add repeated track
+    for i, track in ipairs(t) do                                                                       --check if trying to add repeated track
         if this_track == track[1] then
             track_found = true
             break 
@@ -3267,13 +3276,27 @@ function InsertTrackIntoTable(this_track, check)
     end
     if track_found == false then
         local track_index = reaper.GetMediaTrackInfo_Value(this_track, "IP_TRACKNUMBER") - 1
-        table.insert(media_tracks, {this_track, track_index})
+        table.insert(t, {this_track, track_index})
     end
 
 end
 
+function InsertIntoTable(t, this_elem)
+    local elem_found = false
+    for i, elem in ipairs(t) do                                                                       --check if trying to add repeated track
+        if this_elem == elem then
+            elem_found = true
+            break 
+        end
+    end
+    if elem_found == false then
+        table.insert(t, this_elem)
+    end
+end
+
 function GetSelectedMediaItemsAndTracks()
     all_muted = true
+    in_place_bad = false
     for i = 0, item_count - 1 do
         local item = reaper.GetSelectedMediaItem(0, i)
         local s, e = GetItemPosition(item)
@@ -3284,9 +3307,15 @@ function GetSelectedMediaItemsAndTracks()
         table.insert(media_items, Item(item, s, e, m))
         
         local track = reaper.GetMediaItem_Track(item)
-        InsertTrackIntoTable(track)
+
+        local p_track = tostring(reaper.GetParentTrack(track))
+        InsertIntoTable(parent_tk_check, p_track)
+
+        InsertTrackIntoTable(media_tracks, track)
     end
-    
+    if #parent_tk_check > 1 then --checks if in-place is possible
+        in_place_bad = true
+    end 
     table.sort(media_items, function(a,b) return a.s < b.s end)
 
 end
@@ -3363,8 +3392,10 @@ function CreateFolderHierarchy()
             reaper.SetOnlyTrackSelected(track)  
         end
         last_track = track
+        last_track_depth = reaper.GetMediaTrackInfo_Value(last_track,"I_FOLDERDEPTH")
+        local x, nm = reaper.GetSetMediaTrackInfo_String(track,"P_NAME","",false)
     end 
-    reaper.SetMediaTrackInfo_Value(last_track, "I_FOLDERDEPTH", -1)
+    reaper.SetMediaTrackInfo_Value(last_track, "I_FOLDERDEPTH", -2)
   
 end
 
@@ -3440,6 +3471,7 @@ end
 function DefaultSetup()                                                                                       --render only selected items setup
 
     local tk = media_tracks[1][1]
+
     otk_index = reaper.GetMediaTrackInfo_Value(tk, "IP_TRACKNUMBER") - 1
     render_track = CreateParentTrack(otk_index)
     dest_track = render_track
@@ -3454,7 +3486,12 @@ function CreateOutputTrack(routing)                                             
     elseif routing == folder then                                                         --render through selected folder
         if not FSetup() then return false end
     elseif routing == in_place then                                                        --render items only
-        DefaultSetup()
+        if in_place_bad then
+            ErrorMsg("Items are not in the same folder depth.")
+            return false
+        else
+            DefaultSetup()
+        end
     end
     
     reaper.GetSetMediaTrackInfo_String(dest_track, "P_NAME", "Column Render", true)
@@ -3594,7 +3631,7 @@ function MoveRenderedItemsToTrack(gd_render, num_complete)
         columns = num_complete
     end
     
-    --Msg("Number of columns: " .. columns)
+    --msg("Number of columns: " .. columns)
     
     for i = 1, num_complete do                                                                               --move items to one track
         local track = reaper.GetTrack(0, index - i)
@@ -3615,7 +3652,7 @@ end
 
 function CleanUp(num_complete)                                                                                          --restore time selection, and folder structure. Mute source items
   reaper.SetMediaTrackInfo_Value(dest_track, "I_FOLDERDEPTH", 0)
-  if last_track ~= nil then  reaper.SetMediaTrackInfo_Value(last_track, "I_FOLDERDEPTH", 0) end
+  if last_track ~= nil then  reaper.SetMediaTrackInfo_Value(last_track, "I_FOLDERDEPTH", last_track_depth) end
   reaper.GetSet_LoopTimeRange(true, false, ts_start, ts_end, false)
   
   for i, column in ipairs(item_columns) do
@@ -3651,6 +3688,7 @@ function Render()
                         DeleteRegions()
                         GUI.elms.btn_commit_regions.col_txt = "gray" 
                     end
+                    GUI.Val("txt_name", "") --reset name field
                     reaper.UpdateArrange()
                     ErrorMsg("Render Success!")
                    
