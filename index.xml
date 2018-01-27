@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a89ff4aefaf71ca86648e9dda56ac732360a4a59" name="ReaTeam Scripts">
+<index version="1" commit="0d3d4055007d540efd14da2deac84f55d1dcb0f3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4130,6 +4130,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.10" author="juliansader" time="2017-07-23T12:17:56Z">
         <changelog><![CDATA[+ Mouse cursor changes to indicate that script is running.     ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c3424d563852e86d1761fc8b5dbb3b8df26ef3d9/MIDI%20Editor/js_Move%20all%20selected%20events%20in%20active%20take%20together%20with%20mouse.lua</source>
+      </version>
+      <version name="1.11" author="juliansader" time="2018-01-27T12:41:11Z">
+        <changelog><![CDATA[+ A bit nicer mouse cursor icon.  ]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0d3d4055007d540efd14da2deac84f55d1dcb0f3/MIDI%20Editor/js_Move%20all%20selected%20events%20in%20active%20take%20together%20with%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Navigate - Select next note in same channel.lua" type="script" desc="js_Navigate - Select next note in same channel.lua">
