@@ -558,7 +558,7 @@ function getCCNamesForTrack()
     for i = 128, 159 do
         if type(tNames[i-128]) == "string"
         and type(tNames[i-96]) == "string" 
-        and tNames[i-128] ~= ""
+        and tNames[i-128]:gsub("%s", "") ~= ""
         and tNames[i-128]:gsub("[mlsbMLSB%s%p%c]", "") == tNames[i-96]:gsub("[mlsbMLSB%s%p%c]", "") 
         then 
             tNames[i] = tNames[i-128]:gsub("MSB", ""):gsub("msb", ""):gsub("[%p%s%c]*$", "") .. " (14bit)"
