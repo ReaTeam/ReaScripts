@@ -1,6 +1,6 @@
 -- @description Set timecode at edit cursor
--- @version 1.1
--- @changelog Split into three actions for hh:mm:ss.sss, seconds and h:m:s:f input [p=1947239]
+-- @version 1.1.1
+-- @changelog Remove colons in filenames for Windows
 -- @author cfillion
 -- @links
 --   cfillion.ca https://cfillion.ca
@@ -8,17 +8,17 @@
 -- @screenshot https://i.imgur.com/uly6oy5.gif
 -- @donate https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
 -- @provides
---   . > cfillion_Set timecode at edit cursor (hh:mm:ss.sss).lua
+--   . > cfillion_Set timecode at edit cursor.lua
 --   . > cfillion_Set timecode at edit cursor (seconds).lua
---   . > cfillion_Set timecode at edit cursor (h:m:s:f).lua
+--   . > cfillion_Set timecode at edit cursor (frames).lua
 
 local SCRIPT_NAME = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
 
 local MODE = ({
-  ['hh:mm:ss.sss'] = 0,
-  ['seconds']      = 3,
-  ['h:m:s:f']      = 5,
-})[SCRIPT_NAME:match('%(([^%)]+)%)')]
+  ['time']    = 0,
+  ['seconds'] = 3,
+  ['frames']  = 5,
+})[SCRIPT_NAME:match('%(([^%)]+)%)') or 'time']
 
 assert(MODE, "Internal error: unknown timecode format")
 assert(reaper.SNM_GetDoubleConfigVar, "SWS is required to use this script")
