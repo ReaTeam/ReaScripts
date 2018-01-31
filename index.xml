@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="93a9df74f15252a59834ed10efcb6c0774e7ee61" name="ReaTeam Scripts">
+<index version="1" commit="65da99c45697771717d2ecd10c9444e9a8348a18" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1389,6 +1389,59 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.0" author="beaunus" time="2017-02-20T10:05:13Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Items%20Editing/beaunus_Name%20item%20takes%20by%20last%20marker%20to%20cut%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="bfut_MIDI note row controls items pitch.lua" type="script" desc="MIDI note row controls items pitch">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Open MIDI editor.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Select media item(s).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab Click any note row.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Run the script. REQUIRES: Reaper v5.70 or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut</link>
+      </metadata>
+      <version name="1.0" author="bfut" time="2018-01-31T22:48:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_MIDI%20note%20row%20controls%20items%20pitch.lua</source>
+      </version>
+    </reapack>
+    <reapack name="bfut_Split looped item into separate items.lua" type="script" desc="Split looped item into separate items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select media item(s).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v5.70 or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut</link>
+      </metadata>
+      <version name="1.0" author="bfut" time="2018-01-31T22:48:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_Split%20looped%20item%20into%20separate%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="bfut_Trim to source media lengths (limit items lengths).lua" type="script" desc="Trim to source media lengths (limit items lengths)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select media item(s).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v5.70 or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut</link>
+      </metadata>
+      <version name="1.0" author="bfut" time="2018-01-31T22:48:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_Trim%20to%20source%20media%20lengths%20(limit%20items%20lengths).lua</source>
       </version>
     </reapack>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
