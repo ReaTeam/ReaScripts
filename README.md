@@ -79,6 +79,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [StephanRoemer/ReaScripts](https://github.com/StephanRoemer/ReaScripts)
 - [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
 - [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
+- [JoepVanlier/Hackey-Trackey](https://github.com/JoepVanlier/Hackey-Trackey)
 
 ### Other repositories or packs not compatible with ReaPack
 
@@ -92,7 +93,6 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
 - [indiscipline/reaper_scripts](https://github.com/indiscipline/reaper_scripts)
 - [JamesHEure/Reascript](https://github.com/JamesHEure/Reascript)
-- [JoepVanlier/Hackey-Trackey](https://github.com/JoepVanlier/Hackey-Trackey)
 - [kronihias/ambix](https://github.com/kronihias/ambix)
 - [Lazzle/ReaMIDI](https://github.com/Lazzle/ReaMIDI)
 - [lossius/js-plugins](https://github.com/lossius/js-plugins)
