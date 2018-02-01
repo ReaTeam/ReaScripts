@@ -1,48 +1,58 @@
 --[[
- * ReaScript Name:  js_Insert CC or pitch at mouse position, leaving other selected.lua
- * Description:  A simple script to insert a CC events, while leaving other events selected.
- *               Strangely, current (v5.20) versions of REAPER does not offer any mouse modifiers 
- *                   for inserting CC events while keeping already-selected events selected.  
- *                   (Compare the "Insert note, leaving other notes selected" mouse action for notes.)
- *               If snapping to grid is enabled in the MIDI editor, the event will be inserted 
- *                   at the closest grid position *before* the mouse position.
- *               Useful for inserting a series of CC 'nodes' at precise grid positions, 
- *                   which can then be linked by linear ramps.
- *               The script does not yet take swing into account when calculating grid positions.
- *
- * Instructions:  There are two ways in which this script can be run:  
- *                  1) First, the script can be linked to its own shortcut key.
- *                  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
- *                        can each be linked to a toolbar button.  
- *                     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
- *                        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
- *                        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
- *                     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
- *                        and this selected (armed) script can then be run by using the shortcut for the 
- *                        aforementioned "js_Run..." script.
- *                     For further instructions - please refer to the "js_Run..." script. 
- * 
- * Screenshot: 
- * Notes: 
- * Category: 
- * Author: juliansader
- * Licence: GPL v3
- * Forum Thread: 
- * Forum Thread URL: http://forum.cockos.com/showthread.php?t=176878
- * Version: 2.0
- * REAPER: 5.20
- * Extensions: SWS/S&M 2.8.3
+ReaScript name: js_Insert CC or pitch at mouse position, leaving other selected.lua
+Version: 2.1
+Author: juliansader
+Website: http://forum.cockos.com/showthread.php?t=176878
+Screenshot: https://stash.reaper.fm/27602/Insert%20CC%20or%20pitch%20at%20mouse%20position%2C%20leaving%20others%20selected.gif
+REAPER version: 5.32 or later
+Extensions: SWS/S&M 2.8.3 or later
+Donation: https://www.paypal.me/juliansader
+About:
+  # Description  
+   
+  A simple script to insert a CC events, while leaving other events selected.
+  
+  Strangely, current (v5.20) versions of REAPER do not offer any mouse modifiers 
+      for inserting CC events while keeping already-selected events selected.  
+      (Compare the "Insert note, leaving other notes selected" mouse action for notes.)
+      
+  If snapping to grid is enabled in the MIDI editor, the event will be inserted 
+     at the closest grid position *before* the mouse position.
+     
+  Useful for inserting a series of CC 'nodes' at precise grid positions, 
+      which can then be linked by linear ramps.
+      
+  The script does not yet take swing into account when calculating grid positions.
+  
+  # Instructions
+  
+  There are two ways in which this script can be run:  
+  
+  1) First, the script can be linked to its own shortcut key.
+  
+  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+       can each be linked to a toolbar button.  
+     In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+     Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+        and this selected (armed) script can then be run by using the shortcut for the 
+        aforementioned "js_Run..." script.
+     For further instructions - please refer to the "js_Run..." script. 
 ]]
 
 --[[
- Changelog:
- * v1.0 (2016-05-05)
+  Changelog:
+  * v1.0 (2016-05-05)
     + Initial Release
- * v1.1 (2016-05-18)
+  * v1.1 (2016-05-18)
     + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) 
- * v2.0 (2016-07-04)
+  * v2.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
+  * v2.1 (2017-12-15)
+    + Formatted Description and Instructions for ReaPack.
+    + Create undo point after each insertion.
 ]]
 
 -- USER AREA
@@ -131,7 +141,7 @@ elseif details ~= "cc_lane" then
 end
 
 take = reaper.MIDIEditor_GetTake(editor)
-if take == nil then return(0) end
+if not reaper.ValidatePtr2(0, take, "MediaItem_Take*") then return(0) end
 
 -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
 -- https://github.com/Jeff0S/sws/issues/783
@@ -152,7 +162,6 @@ end
 
 if mouseCCvalue == -1 then return(0) end     
 
-reaper.Undo_BeginBlock()
 
 --------------------------------------------------------------------
 -- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
@@ -199,7 +208,9 @@ elseif mouseLane == 0x201 then -- pitchwheel
     MSB = mouseCCvalue>>7
     LSB = mouseCCvalue&127        
     reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 224, channel, LSB, MSB)
+else
+    return
 end
     
 reaper.MIDI_Sort(take)
-reaper.Undo_EndBlock("Insert CC, leaving others selected", -1)
+reaper.Undo_OnStateChange_Item(0, "Insert CC, leaving others selected", reaper.GetMediaItemTake_Item(take))

@@ -1,10 +1,11 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.10
+Version: 1.22
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
-REAPER version: 5.30
+Donation: https://www.paypal.me/juliansader
+REAPER version: 5.32
 About:
   # Description
   This script opens a GUI that shows important information about the active MIDI take, 
@@ -32,11 +33,16 @@ About:
   Click on any of the highlighted values to open a Properties window or a dropdown menu 
   in which the values can be changed.
   
-  The default colors of the GUI, as well as the default size, can be customized in the script's USER AREA.  
+  The default colors of the GUI, as well as the font size, can be customized in the script's USER AREA.  
+  
+  When opening, the script will recall its last-used position and size.
+  
+  If the script GUI is docked, REAPER's own pin-on-top button can be used to keep the docker on top and the script visible at all times.
+  If the script GUI is not docked, 3rd party apps that pin windows on top, such as "FileBox eXtender" (on Windows), can be used. 
   
   Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, 
       particularly if the take contains many thousands of MIDI events.  The GUI therefore provides a
-      "Pause" checkbox, which will pause the realtime updating.
+      "Pause" checkbox, which will pause the realtime updating.  
 ]]
  
 --[[
@@ -73,12 +79,24 @@ About:
     + Interpret note-ons with velocity=0 as note-offs.
   * v1.10 (2017-06-19)
     + GUI window will open at last-used screen coordinates.
+  * v1.20 (2017-12-28)
+    + Use negative time or ticks in M:B:ticks or M:B:time formats, if very slightly before beat.
+    + New position display format: ticks. 
+    + Display seconds in higher precision.
+    + Position display follows Project start time and Project start measure.
+    + Display note numbers as well as letters.
+    + Note names follow "MIDI octave name display offset" in Preferences/
+    + GUI window will recall last-used size.
+  * v1.21 (2017-12-28)
+    + Display Time (min;sec) format in high precision.
+  * v1.22 (2017-12-29)
+    + Time format: Samples respects project start time and measure.
 ]]
 
 -- USER AREA
 -- Settings that the user can customize
 
-defaultTimeFormat = 6 -- Refer to tableTimeFormats below for description of the formats
+defaultTimeFormat = 0 -- Refer to tableTimeFormats below for description of the formats
 
 fontFace = "Ariel"
 fontSize = 14
@@ -87,25 +105,20 @@ highlightColor = {1,1,0,1}
 backgroundColor = {0.18, 0.18, 0.18, 1}
 shadowColor = {0,0,0,1}
 
--- If the initialization dimensions are not specified, the script
---    will calculate appropriate values based on font size
-initWidth = 209
-initHeight = 408
-
 -- End of USER AREA
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 
 local tableTimeFormats = {[-1] = "Project default",
-                          [0] = "Time",
-                          [1] = "Measures.Beats.Time",
-                          [2] = "Measures.Beats",
-                          [3] = "Seconds",
-                          [4] = "Samples",
-                          [5] = "h:m:s:frames",
-                          [6] = "Measures:Beats:Ticks", -- This is how the MIDI editor's Properties window displays position (exept with . instead of :)
-                          [7] = "Ticks"}
+                          [0] = "Measures.Beats.Ticks", -- This is how the MIDI editor's Properties window displays position (except with . instead of :)
+                          [1] = "Measures.Beats.Secs",
+                          [2] = "Measures.Beats.Cents",
+                          [3] = "Time (seconds)",
+                          [4] = "Time (min.sec)",
+                          [5] = "Samples",
+                          [6] = "h ; m ; s ; frames",
+                          [7] = "Ticks (from take start)"}
     
 local tableCCTypes = {[8] = "Note on",
                       [9] = "Note off",
@@ -169,6 +182,11 @@ local ccValueString = ""
 local countSelCCs = 0
 local countSelNotes = 0
 
+local projStartMeasure = 0 --tonumber(reaper.format_timestr_pos(0, "", 2):match("([%d%-]+)"))
+local projStartTime    = 0 --reaper.GetProjectTimeOffset(0, false)
+
+-- Preferences -> MIDI settings -> MIDI octave name display offset
+local octaveOffset = 0
 
 ---------------
 function exit()
@@ -176,15 +194,25 @@ function exit()
     local docked, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
     if docked == 0 and type(xPos) == "number" and type(yPos) == "number" then
         -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
-        reaper.SetExtState("MIDI Inspector", "Last coordinates", string.format("%i", math.floor(xPos+0.5)) .. "," .. string.format("%i", math.floor(yPos+0.5)), true)
+        reaper.SetExtState("MIDI Inspector", "Last coordinates", string.format("%i", math.floor(xPos+0.5)) .. "," 
+                                                              .. string.format("%i", math.floor(yPos+0.5)) .. ",", true)
+        reaper.SetExtState("MIDI Inspector", "Last dimensions", string.format("%i", math.floor(xWidth+0.5)) .. "," 
+                                                              .. string.format("%i", math.floor(yHeight+0.5)) .. ",", true)                                                      
     end    
     gfx.quit()
     
+    -- Deactivate toolbar button
     _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
     if not (sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommandID == -1) then
         reaper.SetToggleCommandState(sectionID, ownCommandID, 0)
         reaper.RefreshToolbar2(sectionID, ownCommandID)
     end
+    
+    -- Make sure MIDI editor is focused
+    if reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.SN_FocusMIDIEditor()
+    end
+    
 end -- function exit
 
 -----------------------------
@@ -195,7 +223,7 @@ local function setColor(colorTable)
     gfx.a = colorTable[4]
 end -- function setColor
 
--------------------------
+-------------------------------
 local function drawWhiteBlock()
     local r = gfx.r; g = gfx.g; b = gfx.b; a = gfx.a
     setColor(blockColor) --{1,1,1,1})
@@ -205,53 +233,107 @@ local function drawWhiteBlock()
     setColor({r,g,b,a})
 end -- function drawWhiteBlock
 
----------------------------
+---------------------------------
 local function pitchString(pitch)
     local pitchNames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
-    return tostring(pitchNames[(pitch%12)+1])..tostring(pitch//12 - 1)
+    return tostring(pitchNames[(pitch%12)+1])..tostring((pitch+(octaveOffset*12))//12 - 1) --.. " (" .. string.format("%i", pitch) .. ")"
 end -- function pitchString
 
 -------------------
 local function timeStr(take, ppq, format)
+    --[[
+    These are REAPER's own numbers for format_timestr_pos:
+        -1=proj default.
+        0=time (min.sec)
+        1=measures.beats.time
+        2=measures.beats.cents
+        3=seconds
+        4=samples
+        5=h:m:s:f
+    ]]
+    --[[
+    My numbers are:
+        [-1] = "Project default",
+        [0] = "Measures.Beats.Ticks", -- This is how the MIDI editor's Properties window displays position (except with . instead of :)
+        [1] = "Measures.Beats.Secs",
+        [2] = "Measures.Beats.Cents",
+        [3] = "Time (seconds)",
+        [4] = "Time (min.sec)",
+        [5] = "Samples",
+        [6] = "h ; m ; s ; frames",
+        [7] = "Ticks (from take start)"}
+        ]]
+    
     -- format_timestr_pos returns strings that are not in the same format as 
     --    how the MIDI editor's Properties window displays position.
-    -- Therefore extra format options were added.
-    if format <= 5 then
-        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", format)
-    elseif format == 6 then -- Custom format measure:beat:ticks
-        local measureBeatTime = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 1)
-        local measureStr, beatStr = measureBeatTime:match("(%d+)%.(%d+)%.%d+")
-        -- When displayed, measure and beat is counted from 1 instead of 0, so subtract 1
-        local measure = tonumber(measureStr)-1
-        local beat = tonumber(beatStr)-1
-        local beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
+    -- Therefore extra format options were added: 
+    
+    -- Also, "M:B:time" format is imprecise since it rounds the time, this will also be changed. 
+    
+    -- NB! format_timestr_pos does not take into account Project settings -> "Project start time" and "Project start measure"!
+    
+    -- BTW, all this string formatting stuff takes a mere few microseconds, so doesn't affect responsiveness at all.
+    if format == -1 then
+        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", -1):gsub(":", " ; ")
+    -- Custom format measure:beat:ticks
+    elseif format == 0 then 
+        local measureStr, beatStr = reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 2):match("([%d%-]+)[%.%:](%d+)")
+        local measures, beats = tonumber(measureStr)-projStartMeasure, tonumber(beatStr)-1
+        local beatTime = reaper.TimeMap2_beatsToTime(0, beats, measures)
         local beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
-        -- In measure.beat.time format, the position may be rounded *up* to nearest beat.
-        -- In measure:beat:ticks, must never round up.  So must check:
-        if beatPPQ > ppq then
-            beat = beat - 1
-            beatTime = reaper.TimeMap2_beatsToTime(0, beat, measure)
-            measureBeatTime = reaper.format_timestr_pos(beatTime, "", 1)
-            measureStr, beatStr = measureBeatTime:match("(%d+)%.(%d+)%.%d+")
-            measure = tonumber(measureStr)-1
-            beat = tonumber(beatStr)-1
-            beatPPQ  = reaper.MIDI_GetPPQPosFromProjTime(take, beatTime)
-        end
-        -- If the start of the MIDI item is not precisely aligned with the grid, or if
-        --    the items is stretched, the event may be a fractional tick away from the 
-        --    measure:beat position.
-        -- Note that beatPPQ may be fractional, whereas a MIDI event's ppq is always an integer.
-        local ticksStr
-        if (ppq - beatPPQ)%1 == 0 then -- integer, so can format nicely without decimal point
-            ticksStr = tostring(ppq - beatPPQ):gsub("%.%d+", "")
-            ticksStr = string.format("%03d", ticksStr)
+        local ticks = ppq-beatPPQ
+        local ticksStr = string.format("%.8f", ticks):gsub("%.?0+$", "")
+        --[[
+        if ticks%1 == 0 then -- integer, so can format nicely without decimal point
+            ticksStr = string.format("%03d", ticks)
         else -- Not integer, so display exact displacement
-            ticksStr = tostring(ppq - beatPPQ)
-            ticksStr = string.format("%.3f", ticksStr)
+            ticksStr = string.format("%03.4f", ticks)
+        end]]
+        return (measureStr .. " ; " .. beatStr .. " ; " .. ticksStr)
+    -- Measure:beat:seconds
+    elseif format == 1 then 
+        local t1 = reaper.time_precise()
+        local eventTime = reaper.MIDI_GetProjTimeFromPPQPos(take, ppq)
+        -- Why use format_timestr_pos instead of TimeMap2_timeToBeats?  
+        --    Because format_timestr_pos returns negative time when event is slightly ahead of beats. This is useful to see how far ahead event is.
+        local measureStr, beatStr = reaper.format_timestr_pos(eventTime, "", 2):match("([%d%-]+)[%.%:](%d+)")
+        local measures, beats = tonumber(measureStr)-projStartMeasure, tonumber(beatStr)-1
+        local beatTime  = reaper.TimeMap2_beatsToTime(0, beats, measures)
+        local timeStr = string.format("%.10f", eventTime-beatTime):gsub("%.?0+$", "") -- gsub removes trailing zeroes and decimal point (use slightly lower precision so that string fits into GUI)
+        if timeStr == "-0" then timeStr = "0" end
+        --if (timeStr == "-0.000000000" or timeStr == "0.000000000") then timeStr = "0" end
+        timeTaken = reaper.time_precise() - t1
+        return (measureStr .. " ; " .. beatStr .. " ; " .. timeStr)
+    -- Measures.Beats.Cents
+    elseif format == 2 then -- Measures.Beats.Cents
+        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 2):gsub("%.", " ; ")
+    -- Seconds (full floating point precision)
+    elseif format == 3 then 
+        --return tostring(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime)
+        return string.format("%.11f", reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime):gsub("%.?0+$", "") .. " s" -- gsub removes trailing zeroes and decimal point
+    -- Time (min ; seconds)
+    elseif format == 4 then 
+        local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) + projStartTime
+        if timePos >= 0 then
+            local minutes = timePos // 60
+            local seconds = timePos - (minutes*60)
+            return string.format("%im %.11f", minutes, seconds):gsub("%.?0+$", "") .. "s" -- gsub removes trailing zeroes and decimal point
+        else
+            local minutes = (-timePos // 60)
+            local seconds = (-minutes*60) - timePos
+            return string.format("-%im %.11f", minutes, seconds):gsub("%.?0+$", "") .. "s"-- gsub removes trailing zeroes and decimal point
         end
-        return (measureStr .. ":" .. beatStr .. ":" .. ticksStr)
-    else
-        return (tostring(ppq):gsub("%.%d+", ""))
+    -- Samples
+    --    Something very weird is going on with format_timestr_pos: 
+    --    after experimentation I discovered that projStartTime be SUBTRACTED instead of added?
+    elseif format == 5 then 
+        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq) - projStartTime, "", 4)
+    -- h:m:s:f
+    elseif format == 6 then 
+        return reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, ppq), "", 5):gsub(":", " ; ")
+    -- Ticks (from take start)
+    elseif format == 7 then 
+        return string.format("%.11f", ppq):gsub("%.?0+$", "") -- ppq should always be integer, but format just in case...
     end
 end
 
@@ -264,7 +346,7 @@ function updateGUI()
     local tabLong = tabLong
     local tabShort = tabShort
     
-    lineHeight = math.max(strHeight, gfx.h / 25)
+    lineHeight = math.max(strHeight, gfx.h / 26)
     setColor(backgroundColor)
     gfx.rect(1, 1, gfx.w-2, gfx.h-2, true)
     gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
@@ -322,9 +404,9 @@ function updateGUI()
     -- Draw note stuff
     setColor(backgroundColor)
     gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
-    gfx.rect(6, 1+lineHeight*6.85, gfx.w-11, lineHeight*7, false)
+    gfx.rect(6, 1+lineHeight*6.85, gfx.w-11, lineHeight*7.5, false)
     setColor(shadowColor)
-    gfx.rect(5, lineHeight*6.85, gfx.w-11, lineHeight*7, false)
+    gfx.rect(5, lineHeight*6.85, gfx.w-11, lineHeight*7.5, false)
     
     setColor(backgroundColor)
     --gfx.rect(9, lineHeight * 6.5, strWidth["Selected notes"], strHeight, true)
@@ -386,16 +468,16 @@ function updateGUI()
     -- Draw CC stuff
     setColor(backgroundColor)
     gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
-    gfx.rect(6, 1+lineHeight*14.85, gfx.w-11, lineHeight*7, false)
+    gfx.rect(6, 1+lineHeight*15.35, gfx.w-11, lineHeight*7.5, false)
     setColor(shadowColor)
-    gfx.rect(5, lineHeight*14.85, gfx.w-11, lineHeight*7, false)
+    gfx.rect(5, lineHeight*15.35, gfx.w-11, lineHeight*7.5, false)
     
     setColor(backgroundColor)
     --gfx.rect(9, lineHeight * 13.5, strWidth["Selected CCs"], strHeight, true)
-    gfx.rect(9, lineHeight * 14.5, strWidth["SELECTED CCs"], strHeight, true)
+    gfx.rect(9, lineHeight * 15.0, strWidth["SELECTED CCs"], strHeight, true)
     setColor(textColor)
     gfx.x = 13
-    gfx.y = lineHeight * 14.5
+    gfx.y = lineHeight * 15.0
     --gfx.drawstr("Selected CCs")
     gfx.drawstr("SELECTED CCs")
     
@@ -447,7 +529,7 @@ function updateGUI()
     
     -- Draw position/time format
     gfx.x = 11 --tabShort - strWidth["Format"]
-    gfx.y = lineHeight*22.3
+    gfx.y = lineHeight*23.3
     setColor(textColor)
     gfx.drawstr("Time format: ")
     --gfx.x = tabShort
@@ -456,17 +538,18 @@ function updateGUI()
     
     
     -- Draw Pause radio button
+    local CHECKBOX_Y_POS = lineHeight*24.5
     setColor(backgroundColor)
     gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
-    gfx.rect(11, 2+lineHeight*23.5, strHeight-2, strHeight-2, false)
+    gfx.rect(11, 2+CHECKBOX_Y_POS, strHeight-2, strHeight-2, false)
     setColor(shadowColor)
-    gfx.rect(10, 1+lineHeight*23.5, strHeight-2, strHeight-2, false)
+    gfx.rect(10, 1+CHECKBOX_Y_POS, strHeight-2, strHeight-2, false)
     setColor(textColor) --{0.7,0.7,0.7,1})
     gfx.a = gfx.a*0.5
-    gfx.rect(12, 3+lineHeight*23.5, strHeight-5, strHeight-5, true)
+    gfx.rect(12, 3+CHECKBOX_Y_POS, strHeight-5, strHeight-5, true)
     setColor(textColor)
     gfx.x = 15 + strHeight
-    gfx.y = lineHeight * 23.5
+    gfx.y = CHECKBOX_Y_POS
     gfx.drawstr("Pause")
     
     if paused == true then
@@ -482,15 +565,15 @@ function updateGUI()
     -- Draw Dock radio button
     setColor(backgroundColor)
     gfx.r=gfx.r*2; gfx.g=gfx.g*2; gfx.b=gfx.b*2; gfx.a = 1
-    gfx.rect(midX+1, 2+lineHeight*23.5, strHeight-2, strHeight-2, false)
+    gfx.rect(midX+1, 2+CHECKBOX_Y_POS, strHeight-2, strHeight-2, false)
     setColor(shadowColor)
-    gfx.rect(midX, 1+lineHeight*23.5, strHeight-2, strHeight-2, false)
+    gfx.rect(midX, 1+CHECKBOX_Y_POS, strHeight-2, strHeight-2, false)
     setColor(textColor) --{0.7,0.7,0.7,1})
     gfx.a = gfx.a*0.5
-    gfx.rect(midX+2, 3+lineHeight*23.5, strHeight-5, strHeight-5, true)
+    gfx.rect(midX+2, 3+CHECKBOX_Y_POS, strHeight-5, strHeight-5, true)
     setColor(textColor)
     gfx.x = midX + 5 + strHeight
-    gfx.y = lineHeight * 23.5
+    gfx.y = CHECKBOX_Y_POS
     gfx.drawstr("Dock")
     
     if gfx.dock(-1) ~= 0 then
@@ -529,7 +612,7 @@ function loopMIDIInspector()
         
         -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
         local take = reaper.MIDIEditor_GetTake(editor)
-        if reaper.ValidatePtr(take, "MediaItem_Take*") then
+        if reaper.ValidatePtr(take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
         
             -- Only do all the time-consuming GetNote and GetCC stuff if there were in fact changes in MIDI,
             --    or if active take has switched.
@@ -539,12 +622,18 @@ function loopMIDIInspector()
             -- Some of REAPER's MIDI function work with channel range 0-15, others with 1-16
             defaultChannel  = 1 + reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")  
         
+            -- Has the project start positions changed?
+            projStartMeasure = tonumber(reaper.format_timestr_pos(0, "", 2):match("([%d%-]+)"))
+            projStartTime    = reaper.GetProjectTimeOffset(0, false)
+            
             -- If take or hash is changed, then update the info.
             -- If not updated, the info strings simply remain the same.
             hashOK, takeHash = reaper.MIDI_GetHash(take, false, "")
-            if take ~= prevTake or (hashOK and takeHash ~= prevHash) then
+            if take ~= prevTake or (hashOK and takeHash ~= prevHash) or projStartMeasure ~= prevProjStartMeasure or projStartTime ~= prevProjStartTime then
                 prevTake = take
                 prevHash = takeHash
+                prevProjStartMeasure = projStartMeasure
+                prevProjStartTime    = projStartTime
                 
                 -- Initialize temporary values for all the info that will soon be parsed
                 local noteLowPPQ = math.huge
@@ -684,7 +773,7 @@ function loopMIDIInspector()
                     -- Got all event info, now translate into strings
                 
                     if noteLowPPQ < noteHighPPQ then 
-                        notePositionString = timeStr(take, noteLowPPQ, timeFormat) .. " - " .. timeStr(take, noteHighPPQ, timeFormat)
+                        notePositionString = timeStr(take, noteLowPPQ, timeFormat) .. "\n" .. timeStr(take, noteHighPPQ, timeFormat)
                     elseif noteLowPPQ == noteHighPPQ then
                         notePositionString = timeStr(take, noteLowPPQ, timeFormat)
                     else 
@@ -700,9 +789,10 @@ function loopMIDIInspector()
                     end
                     
                     if noteLowPitch < noteHighPitch then 
-                        notePitchString = pitchString(noteLowPitch) .. " - " .. pitchString(noteHighPitch)
+                        notePitchString = pitchString(noteLowPitch) .. " - " .. pitchString(noteHighPitch) 
+                                        .. "  (" .. string.format("%i", noteLowPitch) .. " - " .. string.format("%i", noteHighPitch) .. ")"
                     elseif noteLowPitch == noteHighPitch then 
-                        notePitchString = pitchString(noteLowPitch)
+                        notePitchString = pitchString(noteLowPitch) .. "  (" .. string.format("%i", noteLowPitch) .. ")"
                     else 
                         notePitchString = ""
                     end
@@ -753,7 +843,7 @@ function loopMIDIInspector()
                     end
                     
                     if ccLowPPQ < ccHighPPQ then 
-                        ccPositionString = timeStr(take, ccLowPPQ, timeFormat) .. " - " .. timeStr(take, ccHighPPQ, timeFormat)
+                        ccPositionString = timeStr(take, ccLowPPQ, timeFormat) .. "\n" .. timeStr(take, ccHighPPQ, timeFormat)
                     elseif ccLowPPQ == ccHighPPQ then 
                         ccPositionString = timeStr(take, ccLowPPQ, timeFormat)
                     else 
@@ -812,37 +902,36 @@ function loopMIDIInspector()
     end -- if gfx.mouse_cap == 1
     
     
-    -- Pause / Unpause
-    if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-    and gfx.mouse_y > lineHeight*23.5 and gfx.mouse_y < lineHeight*24.5 
-    and gfx.mouse_x > 0 and gfx.mouse_x < gfx.w/2
-    then
-        mouseAlreadyClicked = true
-        paused = not paused
-    end
+    -- Checkboxes
+    local CHECKBOX_Y_POS = lineHeight*24.5
     
-    -- Dock / Undock
     if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-    and gfx.mouse_y > lineHeight*23.5 and gfx.mouse_y < lineHeight*24.5 
-    and gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w
+    and gfx.mouse_y > CHECKBOX_Y_POS and gfx.mouse_y < CHECKBOX_Y_POS+lineHeight 
     then
-        mouseAlreadyClicked = true
-        if gfx.dock(-1) ~= 0 then
-            gfx.dock(0)
-        else
-            gfx.dock(1)
+        -- Pause / Unpause
+        if gfx.mouse_x > 0 and gfx.mouse_x < gfx.w/2 then
+            mouseAlreadyClicked = true
+            paused = not paused
+        -- Dock / Undock
+        elseif gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w then
+            mouseAlreadyClicked = true
+            if gfx.dock(-1) ~= 0 then
+                gfx.dock(0)
+            else
+                gfx.dock(1)
+            end
         end
     end
     
     -- Select time format
     if (gfx.mouse_cap == 2 or gfx.mouse_cap == 1)
     and mouseAlreadyClicked == false 
-    and gfx.mouse_y > lineHeight*22.3 and gfx.mouse_y < lineHeight*23.3 
+    and gfx.mouse_y > lineHeight*23.3 and gfx.mouse_y < lineHeight*24.3 
     --and gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w
     then
         mouseAlreadyClicked = true
-        gfx.x = 11+strWidth["Time format"] --tabShort
-        gfx.y = lineHeight*23.3 
+        gfx.x = strWidth["Time format"] --tabShort
+        gfx.y = lineHeight*23
         local menuString = "#Display position as|"
         -- Time format ranges from -1 (default) to 5
         for i = -1, #tableTimeFormats do
@@ -859,7 +948,7 @@ function loopMIDIInspector()
     
     -- Click in notes area, open REAPER's Properties window (which defaults to Note Properties if notes as well as CCs are selected)
     if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-    and (  (gfx.mouse_y > lineHeight*8.5 and gfx.mouse_y < lineHeight*13.5)
+    and (  (gfx.mouse_y > lineHeight*8.5 and gfx.mouse_y < lineHeight*14.5)
         --or (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
         )
     then
@@ -870,7 +959,7 @@ function loopMIDIInspector()
     -- Click in CC area, first ask user whether all notes should be deselected, then call Event Properties
     --    If notes are not deselected, REAPER will automatically open the Notes Properties window instead
     if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-    and (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
+    and (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*22.5)
     then
         mouseAlreadyClicked = true
         
@@ -938,7 +1027,7 @@ end -- function loop GetSetChannel
 
 -- Check whether the required version of REAPER is available
 if not reaper.APIExists("MIDI_GetAllEvts") then
-    reaper.ShowMessageBox("This script requires REAPER v5.30 or higher.", "ERROR", 0)
+    reaper.ShowMessageBox("This script requires REAPER v5.32 or higher.", "ERROR", 0)
     return(false) 
 end
 
@@ -950,15 +1039,20 @@ if not (sectionID == nil or ownCommandID == nil or sectionID == -1 or ownCommand
     reaper.RefreshToolbar2(sectionID, ownCommandID)
 end
 
+-- Strangely, MIDI octave offet is stored in ini file with value 1 higher than that shown in Preferences.
+octaveOffset = reaper.SNM_GetIntConfigVar("midioctoffs", 0) - 1
+
+
 -- To measure string widths, must first open a GUI.
 -- The GUI window will be opened at the last-used coordinates
 local coordinatesExtState = reaper.GetExtState("MIDI Inspector", "Last coordinates") -- Returns an empty string if the ExtState does not exist
-local xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
-if xPos and yPos then
-    gfx.init("MIDI Inspector", 200, 400, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
-else
-    gfx.init("MIDI Inspector", 200, 400, 0)
-end
+local dimensionsExtState  = reaper.GetExtState("MIDI Inspector", "Last dimensions")
+local lastX, lastY          = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
+local lastWidth, lastHeight = dimensionsExtState:match("(%d+),(%d+)")
+if lastHeight then initWidth, initHeight = lastWidth, lastHeight else initWidth, initHeight = 200, 410 end
+
+gfx.init("MIDI Inspector", initWidth, initHeight, 0, lastX, lastY) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+
     
 gfx.setfont(1, fontFace, fontSize, 'b')
 strWidth = {}
@@ -1004,20 +1098,20 @@ tabShort = 20 + math.max(gfx.measurestr("Position:  "),
                          gfx.measurestr("Velocity:  "), 
                          gfx.measurestr("Start pos:  "))
 lineHeight = math.max(strHeight, gfx.h / 21)
-gfx.quit()
 
 paused = false
 timeFormat = defaultTimeFormat
 
-if type(initWidth) ~= "number" then initWidth = strWidth["Long time format"]+tabShort+15 end
-if type(initHeight) ~= "number" then initHeight = (strHeight+3)*24 end
-
-if xPos and yPos then
-    gfx.init("MIDI Inspector", initWidth, initHeight, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
-else
-    gfx.init("MIDI Inspector", initWidth, initHeight, 0)
+-- If this is the first time that the script is run, adapt GUI size to font size.
+-- Apparently, the only way to change the GUI size is to quit and re-initiate.
+if not lastHeight then
+    initWidth = strWidth["Long time format"]+tabShort+15
+    initHeight = (strHeight+3)*26
+    gfx.quit()
+    gfx.init("MIDI Inspector", initWidth, initHeight, 0, lastX, lastY) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+    gfx.setfont(1, fontFace, fontSize, 'b')
 end
-gfx.setfont(1, fontFace, fontSize, 'b')
+
 --gfx.update()
 
 reaper.runloop(loopMIDIInspector)

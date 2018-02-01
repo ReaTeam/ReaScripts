@@ -1,6 +1,6 @@
 -- @description amagalma_Track-Item Name Manipulation Replace Help
 -- @author amagalma
--- @version 1.02
+-- @version 1.03
 -- @about
 --   # companion to "amagalma_gianfini_Track-Item Name Manipulation - UNDO" v2.7+
 -- @noindex true
@@ -10,6 +10,8 @@ local change = false
 ------------------------------------------------------------------------------------------------------
 local info = {
 "--- SINGLE LETTER CLASSES ------------------------------------------------------------------------",
+"",
+"• comma (,) must be escaped with a ~ (~,) otherwise is ignored!",
 "",
 "• x  : (where x is not one of the magic characters ().%+-*?[]^$ represents the character x itself",
 "• .  : (a dot) represents all characters",
@@ -105,7 +107,7 @@ end
 
 local function Main()
   for i = 0, #info-1 do
-    if i + 1 == 1 or i + 1 == 22 or i + 1 == 31 then
+    if i + 1 == 1 or i + 1 == 24 or i + 1 == 33 then
       setcolor(246, 247, 249) -- titles color
     else
       setcolor(218, 219, 221) -- main text color
@@ -142,7 +144,7 @@ function initialize()
   gfx.setfont(1, "Courier New", fontsize)
   gfx.clear = rgb2num(32, 40, 69) -- background color
   local long = "• x  : (where x is not one of the magic characters ^$()%.[]*+-?) represents the character x itself"
-  width, height = gfx.measurestr(info[3])
+  width, height = gfx.measurestr(info[5])
   local title = "Track-Item Manipulation - Replace Help"
   gfx.init(title, width + fontsize, (fontsize*1.05*(#info)+20), 0, 0, 0)
   change = false

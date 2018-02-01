@@ -1,6 +1,6 @@
 -- @description Show ReaPack about dialog for the focused JSFX
 -- @author cfillion
--- @version 0.1beta
+-- @version 0.1
 -- @link https://cfillion.ca
 -- @donation https://www.paypal.me/cfillion
 
@@ -41,7 +41,7 @@ if not ok then return end
 local name, type = ({function()
   local index = 0
   for type, file in chunk:gmatch("BYPASS %d+ %d+ %d+\n<([^%s]+) ([^\n]+)") do
-    if index == fxidx then
+    if index == fxidx & 0xFFFF then
       if type == 'JS' then
         if file:sub(1, 1) == '"' then
           return file:match('^"([^"]+)"'), type
@@ -65,5 +65,5 @@ if not owner then
   return ShowMsg(string.format("Documentation cannot be found because ReaPack does not know about the JSFX at '%s'.", name))
 end
 
-reaper.ReaPack_AboutInstalledPackage(owner, 0)
+reaper.ReaPack_AboutInstalledPackage(owner)
 reaper.ReaPack_FreeEntry(owner)
