@@ -358,8 +358,8 @@ About:
 Author: beaunus
 Licence: GPL v3
 Provides:
-    beaunus_Clip_Splicer/example/*.json
-    beaunus_Clip_Splicer/schema/*.json
+    beaunus_clip_splicer/example/*.json
+    beaunus_clip_splicer/schema/*.json
 REAPER: 5.0
 Version: 2.0
 
