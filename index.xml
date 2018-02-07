@@ -8292,6 +8292,13 @@ website
 github
 }}}
 )\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/member.php?u=121830"}}{\fldrslt{\ul
+bfut
+}}}
+ ({\field{\*\fldinst{HYPERLINK "https://github.com/bfut"}}{\fldrslt{\ul
+github
+}}}
+)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
 Breeder
 }}}
@@ -8431,6 +8438,10 @@ mpl/ReaScripts
 }}}
 \sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaPack compatible repositories (not included in ReaPack)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/bfut/ReaScripts"}}{\fldrslt{\ul
+bfut/ReaScripts
+}}}
+\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/chtammik/chtammik_Reaper_Scripts"}}{\fldrslt{\ul
 chtammik/chtammik_Reaper_Scripts
 }}}
@@ -8526,10 +8537,6 @@ belangeo/cookdsp
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/berthu/ReaScripts"}}{\fldrslt{\ul
 berthu/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/bfut/ReaScripts"}}{\fldrslt{\ul
-bfut/ReaScripts
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ChrAfonso/REAPER_punches_and_streamers"}}{\fldrslt{\ul
