@@ -87,6 +87,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 
 - [actonDev/Reaper-Scripts](https://github.com/actonDev/Reaper-Scripts)
 - [ambisonictoolkit/atk-reaper](https://github.com/ambisonictoolkit/atk-reaper)
+- [ausbaxter/Reascripts](https://github.com/ambisonictoolkit/ausbaxter/Reascripts)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [berthu/ReaScripts](https://github.com/berthu/ReaScripts)
 - [ChrAfonso/REAPER_punches_and_streamers](https://github.com/ChrAfonso/REAPER_punches_and_streamers)
