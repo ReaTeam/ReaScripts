@@ -7,6 +7,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 
 - [Argitoth](https://forum.cockos.com/member.php?u=7973)
 - [beaunus](https://forum.cockos.com/member.php?u=14475) ([website](https://www.beaunus.com/), [github](https://github.com/beaunus/))
+- [bfut](https://forum.cockos.com/member.php?u=121830) ([github](https://github.com/bfut))
 - [Breeder](https://forum.cockos.com/member.php?u=27094)
 - [cfillion](https://forum.cockos.com/member.php?u=98780) ([website](https://cfillion.ca), [donate](https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaTeam%20Scripts))
 - [EvilDragon](https://forum.cockos.com/member.php?u=14505) ([donate](https://www.paypal.me/EvilDragon))
@@ -61,6 +62,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 
 ### Other ReaPack compatible repositories (not included in ReaPack)
 
+- [bfut/ReaScripts](https://github.com/bfut/ReaScripts)
 - [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
 - [Claudiohbsantos/Claudiohbsantos-Scripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
 - [Erriez/erriez-reaper-jsfx](https://github.com/Erriez/erriez-reaper-jsfx)
@@ -88,7 +90,6 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [ausbaxter/Reascripts](https://github.com/ambisonictoolkit/ausbaxter/Reascripts)
 - [belangeo/cookdsp](https://github.com/belangeo/cookdsp)
 - [berthu/ReaScripts](https://github.com/berthu/ReaScripts)
-- [bfut/ReaScripts](https://github.com/bfut/ReaScripts)
 - [ChrAfonso/REAPER_punches_and_streamers](https://github.com/ChrAfonso/REAPER_punches_and_streamers)
 - [davidhealey/reascript](https://github.com/davidhealey/reascript)
 - [GoranKovac/ReaScripts](https://github.com/GoranKovac/ReaScripts)
