@@ -1,6 +1,6 @@
 --[[
 Description: Toggle item under mouse cursor's image between notes and background
-Version: 1.0
+Version: 1.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -16,6 +16,9 @@ Extensions: SWS/S&M 2.8.3
 reaper.Undo_BeginBlock()
 
 local cur_item, pos = reaper.BR_ItemAtMouseCursor()
+
+if not cur_item then return end
+
 local retval, img, flags = reaper.BR_GetMediaItemImageResource(cur_item)
 
 if not retval then return 0 end
@@ -28,4 +31,4 @@ end
 
 reaper.BR_SetMediaItemImageResource(cur_item, img, flags)
 
-reaper.Undo_EndBlock("Toggle item's image between notes and background", 4)
+reaper.Undo_EndBlock("Toggle item under mouse cursor's image between notes and background", 4)
