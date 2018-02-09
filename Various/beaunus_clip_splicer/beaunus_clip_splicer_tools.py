@@ -7,11 +7,12 @@ TRACK_INDEX = None
 
 
 def make_generic_dict(args):
-    """Given a list of arguments, returns a dictionary with each argument as a
-    properties in the dictionary.
+    """Given a list of arguments, returns a dictionary with each 
+    argument as a properties in the dictionary.
 
     Args:
-        args: A list of arguments that will become properties in the dictionary.
+        args: A list of arguments that will become properties in the 
+        dictionary.
 
     Returns:
         A dictionary containing all the data in the arguments.
