@@ -7,11 +7,11 @@ TRACK_INDEX = None
 
 
 def make_generic_dict(args):
-    """Given a list of arguments, returns a dictionary with each 
+    """Given a list of arguments, returns a dictionary with each
     argument as a properties in the dictionary.
 
     Args:
-        args: A list of arguments that will become properties in the 
+        args: A list of arguments that will become properties in the
         dictionary.
 
     Returns:
@@ -25,10 +25,7 @@ def make_generic_dict(args):
 
 
 # pylint: disable=unused-argument
-def make_media_item(name=None,
-                    track=None,
-                    filename=None,
-                    length=None,
+def make_media_item(name=None, track=None, filename=None, length=None,
                     mute=False):
     """Returns a dictionary that represents a media item.
 
