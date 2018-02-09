@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
-Version: 0.96
+Version: 0.97
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
@@ -58,6 +58,8 @@ About:
     + If called from main MIDI editor, re-focus editor after exit
   * v0.96 (2018-01-25)
     + Automatically load customized CC names if all items are in single track
+  * v0.97 (2018-02-09)
+    + Minimum lane height in MIDI editor
 ]]
 
 
@@ -392,7 +394,7 @@ function applyTogglesToAllItemChunks()
             MIDIEditorUpperY, MIDIEditorBottomY = tonumber(MIDIEditorUpperY), tonumber(MIDIEditorBottomY)
             if MIDIEditorUpperY and MIDIEditorBottomY then -- These values don't exist until a MIDI editor has been opened
                 local MIDIEditorHeight = math.abs((MIDIEditorUpperY - MIDIEditorBottomY)*0.8) -- *0.8 to pproximate toolbar height?
-                MIDIEditorCCLaneHeight = math.floor(math.min(MIDIEditorHeight/4, (MIDIEditorHeight/3)/numLanes))
+                MIDIEditorCCLaneHeight = math.floor(math.max(25, math.min(MIDIEditorHeight/4, (MIDIEditorHeight/3)/numLanes)))
             else
                 MIDIEditorCCLaneHeight = 50
             end
