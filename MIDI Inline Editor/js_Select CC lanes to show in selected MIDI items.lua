@@ -350,6 +350,7 @@ function findUsedLanes()
             end
         end
         
+        -- Any notation events?
         if chunk:match("\n<[xX] [%-%d]+ [^\n]-\n/w9") then
             tUsedCCs[NOTATION] = true
         end
