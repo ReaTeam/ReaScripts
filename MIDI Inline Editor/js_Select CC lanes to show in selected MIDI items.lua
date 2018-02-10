@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
-Version: 0.97
+Version: 0.98
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
@@ -20,7 +20,6 @@ About:
   (Note: the latter feature does not yet work in items with external .mid source files.)
   
   The GUI can be resized, and the last-used dimensions will be recalled when the script is run again.
-
   # INSTRUCTIONS
   
   CC lanes can be selected by clicking with the mouse, or by using these shortcuts for commonly used CC types:
@@ -60,6 +59,8 @@ About:
     + Automatically load customized CC names if all items are in single track
   * v0.97 (2018-02-09)
     + Minimum lane height in MIDI editor
+  * v0.98 (2018-02-10)
+    + Distinguish notation and text events more accurately
 ]]
 
 
@@ -349,8 +350,7 @@ function findUsedLanes()
             end
         end
         
-        -- Any notation events?
-        if chunk:match("\n<[xX] [%-%d]+ 0 %d+ %-1") then
+        if chunk:match("\n<[xX] [%-%d]+ [^\n]-\n/w9") then
             tUsedCCs[NOTATION] = true
         end
         
@@ -360,7 +360,7 @@ function findUsedLanes()
         end
         
         -- Any sysex events?
-        if chunk:match("\n<[xX] [%-%d]+ 0 %w%w") then
+        if chunk:match("\n<[xX] [%-%d]+ [^\n]-\n[^/]") then
             tUsedCCs[SYSEX] = true
         end
     end
