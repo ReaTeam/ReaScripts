@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="436172be4a2dc25c60485a7dd2aec1cad75dced6" name="ReaTeam Scripts">
+<index version="1" commit="bbf06a6bf7974ab48ef870c62a23dfff25d56711" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1447,24 +1447,6 @@ would add a cent of error every 13 semitones or so.]]></changelog>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
-      </version>
-    </reapack>
-    <reapack name="cfillion_Move items to one FIPM lane per color on selected tracks.lua" type="script" desc="Move items to one FIPM lane per color on selected tracks">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 This script moves every items in the selected tracks to different FIPM lanes according to the item's color.\par}
-}
-]]></description>
-        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
-        <link rel="website" href="https://forum.cockos.com/showthread.php?p=1951990">Request Post</link>
-        <link rel="screenshot">https://i.imgur.com/uGN9Qy5.gif</link>
-        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
-      </metadata>
-      <version name="1.0" author="cfillion" time="2018-02-09T09:05:40Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65ae1e024630d3510ce6d46f2d6520c75bbcffb0/Items%20Editing/cfillion_Move%20items%20to%20one%20FIPM%20lane%20per%20color%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Move selected items to a FIPM lane.lua" type="script" desc="Move selected items to a FIPM lane">
