@@ -61,7 +61,7 @@ def make_region(name=None, track=None, path=None, components=None):
     result['type'] = 'REGION'
     if not components:
         result['components'] = list()
-    return [result, result['components']]
+    return result
 
 
 # pylint: disable=global-statement
@@ -74,20 +74,17 @@ def make_track(name, pre_track_pause_length=0):
     Returns:
         A list containing a single empty track.
     """
-    result = list()
-
     global TRACK_INDEX
     if TRACK_INDEX is None:
         TRACK_INDEX = 1
 
     track_name = 'Track ' + str(TRACK_INDEX).zfill(2) + ' - ' + name
-    [main_region, components] = make_region(track_name)
+    result = make_region(track_name)
     TRACK_INDEX += 1
-    result.append(main_region)
-    components.append(
+    result['components'].append(
         make_media_item(
             'PAUSE at beginning of track',
             'PAUSES',
             length=pre_track_pause_length))
 
-    return [result, components]
+    return result
