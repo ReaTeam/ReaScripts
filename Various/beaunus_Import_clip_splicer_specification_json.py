@@ -570,6 +570,7 @@ def render_region(region, path=None, track=None):
     # Determine the name for this region
     if "name" in region:
         name = region["name"]
+        name = name.encode(encoding='ascii', errors='backslashreplace')
     else:
         name = ""
     # Add the region to the project
