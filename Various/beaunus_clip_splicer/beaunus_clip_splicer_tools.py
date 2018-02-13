@@ -65,14 +65,15 @@ def make_region(name=None, track=None, path=None, components=None):
 
 
 # pylint: disable=global-statement
-def make_track(name, pre_track_pause_length=0):
-    """Returns a new track and a reference to the track's components.
+def make_track(name, pre_track_pause_length=None):
+    """Returns a new track. If a pre_track_pause_length is specified,
+    an empty track of that length is added to the track's component list.
 
     Args:
         name: The name of the track.
 
     Returns:
-        A list containing a single empty track.
+        A dictionary that represents a track.
     """
     global TRACK_INDEX
     if TRACK_INDEX is None:
@@ -81,10 +82,11 @@ def make_track(name, pre_track_pause_length=0):
     track_name = 'Track ' + str(TRACK_INDEX).zfill(2) + ' - ' + name
     result = make_region(track_name)
     TRACK_INDEX += 1
-    result['components'].append(
-        make_media_item(
-            'PAUSE at beginning of track',
-            'PAUSES',
-            length=pre_track_pause_length))
+    if pre_track_pause_length:
+        result['components'].append(
+            make_media_item(
+                'PAUSE at beginning of track',
+                'PAUSES',
+                length=pre_track_pause_length))
 
     return result
