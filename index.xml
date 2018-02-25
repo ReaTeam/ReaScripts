@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bbf06a6bf7974ab48ef870c62a23dfff25d56711" name="ReaTeam Scripts">
+<index version="1" commit="e95fd33251d6799cc02e48013952d366fe17c7fc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8307,6 +8307,31 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source file="spk77_Track IO mixer/spk77_reaper track_function.lua">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/spk77_Track%20IO%20mixer/spk77_reaper%20track_function.lua</source>
         <source file="spk77_Track IO mixer/spk77_slider class_function.lua">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/spk77_Track%20IO%20mixer/spk77_slider%20class_function.lua</source>
         <source file="spk77_Track IO mixer/spk77_volthumb_47x21.png">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/spk77_Track%20IO%20mixer/spk77_volthumb_47x21.png</source>
+      </version>
+    </reapack>
+    <reapack name="spk77_Track Tags.lua" type="script" desc="Track Tags (based on Tracktion 6 track tags)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Track Tags\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is based on Tracktion 6 track tags\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showpost.php?p=1956530&postcount=1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show and hide tagged track groups from TCP/MCP\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This is an alpha version\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=203446">Forum Thread</link>
+        <link rel="screenshot">https://forum.cockos.com/showpost.php?p=1956530&amp;postcount=1</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=5NUK834ZGR5NU&amp;lc=FI&amp;item_name=SPK77%20scripts%20for%20REAPER&amp;currency_code=EUR&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted</link>
+      </metadata>
+      <version name="0.1" author="spk77" time="2018-02-25T20:41:31Z">
+        <changelog><![CDATA[Create tags from folder parents: don't create new buttons if folder(s) already tagged]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e95fd33251d6799cc02e48013952d366fe17c7fc/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
   </category>
