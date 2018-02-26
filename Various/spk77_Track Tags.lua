@@ -1,8 +1,9 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2.2
+-- @version 0.2.3
 -- @author spk77
 -- @changelog
---   - global btns to local
+--   - Fix crash when selecting tracks
+--   - Set focus back to TCP when running "Xenakios/SWS: Scroll track view up (page)"
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -256,7 +257,9 @@ function update_visibility()
               --GUI.safe_remove_track_from_tag[#GUI.safe_remove_track_from_tag + 1] = {i, t} -- i = button index, t = track index
             end
           end
+          
           reaper.Main_OnCommand(reaper.NamedCommandLookup("_XENAKIOS_TVPAGEHOME"), 0)
+          reaper.SetCursorContext(0) -- set focus to TCP
         end
       end
       
@@ -672,7 +675,7 @@ function create_button()
   return btn
 end
 
- 
+
 function create_button_from_selection()
   local btns = GUI.elements.buttons
   local sel_tr_count = reaper.CountSelectedTracks(0)
@@ -697,6 +700,7 @@ function create_button_from_selection()
       end
     end
     btn.tracks[#btn.tracks+1] = tr
+    btn.type = "selection"
     btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
   end
   sort_buttons_by_tag_name()
@@ -704,7 +708,6 @@ function create_button_from_selection()
 end
 
 
--- Returns tagged folder parent tracks
 function create_buttons_from_folder_parents(just_update)
   local btns = GUI.elements.buttons
   local btn_index
@@ -761,14 +764,19 @@ function create_buttons_from_folder_parents(just_update)
         end
       end
     
-    -- Find last child track
+      -- Find last child track
+      
       local j = 1
       while true do
+        
         local child_tr = reaper.GetTrack(0, i-1+j)
         d = d + reaper.GetMediaTrackInfo_Value(child_tr, "I_FOLDERDEPTH")
         local retval, tr_name = reaper.GetSetMediaTrackInfo_String(child_tr, "P_NAME", "", false)
         --local btn = btns[btn_index]
-        btn.tracks[#btn.tracks+1] = child_tr
+-- TODO: 
+        if btn then 
+          btn.tracks[#btn.tracks+1] = child_tr
+        end
         if d < current_depth or (i-1+j == tr_count - 1) then
           break
         end
@@ -784,7 +792,6 @@ function create_buttons_from_folder_parents(just_update)
   end
   sort_buttons_by_tag_name()
   update_button_positions()
-  return folder_parents
 end
 
 
@@ -793,7 +800,7 @@ function on_track_list_change(last_action_undo_str)
   if #GUI.elements.buttons > 0 then
     create_buttons_from_folder_parents(true)
   end
-  update_visibility()
+  --update_visibility()
   --msg(last_action_undo_str)
 end
 
@@ -872,6 +879,7 @@ function mainloop()
       if last_action:lower():find("track") and not last_action:lower():find("selection") then
         on_track_list_change(last_action)
       end
+      update_visibility()
     end
     last_proj_change_count = proj_change_count
   end
