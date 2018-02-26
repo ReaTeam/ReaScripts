@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e95fd33251d6799cc02e48013952d366fe17c7fc" name="ReaTeam Scripts">
+<index version="1" commit="b84c901f00115e6cb6399c568f81fd997b138208" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8332,6 +8332,13 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="0.1" author="spk77" time="2018-02-25T20:41:31Z">
         <changelog><![CDATA[Create tags from folder parents: don't create new buttons if folder(s) already tagged]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e95fd33251d6799cc02e48013952d366fe17c7fc/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.2" author="spk77" time="2018-02-26T15:18:35Z">
+        <changelog><![CDATA[- Fix: Update track list when all tags removed
+- Fix: Don't auto create buttons
+- (Fix) Adding new tracks to already tagged folder automatically tags the new tracks
+- Create tags from folder parents: don't create new buttons if folder(s) already tagged]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b84c901f00115e6cb6399c568f81fd997b138208/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
   </category>
