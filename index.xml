@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ea34e94a4d5108c18b40d020e1f8720eb63e99a2" name="ReaTeam Scripts">
+<index version="1" commit="cfc0ae08013d09eb2a60bfbab56d043f4d164970" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8351,6 +8351,11 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       <version name="0.2.2" author="spk77" time="2018-02-26T16:07:41Z">
         <changelog><![CDATA[- global btns to local]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea34e94a4d5108c18b40d020e1f8720eb63e99a2/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.2.3" author="spk77" time="2018-02-26T19:02:26Z">
+        <changelog><![CDATA[- Fix crash when selecting tracks
+- Set focus back to TCP when running "Xenakios/SWS: Scroll track view up (page)"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfc0ae08013d09eb2a60bfbab56d043f4d164970/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
   </category>
