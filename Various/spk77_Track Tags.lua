@@ -1,12 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2.1
+-- @version 0.2.2
 -- @author spk77
 -- @changelog
---   - Fix script crash when creating new tracks
---   - Fix: Update track list when all tags removed
---   - Fix: Don't auto create buttons
---   - (Fix) Adding new tracks to already tagged folder automatically tags the new tracks
---   - Create tags from folder parents: don't create new buttons if folder(s) already tagged
+--   - global btns to local
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -710,7 +706,7 @@ end
 
 -- Returns tagged folder parent tracks
 function create_buttons_from_folder_parents(just_update)
-   btns = GUI.elements.buttons
+  local btns = GUI.elements.buttons
   local btn_index
   local tr_count = reaper.CountTracks(0)
   local current_depth = 0
