@@ -1,8 +1,11 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.1
+-- @version 0.2
 -- @author spk77
 -- @changelog
---   Create tags from folder parents: don't create new buttons if folder(s) already tagged
+--   - Fix: Update track list when all tags removed
+--   - Fix: Don't auto create buttons
+--   - (Fix) Adding new tracks to already tagged folder automatically tags the new tracks
+--   - Create tags from folder parents: don't create new buttons if folder(s) already tagged
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -326,7 +329,7 @@ function show_main_menu(x, y)
   if menu_ret == 1 then
     create_button_from_selection()
   elseif menu_ret == 2 then
-    create_buttons_from_folder_parents()
+    create_buttons_from_folder_parents(false)
   elseif menu_ret == 3 then
     m.show_only_tagged_tracks = not m.show_only_tagged_tracks
     if not m.show_only_tagged_tracks then
@@ -704,8 +707,10 @@ function create_button_from_selection()
 end
 
 
-function create_buttons_from_folder_parents()
+-- Returns tagged folder parent tracks
+function create_buttons_from_folder_parents(just_update)
   local btns = GUI.elements.buttons
+  local btn_index
   local tr_count = reaper.CountTracks(0)
   local current_depth = 0
   local depth_change = 0
@@ -716,7 +721,7 @@ function create_buttons_from_folder_parents()
     if depth_change == 1 then -- folder parent found
       local is_parent_tagged = false
       for i=1, #btns do
-        curr_tag_first_tr = btns[i].tracks[1] -- folder parent track is always the first track
+        local curr_tag_first_tr = btns[i].tracks[1] -- folder parent track is always the first track
         if curr_tag_first_tr == tr then
           if btns[i].type == "folder parent" then -- folder parent already tagged?
             is_parent_tagged = true
@@ -725,29 +730,37 @@ function create_buttons_from_folder_parents()
           end
         end
       end
-
-    -- Add buttons
+      
       local d = current_depth
-      local btn = {}
-      -- No tag-button for this folder parent -> create new tag-button
-      if not is_parent_tagged then
-        btn = create_button()
-        btn.tracks[#btn.tracks+1] = tr
-        btn.type = "folder parent"
-      -- Tag-button exists
-      else
-        btn = btns[btn_index]
+      local btn = btns[btn_index]
+      if just_update then
+        --btn = btns[btn_index]
         for i=2, #btn.tracks do -- remove all children
           btn.tracks[i] = nil
         end
+      else
+      -- Add buttons
+        -- No tag-button for this folder parent -> create new tag-button
+        if not is_parent_tagged then
+          btn = create_button()
+          btn.tracks[#btn.tracks+1] = tr
+          btn.type = "folder parent"
+        -- Tag-button exists
+--[[
+        else
+          --btn = btns[btn_index]
+          for i=2, #btn.tracks do -- remove all children
+            btn.tracks[i] = nil
+          end
+--]]
+        end
+        local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
+        if retval then
+          btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
+          btn.lbl = tr_name
+          btn:update_w_by_lbl_w()
+        end
       end
-      local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
-      if retval then
-        btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
-        btn.lbl = tr_name
-        btn:update_w_by_lbl_w()
-      end
-    --end
     
     -- Find last child track
       local j = 1
@@ -772,11 +785,13 @@ function create_buttons_from_folder_parents()
   end
   sort_buttons_by_tag_name()
   update_button_positions()
+  return folder_parents
 end
 
 
 function on_track_list_change(last_action_undo_str)
-  create_buttons_from_folder_parents() -- tags only new tracks
+  -- create_buttons_from_folder_parents(just_update) -- if just_update true -> don't add buttons
+  create_buttons_from_folder_parents(true)
   update_visibility()
   --msg(last_action_undo_str)
 end
@@ -844,6 +859,7 @@ function mainloop()
   elseif GUI.safe_remove_all_tags then
     GUI.elements.buttons = nil
     GUI.elements.buttons = {}
+    update_visibility()
     GUI.safe_remove_all_tags = false
   end
 
