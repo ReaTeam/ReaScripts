@@ -1,7 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2
+-- @version 0.2.1
 -- @author spk77
 -- @changelog
+--   - Fix script crash when creating new tracks
 --   - Fix: Update track list when all tags removed
 --   - Fix: Don't auto create buttons
 --   - (Fix) Adding new tracks to already tagged folder automatically tags the new tracks
@@ -709,7 +710,7 @@ end
 
 -- Returns tagged folder parent tracks
 function create_buttons_from_folder_parents(just_update)
-  local btns = GUI.elements.buttons
+   btns = GUI.elements.buttons
   local btn_index
   local tr_count = reaper.CountTracks(0)
   local current_depth = 0
@@ -735,8 +736,10 @@ function create_buttons_from_folder_parents(just_update)
       local btn = btns[btn_index]
       if just_update then
         --btn = btns[btn_index]
-        for i=2, #btn.tracks do -- remove all children
-          btn.tracks[i] = nil
+        if btn then 
+          for i=2, #btn.tracks do -- remove all children
+            btn.tracks[i] = nil
+          end
         end
       else
       -- Add buttons
@@ -791,7 +794,9 @@ end
 
 function on_track_list_change(last_action_undo_str)
   -- create_buttons_from_folder_parents(just_update) -- if just_update true -> don't add buttons
-  create_buttons_from_folder_parents(true)
+  if #GUI.elements.buttons > 0 then
+    create_buttons_from_folder_parents(true)
+  end
   update_visibility()
   --msg(last_action_undo_str)
 end
