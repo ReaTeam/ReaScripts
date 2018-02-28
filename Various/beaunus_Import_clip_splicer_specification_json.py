@@ -358,10 +358,11 @@ About:
 Author: beaunus
 Licence: GPL v3
 Provides:
-    beaunus_Clip_Splicer/example/*.json
-    beaunus_Clip_Splicer/schema/*.json
+    beaunus_clip_splicer/example/*.json
+    beaunus_clip_splicer/schema/*.json
+    beaunus_clip_splicer/beaunus_clip_splicer_tools.py
 REAPER: 5.0
-Version: 2.0
+Version: 2.1
 
 Changelog:
 v1.0 (2017-02-22)
@@ -371,6 +372,10 @@ v2.0 (2017-09-03)
     + Add nested regions
     + Add region names
     + Add mute
+v2.1 (2018-02-13)
+    + Rename folders to Python standard
+    + Add beaunus_clip_splicer_tools.py
+    + Small documentation revisions.
 """
 
 import datetime
@@ -570,6 +575,7 @@ def render_region(region, path=None, track=None):
     # Determine the name for this region
     if "name" in region:
         name = region["name"]
+        name = name.encode(encoding='ascii', errors='backslashreplace')
     else:
         name = ""
     # Add the region to the project
