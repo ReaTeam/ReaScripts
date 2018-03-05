@@ -73,6 +73,7 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 - [jtackaberry/reascripts](https://github.com/jtackaberry/reascripts/tree/master/MIDI)
 - [luckyxxl/reaper-scripts](https://github.com/luckyxxl/reaper-scripts/)
 - [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
+- [nikolalkc/nikolalkc_reaper_scripts](https://github.com/nikolalkc/nikolalkc_reaper_scripts)
 - [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
 - [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
 - [RCJacH/ReaScripts](https://github.com/RCJacH/ReaScripts/)
