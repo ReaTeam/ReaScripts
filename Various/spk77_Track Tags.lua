@@ -1,10 +1,10 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2.4
+-- @version 0.2.5
 -- @author spk77
 -- @changelog
---   - Fixed child track tagging
---   - "Folder type" tags: deleting a tagged folder track removes the corresponding tag-button
---   - Many other little fixes
+--   - Removed "Show only tagged tracks" from main menu
+--   - Left click on empty area shows all tracks (=bypasses filtering)
+--   - Other little fixes
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -149,6 +149,7 @@ local btn_font_size = 14
 local btn_start_x = 8
 local btn_start_y = 8
 local btn_w = 48              -- width for new buttons
+local btn_min_w = 100000
 local btn_h = 14              -- height for new buttons
 local btn_pad_x = 3           -- x space between buttons
 local btn_pad_y = 5           -- y space between buttons
@@ -158,6 +159,7 @@ local m_cap = 0
 
 local last_hovered_element = {}
 
+local mouseLClickOnElement = false
 local mouseRClickOnElement = false
 local mouse_on_element = false
 local mouse_on_element_index = -1
@@ -185,12 +187,14 @@ local btn_off_bg_col_a = 1
 
 local gfx = gfx
 local reaper = reaper
-----------------------------------------------------------------------
+
+-------------------------------------------------
 
 function msg(m)
   return reaper.ShowConsoleMsg(tostring(m) .. "\n")
 end
 
+-------------------------------------------------
 
 function set_all_tracks_visible(visibility) -- 1 -> show all, 0 -> hide all
   visibility = visibility or 1
@@ -206,65 +210,61 @@ function set_all_tracks_visible(visibility) -- 1 -> show all, 0 -> hide all
   reaper.TrackList_AdjustWindows(false)
 end
 
+-------------------------------------------------
 
 function sort_buttons_by_tag_name()
   local btns = GUI.elements.buttons
   table.sort(btns, function(a,b) if string.lower(a.lbl) < string.lower(b.lbl) then return true end end)
 end
 
-
+-------------------------------------------------
 
 function update_visibility()
+  local btns = GUI.elements.buttons
+  if #btns == 0 then return end
+  reaper.PreventUIRefresh(1)
   if main_menu.show_only_tagged_tracks then
-    local btns = GUI.elements.buttons
-    local all_btns_off = true--visible_tracks = {}
+    local all_btns_off = true
     local tr_count = reaper.CountTracks(0)
-    reaper.PreventUIRefresh(1)
-    if #btns > 0 then
-      set_all_tracks_visible(0) -- hide all 
-      for i=1, tr_count do
-        local tr = reaper.GetTrack(0, i-1)
-        --reaper.SetTrackSelected(tr, false)
-        reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 0)
-        reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 0)
-      end
-      for i=1, #btns do
-        local b = btns[i]
-        b.show_mixer = true
-        if b.toggle_state then
-          reaper.CSurf_OnScroll(0, -100000)
-          if all_btns_off then
-            all_btns_off = false
+    --if #btns > 0 then
+    set_all_tracks_visible(0) -- hide all 
+    for i=1, tr_count do
+      local tr = reaper.GetTrack(0, i-1)
+      reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 0)
+      reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 0)
+    end
+    for i=1, #btns do
+      local b = btns[i]
+      b.show_mixer = true
+      if b.toggle_state then
+        reaper.CSurf_OnScroll(0, -100000)
+        if all_btns_off then
+          all_btns_off = false
+        end
+        for t=1, #b.tracks do
+          local tr = b.tracks[t]
+          if reaper.ValidatePtr(tr, "MediaTrack*") then
+            reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 1)
+            reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 1)
+          else
+            --GUI.safe_remove_track_from_tag[#GUI.safe_remove_track_from_tag + 1] = {i, t} -- i = button index, t = track index
           end
-          for t=1, #b.tracks do
-            local tr = b.tracks[t]
-            if reaper.ValidatePtr(tr, "MediaTrack*") then
-              --visible_tracks[#visible_tracks+1] = tr
-              reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 1)
-              reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 1)
-            else
-              --GUI.safe_remove_track_from_tag[#GUI.safe_remove_track_from_tag + 1] = {i, t} -- i = button index, t = track index
-            end
-          end
-          
-          --reaper.Main_OnCommand(reaper.NamedCommandLookup("_XENAKIOS_TVPAGEHOME"), 0)
-          --reaper.SetCursorContext(0) -- set focus to TCP
         end
       end
     end
-    
+    --end
     if all_btns_off then
       set_all_tracks_visible(1)
     end
-    
-    reaper.PreventUIRefresh(-1)
-    reaper.TrackList_AdjustWindows(false)
-    reaper.UpdateArrange()
-    --reaper.TrackList_UpdateAllExternalSurfaces()
-    --reaper.UpdateTimeline()
+  else
+    set_all_tracks_visible(1)
   end
+  reaper.PreventUIRefresh(-1)
+  reaper.TrackList_AdjustWindows(false)
+  reaper.UpdateArrange()
 end
 
+-------------------------------------------------
 
 function show_main_menu(x, y)
   gfx.x, gfx.y = x or gfx.mouse_x, y or gfx.mouse_y
@@ -277,13 +277,15 @@ function show_main_menu(x, y)
     m.str = m.str .. "#Track selection|"
   end
   m.str = m.str .."<Folder parent tracks|"
+--[[
   if m.show_only_tagged_tracks then
-    m.str = m.str .. "!Show only tagged tracks||"
+    m.str = m.str .. "!Bypass||"
   else
-    m.str = m.str .. "Show only tagged tracks||"
+    m.str = m.str .. "Bypass||"
   end
+--]]
   m.str = m.str .. ">Remove|"
-  m.str = m.str .. "<All tags|"
+  m.str = m.str .. "<All tags||"
   m.str = m.str .. ">Layout|"
   if m.button_layout == 1 then
     m.str = m.str .. "!Fit to window|"
@@ -307,31 +309,35 @@ function show_main_menu(x, y)
     create_button_from_selection()
   elseif menu_ret == 2 then
     create_buttons_from_folder_parents(false)
+--[[
   elseif menu_ret == 3 then
     m.show_only_tagged_tracks = not m.show_only_tagged_tracks
     if not m.show_only_tagged_tracks then
-      show_all()
+      set_all_tracks_visible(1)
       reaper.TrackList_AdjustWindows(false)
     else
       update_visibility()
     end
-  elseif menu_ret == 4 then
+--]]
+  elseif menu_ret == 3 then
     GUI.safe_remove_all_tags = true
-  elseif menu_ret == 5 then
+  elseif menu_ret == 4 then
     m.button_layout = 1
     update_button_positions()
-  elseif menu_ret == 6 then
+  elseif menu_ret == 5 then
     m.button_layout = 2
     update_button_positions()
-  elseif menu_ret == 7 then
+  elseif menu_ret == 6 then
     m.button_layout = 3
     update_button_positions()
     
-  elseif menu_ret == 8 then
+  elseif menu_ret == 7 then
     exit()
     --return
   end
 end
+
+-------------------------------------------------
 
 --[[
   Wrapper for gfx.roundrect() with optional fill,
@@ -381,10 +387,13 @@ function Element:new(x,y,w,h, r,g,b,a, lbl,fnt,fnt_sz, lbl_r, lbl_g, lbl_b, lbl_
     return elm
 end
 
+-------------------------------------------------
+
 function extended(Child, Parent)
   setmetatable(Child,{__index = Parent})
 end
 
+-------------------------------------------------
 
 function Element:pointIN(p_x, p_y)
   return p_x >= self.x and p_x <= self.x + self.w and p_y >= self.y and p_y <= self.y + self.h
@@ -429,6 +438,7 @@ function Button:set_lbl_colors(r,g,b,a)
   self.lbl_a = a or 1
 end
 
+-------------------------------------------------
 
 function Button:set_colors(r,g,b,a)
   self.r = r or 1
@@ -437,12 +447,14 @@ function Button:set_colors(r,g,b,a)
   self.a = a or 1
 end
 
+-------------------------------------------------
 
 function Button:update_w_by_lbl_w(min_w, max_w)
   self.lbl_w, self.lbl_h = gfx.measurestr(self.lbl)
   self.w = math.max(self.lbl_w + 8, main_menu.min_btn_w)
 end
 
+-------------------------------------------------
 
 function Button:draw_lbl()
   local x, y, w, h = self.x, self.y, self.w, self.h
@@ -456,10 +468,12 @@ function Button:draw_lbl()
   gfx.drawstr(self.lbl)
 end
 
+-------------------------------------------------
 
 function Button:draw(index) -- index = current button table in GUI.elements.buttons table
   local x,y,w,h  = self.x, self.y, self.w, self.h
-  
+
+-- TODO: move color setting out of this function
   if self.toggle_state then
     self:set_colors(btn_off_bg_col_r, btn_off_bg_col_g, btn_off_bg_col_b, btn_off_bg_col_a)
     self:set_lbl_colors(0.1, 0.1, 0.1, 1)
@@ -476,6 +490,7 @@ function Button:draw(index) -- index = current button table in GUI.elements.butt
     end
   end
   if self:mouseLClick() and self.onLClick then
+    mouseLClickOnElement = true
     self.toggle_state = not self.toggle_state
     self.onLClick()
 
@@ -490,6 +505,7 @@ function Button:draw(index) -- index = current button table in GUI.elements.butt
   self:draw_lbl()
 end
 
+-------------------------------------------------
 
 function update_button_positions(w, h)
   local btns = GUI.elements.buttons
@@ -523,14 +539,19 @@ function update_button_positions(w, h)
     if mlo < 3 then
       x = x + b.w + btn_pad_x
     end
+    if b.w < btn_min_w then
+      btn_min_w = b.w
+    end
   end
 end
 
+-------------------------------------------------
 
 function on_gui_resize(w, h)
   update_button_positions(w, h)
 end
-     
+
+-------------------------------------------------  
                           
 function draw_and_update_buttons(tbl)
   local l = #tbl
@@ -546,9 +567,10 @@ function draw_and_update_buttons(tbl)
     gfx.set(1,1,1,1)
     gfx.drawstr("No tags assigned\nRight click to open the menu")
   end
-  gfx.update()
+  --gfx.update()
 end
 
+-------------------------------------------------
 
 function create_button()
   local btns = GUI.elements.buttons
@@ -579,7 +601,6 @@ function create_button()
   btn.lbl_w, btn.lbl_h = 0, 0
   
   btn.onLClick =  function()
-                    
                     for i=1, #btn.tracks do
                       local tr = btn.tracks[i]
                       if btn.toggle_state then
@@ -587,7 +608,6 @@ function create_button()
                       else
                       end
                     end
-                    
                     update_visibility()
                   end
                   
@@ -613,7 +633,7 @@ function create_button()
                     --]]
                     local ret = gfx.showmenu(m.str)
                     if ret == 1 then
-                      local retval, retvals_csv = reaper.GetUserInputs("Rename", 1, "Set new name:", btn.lbl)
+                      local retval, retvals_csv = reaper.GetUserInputs("Rename", 1, "Set new tag name:", btn.lbl)
                       if retval then
                         btn.lbl = retvals_csv
                         btn:update_w_by_lbl_w()
@@ -633,48 +653,43 @@ function create_button()
   btns[#btns + 1] = btn
   btn:update_w_by_lbl_w()
   sort_buttons_by_tag_name()
-  update_button_positions()             
+  update_button_positions()      
   btn:update_w_by_lbl_w()
   btn.tooltip_text = btn.lbl
+    
   return btn
 end
 
+-------------------------------------------------
 
 function create_button_from_selection()
   local sel_tr_count = reaper.CountSelectedTracks(0)
   if sel_tr_count == 0 then
     return
   end
+  local retval, retvals_csv = reaper.GetUserInputs("New tag from selection", 1, "Tag name:", "Tag")
+  if not retval then
+    return
+  end
   local btns = GUI.elements.buttons
   local btn = create_button()
+  btn.lbl = retvals_csv
+  btn.type = "selection"
   for i=1, sel_tr_count do
     local tr = reaper.GetSelectedTrack(0, i-1)
---[[
-    name = ""
-    for str in string.gmatch(GUID, "([^".. "-".."]+)") do
-       name = name .. str
-    end
---]]
     local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
-    btn.lbl = "Tag"
-    if i==1 then
-      if retval then
-        btn.lbl = tr_name
-        btn:update_w_by_lbl_w()
-      end
-    end
     btn.tracks[#btn.tracks+1] = tr
-    btn.type = "selection"
     btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
   end
+  btn:update_w_by_lbl_w()
   sort_buttons_by_tag_name()
   update_button_positions()
 end
 
 -------------------------------------------------
+
 function update_child_tracks(parent_tr, tag_button, tag_button_index)
   if not reaper.ValidatePtr(parent_tr, "MediaTrack*") then
-    --msg(tag_button_index)
     GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = tag_button_index
     return
   end
@@ -687,7 +702,6 @@ function update_child_tracks(parent_tr, tag_button, tag_button_index)
   -- "Tag" child tracks
   for j=parent_tr_index+1, tr_count-1 do
     local child_tr = reaper.GetTrack(0, j)
-    --local retval, tr_name = reaper.GetSetMediaTrackInfo_String(child_tr, "P_NAME", "", false)
     depth = depth + reaper.GetMediaTrackInfo_Value(child_tr, "I_FOLDERDEPTH")
     tag_button.tracks[#tag_button.tracks + 1] = child_tr
     if depth <= 0 then
@@ -696,6 +710,7 @@ function update_child_tracks(parent_tr, tag_button, tag_button_index)
   end
 end
 
+-------------------------------------------------
 
 function update_folder_type_tag_buttons()
   local btns = GUI.elements.buttons
@@ -709,8 +724,9 @@ function update_folder_type_tag_buttons()
   end
 end
 
+-------------------------------------------------
 
-function create_buttons_from_folder_parents(just_update)
+function create_buttons_from_folder_parents()
   local btns = GUI.elements.buttons
   local tr_count = reaper.CountTracks(0)
   for i=1, tr_count do
@@ -761,6 +777,7 @@ function on_track_list_change(last_action_undo_str)
   --msg(last_action_undo_str)
 end
 
+-------------------------------------------------
 
 function init()
   local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -781,21 +798,36 @@ function init()
   restore()
 end
 
+-------------------------------------------------
 
 function mainloop()
   local btns = GUI.elements.buttons
   local m_x, m_y = gfx.mouse_x, gfx.mouse_y
-  m_cap = gfx.mouse_cap
+  local m_cap = gfx.mouse_cap
   if m_cap&1==1 and last_mouse_cap&1==0 or m_cap&2==2 and last_mouse_cap&2==0 then
     mouse_ox, mouse_oy = m_x, m_y
   end
   
+  
   draw_and_update_buttons(btns)
+  if not main_menu.show_only_tagged_tracks then -- if bypassed
+    gfx.set(0.1,0.1,0.1,0.4)
+    gfx.rect(0,0,gfx.w, gfx.h)
+    gfx.update()
+  end
+  
   char = gfx.getchar()
   
   -- Show main menu on mouse right click
   if m_cap&2==0 and last_mouse_cap & 2 == 2 and not mouseRClickOnElement then
     show_main_menu(m_x, m_y)
+  end
+
+  -- Toggle "Show all tracks" when left clicking on empty area
+  if m_cap&1==0 and last_mouse_cap & 1 == 1 and #btns > 0 and not mouseLClickOnElement and
+  (m_x > btn_start_x + btn_min_w or m_y > btns[#btns].y + btns[#btns].h) then
+    main_menu.show_only_tagged_tracks = not main_menu.show_only_tagged_tracks
+    update_visibility()
   end
 
   last_mouse_cap = m_cap
@@ -808,8 +840,15 @@ function mainloop()
     last_gui_w, last_gui_h = gui_w, gui_h
   end
 
-  if m_cap == 0 then mouseRClickOnElement = false end
-  if not mouse_on_element then last_hovered_element = {} end
+  if m_cap == 0 then
+    mouseRClickOnElement = false
+    mouseLClickOnElement = false
+  end
+  
+  if not mouse_on_element then 
+    last_hovered_element = {} 
+  end
+  
   mouse_on_element = false
   
   -- Remove button outside the drawing loop
@@ -842,10 +881,10 @@ function mainloop()
   end
 
   if char~=-1 then reaper.defer(mainloop) end
-  --gfx.update()
+  gfx.update()
 end
---------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
 
 function exit()
   save_btns()
@@ -855,6 +894,7 @@ function exit()
   set_all_tracks_visible(1)
 end
 
+-------------------------------------------------
 
 function save_btns()
   local btns = GUI.elements.buttons
@@ -878,6 +918,8 @@ function save_btns()
   end
   local size = reaper.SetProjExtState(0, "spk77 Track Tags", "buttons", pickle(btn_data))
 end
+
+-------------------------------------------------
 
 function restore()
   local btns = GUI.elements.buttons
@@ -905,6 +947,8 @@ function restore()
   update_button_positions()
   update_visibility()
 end
+
+-------------------------------------------------
 
 init()
 reaper.atexit(exit)
