@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ad28ee98fc970ab762ae23c7aa5feb4e79802922" name="ReaTeam Scripts">
+<index version="1" commit="c0d1eadcdbc3bac3f244e6c2479fae337060bc56" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7429,7 +7429,7 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+). Note that the timecode displayed in the web interface always starts at 00:00. This means that even if a song starts at 7:45 in the project and ends at 9:12, it's displayed as 00:00 to 01:26 on the web interface for convenience.\par}
 }
 ]]></description>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?t=181159">Forum Thread</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=181159">Forum Thread</link>
         <link rel="screenshot" href="https://i.imgur.com/4xPMV9J.gif">Docked Mode</link>
         <link rel="screenshot" href="https://i.imgur.com/KOP2yK3.png">Windowed Mode</link>
         <link rel="screenshot" href="https://i.imgur.com/DPcRCGh.png">Web Interface</link>
@@ -7492,6 +7492,14 @@ Web Interface:
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/song_switcher.html</source>
+      </version>
+      <version name="1.4.1" author="cfillion" time="2018-03-11T13:37:59Z">
+        <changelog><![CDATA[Increase font size in the song list [p=1965158]]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher.lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
+        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
