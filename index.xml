@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c0d1eadcdbc3bac3f244e6c2479fae337060bc56" name="ReaTeam Scripts">
+<index version="1" commit="908b8574775be377c32e804c1da10bb1c243ab69" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8376,6 +8376,10 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 - Left click on empty area shows all tracks (=bypasses filtering)
 - Other little fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ad28ee98fc970ab762ae23c7aa5feb4e79802922/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.2.6" author="spk77" time="2018-03-11T20:56:17Z">
+        <changelog><![CDATA[- Load project specific script state when project changes (or when switching to another project tab)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/908b8574775be377c32e804c1da10bb1c243ab69/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
   </category>
