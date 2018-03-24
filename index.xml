@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="908b8574775be377c32e804c1da10bb1c243ab69" name="ReaTeam Scripts">
+<index version="1" commit="284d9646f46b0fbf45ba4467baf676e5fa26ac83" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1039,6 +1039,18 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </version>
       <version name="0.1" author="cfillion" time="2017-12-15T16:59:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0457844816122a563def3997222cc19e1cc3af6b/FX/cfillion_Show%20ReaPack%20about%20dialog%20for%20the%20focused%20JSFX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Toggle input FX bypass for selected tracks.lua" type="script" desc="Toggle input FX bypass for selected tracks (8 actions)">
+      <version name="1.0" author="cfillion" time="2018-03-24T20:16:30Z">
+        <source main="main" file="cfillion_Toggle input FX 1 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 2 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 3 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 4 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 5 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 6 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 7 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
+        <source main="main" file="cfillion_Toggle input FX 8 bypass for selected tracks.lua">https://github.com/ReaTeam/ReaScripts/raw/284d9646f46b0fbf45ba4467baf676e5fa26ac83/FX/cfillion_Toggle%20input%20FX%20bypass%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle monitoring FX bypass.lua" type="script" desc="Toggle monitoring FX bypass (8 actions)">
