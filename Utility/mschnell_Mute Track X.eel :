@@ -22,5 +22,3 @@
   get_action_context(#filename,sectionID,cmdID,mode,resolution,val);
   tr = GetTrack(0,val);
   SetMediaTrackInfo_Value(tr, "B_MUTE",  !match("*unmute*", #filename));
-
-  
