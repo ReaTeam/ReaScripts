@@ -22,7 +22,7 @@ About:
   * Useful for accelerating a series of evenly spaced notes.
   * Useful for changing the curve shape of LFOs.
 
-  Since v3.30, the script can apply two different acceleration curves.
+  Since v3.30, the script can apply two different acceleration curves: smooth or steep.
   * The mousewheel can be used to switch between the curves.
   * Both of the curves are invertible, so events that were warped can later be re-selected and re-warped back to their original positions.
 
