@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.30
+Version: 3.31
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -108,6 +108,8 @@ About:
     + Tweak mouse cursor icon.
   * v3.30 (2018-03-29)
     + Stretch all selected events in all lanes, if mouse starting position is over lane divider.
+  * v3.31 (2018-03-29)
+    + Display notification about new feature.
 ]]
 
 ---------------------------------------
@@ -210,6 +212,7 @@ local laneIsPIANOROLL = false
 local laneIsNOTES     = false -- Includes laneIsPIANOROLL, laneIsVELOCITY and laneIsOFFVEL
 local laneIsSYSEX     = false
 local laneIsTEXT      = false
+local laneIsALL       = false
 local laneMin, laneMax -- The minimum and maximum values in the target lane
 local mouseOrigCClane, mouseOrigCCvalue, mouseOrigPPQpos, mouseOrigPitch, mouseOrigCClaneID
 local gridOrigPPQpos -- If snap-to-grid is enabled, these will give the closest grid PPQ to the left. (Swing is not implemented.)
@@ -393,58 +396,6 @@ local function trackMouseAndDrawMIDI()
     local lastPPQpos = 0
         
     if stretchRIGHT then
-        
-        --[[
-        local stretchFactor = (gridNewPPQpos-origPPQleftmost)/origPPQrange
-        
-        -- Safer to keep offsets positive, so check whether events are being reversed
-        -- In addtion, avoid drawing multiple events on the same PPQ position
-        local startIndex, endIndex, step, newPPQpos, newNoteOffPPQpos, newNoteLength
-        if stretchFactor > 0 then startIndex, endIndex, step = 1, #tablePPQs, 1 
-        elseif stretchFactor < 0 then startIndex, endIndex, step = #tablePPQs, 1, -1
-        else startIndex, endIndex, step = 1, 1, 1
-        end
-            
-        for i = startIndex, endIndex, step do
-        
-            newPPQpos = m_floor(origPPQleftmost + stretchFactor*(tablePPQs[i] - origPPQleftmost) + 0.5)
-            
-            offset = newPPQpos - lastPPQpos
-            
-            lastPPQpos = newPPQpos
-            
-            if laneIsCC14BIT then
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlags[i], tableMsgLSB[i])
-            elseif laneIsNOTES then
-                newNoteOffPPQpos = m_floor(origPPQleftmost + stretchFactor*((tablePPQs[i]+tableNoteLengths[i]) - origPPQleftmost) + 0.5)
-                -- If reversing notes, make sure that note-on is positioned before note-off
-                if newNoteOffPPQpos < newPPQpos then 
-                    newPPQpos, newNoteOffPPQpos = newNoteOffPPQpos, newPPQpos
-                    newNoteLength = newNoteOffPPQpos - newPPQpos
-                    offset = offset - newNoteLength -- (newNoteOffPPQpos - newPPQpos)
-                else
-                    newNoteLength = newNoteOffPPQpos - newPPQpos
-                    lastPPQpos = lastPPQpos + newNoteLength
-                end                
-                -- Insert note-on
-                c = c + 1 
-                tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])    
-                -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note
-                if tableNotation[i] then
-                    c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlags[i]&0xFE, tableNotation[i])
-                end  
-                -- Insert note-off
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", newNoteLength, tableFlags[i], tableMsgNoteOffs[i])
-            else
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
-            end 
-        end]]
         
         local stretchFactor = (gridNewPPQpos-origPPQleftmost)/origPPQrange
                         
@@ -708,8 +659,8 @@ function onexit()
         deleteOverlappingCCs()
     end
     
-    -- Remember that the take was cleared before calling BR_GetMouseCursorContext
-    --    So upload MIDI again.
+    -- Remember that the active take was cleared before calling BR_GetMouseCursorContext
+    --    So may need to upload MIDI again.
     -- In the stretch script, unlike most of the other scripts, the MIDI may be changed after
     --    entering onexit, so upload edited MIDI even if takeIsCleared = false.
     reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
@@ -1651,6 +1602,21 @@ function main()
     function avoidUndo()
     end
     reaper.defer(avoidUndo)
+    
+    -------------------------------------------
+    -- Display notifications about new features
+    local lastTipVersion = tonumber(reaper.GetExtState("js_Stretch", "Last tip version")) or 0
+    if lastTipVersion < 3.30 then
+        reaper.MB("The Stretch script can now stretch all selected events in all lanes together."
+                  .. "\n\nTo stretch all lanes together, position the mouse over a lane divider when starting the script."
+                  .. "\n\nTo stretch only a single lane separately, position the mouse inside the CC lane (or notes area)."
+                  .. "\n\nWhen stretching all lanes together, stretching can only be horizontal (i.e. event positions), not vertically (event values)."
+                  .. "\n\n(This message will only be displayed once).", 
+                  "New feature notification: v3.30", 0)
+        reaper.SetExtState("js_Stretch", "Last tip version", "3.30", true)
+        displayedNotification = true
+    end
+    if displayedNotification then return end
     
     ----------------------------------------------------------------------------
     -- Check whether SWS is available, as well as the required version of REAPER
