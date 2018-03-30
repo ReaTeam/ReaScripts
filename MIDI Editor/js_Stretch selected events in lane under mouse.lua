@@ -119,7 +119,7 @@ About:
     -- If the starting position of the mouse is within this distance (as a fraction of total time range of selected events) 
     --    of the right or left edge of the time range, the script will will stretch left/right, otherwise top/bottom
     -- Useful values are between 0 and 0.5.
-    edgeSize = 0.1 
+    edgeSize = 0.2
     
     -- If CC events are stretched left or right until they overlap other CCs in the same lane (and same channel), 
     --    should the pre-existing CCs be deleted?
