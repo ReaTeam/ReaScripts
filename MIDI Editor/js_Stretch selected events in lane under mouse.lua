@@ -323,7 +323,7 @@ local function trackMouseAndDrawMIDI()
             return false
         end
     elseif laneIsALL then
-        if not (segment == "ruler" or segment == "notes" or details == "cc_lane") then
+        if not (segment == "notes" or details == "cc_lane") then
             return false
         end
     elseif segment == "notes" 
