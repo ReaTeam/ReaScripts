@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="39c5bd69dbeb53c09e7c6001b2a71df715b115a4" name="ReaTeam Scripts">
+<index version="1" commit="df24169a2943824f7605653ad3c987e104edc20c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7434,6 +7434,10 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2018-01-20T22:59:36Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bed854149597aa4c8bae9f908977920becdbdf2b/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2018-04-01T06:05:28Z">
+        <changelog><![CDATA[Add context menu with docking, about/help and close actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df24169a2943824f7605653ad3c987e104edc20c/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
