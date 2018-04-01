@@ -1,6 +1,6 @@
 -- @description amagalma_Smart Crossfade
 -- @author amagalma
--- @version 1.36
+-- @version 1.37
 -- @about
 --   # Crossfades selected items
 --
@@ -15,8 +15,8 @@
 
 --[[
  * Changelog:
- * v1.36 (2017-10-12)
-  + small fix (again) when dealing with adjacent items
+ * v1.37 (2018-04-02)
+  + fix when dealing with items that are overlapping less than the default crossfade time
 --]]
 
 
@@ -159,10 +159,27 @@ if item_cnt > 1 then
       elseif firstend > secondstart then -- items are overlapping
         local overlap = firstend - secondstart
         if debug then reaper.ShowConsoleMsg("overlap\n") end
-        if FadeInOK(item, overlap) == false or FadeOutOK(previousitem, overlap) == false then
-          FadeIn(item, overlap)
-          FadeOut(previousitem, overlap)
-          change = true
+        if overlap > xfadetime then
+          if debug then reaper.ShowConsoleMsg("overlap > xfadetime\n") end
+          if FadeInOK(item, overlap) == false or FadeOutOK(previousitem, overlap) == false then
+            FadeIn(item, overlap)
+            FadeOut(previousitem, overlap)
+            change = true
+          end
+        else
+          if debug then reaper.ShowConsoleMsg("overlap <= xfadetime\n") end
+          if CrossfadeOK(item, previousitem, secondstart, firstend, xfadetime) == false then
+            -- previous item (fade out xfadetime)
+            reaper.SetMediaItemSelected(previousitem, true)
+            FadeOut(previousitem, xfadetime)
+            reaper.SetMediaItemSelected(previousitem, false)
+            -- extend second item so that it overlaps with previous one
+            reaper.SetMediaItemSelected(item, true)
+            reaper.ApplyNudge(0, 1, 1, 1, secondstart - xfadetime - overlap, 0, 0)
+            FadeIn(item, xfadetime)
+            reaper.SetMediaItemSelected(item, false)
+            change = true
+          end
         end
       end
     end
