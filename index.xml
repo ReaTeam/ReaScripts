@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="95c371144add10b6ced6cb312f40eebb933de896" name="ReaTeam Scripts">
+<index version="1" commit="ec2be1d32b5494bc9df5c0978e2573899b7605f7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1345,6 +1345,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.36" author="amagalma" time="2017-10-12T17:22:58Z">
         <changelog><![CDATA[+ small fix (again) when dealing with adjacent items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4fcdbe3d2808b8d0dd03aca4f22d5d806d4799a8/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.37" author="amagalma" time="2018-04-01T22:00:21Z">
+        <changelog><![CDATA[+ fix when dealing with items that are overlapping less than the default crossfade time]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec2be1d32b5494bc9df5c0978e2573899b7605f7/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
