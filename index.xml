@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ec2be1d32b5494bc9df5c0978e2573899b7605f7" name="ReaTeam Scripts">
+<index version="1" commit="ffa67087c1b585fb15138cda03827261a9a9577a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8254,14 +8254,13 @@ Will work with ReaScript and custom action IDs now]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The Package will install two eel file with identical content for muting and unmuting with appropriate names.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 For remote controlling the muting by Midi CC actions, you need to learn a different CC # / Midi Channel for the action calling either of the scrips scripts. Now an appropriate CC message will mute or unmute the track the number of which is given in the CC value. For this the technical track numbering starting form Zero is used. Hence CC val 0 will (un)mute the track labeled "1" in the GUI.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Longer description/documentation for this package in {\i markdown}.\par}
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="Michael Schnell" time="2018-04-01T07:57:25Z">
+      <version name="1.0" author="Michael Schnell (mschnell@bschnell.de)" time="2018-04-01T07:57:25Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main" file="mschnell_Mute track X (MIDI CC/OSC only).eel">https://github.com/ReaTeam/ReaScripts/raw/95c371144add10b6ced6cb312f40eebb933de896/Various/mschnell_Mute%20Track%20X.eel</source>
-        <source main="main" file="mschnell_Unmute track X (MIDI CC/OSC only).eel">https://github.com/ReaTeam/ReaScripts/raw/95c371144add10b6ced6cb312f40eebb933de896/Various/mschnell_Mute%20Track%20X.eel</source>
+        <source main="main" file="mschnell_Mute track X (MIDI CC only).eel">https://github.com/ReaTeam/ReaScripts/raw/ffa67087c1b585fb15138cda03827261a9a9577a/Various/mschnell_Mute%20Track%20X.eel</source>
+        <source main="main" file="mschnell_Unmute track X (MIDI CC only).eel">https://github.com/ReaTeam/ReaScripts/raw/ffa67087c1b585fb15138cda03827261a9a9577a/Various/mschnell_Mute%20Track%20X.eel</source>
       </version>
     </reapack>
     <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
