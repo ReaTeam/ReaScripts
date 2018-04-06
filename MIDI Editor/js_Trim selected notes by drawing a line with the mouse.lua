@@ -1,12 +1,13 @@
 --[[
 ReaScript Name:  js_Trim selected notes by drawing a line with the mouse.lua
-Version: 2.02
+Version: 2.03
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/28032/Trim%20notes.gif
 REAPER: 5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # Description  
   
@@ -76,7 +77,8 @@ About:
     + Improved handling of overlapping notes. 
  * v2.02 (2017-01-30)
     + Improved reset of toolbar button.
-     
+ * v2.03 (2018-04-06)
+    + Script will automatically install in "MIDI Inline Editor" section too.
 ]]
 
 -- USER AREA
