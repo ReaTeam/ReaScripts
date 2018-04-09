@@ -1,5 +1,4 @@
--- @description Open Project Based on File in Clipboard
--- ReaScript Name: Open Project Based on File in Clipboard
+-- @description Open project based on file in clipboard
 -- @version 1.0
 -- @author JerContact
 -- @about
