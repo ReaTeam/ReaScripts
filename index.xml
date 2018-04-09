@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0015c2a01143fac7c272b099d1f1ae39c0b9454f" name="ReaTeam Scripts">
+<index version="1" commit="565afa418c9bb091c11bca3d8ca83c62e8bf4344" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5884,6 +5884,22 @@ enter or a = Exit and apply changes\par}
         <source main="main" file="cfillion_Set timecode at edit cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/93a9df74f15252a59834ed10efcb6c0774e7ee61/Project%20Properties/cfillion_Set%20timecode%20at%20edit%20cursor.lua</source>
         <source main="main" file="cfillion_Set timecode at edit cursor (seconds).lua">https://github.com/ReaTeam/ReaScripts/raw/93a9df74f15252a59834ed10efcb6c0774e7ee61/Project%20Properties/cfillion_Set%20timecode%20at%20edit%20cursor.lua</source>
         <source main="main" file="cfillion_Set timecode at edit cursor (frames).lua">https://github.com/ReaTeam/ReaScripts/raw/93a9df74f15252a59834ed10efcb6c0774e7ee61/Project%20Properties/cfillion_Set%20timecode%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 open-project-based-on-file-in-clipboard\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you copy the full pathname of the file, this script will open the corresponding reaper project associated with that file based on the bwf metadata inside the .wav file (to get to this to work you'll need to render out .wav files from reaper and have the "Include project filename in BWF data" checked. This script first figures out the timecode location of that file imbedded inside the .wav file, and tries to find the item around that location. If the file is in the project but has moved timecode there will be a warning message box telling you so. If the project is opened but the item is not longer in the project, you'll get and error saying the item is no longer there. If there is no metadata in you .wav file, no project will be loaded.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="JerContact" time="2018-04-09T07:41:55Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/565afa418c9bb091c11bca3d8ca83c62e8bf4344/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
       </version>
     </reapack>
   </category>
