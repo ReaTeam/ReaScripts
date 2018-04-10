@@ -18,6 +18,19 @@ filetxt = reaper.CF_GetClipboard("")
 m, n = string.find(filetxt, ".wav")
   
   if m~= nil then
+    
+    test = string.find(filetxt, '"')
+    if test==1 then
+      testlength = string.len(filetxt)
+      test = string.sub(filetxt, testlength)
+      test = string.find(filetxt, '"')
+      if test==1 then
+        filetxt = string.sub(filetxt, 2, testlength-1)
+      end
+    end
+    
+    --reaper.ShowMessageBox(filetxt, "", 1)
+    
     filetxt = string.sub(filetxt, 1, (m+3))
     filetxt = tostring(filetxt)
     wavfile = filetxt
@@ -75,8 +88,14 @@ m, n = string.find(filetxt, ".wav")
       
       m=0
       
+      if reaper.GetOS() == "Win32" or reaper.GetOS() == "Win64" then
+          separator = "\\"
+        else
+          separator = "/"
+        end
+      
       while (m~=nil) do
-        m, n = string.find(filetxt, "/")
+        m, n = string.find(filetxt, separator)
         if m==nil then
           break
         end
