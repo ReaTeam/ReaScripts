@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="565afa418c9bb091c11bca3d8ca83c62e8bf4344" name="ReaTeam Scripts">
+<index version="1" commit="e2a2252f0e12b54f196705f43535c0e68a5a575a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5900,6 +5900,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.0" author="JerContact" time="2018-04-09T07:41:55Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/565afa418c9bb091c11bca3d8ca83c62e8bf4344/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
+      </version>
+      <version name="1.1" author="JerContact" time="2018-04-11T09:07:13Z">
+        <changelog><![CDATA[+ 1.1 - updated to work on both mac and pc, also adding in check for extra quotations]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2a2252f0e12b54f196705f43535c0e68a5a575a/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
       </version>
     </reapack>
   </category>
