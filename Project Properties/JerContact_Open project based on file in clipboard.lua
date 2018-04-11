@@ -1,5 +1,5 @@
 -- @description Open project based on file in clipboard
--- @version 1.0
+-- @version 1.1
 -- @author JerContact
 -- @about
 --   # open-project-based-on-file-in-clipboard
