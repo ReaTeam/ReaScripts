@@ -10,7 +10,7 @@
 --   will be a warning message box telling you so.  If the project is opened but the item is not longer in the project, you'll get
 --   and error saying the item is no longer there.  If there is no metadata in you .wav file, no project will be loaded.
 -- @changelog
---   + Initial release
+--   + 1.1 - updated to work on both mac and pc, also adding in check for extra quotations
 
 weallgood=0
 filetxt = reaper.CF_GetClipboard("")
