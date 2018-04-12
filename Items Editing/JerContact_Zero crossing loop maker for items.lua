@@ -35,6 +35,8 @@ if numitems==1 then
     end
     temptrack=temptrack2
   end
+    
+reaper.Main_OnCommand(40913, 0) --zoom vertically
 
 retval, time = reaper.GetUserInputs("Crossfade Time", 1, "Input Crossfade Time (in secs)", "4")
 
