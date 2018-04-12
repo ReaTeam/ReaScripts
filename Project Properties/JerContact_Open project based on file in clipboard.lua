@@ -1,5 +1,5 @@
 -- @description Open project based on file in clipboard
--- @version 1.1
+-- @version 1.2
 -- @author JerContact
 -- @about
 --   # open-project-based-on-file-in-clipboard
@@ -11,6 +11,7 @@
 --   and error saying the item is no longer there.  If there is no metadata in you .wav file, no project will be loaded.
 -- @changelog
 --   + 1.1 - updated to work on both mac and pc, also adding in check for extra quotations
+--   + 1.2 - couldn't render out files immediately b/c the file was still in use after running this script, fixed this issue
 
 weallgood=0
 filetxt = reaper.CF_GetClipboard("")
@@ -164,6 +165,8 @@ else
 bext_found = false
 ret_bso = 0
 end
+    
+reaper.PCM_Source_Destroy(pcm_source)
 
 ret_bso = reaper.parse_timestr_pos(ret_bso, 5)
 reaper.SetEditCurPos(ret_bso, true, true)
