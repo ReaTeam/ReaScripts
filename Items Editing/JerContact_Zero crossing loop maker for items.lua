@@ -1,5 +1,5 @@
 -- @description Zero crossing loop maker for items
--- @version 1.0
+-- @version 1.1
 -- @author JerContact
 -- @about
 --   # zero-crossing-loop-maker-for-items
@@ -10,7 +10,7 @@
 --   to happen in.  So, it's dynamic depending on the source and what the user wants.  It also does the split at a zero crossing,
 --   so perfect loops here we come!
 -- @changelog
---   + initial release
+--   + 1.1 Getting this to work when reaper users have crossfade automatic turned off
 
 reaper.Undo_BeginBlock()
 
@@ -71,9 +71,13 @@ reaper.SetEditCurPos(posend-tonumber(time), 1, 0)
 
 reaper.Main_OnCommand(40058, 0) --paste left item
 
-reaper.GetSet_LoopTimeRange(true, true, pos, posend, false)
+curpos = reaper.GetCursorPosition()
 
-reaper.Main_OnCommand(40718, 0)
+reaper.GetSet_LoopTimeRange(true, true, curpos, curpos+tonumber(time), false)
+
+reaper.Main_OnCommand(40718, 0) -- select items
+
+reaper.Main_OnCommand(40916, 0) -- crossfade
 
 reaper.Main_OnCommand(40699, 0)
 
@@ -98,7 +102,6 @@ end
 end
 
 reaper.Undo_EndBlock("Zero Crossing Loop Maker for Items", 0)
-
 
 
 
