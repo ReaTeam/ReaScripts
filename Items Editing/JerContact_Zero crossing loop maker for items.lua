@@ -35,8 +35,8 @@ if numitems==1 then
     end
     temptrack=temptrack2
   end
-    
-reaper.Main_OnCommand(40913, 0) --zoom vertically
+  
+  reaper.Main_OnCommand(40913, 0) --zoom vertically
 
 retval, time = reaper.GetUserInputs("Crossfade Time", 1, "Input Crossfade Time (in secs)", "4")
 
@@ -51,6 +51,8 @@ posend = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
 posend = pos+posend
 
 edit = pos+((posend-pos)/2)
+
+if tonumber(time)<(posend-pos)/2 then
 
 reaper.SetEditCurPos(pos+((posend-pos)/2), 1, 0)
 
@@ -81,6 +83,12 @@ reaper.Main_OnCommand(40058, 0)
 
 reaper.Main_OnCommand(40635, 0)
 
+else
+  
+  reaper.ShowMessageBox("The crossfade length is too large for a good loop, choose a smaller crossfade length","Error",0)
+
+end
+
 end
 
 else
@@ -89,6 +97,9 @@ end
 
 end
 
-reaper.Undo_EndBlock("Zero Crossing Loop Maker From Item", 0)
+reaper.Undo_EndBlock("Zero Crossing Loop Maker for Items", 0)
+
+
+
 
 
