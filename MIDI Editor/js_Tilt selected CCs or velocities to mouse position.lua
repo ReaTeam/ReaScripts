@@ -1,12 +1,13 @@
 --[[
 ReaScript name: js_Tilt selected CCs or velocities to mouse position.lua
-Version: 3.21
+Version: 3.22
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27605/Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position%20-%20Copy.gif
 REAPER: v5.32 or later
 Extensions: SWS/S&M v2.8.3 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # Description  
   
@@ -81,6 +82,8 @@ About:
     + Mouse cursor changes to indicate that script is running.    
   * v3.21 (2017-12-14)
     + Tweak mouse cursor icon.
+  * v3.22 (2018-04-15)
+    + Automatically install script in MIDI Inline Editor section.
 ]]
 
 
@@ -385,7 +388,7 @@ local function loop_trackMouseMovement()
                                   .. s_pack("i4", newRemainOffset)
                                   .. remainMIDIstringSub5)
     takeIsCleared = false    
-    if isInline then reaper.UpdateArrange() end
+    if isInline then reaper.UpdateItemInProject(item) end
 
     
     ---------------------------------------------------------
@@ -1195,30 +1198,28 @@ end
 -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
 -- https://github.com/Jeff0S/sws/issues/783
 -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-if SWS283 ~= SWS283again then
-    reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-    return(false)
+editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+if not (type(isInline) == "boolean") then
+    SWS283 = true
+    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue
+    if not isInline then
+        editor = reaper.MIDIEditor_GetActive()
+    end
+else
+    SWS283 = false
 end
-if SWS283 == true then
-    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-else 
-    _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-end 
-    
+        
 -------------------------------------------------        
 -- Get active take (MIDI editor or inline editor)
 if isInline then
     take = reaper.BR_GetMouseCursorContext_Take()
 else
-    editor = reaper.MIDIEditor_GetActive()
     if editor == nil then 
         reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
         return(false)
+    else
+        take = reaper.MIDIEditor_GetTake(editor)
     end
-    take = reaper.MIDIEditor_GetTake(editor)
 end
 if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
     reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
