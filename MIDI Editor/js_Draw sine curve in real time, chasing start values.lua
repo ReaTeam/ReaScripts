@@ -1,12 +1,13 @@
 --[[
 ReaScript name: js_Draw sine curve in real time, chasing start values.lua
-Version: 3.30
+Version: 3.31
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
 REAPER version: v5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # DESCRIPTION
   Draw sine or warped (power) sine ramps of CC and pitchwheel events in real time (chasing start values).
@@ -168,7 +169,9 @@ About:
   * v3.24 (2017-03-18)
     + More extensive instructions in header.    
   * v3.30 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running.      
+    + Mouse cursor changes to indicate that script is running.   
+  * v3.31 (2018-04-15)
+    + Automatically install script in MIDI Inline Editor section.
 ]]
 
 ----------------------------------------
@@ -529,7 +532,7 @@ local function loop_trackMouseMovement()
     reaper.MIDI_SetAllEvts(take, table.concat(tableLine)
                                 .. string.pack("i4", newOrigOffset)
                                 .. MIDIstringSub5)    
-    if isInline then reaper.UpdateArrange() end
+    if isInline then reaper.UpdateItemInProject(item) end
     
     ---------------------------------------------------------
     -- Continuously loop the function - if don't need to quit
@@ -847,35 +850,31 @@ end
 -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
 -- https://github.com/Jeff0S/sws/issues/783
 -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-if SWS283 ~= SWS283again then
-    reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-    return(false)
+editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+if not (type(isInline) == "boolean") then
+    SWS283 = true
+    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue
+    if not isInline then
+        editor = reaper.MIDIEditor_GetActive()
+    end
+else
+    SWS283 = false
 end
-
-if SWS283 == true then
-    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-else 
-    _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-end 
 -- If the mouse starts on the divider between lanes, the ramp must be drawn from either the maximum
 --    or minimum value of the lane.  The lane is undetermined, however, so the script must loop till user moves mouse into a lane.
 -- To optimize responsiveness, the script will do some other stuff before re-visiting the mouse position.
 
-    
-----------------------------------------------------------        
--- Get active take and item (MIDI editor or inline editor)
+-------------------------------------------------        
+-- Get active take (MIDI editor or inline editor)
 if isInline then
     take = reaper.BR_GetMouseCursorContext_Take()
 else
-    editor = reaper.MIDIEditor_GetActive()
     if editor == nil then 
         reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
         return(false)
+    else
+        take = reaper.MIDIEditor_GetTake(editor)
     end
-    take = reaper.MIDIEditor_GetTake(editor)
 end
 if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
     reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
