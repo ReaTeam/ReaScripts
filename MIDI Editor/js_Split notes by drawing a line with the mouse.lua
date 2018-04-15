@@ -1,12 +1,13 @@
 --[[
 ReaScript Name:  js_Split notes by drawing a line with the mouse.lua
-Version: 2.10
+Version: 2.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27951/Split%20notes%20by%20drawing%20line%20with%20mouse.gif
 REAPER: 5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # Description  
   
@@ -54,30 +55,32 @@ About:
 ]]
  
 --[[
- Changelog:
- * v0.9 (2016-06-24)
+  Changelog:
+  * v0.9 (2016-06-24)
     + Initial beta release. (Bugs may be encountered.)
- * v0.91 (2016-06-25)
+  * v0.91 (2016-06-25)
     + A few tweaks.
- * v0.92 (2016-06-26)
+  * v0.92 (2016-06-26)
     + Beta 3: Fixed "Could not find gap" bug.
- * v0.93 (2016-06-27)
+  * v0.93 (2016-06-27)
     + Implemented workaround for bug in MIDI_SetNote().
     + WARNING: The script is still in beta, and may be unstable.
- * v1.0 (2016-07-04)
+  * v1.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
- * v2.00 (2016-12-15)
+  * v2.00 (2016-12-15)
     + Improved speed, particularly in takes with many thousands of MIDI events.
     + Script will work in inline editor.
     + Script will work in looped takes.
     + REAPER v5.32 or later is required.
- * v2.01 (2017-01-30)
+  * v2.01 (2017-01-30)
     + Improved handling of overlapping notes.
- * v2.02 (2017-01-30)
+  * v2.02 (2017-01-30)
     + Improved reset of toolbar button.
   * v2.10 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running.     
+    + Mouse cursor changes to indicate that script is running.    
+  * v2.11 (2018-04-15)
+    + Automatically install script in MIDI Inline Editor section.
 ]]
 
 -- USER AREA
@@ -329,7 +332,7 @@ local function loop_trackMouseMovement()
                                 .. table.concat(tableLineMIDI)
                                 .. s_pack("i4Bs4", sourceLengthTicks - lastPPQpos, 0, AllNotesOffMsg))
     
-    if isInline then reaper.UpdateArrange() end
+    if isInline then reaper.UpdateItemInProject(item) end
     
     ---------------------------------------        
     -- Continuously loop the function
@@ -562,32 +565,28 @@ end
 -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
 -- https://github.com/Jeff0S/sws/issues/783
 -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-if SWS283 ~= SWS283again then
-    reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-    return(false)
+editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+if not (type(isInline) == "boolean") then
+    SWS283 = true
+    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue
+    if not isInline then
+        editor = reaper.MIDIEditor_GetActive()
+    end
+else
+    SWS283 = false
 end
-
-if SWS283 == true then
-    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-else 
-    _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-end 
-
-    
-----------------------------------------------------------        
--- Get active take and item (MIDI editor or inline editor)
+        
+-------------------------------------------------        
+-- Get active take (MIDI editor or inline editor)
 if isInline then
     take = reaper.BR_GetMouseCursorContext_Take()
 else
-    editor = reaper.MIDIEditor_GetActive()
     if editor == nil then 
         reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
         return(false)
+    else
+        take = reaper.MIDIEditor_GetTake(editor)
     end
-    take = reaper.MIDIEditor_GetTake(editor)
 end
 if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
     reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
