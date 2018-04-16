@@ -124,7 +124,7 @@ About:
     + Mouse cursor changes to indicate that script is running. 
   * v3.21 (2017-12-14)
     + Tweak mouse cursor icon.
-  * 3.22 (2018-04-15)
+  * v3.22 (2018-04-15)
     + Automatically install script in MIDI Inline Editor section.
 ]]
 
