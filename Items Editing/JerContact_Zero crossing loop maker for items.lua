@@ -1,5 +1,5 @@
 -- @description Zero crossing loop maker for items
--- @version 1.1
+-- @version 1.2
 -- @author JerContact
 -- @about
 --   # zero-crossing-loop-maker-for-items
@@ -10,7 +10,7 @@
 --   to happen in.  So, it's dynamic depending on the source and what the user wants.  It also does the split at a zero crossing,
 --   so perfect loops here we come!
 -- @changelog
---   + 1.1 Getting this to work when reaper users have crossfade automatic turned off
+--   + 1.2 Fixing error with different paste setting setup (cursor position fixed)
 
 reaper.Undo_BeginBlock()
 
@@ -59,6 +59,8 @@ reaper.SetEditCurPos(pos+((posend-pos)/2), 1, 0)
 --commandID = reaper.NamedCommandLookup(
 reaper.Main_OnCommand(40792, 0) --split item
 
+--curpos = reaper.GetCursorPosition()
+
 item = reaper.GetSelectedMediaItem(0, 0)
 
 reaper.Main_OnCommand(40289, 0)
@@ -69,13 +71,15 @@ reaper.Main_OnCommand(40699, 0) --cut left item
 
 reaper.SetEditCurPos(posend-tonumber(time), 1, 0)
 
-reaper.Main_OnCommand(40058, 0) --paste left item
-
 curpos = reaper.GetCursorPosition()
 
-reaper.GetSet_LoopTimeRange(true, true, curpos, curpos+tonumber(time), false)
+reaper.Main_OnCommand(40058, 0) --paste left item
+
+reaper.GetSet_LoopTimeRange(true, false, curpos-tonumber(time), curpos+tonumber(time), false)
 
 reaper.Main_OnCommand(40718, 0) -- select items
+
+reaper.GetSet_LoopTimeRange(true, false, curpos, curpos+tonumber(time), false)
 
 reaper.Main_OnCommand(40916, 0) -- crossfade
 
@@ -86,6 +90,8 @@ reaper.SetEditCurPos(pos, 1, 0)
 reaper.Main_OnCommand(40058, 0)
 
 reaper.Main_OnCommand(40635, 0)
+
+reaper.SetEditCurPos(pos, 1, 0)
 
 else
   
@@ -102,7 +108,3 @@ end
 end
 
 reaper.Undo_EndBlock("Zero Crossing Loop Maker for Items", 0)
-
-
-
-
