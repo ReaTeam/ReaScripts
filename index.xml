@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="58e64e30c5fffd6eea3208dc8d840cc56e6bb19f" name="ReaTeam Scripts">
+<index version="1" commit="4cc47c25088ac61c032999315f23e15c93729244" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1712,6 +1712,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.1" author="JerContact" time="2018-04-13T10:42:56Z">
         <changelog><![CDATA[+ 1.1 Getting this to work when reaper users have crossfade automatic turned off]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/181a6b0bfe7305e061ebefac40c682b35656c56d/Items%20Editing/JerContact_Zero%20crossing%20loop%20maker%20for%20items.lua</source>
+      </version>
+      <version name="1.2" author="JerContact" time="2018-04-17T00:46:57Z">
+        <changelog><![CDATA[+ 1.2 Fixing error with different paste setting setup (cursor position fixed)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4cc47c25088ac61c032999315f23e15c93729244/Items%20Editing/JerContact_Zero%20crossing%20loop%20maker%20for%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Area selection - Cycle between inserting and deleting temporary empty items.lua" type="script" desc="js_Area selection - Cycle between inserting and deleting temporary empty items.lua">
