@@ -1,5 +1,5 @@
 -- @description Zero crossing loop maker for items
--- @version 1.2
+-- @version 1.3
 -- @author JerContact
 -- @about
 --   # zero-crossing-loop-maker-for-items
@@ -10,101 +10,108 @@
 --   to happen in.  So, it's dynamic depending on the source and what the user wants.  It also does the split at a zero crossing,
 --   so perfect loops here we come!
 -- @changelog
---   + 1.2 Fixing error with different paste setting setup (cursor position fixed)
+--   + 1.3 Making this automatic looping rather than choosing time, and more elegant and can be for multiple items now
 
 reaper.Undo_BeginBlock()
+
+reaper.PreventUIRefresh(1)
 
 item = reaper.GetSelectedMediaItem(0, 0)
 
 if item~=nil then
 
-numitems = reaper.CountSelectedMediaItems(0)
+items=reaper.CountSelectedMediaItems(0)
 
-if numitems==1 then
+itemarray={}
 
-  item = reaper.GetSelectedMediaItem(0, 0)
-  track = reaper.GetMediaItem_Track(item)
-  reaper.Main_OnCommand(40286, 0) --go to previous track
-  temptrack = reaper.GetSelectedTrack(0, 0)
-  command=40286
-  while temptrack~=track do
-    reaper.Main_OnCommand(command, 0) --go to previous track
-    temptrack2 = reaper.GetSelectedTrack(0, 0)
-    if temptrack2==temptrack then
-      command=40285
-    end
-    temptrack=temptrack2
+selarray={}
+
+x=0
+
+while x<items do
+
+  itemarray[x]=reaper.GetSelectedMediaItem(0, x)
+  x=x+1
+
+end
+
+original_position = reaper.GetMediaItemInfo_Value(itemarray[0], "D_POSITION")
+
+x=0
+
+y=0
+
+while x<items do
+
+z=0
+
+reaper.Main_OnCommand(40289, 0) --deselect all items
+
+reaper.SetMediaItemSelected(itemarray[x], 1)
+
+item_length = reaper.GetMediaItemInfo_Value(itemarray[x], "D_LENGTH")
+
+item_position = reaper.GetMediaItemInfo_Value(itemarray[x], "D_POSITION")
+
+item_center = item_position + item_length/2
+
+item_end = item_position + item_length 
+
+time = item_length/10
+
+if item_length > 40 then
+
+  time = 4
   end
-  
-  reaper.Main_OnCommand(40913, 0) --zoom vertically
 
-retval, time = reaper.GetUserInputs("Crossfade Time", 1, "Input Crossfade Time (in secs)", "4")
 
-if retval then
 
---reaper.Main_OnCommand(41295, 0) --duplicate item
+reaper.SetEditCurPos(item_center, false, false)
 
-pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+reaper.Main_OnCommand(41196, 0) --Disable default fadein/fadeout
 
-posend = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+reaper.Main_OnCommand(41995, 0) --Move edit cursor to nearest zero crossing in items
 
-posend = pos+posend
+reaper.Main_OnCommand(40757, 0) --Item: Split items at edit cursor (no change selection)
 
-edit = pos+((posend-pos)/2)
+reaper.SetMediaItemInfo_Value(itemarray[x], "D_POSITION", item_end - time)
 
-if tonumber(time)<(posend-pos)/2 then
+reaper.Main_OnCommand(41059, 0) --Crossfade any overlapping items
 
-reaper.SetEditCurPos(pos+((posend-pos)/2), 1, 0)
+reaper.SetEditCurPos(item_position, false, false)
 
---commandID = reaper.NamedCommandLookup(
-reaper.Main_OnCommand(40792, 0) --split item
+reaper.Main_OnCommand(41205, 0) --Move position of item to edit cursor
 
---curpos = reaper.GetCursorPosition()
+reaper.Main_OnCommand(40635, 0) --remove time selection
 
-item = reaper.GetSelectedMediaItem(0, 0)
+items2=reaper.CountSelectedMediaItems(0)
 
-reaper.Main_OnCommand(40289, 0)
+while z<items2 do
 
-reaper.SetMediaItemSelected(item, 1)
+  selarray[y]=reaper.GetSelectedMediaItem(0, z)
+  y=y+1
+  z=z+1
 
-reaper.Main_OnCommand(40699, 0) --cut left item
+end
 
-reaper.SetEditCurPos(posend-tonumber(time), 1, 0)
+x=x+1
+end
 
-curpos = reaper.GetCursorPosition()
+reaper.Main_OnCommand(40289, 0) --deselect all items
 
-reaper.Main_OnCommand(40058, 0) --paste left item
+reaper.SetEditCurPos(original_position, false, false)
 
-reaper.GetSet_LoopTimeRange(true, false, curpos-tonumber(time), curpos+tonumber(time), false)
+b=0
 
-reaper.Main_OnCommand(40718, 0) -- select items
+while b<y do
 
-reaper.GetSet_LoopTimeRange(true, false, curpos, curpos+tonumber(time), false)
-
-reaper.Main_OnCommand(40916, 0) -- crossfade
-
-reaper.Main_OnCommand(40699, 0)
-
-reaper.SetEditCurPos(pos, 1, 0)
-
-reaper.Main_OnCommand(40058, 0)
-
-reaper.Main_OnCommand(40635, 0)
-
-reaper.SetEditCurPos(pos, 1, 0)
-
-else
-  
-  reaper.ShowMessageBox("The crossfade length is too large for a good loop, choose a smaller crossfade length","Error",0)
+  reaper.SetMediaItemSelected(selarray[b], 1)
+  b=b+1
 
 end
 
 end
 
-else
-  reaper.ShowMessageBox("Can Only Loop 1 Item at a Time","Error",0)
-end
+reaper.PreventUIRefresh(-1)
 
-end
-
-reaper.Undo_EndBlock("Zero Crossing Loop Maker for Items", 0)
+reaper.Undo_EndBlock("Zero Crossing Item Loop", 0)
