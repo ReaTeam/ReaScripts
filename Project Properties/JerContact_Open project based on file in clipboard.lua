@@ -1,5 +1,5 @@
 -- @description Open project based on file in clipboard
--- @version 1.2
+-- @version 1.3
 -- @author JerContact
 -- @about
 --   # open-project-based-on-file-in-clipboard
@@ -10,7 +10,7 @@
 --   will be a warning message box telling you so.  If the project is opened but the item is not longer in the project, you'll get
 --   and error saying the item is no longer there.  If there is no metadata in you .wav file, no project will be loaded.
 -- @changelog
---   + 1.2 - couldn't render out files immediately b/c the file was still in use after running this script, fixed this issue
+--   + 1.3 - adding a little feature to make this work with files named with .wav at the end inside reaper.
 
 weallgood=0
 filetxt = reaper.CF_GetClipboard("")
@@ -188,7 +188,19 @@ x = reaper.CountSelectedMediaItems(0)
         
         if take ~= nil then
           retval, stringNeedBig = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
-        
+          
+          wavstr = "WAV"
+                
+          teststr = string.sub(stringNeedBig, -3)
+          
+          teststr = string.upper(teststr)
+          
+          if wavstr == teststr then
+          
+            stringNeedBig = string.sub(stringNeedBig, 1, -5)
+          
+          end
+          
           if stringNeedBig == filetxt then
         
             pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
