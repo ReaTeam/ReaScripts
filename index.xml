@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6c63cc258c46f91295d8c97b4962f42d4216d584" name="ReaTeam Scripts">
+<index version="1" commit="2325bd1d709320e7b944a024247c85a93e16423e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1874,6 +1874,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.60" author="Lokasenna" time="2017-02-27T14:53:29Z">
         <changelog><![CDATA[Can be given a pattern to use when inserting notes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6821a4f17869927f6c32fbeba4910c3a1dca1f73/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
+      </version>
+      <version name="1.61" author="Lokasenna" time="2018-04-18T21:28:46Z">
+        <changelog><![CDATA[Can be given a pattern to use when inserting notes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2325bd1d709320e7b944a024247c85a93e16423e/Items%20Editing/Lokasenna_Fill%20selected%20MIDI%20item%20with%20notes...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill time selection with empty items.lua" type="script" desc="Fill time selection with empty items">
