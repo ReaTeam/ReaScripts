@@ -1,5 +1,5 @@
 -- @description Zero crossing loop maker for items
--- @version 1.3
+-- @version 1.4
 -- @author JerContact
 -- @about
 --   # zero-crossing-loop-maker-for-items
@@ -10,7 +10,7 @@
 --   to happen in.  So, it's dynamic depending on the source and what the user wants.  It also does the split at a zero crossing,
 --   so perfect loops here we come!
 -- @changelog
---   + 1.3 Making this automatic looping rather than choosing time, and more elegant and can be for multiple items now
+--   + 1.4 adding functionality that the cursor goes to the closest item to the beginning of the session after the loops are made
 
 reaper.Undo_BeginBlock()
 
@@ -98,6 +98,54 @@ x=x+1
 end
 
 reaper.Main_OnCommand(40289, 0) --deselect all items
+
+p=0
+
+arraysort={}
+
+while p<y do
+
+  arraysort[p] = reaper.GetMediaItemInfo_Value(selarray[p], "D_POSITION")
+  p=p+1
+
+end
+
+i=0
+ar=0
+arraytemp={}
+  
+while(i<y) do
+  
+  m=0
+  ar=0
+  
+  while (m<y) do
+  
+    if y==1 then
+    break
+    else
+      if m+1==y then
+      break
+      end
+    end
+      
+    if arraysort[ar]<arraysort[ar+1] then
+
+    else
+      arraytemp[0] = arraysort[ar]
+      arraysort[ar] = arraysort[ar+1]
+      arraysort[ar+1] = arraytemp[0]
+    end
+    ar=ar+1
+    m=m+1
+  
+  end
+  
+  i=i+1
+
+end
+
+original_position = arraysort[0]
 
 reaper.SetEditCurPos(original_position, false, false)
 
