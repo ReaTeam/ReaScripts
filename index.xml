@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2325bd1d709320e7b944a024247c85a93e16423e" name="ReaTeam Scripts">
+<index version="1" commit="4e7fcfac5ff272d9c41518e6963766d9ad166829" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6014,6 +6014,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.2" author="JerContact" time="2018-04-13T10:42:30Z">
         <changelog><![CDATA[+ 1.2 - couldn't render out files immediately b/c the file was still in use after running this script, fixed this issue]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e09f7db651ef975f88c435d0a05bef1d43c32d7/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
+      </version>
+      <version name="1.3" author="JerContact" time="2018-04-19T02:29:19Z">
+        <changelog><![CDATA[+ 1.3 - adding a little feature to make this work with files named with .wav at the end inside reaper.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e7fcfac5ff272d9c41518e6963766d9ad166829/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
       </version>
     </reapack>
   </category>
