@@ -1,5 +1,5 @@
 -- @description Zero crossing loop maker for items
--- @version 1.3
+-- @version 1.4
 -- @author JerContact
 -- @about
 --   # zero-crossing-loop-maker-for-items
@@ -10,9 +10,13 @@
 --   to happen in.  So, it's dynamic depending on the source and what the user wants.  It also does the split at a zero crossing,
 --   so perfect loops here we come!
 -- @changelog
---   + 1.3 Making this automatic looping rather than choosing time, and more elegant and can be for multiple items now
+--   + 1.4 Bug with toggle state changing and not going back to normal for default fades, fixing that
 
 reaper.Undo_BeginBlock()
+
+user_fade_setting = reaper.GetToggleCommandState(41194)
+
+reaper.Main_OnCommand(41196, 0) --Disable default fadein/fadeout
 
 reaper.PreventUIRefresh(1)
 
@@ -68,8 +72,6 @@ if item_length > 40 then
 
 reaper.SetEditCurPos(item_center, false, false)
 
-reaper.Main_OnCommand(41196, 0) --Disable default fadein/fadeout
-
 reaper.Main_OnCommand(41995, 0) --Move edit cursor to nearest zero crossing in items
 
 reaper.Main_OnCommand(40757, 0) --Item: Split items at edit cursor (no change selection)
@@ -99,6 +101,54 @@ end
 
 reaper.Main_OnCommand(40289, 0) --deselect all items
 
+p=0
+
+arraysort={}
+
+while p<y do
+
+  arraysort[p] = reaper.GetMediaItemInfo_Value(selarray[p], "D_POSITION")
+  p=p+1
+
+end
+
+i=0
+ar=0
+arraytemp={}
+  
+while(i<y) do
+  
+  m=0
+  ar=0
+  
+  while (m<y) do
+  
+    if y==1 then
+    break
+    else
+      if m+1==y then
+      break
+      end
+    end
+      
+    if arraysort[ar]<arraysort[ar+1] then
+
+    else
+      arraytemp[0] = arraysort[ar]
+      arraysort[ar] = arraysort[ar+1]
+      arraysort[ar+1] = arraytemp[0]
+    end
+    ar=ar+1
+    m=m+1
+  
+  end
+  
+  i=i+1
+
+end
+
+original_position = arraysort[0]
+
 reaper.SetEditCurPos(original_position, false, false)
 
 b=0
@@ -109,6 +159,12 @@ while b<y do
   b=b+1
 
 end
+
+end
+
+if user_fade_setting == 1 then
+
+reaper.Main_OnCommand(41195, 0) --Enable default fadein/fadeout
 
 end
 
