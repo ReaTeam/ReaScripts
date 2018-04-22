@@ -1,9 +1,10 @@
 --[[
-ReaScript name: js_Options - Toggle skip redundant events when inserting CCs.lua
+ReaScript name: js_Option - Toggle skip redundant events when inserting CCs.lua
 Version: 0.90
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # Description
   
