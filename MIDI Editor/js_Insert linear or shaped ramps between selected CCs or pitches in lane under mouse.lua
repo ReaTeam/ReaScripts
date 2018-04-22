@@ -152,7 +152,6 @@ About:
   * v3.30 (2018-01-24)
     + Ramps can be shaped by mouse and mousewheel movement.
   * v3.33 (2018-04-21)
-    + New "curve" CCs can be inserted in different channel than original "node" CCs.
     + Skipping redundant events can be toggled by separate script.
 ]] 
 
