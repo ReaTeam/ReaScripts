@@ -42,7 +42,8 @@ About:
   
   * By default, newly inserted CCs will be selected.  (Can be changed in the script's USER AREA.)
   
-  * By default, redundant events will be skipped.  (Can be changed in the script's USER AREA.)
+  * The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), 
+      if the control script "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.
   
 
   # INSTRUCTIONS
