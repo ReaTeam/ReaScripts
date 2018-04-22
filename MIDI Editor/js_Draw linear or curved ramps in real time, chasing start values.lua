@@ -40,7 +40,9 @@ About:
      of the ramp (using, for example, the warping or arching scripts).
      
   * The script can optionally skip redundant CCs (that is, CCs with the same 
-     value as the preceding CC).
+     value as the preceding CC), if the control script  
+    "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.
+
 
 
   # INSTRUCTIONS
@@ -109,14 +111,15 @@ About:
       
   The default ramp shape can be changed from linear to any power curve, by changing the 
       "defaultShapePower" parameter.  To set the default shape to parabolic, use 2 or 0.5.
-   
-  To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.
   
   To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), 
       set the "deselectEverythingInLane" parameter.  This allows easy editing of only the new 
       ramp after drawing.
       
+  To enable/disable skipping of redundant CCs, run the script 
+      "js_Option - Toggle skip redundant events when inserting CCs".
   
+
   PERFORMANCE TIPS
   
   * The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
