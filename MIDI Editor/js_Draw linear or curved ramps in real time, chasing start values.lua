@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw linear or curved ramps in real time, chasing start values.lua
-Version: 3.32
+Version: 3.33
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -175,6 +175,8 @@ About:
     + Tweak mouse cursor icon.
   * v3.32 (2018-04-15)
     + Automatically install script in MIDI Inline Editor section.
+  * v3.33 (2018-04-21)
+    + Skipping redundant events can be toggled by separate script.
 ]]
 
 ----------------------------------------
@@ -197,7 +199,6 @@ About:
     --    2 for 'slow start' parabolic, and 0.5 for 'fast start' parabolic, etc.
     local defaultShapePower = 1 -- A non-negative number
     
-    local skipRedundant = true -- true or false: Do not draw redundant events.
     local deleteOnlyDrawChannel = true -- true or false: 
     local deselectEverythingInLane = false -- true or false: Deselect all CCs in the same lane as the new ramp (and in active take). 
     
@@ -292,8 +293,9 @@ local m_cos = math.cos
 local m_pi  = math.pi
 --local t_insert = table.insert -- using myTable[c]=X is much faster than table.insert(myTable, X)
 
--- User preferences that can be customized in the js_MIDI editing preferences script
+-- User preferences that can be customized via toggle scripts
 local mustDrawCustomCursor
+local skipRedundantCCs
 
 
 --#############################################################################################
@@ -483,7 +485,7 @@ local function loop_trackMouseMovement()
                 insertValue = m_floor(lineRightValue - (valueRange)*(((lineRightPPQpos-insertPPQpos)/(PPQrange))^(power)) + 0.5)
             end
             
-            if insertValue ~= lastValue or skipRedundant == false then
+            if insertValue ~= lastValue or skipRedundantCCs == false then
                 if laneIsCC7BIT then
                     c = c + 1
                     tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCClane, insertValue)
@@ -774,451 +776,454 @@ end
 --#####################################################################################################
 -------------------------------------------------------------------------------------------------------
 -- Here execution starts!
--- function main()
-
--- Start with a trick to avoid automatically creating undo states if nothing actually happened
--- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
-function avoidUndo()
-end
-reaper.defer(avoidUndo)
-
-
----------------------------------------------------------
--- Check whether the user-customizable values are usable.
-if not (type(neverSnapToGrid) == "boolean") then 
-    reaper.ShowMessageBox('The parameter "neverSnapToGrid" may only take on the boolean values "true" or "false".', "ERROR", 0)
-    return false 
-elseif not (type(doChase) == "boolean") then
-    reaper.ShowMessageBox('The parameter "doChase" may only take on the boolean values "true" or "false".', "ERROR", 0)
-    return false    
-elseif not (type(skipRedundant) == "boolean") then 
-    reaper.ShowMessageBox('The parameter "skipRedundant" may only take on the boolean values "true" or "false".', "ERROR", 0)
-    return false
-elseif not (type(deleteOnlyDrawChannel) == "boolean") then 
-    reaper.ShowMessageBox('The parameter "deleteOnlyDrawChannel" may only take on the boolean values "true" or "false".', "ERROR", 0)
-    return false
-elseif not (type(deselectEverythingInLane) == "boolean") then 
-    reaper.ShowMessageBox('The parameter "deselectEverythingInLane" may only take on the boolean values "true" or "false".', "ERROR", 0)
-    return false
-elseif not (type(defaultShapePower) == "number" and defaultShapePower > 0) then
-    reaper.ShowMessageBox('The parameter "defaultShapePower" must be a number, and must be larger than 0.', "ERROR", 0)
-    return false       
-end            
+function main()
     
-
------------------------------------------------------------------------------
--- Check whether SWS is available, as well as the required version of REAPER.
-version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
-if version == nil or version < 5.32 then
-    reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+    -- Start with a trick to avoid automatically creating undo states if nothing actually happened
+    -- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
+    reaper.defer(function() end)
+    
+    
+    ---------------------------------------------------------
+    -- Check whether the user-customizable values are usable.
+    if not (type(neverSnapToGrid) == "boolean") then 
+        reaper.ShowMessageBox('The parameter "neverSnapToGrid" may only take on the boolean values "true" or "false".', "ERROR", 0)
+        return false 
+    elseif not (type(doChase) == "boolean") then
+        reaper.ShowMessageBox('The parameter "doChase" may only take on the boolean values "true" or "false".', "ERROR", 0)
+        return false    
+    elseif not (type(deleteOnlyDrawChannel) == "boolean") then 
+        reaper.ShowMessageBox('The parameter "deleteOnlyDrawChannel" may only take on the boolean values "true" or "false".', "ERROR", 0)
+        return false
+    elseif not (type(deselectEverythingInLane) == "boolean") then 
+        reaper.ShowMessageBox('The parameter "deselectEverythingInLane" may only take on the boolean values "true" or "false".', "ERROR", 0)
+        return false
+    elseif not (type(defaultShapePower) == "number" and defaultShapePower > 0) then
+        reaper.ShowMessageBox('The parameter "defaultShapePower" must be a number, and must be larger than 0.', "ERROR", 0)
+        return false       
+    end            
+    if reaper.GetExtState("js_Mouse actions", "skipRedundantCCs") == "false" then
+        skipRedundantCCs = false
+    else
+        skipRedundantCCs = true
+    end
+        
+    
+    -----------------------------------------------------------------------------
+    -- Check whether SWS is available, as well as the required version of REAPER.
+    if not reaper.APIExists("MIDI_GetAllEvts") then
+        reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
                           .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
                           , "ERROR", 0)
-    return(false) 
-elseif not reaper.APIExists("BR_GetMouseCursorContext") then
-    reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-    return(false) 
-end   
-
-
------------------------------------------------------------
--- The following sections checks the position of the mouse:
--- If the script is called from a toolbar, it arms the script as the default js_Run function, but does not run the script further
--- If the mouse is positioned over a CC lane, the script is run.
-window, segment, details = reaper.BR_GetMouseCursorContext()
--- If window == "unknown", assume to be called from floating toolbar
--- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
-if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
-    setAsNewArmedToolbarAction()
-    return(true) 
-elseif not(details == "cc_lane") then 
-    reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
-                          .. "This script draws a ramp in the CC lane that is under the mouse, "
-                          .. "so the mouse should be positioned over a CC lane of an active MIDI editor.", "ERROR", 0)
-    return(false) 
-else
-    -- Communicate with the js_Run.. script that a script is running
-    reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
-end
-
-
------------------------------------------------------------------------------------------
--- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
--- Also get the mouse starting (vertical) value and CC lane.
--- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
--- mouseOrigCClane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
---    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
---    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
---
--- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
--- https://github.com/Jeff0S/sws/issues/783
--- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-if not (type(isInline) == "boolean") then
-    SWS283 = true
-    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue
-    if not isInline then
-        editor = reaper.MIDIEditor_GetActive()
-    end
-else
-    SWS283 = false
-end
--- If the mouse starts on the divider between lanes, the ramp must be drawn from either the maximum
---    or minimum value of the lane.  The lane is undetermined, however, so the script must loop till user moves mouse into a lane.
--- To optimize responsiveness, the script will do some other stuff before re-visiting the mouse position.
-
--------------------------------------------------        
--- Get active take (MIDI editor or inline editor)
-if isInline then
-    take = reaper.BR_GetMouseCursorContext_Take()
-else
-    if editor == nil then 
-        reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
-        return(false)
+         return(false)
+    elseif not reaper.APIExists("BR_GetMouseCursorContext") then
+        reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+        return(false) 
+    end   
+    
+    
+    -----------------------------------------------------------
+    -- The following sections checks the position of the mouse:
+    -- If the script is called from a toolbar, it arms the script as the default js_Run function, but does not run the script further
+    -- If the mouse is positioned over a CC lane, the script is run.
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    -- If window == "unknown", assume to be called from floating toolbar
+    -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+    if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+        setAsNewArmedToolbarAction()
+        return(true) 
+    elseif not(details == "cc_lane") then 
+        reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
+                              .. "This script draws a ramp in the CC lane that is under the mouse, "
+                              .. "so the mouse should be positioned over a CC lane of an active MIDI editor.", "ERROR", 0)
+        return(false) 
     else
-        take = reaper.MIDIEditor_GetTake(editor)
+        -- Communicate with the js_Run.. script that a script is running
+        reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
     end
-end
-if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
-    reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
-    return(false)
-end
-item = reaper.GetMediaItemTake_Item(take)
-if not reaper.ValidatePtr(item, "MediaItem*") then 
-    reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
-    return(false)
-end
-
-
--------------------------------------------------------------------
--- Events will be inserted in the active channel of the active take
-if isInline then
-    defaultChannel = 0 -- Current versions of REAPER do not provide API access to inline editor defaults channel.
-else
-    defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
-end
-
-
-------------------------------------------------------------------------------------
--- If the CCs are being drawn in the "Tempo" track, CCs will be inserted at the MIDI 
---    editor's grid spacing.
--- In all other cases, CCs density will follow the setting in
--- Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".
-local track = reaper.GetMediaItemTake_Track(take)
-local trackNameOK, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
-
-if trackName == "Tempo" then
-    local QNperCC = reaper.MIDI_GetGrid(take)
-    CCdensity = math.floor((1/QNperCC) + 0.5)
-else
-    CCdensity = reaper.SNM_GetIntConfigVar("midiCCdensity", 32)
-    CCdensity = m_floor(math.max(4, math.min(128, math.abs(CCdensity)))) -- If user selected "Zoom dependent", density<0
-end
-local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
-PPperCC = PPQ/CCdensity -- Not necessarily an integer!
-firstCCinTakePPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, math.ceil(startQN*CCdensity)/CCdensity)
-
-
----------------------------------------------------------------------------------------
--- Unlike the scripts that edit and change existing events, this scripts does not need
---    to do any parsing before starting drawing.
--- Parsing (and deletion) will be performed at the end, in the onexit function.
-gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
-if gotAllOK then
-    MIDIlen = MIDIstring:len()
-    originalOffset = string.unpack("i4", MIDIstring, 1)
-    --MIDIstringSub5 = MIDIstring:sub(5) -- In new version that deselects CCs in target lane before drawing, MIDIstringSub5 will be defined later, after deselection
-else -- if not gotAllOK
-    reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
-    return false 
-end
-
-
----------------------------------------------------------------------------------
--- Get last PPQ position of take.
--- 1) The MIDI events of the line will be inserted at the end of the MIDI string,
---    so the PPQ offsets must be calculated from the last PPQ position in take.
-
--- 2) The crucial BR_GetMouseCursorContext function gets slower and slower 
---    as the number of events in the take increases.
--- Therefore, this script will speed up the function by 'clearing' the 
---    take of all MIDI *before* calling the function!
--- To do so, MIDI_SetAllEvts will be run with no events except the
---    All-Notes-Off message that should always terminate the MIDI stream, 
---    and which marks the position of the end of the MIDI source.
--- Instead of parsing the entire MIDI stream to get the final PPQ position,
---    simply get the source length.
-
--- 3) In addition, the source length will be saved and checked again at the end of
---    the script, to check that no inadvertent shifts in PPQ position happened.
-sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
-AllNotesOffString = s_pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
-MIDIstringWithoutNotesOff = MIDIstring:sub(1, -13)
-lastOrigMIDIPPQpos = sourceLengthTicks - s_unpack("i4", MIDIstring, -12)
-
-
------------------------------------------------------------------------------------------------
--- Get the starting PPQ (horizontal) position of the ramp.  Must check whether snap is enabled.
--- Also, contract to position within item, and then divide by source length to get position
---    within first loop iteration.
-mouseOrigPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position())
-local itemLengthTicks = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
-mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off, so subtract 1.
-loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
-mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
-mouseOrigPPQpos = m_floor(mouseOrigPPQpos + 0.5)
-
-if isInline then
-    isSnapEnabled = false
-else
-    isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
-end
-
-if neverSnapToGrid then
-    snappedOrigPPQpos = mouseOrigPPQpos
-else
+    
+    
+    -----------------------------------------------------------------------------------------
+    -- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
+    -- Also get the mouse starting (vertical) value and CC lane.
+    -- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
+    -- mouseOrigCClane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
+    --    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
+    --    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
+    --
+    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
+    -- https://github.com/Jeff0S/sws/issues/783
+    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+    editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+    if not (type(isInline) == "boolean") then
+        SWS283 = true
+        isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue
+        if not isInline then
+            editor = reaper.MIDIEditor_GetActive()
+        end
+    else
+        SWS283 = false
+    end
+    -- If the mouse starts on the divider between lanes, the ramp must be drawn from either the maximum
+    --    or minimum value of the lane.  The lane is undetermined, however, so the script must loop till user moves mouse into a lane.
+    -- To optimize responsiveness, the script will do some other stuff before re-visiting the mouse position.
+    
+    -------------------------------------------------        
+    -- Get active take (MIDI editor or inline editor)
     if isInline then
-        local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseOrigPPQpos)
-        local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
-        snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
-    elseif isSnapEnabled then
-        -- If snap is enabled, we must go through several steps to find the closest grid position
-        --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
-        -- !! Note that this script does not take swing into account when calculating the grid
-        -- First, calculate this take's PPQ:
-        -- Calculate position of grid immediately before mouse position
-        QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
-        local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
-        local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
-        snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-    else 
-        -- Otherwise, destination PPQ is exact mouse position
+        take = reaper.BR_GetMouseCursorContext_Take()
+    else
+        if editor == nil then 
+            reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
+            return(false)
+        else
+            take = reaper.MIDIEditor_GetTake(editor)
+        end
+    end
+    if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
+        reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
+        return(false)
+    end
+    item = reaper.GetMediaItemTake_Item(take)
+    if not reaper.ValidatePtr(item, "MediaItem*") then 
+        reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
+        return(false)
+    end
+    
+    
+    -------------------------------------------------------------------
+    -- Events will be inserted in the active channel of the active take
+    if isInline then
+        defaultChannel = 0 -- Current versions of REAPER do not provide API access to inline editor defaults channel.
+    else
+        defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+    end
+    
+    
+    ------------------------------------------------------------------------------------
+    -- If the CCs are being drawn in the "Tempo" track, CCs will be inserted at the MIDI 
+    --    editor's grid spacing.
+    -- In all other cases, CCs density will follow the setting in
+    -- Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".
+    local track = reaper.GetMediaItemTake_Track(take)
+    local trackNameOK, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+    
+    if trackName == "Tempo" then
+        local QNperCC = reaper.MIDI_GetGrid(take)
+        CCdensity = math.floor((1/QNperCC) + 0.5)
+    else
+        CCdensity = reaper.SNM_GetIntConfigVar("midiCCdensity", 32)
+        CCdensity = m_floor(math.max(4, math.min(128, math.abs(CCdensity)))) -- If user selected "Zoom dependent", density<0
+    end
+    local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+    PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
+    PPperCC = PPQ/CCdensity -- Not necessarily an integer!
+    firstCCinTakePPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, math.ceil(startQN*CCdensity)/CCdensity)
+    
+    
+    ---------------------------------------------------------------------------------------
+    -- Unlike the scripts that edit and change existing events, this scripts does not need
+    --    to do any parsing before starting drawing.
+    -- Parsing (and deletion) will be performed at the end, in the onexit function.
+    gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+    if gotAllOK then
+        MIDIlen = MIDIstring:len()
+        originalOffset = string.unpack("i4", MIDIstring, 1)
+        --MIDIstringSub5 = MIDIstring:sub(5) -- In new version that deselects CCs in target lane before drawing, MIDIstringSub5 will be defined later, after deselection
+    else -- if not gotAllOK
+        reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
+        return false 
+    end
+    
+    
+    ---------------------------------------------------------------------------------
+    -- Get last PPQ position of take.
+    -- 1) The MIDI events of the line will be inserted at the end of the MIDI string,
+    --    so the PPQ offsets must be calculated from the last PPQ position in take.
+    
+    -- 2) The crucial BR_GetMouseCursorContext function gets slower and slower 
+    --    as the number of events in the take increases.
+    -- Therefore, this script will speed up the function by 'clearing' the 
+    --    take of all MIDI *before* calling the function!
+    -- To do so, MIDI_SetAllEvts will be run with no events except the
+    --    All-Notes-Off message that should always terminate the MIDI stream, 
+    --    and which marks the position of the end of the MIDI source.
+    -- Instead of parsing the entire MIDI stream to get the final PPQ position,
+    --    simply get the source length.
+    
+    -- 3) In addition, the source length will be saved and checked again at the end of
+    --    the script, to check that no inadvertent shifts in PPQ position happened.
+    sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
+    AllNotesOffString = s_pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
+    MIDIstringWithoutNotesOff = MIDIstring:sub(1, -13)
+    lastOrigMIDIPPQpos = sourceLengthTicks - s_unpack("i4", MIDIstring, -12)
+    
+    
+    -----------------------------------------------------------------------------------------------
+    -- Get the starting PPQ (horizontal) position of the ramp.  Must check whether snap is enabled.
+    -- Also, contract to position within item, and then divide by source length to get position
+    --    within first loop iteration.
+    mouseOrigPPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position())
+    local itemLengthTicks = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
+    mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off, so subtract 1.
+    loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
+    mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
+    mouseOrigPPQpos = m_floor(mouseOrigPPQpos + 0.5)
+    
+    if isInline then
+        isSnapEnabled = false
+    else
+        isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
+    end
+    
+    if neverSnapToGrid then
         snappedOrigPPQpos = mouseOrigPPQpos
-    end 
-end
-
-
-----------------------------------------------------------------------------------------------------------
--- Returning to the CC lane...
--- As mentioned above, if the mouse starts on the divider between lanes, the lane is undetermined, 
---    so the script must loop till the user moves the mouse into a lane.
--- To optimize responsiveness, the script has done some other stuff before re-visiting the mouse position.
-if mouseOrigCCvalue == -1 then
-    mouseStartedOnLaneDivider = true
-    repeat
-        window, segment, details = reaper.BR_GetMouseCursorContext()
-        if SWS283 == true then
-            isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+    else
+        if isInline then
+            local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseOrigPPQpos)
+            local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
+            snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
+        elseif isSnapEnabled then
+            -- If snap is enabled, we must go through several steps to find the closest grid position
+            --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
+            -- !! Note that this script does not take swing into account when calculating the grid
+            -- First, calculate this take's PPQ:
+            -- Calculate position of grid immediately before mouse position
+            QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
+            local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
+            local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+            snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
         else 
-            _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-        end  
-    until details ~= "cc_lane" or mouseOrigCCvalue ~= -1
-end
-if details ~= "cc_lane" then return end
-
--- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
---     require somewhat different tweaks, these must often be 
---     distinguished.   
-if 0 <= mouseOrigCClane and mouseOrigCClane <= 127 then -- CC, 7 bit (single lane)
-    laneIsCC7BIT = true
-    laneMax = 127
-    laneMin = 0
-elseif mouseOrigCClane == 0x203 then -- Channel pressure
-    laneIsCHPRESS = true
-    laneMax = 127
-    laneMin = 0
-elseif 256 <= mouseOrigCClane and mouseOrigCClane <= 287 then -- CC, 14 bit (double lane)
-    laneIsCC14BIT = true
-    laneMax = 16383
-    laneMin = 0
-elseif mouseOrigCClane == 0x201 then
-    laneIsPITCH = true
-    laneMax = 16383
-    laneMin = 0
-else -- not a lane type in which script can be used.
-    reaper.ShowMessageBox("This script will only work in the following MIDI lanes: \n * 7-bit CC, \n * 14-bit CC, \n * Pitch, or\n * Channel Pressure.", "ERROR", 0)
-    return(0)
-end
-
--- If mouse started on divider between lanes, ensure that ramp will be drawn from either max or min value of lane. 
-if mouseStartedOnLaneDivider then
-    if mouseOrigCCvalue > (laneMax + laneMin)/2 then
-        mouseOrigCCvalue = laneMax
-    else 
-        mouseOrigCCvalue = laneMin
+            -- Otherwise, destination PPQ is exact mouse position
+            snappedOrigPPQpos = mouseOrigPPQpos
+        end 
     end
-end
-
-
-----------------------------------------------------------------------------
--- Parse MIDI string and chase starting values.
-
--- Unfortunately, there are two problems that this script has to circumvent:
--- 1) If the new MIDI is concatenated to the front of MIDIstring, selected events
---    that are later in the string, will overwrite the line's CC bars.
--- 2) If the new MIDI is concatenated to the end of MIDIstring, the MIDI editor
---    may forget to the draw these CCs, if earlier CCs that are earlier in the
---    stream go offscreen.  http://forum.cockos.com/showthread.php?t=189343
--- This script will therefore do the following:
---    The new MIDI will be concatenated in front, but all CCs in the target lane
---    will temporarily be deselected.
-
--- Since the entire MIDI string must in any case be parsed here, in order to 
---    deselect, lastChasedValue and nextChasedValue will also be calculated.
--- If doChase == false, they will eventually be replaced by mouseOrigCCvalue.
-
--- By default (if not doChase, or if no pre-existing CCs are found),
---    use mouse starting values.    
--- 14-bit CC must determine both MSB and LSB.  If no LSB is found, simply use 0 as default.
-local lastChasedMSB, nextChasedMSB
-local lastChasedLSB, nextChasedLSB
-
--- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
---    Instead, only changed (i.e. deselected) events will be re-packed and inserted individually, while unchanged events
---    will be inserted as bulk blocks of unchanged sub-strings.
-local runningPPQpos = 0 -- The MIDI string only provides the relative offsets of each event, so the actual PPQ positions must be calculated by iterating through all events and adding their offsets
-local prevPos, nextPos, unchangedPos = 1, 1, 1 -- unchangedPos is starting position of block of unchanged MIDI.
-local offset, flags, msg
-local mustDeselect
-local tableEvents = {} -- All events will be stored in this table until they are concatened again
-local t = 0 -- Count index in table.  It is faster to use tableEvents[t] = ... than table.insert(...
     
--- Iterate through all the (original) MIDI in the take, searching for events closest to snappedOrigPPQpos
--- MOTE: This function assumes that the MIDI is sorted.  This should almost always be true, unless there 
---    is a bug, or a previous script has neglected to re-sort the data.
--- Even a tiny edit in the MIDI editor induced the editor to sort the MIDI.
--- By assuming that the MIDI is sorted, the script avoids having to call the slow MIDI_sort function, 
---    and also avoids making any edits to the take at this point.
-while nextPos <= MIDIlen do
-
-    prevPos = nextPos    
-    offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, nextPos)
+    
+    ----------------------------------------------------------------------------------------------------------
+    -- Returning to the CC lane...
+    -- As mentioned above, if the mouse starts on the divider between lanes, the lane is undetermined, 
+    --    so the script must loop till the user moves the mouse into a lane.
+    -- To optimize responsiveness, the script has done some other stuff before re-visiting the mouse position.
+    if mouseOrigCCvalue == -1 then
+        mouseStartedOnLaneDivider = true
+        repeat
+            window, segment, details = reaper.BR_GetMouseCursorContext()
+            if SWS283 == true then
+                isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+            else 
+                _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+            end  
+        until details ~= "cc_lane" or mouseOrigCCvalue ~= -1
+    end
+    if details ~= "cc_lane" then return end
+    
+    -- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
+    --     require somewhat different tweaks, these must often be 
+    --     distinguished.   
+    if 0 <= mouseOrigCClane and mouseOrigCClane <= 127 then -- CC, 7 bit (single lane)
+        laneIsCC7BIT = true
+        laneMax = 127
+        laneMin = 0
+    elseif mouseOrigCClane == 0x203 then -- Channel pressure
+        laneIsCHPRESS = true
+        laneMax = 127
+        laneMin = 0
+    elseif 256 <= mouseOrigCClane and mouseOrigCClane <= 287 then -- CC, 14 bit (double lane)
+        laneIsCC14BIT = true
+        laneMax = 16383
+        laneMin = 0
+    elseif mouseOrigCClane == 0x201 then
+        laneIsPITCH = true
+        laneMax = 16383
+        laneMin = 0
+    else -- not a lane type in which script can be used.
+        reaper.ShowMessageBox("This script will only work in the following MIDI lanes: \n * 7-bit CC, \n * 14-bit CC, \n * Pitch, or\n * Channel Pressure.", "ERROR", 0)
+        return(0)
+    end
+    
+    -- If mouse started on divider between lanes, ensure that ramp will be drawn from either max or min value of lane. 
+    if mouseStartedOnLaneDivider then
+        if mouseOrigCCvalue > (laneMax + laneMin)/2 then
+            mouseOrigCCvalue = laneMax
+        else 
+            mouseOrigCCvalue = laneMin
+        end
+    end
+    
+    
+    ----------------------------------------------------------------------------
+    -- Parse MIDI string and chase starting values.
+    
+    -- Unfortunately, there are two problems that this script has to circumvent:
+    -- 1) If the new MIDI is concatenated to the front of MIDIstring, selected events
+    --    that are later in the string, will overwrite the line's CC bars.
+    -- 2) If the new MIDI is concatenated to the end of MIDIstring, the MIDI editor
+    --    may forget to the draw these CCs, if earlier CCs that are earlier in the
+    --    stream go offscreen.  http://forum.cockos.com/showthread.php?t=189343
+    -- This script will therefore do the following:
+    --    The new MIDI will be concatenated in front, but all CCs in the target lane
+    --    will temporarily be deselected.
+    
+    -- Since the entire MIDI string must in any case be parsed here, in order to 
+    --    deselect, lastChasedValue and nextChasedValue will also be calculated.
+    -- If doChase == false, they will eventually be replaced by mouseOrigCCvalue.
+    
+    -- By default (if not doChase, or if no pre-existing CCs are found),
+    --    use mouse starting values.    
+    -- 14-bit CC must determine both MSB and LSB.  If no LSB is found, simply use 0 as default.
+    local lastChasedMSB, nextChasedMSB
+    local lastChasedLSB, nextChasedLSB
+    
+    -- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
+    --    Instead, only changed (i.e. deselected) events will be re-packed and inserted individually, while unchanged events
+    --    will be inserted as bulk blocks of unchanged sub-strings.
+    local runningPPQpos = 0 -- The MIDI string only provides the relative offsets of each event, so the actual PPQ positions must be calculated by iterating through all events and adding their offsets
+    local prevPos, nextPos, unchangedPos = 1, 1, 1 -- unchangedPos is starting position of block of unchanged MIDI.
+    local offset, flags, msg
+    local mustDeselect
+    local tableEvents = {} -- All events will be stored in this table until they are concatened again
+    local t = 0 -- Count index in table.  It is faster to use tableEvents[t] = ... than table.insert(...
         
-    mustDeselect = false
-    -- For backward chase, CC must be *before* snappedOrigPPQpos
-    -- For forward chase, CC can be after *or at* snappedOrigPPQpos
-    runningPPQpos = runningPPQpos + offset
-    if msg:len() >= 2 then
-        local msg1 = msg:byte(1)
-        local msg2 = msg:byte(2)
-        if laneIsCC7BIT then 
-            if msg1>>4 == 11 and msg2 == mouseOrigCClane then 
-                if flags&1 == 1 then mustDeselect = true end
-                if msg1&0x0F  == defaultChannel then
-                    if runningPPQpos < snappedOrigPPQpos then lastChasedValue = msg:byte(3) 
-                    elseif not nextChasedValue then nextChasedValue = msg:byte(3)
-                    end
-                end
-            end
-        elseif laneIsPITCH then 
-            if msg1>>4 == 14 then 
-                if flags&1 == 1 then mustDeselect = true end
-                if msg1&0x0F == defaultChannel then
-                    if runningPPQpos < snappedOrigPPQpos then lastChasedValue = ((msg:byte(3))<<7) | msg2 
-                    elseif not nextChasedValue then nextChasedValue = ((msg:byte(3))<<7) | msg2 
-                    end
-                end
-            end
-        elseif laneIsCC14BIT then -- Should the script ignore LSB?
-            if msg1>>4 == 11 then
-                if msg2 == mouseOrigCClane-256 then 
-                    if flags&1 == 1 then mustDeselect = true end
-                    if msg1&0x0F == defaultChannel then
-                        if runningPPQpos < snappedOrigPPQpos then lastChasedMSB = msg:byte(3)
-                        elseif not nextChasedMSB then nextChasedMSB = msg:byte(3)
-                        end
-                    end
-                elseif msg2 == mouseOrigCClane-224 then 
-                    if flags&1 == 1 then mustDeselect = true end
-                    if msg1&0x0F == defaultChannel then
-                        if runningPPQpos < snappedOrigPPQpos then lastChasedLSB = msg:byte(3)
-                        elseif not nextChasedLSB then nextChasedLSB = msg:byte(3)
-                        end
-                    end
-                end
-            end
-        elseif laneIsCHPRESS then 
-            if msg1>>4 == 13 then 
-                if flags&1 == 1 then mustDeselect = true end
-                if msg1&0x0F == defaultChannel then
-                    if runningPPQpos < snappedOrigPPQpos then lastChasedValue = msg2 
-                    elseif not nextChasedValue then nextChasedValue = msg2 
-                    end
-                end
-            end
-        end
-    end -- if msg:len() >= 2
+    -- Iterate through all the (original) MIDI in the take, searching for events closest to snappedOrigPPQpos
+    -- MOTE: This function assumes that the MIDI is sorted.  This should almost always be true, unless there 
+    --    is a bug, or a previous script has neglected to re-sort the data.
+    -- Even a tiny edit in the MIDI editor induced the editor to sort the MIDI.
+    -- By assuming that the MIDI is sorted, the script avoids having to call the slow MIDI_sort function, 
+    --    and also avoids making any edits to the take at this point.
+    while nextPos <= MIDIlen do
     
-    if mustDeselect then
-        if unchangedPos < prevPos then
+        prevPos = nextPos    
+        offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, nextPos)
+            
+        mustDeselect = false
+        -- For backward chase, CC must be *before* snappedOrigPPQpos
+        -- For forward chase, CC can be after *or at* snappedOrigPPQpos
+        runningPPQpos = runningPPQpos + offset
+        if msg:len() >= 2 then
+            local msg1 = msg:byte(1)
+            local msg2 = msg:byte(2)
+            if laneIsCC7BIT then 
+                if msg1>>4 == 11 and msg2 == mouseOrigCClane then 
+                    if flags&1 == 1 then mustDeselect = true end
+                    if msg1&0x0F  == defaultChannel then
+                        if runningPPQpos < snappedOrigPPQpos then lastChasedValue = msg:byte(3) 
+                        elseif not nextChasedValue then nextChasedValue = msg:byte(3)
+                        end
+                    end
+                end
+            elseif laneIsPITCH then 
+                if msg1>>4 == 14 then 
+                    if flags&1 == 1 then mustDeselect = true end
+                    if msg1&0x0F == defaultChannel then
+                        if runningPPQpos < snappedOrigPPQpos then lastChasedValue = ((msg:byte(3))<<7) | msg2 
+                        elseif not nextChasedValue then nextChasedValue = ((msg:byte(3))<<7) | msg2 
+                        end
+                    end
+                end
+            elseif laneIsCC14BIT then -- Should the script ignore LSB?
+                if msg1>>4 == 11 then
+                    if msg2 == mouseOrigCClane-256 then 
+                        if flags&1 == 1 then mustDeselect = true end
+                        if msg1&0x0F == defaultChannel then
+                            if runningPPQpos < snappedOrigPPQpos then lastChasedMSB = msg:byte(3)
+                            elseif not nextChasedMSB then nextChasedMSB = msg:byte(3)
+                            end
+                        end
+                    elseif msg2 == mouseOrigCClane-224 then 
+                        if flags&1 == 1 then mustDeselect = true end
+                        if msg1&0x0F == defaultChannel then
+                            if runningPPQpos < snappedOrigPPQpos then lastChasedLSB = msg:byte(3)
+                            elseif not nextChasedLSB then nextChasedLSB = msg:byte(3)
+                            end
+                        end
+                    end
+                end
+            elseif laneIsCHPRESS then 
+                if msg1>>4 == 13 then 
+                    if flags&1 == 1 then mustDeselect = true end
+                    if msg1&0x0F == defaultChannel then
+                        if runningPPQpos < snappedOrigPPQpos then lastChasedValue = msg2 
+                        elseif not nextChasedValue then nextChasedValue = msg2 
+                        end
+                    end
+                end
+            end
+        end -- if msg:len() >= 2
+        
+        if mustDeselect then
+            if unchangedPos < prevPos then
+                t = t + 1
+                tableEvents[t] = MIDIstring:sub(unchangedPos, prevPos-1)
+            end
             t = t + 1
-            tableEvents[t] = MIDIstring:sub(unchangedPos, prevPos-1)
-        end
-        t = t + 1
-        tableEvents[t] = s_pack("i4Bs4", offset, flags&0xFE, msg)
-        unchangedPos = nextPos
-    end 
+            tableEvents[t] = s_pack("i4Bs4", offset, flags&0xFE, msg)
+            unchangedPos = nextPos
+        end 
+        
+    end -- while nextPos <= MIDIlen    
     
-end -- while nextPos <= MIDIlen    
-
--- Iteration complete.  Write the last block of remaining events to table.
---t = t + 1
---tableEvents[t] = MIDIstring:sub(unchangedPos)
---MIDIstringSub5 = table.concat(tableEvents):sub(5)
-MIDIstringSub5 = (table.concat(tableEvents) .. MIDIstring:sub(unchangedPos)):sub(5)
-
--- Finalize chased values, and combine 14-bit CC chased values, if necessary
-if not doChase then
-    lastChasedValue = mouseOrigCCvalue
-    nextChasedValue = mouseOrigCCvalue
-else
-    if laneIsCC14BIT then
-        if not lastChasedLSB then lastChasedLSB = 0 end
-        if not nextChasedLSB then nextChasedLSB = 0 end
-        if lastChasedMSB then lastChasedValue = (lastChasedMSB<<7) + lastChasedLSB end
-        if nextChasedMSB then nextChasedValue = (nextChasedMSB<<7) + nextChasedLSB end
+    -- Iteration complete.  Write the last block of remaining events to table.
+    --t = t + 1
+    --tableEvents[t] = MIDIstring:sub(unchangedPos)
+    --MIDIstringSub5 = table.concat(tableEvents):sub(5)
+    MIDIstringSub5 = (table.concat(tableEvents) .. MIDIstring:sub(unchangedPos)):sub(5)
+    
+    -- Finalize chased values, and combine 14-bit CC chased values, if necessary
+    if not doChase then
+        lastChasedValue = mouseOrigCCvalue
+        nextChasedValue = mouseOrigCCvalue
+    else
+        if laneIsCC14BIT then
+            if not lastChasedLSB then lastChasedLSB = 0 end
+            if not nextChasedLSB then nextChasedLSB = 0 end
+            if lastChasedMSB then lastChasedValue = (lastChasedMSB<<7) + lastChasedLSB end
+            if nextChasedMSB then nextChasedValue = (nextChasedMSB<<7) + nextChasedLSB end
+        end
+        if not lastChasedValue then lastChasedValue = mouseOrigCCvalue end
+        if not nextChasedValue then nextChasedValue = mouseOrigCCvalue end
     end
-    if not lastChasedValue then lastChasedValue = mouseOrigCCvalue end
-    if not nextChasedValue then nextChasedValue = mouseOrigCCvalue end
-end
-  
+      
+    
+    ----------------------------------------------------------
+    -- Give values to variables that will be used in onexit(), 
+    -- in case the deferred drawing function quits before completing a single loop
+    snappedNewPPQpos = snappedOrigPPQpos
+    lineLeftPPQpos  = snappedOrigPPQpos 
+    lineRightPPQpos = snappedOrigPPQpos
+    lineLeftValue   = lastChasedValue
+    lineRightValue  = lastChasedValue
+    
+    ---------------------------------------------------------------------------
+    -- Must the mouse cursor be changed to indicate that the script is running?
+    -- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+    -- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+    --    and this may appear inelegant to the user.
+    if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+        mustDrawCustomCursor = false
+    else
+        mustDrawCustomCursor = true
+    end
+    
+    ----------------------------------------------------------------------------------
+    -- OK, all tests passed, and the script wil now start making changes to the take, 
+    --    so toggle toolbar button (if any) and define atexit with its Undo statements
+    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
+        reaper.SetToggleCommandState(sectionID, cmdID, 1)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+    
+    reaper.atexit(onexit)
+    
+    
+    -------------------------------------------------------------
+    -- Finally, start running the loop!
+    -- (But first, reset the mousewheel movement.)
+    is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
+    
+    loop_trackMouseMovement()
 
-----------------------------------------------------------
--- Give values to variables that will be used in onexit(), 
--- in case the deferred drawing function quits before completing a single loop
-snappedNewPPQpos = snappedOrigPPQpos
-lineLeftPPQpos  = snappedOrigPPQpos 
-lineRightPPQpos = snappedOrigPPQpos
-lineLeftValue   = lastChasedValue
-lineRightValue  = lastChasedValue
+end -- function main()
 
----------------------------------------------------------------------------
--- Must the mouse cursor be changed to indicate that the script is running?
--- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
--- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
---    and this may appear inelegant to the user.
-if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
-    mustDrawCustomCursor = false
-else
-    mustDrawCustomCursor = true
-end
-
-----------------------------------------------------------------------------------
--- OK, all tests passed, and the script wil now start making changes to the take, 
---    so toggle toolbar button (if any) and define atexit with its Undo statements
-_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
-    reaper.SetToggleCommandState(sectionID, cmdID, 1)
-    reaper.RefreshToolbar2(sectionID, cmdID)
-end
-
-reaper.atexit(onexit)
-
-
--------------------------------------------------------------
--- Finally, start running the loop!
--- (But first, reset the mousewheel movement.)
-is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-
-loop_trackMouseMovement()
+main()
