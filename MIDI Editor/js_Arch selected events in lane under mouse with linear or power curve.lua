@@ -122,7 +122,7 @@ About:
     -- The speed/resolution of arching using mousewheel. 
     --    Lower values imply finer resolution but slower speed.
     --    Usable values are 0.01 ... 0.1.
-    archResolution = 0.05
+    archResolution = 0.1
     
 -- End of USER AREA   
 
