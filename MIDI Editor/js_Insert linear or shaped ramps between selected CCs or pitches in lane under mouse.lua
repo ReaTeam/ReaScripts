@@ -119,7 +119,7 @@ About:
 ]] 
 
 --[[
- Changelog:
+  Changelog:
   * v1.0 (2016-05-15)
     + Initial Release.
   * v1.1 (2016-05-18)
