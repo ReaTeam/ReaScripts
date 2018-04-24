@@ -7,7 +7,7 @@ Screenshot: http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%2
 REAPER version: 5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
-Provides: Provides: [main=main,midi_editor,midi_inlineeditor] .
+Provides: [main=main,midi_editor,midi_inlineeditor] .
 About: 
   # Description
 
