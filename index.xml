@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5c6b6add36b09cff8dba52774a971f04a50f6706" name="ReaTeam Scripts">
+<index version="1" commit="bbd740bb0139b74003d1c16e2a36a359fb5e876e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1756,7 +1756,7 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e960e584c06098708b5a278f5f29777f94bc5cd2/Items%20Editing/js_Area%20selection%20-%20Cycle%20between%20inserting%20and%20deleting%20temporary%20empty%20items.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (excluding hidden track envelopes).lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (excluding hidden track envelopes).lua">
+    <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (exclude hidden envelopes).lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (exclude hidden envelopes).lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -1773,9 +1773,9 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
         <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
-      <version name="0.91" author="juliansader" time="2017-10-14T11:29:59Z">
+      <version name="0.91" author="juliansader" time="2018-04-22T19:45:50Z">
         <changelog><![CDATA[+ New version that excludes hidden track envelopes.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ccd50ddd990ed91d39e35be5749dd20811aad406/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor%20(excluding%20hidden%20track%20envelopes).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbd83a726a2346755425aa00187bf15e5d63f157/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor%20(exclude%20hidden%20envelopes).lua</source>
       </version>
     </reapack>
     <reapack name="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua" type="script" desc="js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor.lua">
@@ -2672,7 +2672,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="3.22" author="juliansader" time="2018-04-15T21:50:51Z">
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c91378e7157c2ed037cd1d4fab9f974aad405eea/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/299c36e29cef858f8e4dc68c7a9c6ccedd2ffa03/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with sine curve.lua" type="script" desc="js_Arch selected events in lane under mouse with sine curve.lua">
@@ -2751,7 +2751,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="3.22" author="juliansader" time="2018-04-15T21:51:09Z">
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/579cb3870291836ec0cc085c70249c1d52540df0/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4508975c514caa3bbb4bb3e26fe64eb8099cc149/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script" desc="js_Compress or expand selected CC or velocity events using mousewheel.lua">
@@ -2921,7 +2921,7 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script\line "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script requires:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a keyboard shortcut to start the script, as well as\par}
@@ -2946,8 +2946,8 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from linear to any power curve, by changing the "defaultShapePower" parameter. To set the default shape to parabolic, use 2 or 0.5.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, run the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
@@ -3031,6 +3031,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3a4b03aed19550e89441773ffebd859123275e01/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.33" author="juliansader" time="2018-04-22T19:41:44Z">
+        <changelog><![CDATA[+ Skipping redundant events can be toggled by separate script.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4afb9d71325ece40657c979a5487ce10b0a9d018/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -3047,7 +3051,7 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script\line "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script requires:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a keyboard shortcut to start the script, as well as\par}
@@ -3072,8 +3076,8 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from linear to any power curve, by changing the "defaultShapePower" parameter. To set the default shape to parabolic, use 2 or 0.5.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, run the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
@@ -3148,6 +3152,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f608cb71ea51a8d2925ba18fb4f79f3a11795558/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
+      <version name="3.33" author="juliansader" time="2018-04-22T19:41:44Z">
+        <changelog><![CDATA[+ Skipping redundant events can be toggled by separate script.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/cfa5a1085d6c951c6151d7b2419950379f2192a7/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
       <metadata>
@@ -3164,7 +3172,7 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script\line "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script requires:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a keyboard shortcut to start the script, as well as\par}
@@ -3189,8 +3197,8 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from linear to any power curve, by changing the "defaultShapePower" parameter. To set the default shape to parabolic, use 2 or 0.5.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, run the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
@@ -3247,6 +3255,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5426812030dbc8ad110cf7b2095934e63f6f5be8/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.33" author="juliansader" time="2018-04-22T19:41:44Z">
+        <changelog><![CDATA[+ Skipping redundant events can be toggled by separate script.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f265446f504ca6ac5d94546177e84a8d02e3a7c6/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
       <metadata>
@@ -3263,7 +3275,7 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC).\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script\line "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script requires:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a keyboard shortcut to start the script, as well as\par}
@@ -3288,8 +3300,8 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The default ramp shape can be changed from linear to any power curve, by changing the "defaultShapePower" parameter. To set the default shape to parabolic, use 2 or 0.5.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, set the "skipRedundant" parameter.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable skipping of redundant CCs, run the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
@@ -3345,6 +3357,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="3.31" author="juliansader" time="2018-04-15T21:54:38Z">
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8ea02549cb2a09e52a2152c4de130ef1a62c951a/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.33" author="juliansader" time="2018-04-22T19:41:44Z">
+        <changelog><![CDATA[+ Skipping redundant events can be toggled by separate script.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/07c2debd45d46801365a359d738d73ec4daf07cb/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -3462,7 +3478,7 @@ Renumber markers and regions when pasting]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f1fb685b630ce0f2d7035d8734cfe9d4dc6e4c5a/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua">
+    <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert ramps between selected CCs in lane under mouse (use mouse and mousewheel to shape ramps).lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -3483,7 +3499,7 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap-to-grid is DISabled, new CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Any extraneous CCs between selected events will deleted.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By default, newly inserted CCs will be selected. (Can be changed in the script's USER AREA.)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By default, redundant events will be skipped. (Can be changed in the script's USER AREA.)\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Select the "node" CCs between which ramps will be inserted.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Position mouse over the target CC lane (in the case of notes, either the notes area or the velocity lane).\par}
@@ -3567,96 +3583,9 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Script starts a little faster.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/af4297a88b962cae9e92f91c08b4e6482f85d2da/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
-    </reapack>
-    <reapack name="js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua" type="script" desc="js_Insert linear ramps between selected CCs or pitches in lane under mouse (without dialog box).lua">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script is a version of the original "Insert linear or shaped ramps between selected CCs or pitches in lane under mouse" script that skips the dialog box and simply inserts linear ramps with default settings. (NOTE that the default ramp properties and shapes can be customized in the script's USER AREA.)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Useful for quickly adding ramps between 'nodes'.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Useful for smoothing transitions between CCs that were drawn at low resolution.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 If the "showDialogBox" option is set to "true" in the USER AREA, the script will start with a dialog box in which the user can set:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the lane to use ("under mouse" at start of script, or "last clicked")\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the CC density (using either the MIDI editor's grid or the default value in Preferences -> CC density),\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the shape of the ramp (as a sine, linear or power function),\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab whether the new events should be selected, and\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab whether redundant events should be skipped.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (Any extraneous CCs between selected events are deleted)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In the velocity lane, the script will not insert new notes, but will set velocities of existing notes to ramp from leftmost and rightmost notes.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 For faster one-click execution, skip the dialog box by setting "showDialogBox" to "false" in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp properties can also be defined in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Combine with warping script to easily insert all kinds of weird shapes.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse",can each be linked to a toolbar button.\sa180\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
-        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
-        <link rel="donation">https://www.paypal.me/juliansader</link>
-      </metadata>
-      <version name="3.01" author="juliansader" time="2017-02-17T14:32:29Z">
-        <changelog><![CDATA[+ Fixed bug when custom 'shape' is number.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8f69e2938e8e8b502ed9e3cc3a3a2d37c2f40dc7/MIDI%20Editor/js_Insert%20linear%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20(without%20dialog%20box).lua</source>
-      </version>
-      <version name="3.02" author="juliansader" time="2017-03-14T01:35:41Z">
-        <changelog><![CDATA[+ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing.   ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Insert%20linear%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20(without%20dialog%20box).lua</source>
-      </version>
-    </reapack>
-    <reapack name="js_Insert ramps between selected CCs or velocities (in last clicked lane, without dialog box, at grid spacing).lua" type="script" desc="js_Insert ramps between selected CCs or velocities (in last clicked lane, without dialog box, at grid spacing).lua">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Useful for quickly adding ramps between 'nodes'.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Useful for smoothing transitions between CCs that were drawn at low resolution.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This version of the script uses the following presets:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The dialog box is skipped, to allow quick one-click execution.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The lane in which CCs will be inserted (or velocities altered) is the last clicked lane.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The CC density will follow the MIDI editor's grid.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The shape of the ramp is linear.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Newly inserted CCs will be selected.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Redundant events will be skipped.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (Any extraneous CCs between selected events are deleted)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In the velocity lane, the script will not insert new notes, but will set velocities of existing notes to ramp from leftmost and rightmost notes.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 For faster one-click execution, skip the dialog box by setting "showDialogBox" to "false" in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default ramp properties can also be defined in the USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Combine with warping script to easily insert all kinds of weird shapes.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse",can each be linked to a toolbar button.\sa180\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
-        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
-        <link rel="donation">https://www.paypal.me/juliansader</link>
-      </metadata>
-      <version name="3.00" author="juliansader" time="2017-01-15T19:35:59Z">
-        <changelog><![CDATA[+ Script will work in inline editor.
-+ Script will work in looped takes.
-+ Script will work with multiple channel (each channel will be ramped separately).
-+ Much faster execution, particularly in takes with many thousands of MIDI events.
-+ Requires REAPER v5.32 or later.
-+ In velocity lane, will set velocities of existing notes to ramp from leftmost and rightmost notes.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Insert%20ramps%20between%20selected%20CCs%20or%20velocities%20(in%20last%20clicked%20lane,%20without%20dialog%20box,%20at%20grid%20spacing).lua</source>
-      </version>
-      <version name="3.02" author="juliansader" time="2017-03-14T01:35:41Z">
-        <changelog><![CDATA[+ In Tempo track, insert CCs (tempos) at MIDI editor grid spacing. ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/adfb851389fcf8f042e619ea5c2d2015fb0f811e/MIDI%20Editor/js_Insert%20ramps%20between%20selected%20CCs%20or%20velocities%20(in%20last%20clicked%20lane,%20without%20dialog%20box,%20at%20grid%20spacing).lua</source>
+      <version name="3.33" author="juliansader" time="2018-04-24T13:10:39Z">
+        <changelog><![CDATA[+ Skipping redundant events can be toggled by separate script.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/bbd740bb0139b74003d1c16e2a36a359fb5e876e/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua">
@@ -4633,6 +4562,29 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.12" author="juliansader" time="2017-01-15T19:35:59Z">
         <changelog><![CDATA[+ Header updated to ReaPack 1.1 format.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a69980d8ec3b664f956bea0a884b42ae681fa373/MIDI%20Editor/js_Option%20-%20Switching%20active%20take%20sets%20channel%20for%20new%20events%20to%20channel%20of%20existing%20events.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Option - Toggle skip redundant events when inserting CCs.lua" type="script" desc="js_Option - Toggle skip redundant events when inserting CCs.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When inserting CCs via scripts such as\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Draw linear or curved ramps in real time\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_LFO Tool the user can choose whether redundant events (i.e. events with the same value as the preceding event) should be skipped.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script toggles the behavior of the above-mentioned scripts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (In previous versions of these scripts, the user had to edit the script file's USER AREA in order to change the behavior of the scripts. This is no longer necessary.)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2018-04-22T19:41:44Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0935819836d3dbd0e0fa013c14c8b718870069e2/MIDI%20Editor/js_Option%20-%20Toggle%20skip%20redundant%20events%20when%20inserting%20CCs.lua</source>
       </version>
     </reapack>
     <reapack name="js_Remove redundant CCs (from selected events in lane under mouse).lua" type="script" desc="js_Remove redundant CCs (from selected events in lane under mouse).lua">
@@ -7182,6 +7134,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3676c5fe35bb5032b3922284163ddb954dde5e/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST3.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST3">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST3 at the start and at the end of the FX Chain in focus\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's AB_LM VST3\sa180\par}
+}
+]]></description>
+        <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-04-24T12:42:26Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea9c63954d0fe44a905f6bdc5280085ed06017a2/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST3.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -7213,6 +7181,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.11" author="amagalma" time="2017-08-21T21:24:12Z">
         <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX"]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f26ad7c4abf157ccbf690787a990bcccdfb6a131/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle insert-remove AB_LM Level Matching VST3 to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB_LM Level Matching VST3 to focused FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST3 before and after focused FX\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's AB_LM VST3\sa180\par}
+}
+]]></description>
+        <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-04-24T12:43:21Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/782ac2b469f114d00c9b1d15ad6c56a5ef159a2e/Various/amagalma_Toggle%20insert-remove%20AB_LM%20Level%20Matching%20VST3%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
