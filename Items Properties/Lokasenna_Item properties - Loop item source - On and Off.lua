@@ -9,7 +9,7 @@ Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
     Provides dedicated "on" and "off" actions for "Item properties: Loop item source"
-Metapackage: True
+MetaPackage: true
 Provides:
     [main] . > Lokasenna_Item properties - Loop item source (on).lua
     [main] . > Lokasenna_Item properties - Loop item source (off).lua    
