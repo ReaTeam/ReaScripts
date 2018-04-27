@@ -1,0 +1,42 @@
+/*
+   * ReaScript Name: -3dB trim send levels on selected track
+   * EEL script for Cockos REAPER
+   * Author: spk77, modified by REAPER Blog
+   * Author URI: http://forum.cockos.com/member.php?u=49553
+   * Licence: GPL v3
+   * Version: 1.0
+   * comment: slight modification of spk77_Adjust all send volumes on selected track by x dB.eel
+
+*/
+  
+  dB_val = -3; // reduce 3 decibels to all sends on selected tracks
+
+trim = pow(10, dB_val / 20.0);
+
+function set_send_volumes(track, trim) local(tr_num_hw_outs, tr_num_sends, i, vol, new_vol)
+(
+  tr_num_hw_outs = GetTrackNumSends(track, 1);
+  tr_num_sends = GetTrackNumSends(track, 0);
+  i = 0;
+  loop(tr_num_sends,
+    GetTrackSendUIVolPan(track, tr_num_hw_outs + i, vol, 0);
+    new_vol = max(min(vol*trim, 4), 0);
+    SetTrackSendUIVol(track, tr_num_hw_outs + i, new_vol, 0);
+    i += 1;
+  );
+);
+
+
+function main() local(i, tr)
+(
+  i = 0;
+  loop(CountSelectedTracks(0),
+    (tr = GetSelectedTrack(0, i)) ? (
+      set_send_volumes(tr, trim);
+    );
+    i += 1;
+  );
+  Undo_OnStateChangeEx("Adjust send volumes", -1, -1);
+);
+
+main();
