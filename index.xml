@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f2a24ba072c8bd914576ff3daad31e9bcfd4a363" name="ReaTeam Scripts">
+<index version="1" commit="c61ce2edef59608547387f977006946a7c2b3288" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6584,6 +6584,16 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.02" author="juliansader" time="2016-07-22T11:02:03Z">
         <changelog><![CDATA[+ Prevent sysex events from confusing channel detector.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2dac1e58556e9e562b26de1551dcaf4ebd4a550/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
+      <version name="1.0" author="spk77, modified by REAPER Blog" time="2018-04-27T16:11:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c61ce2edef59608547387f977006946a7c2b3288/Tracks%20Properties/reaperblog_+3dB%20trim%20send%20levels%20on%20selected%20track.eel</source>
+      </version>
+    </reapack>
+    <reapack name="reaperblog_-3dB trim send levels on selected track.eel" type="script" desc="-3dB trim send levels on selected track">
+      <version name="1.0" author="spk77, modified by REAPER Blog" time="2018-04-27T16:11:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c61ce2edef59608547387f977006946a7c2b3288/Tracks%20Properties/reaperblog_-3dB%20trim%20send%20levels%20on%20selected%20track.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust all receive volumes on selected track by x dB.eel" type="script" desc="Adjust all receive volumes on selected track by x dB">
