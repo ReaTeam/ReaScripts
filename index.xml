@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c61ce2edef59608547387f977006946a7c2b3288" name="ReaTeam Scripts">
+<index version="1" commit="587748a5b00235680d6a7c3ff365c10b3e663db0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2327,6 +2327,10 @@ Renumber markers and regions when pasting]]></changelog>
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-01-22T22:09:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc7ac785008e27d4d7a726cb1a0a45f2c26b14d7/Markers/Lokasenna_Fill%20time%20selection%20with%20markers.lua</source>
+      </version>
+      <version name="1.01" author="Lokasenna" time="2018-05-02T13:53:36Z">
+        <changelog><![CDATA[Fixed: Markers were all being numbered 0.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/587748a5b00235680d6a7c3ff365c10b3e663db0/Markers/Lokasenna_Fill%20time%20selection%20with%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Go to marker 00.lua" type="script" desc="Go to marker 00">
