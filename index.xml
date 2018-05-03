@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="587748a5b00235680d6a7c3ff365c10b3e663db0" name="ReaTeam Scripts">
+<index version="1" commit="a67b9d6b36b983842decbd00fb10a12b71eb5c22" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5151,6 +5151,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="3.31" author="juliansader" time="2018-03-30T11:41:47Z">
         <changelog><![CDATA[+ Display notification about new feature.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ea5837d26470ce4c2954a8bd0b201fa93b9444d2/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="3.32" author="juliansader" time="2018-05-03T13:42:12Z">
+        <changelog><![CDATA[+ Fix reset cursor after termination when armed from toolbar.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a67b9d6b36b983842decbd00fb10a12b71eb5c22/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
