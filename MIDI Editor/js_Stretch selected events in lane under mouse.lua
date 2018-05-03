@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.31
+Version: 3.32
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -110,6 +110,8 @@ About:
     + Stretch all selected events in all lanes, if mouse starting position is over lane divider.
   * v3.31 (2018-03-29)
     + Display notification about new feature.
+  * v3.32 (2018-05-03)
+    + Fix reset cursor after termination when armed from toolbar.
 ]]
 
 ---------------------------------------
@@ -289,7 +291,7 @@ local function trackMouseAndDrawMIDI()
 
     -------------------------------------------------------------------------------------------
     -- The js_Run... script can communicate with and control the other js_ scripts via ExtState
-    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(false) end
    
     -------------------------------------------
     -- Track the new mouse (vertical) position.
