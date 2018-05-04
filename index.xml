@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a67b9d6b36b983842decbd00fb10a12b71eb5c22" name="ReaTeam Scripts">
+<index version="1" commit="a503bfbb4b01ba621c71186ca704e0927ed39d8d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1675,6 +1675,11 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       </metadata>
       <version name="1.0" author="EvilDragon" time="2017-11-27T08:51:22Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e8278bfa649101dfa0c83d1caa49f9770822bf2/Items%20Editing/ED_Set%20envelope%20to%20minimum%20value%20within%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Toggle selecting all items on the track under mouse cursor.lua" type="script" desc="Toggle selecting all items on track under mouse cursor">
+      <version name="1.0" author="EvilDragon" time="2018-05-04T16:10:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a503bfbb4b01ba621c71186ca704e0927ed39d8d/Items%20Editing/ED_Toggle%20selecting%20all%20items%20on%20the%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Unselect First-Last Selected Item.lua" type="script" desc="Unselect first/last selected item">
