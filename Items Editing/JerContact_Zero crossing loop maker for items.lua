@@ -1,5 +1,5 @@
 -- @description Zero crossing loop maker for items
--- @version 1.4
+-- @version 1.5
 -- @author JerContact
 -- @about
 --   # zero-crossing-loop-maker-for-items
@@ -10,7 +10,7 @@
 --   to happen in.  So, it's dynamic depending on the source and what the user wants.  It also does the split at a zero crossing,
 --   so perfect loops here we come!
 -- @changelog
---   + 1.4 Bug with toggle state changing and not going back to normal for default fades, fixing that
+--   + 1.5 Fixed issue with looping files that never have a zero crossing
 
 reaper.Undo_BeginBlock()
 
@@ -73,6 +73,11 @@ if item_length > 40 then
 reaper.SetEditCurPos(item_center, false, false)
 
 reaper.Main_OnCommand(41995, 0) --Move edit cursor to nearest zero crossing in items
+
+temppos = reaper.GetCursorPosition()
+if temppos==item_position or temppos==item_position+item_length then
+  reaper.SetEditCurPos(item_center, false, false)  
+end
 
 reaper.Main_OnCommand(40757, 0) --Item: Split items at edit cursor (no change selection)
 
