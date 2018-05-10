@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a503bfbb4b01ba621c71186ca704e0927ed39d8d" name="ReaTeam Scripts">
+<index version="1" commit="ee85d46aecb817dd026a8e2e855ad71da55680cd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1729,6 +1729,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.4" author="JerContact" time="2018-04-20T22:01:30Z">
         <changelog><![CDATA[+ 1.4 Bug with toggle state changing and not going back to normal for default fades, fixing that]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c6b6add36b09cff8dba52774a971f04a50f6706/Items%20Editing/JerContact_Zero%20crossing%20loop%20maker%20for%20items.lua</source>
+      </version>
+      <version name="1.5" author="JerContact" time="2018-05-10T22:34:03Z">
+        <changelog><![CDATA[+ 1.5 Fixed issue with looping files that never have a zero crossing]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ee85d46aecb817dd026a8e2e855ad71da55680cd/Items%20Editing/JerContact_Zero%20crossing%20loop%20maker%20for%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Area selection - Cycle between inserting and deleting temporary empty items.lua" type="script" desc="js_Area selection - Cycle between inserting and deleting temporary empty items.lua">
