@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7304230cc61e9ddce1c93b25ae77cd268399da47" name="ReaTeam Scripts">
+<index version="1" commit="db76456c2a7a88c8723064e948fca4242edf6fee" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3512,6 +3512,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Install and work in Inline MIDI editor.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a03425997625746537a8a5c131f66138208c46d1/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
+      <version name="2.3" author="juliansader" time="2018-05-18T16:41:55Z">
+        <changelog><![CDATA[+ Use active channel of Inline MIDI editor.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/053e0ee6e04ef01bfcdebb66988d296f03ba324b/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert ramps between selected CCs in lane under mouse (use mouse and mousewheel to shape ramps).lua">
       <metadata>
@@ -6057,6 +6061,10 @@ enter or a = Exit and apply changes\par}
       <version name="0.93" author="juliansader" time="2018-01-15T14:02:13Z">
         <changelog><![CDATA[+ If called from main MIDI editor, return focus to editor on exit]]></changelog>
         <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/141eb412e6c103a61a9bc64c7c63b93fa09184d5/MIDI%20Inline%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
+      </version>
+      <version name="0.94" author="juliansader" time="2018-05-18T16:42:24Z">
+        <changelog><![CDATA[+ Fix setting new active channel 16.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/db76456c2a7a88c8723064e948fca4242edf6fee/MIDI%20Inline%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
       </version>
     </reapack>
   </category>
