@@ -1,11 +1,12 @@
 --[[
 Reascript name:  js_Remove redundant CCs (from selected events in last clicked lane).lua
-Version: 3.10
+Version: 3.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions: SWS/S&M 2.8.3 or later
 REAPER version: 5.32 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor] .
 About:
   # Description
   
@@ -67,6 +68,8 @@ About:
   * v3.10 (2017-01-09)
     + Requires REAPER 5.32.
     + Option to analyze all events or only selected events.
+  * v3.20 (2018-05-18)
+    + "lane under mouse" and "all" scripts will install and work in Inline MIDI Editor.
 ]]
 
 -- USER AREA:
@@ -148,9 +151,7 @@ local s_pack   = string.pack
 
 -- To prevent REAPER from automatically creating an undo point, even if code does not reach own Undo_BeginBlock
 --    simply defer any function.
-function noUndo()
-end
-reaper.defer(noUndo)
+reaper.defer(function() end)
 
 -- This script does not run a loop in the background, so it can simply delete
 --    the extstate.  The other js functions do so in the exit() function.
@@ -172,26 +173,19 @@ if type(only_analyze_selected_events) ~= "boolean" then
     reaper.ShowMessageBox("The setting 'automatically_delete_muted_CCs' can only take on the values 'true' or 'false'.", "ERROR", 0)
     return(false) end   ]]
 
--- Check whether the required version of REAPER is available
-version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
-if version == nil or version < 5.32 then
+-- Check whether the required versions of REAPER and SWS are available
+if not reaper.APIExists("MIDI_GetAllEvts") then
     reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
                           .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
                           , "ERROR", 0)
     return(false)  
+elseif not reaper.APIExists("SN_FocusMIDIEditor") then -- Old versions of SWS have bug in BR_GetMouseCursorContext function
+    reaper.ShowMessageBox("This script requires an updated version of the SWS/S&M extension."
+                          .."\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org."
+                          , "ERROR", 0)
+    return(false)
 end
 
--- Check whether an editor and take are available (NOT inline) 
-editor = reaper.MIDIEditor_GetActive()
-if editor == nil then 
-    reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
-    return(false)
-end
-take = reaper.MIDIEditor_GetTake(editor)
-if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
-    reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
-    return(false)
-end
 
 -----------------------------------------------------------------------------------------------
 -- The following sections do two things:
@@ -201,57 +195,85 @@ end
 --      If the mouse is positioned over a CC lane, the script is run.
 
 if lanes_from_which_to_remove == "last clicked" then
-
+    
+    -- "Last clicked" only works in a Main MIDI editor,, not in an inline editor
+    editor = reaper.MIDIEditor_GetActive()
+        if editor == nil then 
+            reaper.MB("No active MIDI editor found.\n\n(The 'last clicked lane' version of this script only works in the main MIDI editor, not the inline editor", "ERROR", 0) 
+            return(false) 
+        end
+    take = reaper.MIDIEditor_GetTake(editor)
+        if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
+            reaper.MB("Could not find an active take in the MIDI editor.", "ERROR", 0) 
+            return(false) 
+        end
     targetLane = reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_cc_lane")
-    if targetLane == -1 then
-        reaper.ShowMessageBox("No clicked lane found in MIDI editor.\n\n"
-                    .."(Hint: To remove CCs from the lane under the mouse instead of the last clicked lane, "
-                    .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'under mouse'.)", "ERROR", 0)
-        return(false)
-    end
+        if targetLane == -1 then
+            reaper.MB("The last clicked position in the active MIDI editor was not in a CC lane.", "ERROR", 0)
+            return(false)
+        end
     
 elseif lanes_from_which_to_remove == "under mouse" then
-    -- Check whether SWS is available
-    if not reaper.APIExists("BR_GetMouseCursorContext") then
-        reaper.ShowMessageBox("In order to find the CC lane 'under mouse', the script requires the SWS/S&M extension."
-                              .."\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-        return(false) 
-    end
+
+    -- If lane under mouse, always work with editor under mouse, not reaper.MIDIEditor_GetActive
     window, segment, details = reaper.BR_GetMouseCursorContext()
-    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
-    -- https://github.com/Jeff0S/sws/issues/783
-    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-    _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-    if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-    if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-    if SWS283 ~= SWS283again then
-        reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-        return(false)
-    end
-    if SWS283 == true then
-        isInline, _, laneUnderMouse, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
-    else 
-        _, isInline, _, laneUnderMouse, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
-    end
+    editor, isInline, _, targetLane, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
     -- If window == "unknown", assume to be called from floating toolbar
     -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
     if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
         setAsNewArmedToolbarAction() --************************IMPORTANT*****************************
         return(0) 
     elseif not (details == "cc_lane" or details == "cc_selector") then 
-        reaper.ShowMessageBox("Mouse is not over a CC lane.\n\n"
-                   .."(Hint: To remove CCs from the last clicked lane instead of the lane under the mouse, "
-                   .."change the 'lanes_from_which_to_remove' setting in the USER AREA to 'last clicked'.)"
-                   , "ERROR", 0)
+        reaper.MB("Mouse is not over a CC lane.", "ERROR", 0)
         return(false)
     end
         
-    if laneUnderMouse == -1 then
-        reaper.ShowMessageBox("Could not determine lane under mouse.", "ERROR", 0)
+    if targetLane == -1 then
+        reaper.MB("Could not determine lane under mouse.", "ERROR", 0)
         return(false)
+    end
+    
+    if isInline then
+        take = reaper.BR_GetMouseCursorContext_Take()
+            if not (reaper.ValidatePtr(take, "MediaItem_Take*") and reaper.BR_IsMidiOpenInInlineEditor(take)) then
+                reaper.MB("Could not determine the take that is open in the inline MIDI editor under mouse.", "ERROR", 0) 
+                return(false) 
+            end
     else
-        targetLane = laneUnderMouse
-    end         
+        take = reaper.MIDIEditor_GetTake(editor)
+            if not reaper.ValidatePtr(take, "MediaItem_Take*") then
+                reaper.MB("Could not determine the active take in the MIDI editor.", "ERROR", 0) 
+                return(false) 
+            end
+    end
+
+else -- if lanes_from_which_to_remove == "all" then
+    
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    if window == "midi_editor" then
+        editor, isInline = reaper.BR_GetMouseCursorContext_MIDI()
+    else
+        editor, isInline = reaper.MIDIEditor_GetActive(), false
+        if editor == nil then
+            reaper.MB("Could not determine the active MIDI editor.\n\n(To run the script on an inline MIDI editor, the mouse must be positioned over the editor.)", "ERROR", 0) 
+            return(false) 
+        end
+    end
+    
+    if isInline then
+        take = reaper.BR_GetMouseCursorContext_Take()
+            if not (reaper.ValidatePtr(take, "MediaItem_Take*") and reaper.BR_IsMidiOpenInInlineEditor(take)) then
+                reaper.MB("Could not determine the take that is open in the inline MIDI editor under mouse.", "ERROR", 0) 
+                return(false) 
+            end
+    else
+        take = reaper.MIDIEditor_GetTake(editor)
+            if not reaper.ValidatePtr(take, "MediaItem_Take*") then
+                reaper.MB("Could not determine the active take in the MIDI editor.", "ERROR", 0) 
+                return(false) 
+            end
+    end
+         
 end
 
 -- Note that if lanes_from_which_to_remove == "all", each 7-bit part of 14-bit CCs will be analyzed separately,
@@ -346,7 +368,6 @@ else
         
         -- Check for unsorted MIDI
         if offset < 0 and prevPos > 1 then   
-            -- Try to sort MIDI by running one of the MIDI editor's native editing actions.
             if not haveAlreadyCorrectedOverlaps then
                 reaper.MIDI_Sort(take)
                 haveAlreadyCorrectedOverlaps = true
@@ -705,6 +726,7 @@ else
     
     -----------
     -- The End!
+    reaper.UpdateItemInProject(item)
     reaper.Undo_OnStateChange_Item(0, undoString, item)
     
 end -- if gotAllOK
