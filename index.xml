@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="db76456c2a7a88c8723064e948fca4242edf6fee" name="ReaTeam Scripts">
+<index version="1" commit="d54fb88ee884fa6ab731457ffeb5d56f62854e7b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5911,6 +5911,16 @@ Made by Mordi, Jan 2016]]></changelog>
     </reapack>
   </category>
   <category name="MIDI Inline Editor">
+    <reapack name="js_Deselect all MIDI except in active channel of inline MIDI editor under mouse.lua" type="script" desc="js_Deselect all MIDI except in active channel of inline MIDI editor under mouse.lua">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="1.10" author="juliansader" time="2018-05-18T17:28:50Z">
+        <changelog><![CDATA[+ Installs and works in Inline MIDI Editor.]]></changelog>
+        <source main="midi_inlineeditor">https://github.com/ReaTeam/ReaScripts/raw/d54fb88ee884fa6ab731457ffeb5d56f62854e7b/MIDI%20Inline%20Editor/js_Deselect%20all%20MIDI%20except%20in%20active%20channel%20of%20inline%20MIDI%20editor%20under%20mouse.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Select CC lanes to show in MIDI item under mouse.lua" type="script" desc="js_Select CC lanes to show in MIDI item under mouse.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
