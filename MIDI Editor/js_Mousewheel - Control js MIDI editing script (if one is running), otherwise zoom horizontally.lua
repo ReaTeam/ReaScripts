@@ -64,7 +64,7 @@ if isnew then
     if reaper.GetExtState("js_Mouse actions", "Status") == "Running" then     
         reaper.SetExtState("js_Mouse actions", "Mousewheel", tostring(val), false)
         
-    -- If no "under mouse" script is already running, scroll up or down.
+    -- If no "under mouse" script is already running, zoom horizontally.
     -- BUG in REAPER:  Mousewheel shortcuts don't work in inline MIDI editor, and simply passes through to Main context
     -- So, if either inline editor or arrange view, sectionID = 0
     elseif sectionID == 0 then 
