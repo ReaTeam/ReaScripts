@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a03425997625746537a8a5c131f66138208c46d1" name="ReaTeam Scripts">
+<index version="1" commit="7304230cc61e9ddce1c93b25ae77cd268399da47" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4308,6 +4308,40 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.00" author="juliansader" time="2018-05-18T09:08:42Z">
         <changelog><![CDATA[+ Initial release.]]></changelog>
         <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/82c5d9e4f6875a1a93f74f243d2f580778832762/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20scroll%20up%20or%20down.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is intended to simplify mousewheel control of the js MIDI editing scripts that respond to mousewheel movement, such as js_Compress, js_Warp, etc.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Instead of using a separate, dedicated modifier+mousewheel shortcut (such as Ctrl+mousewheel) to control the scripts, the user can use plain mousewheel without any modifier.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If one of these scripts is running, this script will send the mousewheel movement to the running script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If no js script is running, the script will simply zoom in or out horizontally, as per REAPER's default behavior for mousewheel.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script also allows mousewheel control of scripts in the inline MIDI editor: In current versions of REAPER (~v5.90), the inline editor does not respond to mousewheel shortcuts and instead passes these through the main arrange view. If this script is installed in the Action list's Main section (and linked to the mousewheel shortcut), it will control scripts running in the inline editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script works with any of these js MIDI editing scripts (and their variants):\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  ~ Compress / expand\line
+ ~ Arch\line
+ ~ 1-sided warp\line
+ ~ 2-sided warp\line
+ ~ Draw linear or curved ramp\line
+ ~ Draw sine curve\line
+ ~ Insert ramps between selected CCs\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Intall script in the Actions list's Main section and well as the MIDI Editor section.\line (If installed via ReaPack, this will be done automatically.) Don't bother installing the script in the Inline MIDI Editor section, since mousewheel shortcuts don't work in the inline editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Assign plain mousewheel movement (i.e. without any keyboard modifiers) to this script as shortcut, in both sections.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Once the js mouse edit script is running, it can be controlled by the mousewheel.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="1.00" author="juliansader" time="2018-05-18T14:54:40Z">
+        <changelog><![CDATA[+ Initial release.]]></changelog>
+        <source main="main midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7304230cc61e9ddce1c93b25ae77cd268399da47/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20zoom%20horizontally.lua</source>
       </version>
     </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
