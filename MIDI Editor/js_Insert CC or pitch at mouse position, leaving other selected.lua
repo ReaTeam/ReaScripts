@@ -1,12 +1,13 @@
 --[[
 ReaScript name: js_Insert CC or pitch at mouse position, leaving other selected.lua
-Version: 2.1
+Version: 2.2
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/27602/Insert%20CC%20or%20pitch%20at%20mouse%20position%2C%20leaving%20others%20selected.gif
 REAPER version: 5.32 or later
-Extensions: SWS/S&M 2.8.3 or later
+Extensions: SWS/S&M 2.9 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # Description  
    
@@ -53,12 +54,10 @@ About:
   * v2.1 (2017-12-15)
     + Formatted Description and Instructions for ReaPack.
     + Create undo point after each insertion.
+  * v2.2 (2018-05-18)
+    + Install and work in Inline MIDI editor.
 ]]
 
--- USER AREA
--- Setting that the user can customize 
- 
--- End of USER AREA
 
 local _, editor, take, details, mouseLane, mouseTime, mousePPQpos, startQN, PPQ, QNperGrid, mouseQNpos, 
           mousePPQpos, startQN, PPQ, QNperGrid, mouseQNpos, floorGridQN, floorGridPPQ, destPPQpos, 
@@ -117,100 +116,113 @@ end
 --------------------------------------------------------------
 -- Here the code execution starts
 --------------------------------------------------------------
--- function main()
+function main()
 
-function avoidUndo() -- Avoid automatic creation of undo point
-end
-reaper.defer(avoidUndo)
-
-reaper.DeleteExtState("js_Mouse actions", "Status", true)
-
--- function should only run if mouse is in a CC lane 
--- Mouse must be positioned in CC lane
-editor = reaper.MIDIEditor_GetActive()
-if editor == nil then return(0) end
-
-window, segment, details = reaper.BR_GetMouseCursorContext()
--- If window == "unknown", assume to be called from floating toolbar
--- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
-if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
-    setAsNewArmedToolbarAction()
-    return(0) 
-elseif details ~= "cc_lane" then 
-    return(0) 
-end
-
-take = reaper.MIDIEditor_GetTake(editor)
-if not reaper.ValidatePtr2(0, take, "MediaItem_Take*") then return(0) end
-
--- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
--- https://github.com/Jeff0S/sws/issues/783
--- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-if SWS283 ~= SWS283again then
-    reaper.ShowConsoleMsg("Error: Could not determine compatible SWS version")
-    return(0)
-end
-
-if SWS283 == true then
-    _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-else 
-    _, _, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-end
-
-if mouseCCvalue == -1 then return(0) end     
-
-
---------------------------------------------------------------------
--- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
--- 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
--- 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)"
---
--- eventType is the MIDI event type: 11=CC, 14=pitchbend, etc      
-mouseTime = reaper.BR_GetMouseCursorContext_Position()
-mouseSnapGrid = reaper.SnapToGrid(0, mouseTime)
-mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
-
-------------------------------------------------------------------------------------
--- If snapping is enabled, get the PPQ position of closest grid BEFORE mouse position
-if (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1) then
-    -- If snap is enabled, we must go through several steps to find the closest grid position
-    --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
-    -- !! Note that this script does not take swing into account when calculating the grid
-    -- First, calculate this take's PPQ:
-    startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-    PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
-    -- Calculate position of grid immediately before mouse position
-    QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
-    mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mousePPQpos) -- Mouse position in quarter notes
-    floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
-    insertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN)    
-else 
-    -- Otherwise, destination PPQ is exact mouse position
-    insertPPQpos = mousePPQpos
-end -- "snap_enabled"
-      
-selected = true
-muted = false
-channel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
-if 0 <= mouseLane and mouseLane <= 127 then -- First, test if 7-bit CC (which has no LSB
-    reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane, mouseCCvalue)
-elseif mouseLane == 0x203 then  -- channel pressure
-    reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 13<<4, channel, mouseCCvalue, 0)       
-elseif 256 <= mouseLane and mouseLane <= 287 then -- 14-bit CC's MSB
-    MSB = mouseCCvalue>>7
-    LSB = mouseCCvalue&127
-    reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane-256, MSB)
-    reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane-224, LSB) 
-elseif mouseLane == 0x201 then -- pitchwheel
-    MSB = mouseCCvalue>>7
-    LSB = mouseCCvalue&127        
-    reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 224, channel, LSB, MSB)
-else
-    return
-end
+    if not reaper.APIExists("SN_FocusMIDIEditor") then -- Old versions of SWS have bug in BR_GetMouseCursorContext function
+        reaper.ShowMessageBox("This script requires an updated version of the SWS/S&M extension."
+                              .."\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org."
+                              , "ERROR", 0)
+        return(false)
+    end
     
-reaper.MIDI_Sort(take)
-reaper.Undo_OnStateChange_Item(0, "Insert CC, leaving others selected", reaper.GetMediaItemTake_Item(take))
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    -- If window == "unknown", assume to be called from floating toolbar
+    -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+    if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+        setAsNewArmedToolbarAction()
+        return(0) 
+    elseif details ~= "cc_lane" then 
+        return(0) 
+    end
+    
+    editor, isInline, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
+    if mouseCCvalue == -1 then return(0) end  
+    
+    if isInline then
+        take = reaper.BR_GetMouseCursorContext_Take()
+        if not (reaper.ValidatePtr(take, "MediaItem_Take*") and reaper.BR_IsMidiOpenInInlineEditor(take)) then
+            reaper.MB("Could not determine the take that is open in the inline MIDI editor under mouse.", "ERROR", 0) 
+            return(false) 
+        end
+    else
+        take = reaper.MIDIEditor_GetTake(editor)
+        if not reaper.ValidatePtr(take, "MediaItem_Take*") then
+            reaper.MB("Could not determine the active take in the MIDI editor.", "ERROR", 0) 
+            return(false) 
+        end
+    end
+    
+    --------------------------------------------------------------------
+    -- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
+    -- 0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
+    -- 0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)"
+    --
+    -- eventType is the MIDI event type: 11=CC, 14=pitchbend, etc      
+    mouseTime = reaper.BR_GetMouseCursorContext_Position()
+    mouseSnapGrid = reaper.SnapToGrid(0, mouseTime)
+    mousePPQpos = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)
+    
+    ------------------------------------------------------------------------------------
+    -- If snapping is enabled, get the PPQ position of closest grid BEFORE mouse position
+    if isInline then
+        snapToGrid = (reaper.GetToggleCommandStateEx(0, 1157) == 1)
+    else
+        snapToGrid = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled") == 1)
+    end
+    if snapToGrid then
+        -- If snap is enabled, we must go through several steps to find the closest grid position
+        --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
+        -- !! Note that this script does not take swing into account when calculating the grid
+        -- First, calculate this take's PPQ:
+        startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+        PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
+        -- Calculate position of grid immediately before mouse position
+        QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
+        mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mousePPQpos) -- Mouse position in quarter notes
+        floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+        insertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN)    
+    else 
+        -- Otherwise, destination PPQ is exact mouse position
+        insertPPQpos = mousePPQpos
+    end -- "snap_enabled"
+          
+    --reaper.Undo_BeginBlock2(0)
+    selected = true
+    muted = false
+    channel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+    if 0 <= mouseLane and mouseLane <= 127 then -- First, test if 7-bit CC (which has no LSB
+        reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane, mouseCCvalue)
+    elseif mouseLane == 0x203 then  -- channel pressure
+        reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 13<<4, channel, mouseCCvalue, 0)       
+    elseif 256 <= mouseLane and mouseLane <= 287 then -- 14-bit CC's MSB
+        MSB = mouseCCvalue>>7
+        LSB = mouseCCvalue&127
+        reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane-256, MSB)
+        reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane-224, LSB) 
+    elseif mouseLane == 0x201 then -- pitchwheel
+        MSB = mouseCCvalue>>7
+        LSB = mouseCCvalue&127        
+        reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 224, channel, LSB, MSB)
+    else
+        return
+    end
+        
+    reaper.MIDI_Sort(take)    
+    
+    -- BUG: InsertCC doesn't mark items dirty!  Neither does MarkTrackItemsDirty!
+    -- There apply dummy change to selection
+    item = reaper.GetMediaItemTake_Item(take)
+    --reaper.MarkTrackItemsDirty(track, item) -- Doesn't work!
+    itemSelected = reaper.IsMediaItemSelected(item)
+    reaper.SetMediaItemSelected(item, not itemSelected)
+    reaper.SetMediaItemSelected(item, itemSelected)
+    reaper.UpdateItemInProject(item)
+    reaper.Undo_OnStateChange_Item(0, "Insert CC, leaving others selected", item)
+    
+end
+
+reaper.defer(function() end) -- Avoid automatic creation of undo point
+main()
+
