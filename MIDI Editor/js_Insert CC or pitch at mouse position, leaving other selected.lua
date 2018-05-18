@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Insert CC or pitch at mouse position, leaving other selected.lua
-Version: 2.2
+Version: 2.3
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/27602/Insert%20CC%20or%20pitch%20at%20mouse%20position%2C%20leaving%20others%20selected.gif
@@ -56,6 +56,8 @@ About:
     + Create undo point after each insertion.
   * v2.2 (2018-05-18)
     + Install and work in Inline MIDI editor.
+  * v2.3 (2018-05-18)
+    + Use active channel of Inline MIDI editor.
 ]]
 
 
@@ -153,6 +155,7 @@ function main()
             return(false) 
         end
     end
+    item = reaper.GetMediaItemTake_Item(take)
     
     --------------------------------------------------------------------
     -- mouseLane = "CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
@@ -188,10 +191,31 @@ function main()
         insertPPQpos = mousePPQpos
     end -- "snap_enabled"
           
-    --reaper.Undo_BeginBlock2(0)
-    selected = true
-    muted = false
-    channel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+          
+    -- Get active channel
+    if isInline then
+        -- REAPER's own GetItemStateChunk is buggy!  
+        -- Can't load large chunks!  So must use SWS's SNM_GetSetObjectState.
+        local fastStr = reaper.SNM_CreateFastString("")
+        local chunkOK = reaper.SNM_GetSetObjectState(item, fastStr, false, false)
+        if not chunkOK then 
+            reaper.MB("Could not load state chuck of item under mouse", "ERROR", 0)
+            return
+        end
+        chunk = reaper.SNM_GetFastString(fastStr)
+        reaper.SNM_DeleteFastString(fastStr)
+              
+        -- Find current channel and filter
+        channelStr = chunk:match("\nCFGEDIT [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ [%-%d]+ (%d+) ")
+        channel = tonumber(channelStr) or 0
+        channel = channel - 1 -- InsertCC uses channel numbers 1..16 instead of 0..15
+    else
+        channel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+    end
+  
+  
+    local selected = true
+    local muted = false
     if 0 <= mouseLane and mouseLane <= 127 then -- First, test if 7-bit CC (which has no LSB
         reaper.MIDI_InsertCC(take, selected, muted, insertPPQpos, 176, channel, mouseLane, mouseCCvalue)
     elseif mouseLane == 0x203 then  -- channel pressure
@@ -213,7 +237,6 @@ function main()
     
     -- BUG: InsertCC doesn't mark items dirty!  Neither does MarkTrackItemsDirty!
     -- There apply dummy change to selection
-    item = reaper.GetMediaItemTake_Item(take)
     --reaper.MarkTrackItemsDirty(track, item) -- Doesn't work!
     itemSelected = reaper.IsMediaItemSelected(item)
     reaper.SetMediaItemSelected(item, not itemSelected)
