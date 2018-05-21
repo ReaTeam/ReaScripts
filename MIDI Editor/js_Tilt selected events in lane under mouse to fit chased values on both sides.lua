@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Tilt selected events in lane under mouse to fit chased values on both sides.lua
-Version: 1.00
+Version: 1.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -46,6 +46,8 @@ About:
   Changelog:
   * v1.00 (2018-05-21)
     + Initial Release
+  * v1.01 (2018-05-21)
+    + Fix 14-bit CC lane maximum value.
 ]]
 
 
@@ -445,7 +447,7 @@ function main()
         laneMin = 0]]
     elseif 256 <= mouseOrigCClane and mouseOrigCClane <= 287 then -- CC, 14 bit (double lane)
         laneIsCC14BIT = true
-        laneMax = 16383
+        laneMax = 127 -- In this script, the MSB and LSB 7-bit CCs will be tilted separately, so laneMax is 127 for each.
         laneMin = 0
     --[[elseif mouseOrigCClane == 0x205 then
         laneIsTEXT = true
