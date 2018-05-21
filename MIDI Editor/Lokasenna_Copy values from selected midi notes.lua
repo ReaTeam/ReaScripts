@@ -1,10 +1,11 @@
 --[[
 Description: Copy values from selected MIDI notes
-Version: 1.01
+Version: 1.10
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Looks for notes to copy on script startup
+    Remembers the last-selected values
+    Added a small message to confirm that notes were copied
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -2893,11 +2894,10 @@ end
 
 
 function GUI.Checklist:val(newval)
-	
-	if new then
-		if type(new) == "table" then
-			for i = 1, #new do
-				self.optsel[i] = new[i]
+	if newval then
+		if type(newval) == "table" then
+			for k, v in pairs(newval) do
+				self.optsel[tonumber(k)] = v
 			end
 			self:redraw()	
 		end
@@ -3393,22 +3393,26 @@ local function btn_get()
     -- Get editor, pop up MB if no editor, etc, etc
     local hwnd = reaper.MIDIEditor_GetActive()
     if not hwnd then
-        reaper.MB("This script needs an open MIDI editor.", "Whoops!", 0)
+        if not startup then reaper.MB("This script needs an open MIDI editor.", "Whoops!", 0) end
         return
     end
 
     local take = reaper.MIDIEditor_GetTake( hwnd )
     if not take then
-        reaper.MB("No MIDI item found.", "Whoops!", 0)
+        if not startup then reaper.MB("No MIDI item found.", "Whoops!", 0) end
         return
     end
+    
+    
+
+    copied_notes = {}
 
     local idx = -2
     while idx ~= -1 do
         
         idx = reaper.MIDI_EnumSelNotes(take, idx)
         if idx == -1 then break end		
-        copied_notes[#copied_notes + 1] = {reaper.MIDI_GetNote(take, idx)}
+        copied_notes[idx+1] = {reaper.MIDI_GetNote(take, idx)}
         --[[
         note[1] = retval        boolean
             [2] = selected      boolean
@@ -3426,6 +3430,12 @@ local function btn_get()
         reaper.MB("No selected notes found.", "Whoops!", 0)
         return
     end
+    
+    --GUI.Msg("#copied_notes = " .. #copied_notes)
+    local track = reaper.GetMediaItemTake_Track(take)
+    local _, track_name = reaper.GetTrackName(track, "")
+    local item_name = reaper.GetTakeName(take)
+    GUI.Val("lbl_got", "Got " .. #copied_notes .. " notes from " .. tostring(track_name) .. ", " .. tostring(item_name))
     
     GUI.elms.frm_nope.z = 4
     GUI.elms.lbl_nope.z = 4
@@ -3455,12 +3465,18 @@ local function btn_set()
     while idx ~= -1 do
             
         idx = reaper.MIDI_EnumSelNotes(take, idx)
-        if idx == -1 then break end
+        
+        --GUI.Msg("count = " .. count)
+        
+        if idx == -1 or count == #copied_notes then break end
 
         local note = {reaper.MIDI_GetNote(take, idx)}
 
-        for i = 3, 8 do
+        --GUI.Msg("working on idx " .. idx)
 
+
+        for i = 3, 8 do
+            --GUI.Msg("copied[idx+1][i] = " .. (not not copied_notes[idx+1] and tostring(copied_notes[idx+1][i]) or "nil"))
             note[i] = opts[i - 2] and copied_notes[idx + 1][i] or note[i]
             
         end
@@ -3496,6 +3512,32 @@ local function btn_set()
 end
 
 
+local function get_ext_vals()
+    
+    local vals = {}
+    local str = reaper.GetExtState("Lokasenna_Copy values from selected midi notes", "Options")
+
+    for k in string.gmatch(str, "%d+") do
+        vals[tonumber(k)] = true
+    end
+    
+    return vals
+    
+end
+
+
+local function set_ext_vals()
+    
+    local vals = {}
+    for k, v in pairs(GUI.elms.chk_vals.optsel) do
+        if v then vals[#vals+1] = k end
+    end
+    --reaper.SetExtState( section, key, value, persist )
+    reaper.SetExtState("Lokasenna_Copy values from selected midi notes", "Options", table.concat(vals, ","), true)
+    
+end
+
+
 
 ------------------------------------
 -------- GUI Stuff -----------------
@@ -3503,14 +3545,16 @@ end
 
 
 GUI.name = "Copy values from selected MIDI notes"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 320, 288
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 320, 340
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
 GUI.New("btn_get", "Button", 3, 120, 16, 80, 24, "Copy values", btn_get)
-GUI.New("btn_set", "Button", 3, 120, 248, 80, 24, "Apply values", btn_set)
+GUI.New("btn_set", "Button", 3, 120, 288, 80, 24, "Apply values", btn_set)
 
-GUI.New("chk_vals", "Checklist", 3, 80, 56, 160, 180, "Values to apply:", "Mute,Start Position,End Position,Channel,Pitch,Velocity", "v", 6)
+GUI.New("lbl_got", "Label", 3, 16, 52, "", true, 4)
+
+GUI.New("chk_vals", "Checklist", 3, 80, 88, 160, 180, "Values to apply:", "Mute,Start Position,End Position,Channel,Pitch,Velocity", "v", 6)
 
 GUI.New("frm_nope", "Frame", 2, 0, 48, 400, 308, true, true, "wnd_bg", 0)
 GUI.New("lbl_nope", "Label", 1, 88, 96, "No notes copied", true, 2)
@@ -3526,8 +3570,27 @@ function GUI.elms.lbl_nope:init()
 
 end
 
+
+function GUI.elms.lbl_got:init()
+
+    GUI.font(self.font)
+    local str_w, str_h = gfx.measurestr(self.caption)
+    self.x = (GUI.w - str_w) / 2
+
+    GUI.Label.init(self)
+
+end
+
+startup = true
+
 -- Look for selected notes on startup.
 btn_get()
 
-xpcall(GUI.Init, GUI.crash)
+startup = false
+
+GUI.Val("chk_vals", get_ext_vals())
+
+GUI.exit = set_ext_vals
+
+GUI.Init()
 GUI.Main()
