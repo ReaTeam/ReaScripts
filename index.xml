@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d54fb88ee884fa6ab731457ffeb5d56f62854e7b" name="ReaTeam Scripts">
+<index version="1" commit="35ac64573bfa89964a2f8a14dbf17b0030caef42" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5509,6 +5509,23 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-01-06T23:17:15Z">
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4a9e1ce330b1d6bd698c669905edc4b82af96a0b/MIDI%20Editor/Lokasenna_Convert%20current%20scale%20to%20ix_scale.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Copy values from selected midi notes.lua" type="script" desc="Copy values from selected MIDI notes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Copies a set of selected MIDI notes, and applies individual values from them to other MIDI notes.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2018-05-21T01:38:30Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/35ac64573bfa89964a2f8a14dbf17b0030caef42/MIDI%20Editor/Lokasenna_Copy%20values%20from%20selected%20midi%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete all notes outside the current scale.lua" type="script" desc="Delete all notes outside the current scale">
