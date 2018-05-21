@@ -1,10 +1,10 @@
 --[[
 Description: Copy values from selected MIDI notes
-Version: 1.0
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Initial release
+    Looks for notes to copy on script startup
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -3488,7 +3488,7 @@ local function btn_set()
         reaper.MB("No selected notes found.", "Whoops!", 0)
         return
     elseif count < #copied_notes then
-        reaper.MB("Copied " .. count .. " notes to copy out of " .. #copied_notes ..".", "", 0)
+        --reaper.MB("Could only copy " .. count .. " notes out of " .. #copied_notes ..".", "", 0)
     end
     
     reaper.MIDI_Sort( take )    
@@ -3526,6 +3526,8 @@ function GUI.elms.lbl_nope:init()
 
 end
 
+-- Look for selected notes on startup.
+btn_get()
 
 xpcall(GUI.Init, GUI.crash)
 GUI.Main()
