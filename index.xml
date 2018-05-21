@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="514a67c0edc6b52aebe9145c8e40daaf660dbd08" name="ReaTeam Scripts">
+<index version="1" commit="c9c5332e3aeca62d7b4f05d799a8f128239bea45" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5530,6 +5530,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.01" author="Lokasenna" time="2018-05-21T02:24:13Z">
         <changelog><![CDATA[Looks for notes to copy on script startup]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/514a67c0edc6b52aebe9145c8e40daaf660dbd08/MIDI%20Editor/Lokasenna_Copy%20values%20from%20selected%20midi%20notes.lua</source>
+      </version>
+      <version name="1.10" author="Lokasenna" time="2018-05-21T04:09:57Z">
+        <changelog><![CDATA[Remembers the last-selected values
+Added a small message to confirm that notes were copied]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c9c5332e3aeca62d7b4f05d799a8f128239bea45/MIDI%20Editor/Lokasenna_Copy%20values%20from%20selected%20midi%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete all notes outside the current scale.lua" type="script" desc="Delete all notes outside the current scale">
