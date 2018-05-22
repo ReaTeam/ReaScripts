@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Tilt selected events in lane under mouse to fit chased values on both sides.lua
-Version: 1.01
+Version: 1.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -46,8 +46,8 @@ About:
   Changelog:
   * v1.00 (2018-05-21)
     + Initial Release
-  * v1.01 (2018-05-21)
-    + Fix 14-bit CC lane maximum value.
+  * v1.02 (2018-05-22)
+    + Small bug fixes.
 ]]
 
 
@@ -207,9 +207,9 @@ function parseAndTiltMIDI()
         while pos < #MIDI do
             offset, flags, msg, pos = string.unpack("i4Bs4", MIDI, pos)
             ticks = ticks + offset
-            if #msg == 3 and (msg:byte(1))>>4 == 12
+            if #msg == 2 and (msg:byte(1))>>4 == 12
             then
-                local val = (msg:byte(3)<<7) + msg:byte(2)
+                local val = msg:byte(2)
                 local chan = msg:byte(1)&0x0F
                 if flags&1 == 1 then 
                     if not leftSel[chan] then leftSel[chan] = val end
