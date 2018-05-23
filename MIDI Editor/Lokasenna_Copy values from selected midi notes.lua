@@ -1,13 +1,10 @@
 --[[
 Description: Copy values from selected MIDI notes
-Version: 1.15
+Version: 1.20
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Added "Strength" value for Start and Length adjustments, to allow only
-    moving notes partway from their original state
-    Allow Ctrl+Z to undo the applied values
-    Removed "End Position", replaced with "Length"    
+    Fixed crashes if the selected notes weren't at the beginning of the item
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -1995,7 +1992,7 @@ end
 GUI.triangle = function (fill, ...)
 	
 	-- Pass any calls for a filled triangle on to the original function
-	if fill == 1 then
+	if fill then
 		
 		gfx.triangle(...)
 		
@@ -3342,12 +3339,9 @@ end
 function GUI.Frame:drawtext()
     
 	if self.text and self.text:len() > 0 then
-        GUI.Msg("text exists; redrawing")
 
         if self.text ~= self.last_text then
-            GUI.Msg("text changed; rewrapping")
             self.text = self:wrap_text(self.text)
-            GUI.Msg("new text:\n" .. string.sub(tostring(self.text), 1, 30) .. "...")
             self.last_text = self.text            
         end
 
@@ -3540,9 +3534,9 @@ function GUI.Knob:init()
 		
 	-- Head
 	GUI.color(self.col_head)
-	GUI.triangle(1, Ax, Ay, Bx, By, Cx, Cy)
+	GUI.triangle(true, Ax, Ay, Bx, By, Cx, Cy)
 	GUI.color("elm_outline")
-	GUI.triangle(0, Ax, Ay, Bx, By, Cx, Cy)	
+	GUI.triangle(false, Ax, Ay, Bx, By, Cx, Cy)	
 	
 	-- Body
 	GUI.color(self.col_body)
@@ -3828,8 +3822,10 @@ local function btn_get()
     while idx ~= -1 do
         
         idx = reaper.MIDI_EnumSelNotes(take, idx)
+
         if idx == -1 then break end		
-        copied_notes[idx+1] = {reaper.MIDI_GetNote(take, idx)}
+
+        copied_notes[#copied_notes+1] = {reaper.MIDI_GetNote(take, idx)}
         --[[
         note[1] = retval        boolean
             [2] = selected      boolean
@@ -3840,7 +3836,7 @@ local function btn_get()
             [7] = pitch         number 
             [8] = velocity      number 
         ]]--
-        
+
     end
     
     if #copied_notes == 0 then
@@ -3849,7 +3845,6 @@ local function btn_get()
         return
     end
     
-    --GUI.Msg("#copied_notes = " .. #copied_notes)
     local track = reaper.GetMediaItemTake_Track(take)
     local _, track_name = reaper.GetTrackName(track, "")
     local item_name = reaper.GetTakeName(take)
@@ -3879,26 +3874,22 @@ local function btn_set()
     for k, v in pairs( GUI.Val("chk_vals") ) do
         opts[k + 2] = v
     end
-    
+        
     local strength = GUI.Val("knb_strength") / 100
 
     reaper.Undo_BeginBlock()
 
-    local count = 0
+    local i = 0
     local idx = -2
     while idx ~= -1 do
-            
+        
         idx = reaper.MIDI_EnumSelNotes(take, idx)
         
-        --GUI.Msg("count = " .. count)
-        
-        if idx == -1 or count == #copied_notes then break end
+        if idx == -1 or i == #copied_notes then break end
+        i = i + 1
 
         local note = {reaper.MIDI_GetNote(take, idx)}
-        local copy = copied_notes[idx + 1]
-
-        --GUI.Msg("working on idx " .. idx)
-
+        local copy = copied_notes[i]
 
         --[[
             note[1] = retval        boolean
@@ -3949,14 +3940,14 @@ local function btn_set()
         
         reaper.MIDI_SetNote( take, idx, note[2], note[3], note[4], note[5], note[6], note[7], note[8], true)
 
-        count = count + 1
+        ::next::
 
     end
     
-    if count == 0 then
+    if i == 0 then
         reaper.MB("No selected notes found.", "Whoops!", 0)
         return
-    elseif count < #copied_notes then
+    elseif i < #copied_notes then
         --reaper.MB("Could only copy " .. count .. " notes out of " .. #copied_notes ..".", "", 0)
     end
     
@@ -3975,6 +3966,13 @@ local function get_ext_vals()
     end
     GUI.Val("chk_vals", vals)
     
+    local wnd = reaper.GetExtState("Lokasenna_Copy values from selected midi notes", "Window")
+    local x, y = string.match(wnd, "(.+),(.+)")
+    if x and y then
+        GUI.x, GUI.y = tonumber(x), tonumber(y)
+        GUI.anchor, GUI.corner = "screen", nil
+    end
+    
 end
 
 
@@ -3986,6 +3984,9 @@ local function set_ext_vals()
     end
     --reaper.SetExtState( section, key, value, persist )
     reaper.SetExtState("Lokasenna_Copy values from selected midi notes", "Options", table.concat(vals, ","), true)
+    
+    local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
+    reaper.SetExtState("Lokasenna_Copy values from selected midi notes", "Window", x .. "," .. y, true)
     
 end
 
