@@ -1,10 +1,10 @@
 --[[
 Description: Copy values from selected MIDI notes
-Version: 1.20
+Version: 1.25
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Fixed crashes if the selected notes weren't at the beginning of the item
+    Added "Strength" value for Velocity  
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -3779,8 +3779,16 @@ end
 
 if missing_lib then return 0 end
 
-GUI.elms_hide[5] = true
 
+local script_name = "Lokasenna_Copy values from selected midi notes"
+local copied_notes = {}
+
+
+
+
+------------------------------------
+-------- Misc. functions -----------
+------------------------------------
 
 
 local function show_warning(show)
@@ -3792,29 +3800,66 @@ local function show_warning(show)
 end
 
 
-local copied_notes = {}
 
 
+------------------------------------
+-------- Ext States ----------------
+------------------------------------
+
+
+local function get_ext_vals()
+    
+    local vals = {}
+    local str = reaper.GetExtState(script_name, "Options")
+    for k in string.gmatch(str, "%d+") do
+        vals[tonumber(k)] = true
+    end
+    GUI.Val("chk_vals", vals)
+    
+    str = reaper.GetExtState(script_name, "Strengths")
+    local pos, vel = string.match(str, "(.+),(.+)")
+    if pos then GUI.Val("knb_pos_strength", pos) end
+    if vel then GUI.Val("knb_vel_strength", vel) end
+        
+    
+    local wnd = reaper.GetExtState(script_name, "Window")
+    local x, y = string.match(wnd, "(.+),(.+)")
+    if x and y then
+        GUI.x, GUI.y = tonumber(x), tonumber(y)
+        GUI.anchor, GUI.corner = "screen", nil
+    end
+    
+end
+
+
+local function set_ext_vals()
+    
+    local vals = {}
+    for k, v in pairs(GUI.elms.chk_vals.optsel) do
+        if v then vals[#vals+1] = k end
+    end
+    --reaper.SetExtState( section, key, value, persist )
+    reaper.SetExtState(script_name, "Options", table.concat(vals, ","), true)
+    reaper.SetExtState(script_name, "Strengths", 
+                        GUI.elms.knb_pos_strength.retval .. "," .. GUI.elms.knb_vel_strength.retval,
+                        true)
+    
+    local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
+    reaper.SetExtState(script_name, "Window", x .. "," .. y, true)
+    
+end
+
+
+
+
+------------------------------------
+-------- Get + Set code ------------
+------------------------------------
 
 
 local function btn_get()
-    
-    -- Get editor, pop up MB if no editor, etc, etc
-    local hwnd = reaper.MIDIEditor_GetActive()
-    if not hwnd then
-        if not startup then reaper.MB("This script needs an open MIDI editor.", "Whoops!", 0) end
-        show_warning(true)
-        return
-    end
-
-    local take = reaper.MIDIEditor_GetTake( hwnd )
-    if not take then
-        if not startup then reaper.MB("No MIDI item found.", "Whoops!", 0) end
-        show_warning(true)
-        return
-    end
-    
-    
+       
+    local take = get_MIDI_take()
 
     copied_notes = {}
 
@@ -3826,16 +3871,6 @@ local function btn_get()
         if idx == -1 then break end		
 
         copied_notes[#copied_notes+1] = {reaper.MIDI_GetNote(take, idx)}
-        --[[
-        note[1] = retval        boolean
-            [2] = selected      boolean
-            [3] = muted         boolean
-            [4] = startppqpos   number
-            [5] = endppqpos     number 
-            [6] = chan          number 
-            [7] = pitch         number 
-            [8] = velocity      number 
-        ]]--
 
     end
     
@@ -3857,25 +3892,7 @@ end
 
 local function btn_set()
 
-    local hwnd = reaper.MIDIEditor_GetActive()
-    if not hwnd then
-        reaper.MB("This script needs an open MIDI editor.", "Whoops!", 0)
-        return
-    end
-
-    local take = reaper.MIDIEditor_GetTake( hwnd )
-    if not take then
-        reaper.MB("No MIDI item found.", "Whoops!", 0)
-        return
-    end
-
-    -- Read the values out with the indices offset to match GetNote/SetNote
-    local opts = {}
-    for k, v in pairs( GUI.Val("chk_vals") ) do
-        opts[k + 2] = v
-    end
-        
-    local strength = GUI.Val("knb_strength") / 100
+    local take = get_MIDI_take()
 
     reaper.Undo_BeginBlock()
 
@@ -3890,53 +3907,8 @@ local function btn_set()
 
         local note = {reaper.MIDI_GetNote(take, idx)}
         local copy = copied_notes[i]
-
-        --[[
-            note[1] = retval        boolean
-            [2] = selected      boolean
-            [3] = muted         boolean
-            [4] = startppqpos   number
-            [5] = endppqpos     number 
-            [6] = chan          number 
-            [7] = pitch         number 
-            [8] = velocity      number 
-        ]]--
-        note[3] = opts[3] and copy[3] or note[3]
-
-        -- Just Start
-        if opts[4] and not opts[5] then
-            
-            local len = note[5] - note[4]
-            note[4] = note[4] + (copy[4] - note[4]) * strength
-            note[5] = note[4] + len
-            --note[5] = copy[4] + (note[5] - note[4])
-            --note[4] = copy[4]
-            
-        -- Just Length
-        elseif opts[5] and not opts[4] then
         
-            --old:
-            -- len = (copy[5] - copy[4])
-            local len_note = note[5] - note[4]
-            local len_copy = copy[5] - copy[4]
-            local len = len_note + (len_copy - len_note) * strength
-            note[5] = note[4] + len
-            
-        -- Start and Length
-        elseif opts[4] and opts[5] then
-        
-            local len_note = note[5] - note[4]
-            local len_copy = copy[5] - copy[4]
-            local len = len_note + (len_copy - len_note) * strength
-         
-            note[4] = note[4] + (copy[4] - note[4]) * strength
-            note[5] = note[4] + len
-        
-        end
-        
-        note[6] = opts[6] and copy[6] or note[6]
-        note[7] = opts[7] and copy[7] or note[7]
-        note[8] = opts[8] and copy[8] or note[8]
+        note = apply_values(note, copy)
         
         reaper.MIDI_SetNote( take, idx, note[2], note[3], note[4], note[5], note[6], note[7], note[8], true)
 
@@ -3954,39 +3926,92 @@ local function btn_set()
     reaper.MIDI_Sort( take )    
    
     reaper.Undo_EndBlock("Copy values from selected midi notes", 0)
-end
-
-
-local function get_ext_vals()
-    
-    local vals = {}
-    local str = reaper.GetExtState("Lokasenna_Copy values from selected midi notes", "Options")
-    for k in string.gmatch(str, "%d+") do
-        vals[tonumber(k)] = true
-    end
-    GUI.Val("chk_vals", vals)
-    
-    local wnd = reaper.GetExtState("Lokasenna_Copy values from selected midi notes", "Window")
-    local x, y = string.match(wnd, "(.+),(.+)")
-    if x and y then
-        GUI.x, GUI.y = tonumber(x), tonumber(y)
-        GUI.anchor, GUI.corner = "screen", nil
-    end
     
 end
 
 
-local function set_ext_vals()
+-- Global --> btn_set, btn_get
+function get_MIDI_take()
     
-    local vals = {}
-    for k, v in pairs(GUI.elms.chk_vals.optsel) do
-        if v then vals[#vals+1] = k end
+    -- Get editor, pop up MB if no editor, etc, etc
+    local hwnd = reaper.MIDIEditor_GetActive()
+    if not hwnd then
+        if not startup then reaper.MB("This script needs an open MIDI editor.", "Whoops!", 0) end
+        show_warning(true)
+        return
     end
-    --reaper.SetExtState( section, key, value, persist )
-    reaper.SetExtState("Lokasenna_Copy values from selected midi notes", "Options", table.concat(vals, ","), true)
+
+    local take = reaper.MIDIEditor_GetTake( hwnd )
+    if not take then
+        if not startup then reaper.MB("No MIDI item found.", "Whoops!", 0) end
+        show_warning(true)
+        return
+    end
+   
+    return take
     
-    local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
-    reaper.SetExtState("Lokasenna_Copy values from selected midi notes", "Window", x .. "," .. y, true)
+end
+
+
+-- Global --> btn_set
+function apply_values(note, copy)
+      
+    --[[
+        note[1] = retval        boolean
+        [2] = selected      boolean
+        [3] = muted         boolean
+        [4] = startppqpos   number
+        [5] = endppqpos     number 
+        [6] = chan          number 
+        [7] = pitch         number 
+        [8] = velocity      number 
+    ]]--
+    
+    -- Read the values out with the indices offset to match GetNote/SetNote
+    local opts = {}
+    for k, v in pairs( GUI.Val("chk_vals") ) do
+        opts[k + 2] = v
+    end
+        
+    local pos_strength = GUI.Val("knb_pos_strength") / 100
+    local vel_strength = GUI.Val("knb_vel_strength") / 100    
+    
+    
+    note[3] = opts[3] and copy[3] or note[3]
+
+    -- Just Start
+    if opts[4] and not opts[5] then
+        
+        local len = note[5] - note[4]
+        note[4] = note[4] + (copy[4] - note[4]) * pos_strength
+        note[5] = note[4] + len
+
+    -- Just Length
+    elseif opts[5] and not opts[4] then
+
+        local len_note = note[5] - note[4]
+        local len_copy = copy[5] - copy[4]
+        local len = len_note + (len_copy - len_note) * pos_strength
+        note[5] = note[4] + len
+        
+    -- Start and Length
+    elseif opts[4] and opts[5] then
+    
+        local len_note = note[5] - note[4]
+        local len_copy = copy[5] - copy[4]
+        local len = len_note + (len_copy - len_note) * pos_strength
+     
+        note[4] = note[4] + (copy[4] - note[4]) * pos_strength
+        note[5] = note[4] + len
+    
+    end
+    
+    note[6] = opts[6] and copy[6] or note[6]
+    note[7] = opts[7] and copy[7] or note[7]
+    note[8] = opts[8] and GUI.round((note[8] + (copy[8] - note[8]) * vel_strength))
+                      or  note[8]
+    
+    return note
     
 end
 
@@ -4007,27 +4032,35 @@ GUI.New("btn_set", "Button", 3, 120, 288, 80, 24, "Apply values", btn_set)
 
 GUI.New("lbl_got", "Label", 3, 16, 52, "", true, 4)
 
-GUI.New("chk_vals", "Checklist", 4, 48, 88, 224, 180, "Values to apply:", "Mute,Position,Length,Channel,Pitch,Velocity", "v", 6)
+GUI.New("chk_vals", "Checklist", 4, 48, 88, 224, 184, 
+        "Values to apply:", "Mute,Position,Length,Channel,Pitch,Velocity", "v")
 
-GUI.New("knb_strength", "Knob", 3, 208, 136, 32, "Strength", 0, 100, 100, 1, false)
+GUI.New("knb_pos_strength", "Knob", 3, 208, 136, 24, "Strength", 0, 100, 100, 1, false)
+GUI.New("knb_vel_strength", "Knob", 3, 208, 192, 24, "Strength", 0, 100, 100, 1, false)
 
 GUI.New("frm_nope", "Frame", 2, 0, 48, 400, 308, true, true, "wnd_bg", 0)
 GUI.New("lbl_nope", "Label", 1, 88, 96, "No notes copied", true, 2)
 
+GUI.elms_hide[5] = true
 
-local line_x1, line_x2, line_x3, line_y1, line_y2, line_y3
+
+local pos_x1, pos_x2, pos_x3, pos_y1, pos_y2, pos_y3
+local vel_y1
 function GUI.elms.chk_vals:init()
     
     GUI.Checklist.init(self)
     
-    line_x1 = self.x + self.pad + self.opt_size
-    line_x2 = line_x1 + 80
-    line_x3 = GUI.elms.knb_strength.x + 8
-    line_y1 = self.y + self.cap_h + 2.5*self.pad + 1.5*self.opt_size 
-    line_y2 = line_y1 + self.opt_size + self.pad
-    line_y3 = line_y1 + (line_y2 - line_y1) / 2
+    pos_x1 = self.x + self.pad + self.opt_size
+    pos_x2 = pos_x1 + 80
+    pos_x3 = GUI.elms.knb_pos_strength.x + 8
+    pos_y1 = self.y + self.cap_h + 2.5*self.pad + 1.5*self.opt_size 
+    pos_y2 = pos_y1 + self.opt_size + self.pad
+    pos_y3 = pos_y1 + (pos_y2 - pos_y1) / 2
     
-    GUI.elms.knb_strength.y = line_y3 - (GUI.elms.knb_strength.h / 2)
+    vel_y1 = self.y + self.cap_h + 6.5*self.pad + 5.5*self.opt_size
+    
+    GUI.elms.knb_pos_strength.y = pos_y3 - (GUI.elms.knb_pos_strength.h / 2)
+    GUI.elms.knb_vel_strength.y = vel_y1 - (GUI.elms.knb_vel_strength.h / 2)
     
 end
 
@@ -4035,21 +4068,32 @@ end
 function GUI.elms.chk_vals:draw()
        
     GUI.color("elm_frame")
-    gfx.line(line_x1, line_y1, line_x2, line_y1)
-    gfx.line(line_x1, line_y2, line_x2, line_y2)
-    gfx.line(line_x2, line_y1, line_x2, line_y2)
-    gfx.line(line_x2, line_y3, line_x3, line_y3)
+    gfx.line(pos_x1, pos_y1, pos_x2, pos_y1)
+    gfx.line(pos_x1, pos_y2, pos_x2, pos_y2)
+    gfx.line(pos_x2, pos_y1, pos_x2, pos_y2)
+    gfx.line(pos_x2, pos_y3, pos_x3, pos_y3)
+    
+    gfx.line(pos_x1, vel_y1, pos_x3, vel_y1)
 
     GUI.Checklist.draw(self)
     
 end
 
 
-function GUI.elms.knb_strength:draw()
+GUI.elms.knb_pos_strength.cap_y = -8
+function GUI.elms.knb_pos_strength:draw()
     
     self.caption = "Strength: " .. self.retval .. "%"
     GUI.Knob.draw(self)
 
+end
+
+GUI.elms.knb_vel_strength.cap_y = -8
+function GUI.elms.knb_vel_strength:draw()
+    
+    self.caption = "Strength: " .. self.retval .. "%"
+    GUI.Knob.draw(self)
+    
 end
 
 
@@ -4073,6 +4117,14 @@ function GUI.elms.lbl_got:init()
     GUI.Label.init(self)
 
 end
+
+
+
+
+------------------------------------
+-------- Startup stuff -------------
+------------------------------------
+
 
 startup = true
 
