@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bea3831aa6a26e0bfc4a1a0fc788b5faac4758dc" name="ReaTeam Scripts">
+<index version="1" commit="f8f0a367551b3decbdc53a04f96d9a297e643846" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1937,6 +1937,24 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.01" author="Lokasenna" time="2017-02-27T15:04:08Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2ad198844839295e1a6c12f4c6fe70c4dcd1762/Items%20Editing/Lokasenna_Select%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Shuffle selected items to mouse cursor.lua" type="script" desc="Shuffle selected items to mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Emulates the "shuffle edit" mode from Pro Tools - the selected item is moved to the mouse cursor and other items are pushed left/right to make room.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Adapted from code by spk77. Cheers.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0" author="Lokasenna" time="2018-05-25T21:06:55Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f8f0a367551b3decbdc53a04f96d9a297e643846/Items%20Editing/Lokasenna_Shuffle%20selected%20items%20to%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Unselect all MIDI notes in selected items.lua" type="script" desc="Unselect all MIDI notes in selected items">
