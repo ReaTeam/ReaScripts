@@ -1,10 +1,10 @@
 --[[
 Description: Shuffle selected items to mouse cursor
-Version: 1.0
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Initial release
+    Bug fix
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -67,8 +67,8 @@ for i = a, b, inc do
     local track = reaper.GetMediaItem_Track(sel_item)
     if not track then return end
 
-    Msg("shuffling item " .. reaper.ULT_GetMediaItemNote( sel_item ) .. ", track " ..
-        math.floor(reaper.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")) .. "\n")
+    --Msg("shuffling item " .. reaper.ULT_GetMediaItemNote( sel_item ) .. ", track " ..
+        --math.floor(reaper.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")) .. "\n")
 
     sel_pos, sel_len, sel_end = get_pos(sel_item)
 
@@ -77,9 +77,9 @@ for i = a, b, inc do
         -- Compare mouse with item to see dir and/or break the loop
         if sel_pos <= mouse and mouse <= sel_end then 
 
-            Msg("\titem at pos " .. 
-                math.floor(reaper.GetMediaItemInfo_Value(sel_item, "IP_ITEMNUMBER") + 1) ..
-                "\tbreaking\n")
+            --Msg("\titem at pos " .. 
+            --    math.floor(reaper.GetMediaItemInfo_Value(sel_item, "IP_ITEMNUMBER") + 1) ..
+            --    "\tbreaking\n")
 
             break 
         end
@@ -87,7 +87,7 @@ for i = a, b, inc do
         -- Get next item
         local idx = reaper.GetMediaItemInfo_Value(sel_item, "IP_ITEMNUMBER")
         
-        Msg("\titem at pos " .. math.floor(idx + 1) .. "\tmoving")
+        --Msg("\titem at pos " .. math.floor(idx + 1) .. "\tmoving")
         
         local next_item = reaper.GetTrackMediaItem(track, idx + dir)
         if not next_item then break end
