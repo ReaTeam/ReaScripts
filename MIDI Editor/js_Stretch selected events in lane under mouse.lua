@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.32
+Version: 3.40
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -31,6 +31,7 @@ About:
         * To stretch the topmost/bottom event values vertically, position mouse closer to the middle of the time range, and to the top/bottom of the lane.
   4) Press the shortcut key.
   5) Move mouse left or right if stretching horizontally, or up or down if stretching vertically.
+  6) To flip events, scroll the mousewheel. (If stretching horizontally, flips event positions; if vertically, flips values.)
   6) To exit, move mouse out of CC lane, or press shortcut key again.
           
   
@@ -62,7 +63,26 @@ About:
     asking whether to terminate or restart the script.  Select "Terminate"
     and "Remember my answer for this script".)
         
+   
+  MOUSEWHEEL CONTROL
+   
+  A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an
+  Action, similar to how keyboard shortcuts are assigned.  
+  
+  Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user 
+  must remember several modifier combinations, one for each script.  (Mousewheel modifiers such as 
+  Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)
+  
+  An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, 
+  which will then broadcast mousewheel movement to any js script that is running:
+  
+  * js_Run the js_'lane under mouse' script that is selected in toolbar
+  * js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down
+  * js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally
+  
+  By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other mouse editing scripts. 
       
+   
   PERFORMANCE TIPS
   
   * The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
@@ -110,8 +130,8 @@ About:
     + Stretch all selected events in all lanes, if mouse starting position is over lane divider.
   * v3.31 (2018-03-29)
     + Display notification about new feature.
-  * v3.32 (2018-05-03)
-    + Fix reset cursor after termination when armed from toolbar.
+  * v3.40 (2018-05-26)
+    + Mousewheel flips events.
 ]]
 
 ---------------------------------------
@@ -267,6 +287,8 @@ local m_floor  = math.floor
 -- User preferences that can be customized in the js_MIDI editing preferences script
 local mustDrawCustomCursor = true
 local clearNonActiveTakes  = true
+local flipped = false
+local prevFlipTime = reaper.time_precise()
 
   
 --#############################################################################################
@@ -350,18 +372,19 @@ local function trackMouseAndDrawMIDI()
     -- The script can detect mousewheel in two ways: 
     --    * by being linked directly to a mousewheel mouse modifier (return mousewheel movement with reaper.get_action_context)
     --    * or via the js_Run... script that can run and control the other js_ scripts (return movement via ExtState)
-    --[[ 
     -- Stretching doesn't follow mousewheel, so this part is commented out.
     is_new, _, _, _, _, _, moved = reaper.get_action_context()
     if not is_new then -- then try getting from script
-        moved = tonumber(reaper.GetExtState("js_Mouse actions", "Mousewheel"))
-        if moved == nil then moved = 0 end
+        moved = tonumber(reaper.GetExtState("js_Mouse actions", "Mousewheel")) or 0
     end
     reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false) -- Reset after getting update
-    if moved > 0 then mouseWheel = mouseWheel + 0.2
-    elseif moved < 0 then mouseWheel = mouseWheel - 0.2
+    if moved ~= 0 then 
+        local nowTime = reaper.time_precise() 
+        if nowTime > prevFlipTime + 0.5 then -- Prevent multiple flips when using notebook trackpad
+            flipped = not flipped
+            prevFlipTime = nowTime
+        end
     end
-    ]]
     
     ------------------------------------------
     -- Get mouse new PPQ (horizontal) position
@@ -404,18 +427,15 @@ local function trackMouseAndDrawMIDI()
         -- Safer to keep offsets positive, so check whether events are being reversed
         -- In addtion, avoid drawing multiple events on the same PPQ position
         local startIndex, endIndex, step, newPPQpos, newNoteOffPPQpos, newNoteLength
-        
-        --[[if stretchFactor > 0 then startIndex, endIndex, step = 1, #tablePPQs, 1 -- Step forward
-        elseif stretchFactor < 0 then startIndex, endIndex, step = #tablePPQs, 1, -1 -- Step backward (forward in PPQ)
-        else startIndex, endIndex, step = 1, 1, 1 -- All events at sam ePPQ, so draw only first event
-        end]]
-        if stretchFactor >= 0 then startIndex, endIndex, step = 1, #tablePPQs, 1 -- Step forward
+
+        if (stretchFactor >= 0 and not flipped) or (stretchFactor < 0 and flipped) then startIndex, endIndex, step = 1, #tablePPQs, 1 -- Step forward
         else startIndex, endIndex, step = #tablePPQs, 1, -1 -- Step backward (forward in PPQ)
         end
             
         for i = startIndex, endIndex, step do
         
-            newPPQpos = m_floor(origPPQleftmost + stretchFactor*(tablePPQs[i] - origPPQleftmost) + 0.5)                    
+            local flippedPPQpos = flipped and (origPPQleftmost + origPPQrightmost - tablePPQs[i]) or tablePPQs[i]
+            newPPQpos = m_floor(origPPQleftmost + stretchFactor*(flippedPPQpos - origPPQleftmost) + 0.5)                    
             offset = newPPQpos - lastPPQpos                   
             lastPPQpos = newPPQpos 
             
@@ -423,7 +443,9 @@ local function trackMouseAndDrawMIDI()
             
             if tableNoteLengths[i] then -- note event
             
-                newNoteOffPPQpos = m_floor(origPPQleftmost + stretchFactor*((tablePPQs[i]+tableNoteLengths[i]) - origPPQleftmost) + 0.5)
+                local flippedNoteOffPPQpos = flipped and (origPPQleftmost + origPPQrightmost - (tablePPQs[i]+tableNoteLengths[i])) 
+                                                     or (tablePPQs[i]+tableNoteLengths[i])
+                newNoteOffPPQpos = m_floor(origPPQleftmost + stretchFactor*(flippedNoteOffPPQpos - origPPQleftmost) + 0.5)
                 -- If reversing notes, make sure that note-on is positioned before note-off
                 if newNoteOffPPQpos < newPPQpos then 
                     newPPQpos, newNoteOffPPQpos = newNoteOffPPQpos, newPPQpos
@@ -463,12 +485,15 @@ local function trackMouseAndDrawMIDI()
         -- Safer to keep offsets positive, so check whether events are being reversed
         -- In addtion, avoid drawing multiple events on the same PPQ position
         local startIndex, endIndex, step, newPPQpos, newNoteOffPPQpos, newNoteLength
-        if stretchFactor > 0 then startIndex, endIndex, step = 1, #tablePPQs, 1 
+        
+        if (stretchFactor >= 0 and not flipped) or (stretchFactor < 0 and flipped) then startIndex, endIndex, step = 1, #tablePPQs, 1 
         else startIndex, endIndex, step = #tablePPQs, 1, -1
         end
                     
         for i = startIndex, endIndex, step do        
-            newPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - tablePPQs[i]) + 0.5)
+        
+            local flippedPPQpos = flipped and (origPPQleftmost + origPPQrightmost - tablePPQs[i]) or tablePPQs[i]
+            newPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - flippedPPQpos) + 0.5)
             offset = newPPQpos - lastPPQpos
             lastPPQpos = newPPQpos
             
@@ -476,7 +501,9 @@ local function trackMouseAndDrawMIDI()
             
             if tableNoteLengths[i] then -- note event
             
-                newNoteOffPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - (tablePPQs[i]+tableNoteLengths[i])) + 0.5)
+                local flippedNoteOffPPQpos = flipped and (origPPQleftmost + origPPQrightmost - (tablePPQs[i]+tableNoteLengths[i])) 
+                                                     or (tablePPQs[i]+tableNoteLengths[i])
+                newNoteOffPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - flippedNoteOffPPQpos) + 0.5)
                 -- If reversing notes, make sure that note-on is positioned before note-off
                 if newNoteOffPPQpos < newPPQpos then 
                     newPPQpos, newNoteOffPPQpos = newNoteOffPPQpos, newPPQpos
@@ -516,7 +543,9 @@ local function trackMouseAndDrawMIDI()
             
         for i = 1, #tablePPQs do
         
-            newValue = m_floor(origValueMin + stretchFactor*(tableValues[i] - origValueMin) + 0.5)
+            local flippedValue = flipped and (origValueMin + origValueMax - tableValues[i]) or tableValues[i]
+            newValue = m_floor(origValueMin + stretchFactor*(flippedValue - origValueMin) + 0.5)
+            if newValue > laneMax then newValue = laneMax elseif newValue < laneMin then laneValue = laneMin end
             
             offset = tablePPQs[i] - lastPPQpos
             
@@ -561,8 +590,10 @@ local function trackMouseAndDrawMIDI()
         local newValue
             
         for i = 1, #tablePPQs do
-        
-            newValue = m_floor(origValueMax - stretchFactor*(origValueMax - tableValues[i]) + 0.5)
+            
+            local flippedValue = flipped and (origValueMin + origValueMax - tableValues[i]) or tableValues[i]
+            newValue = m_floor(origValueMax - stretchFactor*(origValueMax - flippedValue) + 0.5)
+            if newValue > laneMax then newValue = laneMax elseif newValue < laneMin then laneValue = laneMin end
             
             offset = tablePPQs[i] - lastPPQpos
             
@@ -1601,9 +1632,19 @@ function main()
 
     -- Start with a trick to avoid automatically creating undo states if nothing actually happened
     -- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
-    function avoidUndo()
-    end
-    reaper.defer(avoidUndo)
+    reaper.defer(function() end)    
+    
+    ----------------------------------------------------------------------------
+    -- Check whether SWS is available, as well as the required version of REAPER
+    if not reaper.APIExists("MIDI_GetAllEvts") then
+        reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                              .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                              , "ERROR", 0)
+        return(false) 
+    elseif not reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.ShowMessageBox("This script requires an updated version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+        return(false) 
+    end   
     
     -------------------------------------------
     -- Display notifications about new features
@@ -1618,20 +1659,14 @@ function main()
         reaper.SetExtState("js_Stretch", "Last tip version", "3.30", true)
         displayedNotification = true
     end
-    if displayedNotification then return end
-    
-    ----------------------------------------------------------------------------
-    -- Check whether SWS is available, as well as the required version of REAPER
-    version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
-    if version == nil or version < 5.32 then
-        reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
-                              .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
-                              , "ERROR", 0)
-        return(false) 
-    elseif not reaper.APIExists("BR_GetMouseCursorContext") then
-        reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-        return(false) 
-    end   
+    if lastTipVersion < 3.40 then
+        reaper.MB("Moving the mousewheel flips the events being stretched."
+                  .. "\n\n(This message will only be displayed once).", 
+                  "New feature notification: v3.40", 0)
+        reaper.SetExtState("js_Stretch", "Last tip version", "3.40", true)
+        displayedNotification = true
+    end
+    if displayedNotification then reaper.SN_FocusMIDIEditor() return end -- If inline editor, will in any case lose focus when clicking in message box window.
     
     -----------------------------------------------------------
     -- The following sections checks the position of the mouse:
