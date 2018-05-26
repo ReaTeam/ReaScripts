@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4fc010b03092b85b907ae8829dc7954229ef99e3" name="ReaTeam Scripts">
+<index version="1" commit="79b9eb9e4b5e005fd13631bdebea8a5815138ee8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4302,6 +4302,62 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b882f393cdb5e03ed370d8c2d644905ab4c7ac06/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Mouse editing - Draw basic LFO curves in real time.lua" type="script" desc="js_Mouse editing - Draw basic LFO curves in real time.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw various basic LFO shapes in real time (without chasing start values).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Includes: Triangle, Saw, Sine, Cosine and Square, as well as plain straight line and parabola.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The mousewheel scrolls through the various LFO shapes. (The script will remember the last-used shape.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap to grid is enabled in the MIDI editor, the endpoints of the LFO will snap to grid, allowing precise positioning of the LFO.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally chase existing CC values, instead of starting at the mouse's vertical position. This ensures that CC values change smoothly.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the script "js_Option - Skip redundant events when inserting CCs" is toggled ON.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script requires:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a keyboard shortcut to start the script, as well as\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a mousewheel modifier to scroll through the various LFO shapes.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 KEYBOARD SHORTCUT\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which the script can be started via a keyboard shortcut:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own easy-to-remember shortcut key, such as "Shift+tab" for sine+ramp.\line (Using the standard steps of linking any REAPER action to a shortcut key.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab In this case, each script does not need to be linked to its own shortcut key.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Instead, only the master control script, with the long name "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" needs to be linked to a keyboard shortcut.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL CONTROL\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an Action, similar to how keyboard shortcuts are assigned.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user must remember several modifier combinations, one for each script. (Mousewheel modifiers such as Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, which will then broadcast mousewheel movement to any js script that is running:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Run the js_'lane under mouse' script that is selected in toolbar\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other m scripts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 USER CUSTOMIZABLE PARAMETERS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable chasing of existing CC values, set the "doChase" parameter in the USER AREA at the beginning of the script to "false".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To disable snap-to-grid altogether, irrespective of the MIDI editor's snap setting, set "neverSnapToGrid" to "true".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To enable/disable deselection of other CCs in the same lane as the new ramp (and in the active take), set the "deselectEverythingInLane" parameter. This allows easy editing of only the new ramp after drawing.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="3.40" author="juliansader" time="2018-05-26T19:07:24Z">
+        <changelog><![CDATA[+ New version of Draw script: Draw LFOs!]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/79b9eb9e4b5e005fd13631bdebea8a5815138ee8/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5191,7 +5247,8 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab To stretch the topmost/bottom event values vertically, position mouse closer to the middle of the time range, and to the top/bottom of the lane.\sa180\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Press the shortcut key.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab Move mouse left or right if stretching horizontally, or up or down if stretching vertically.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 6)\tx360\tab To exit, move mouse out of CC lane, or press shortcut key again.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6)\tx360\tab To flip events, scroll the mousewheel. (If stretching horizontally, flips event positions; if vertically, flips values.)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 7)\tx360\tab To exit, move mouse out of CC lane, or press shortcut key again.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 KEYBOARD SHORTCUT\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which the script can be started via a keyboard shortcut:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own easy-to-remember shortcut key, such as "S".\line (Using the standard steps of linking any REAPER action to sa shortcut key.)\par}
@@ -5202,6 +5259,14 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Note: Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL CONTROL\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an Action, similar to how keyboard shortcuts are assigned.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user must remember several modifier combinations, one for each script. (Mousewheel modifiers such as Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, which will then broadcast mousewheel movement to any js script that is running:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Run the js_'lane under mouse' script that is selected in toolbar\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other mouse editing scripts.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
@@ -5274,6 +5339,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="3.32" author="juliansader" time="2018-05-03T13:42:12Z">
         <changelog><![CDATA[+ Fix reset cursor after termination when armed from toolbar.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a67b9d6b36b983842decbd00fb10a12b71eb5c22/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="3.40" author="juliansader" time="2018-05-26T19:07:24Z">
+        <changelog><![CDATA[+ Mousewheel flips events.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/79b9eb9e4b5e005fd13631bdebea8a5815138ee8/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
