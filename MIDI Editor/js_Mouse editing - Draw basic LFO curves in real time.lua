@@ -2,7 +2,7 @@
 ReaScript name: js_Mouse editing - Draw basic LFO curves in real time.lua
 Version: 3.40
 Author: juliansader
-Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
+Screenshot: https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
 REAPER version: v5.32 or later
 Extensions: SWS/S&M 2.8.3 or later
