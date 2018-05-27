@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="43246bd5e8ae90552b455ee1566a14885af11bc5" name="ReaTeam Scripts">
+<index version="1" commit="4e375cd7b627c1a49a4830c52b99ec0bd43d5046" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6626,12 +6626,16 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides a variety of options for creating time selections at the edit cursor, and can export specific settings as a separate action.\par}
 }
 ]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=1993961">Forum thread</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
       <version name="1.00" author="Lokasenna" time="2018-05-27T20:56:09Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/43246bd5e8ae90552b455ee1566a14885af11bc5/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
+      </version>
+      <version name="1.01" author="Lokasenna" time="2018-05-27T21:04:11Z">
+        <changelog><![CDATA[Added thread link]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e375cd7b627c1a49a4830c52b99ec0bd43d5046/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
