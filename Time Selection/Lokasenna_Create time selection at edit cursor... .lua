@@ -1,11 +1,12 @@
 --[[
 Description: Create time selection at edit cursor...
-Version: 1.00
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Initial release
+    Added thread link
 Links:
+    Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
     Provides a variety of options for creating time selections 
