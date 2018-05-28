@@ -1,10 +1,12 @@
 --[[
 Description: Create time selection at edit cursor...
-Version: 1.01
+Version: 1.10
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Added thread link
+    Added units: beats, measures, gridlines, visible gridlines
+    Note: "Visible gridlines" will have issues if the edit cursor
+    is off-screen. Reaper issue, should be fixed soon.
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -47,8 +49,33 @@ local function create_time_sel()
     -- Get settings
     if units        == "minutes" then
         length = length * 60
+    elseif units    == "beats" then
+        length = length * (60 / reaper.Master_GetTempo() )
+    elseif units    == "measures" then
+        length = length * 4 * (60 / reaper.Master_GetTempo() )    
     elseif units    == "frames" then
         length = get_frames(length)
+    elseif units    == "gridlines" then
+        local _, divisionIn, _, _ = reaper.GetSetProjectGrid(0, false)
+        length =    length * divisionIn * 4 * (60 / reaper.Master_GetTempo() )
+    elseif units    == "visible gridlines" then
+
+        local pos = reaper.GetCursorPosition()
+        local cur = 0.00001
+
+        while true do
+            
+            local cur_pos = reaper.SnapToGrid(0, pos + cur)
+            
+            if cur_pos ~= pos then
+                length = length * (cur_pos - pos)
+                break
+            else
+                cur = cur * 2
+            end
+            
+        end
+    
     end
 
     -- Determine start and end
@@ -4200,8 +4227,8 @@ GUI.anchor, GUI.corner = "mouse", "C"
 
 
 GUI.New("txt_len", "Textbox", 1, 64, 16.0, 32, 20, "Length:", 4)
-GUI.New("mnu_units", "Menubox", 1, 100, 16.0, 80, 20, "", {"seconds", "minutes", "frames",}, 4, false)
-GUI.elms.mnu_units.retval = 4
+GUI.New("mnu_units", "Menubox", 1, 100, 16.0, 128, 20, "", {"seconds", "minutes", "beats", "measures", "gridlines", "visible gridlines", "frames"}, 4, false)
+GUI.elms.mnu_units.retval = 3
 
 GUI.New("mnu_pos", "Menubox", 1, 64, 44, 96, 20, "Position:", {"Right of", "Left of", "Centered on"}, 4, false)
 GUI.elms.mnu_pos.retval = 3
