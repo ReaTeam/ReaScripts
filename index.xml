@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5dab2540413bd83a3bb4697c279747b715b7a1e5" name="ReaTeam Scripts">
+<index version="1" commit="76796f81585e906c01775c699197f393006c488e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5418,7 +5418,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       </version>
       <version name="3.22" author="juliansader" time="2018-04-15T21:49:19Z">
         <changelog><![CDATA[+ Automatically install script in MIDI Inline Editor section.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7798ce0031783db7465dcd76c82e98feb2a5bc05/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/69c50ead44accc8acbc72b727a77ad89d0193000/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="3.23" author="juliansader" time="2018-05-29T21:05:56Z">
+        <changelog><![CDATA[+ Refocus MIDI editor after arming floating toolbar.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/76796f81585e906c01775c699197f393006c488e/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected events in lane under mouse to fit chased values on both sides.lua" type="script" desc="js_Tilt selected events in lane under mouse to fit chased values on both sides.lua">
