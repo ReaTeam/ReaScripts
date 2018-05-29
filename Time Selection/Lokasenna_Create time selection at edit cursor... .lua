@@ -1,10 +1,11 @@
 --[[
 Description: Create time selection at edit cursor...
-Version: 1.11
+Version: 1.12
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Maybe fixed "Error opening source file" issues. Not sure.
+    Added a couple of extra error checks.
+    "Save as action" dialog now includes a warning not to rename the file.
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -59,7 +60,7 @@ local function create_time_sel()
     elseif units    == "visible gridlines" then
 
         local pos = reaper.GetCursorPosition()
-        local cur = 0.00001
+        local cur = 0.001
 
         while true do
             
@@ -104,14 +105,13 @@ end
 if script_filename ~= "Lokasenna_Create time selection at edit cursor... .lua" then
     
     -- Parse vals from filename
-    --Lokasenna_Create time selection 4 frames long, centered on the edit cursor.lua
     local str = string.match(script_filename, "selection%s(.*)%sthe edit cursor")
     length, units, position = string.match(str, "(%d+)%s(%a+)%slong%,%s(%a+%s%a+)")
     
     if length and units and position then 
-
         create_time_sel() 
-        
+    else
+        reaper.MB("Error reading settings. Make sure the script's filename has *not* been changed.", "Whoops!", 0)
     end
     
     return
@@ -4159,7 +4159,8 @@ local function btn_save()
     end
     
     -- Pop up an MB?
-    reaper.MB(  "Saved current settings and added to the action list:\n" .. name .. ".lua",
+    reaper.MB(  "Saved current settings and added to the action list:\n" .. name .. ".lua" ..
+                "\n\nImportant: Do NOT change the script's filename, or it will crash.",
                 "Done!", 0)
     
 end
