@@ -84,6 +84,8 @@ About:
     + Tweak mouse cursor icon.
   * v3.22 (2018-04-15)
     + Automatically install script in MIDI Inline Editor section.
+  * v3.23 (2018-05-29)
+    + Refocus MIDI editor after arming floating toolbar.
 ]]
 
 
@@ -1129,6 +1131,8 @@ function setAsNewArmedToolbarAction()
     reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
     
     reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(ownCommandID), false)
+
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end -- In case using floating toolbar, ensure that MIDI editor is focused again
 end
 
 
