@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_1-sided warp (accelerate) selected events in lane under mouse.lua
-Version: 3.40
+Version: 3.41
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29080/Warp%203.00%20-%20left%20and%20right%2C%20or%20up%20and%20down.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -134,6 +134,8 @@ About:
     + Slghtly faster execution in inline editor and multi-take items.
   * v3.40 (2018-03-29)
     + Warp all selected in all lanes together if mouse is positioned over lane divider.
+  * v3.41 (2018-05-29)
+    + Refocus MIDI editor after arming in floating toolbar.
 ]]
 
 
@@ -1417,13 +1419,11 @@ end
 -------------------------------------------------------------------------------------------------------
 -- Here execution starts!
 
-    function main()
+function main()
     
     -- Start with a trick to avoid automatically creating undo states if nothing actually happened
     -- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
-    function avoidUndo()
-    end
-    reaper.defer(avoidUndo)
+    reaper.defer(function() end)
     
     ---------------------------------------------------------------
     -- Get original mouse position in pixel coordinates.
@@ -1468,7 +1468,7 @@ end
         reaper.SetExtState("js_1-sided warp", "Last tip version", "3.40", true)
         displayedNotification = true
     end
-    if displayedNotification then return end
+    if displayedNotification then return(false) end
     
     ----------------------------------------------------------------------------
     -- Check whether SWS is available, as well as the required version of REAPER
@@ -1491,7 +1491,7 @@ end
     -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
     if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
         setAsNewArmedToolbarAction()
-        return(true) 
+        return(false) 
     elseif not(segment == "notes" or details == "cc_lane") then 
         reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
                               .. "This script edits the MIDI events in the part of the MIDI editor that is under the mouse, "
@@ -1757,6 +1757,7 @@ end
     loop_pcall()
 end -- main
 
-main()
-
-
+---------------------------------------------
+---------------------------------------------
+mainOK = main()
+if mainOK == false and reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
