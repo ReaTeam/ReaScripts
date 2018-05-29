@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Tilt selected CCs or velocities to mouse position.lua
-Version: 3.22
+Version: 3.23
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27605/Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position%20-%20Copy.gif
