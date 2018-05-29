@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="013cf75a89cd6a3a653095e73f656a25eb99169c" name="ReaTeam Scripts">
+<index version="1" commit="5dab2540413bd83a3bb4697c279747b715b7a1e5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6646,6 +6646,10 @@ enter or a = Exit and apply changes\par}
 Note: "Visible gridlines" will have issues if the edit cursor
 is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/013cf75a89cd6a3a653095e73f656a25eb99169c/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
+      </version>
+      <version name="1.11" author="Lokasenna" time="2018-05-29T15:16:09Z">
+        <changelog><![CDATA[Maybe fixed "Error opening source file" issues. Not sure.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5dab2540413bd83a3bb4697c279747b715b7a1e5/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
