@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Insert CC or pitch at mouse position, leaving other selected.lua
-Version: 2.3
+Version: 2.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/27602/Insert%20CC%20or%20pitch%20at%20mouse%20position%2C%20leaving%20others%20selected.gif
@@ -58,6 +58,8 @@ About:
     + Install and work in Inline MIDI editor.
   * v2.3 (2018-05-18)
     + Use active channel of Inline MIDI editor.
+  * v2.31 (2018-05-29)
+    + Return focus to MIDI editor after arming button in floating toolbar.
 ]]
 
 
@@ -121,22 +123,22 @@ end
 function main()
 
     if not reaper.APIExists("SN_FocusMIDIEditor") then -- Old versions of SWS have bug in BR_GetMouseCursorContext function
-        reaper.ShowMessageBox("This script requires an updated version of the SWS/S&M extension."
+        reaper.ShowMessageBox("This script requires an up-to-date version of the SWS/S&M extension."
                               .."\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org."
                               , "ERROR", 0)
         return(false)
+    elseif reaper.GetExtState("js_Mouse actions", "Status") == "Running" then
+        return(false)
     end
-    
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
     window, segment, details = reaper.BR_GetMouseCursorContext()
     -- If window == "unknown", assume to be called from floating toolbar
     -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
     if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
         setAsNewArmedToolbarAction()
-        return(0) 
+        return(false) 
     elseif details ~= "cc_lane" then 
-        return(0) 
+        return(false) 
     end
     
     editor, isInline, _, mouseLane, mouseCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
@@ -242,10 +244,17 @@ function main()
     reaper.SetMediaItemSelected(item, not itemSelected)
     reaper.SetMediaItemSelected(item, itemSelected)
     reaper.UpdateItemInProject(item)
+    
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)  
+    
     reaper.Undo_OnStateChange_Item(0, "Insert CC, leaving others selected", item)
     
 end
 
+--------------------------------------------------
+--------------------------------------------------
 reaper.defer(function() end) -- Avoid automatic creation of undo point
-main()
+mainOK = main()
+if mainOK == false and reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+  
 

@@ -173,7 +173,7 @@ local MIDIstringSub5 -- MIDIstring without the first 4 byte of the original offs
 local tableLine = {}
  
 -- Starting values and position of mouse 
--- mouseOrigCClane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
+-- mouseOrigCCLane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
 --    0x202=program, 0x203=channel pressure, 0x204=bank/program select, 
 --    0x205=text, 0x206=sysex, 0x207=off velocity)
 local window, segment, details -- given by the SWS function reaper.BR_GetMouseCursorContext()
@@ -187,7 +187,7 @@ local laneIsCHPRESS   = false
 --local laneIsSYSEX     = false -- not used in this script
 --local laneIsTEXT      = false
 local laneMin, laneMax -- The minimum and maximum values in the target lane
-local mouseOrigCClane, mouseOrigCCValue, mouseOrigPPQpos, mouseOrigPitch, mouseOrigCClaneID
+local mouseOrigCCLane, mouseOrigCCValue, mouseOrigPPQpos, mouseOrigPitch, mouseOrigCCLaneID
 local snappedOrigPPQpos -- If snap-to-grid is enabled, these will give the closest grid PPQ to the left. (Swing is not implemented.)
 local isInline -- Is the user using the inline MIDI editor?  (The inline editor does not have access to OnCommand.)
 
@@ -196,7 +196,7 @@ local lastChasedValue -- value of closest CC to the left
 local nextChasedValue -- value of closest CC to the right
 
 -- Tracking the new value and position of the mouse while the script is running
-local mouseNewCClane, mouseNewCCValue, mouseNewPPQpos, mouseNewPitch, mouseNewCClaneID
+local mouseNewCCLane, mouseNewCCValue, mouseNewPPQpos, mouseNewPitch, mouseNewCCLaneID
 local snappedNewPPQpos 
 local mouseWheel = defaultShapePower -- Track mousewheel movement
 
@@ -277,9 +277,9 @@ local function loop_trackMouseMovement()
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
     if SWS283 == true then 
-        _, mouseNewPitch, mouseNewCClane, mouseNewCCValue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+        _, mouseNewPitch, mouseNewCCLane, mouseNewCCValue, mouseNewCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
     else -- SWS287
-        _, _, mouseNewPitch, mouseNewCClane, mouseNewCCValue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+        _, _, mouseNewPitch, mouseNewCCLane, mouseNewCCValue, mouseNewCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
     end
     
     ----------------------------------------------------------------------------------
@@ -294,14 +294,14 @@ local function loop_trackMouseMovement()
             return 
         end
     elseif segment == "notes" 
-        or (details == "cc_lane" and mouseNewCClaneID < mouseOrigCClaneID and mouseNewCClaneID >= 0) 
+        or (details == "cc_lane" and mouseNewCCLaneID < mouseOrigCCLaneID and mouseNewCCLaneID >= 0) 
         then
         mouseNewCCValue = laneMax
         mustQuitAfterDrawingOnceMore = true
-    elseif details == "cc_lane" and mouseNewCClaneID > mouseOrigCClaneID then
+    elseif details == "cc_lane" and mouseNewCCLaneID > mouseOrigCCLaneID then
         mouseNewCCValue = laneMin
         mustQuitAfterDrawingOnceMore = true        
-    elseif mouseNewCClane ~= mouseOrigCClane then
+    elseif mouseNewCCLane ~= mouseOrigCCLane then
         return
     elseif mouseNewCCValue == -1 then 
         mouseNewCCValue = laneMax -- If -1, it means that the mouse is over the separator above the lane.
@@ -421,7 +421,7 @@ local function loop_trackMouseMovement()
         if insertValue ~= lastValue or skipRedundantCCs == false then
             if laneIsCC7BIT then
                 c = c + 1
-                tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCClane, insertValue)
+                tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, insertValue)
             elseif laneIsPITCH then
                 c = c + 1
                 tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xE0 | defaultChannel, insertValue&127, insertValue>>7)
@@ -430,9 +430,9 @@ local function loop_trackMouseMovement()
                 tableLine[c] = s_pack("i4BI4BB",  insertPPQpos-lastPPQpos, 1, 2, 0xD0 | defaultChannel, insertValue)
             else -- laneIsCC14BIT
                 c = c + 1
-                tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCClane-256, insertValue>>7)
+                tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, insertValue>>7)
                 c = c + 1
-                tableLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | defaultChannel, mouseOrigCClane-224, insertValue&127)
+                tableLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, insertValue&127)
             end
             lastValue = insertValue
             lastPPQpos = insertPPQpos
@@ -520,12 +520,12 @@ function onexit()
               
     -- Write nice, informative Undo strings
     if laneIsCC7BIT then 
-        undoString = "Draw LFO in CC lane ".. mouseOrigCClane
+        undoString = "Draw LFO in CC lane ".. mouseOrigCCLane
     elseif laneIsCHPRESS then
         undoString = "Draw LFO in channel pressure lane"
     elseif laneIsCC14BIT then
         undoString = "Draw LFO in 14 bit CC lanes ".. 
-                                  tostring(mouseOrigCClane-256) .. "/" .. tostring(mouseOrigCClane-224)
+                                  tostring(mouseOrigCCLane-256) .. "/" .. tostring(mouseOrigCCLane-224)
     elseif laneIsPITCH then
        undoString = "Draw LFO in pitchwheel lane"
     end   
@@ -588,9 +588,9 @@ function deleteExistingCCsInRange()
             if msg:byte(1) & 0x0F == defaultChannel or deleteOnlyDrawChannel == false then
                 local eventType = msg:byte(1)>>4
                 local msg2      = msg:byte(2)
-                if laneIsCC7BIT then if eventType == 11 and msg2 == mouseOrigCClane then mustDelete = true end
+                if laneIsCC7BIT then if eventType == 11 and msg2 == mouseOrigCCLane then mustDelete = true end
                 elseif laneIsPITCH then if eventType == 14 then mustDelete = true end
-                elseif laneIsCC14BIT then if eventType == 11 and (msg2 == mouseOrigCClane-224 or msg2 == mouseOrigCClane-256) then mustDelete = true end
+                elseif laneIsCC14BIT then if eventType == 11 and (msg2 == mouseOrigCCLane-224 or msg2 == mouseOrigCCLane-256) then mustDelete = true end
                 elseif laneIsCHPRESS then if eventType == 13 then mustDelete = true end
                 end
             end
@@ -600,9 +600,9 @@ function deleteExistingCCsInRange()
         if deselectEverythingInLane == true and flags&1 == 1 and not mustDelete then -- Only necessary to deselect if not already mustDelete
             local eventType = msg:byte(1)>>4
             local msg2      = msg:byte(2)
-            if laneIsCC7BIT then if eventType == 11 and msg2 == mouseOrigCClane then mustDeselect = true end
+            if laneIsCC7BIT then if eventType == 11 and msg2 == mouseOrigCCLane then mustDeselect = true end
             elseif laneIsPITCH then if eventType == 14 then mustDeselect = true end
-            elseif laneIsCC14BIT then if eventType == 11 and (msg2 == mouseOrigCClane-224 or msg2 == mouseOrigCClane-256) then mustDeselect = true end
+            elseif laneIsCC14BIT then if eventType == 11 and (msg2 == mouseOrigCCLane-224 or msg2 == mouseOrigCCLane-256) then mustDeselect = true end
             elseif laneIsCHPRESS then if eventType == 13 then mustDeselect = true end
             end
         end
@@ -744,8 +744,8 @@ function main()
                           .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
                           , "ERROR", 0)
          return(false)
-    elseif not reaper.APIExists("BR_GetMouseCursorContext") then
-        reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+    elseif not reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.ShowMessageBox("This script requires an updated version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
         return(false) 
     end   
     
@@ -762,7 +762,7 @@ function main()
         reaper.SetExtState("js_Draw LFO", "Last tip version", "3.40", true)
         displayedNotification = true
     end
-    if displayedNotification then reaper.SN_FocusMIDIEditor() return end -- If inline editor, will in any case lose focus when clicking in message box window.
+    if displayedNotification then return(false) end -- If inline editor, will in any case lose focus when clicking in message box window.
     
     
     -----------------------------------------------------------
@@ -774,7 +774,7 @@ function main()
     -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
     if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
         setAsNewArmedToolbarAction()
-        return(true) 
+        return(false) 
     elseif not(details == "cc_lane") then 
         reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
                               .. "This script draws a ramp in the CC lane that is under the mouse, "
@@ -790,34 +790,16 @@ function main()
     -- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
     -- Also get the mouse starting (vertical) value and CC lane.
     -- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
-    -- mouseOrigCClane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
+    -- mouseOrigCCLane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
     --    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
     --    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
-    --
-    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
-    -- https://github.com/Jeff0S/sws/issues/783
-    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-    editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCValue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    if not (type(isInline) == "boolean") then
-        SWS283 = true
-        isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCValue, mouseOrigCClaneID = editor, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCValue
-        if not isInline then
-            editor = reaper.MIDIEditor_GetActive()
-        end
-    else
-        SWS283 = false
-    end
-    -- If the mouse starts on the divider between lanes, the ramp must be drawn from either the maximum
-    --    or minimum value of the lane.  The lane is undetermined, however, so the script must loop till user moves mouse into a lane.
-    -- To optimize responsiveness, the script will do some other stuff before re-visiting the mouse position.
+    editor, isInline, mouseOrigPitch, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
     
-    -------------------------------------------------        
-    -- Get active take (MIDI editor or inline editor)
     if isInline then
         take = reaper.BR_GetMouseCursorContext_Take()
     else
         if editor == nil then 
-            reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
+            reaper.ShowMessageBox("Could not detect a MIDI editor under the mouse.", "ERROR", 0)
             return(false)
         else
             take = reaper.MIDIEditor_GetTake(editor)
@@ -957,9 +939,9 @@ function main()
         repeat
             window, segment, details = reaper.BR_GetMouseCursorContext()
             if SWS283 == true then
-                isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCValue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+                isInline, mouseOrigPitch, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
             else 
-                _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCValue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
+                _, isInline, mouseOrigPitch, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
             end  
         until details ~= "cc_lane" or mouseOrigCCValue ~= -1
     end
@@ -968,19 +950,19 @@ function main()
     -- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
     --     require somewhat different tweaks, these must often be 
     --     distinguished.   
-    if 0 <= mouseOrigCClane and mouseOrigCClane <= 127 then -- CC, 7 bit (single lane)
+    if 0 <= mouseOrigCCLane and mouseOrigCCLane <= 127 then -- CC, 7 bit (single lane)
         laneIsCC7BIT = true
         laneMax = 127
         laneMin = 0
-    elseif mouseOrigCClane == 0x203 then -- Channel pressure
+    elseif mouseOrigCCLane == 0x203 then -- Channel pressure
         laneIsCHPRESS = true
         laneMax = 127
         laneMin = 0
-    elseif 256 <= mouseOrigCClane and mouseOrigCClane <= 287 then -- CC, 14 bit (double lane)
+    elseif 256 <= mouseOrigCCLane and mouseOrigCCLane <= 287 then -- CC, 14 bit (double lane)
         laneIsCC14BIT = true
         laneMax = 16383
         laneMin = 0
-    elseif mouseOrigCClane == 0x201 then
+    elseif mouseOrigCCLane == 0x201 then
         laneIsPITCH = true
         laneMax = 16383
         laneMin = 0
@@ -1050,7 +1032,7 @@ function main()
             local msg1 = msg:byte(1)
             local msg2 = msg:byte(2)
             if laneIsCC7BIT then 
-                if msg1>>4 == 11 and msg2 == mouseOrigCClane then 
+                if msg1>>4 == 11 and msg2 == mouseOrigCCLane then 
                     if flags&1 == 1 then mustDeselect = true end
                     if msg1&0x0F  == defaultChannel then
                         if runningPPQpos < snappedOrigPPQpos then lastChasedValue = msg:byte(3) 
@@ -1069,14 +1051,14 @@ function main()
                 end
             elseif laneIsCC14BIT then -- Should the script ignore LSB?
                 if msg1>>4 == 11 then
-                    if msg2 == mouseOrigCClane-256 then 
+                    if msg2 == mouseOrigCCLane-256 then 
                         if flags&1 == 1 then mustDeselect = true end
                         if msg1&0x0F == defaultChannel then
                             if runningPPQpos < snappedOrigPPQpos then lastChasedMSB = msg:byte(3)
                             elseif not nextChasedMSB then nextChasedMSB = msg:byte(3)
                             end
                         end
-                    elseif msg2 == mouseOrigCClane-224 then 
+                    elseif msg2 == mouseOrigCCLane-224 then 
                         if flags&1 == 1 then mustDeselect = true end
                         if msg1&0x0F == defaultChannel then
                             if runningPPQpos < snappedOrigPPQpos then lastChasedLSB = msg:byte(3)
@@ -1173,4 +1155,8 @@ function main()
 
 end -- function main()
 
-main()
+--------------------------------------------------
+--------------------------------------------------
+mainOK = main()
+if mainOK == false and reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+

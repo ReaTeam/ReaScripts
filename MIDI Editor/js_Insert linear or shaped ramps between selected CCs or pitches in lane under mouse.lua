@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Insert ramps between selected CCs in lane under mouse (use mouse and mousewheel to shape ramps).lua
-Version: 3.33
+Version: 3.40
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif
@@ -9,34 +9,23 @@ Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
 Provides: [main=main,midi_editor,midi_inlineeditor] .
 About: 
-  # Description
+  # DESCRIPTION
 
-  * Useful for quickly adding ramps between 'nodes'.
+  * Useful for quickly inserting ramps between 'nodes'.
 
   * Useful for smoothing transitions between CCs that were drawn at low resolution.
 
 
-  The "Insert ramps" scripts are available in several variants (all of which can be dowloaded via ReaPack).  For example:  
-  
-  * Some variants start with a dialog box in which the user can customize several features; 
-  
-  * Other variants are single-click functions that immediately apply the default settings.
-  
-  (The user can create additional variants with customized settings, by editing the default settings in the the scripts' "USER AREA" and saving the edited versions as new scripts.)
-  
-
-  This variant uses mousewheel and mouse movement to shape the ramps (similar to REAPER's "mouse modifier" actions such as "Linear ramp CC events"):
+  This script uses mousewheel and mouse movement to shape the ramps (similar to REAPER's "mouse modifier" actions such as "Linear ramp CC events"):
   
   * Moving the mousewheel toggles between sine (aka "slow start / slow end") curves and linear (aka "triangle") curves.
   
-  * Moving the mouse left or right warps the ramp CCs left or right, thereby creating "fast start / slow end" or "slow start / fast end" curves, respectively.
+  * Moving the mouse left and right or up and down warps the ramp CCs horizontally or vertically, thereby creating shapes such as "fast start / slow end" or "slow start / fast end" curves, respectively.
   
   
   Notes:
   
-  * If snap-to-grid is ENabled in the MIDI editor, new CCs will be inserted at grid spacing.
-  
-  * If snap-to-grid is DISabled, new CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.
+  * New CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.
   
   * Any extraneous CCs between selected events will deleted.
   
@@ -63,20 +52,17 @@ About:
         
   There are two ways in which this script can be run:  
   
-  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "shift+V".  
+  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "1".  
       (Using the standard steps of linking any REAPER action to a shortcut key.)
 
   2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
       can each be linked to a toolbar button.  
-      
       * In this case, each script need not be linked to its own shortcut key.  Instead, only the 
         accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
         script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
-      
       * Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
         and this selected (armed) script can then be run by using the shortcut for the 
         aforementioned "js_Run..." script.
-      
       * For further instructions - please refer to the "js_Run..." script.                 
  
   Since this function is a user script, the way it responds to shortcut keys and 
@@ -89,26 +75,25 @@ About:
   (The first time that the script is stopped, REAPER will pop up a dialog box 
     asking whether to terminate or restart the script.  Select "Terminate"
     and "Remember my answer for this script".)   
-
-
-  MOUSEWHEEL MODIFIER
-  
+    
+    
+  MOUSEWHEEL CONTROL
+   
   A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an
-  Action, similar to how keyboard shortcuts are assigned.
-  
-  As is the case with keyboard shortcuts, the script can either be controlled via its own
-  mousewheel modifier, or via the mousewheel modifier that is linked to the "js_Run..." control script.
+  Action, similar to how keyboard shortcuts are assigned.  
   
   Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user 
   must remember several modifier combinations, one for each script.  (Mousewheel modifiers such as 
   Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)
   
-  An easier option is to link a single mousewheel+modifier shortcut to the "js_Run..." script, 
-  and this single mousewheel+modifier can then be used to control any of the other "lane under mouse" scripts. 
+  An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, 
+  which will then broadcast mousewheel movement to any js script that is running:
   
-  NOTE: The mousewheel modifier that is assigned to the "js_Run..." script can be used to control 
-      the other scripts, including the Arching scripts, even if these scripts
-      were started from their own keyboard shortcuts.
+  * js_Run the js_'lane under mouse' script that is selected in toolbar
+  * js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down
+  * js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally
+  
+  By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other mouse editing scripts. 
     
     
   PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
@@ -153,6 +138,9 @@ About:
     + Ramps can be shaped by mouse and mousewheel movement.
   * v3.33 (2018-04-21)
     + Skipping redundant events can be toggled by separate script.
+  * v3.40 (2018-05-29)
+    + Return focus to MIDI editor after arming button in floating toolbar.    
+    + Ramps can be warped up and down (as well as left and right, as before)
 ]] 
 
 -- USER AREA
@@ -247,7 +235,7 @@ local laneIsPIANOROLL = false
 local laneIsNOTES     = false -- Includes laneIsPIANOROLL, laneIsVELOCITY and laneIsOFFVEL
 local laneIsSYSEX     = false
 local laneIsTEXT      = false
-local laneMin, laneMax -- The minimum and maximum values in the target lane
+local laneMin, laneMax, laneAvg, laneHeight -- The minimum and maximum values in the target lane
 local mouseOrigCCLane, mouseOrigCCLaneID, mouseOrigCCValue, mouseNewCCLane, mouseNewCCLaneID, mouseNewCCValue -- Track mouse movement to compare with original position
 local mouseOrigXPos, mouseOrigYPos, mouseNewXPos, mouseNewYPos 
 
@@ -599,11 +587,7 @@ local function trackMouseAndDrawMIDI()
     reaper.TrackCtl_SetToolTip(" \\/\\", mouseNewXPos+7, mouseNewYPos+8, true) 
 
     window, segment, details = reaper.BR_GetMouseCursorContext()  
-    if SWS283 == true then 
-        _, mouseNewPitch, mouseNewCCLane, mouseNewCCValue, mouseNewCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    else -- SWS287
-        _, _, mouseNewPitch, mouseNewCCLane, mouseNewCCValue, mouseNewCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    end
+    _, _, mouseNewPitch, mouseNewCCLane, mouseNewCCValue, mouseNewCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
 
     ----------------------------------------------------------------------------------
     -- What must the script do if the mouse moves out of the original CC lane area?
@@ -647,118 +631,143 @@ local function trackMouseAndDrawMIDI()
     end -- Flip curve type in mousewheel is moved in any direction.
     prevMousewheel = mousewheel
   
+    ------------------------------------------------------
+    -- This setting can be changed while script is running
+    if reaper.GetExtState("js_Mouse actions", "skipRedundantCCs") == "false" then
+        skipRedundantCCs = false
+    else
+        skipRedundantCCs = true
+    end
+    
     ------------------------------------------------------------------
     -- Calculate the new raw MIDI data, and write the tableEditedMIDI!
     ---------------------------------------------------------------- THIS IS THE PART THAT CAN EASILY BE MODDED !! ------------------------
+    local warpRight, warpUp
+    
+    -- left-right warping
+    local mouseRelativeMovement = (mouseNewXPos - mouseOrigXPos)/400
+    if mouseRelativeMovement > 0.49 then mouseRelativeMovement = 0.49 elseif mouseRelativeMovement < -0.49 then mouseRelativeMovement = -0.49 end
+    if mouseRelativeMovement >= 0 then warpRight = true end
+    local powerLeftRight = math.log(0.5 - math.abs(mouseRelativeMovement), 0.5)
+    
+    -- up-down warping
+    local mouseRelativeMovement = (mouseNewCCValue-laneAvg)/(laneHeight)
+    -- Prevent warping too much, so that all CCs don't end up in a solid block
+    if mouseRelativeMovement > 0.49 then mouseRelativeMovement = 0.49 elseif mouseRelativeMovement < -0.49 then mouseRelativeMovement = -0.49 end
+    if mouseRelativeMovement >= 0 then warpUp = true end
+    local powerUpDown = math.log(0.5 - math.abs(mouseRelativeMovement), 0.5)
+
     tableNewEvents = {} -- Clean previous tableEditedMIDI
     local c = 0 -- Count index inside tableEditedMIDI - strangely, this is faster than using table.insert or even #tableEditedMIDI+1
-              
     local offset, newPPQpos, noteOffPPQpos, newNoteOffPPQpos
     local lastPPQpos = 0
+    local newFlags = newCCsAreSelected and 1 or 0       
+    local lastPPQpos = 0
     
-        --local mouseRelativeMovement = (mouseNewCCValue-mouseOrigCCValue)/(laneMax-laneMin) -- Positive if moved to right, negative if moved to left
-        local mouseRelativeMovement = (mouseNewXPos - mouseOrigXPos)/400
-        if mouseRelativeMovement > 0.49 then mouseRelativeMovement = 0.49 elseif mouseRelativeMovement < -0.49 then mouseRelativeMovement = -0.49 end
-
-        power = math.log(0.5 - math.abs(mouseRelativeMovement), 0.5)
+    -- First insert the original event, and then check whether any new events must be inserted between this and the next event in the same channel.
+    for s, i in ipairs(tableSortedIndices) do 
+        if laneIsCC7BIT then
+            c = c + 1
+            tableNewEvents[c] = s_pack("i4BI4BBB", tablePPQs[i]-lastPPQpos, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane, tableValues[i])
+        elseif laneIsPITCH then
+            c = c + 1
+            tableNewEvents[c] = s_pack("i4BI4BBB", tablePPQs[i]-lastPPQpos, tableFlags[i], 3, 0xE0 | tableChannels[i], tableValues[i]&127, tableValues[i]>>7)
+        elseif laneIsCHPRESS then
+            c = c + 1
+            tableNewEvents[c] = s_pack("i4BI4BB",  tablePPQs[i]-lastPPQpos, tableFlags[i], 2, 0xD0 | tableChannels[i], tableValues[i])
+        elseif laneIsCC14BIT then
+            c = c + 1
+            tableNewEvents[c] = s_pack("i4BI4BBB", tablePPQs[i]-lastPPQpos, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-256, tableValues[i]>>7)
+            c = c + 1
+            tableNewEvents[c] = s_pack("i4BI4BBB", 0, tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-224, tableValues[i]&127)
+        elseif laneIsPROGRAM then
+            c = c + 1
+            tableNewEvents[c] = s_pack("i4BI4BB",  tablePPQs[i]-lastPPQpos, tableFlags[i], 2, 0xC0 | tableChannels[i], tableValues[i])
+        end
+        local lastValue = tableValues[i]
+        lastPPQpos = tablePPQs[i]
         
-        
-        local c = 0 -- Index in table of edited events
-        local newFlags = newCCsAreSelected and 1 or 0       
-        local lastPPQpos = 0
-        
-        -- First insert the original event, and then check whether any new events must be inserted between this and the next event in the same channel.
-        for s, i in ipairs(tableSortedIndices) do 
-            if laneIsCC7BIT then
-                c = c + 1
-                tableNewEvents[c] = s_pack("i4BI4BBB", tablePPQs[i]-lastPPQpos, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane, tableValues[i])
-            elseif laneIsPITCH then
-                c = c + 1
-                tableNewEvents[c] = s_pack("i4BI4BBB", tablePPQs[i]-lastPPQpos, tableFlags[i], 3, 0xE0 | tableChannels[i], tableValues[i]&127, tableValues[i]>>7)
-            elseif laneIsCHPRESS then
-                c = c + 1
-                tableNewEvents[c] = s_pack("i4BI4BB",  tablePPQs[i]-lastPPQpos, tableFlags[i], 2, 0xD0 | tableChannels[i], tableValues[i])
-            elseif laneIsCC14BIT then
-                c = c + 1
-                tableNewEvents[c] = s_pack("i4BI4BBB", tablePPQs[i]-lastPPQpos, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-256, tableValues[i]>>7)
-                c = c + 1
-                tableNewEvents[c] = s_pack("i4BI4BBB", 0, tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-224, tableValues[i]&127)
-            elseif laneIsPROGRAM then
-                c = c + 1
-                tableNewEvents[c] = s_pack("i4BI4BB",  tablePPQs[i]-lastPPQpos, tableFlags[i], 2, 0xC0 | tableChannels[i], tableValues[i])
-            end
-            local lastValue = insertValue
-            lastPPQpos = tablePPQs[i]
-            
-            -- Find next event in same channel
-            for a = s+1, #tableSortedIndices do 
-                z = tableSortedIndices[a]
-                if tableChannels[z] == tableChannels[i] then
-                    nextValue = tableValues[z]
-                    nextPPQ   = tablePPQs[z]
-                    
-                    local nextCCdensityPPQpos = firstCCinTakePPQpos + PPperCC * math.ceil((tablePPQs[i]+1-firstCCinTakePPQpos)/PPperCC)
-                    for PPQpos = nextCCdensityPPQpos, nextPPQ-1, PPperCC do
-                        PPQround = m_floor(PPQpos + 0.5)
-                        local insertValue
+        -- Find next event in same channel
+        for a = s+1, #tableSortedIndices do 
+            z = tableSortedIndices[a]
+            if tableChannels[z] == tableChannels[i] then -- will break after executing "then"
+                local nextValue = tableValues[z]
+                local nextPPQ   = tablePPQs[z]
+                
+                local prevValue = tableValues[i]
+                local prevPPQ   = tablePPQs[i]                    
+                
+                local nextCCdensityPPQpos = firstCCinTakePPQpos + PPperCC * math.ceil((tablePPQs[i]+1-firstCCinTakePPQpos)/PPperCC)
+                local insertChannel = (tableChannels[i]+newEventsAddChannel) % 16
+                
+                for PPQpos = nextCCdensityPPQpos, nextPPQ-1, PPperCC do
+                    PPQround = m_floor(PPQpos + 0.5)
+                    local insertValue
+                    if prevValue == nextValue then 
+                        insertValue = prevValue
+                    else
                         if curveIsLinear then 
-                            if mouseRelativeMovement >= 0 then
-                                local weight = ((PPQround - tablePPQs[i]) / (nextPPQ - tablePPQs[i]))^power
-                                insertValue = tableValues[i] + (nextValue - tableValues[i])*weight
+                            if warpRight then
+                                local weight = ((PPQround - prevPPQ) / (nextPPQ - prevPPQ))^powerLeftRight
+                                insertValue = prevValue + (nextValue - prevValue)*weight
                             else
-                                local weight = ((PPQround - nextPPQ) / (tablePPQs[i] - nextPPQ))^power
-                                insertValue = nextValue + (tableValues[i] - nextValue)*weight
+                                local weight = ((PPQround - nextPPQ) / (prevPPQ - nextPPQ))^powerLeftRight
+                                insertValue = nextValue + (prevValue - nextValue)*weight
                             end
                         else -- shape == "sine"
-                            if mouseRelativeMovement >= 0 then
-                                local weight = ((1 - m_cos(m_pi*(PPQround - tablePPQs[i]) / (nextPPQ - tablePPQs[i])))/2)^power
-                                insertValue = tableValues[i] + (nextValue - tableValues[i])*weight
+                            if warpRight then
+                                local weight = ((1 - m_cos(m_pi*(PPQround - prevPPQ) / (nextPPQ - prevPPQ)))/2)^powerLeftRight
+                                insertValue = prevValue + (nextValue - prevValue)*weight
                             else
-                                local weight = ((1 - m_cos(m_pi*(PPQround - nextPPQ) / (tablePPQs[i] - nextPPQ)))/2)^power
-                                insertValue = nextValue + (tableValues[i] - nextValue)*weight
+                                local weight = ((1 - m_cos(m_pi*(PPQround - nextPPQ) / (prevPPQ - nextPPQ)))/2)^powerLeftRight
+                                insertValue = nextValue + (prevValue - nextValue)*weight
                             end
-                            
                         end
                         
+                        if (warpUp and prevValue > nextValue) or (not warpUp and prevValue < nextValue) then
+                            insertValue = prevValue + (nextValue-prevValue)*((insertValue - prevValue)/(nextValue - prevValue))^powerUpDown
+                        else
+                            insertValue = nextValue + (prevValue-nextValue)*((insertValue - nextValue)/(prevValue - nextValue))^powerUpDown
+                        end
+                    
                         if insertValue > laneMax then insertValue = laneMax
                         elseif insertValue < laneMin then insertValue = laneMin
                         else insertValue = m_floor(insertValue + 0.5)
                         end
-                        
-                        local insertChannel = (tableChannels[i]+newEventsAddChannel) % 16
-                        
-                        -- If redundant, skip insertion
-                        if not (skipRedundantCCs == true and insertValue == lastValue) then
-                            if laneIsCC7BIT then
-                                c = c + 1
-                                tableNewEvents[c] = s_pack("i4BI4BBB", PPQround-lastPPQpos, newFlags, 3, 0xB0 | insertChannel, mouseOrigCCLane, insertValue)
-                            elseif laneIsPITCH then
-                                c = c + 1
-                                tableNewEvents[c] = s_pack("i4BI4BBB", PPQround-lastPPQpos, newFlags, 3, 0xE0 | insertChannel, insertValue&127, insertValue>>7)
-                            elseif laneIsCHPRESS then
-                                c = c + 1
-                                tableNewEvents[c] = s_pack("i4BI4BB",  PPQround-lastPPQpos, newFlags, 2, 0xD0 | insertChannel, insertValue)
-                            elseif laneIsCC14BIT then
-                                c = c + 1
-                                tableNewEvents[c] = s_pack("i4BI4BBB", PPQround-lastPPQpos, newFlags, 3, 0xB0 | insertChannel, mouseOrigCCLane-256, insertValue>>7)
-                                c = c + 1
-                                tableNewEvents[c] = s_pack("i4BI4BBB", 0, newFlags, 3, 0xB0 | insertChannel, mouseOrigCCLane-224, insertValue&127)
-                            elseif laneIsPROGRAM then
-                                c = c + 1
-                                tableNewEvents[c] = s_pack("i4BI4BB",  PPQround-lastPPQpos, newFlags, 2, 0xC0 | insertChannel, insertValue)    
-                            end
-                            lastValue = insertValue
-                            lastPPQpos = PPQround
-                        end -- if not (skipRedundantCCs == true and insertValue == prevCCvalue)
-                    end -- for PPQpos = nextCCdensityPPQpos, nextPPQ-1, PPperCC do
-  
-                    break -- Found one event in same channel, don't search any further  
-                       
-                end -- if tableChannels[searchAheadIndex] == tableChannels[i] then
-                
-                
-            end -- for searchAheadIndex = i+1, #tablePPQs do
-        end -- for i = 1, #tablePPQs do
+                    end
+                    
+                    -- If redundant, skip insertion
+                    if not (skipRedundantCCs == true and insertValue == lastValue) then
+                        if laneIsCC7BIT then
+                            c = c + 1
+                            tableNewEvents[c] = s_pack("i4BI4BBB", PPQround-lastPPQpos, newFlags, 3, 0xB0 | insertChannel, mouseOrigCCLane, insertValue)
+                        elseif laneIsPITCH then
+                            c = c + 1
+                            tableNewEvents[c] = s_pack("i4BI4BBB", PPQround-lastPPQpos, newFlags, 3, 0xE0 | insertChannel, insertValue&127, insertValue>>7)
+                        elseif laneIsCHPRESS then
+                            c = c + 1
+                            tableNewEvents[c] = s_pack("i4BI4BB",  PPQround-lastPPQpos, newFlags, 2, 0xD0 | insertChannel, insertValue)
+                        elseif laneIsCC14BIT then
+                            c = c + 1
+                            tableNewEvents[c] = s_pack("i4BI4BBB", PPQround-lastPPQpos, newFlags, 3, 0xB0 | insertChannel, mouseOrigCCLane-256, insertValue>>7)
+                            c = c + 1
+                            tableNewEvents[c] = s_pack("i4BI4BBB", 0, newFlags, 3, 0xB0 | insertChannel, mouseOrigCCLane-224, insertValue&127)
+                        elseif laneIsPROGRAM then
+                            c = c + 1
+                            tableNewEvents[c] = s_pack("i4BI4BB",  PPQround-lastPPQpos, newFlags, 2, 0xC0 | insertChannel, insertValue)    
+                        end
+                        lastValue = insertValue
+                        lastPPQpos = PPQround
+                    end -- if not (skipRedundantCCs == true and insertValue == prevCCvalue)
+                end -- for PPQpos = nextCCdensityPPQpos, nextPPQ-1, PPperCC do
+
+                break -- Found one event in same channel, don't search any further  
+                   
+            end -- if tableChannels[searchAheadIndex] == tableChannels[i] then
+            
+            
+        end -- for searchAheadIndex = i+1, #tablePPQs do
+    end -- for i = 1, #tablePPQs do
                     
                       
     -----------------------------------------------------------
@@ -782,8 +791,9 @@ function loop_pcall()
     --    it is important to ensure that, if things go wrong, the script can restore the cleared takes
     --    (otherwise the user may not notice the missing MIDI util it is too late).
     -- Therefore use pcall to call the main trackMouseAndDrawMIDI function.
-    local errorFree, mustContinue = pcall(trackMouseAndDrawMIDI)
-
+    --local errorFree, mustContinue = pcall(trackMouseAndDrawMIDI)
+    errorFree = true
+    mustContinue = trackMouseAndDrawMIDI()
     -- Continuously loop the function - if don't need to quit
     if not errorFree then
         reaper.MB("Error while tracking mouse movement.\n\nOriginal MIDI data will be restored.\n\n", "ERROR", 0)
@@ -960,17 +970,8 @@ function main()
     reaper.defer(function() end)
     
     
-    -------------------------------------------------------
-    -- Test whether user customizable variables are usable.
-    if reaper.GetExtState("js_Mouse actions", "skipRedundantCCs") == "false" then
-        skipRedundantCCs = false
-    else
-        skipRedundantCCs = true
-    end
-    
     if type(newCCsAreSelected) ~= "boolean" then
         reaper.ShowMessageBox("The setting 'newCCsAreSelected' must be either 'true' of 'false'.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false)
     end
         
@@ -981,11 +982,9 @@ function main()
         reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
                               .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
                               , "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false)
-    elseif not reaper.APIExists("BR_GetMouseCursorContext") then
-        reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+    elseif not reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.ShowMessageBox("This script requires an up-to-date version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
         return(false)
     end  
     
@@ -1004,8 +1003,7 @@ function main()
     (Remember that the mousewheel+modifier shortcut can be linked to this script directly, or to the "js_Run..." script.)]], 
                   "New feature notification", 0)
         reaper.SetExtState("js_Insert ramps (use mouse)", "Last tip version", "3.30", true)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
-        return
+        return(false)
     end
     
     
@@ -1019,12 +1017,11 @@ function main()
     -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
     if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
         setAsNewArmedToolbarAction()
-        return(true) 
+        return(false) 
     elseif not(segment == "notes" or details == "cc_lane") then 
         reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
                               .. "This script edits the MIDI events in the part of the MIDI editor that is under the mouse, "
                               .. "so the mouse should be positioned over either a CC lane or the notes area of an active MIDI editor.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false) 
     else
         -- Communicate with the js_Run.. script that a script is running
@@ -1039,31 +1036,11 @@ function main()
     -- mouseOrigCCLane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
     --    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
     --    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
-    --
-    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
-    -- https://github.com/Jeff0S/sws/issues/783
-    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-    _, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-    if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-    if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-    if SWS283 ~= SWS283again then
-        reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
-        return(false)
-    end
-    if SWS283 == true then
-        isInline, _, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    else 
-        _, isInline, _, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    end 
-    
-        
-    -------------------------------------------------        
-    -- Get active take (MIDI editor or inline editor)
+    editor, isInline, _, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
+
     if isInline then
         take = reaper.BR_GetMouseCursorContext_Take()
     else
-        editor = reaper.MIDIEditor_GetActive()
         if editor == nil then 
             reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
             return(false)
@@ -1072,19 +1049,16 @@ function main()
     end
     if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
         reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false)
     end
     item = reaper.GetMediaItemTake_Item(take)
     if not reaper.ValidatePtr(item, "MediaItem*") then 
         reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false)
     end
     track = reaper.GetMediaItemTake_Track(take)
     if not reaper.ValidatePtr(track, "MediaTrack*") then 
         reaper.ShowMessageBox("Could not determine the track to which the active take belongs.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false)
     end
     trackNameOK, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
@@ -1101,7 +1075,6 @@ function main()
     else]]
     if type(mouseOrigCCLane) ~= "number" then
         reaper.ShowMessageBox("The script could not detect the number ID of the target lane in the MIDI editor.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return(false)
     elseif 0 <= mouseOrigCCLane and mouseOrigCCLane <= 127 then -- CC, 7 bit (single lane)
         laneIsCC7BIT = true
@@ -1148,9 +1121,10 @@ function main()
     else -- not a lane type in which script can be used.
         reaper.ShowMessageBox("This script will only work in the following MIDI lanes: \n* 7-bit CC, \n* 14-bit CC, \n* Velocity.\n* Pitch, \n* Channel Pressure, or\n* Program select."--\n* Bank/Program,\n* Text or Sysex,\nor in the 'notes area' of the piano roll."
                               , "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
-        return(0)
+        return(false)
     end
+    laneHeight = (laneMax - laneMin)
+    laneAvg    = (laneMin + laneMax)/2
     
     
     -----------------------------------------------------------------------------------
@@ -1158,11 +1132,12 @@ function main()
     --    CCs will be inserted at the MIDI editor's grid spacing.
     -- Otherwise, CCs density will follow the setting in
     -- Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes"
-    if isInline then
+    --[[if isInline then
         isSnapEnabled = (reaper.GetToggleCommandStateEx(0, 1157) == 1)
     else
         isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled") == 1)
-    end
+    end]]
+    isSnapEnabled = false
     
     local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
     PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
@@ -1205,7 +1180,6 @@ function main()
     gotAllOK, origMIDIstring = reaper.MIDI_GetAllEvts(take, "")
     if not gotAllOK then
         reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
         return false 
     end
     
@@ -1217,8 +1191,7 @@ function main()
     end
     if not gotTwoEventsInAtLeastOneChannel then
         reaper.ShowMessageBox("At least one MIDI channel should contain two or more selected events in the lane under the mouse.", "ERROR", 0)
-        if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
-        return
+        return(false)
     end
     lastSelectedPPQPos = tablePPQs[tableSortedIndices[#tableSortedIndices]]
     restorePPQPosToZeroString = string.pack("i4Bs4", -lastSelectedPPQPos, 0, "")
@@ -1271,4 +1244,11 @@ function main()
     
 end -- function main()
 
-main()
+
+--------------------------------------------------
+--------------------------------------------------
+mainOK = main()
+if mainOK == false then
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)    
+end
