@@ -1,10 +1,10 @@
 --[[
 Description: Copy values from selected MIDI notes
-Version: 1.30
+Version: 1.31
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Added support for the inline MIDI editor
+    Better error checking for missing items/takes/notes
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -3905,6 +3905,7 @@ end
 local function btn_get()
        
     local take = get_MIDI_take()
+    if not take then return end
 
     copied_notes = {}
 
@@ -3920,7 +3921,7 @@ local function btn_get()
     end
     
     if #copied_notes == 0 then
-        reaper.MB("No selected notes found.", "Whoops!", 0)
+        if not startup then reaper.MB("No selected notes found.", "Whoops!", 0) end
         show_warning(true)
         return
     end
@@ -3938,6 +3939,7 @@ end
 local function btn_set()
 
     local take = get_MIDI_take()
+    if not take then return end
 
     reaper.Undo_BeginBlock()
 
@@ -3980,25 +3982,29 @@ function get_MIDI_take()
     
     -- Get editor, pop up MB if no editor, etc, etc
     local hwnd = reaper.MIDIEditor_GetActive()
-    if not hwnd then
+    if hwnd then
         
+        return reaper.MIDIEditor_GetTake( hwnd )        
+    
+    else
+    
         local item = reaper.GetSelectedMediaItem(0, 0)
-        local take = reaper.GetActiveTake(item)
-        if reaper.BR_IsMidiOpenInInlineEditor(take) then return take end            
-            
-        if not startup then reaper.MB("This script needs an open MIDI editor.", "Whoops!", 0) end
-        show_warning(true)
-        return
-    end
+        if item then
+            local take = reaper.GetActiveTake(item)
+            if reaper.BR_IsMidiOpenInInlineEditor(take) then 
+                return take 
+            else
+                
+            end            
+        end
 
-    local take = reaper.MIDIEditor_GetTake( hwnd )
-    if not take then
-        if not startup then reaper.MB("No MIDI item found.", "Whoops!", 0) end
-        show_warning(true)
-        return
     end
    
-    return take
+    if not startup then 
+        reaper.MB("This script needs an open MIDI editor, or a selected item with the inline MIDI editor open.", "Whoops!", 0)
+    end
+    show_warning(true)   
+    return nil
     
 end
 
