@@ -1,15 +1,17 @@
 --[[
 Description: Copy values from selected MIDI notes
-Version: 1.31
+Version: 1.32
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Better error checking for missing items/takes/notes
+    Install the script in Main, MIDI Editor, and Inline Editor action lists.
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
     Copies a set of selected MIDI notes, and applies individual values
     from them to other MIDI notes.
+Provides:
+    [main]main,midi_editor,midi_inlineeditor
 --]]
 
 -- Licensed under the GNU GPL v3
@@ -910,6 +912,19 @@ GUI.IsInside = function (elm, x, y)
 	return	(	x >= (elm.x or 0) and x < ((elm.x or 0) + (elm.w or 0)) and 
 				y >= (elm.y or 0) and y < ((elm.y or 0) + (elm.h or 0))	)
 	
+end
+
+
+-- Returns the x,y that would center elm2 within elm1. 
+-- Axis can be "x", "y", or "xy".
+GUI.center = function (elm1, elm2)
+    
+    if not (    elm1.x and elm1.y and elm1.w and elm1.h
+            and elm2.x and elm2.y and elm2.w and elm2.h) then return end
+            
+    return (elm1.x + (elm1.w - elm2.w) / 2), (elm1.y + (elm1.h - elm2.h) / 2)
+    
+    
 end
 
 
@@ -2945,7 +2960,16 @@ function GUI.Checklist:val(newval)
             self:redraw()
 		end
 	else
-		return #self.optarray > 1 and self.optsel or self.optsel[1]
+        if #self.optarray == 1 then
+            return self.optsel[1]
+        else
+            local tmp = {}
+            for i = 1, #self.optarray do
+                tmp[i] = not not self.optsel[i]
+            end
+            return tmp            
+        end
+		--return #self.optarray > 1 and self.optsel or self.optsel[1]
 	end
 	
 end
