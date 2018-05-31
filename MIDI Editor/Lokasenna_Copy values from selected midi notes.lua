@@ -11,7 +11,7 @@ About:
     Copies a set of selected MIDI notes, and applies individual values
     from them to other MIDI notes.
 Provides:
-    [main=main,midi_editor,midi_inlineeditor]
+    [main=main,midi_editor,midi_inlineeditor] .
 --]]
 
 -- Licensed under the GNU GPL v3
