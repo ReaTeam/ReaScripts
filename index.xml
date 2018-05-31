@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="87c4ffca4e968bfc0f23508701a5bde061defe80" name="ReaTeam Scripts">
+<index version="1" commit="9fa61d32de553af60a5a7043820d6f69ef80cc88" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5847,6 +5847,10 @@ Removed "End Position", replaced with "Length"    ]]></changelog>
       <version name="1.31" author="Lokasenna" time="2018-05-30T18:20:57Z">
         <changelog><![CDATA[Better error checking for missing items/takes/notes]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4d46082dd549fbd517f6cb99f6880f6ec76fcf1c/MIDI%20Editor/Lokasenna_Copy%20values%20from%20selected%20midi%20notes.lua</source>
+      </version>
+      <version name="1.33" author="Lokasenna" time="2018-05-31T16:17:20Z">
+        <changelog><![CDATA[Install the script in Main, MIDI Editor, and Inline Editor action lists.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9fa61d32de553af60a5a7043820d6f69ef80cc88/MIDI%20Editor/Lokasenna_Copy%20values%20from%20selected%20midi%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Delete all notes outside the current scale.lua" type="script" desc="Delete all notes outside the current scale">
