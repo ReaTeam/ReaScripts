@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9fa61d32de553af60a5a7043820d6f69ef80cc88" name="ReaTeam Scripts">
+<index version="1" commit="5581c64401eef910b57f3dd21a383c014d0197c0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6784,6 +6784,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.00" author="juliansader" time="2017-10-03T18:58:44Z">
         <changelog><![CDATA[+ Also adjust Master track envelopes as if Timebase=time.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7d31fe927e9f3baa4732cd34ff91c52526cf96e3/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
+      </version>
+      <version name="1.01" author="juliansader" time="2018-06-02T13:39:02Z">
+        <changelog><![CDATA[+ Fix bug when no tempo makers after insertion point.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5581c64401eef910b57f3dd21a383c014d0197c0/Time%20Selection/js_Time%20selection%20-%20Insert%20empty%20beats%20at%20time%20selection%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create time selection at edit cursor... .lua" type="script" desc="Create time selection at edit cursor...">
