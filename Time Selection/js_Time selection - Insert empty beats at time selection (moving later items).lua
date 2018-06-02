@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 1.00
+Version: 1.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -60,6 +60,8 @@ About:
     + Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.
   * v1.00 (2017-10-03)
     + Also adjust Master track envelopes as if Timebase=time.
+  * v1.01 (2018-06-01)
+    + Fix bug when no tempo makers after insertion point.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -110,16 +112,16 @@ end
 local tempoChunk = tempoChunk:gsub("\nPT [%d%.]+ [%d%.]+ %d[^\n]*", gsubRemoveHelper)
 
 -- Parse points to find tempo/timesig values at timeStart and timeEnd. The parsing uses project default timesig/tempo as starting values.
-local LINEAR, SQUARE = 0, 1
-local lastPos = 0
-local projectBPM, projectTimesig_num    = reaper.GetProjectTimeSignature2(0)
-local lastBPM, startBPM                 = projectBPM, projectBPM
-local lastTimesig_num, startTimesig_num = projectTimesig_num, projectTimesig_num
-local lastTimesig_denom, startTimesig_denom = 4, 4
-local lastShape, startShape             = SQUARE, SQUARE
-local lastMetronome, startMetronome     = "", ""
+lastPos = 0
+projectBPM, projectTimesig_num    = reaper.GetProjectTimeSignature2(0)
+lastBPM, startBPM                 = projectBPM, projectBPM
+lastTimesig_num, startTimesig_num = projectTimesig_num, projectTimesig_num
+lastTimesig_denom, startTimesig_denom = 4, 4
+lastShape, startShape             = SQUARE, SQUARE
+lastMetronome, startMetronome     = "", ""
 
 -- While parsing, each point's string will be stored in table tPoints, so that can later more easily be manipulated.
+-- Timesig flags:  1=Set timesig / 2=DON'T set tempo / 4=Allow partial measure / 
 for index, point in ipairs(tPoints) do  
     local timePos, bpm, shape, rest = point:match("\nPT ([%d%.]+) ([%d%.]+) (%d)([^\n]*)")
     timePos, bpm, shape = tonumber(timePos), tonumber(bpm), tonumber(shape)
@@ -133,8 +135,22 @@ for index, point in ipairs(tPoints) do
     end end end
     --if metronome == "" then metronome = nil end
             
+    if timePos <= spaceTimeStart-0.00000001 then
+    -- Update start shape
+        startShape = shape
+        startBPM = bpm
+        if timesig then 
+            startTimesig_num, startTimesig_denom = timesig_num, timesig_denom
+        end
+        if metronome == "" or not metronome then
+            startMetronome = lastMetronome
+        else
+            startMetronome = metronome
+        end
+    end
+    
     if timePos > spaceTimeStart-0.00000001 and timePos < spaceTimeStart+0.00000001 then
-        -- There may be multiple tempo points at the same start time point. The script must get the *last* relevant values.
+    -- There may be multiple tempo points at the same start time point. The script must get the first as well as the last.
         gotFirstMarkerPastStart = true
         --if timePos < spaceTimeStart+0.00000001 then
         pointAtStartStr = point
@@ -154,7 +170,7 @@ for index, point in ipairs(tPoints) do
         end
     end
     
-    if not gotFirstMarkerPastStart and timePos > spaceTimeStart+0.00000001 then
+    if not gotFirstMarkerPastStart and timePos >= spaceTimeStart+0.00000001 then
         gotFirstMarkerPastStart = true
         startShape = lastShape
         startMetronome = lastMetronome
@@ -203,9 +219,9 @@ end
 -- The points between (not inclusive) spaceTimeStart and spaceTimeEnd will be duplicated by assigning them
 --    stay as well as Points right at the juncture will be replaced 
 --    (at spaceTimeEnd of the points that stay, and spaceTimeStart of the points that will be shifted/duplicated).
-local tPointsStay = {}
-local tPointsShifted = {}
-local tPointsJuncture = {}
+tPointsStay = {}
+tPointsShifted = {}
+tPointsJuncture = {}
 for p = 1, #tPoints do
     local timePosStr, restStr = tPoints[p]:match("^\nPT ([%d%.]+)(.*)")
     local timePos = tonumber(timePosStr)
@@ -217,12 +233,14 @@ for p = 1, #tPoints do
     end    
 end
 
--- Now insert script-calculated points at the juncture
+-- Now insert script-calculated points at the juncture.  May require two points:
+--   * Tempo at which time selection ends, if linear
+--   * Tempo at which time selection starts
 if math.floor(endBPM*1000000 + 0.5) ~= math.floor(startBPM*1000000 + 0.5) and endShape == LINEAR then
     table.insert(tPointsJuncture, "\nPT " .. tostring(spaceTimeEnd) .. " " .. tostring(endBPM) .. " " .. string.format("%i", startShape))
 end
 
-if spaceStartsAtMeasure and (
+if spaceStartsAtMeasure and ( -- To keep position inside measures constant, if time selection starts at measure, shifted region must as well
     not spaceEndsAtMeasure 
     or (startTimesig_num ~= endTimesig_num or startTimesig_denom ~= endTimesig_denom or startMetronome ~= endMetronome)) then
     table.insert(tPointsJuncture, "\nPT " .. tostring(spaceTimeEnd) .. " " 
@@ -232,6 +250,9 @@ if spaceStartsAtMeasure and (
                                           .. "0" .. " "
                                           .. "5" -- 1=New measure / timesig + 4=Allow partial measure
                                           .. startMetronome)
+elseif not gotMarkerAtStart and not gotFirstMarkerPastStart then
+    -- Space was inserted into region without any tempo markers, so don't insert anything
+
 elseif endBPM ~= startBPM or startShape == LINEAR or endShape == LINEAR then
     table.insert(tPointsJuncture, "\nPT " .. tostring(spaceTimeEnd) .. " " 
                                           .. tostring(startBPM) .. " " 
