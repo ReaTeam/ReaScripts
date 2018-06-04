@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a9d62b84812674777b13123096d17aad9246305" name="ReaTeam Scripts">
+<index version="1" commit="72355d78cb97240b7dac0711d7640b9fe0a99132" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7102,6 +7102,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.00" author="Lokasenna" time="2018-06-04T12:53:09Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a9d62b84812674777b13123096d17aad9246305/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.10" author="Lokasenna" time="2018-06-04T17:55:08Z">
+        <changelog><![CDATA[Accepts a track number or track name]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/72355d78cb97240b7dac0711d7640b9fe0a99132/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
