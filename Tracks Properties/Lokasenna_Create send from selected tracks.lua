@@ -1,10 +1,10 @@
 --[[
 Description: Create send from selected tracks
-Version: 1.00
+Version: 1.10
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Initial release
+    Accepts a track number or track name
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
@@ -22,13 +22,36 @@ local function Main()
 
     -- Prompt for destination track + offer chance to edit sel.
     -- retval, retvals_csv reaper.GetUserInputs( title, num_inputs, captions_csv, retvals_csv )
-    local ret, dest_num = reaper.GetUserInputs("Create sends to...", 1, "Destination track #:", "")
+    local ret, dest_val = reaper.GetUserInputs("Create sends to...", 1, "Destination track # or name:", "")
     
-    if not ret or not tonumber(dest_num) then return end
+    if not ret then return end
     
-    local dest = reaper.GetTrack(0, tonumber(dest_num) - 1)
+    local dest
+    
+    -- Track number?
+    if tonumber(dest_val) then 
+        dest = reaper.GetTrack(0, tonumber(dest_val) - 1)
+        
+    -- Track name?
+    elseif tostring(dest_val) then
+    
+        for i = 0, reaper.GetNumTracks() - 1 do
+            
+            local track = reaper.GetTrack(0, i)
+            local ret, name = reaper.GetTrackName(track, "")
+            if ret and name == tostring(dest_val) then
+                dest = track
+            end
+            
+        end
+    
+    end
+
+    if not dest then return end
     
     reaper.Undo_BeginBlock()
+    
+    reaper.PreventUIRefresh(1)
     
     -- For each selected track
     local sel = {}
@@ -41,6 +64,9 @@ local function Main()
         reaper.CreateTrackSend(sel, dest)
         
     end
+    
+    reaper.PreventUIRefresh(-1)
+    reaper.UpdateTimeline()
     
     reaper.Undo_EndBlock("Create send from selected tracks", -1)
     
