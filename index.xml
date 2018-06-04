@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5581c64401eef910b57f3dd21a383c014d0197c0" name="ReaTeam Scripts">
+<index version="1" commit="1a9d62b84812674777b13123096d17aad9246305" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7085,6 +7085,23 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.02" author="juliansader" time="2016-07-22T11:02:03Z">
         <changelog><![CDATA[+ Prevent sysex events from confusing channel detector.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2dac1e58556e9e562b26de1551dcaf4ebd4a550/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create send from selected tracks.lua" type="script" desc="Create send from selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Prompts for a track number, then creates sends to that track from every selected track.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.00" author="Lokasenna" time="2018-06-04T12:53:09Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a9d62b84812674777b13123096d17aad9246305/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
