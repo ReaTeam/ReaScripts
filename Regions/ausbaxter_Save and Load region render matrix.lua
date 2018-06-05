@@ -89,7 +89,6 @@ function RestoreRenderMatrix(table)
                 reaper.SetRegionRenderMatrix(0, r_idx, m_track, 1)
             else
                 track = reaper.BR_GetMediaTrackByGUID(0, track_GUID )
-                Msg(track)
                 reaper.SetRegionRenderMatrix(0, r_idx, track, 1)
             end
         end
