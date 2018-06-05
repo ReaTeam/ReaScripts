@@ -1,5 +1,5 @@
 --@description Render item columns
---@version 1.1
+--@version 1.2
 --@author ausbaxter
 --@about
 --    # Render Item Columns
@@ -7,6 +7,9 @@
 --    This package provides a gui interface to render columns of selected items. Has optional tail length, rename capabilities, and its also possible to add regions based on item columns.
 --    GUI created using Lokasenna's GUI 2.0. https://forum.cockos.com/showthread.php?t=177772
 --@changelog
+--  v1.2
+--  Actually fixed breakage of folder structure when using in-place rendering
+--  v1.1
 --  Handle bad item selection for in-place rendering
 --  Folder structure is maintained when using in-place rendering
 
@@ -3187,6 +3190,7 @@ function Initialize()
     render_track = nil
     dest_track = nil
     folder_is_child = true
+    track_folder_state = {}
     R = math.random(255)
     G = math.random(255)
     B = math.random(255)
@@ -3329,6 +3333,23 @@ function FindFirstValidItem(idx)
     end
 end
 
+--default render folder depth bug addressed here
+
+function GetTrackFolderState() 
+  for i=0, reaper.CountTracks(0)-1 do
+    table.insert(track_folder_state, reaper.GetMediaTrackInfo_Value(reaper.GetTrack(0,i),"I_FOLDERDEPTH"))
+  end
+end
+
+function RestoreFolderStructure(r_trackidx)
+  table.insert(track_folder_state,r_trackidx+1,0)--add the new track we created into the folder structure
+  for i, tk in ipairs(track_folder_state) do
+    reaper.SetMediaTrackInfo_Value(reaper.GetTrack(0,i-1),"I_FOLDERDEPTH",tk)
+  end
+end
+
+-----------------------------------------------------------------
+
 function GetItemColumns()                                                                                        --making into a grammar
   
   local end_compare = 0.0
@@ -3466,11 +3487,12 @@ function FSetup()                                                               
 end
 
 function DefaultSetup()                                                                                       --render only selected items setup
-
+    GetTrackFolderState()
     local tk = media_tracks[1][1]
 
     otk_index = reaper.GetMediaTrackInfo_Value(tk, "IP_TRACKNUMBER") - 1
     render_track = CreateParentTrack(otk_index)
+    
     dest_track = render_track
     CreateFolderHierarchy()
     
@@ -3649,7 +3671,9 @@ end
 
 function CleanUp(num_complete)                                                                                          --restore time selection, and folder structure. Mute source items
   reaper.SetMediaTrackInfo_Value(dest_track, "I_FOLDERDEPTH", 0)
-  if last_track ~= nil then  reaper.SetMediaTrackInfo_Value(last_track, "I_FOLDERDEPTH", last_track_depth) end
+  if last_track ~= nil then
+    RestoreFolderStructure(otk_index)
+  end
   reaper.GetSet_LoopTimeRange(true, false, ts_start, ts_end, false)
   
   for i, column in ipairs(item_columns) do
@@ -3677,7 +3701,6 @@ function Render()
                 GetItemColumns()
                 reaper.PreventUIRefresh(1)
                 if CreateOutputTrack(routing) then
-                
                     local gd_render, num_complete = RenderColumns()
                     MoveRenderedItemsToTrack(gd_render,num_complete)
                     CleanUp(num_complete)
@@ -3688,7 +3711,6 @@ function Render()
                     GUI.Val("txt_name", "") --reset name field
                     reaper.UpdateArrange()
                     ErrorMsg("Render Success!")
-                   
                 end
             else
                 ErrorMsg("All selected media items are muted.")
