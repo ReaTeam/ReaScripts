@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="72355d78cb97240b7dac0711d7640b9fe0a99132" name="ReaTeam Scripts">
+<index version="1" commit="af423a7b88decb7586131edda25e22e2ac908ec6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6487,15 +6487,15 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.0" author="ausbaxter" time="2018-01-12T07:03:55Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
-        <source main="main" file="ausbaxter_Load region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Load region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Load region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Load region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Reset region render matrix.lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Save region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
-        <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/367b439e2c5f5007a444dce7685886226b0a0adf/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Load region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Reset region render matrix.lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 1).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 2).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 3).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
+        <source main="main" file="ausbaxter_Save region render matrix (slot 4).lua">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Regions/ausbaxter_Save%20and%20Load%20region%20render%20matrix.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Nudge start or end of regions in time selection.lua" type="script" desc="Nudge start or end of regions in time selection">
@@ -7871,6 +7871,14 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <changelog><![CDATA[Handle bad item selection for in-place rendering
 Folder structure is maintained when using in-place rendering]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9547ae499879279c3dbfa2d1a507c4929427471e/Various/ausbaxter_Render%20item%20columns.lua</source>
+      </version>
+      <version name="1.2" author="ausbaxter" time="2018-06-05T15:07:56Z">
+        <changelog><![CDATA[v1.2
+Actually fixed breakage of folder structure when using in-place rendering
+v1.1
+Handle bad item selection for in-place rendering
+Folder structure is maintained when using in-place rendering]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Various/ausbaxter_Render%20item%20columns.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
