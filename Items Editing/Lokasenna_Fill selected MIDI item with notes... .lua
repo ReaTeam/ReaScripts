@@ -1,6 +1,6 @@
 --[[
 Description: Fill selected MIDI item with notes...
-Version: 1.60
+Version: 1.61
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -25,6 +25,10 @@ local info = debug.getinfo(1,'S');
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
 
 ---- Libraries added with Lokasenna's Script Compiler ----
+
+
+
+---- Beginning of file: Libraries\Lokasenna_GUI library beta 8.lua ----
 
 --[=[
 	Lokasenna_GUI Library
@@ -97,6 +101,14 @@ GUI.version = "beta 8"
 -- Might want to know this
 GUI.OS = reaper.GetOS()
 
+--[[	Use when working with file paths if you need to add your own /s
+		(Borrowed from X-Raym)	
+]]--
+GUI.file_sep = string.match(GUI.OS, "Win") and "\\" or "/"
+
+
+
+
 -- Also might need to know this
 GUI.SWS_exists = function ()
 	
@@ -155,12 +167,13 @@ GUI.chars = {
 ]]--
 GUI.fonts = {
 	
-	-- Font, size, bold/italics/underline
-	-- 				^ One string: "b", "iu", etc.
-	{"Calibri", 32},	-- 1. Title
-	{"Calibri", 20},	-- 2. Header
-	{"Calibri", 16},	-- 3. Label
-	{"Calibri", 16}	-- 4. Value
+				-- Font, size, bold/italics/underline
+				-- 				^ One string: "b", "iu", etc.
+				{"Calibri", 32},	-- 1. Title
+				{"Calibri", 20},	-- 2. Header
+				{"Calibri", 16},	-- 3. Label
+				{"Calibri", 16},	-- 4. Value
+	version = 	{"Calibri", 12, "i"},
 	
 }
 
@@ -176,7 +189,7 @@ GUI.colors = {
 	elm_outline = {32, 32, 32, 255},
 	txt = {192, 192, 192, 255},			-- Text
 	
-	shadow = {0, 0, 0, 102},			-- Shadow
+	shadow = {0, 0, 0, 80},			-- Shadow
 	faded = {0, 0, 0, 64},
 	
 	-- Standard 16 colors
@@ -204,18 +217,8 @@ GUI.colors = {
 
 
 GUI.font = function (fnt)
-	local font, size, str = table.unpack(GUI.fonts[fnt])
+	local font, size, str = table.unpack( type(fnt) == "table" and fnt or GUI.fonts[fnt])
 	
-	-- ASCII values:
-	-- Bold		 98
-	-- Italics	 105
-	-- Underline 117
-	--[[ old way
-	local flags = 0
-	if b == 1 then flags = flags + 98 end
-	if i == 1 then flags = flags + 105 end
-	if u == 1 then flags = flags + 117 end
-	]]--
 	
 	if string.find(GUI.OS, "OSX") then
 		size = math.floor(size * 0.8)
@@ -388,12 +391,12 @@ end
 -- To open files in their default app, or URLs in a browser
 -- Copied from Heda; cheers!
 GUI.open_file = function (path)
-  local OS = reaper.GetOS()
-  if OS == "OSX32" or OS == "OSX64" then
-    os.execute('open "" "' .. path .. '"')
-  else
-    os.execute('start "" "' .. path .. '"')
-  end
+	local OS = reaper.GetOS()
+	if OS == "OSX32" or OS == "OSX64" then
+		os.execute('open "" "' .. path .. '"')
+	else
+		os.execute('start "" "' .. path .. '"')
+	end
 end
 
 
@@ -1250,6 +1253,7 @@ GUI.Main = function ()
 end
 
 
+--	See if the any of the given element's methods need to be called
 GUI.Update = function (elm)
 	
 	local x, y = GUI.mouse.x, GUI.mouse.y
@@ -1269,9 +1273,8 @@ GUI.Update = function (elm)
 
 	if not skip then
 		
-		-- Left button click
+		-- Left button
 		if GUI.mouse.cap&1==1 then
-			
 			
 			-- If it wasn't down already...
 			if not GUI.mouse.last_down then
@@ -1285,49 +1288,55 @@ GUI.Update = function (elm)
 					end
 					return 0
 				else	
-
+				
+					-- Double clicked?
+					if GUI.mouse.downtime and reaper.time_precise() - GUI.mouse.downtime < 0.10 then
+	
+						GUI.mouse.downtime = nil
+						GUI.mouse.dbl_clicked = true
+						elm:ondoubleclick()						
+						
+					elseif not GUI.mouse.dbl_clicked then
+				
+						elm.focus = true
+						elm:onmousedown()						
+					
+					end
+					
 					GUI.mouse.down = true
 					GUI.mouse.ox, GUI.mouse.oy = x, y
-					--GUI.mouse.lx, GUI.mouse.ly = x, y
-					elm.focus = true
-					elm:onmousedown()
 					GUI.elm_updated = true
 					
-					-- Double clicked?
-					if GUI.mouse.uptime and os.clock() - GUI.mouse.uptime < 0.20 then
-
-						elm:ondoubleclick()
-						GUI.mouse.down = false
-						GUI.elm_updated = true
-					end				
-					
 				end
-				
-
-			
+							
 			-- 		Dragging? 									Did the mouse start out in this element?
 			elseif (x ~= GUI.mouse.lx or y ~= GUI.mouse.ly) and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
+			
 				if elm.focus ~= false then 
-					elm:ondrag()
+
 					GUI.elm_updated = true
+					elm:ondrag()
+					
 				end
-				--GUI.mouse.lx, GUI.mouse.ly = x, y
 			end
 
 		-- If it was originally clicked in this element and has now been released
 		elseif GUI.mouse.down and GUI.IsInside(elm, GUI.mouse.ox, GUI.mouse.oy) then
 		
-			elm:onmouseup()
+			-- We don't want to trigger an extra mouse-up after double clicking
+			if not GUI.mouse.dbl_clicked then elm:onmouseup() end
+			
 			GUI.elm_updated = true
 			GUI.mouse.down = false
+			GUI.mouse.dbl_clicked = false
 			GUI.mouse.ox, GUI.mouse.oy = -1, -1
 			GUI.mouse.lx, GUI.mouse.ly = -1, -1
-			GUI.mouse.uptime = os.clock()
+			GUI.mouse.downtime = reaper.time_precise()
 
 		end
 		
 		
-		-- Right button click
+		-- Right button
 		if GUI.mouse.cap&2==2 then
 			
 			-- If it wasn't down already...
@@ -1338,44 +1347,117 @@ GUI.Update = function (elm)
 					--elm.focus = false
 				else
 		
+						-- Double clicked?
+					if GUI.mouse.r_downtime and reaper.time_precise() - GUI.mouse.r_downtime < 0.20 then
+						
+						GUI.mouse.r_downtime = nil
+						GUI.mouse.r_dbl_clicked = true
+						elm:onr_doubleclick()
+						
+					elseif not GUI.mouse.r_dbl_clicked then
+			
+						elm:onmouser_down()
+						
+					end
+					
 					GUI.mouse.r_down = true
 					GUI.mouse.r_ox, GUI.mouse.r_oy = x, y
-					--GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
-					--elm.focus = true
-					elm:onmouser_down()
 					GUI.elm_updated = true
 				
 				end
 				
-				-- Double clicked?
-				if GUI.mouse.r_uptime and os.clock() - GUI.mouse.r_uptime < 0.20 then
-					elm:onr_doubleclick()
-					GUI.elm_updated = true
-				end
-			
+		
 			-- 		Dragging? 									Did the mouse start out in this element?
 			elseif (x ~= GUI.mouse.r_lx or y ~= GUI.mouse.r_ly) and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then
+			
 				if elm.focus ~= false then 
+
 					elm:onr_drag()
 					GUI.elm_updated = true
+
 				end
-				--GUI.mouse.r_lx, GUI.mouse.r_ly = x, y
+
 			end
 
 		-- If it was originally clicked in this element and has now been released
 		elseif GUI.mouse.r_down and GUI.IsInside(elm, GUI.mouse.r_ox, GUI.mouse.r_oy) then 
 		
-			elm:onmouser_up()
+			if not GUI.mouse.r_dbl_clicked then elm:onmouser_up() end
+
 			GUI.elm_updated = true
 			GUI.mouse.r_down = false
+			GUI.mouse.r_dbl_clicked = false
 			GUI.mouse.r_ox, GUI.mouse.r_oy = -1, -1
-			--GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
-			GUI.mouse.r_uptime = os.clock()
+			GUI.mouse.r_lx, GUI.mouse.r_ly = -1, -1
+			GUI.mouse.r_downtime = reaper.time_precise()
 
 		end
-	
+
+
+
+		-- Middle button
+		if GUI.mouse.cap&64==64 then
+			
+			
+			-- If it wasn't down already...
+			if not GUI.mouse.last_m_down then
+
+
+				-- Was a different element clicked?
+				if not inside then 
+
+				else	
+					-- Double clicked?
+					if GUI.mouse.m_downtime and reaper.time_precise() - GUI.mouse.m_downtime < 0.20 then
+
+						GUI.mouse.m_downtime = nil
+						GUI.mouse.m_dbl_clicked = true
+						elm:onm_doubleclick()
+
+					else
+					
+						elm:onmousem_down()					
+
+					end				
+
+					GUI.mouse.m_down = true
+					GUI.mouse.m_ox, GUI.mouse.m_oy = x, y
+					GUI.elm_updated = true
+
+				end
+				
+
+			
+			-- 		Dragging? 									Did the mouse start out in this element?
+			elseif (x ~= GUI.mouse.m_lx or y ~= GUI.mouse.m_ly) and GUI.IsInside(elm, GUI.mouse.m_ox, GUI.mouse.m_oy) then
+			
+				if elm.focus ~= false then 
+					
+					elm:onm_drag()
+					GUI.elm_updated = true
+					
+				end
+
+			end
+
+		-- If it was originally clicked in this element and has now been released
+		elseif GUI.mouse.m_down and GUI.IsInside(elm, GUI.mouse.m_ox, GUI.mouse.m_oy) then
+		
+			if not GUI.mouse.m_dbl_clicked then elm:onmousem_up() end
+			
+			GUI.elm_updated = true
+			GUI.mouse.m_down = false
+			GUI.mouse.m_dbl_clicked = false
+			GUI.mouse.m_ox, GUI.mouse.m_oy = -1, -1
+			GUI.mouse.m_lx, GUI.mouse.m_ly = -1, -1
+			GUI.mouse.m_downtime = reaper.time_precise()
+
+		end
+
+
 	end
 	
+		
 	
 	-- If the mouse is hovering over the element
 	if inside and not GUI.mouse.down and not GUI.mouse.r_down then
@@ -1429,7 +1511,7 @@ GUI.Draw_Version = function ()
 
 	local str = "Lokasenna_GUI "..GUI.version
 	
-	gfx.setfont(1, "Calibri", 12, 105)
+	GUI.font("version")
 	GUI.color("txt")
 	
 	local str_w, str_h = gfx.measurestr(str)
@@ -1468,14 +1550,22 @@ function GUI.Element:onmouseover()
 end
 
 function GUI.Element:val() end
+
 function GUI.Element:onmousedown() end
 function GUI.Element:onmouseup() end
 function GUI.Element:ondoubleclick() end
 function GUI.Element:ondrag() end
+
 function GUI.Element:onmouser_down() end
 function GUI.Element:onmouser_up() end
 function GUI.Element:onr_doubleclick() end
 function GUI.Element:onr_drag() end
+
+function GUI.Element:onmousem_down() end
+function GUI.Element:onmousem_up() end
+function GUI.Element:onm_doubleclick() end
+function GUI.Element:onm_drag() end
+
 function GUI.Element:onwheel() end
 function GUI.Element:ontype() end
 function GUI.Element:onupdate() end
@@ -1798,7 +1888,8 @@ function GUI.Slider:draw()
 			local str_w, str_h = gfx.measurestr(self.caption)
 			
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y - h - str_h
+			gfx.y = not self.swap 	and	y - h - str_h
+									or	y + h + h
 
 
 			GUI.shadow(self.caption, self.col_a or "txt", "shadow")
@@ -1833,8 +1924,8 @@ function GUI.Slider:draw()
 			
 			local str_w, str_h = gfx.measurestr(output)
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y + h + h
-			
+			gfx.y = not self.swap	and	y + h + h
+									or y - h - str_h
 			gfx.drawstr(output)
 		end
 	
@@ -1912,8 +2003,8 @@ function GUI.Slider:draw()
 			local str_w, str_h = gfx.measurestr(self.caption)
 
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y - h - str_h
-
+			gfx.y = not self.swap 	and	y - h - str_h
+									or	y + h + w
 
 			GUI.shadow(self.caption, self.col_a or "txt", "shadow")
 		end
@@ -1942,8 +2033,9 @@ function GUI.Slider:draw()
 		
 			local str_w, str_h = gfx.measurestr(output)
 			gfx.x = x + (w - str_w) / 2
-			gfx.y = y + h + w
-			
+			gfx.y = not swap 	and	y + h + w
+								or	y - h - str_h
+								
 			gfx.drawstr(output)
 		end
 	end
@@ -2641,8 +2733,10 @@ function GUI.Radio:draw()
 	local pad = self.pad
 	
 	-- Draw the list frame
-	GUI.color("elm_frame")
-	gfx.rect(x, y, w, h, 0)
+	if self.frame then
+		GUI.color("elm_frame")
+		gfx.rect(x, y, w, h, 0)
+	end
 	
 
 	-- Draw the caption
@@ -2826,18 +2920,8 @@ function GUI.Checklist:new(z, x, y, w, h, caption, opts, dir, pad)
 	
 	chk.numopts = tempidx - 1
 	
-	--[[
-		-- Figure out the total size of the Tab now that we know the number of buttons
-	-- Necessary so we can do the math for clicking on it
-	Tab.w, Tab.h = 
-		table.unpack(Tab.dir == "h" 
-			and { (w + pad) * Tab.numopts, h }
-			or  { w, (h + pad) * Tab.numopts }
-		)
-	]]--
-	
 	-- Work out the total size of the checklist now that we have the number of options
-	-- Necessary
+
 	chk.w, chk.h =
 		table.unpack(chk.dir == "h"
 			and { (chk.chk_w + pad) * chk.numopts, chk.chk_w}
@@ -2864,7 +2948,7 @@ function GUI.Checklist:draw()
 	
 	-- Draw the element frame
 	
-	if self.caption ~= "" then
+	if self.frame then
 		
 		GUI.color("elm_frame")
 		gfx.rect(x, y, w, h, 0)
@@ -2946,8 +3030,13 @@ end
 function GUI.Checklist:val(newvals)
 	
 	if newvals then 
-		for i = 1, self.numopts do
-			self.optsel[i] = newvals[i]
+		
+		if type(newvals) == "boolean" then
+			self.optsel[1] = newvals
+		elseif type(newvals) == "table" then
+			for i = 1, self.numopts do
+				self.optsel[i] = newvals[i]
+			end
 		end
 		GUI.redraw_z[self.z] = true	
 	else
@@ -3349,14 +3438,14 @@ function GUI.Textbox:ontype()
 	end
 		
 
-	if char		== GUI.chars.LEFT then
+	if 	   char	== GUI.chars.LEFT then
 		if caret > 0 then self.caret = caret - 1 end
 
 	elseif char	== GUI.chars.RIGHT then
 		if caret < string.len(text) then self.caret = caret + 1 end
 	
 	elseif char == GUI.chars.BACKSPACE then
-		if string.len(text) > 0 and self.sel == 0 then
+		if string.len(text) > 0 and self.sel == 0 and caret > 0 then
 			text = string.sub(text, 1, caret - 1)..(string.sub(text, caret + 1))
 			self.caret = caret - 1
 		end
@@ -3422,6 +3511,13 @@ x, y, w, h		Coordinates of top-left corner, width, overall height *including cap
 caption			Title / question
 opts			String separated by commas, just like for GetUserInputs().
 				ex: "Alice,Bob,Charlie,Denise,Edward"
+				
+				Empty fields ("i.e. Alice,,Charlie") will show a separator, but will still
+				be counted toward the number of options and the value returned when the
+				menu is clicked.
+				
+				e.g. ("Alice,,Charlie") --> clicks 'Charlie' --> returns 3
+				
 pad				Padding between the caption and the box
 	
 ]]--
@@ -3548,28 +3644,52 @@ end
 function GUI.Menubox:onmouseup()
 
 	local menu_str = ""
+	local str_arr = {}
+	
+	-- The menu doesn't count separators in the returned number,
+	-- so we'll do it here
+	local sep_arr = {}
 	
 	for i = 1, self.numopts do
-		if i == self.curopt then menu_str = menu_str .. "!" end
---[[
-		menu_str = menu_str .. ((type(self.optarray[i]) ~= "table") and self.optarray[i] or self.optarray[i][1]) .. "|"
-]]--
-		local new_str
-		if type(self.optarray[i]) == "table" then
-			new_str = tostring(self.optarray[i][1])
-		else
-			new_str = tostring(self.optarray[i])
-		end
 		
-		menu_str = menu_str .. new_str .. "|"
+		local str = type(self.optarray[i]) == "table"	and tostring(self.optarray[i][1])
+														or	tostring(self.optarray[i])
+
+		-- Check for separators/submenus
+		if str == "" or string.sub(str, 1, 1) == ">" then table.insert(sep_arr, i) end
+
+		-- Check off the currently-selected option		
+		if i == self.retval then str = "!" .. str end
+
+		table.insert( str_arr, str )
+		table.insert( str_arr, "|" )
 
 	end
+	
+	menu_str = table.concat( str_arr )
 	
 	menu_str = string.sub(menu_str, 1, string.len(menu_str) - 1)
 
 	gfx.x, gfx.y = GUI.mouse.x, GUI.mouse.y
 	
 	local curopt = gfx.showmenu(menu_str)
+	
+--[[	
+	
+	-- This appears to be redundant. Not sure if something in Reaper changed,
+	-- or what... I could swear it used to be important. Whatever.
+	
+	if #sep_arr > 0 then
+		for i = 1, #sep_arr do
+			if curopt >= sep_arr[i] then
+				curopt = curopt + 1
+			else
+				break
+			end
+		end
+	end
+]]--
+
 	if curopt ~= 0 then self.retval = curopt end
 
 	self.focus = false
@@ -3587,12 +3707,37 @@ end
 -- Menubox - Mousewheel
 function GUI.Menubox:onwheel()
 	
+	-- Avert a crash if there aren't at least two items in the menu
+	if not self.optarray[2] then return end
+	
 	local curopt = self.retval - GUI.mouse.inc
+	local inc = (GUI.mouse.inc > 0) and 1 or -1
+
+	-- Check for illegal values, separators, and submenus
+	while true do
+		
+		if curopt < 1 then 
+			curopt = 1 
+			inc = 1
+		elseif curopt > self.numopts then 
+			curopt = self.numopts 
+			inc = -1
+		end	
+
+		local opt = type(self.optarray[curopt]) == "table" and self.optarray[curopt][1] or self.optarray[curopt]
+
+		if opt == "" or string.sub( opt, 1, 1 ) == ">" then 
+			curopt = curopt - inc
+
+		else
+		
+			-- All good, let's move on
+			break
+		end
+		
+	end
 	
-	if curopt < 1 then curopt = 1 end
-	if curopt > self.numopts then curopt = self.numopts end
-	
-	self.retval = curopt
+	self.retval = curopt	
 	
 	GUI.redraw_z[self.z] = true	
 end
@@ -4014,7 +4159,7 @@ end
 -- Tabframe - Mousewheel
 function GUI.Tabframe:onwheel()
 
-	self.state = self.state + (dir == "h" and GUI.mouse.inc or -GUI.mouse.inc)
+	self.state = GUI.round(self.state + (dir == "h" and GUI.mouse.inc or -GUI.mouse.inc))
 	
 	if self.state < 1 then self.state = 1 end
 	if self.state > self.numopts then self.state = self.numopts end
@@ -4037,6 +4182,9 @@ GUI = GUI_table()
 ----------------------------------------------------------------
 ----------------------------To here-----------------------------
 ----------------------------------------------------------------
+
+---- End of file: Libraries\Lokasenna_GUI library beta 8.lua ----
+
 ---- End of libraries ----
 
 

@@ -1,6 +1,7 @@
 -- @description Project underrun monitor (xrun)
--- @version 1.0
+-- @version 1.1
 -- @author cfillion
+-- @changelog Add context menu with docking, about/help and close actions
 -- @website
 --   cfillion.ca https://cfillion.ca
 --   Request Thread https://forum.cockos.com/showthread.php?p=1942953
@@ -16,6 +17,7 @@
 
 local EXT_SECTION      = 'cfillion_underrun_monitor'
 local EXT_WINDOW_STATE = 'window_state'
+local EXT_LAST_DOCK    = 'last_dock'
 local EXT_MARKER_TYPE  = 'marker_type'
 local EXT_MARKER_WHEN  = 'marker_when'
 
@@ -25,6 +27,7 @@ local LINE_HEIGHT = 28
 local TIME_WIDTH  = 100
 
 local KEY_ESCAPE = 0x1b
+local KEY_F1     = 0x6631
 
 local AUDIO_XRUN = 1
 local MEDIA_XRUN = 2
@@ -278,12 +281,49 @@ function mouseInput()
     mouseClick = false
   elseif gfx.mouse_cap == 1 then
     mouseDown = true
+  elseif gfx.mouse_cap == 2 then
+    contextMenu()
   elseif mouseDown then
     mouseClick = true
     mouseDown = false
   elseif mouseClick then
     mouseClick = false
   end
+end
+
+function contextMenu()
+  local dockState = gfx.dock(-1)
+
+  local menu = string.format(
+    '%sDock window||%sAbout/help (F1)|Close (Escape)',
+    dockState > 0 and '!' or '', reaper.ReaPack_GetOwner and '' or '#'
+  )
+
+  local actions = {
+    function()
+      if dockState == 0 then
+        local lastDock = tonumber(reaper.GetExtState(EXT_SECTION, EXT_LAST_DOCK))
+        if not lastDock or lastDock < 1 then lastDock = 1 end
+
+        gfx.dock(lastDock)
+      else
+        reaper.SetExtState(EXT_SECTION, EXT_LAST_DOCK, tostring(dockState), true)
+        gfx.dock(0)
+      end
+    end,
+    about,
+    gfx.quit,
+  }
+
+  gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
+  local index = gfx.showmenu(menu)
+  if actions[index] then actions[index]() end
+end
+
+function about()
+  local owner = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
+  reaper.ReaPack_AboutInstalledPackage(owner)
+  reaper.ReaPack_FreeEntry(owner)
 end
 
 function loop()
@@ -299,6 +339,8 @@ function loop()
 
   if key < 0 then
     return
+  elseif key == KEY_F1 then
+    about()
   elseif key == KEY_ESCAPE then
     gfx.quit()
   else

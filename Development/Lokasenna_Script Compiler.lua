@@ -1,11 +1,13 @@
 --[[
 Description: Script compiler
-Version: 2.0
+Version: 2.0.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Better bug checking
-	Offers an alternative syntax for libraries that might be less cumbersome
+	A few small bug fixes
+	Checking if the output folder was created is disabled, due to
+	the API function giving buggy return values
+	Refactored/reorganized the code for readability
 Links:
 	Forum thread http://forum.cockos.com/showthread.php?t=185264
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -24,6 +26,52 @@ Extensions: SWS/S&M 2.8.3
 local info = debug.getinfo(1,'S');
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
 
+
+local function req(file)
+	
+	local ret = loadfile(script_path .. file) or loadfile(script_path .. "Libraries\\" .. file)
+	if not ret then
+		reaper.ShowMessageBox("Couldn't find "..file.."\n\nLokasenna probably forgot to compile the script again.", "Missing library", 0)
+		return 0
+	else 
+		return ret
+	end	
+
+end
+
+req("Lokasenna_GUI library beta 7.lua")()
+
+
+------------------------------------
+-------- GUI Setup -----------------
+------------------------------------
+
+
+GUI.name = "Lokasenna's Script Compiler"
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 600, 600
+GUI.anchor, GUI.corner = "mouse", "C"
+
+
+GUI.fonts[1] = {"Calibri", 32}
+GUI.fonts[2] = {"Calibri", 20}
+GUI.fonts[3] = {"Calibri", 16}
+GUI.fonts[4] = {"Calibri", 16}
+GUI.fonts[6] = {"Calibri", 18, "b"}
+
+
+------------------------------------
+-------- Variables + Data ----------
+------------------------------------
+
+
+local help_str = 
+[=[This script aims to simplify the process of distributing Lua ReaScripts that make use of additional 
+libraries, i.e. by 'require', 'loadfile', or '@import'. It searches through your base script for a few
+specifically-formatted comments to determine what libraries you need, then copies their contents
+directly into the body of the script.
+ 
+	Example:
+ 	
 ---- Libraries added with Lokasenna's Script Compiler ----
 
 
@@ -2227,8 +2275,7 @@ end
 
 -- Checklist - Draw
 function GUI.Checklist:draw()
-	
-	
+
 	local x, y, w, h = self.x, self.y, self.w, self.h
 
 	local dir = self.dir
@@ -2335,7 +2382,7 @@ function GUI.Checklist:onmouseup()
 
 	
 	-- See which option it's on
-local mouseopt = self.dir == "h" and ((GUI.mouse.x - self.x + self.pad / 2) / self.w) or ((GUI.mouse.y - self.y + self.pad / 2) / self.h)
+	local mouseopt = self.dir == "h" and ((GUI.mouse.x - self.x + self.pad / 2) / self.w) or ((GUI.mouse.y - self.y + self.pad / 2) / self.h)
 
 	mouseopt = math.floor(mouseopt * self.numopts) + 1
 	
@@ -3225,45 +3272,11 @@ GUI = GUI_table()
 
 ---- End of libraries ----
 
-
-GUI.name = "Lokasenna's Script Compiler"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 600, 600
-GUI.anchor, GUI.corner = "mouse", "C"
-
-
-GUI.fonts[1] = {"Calibri", 32}
-GUI.fonts[2] = {"Calibri", 20}
-GUI.fonts[3] = {"Calibri", 16}
-GUI.fonts[4] = {"Calibri", 16}
-GUI.fonts[6] = {"Calibri", 18, "b"}
-
-
-local help_str = 
-[=[This script aims to simplify the process of distributing Lua ReaScripts that make use of additional 
-libraries, i.e. by 'require', 'loadfile', or '@import'. It searches through your base script for a few
-specifically-formatted comments to determine what libraries you need, then copies their contents
-directly into the body of the script.
- 
-	Example:
- 	
---!!REQUIRES START
---!!REQUIRE "\Libraries\Lokasenna_GUI Library beta 7.lua"
- 
--- ...Existing library code... 
--- All of this will be overwritten by the compiler
-
---!!REQUIRES END
  
  
 Alternatively, it can look for filenames called by a user-defined function, req(), like so:
- 
---!!REQUIRES START
- 
+
 req("Core.lua")()
- 
--- Other library code
- 
---!!REQUIRES END
  
 In this case, Script Compiler will look for the given file name/path relative to the script being 
 compiled, or in a separate folder as specified in the Options tab.
@@ -3276,13 +3289,12 @@ local thread_URL = [[http://forum.cockos.com/showthread.php?t=185264]]
 local donate_URL = [[https://www.paypal.me/Lokasenna]]
 
 
-
-
 local base_file_path = ""
 local base_folder = ""
 local base_file = {}
-local reqs_start, reqs_end
-local req_file_paths
+local base_file_compiled = {}
+local reqs_start, reqs_end = 0, 0
+local req_file_paths = {}
 local req_file = {}
 local new_file_path = ""
 
@@ -3292,6 +3304,101 @@ local prev_base_file = ""
 local prev_optsel = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 local prev_file_out = ""
 
+
+------------------------------------
+-------- Loading + Parsing ---------
+------------------------------------
+
+
+-- Read through the file to find any requirements
+local function parse_reqs(file)
+	
+	base_file = {}
+	local paths = {}
+	local line_num = 1
+	reqs_start, reqs_end = 0, 0				
+	
+	for line in file:lines() do
+		
+		table.insert(base_file, line)
+
+		if line:match("REQUIRES START") and reqs_start == 0 then
+			reqs_start = line_num
+
+		elseif line:match("!!REQUIRES END") and reqs_end == 0 then
+			reqs_end = line_num
+
+		elseif (line:match('%-%-!!REQUIRE ".+%.lua"') 
+			or line:match('^req%(')) and reqs_end == 0 then
+		
+			-- Trim this line down to just the file path and name
+			local file_path = line:match("\"(.+)\"") or ""
+			file_path = string.gsub(file_path, [[\\]], [[\]])
+			table.insert(paths, {["line_num"] = line_num, ["path"] = file_path})
+
+		end
+	
+	line_num = line_num + 1
+	
+	end
+	
+	if #paths < 1 then
+		reaper.ShowMessageBox("No library requirements found.", "Whoops", 0)
+		return
+	end
+
+	if reqs_start == 0 then	reqs_start = paths[1].line_num end
+	if reqs_end == 0 then reqs_end = paths[#paths].line_num end
+	
+	return paths
+	
+end
+
+
+-- Trim the Requires table down to just filenames for displaying in the checklist
+local function get_req_filenames()
+	
+	for i = 1, #req_file_paths do
+	
+		local line = req_file_paths[i].path	
+
+		line = (string.len(line) > 46) and ("..."..string.sub(line, string.len(line) - 46)) or line
+		GUI.elms.chk_reqs.optarray[i] = line
+		GUI.elms.chk_reqs.optsel[i] = true
+		
+		GUI.elms.chk_reqs.retval = GUI.elms.chk_reqs.optsel
+		GUI.elms.chk_reqs.numopts = #GUI.elms.chk_reqs.optarray
+
+	end
+	
+end
+
+
+-- Resize the window to fit the length of the required file checklist
+local function fit_wnd_to_reqs()	
+
+	local d, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
+	local chk_h = (#req_file_paths * 24)
+	local y_adj = GUI.elms.chk_reqs.y + chk_h + 24
+	h = math.max( y_adj + 96 , GUI.h )
+
+	if h ~= GUI.h then
+		GUI.elms.lbl_save.y = y_adj
+		GUI.elms.txt_save.y = y_adj + 20
+		GUI.elms.btn_go.y = y_adj + 56
+
+		gfx.quit()
+		gfx.init(GUI.name, w, h, 0, x, y)
+	end
+	
+	-- Adjust the Checklist's internal width and height while we're here
+	GUI.elms.chk_reqs.w = w - GUI.elms.chk_reqs.x
+	GUI.elms.chk_reqs.h = chk_h
+	
+end
+
+
+-- Load a script and parse it for required files
 local function load_base_file()
 	
 	__, base_file_path = reaper.GetUserFileNameForRead("", "Choose a .lua script", ".lua")
@@ -3301,108 +3408,26 @@ local function load_base_file()
 	-- Read the base file into memory, and find all of the REQUIRE lines
 	if file then
 		
-		--GUI.Msg("file opened")
-		--local slash_index = string.find(file_path, "[/\\][^/\\]*$")
-		--local file_name = string.sub(file_path, slash_index)
-		--GUI.Val("lbl_base_file", "( ..."..file_name.." )")
-		
 		local path_lbl = (string.len(base_file_path) > 40) and string.sub(base_file_path, string.len(base_file_path) - 40) or base_file_path
 		
 		GUI.Val("lbl_base_file", "( ..."..path_lbl.." )")
 		
-		--GUI.Msg(tostring(base_file_path))
-		
 		base_folder = string.match(base_file_path, "(.+[\\/])[^\\/]+") or ""
 		
-		base_file = {}
-		req_file_paths = {}
-		local line_num = 1
-		reqs_start, reqs_end = 0, 0
-		req_file_paths = {}
+		-- Parse the base file for requirements
+		req_file_paths = parse_reqs(file)
+		if not req_file_paths or #req_file_paths == 0 then return 0 end
 		
-		for line in file:lines() do
-						
-			table.insert(base_file, line)
-			--GUI.Msg(#base_file.." | "..line)
-			if line:match("REQUIRES START") and reqs_start == 0 then
-				reqs_start = line_num
-				--GUI.Msg("Found START @ line "..reqs_start.."  |  "..line)
-			elseif line:match("!!REQUIRES END") and reqs_end == 0 then
-				reqs_end = line_num
-				--GUI.Msg("Found END @ line "..reqs_end.."  |  "..line)
-			elseif (line:match('%-%-!!REQUIRE ".+%.lua"') 
-				or line:match('^req%(')) and reqs_end == 0 then
-				
-		
-				-- Trim this line down to just the file path and name
-				local file_path = line:match("\"(.+)\"") or ""
-				file_path = string.gsub(file_path, [[\\]], [[\]])
-				table.insert(req_file_paths, {["line_num"] = line_num, ["path"] = file_path})
-				--GUI.Msg("Found REQUIRE @ line "..line_num.."  |  "..line)
-			end
-		
-		line_num = line_num + 1
-		
-		end
-
-		if #req_file_paths < 1 then
-			reaper.ShowMessageBox("No library requirements found.", "Whoops", 0)
-			return
-		end
-
-		if reqs_start == 0 then	reqs_start = req_file_paths[1].line_num end
-		if reqs_end == 0 then reqs_end = req_file_paths[#req_file_paths].line_num end
-
-
---[[
-		if reqs_start == 0 then 
-			reaper.ShowMessageBox("'--!!REQUIRES START' not found", "Whoops", 0)
-			return
-		elseif reqs_end == 0 then
-			reaper.ShowMessageBox("'--!!REQUIRES END' not found", "Whoops", 0)
-			return
-		elseif #req_file_paths < 1 then
-			reaper.ShowMessageBox("No library requirements found.", "Whoops", 0)
-			return
-		end
-]]--
-
-
-		-- Reset the checklist and populate it with this script's Requires
-		local chk_h = (#req_file_paths * 24)
+		-- Reset the checklist
 		GUI.elms.chk_reqs = GUI.Checklist:new(	2,	16, 96, "", "", "v", 4)
 		
-		-- Trim the Requires array down to filenames and put them into the checklist
-		for i = 1, #req_file_paths do
+		-- Populate it with the reqs' filenames
+		get_req_filenames()
 		
-			local line = req_file_paths[i].path	
-			--local slash_index = (string.find(line, "[/\\][^/\\]*$") - 1) or 0
-			--local file_name = string.sub(line, slash_index)
-			line = (string.len(line) > 46) and ("..."..string.sub(line, string.len(line) - 46)) or line
-			GUI.elms.chk_reqs.optarray[i] = line
-			GUI.elms.chk_reqs.optsel[i] = true
-			
-			GUI.elms.chk_reqs.retval = GUI.elms.chk_reqs.optsel
-			GUI.elms.chk_reqs.numopts = #GUI.elms.chk_reqs.optarray
-
-		end
-
-		local d, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
-		local y_adj = GUI.elms.chk_reqs.y + chk_h + 24
-		h = math.max( y_adj + 96 , GUI.h )
-
-
-		if h ~= GUI.h then
-			GUI.elms.lbl_save.y = y_adj
-			GUI.elms.txt_save.y = y_adj + 20
-			GUI.elms.btn_go.y = y_adj + 56
-
-			gfx.quit()
-			gfx.init(GUI.name, w, h, 0, x, y)
-		end
+		-- Resize the window to fit the length of the req checklist
+		fit_wnd_to_reqs()
 		
-		-- Suggest a default name for the output file
-		
+		-- Suggest a default name for the output file	
 		local slash_index = string.find(base_file_path, "[/\\][^/\\]*$") + 1
 		local file_name = string.sub(base_file_path, slash_index)
 		local ext_idx = string.find(file_name, ".lua") - 1
@@ -3418,48 +3443,36 @@ local function load_base_file()
 end
 
 
-local function compile_script()
+------------------------------------
+-------- Compiling -----------------
+------------------------------------
+
+
+-- Copy the required files' contents into one table
+local function compile_reqs()
 	
-	-- for each file in Req_File_paths 
-		-- ***COUNTING BACKWARDS TO NOT MESS UP LINE NUMBERS***
-		-- 1. Open the file
-		-- 2. Read the file into memory
-		-- 3. Erase the corresponding line number in the base file
-		-- 4. Insert the file's contents into the base file
-		
-	-- Processing the Requires in reverse order so we don't mess up the source file's
-	-- line numbers for subsequent loops
 	local all_reqs = {}
-	
-	if #base_file == 0 then return 0 end
 	
 	for i = 1, #req_file_paths do
 	
 		if GUI.Val("chk_reqs")[i] == true then
 
 			local line_num, path = req_file_paths[i].line_num, req_file_paths[i].path
-			--local file
-			--GUI.Msg("inserting Req #"..i..": "..path.." @ line "..line_num)
-			
+
 			if string.sub(path, 2, 2) == ":" then
-				--GUI.Msg("	absolute path")
 			else
-				--GUI.Msg("	relative path")
 				if string.sub(path, 1, 1) == "\\" or string.sub(path, 1, 1) == "/" then
 					path = string.sub(path, 2)
 				end
 			end
 			
-			--GUI.Msg("original path: "..path)
 			if reaper.file_exists(path) then
 				file = io.open(path) or nil
 			elseif reaper.file_exists(GUI.Val("txt_notfound")..path) then
-				--GUI.Msg("backup path: "..GUI.Val("txt_notfound")..path)
 				file = io.open(GUI.Val("txt_notfound")..path) or nil
 			else
 				reaper.ShowMessageBox( "Couldn't find library file:\n"..path, "Library not found", 0)
 				__, path = reaper.GetUserFileNameForRead("", "Library not found", ".lua")
-				--GUI.Msg("user chose path: "..path)
 				file = io.open(path) or nil
 			end
 			
@@ -3481,58 +3494,48 @@ local function compile_script()
 		
 	end
 	
-	-- Make a copy of base_file we can mess with
-	local base_file_compiled = GUI.table_copy(base_file)
-	--[[
-	for i = 1, #base_file do
-		base_file_compiled[i] = base_file[i]
-	end
-	]]
-
-	-- Clear the Reqs section from the source file
-	for i = reqs_end, reqs_start, -1 do
-		--GUI.Msg("removing line "..i)
-		table.remove(base_file_compiled, i)
-	end
+	return all_reqs
 	
+end
 
-	-- Add a couple of watermarks to the compiled file
-	table.insert(all_reqs, 1, "---- Libraries added with Lokasenna's Script Compiler ----\n")
-	table.insert(all_reqs, "---- End of libraries ----\n")
 
-	for i = 1, #all_reqs do
-		table.insert(base_file_compiled, reqs_start + i - 1, all_reqs[i])
-	end
+-- Write the compiled script to the output file
+local function write_to_file()
 	
-	
-
-
-	local path_out = GUI.Val("txt_save")
-	--GUI.Msg(path_out)
-
 	local slash_index = string.find(base_file_path, "[/\\][^/\\]*$")
-	local base_path = string.sub(base_file_path, 1, slash_index)
+	local base_path = string.sub(base_file_path, 1, slash_index)	
 	
+	-- Create the output file
+	local path_out = GUI.Val("txt_save")	
 	if string.sub(path_out, 1, 1) == "\\" or string.sub(path_out, 1, 1) == "/" then
 		path_out = string.sub(path_out, 2)
 	end
+
+	local path = string.match(path_out, "^(.+\\)") 
 	
-	local ret = reaper.RecursiveCreateDirectory( string.match(path_out, "^(.+\\)"), 0 )
-	
+	-- Reaper 5.78 is giving inconsistent return values for this function, so the
+	-- folder check is disabled for now.
+
+	local ret = path and reaper.RecursiveCreateDirectory(base_path..path, 0)	
+	--if not ret or ret == 0 then
+	--	reaper.ShowMessageBox("Couldn't create the output folder. Maybe a permission issue?", "Oops", 0)
+	--	return
+	--end
+
 	local file_out = io.open(base_path..path_out, "w+")
 	if not file_out then
-		reaper.ShowMessageBox("Couldn't create specified file. Maybe a permission issue?", "Oops", 0)
+		reaper.ShowMessageBox("Couldn't create specified file. Check the the folder exists, and that there aren't any permission issues.", "Oops", 0)
 		return
-		--GUI.Msg("couldn't open "..path_out)
 	end
+	
+	
+	-- Write the compiled script into the output file
 	for i = 1, #base_file_compiled do
-
-
-			
+	
 		-- Look for any optional tags and insert them
 		-- Should probably be written as its own function with a table of tags to look for
 		
-		if string.match(base_file_compiled[i], "2.0") then
+		if string.match(base_file_compiled[i], "2.0.1") then
 			
 			local ver
 			for i = 1, reqs_start do
@@ -3544,14 +3547,45 @@ local function compile_script()
 			
 			ver = ver or "(no version number found)"
 			
-			base_file_compiled[i] = string.gsub(base_file_compiled[i], "2.0", tostring(ver))
+			base_file_compiled[i] = string.gsub(base_file_compiled[i], "2.0.1", tostring(ver))
 			
 		end		
 
-
 		file_out:write(base_file_compiled[i].."\n")
 	end
-	file_out:close()
+	file_out:close()	
+	
+end
+
+
+local function compile_script()
+	
+	if #base_file == 0 then return 0 end
+
+	local compiled_reqs = compile_reqs()
+	
+	-- Make a copy of base_file we can mess with
+	base_file_compiled = GUI.table_copy(base_file)
+
+	-- Clear the Reqs section from the base file
+	-- Going backwards to keep the line numbers from being messed up
+	for i = reqs_end, reqs_start, -1 do
+		table.remove(base_file_compiled, i)
+	end	
+
+	-- Add a couple of watermarks
+	table.insert(compiled_reqs, 1, "---- Libraries added with Lokasenna's Script Compiler ----\n")
+	table.insert(compiled_reqs, "---- End of libraries ----\n")
+
+	-- Insert the compiled requirements into the base script
+	for i = 1, #compiled_reqs do
+		table.insert(base_file_compiled, reqs_start + i - 1, compiled_reqs[i])
+	end
+
+	
+	-- Write our compiled script to disk
+	write_to_file()
+	
 	
 	-- Tell the user we're finished
 	local y = GUI.elms.btn_go.y - 6
@@ -3564,15 +3598,18 @@ local function compile_script()
 	
 	-- Open the text editor if the user wants us to
 	if GUI.Val("chk_open")[1] then
-		--os.execute(path_out)
 
-		--GUI.Msg(base_path..path_out)
-		GUI.open_file(base_path..path_out)
-		--os.execute('"'..base_path..path_out..'"')
+		reaper.CF_ShellExecute(base_path..path_out)
+		
 	end
 	
 	
 end
+
+
+------------------------------------
+-------- Helpers -------------------
+------------------------------------
 
 
 local function browse_for_path()
@@ -3613,6 +3650,11 @@ local function load_states()
 end
 
 
+------------------------------------
+-------- GUI Elements --------------
+------------------------------------
+
+
 --[[	Classes and parameters
 	(see comments in LS GUI.lua for more thorough documentation)
 
@@ -3628,23 +3670,6 @@ end
 	Textbox		z	x y w h	caption		pad
 	Menubox		z	x y w h caption		opts	pad
 
-
-
-	z_sets are defined like so:
-
-	GUI.elms.tabs_blah:update_sets(
-		{
-				   __ z levels shown on that tab
-		  __ tab  /
-		 /		  |
-		 |		  v
-		 v     
-		[1] = {2, 3, 4}, 
-		[2] = {5, 6, 7}, 
-		[3] = {8, 9, 10},
-		}
-	)
-	
 ]]--
 
 GUI.elms = {
@@ -3678,8 +3703,7 @@ GUI.elms = {
 	lbl_lua = GUI.Label:new(		3,	498, 187, ".lua", 0, 3),
 	
 	chk_open = GUI.Checklist:new(	3,	32, 236, "", "Open in text editor after compiling", "v", 4),
-	
-	
+		
 	
 	---- Tab 3: Help ----
 	lbl_help = GUI.Label:new(		5,	32, 40, help_str, 0, 4),
@@ -3701,6 +3725,10 @@ GUI.elms.tabs:update_sets(
 GUI.elms.tabs.font_A = 6
 
 
+------------------------------------
+-------- Main ----------------------
+------------------------------------
+
 
 local function Main()
 	--[[
@@ -3717,11 +3745,10 @@ local function Main()
 	
 	local opts_changed = false
 	if GUI.elms.chk_reqs then
-		--GUI.Msg("chk exists")
+
 		local optsel = GUI.elms.chk_reqs.optsel or {}
-		--GUI.Msg(#optsel)
+
 		for i = 1, #optsel do
-			--GUI.Msg(tostring(optsel[i]).."  |  "..tostring(prev_optsel[i]))
 			if optsel[i] ~= prev_optsel[i] then opts_changed = true end
 		end	
 	end
@@ -3729,18 +3756,14 @@ local function Main()
 	if prev_base_file ~= base_file_path 
 	or prev_file_out ~= GUI.Val("txt_save")
 	or opts_changed == true
-	--or not GUI.table_compare (prev_optsel, GUI.elms.chk_reqs) 
+
 	then
 		if GUI.elms.lbl_done then
-			--GUI.Msg("turning off Done label")
+
 			GUI.elms.lbl_done = nil
 		end
 	end
-	--[[
-	prev_base_file = base_file_path
-	prev_file_out = GUI.Val("txt_save")
-	prev_optsel = GUI.table_copy(GUI.elms.chk_reqs)
-	]]--	
+	
 end
 
 

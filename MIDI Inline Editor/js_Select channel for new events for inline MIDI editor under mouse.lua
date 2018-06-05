@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Select MIDI channel for new events for inline MIDI editor under mouse.lua
-Version: 0.93
+Version: 0.94
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Extensions:  SWS/S&M 2.8.3 or later
@@ -38,6 +38,8 @@ About:
     + New option to enable or disable event filter
   * v0.93 (2018-01-15)
     + If called from main MIDI editor, return focus to editor on exit
+  * v0.94 (2018-05-18)
+    + Fix setting new active channel 16.
 ]]
 
 
@@ -140,7 +142,7 @@ elseif userChoice == 3 then -- toggle edit only active channel
     newFilter = ((filter == 0) and (1<<(newChannel-1))) or 0   
     newFilterActive = filterActive                             
 -- Change channel
-elseif type(userChoice) == "number" and userChoice%1 == 0 and userChoice >= 3 and userChoice <= 18 then
+elseif type(userChoice) == "number" and userChoice%1 == 0 and userChoice >= 3 and userChoice <= 19 then
     newChannel = userChoice-3
     newFilter = ((filter == 0) and 0) or (1<<(newChannel-1)) -- If filter is not active, don't activate  
     newFilterActive = filterActive                

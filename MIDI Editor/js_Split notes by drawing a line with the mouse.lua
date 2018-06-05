@@ -1,14 +1,13 @@
 --[[
 ReaScript Name:  js_Split notes by drawing a line with the mouse.lua
-Version: 2.10
+Version: 2.12
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27951/Split%20notes%20by%20drawing%20line%20with%20mouse.gif
-REAPER: 5.32 or later
-Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
-  # Description  
+  # DESCRIPTION  
   
   Split (slice) multiple notes by drawing a "cutting line" with the mouse in the MIDI editor or inline piano roll.
   
@@ -17,7 +16,7 @@ About:
   If snap-to-grid is enabled, the notes will be split at the grid.
 
 
-  # Instructions 
+  # INSTRUCTIONS 
   
   To use, position mouse in the 'notes' area of the piano roll, press the shortcut key once, and then move the mouse to draw the cutting line.  
 
@@ -54,30 +53,34 @@ About:
 ]]
  
 --[[
- Changelog:
- * v0.9 (2016-06-24)
+  Changelog:
+  * v0.9 (2016-06-24)
     + Initial beta release. (Bugs may be encountered.)
- * v0.91 (2016-06-25)
+  * v0.91 (2016-06-25)
     + A few tweaks.
- * v0.92 (2016-06-26)
+  * v0.92 (2016-06-26)
     + Beta 3: Fixed "Could not find gap" bug.
- * v0.93 (2016-06-27)
+  * v0.93 (2016-06-27)
     + Implemented workaround for bug in MIDI_SetNote().
     + WARNING: The script is still in beta, and may be unstable.
- * v1.0 (2016-07-04)
+  * v1.0 (2016-07-04)
     + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
     + Description and instructions are included inside script - please read with REAPER's built-in script editor.
- * v2.00 (2016-12-15)
+  * v2.00 (2016-12-15)
     + Improved speed, particularly in takes with many thousands of MIDI events.
     + Script will work in inline editor.
     + Script will work in looped takes.
     + REAPER v5.32 or later is required.
- * v2.01 (2017-01-30)
+  * v2.01 (2017-01-30)
     + Improved handling of overlapping notes.
- * v2.02 (2017-01-30)
+  * v2.02 (2017-01-30)
     + Improved reset of toolbar button.
   * v2.10 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running.     
+    + Mouse cursor changes to indicate that script is running.    
+  * v2.11 (2018-04-15)
+    + Automatically install script in MIDI Inline Editor section.
+  * v2.12 (2018-05-29)
+    + Return focus to MIDI editor after arming button in floating toolbar.
 ]]
 
 -- USER AREA
@@ -122,7 +125,7 @@ local tableLine = {}
 local tableCutPPQpos = {} -- tableCutPPQs[pitch]
 
 -- Starting values and position of mouse 
--- mouseOrigCClane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
+-- mouseOrigCCLane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
 --    0x202=program, 0x203=channel pressure, 0x204=bank/program select, 
 --    0x205=text, 0x206=sysex, 0x207=off velocity)
 local window, segment, details -- given by the SWS function reaper.BR_GetMouseCursorContext()
@@ -137,7 +140,7 @@ local laneIsPIANOROLL = false
 local laneIsSYSEX     = false -- not used in this script
 local laneIsTEXT      = false
 local laneMin, laneMax -- The minimum and maximum values in the target lane
-local mouseOrigCClane, mouseOrigCCvalue ]]
+local mouseOrigCCLane, mouseOrigCCValue ]]
 local mouseOrigPPQpos, mouseOrigPitch
 --local gridOrigPPQpos -- If snap-to-grid is enabled, these will give the closest grid PPQ to the left. (Swing is not implemented.)
 local isInline -- Is the user using the inline MIDI editor?  (The inline editor does not have access to OnCommand.)
@@ -149,7 +152,7 @@ local mouseMaxMovedX, mouseMaxMovedPPQ = 0, 0
 local zoomEstimateTicksPerPixels = (5*960*4)/1400 -- This is just a starting guess, based on screen 1400 pixels wide, and a zoomn level of 5 measures per editor.
 
 -- Tracking the new value and position of the mouse while the script is running
-local mouseNewCClane, mouseNewCCvalue, mouseNewPPQpos, mouseNewPitch
+local mouseNewCCLane, mouseNewCCValue, mouseNewPPQpos, mouseNewPitch
 local gridNewPPQpos 
 local mouseWheel = 0 -- Track mousewheel movement
 
@@ -178,8 +181,8 @@ local s_unpack = string.unpack
 local s_pack   = string.pack
 local m_floor  = math.floor
   
--- User preferences that can be customized in the js_MIDI editing preferences script
-local mustDrawCustomCursor
+-- User preferences that can be set via other scripts
+local mustDrawCustomCursor = not (reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false")
 
 
 --#############################################################################################
@@ -204,7 +207,7 @@ local function loop_trackMouseMovement()
 
     -------------------------------------------------------------------------------------------
     -- The js_Run... script can communicate with and control the other js_ scripts via ExtState
-    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(false) end
    
     -------------------------------------------------
     -- Check if mouse is still insid ethe notes area.
@@ -243,11 +246,7 @@ local function loop_trackMouseMovement()
     
     -------------------------------------------
     -- Track the new mouse (vertical) position.
-    if SWS283 == true then 
-        _, mouseNewPitch, _, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
-    else -- SWS287
-        _, _, mouseNewPitch, _, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
-    end
+    _, _, mouseNewPitch, _, _, _ = reaper.BR_GetMouseCursorContext_MIDI()
     if mouseNewPitch > 127 then mouseNewPitch = 127 end
     if mouseNewPitch < 0 then mouseNewPitch = 0 end
             
@@ -329,7 +328,7 @@ local function loop_trackMouseMovement()
                                 .. table.concat(tableLineMIDI)
                                 .. s_pack("i4Bs4", sourceLengthTicks - lastPPQpos, 0, AllNotesOffMsg))
     
-    if isInline then reaper.UpdateArrange() end
+    if isInline then reaper.UpdateItemInProject(item) end
     
     ---------------------------------------        
     -- Continuously loop the function
@@ -508,193 +507,171 @@ end
 --############################################################################################
 ----------------------------------------------------------------------------------------------
 -- Here execution starts!
--- function main()
+function main()
 
--- Start with a trick to avoid automatically creating undo states if nothing actually happened
--- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
-function avoidUndo()
-end
-reaper.defer(avoidUndo)
-
-
-----------------------------------------------------------------------------
--- Check whether SWS is available, as well as the required version of REAPER
-version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
-if version == nil or version < 5.32 then
-    reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
-                          .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
-                          , "ERROR", 0)
-    return(false) 
-elseif not reaper.APIExists("BR_GetMouseCursorContext") then
-    reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-    return(false) 
-end   
-
-
------------------------------------------------------------
--- The following sections checks the position of the mouse:
--- If the script is called from a toolbar, it arms the script as the default js_Run function, but does not run the script further
--- If the mouse is positioned over a CC lane, the script is run.
-window, segment, details = reaper.BR_GetMouseCursorContext()
--- If window == "unknown", assume to be called from floating toolbar
--- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
-if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
-    setAsNewArmedToolbarAction()
-    return(true) 
-elseif not(segment == "notes") then 
-    reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
-                          .. "The mouse should be positioned over a the 'notes area' of an active MIDI editor.", "ERROR", 0)
-    return(false) 
-else
-    -- Communicate with the js_Run.. script that a script is running
-    reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
-end
-
-
------------------------------------------------------------------------------------------
--- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
--- Also get the mouse starting (vertical) value and CC lane.
--- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
--- mouseOrigCClane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
---    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
---    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
---
--- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
--- https://github.com/Jeff0S/sws/issues/783
--- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-if SWS283 ~= SWS283again then
-    reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-    return(false)
-end
-
-if SWS283 == true then
-    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-else 
-    _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, _ = reaper.BR_GetMouseCursorContext_MIDI()
-end 
-
+    -- Start with a trick to avoid automatically creating undo states if nothing actually happened
+    -- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
+    reaper.defer(function() end)
     
-----------------------------------------------------------        
--- Get active take and item (MIDI editor or inline editor)
-if isInline then
-    take = reaper.BR_GetMouseCursorContext_Take()
-else
-    editor = reaper.MIDIEditor_GetActive()
-    if editor == nil then 
-        reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
+    
+    ----------------------------------------------------------------------------
+    -- Check whether SWS is available, as well as the required version of REAPER
+    if not reaper.APIExists("MIDI_GetAllEvts") then
+        reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                              .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                              , "ERROR", 0)
+        return(false)
+    elseif not reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.ShowMessageBox("This script requires an up-to-date version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+        return(false) 
+    end   
+    
+    
+    -----------------------------------------------------------
+    -- The following sections checks the position of the mouse:
+    -- If the script is called from a toolbar, it arms the script as the default js_Run function, but does not run the script further
+    -- If the mouse is positioned over a CC lane, the script is run.
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    -- If window == "unknown", assume to be called from floating toolbar
+    -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+    if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+        setAsNewArmedToolbarAction()
+        return(false) 
+    elseif not(segment == "notes") then 
+        reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
+                              .. "The mouse should be positioned over a the 'notes area' of an active MIDI editor.", "ERROR", 0)
+        return(false) 
+    else
+        -- Communicate with the js_Run.. script that a script is running
+        reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
+    end
+    
+    
+    -----------------------------------------------------------------------------------------
+    -- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
+    -- Also get the mouse starting (vertical) value and CC lane.
+    -- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
+    -- mouseOrigCCLane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
+    --    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
+    --    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
+    editor, isInline, mouseOrigPitch, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
+
+    if isInline then
+        take = reaper.BR_GetMouseCursorContext_Take()
+    else
+        if editor == nil then 
+            reaper.ShowMessageBox("Could not detect a MIDI editor under the mouse.", "ERROR", 0)
+            return(false)
+        else
+            take = reaper.MIDIEditor_GetTake(editor)
+        end
+    end
+    if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
+        reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
         return(false)
     end
-    take = reaper.MIDIEditor_GetTake(editor)
+    item = reaper.GetMediaItemTake_Item(take)
+    if not reaper.ValidatePtr(item, "MediaItem*") then 
+        reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
+        return(false)
+    end
+    
+    
+    -------------------------------------------------------------------
+    -- Events will be inserted in the active channel of the active take
+    if isInline then
+        defaultChannel = 0
+    else
+        defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
+    end
+    
+    
+    ---------------------------------------------------------------------------------------
+    -- Unlike the scripts that edit and change existing events, this scripts does not need
+    --    to do any parsing before starting drawing.
+    -- Parsing (and deletion) will be performed at the end, in the onexit function.
+    gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+    if not gotAllOK then
+        reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
+        return false 
+    end
+    
+    
+    ---------------------------------------------------------------------------------
+    -- Get last PPQ position of take.
+    -- 1) The MIDI events of the line will be inserted at the end of the MIDI string,
+    --    so the PPQ offsets must be calculated from the last PPQ position in take.
+    
+    -- 2) The crucial BR_GetMouseCursorContext function gets slower and slower 
+    --    as the number of events in the take increases.
+    -- Therefore, this script will speed up the function by 'clearing' the 
+    --    take of all MIDI *before* calling the function!
+    -- To do so, MIDI_SetAllEvts will be run with no events except the
+    --    All-Notes-Off message that should always terminate the MIDI stream, 
+    --    and which marks the position of the end of the MIDI source.
+    -- Instead of parsing the entire MIDI stream to get the final PPQ position,
+    --    simply get the source length.
+    
+    -- 3) In addition, the source length will be saved and checked again at the end of
+    --    the script, to check that no inadvertent shifts in PPQ position happened.
+    sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
+    AllNotesOffString = s_pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
+    MIDIstringWithoutNotesOff = MIDIstring:sub(1, -13)
+    lastOrigMIDIPPQpos = sourceLengthTicks - s_unpack("i4", MIDIstring, -12)
+    
+    
+    ------------------------------------------------------------------------------------------
+    -- The starting X pixel position will later be used to estimate the ticks/pixel xoom level
+    mouseOrigX, mouseOrigY = reaper.GetMousePosition()
+    
+    
+    -----------------------------------------------------------------------------------------------
+    -- Get the starting PPQ (horizontal) position of the ramp.  Must check whether snap is enabled.
+    -- Also, contract to position within item, and then divide by source length to get position
+    --    within first loop iteration.
+    mouseOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)
+    local itemLengthTicks = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
+    mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
+    loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
+    mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
+    
+    
+    -----------------------------------------------------------------------------
+    -- If snap is enabled, each cut position will be snapped to the closest grid.
+    if isInline then
+        isSnapEnabled = false
+    else
+        isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
+        QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
+    end
+    
+    
+    ----------------------------------------------------------------------------------
+    -- OK, all tests passed, and the script wil now start making changes to the take, 
+    --    so toggle toolbar button (if any) and define atexit with its Undo statements
+    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
+        reaper.SetToggleCommandState(sectionID, cmdID, 1)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+    
+    reaper.atexit(onexit)
+    
+    
+    -------------------------------------------------------------
+    -- Finally, start running the loop!
+    -- (But first, reset the mousewheel movement.)
+    is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
+    
+    loop_trackMouseMovement()
+
+end -- main()
+
+--------------------------------------------------
+--------------------------------------------------
+mainOK = main()
+if mainOK == false then
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)    
 end
-if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
-    reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
-    return(false)
-end
-item = reaper.GetMediaItemTake_Item(take)
-if not reaper.ValidatePtr(item, "MediaItem*") then 
-    reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
-    return(false)
-end
-
-
--------------------------------------------------------------------
--- Events will be inserted in the active channel of the active take
-if isInline then
-    defaultChannel = 0
-else
-    defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
-end
-
-
----------------------------------------------------------------------------------------
--- Unlike the scripts that edit and change existing events, this scripts does not need
---    to do any parsing before starting drawing.
--- Parsing (and deletion) will be performed at the end, in the onexit function.
-gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
-if not gotAllOK then
-    reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0)
-    return false 
-end
-
-
----------------------------------------------------------------------------------
--- Get last PPQ position of take.
--- 1) The MIDI events of the line will be inserted at the end of the MIDI string,
---    so the PPQ offsets must be calculated from the last PPQ position in take.
-
--- 2) The crucial BR_GetMouseCursorContext function gets slower and slower 
---    as the number of events in the take increases.
--- Therefore, this script will speed up the function by 'clearing' the 
---    take of all MIDI *before* calling the function!
--- To do so, MIDI_SetAllEvts will be run with no events except the
---    All-Notes-Off message that should always terminate the MIDI stream, 
---    and which marks the position of the end of the MIDI source.
--- Instead of parsing the entire MIDI stream to get the final PPQ position,
---    simply get the source length.
-
--- 3) In addition, the source length will be saved and checked again at the end of
---    the script, to check that no inadvertent shifts in PPQ position happened.
-sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
-AllNotesOffString = s_pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
-MIDIstringWithoutNotesOff = MIDIstring:sub(1, -13)
-lastOrigMIDIPPQpos = sourceLengthTicks - s_unpack("i4", MIDIstring, -12)
-
-
-------------------------------------------------------------------------------------------
--- The starting X pixel position will later be used to estimate the ticks/pixel xoom level
-mouseOrigX, mouseOrigY = reaper.GetMousePosition()
-
-
------------------------------------------------------------------------------------------------
--- Get the starting PPQ (horizontal) position of the ramp.  Must check whether snap is enabled.
--- Also, contract to position within item, and then divide by source length to get position
---    within first loop iteration.
-mouseOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)
-local itemLengthTicks = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
-mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
-loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
-mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
-
-
------------------------------------------------------------------------------
--- If snap is enabled, each cut position will be snapped to the closest grid.
-if isInline then
-    isSnapEnabled = false
-else
-    isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
-    QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
-end
-
----------------------------------------------------------------------------
--- Must the mouse cursor be changed to indicate that the script is running?
--- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
--- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
---    and this may appear inelegant to the user.
-if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
-    mustDrawCustomCursor = false
-else
-    mustDrawCustomCursor = true
-end
-
-----------------------------------------------------------------------------------
--- OK, all tests passed, and the script wil now start making changes to the take, 
---    so toggle toolbar button (if any) and define atexit with its Undo statements
-_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
-    reaper.SetToggleCommandState(sectionID, cmdID, 1)
-    reaper.RefreshToolbar2(sectionID, cmdID)
-end
-
-reaper.atexit(onexit)
-
-
--------------------------------------------------------------
--- Finally, start running the loop!
--- (But first, reset the mousewheel movement.)
-is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-
-loop_trackMouseMovement()

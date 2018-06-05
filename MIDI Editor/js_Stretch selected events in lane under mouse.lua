@@ -1,14 +1,13 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.21
+Version: 3.41
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
-REAPER: v5.32 or later
-Extensions: SWS/S&M 2.8.3 or later
 Donation: https://www.paypal.me/juliansader
+Provides: [main=midi_editor,midi_inlineeditor] .
 About:
-  # Description
+  # DESCRIPTION
   
   A script for stretching MIDI events in the MIDI editor.
   
@@ -18,48 +17,76 @@ About:
   
   If snap to grid is enabled, the stretch position will snap to grid.
 
-  # Instructions
+
+  # INSTRUCTIONS
   
   To use, 
   1) Select the MIDI events to be stretched,  
-  2) Position the mouse in the CC lane (or in the notes area or velocity lane in the case of notes)
+  2) Position the mouse over the CC lane of the events to be stretched 
+        * In the case of notes, position the mous eover either the Velocity lane, or the "notes area" of the piano roll.
+        * To stretch ALL selected events in all lanes together, position the mouse over a lane divider.
   3) To stretch the leftmost events (using the rightmost event as anchor), position the mouse to left of the events' time range.  
         * To stretch events on the right, position the mouse to the right of the events' time range.
-        * To stretch vertically, position mouse closer to the middle of the time range.
+        * To stretch the topmost/bottom event values vertically, position mouse closer to the middle of the time range, and to the top/bottom of the lane.
   4) Press the shortcut key.
   5) Move mouse left or right if stretching horizontally, or up or down if stretching vertically.
+  6) To flip events, scroll the mousewheel. (If stretching horizontally, flips event positions; if vertically, flips values.)
   6) To exit, move mouse out of CC lane, or press shortcut key again.
           
   
-  KEYBOARD SHORTCUT
-  
-  There are two ways in which the script can be started via a keyboard shortcut:  
-  
-  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "S".  
-      (Using the standard steps of linking any REAPER action to a shortcut key.)
+  This script therefore requires:
+  * a keyboard shortcut to start the script, as well as
+  * a mousewheel modifier to flip events.
     
-  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
-          can each be linked to a toolbar button.  
-     - In this case, each script does not need to be linked to its own shortcut key.  
-     - Instead, only the master control script, with the long name 
-          "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
-       needs to be linked to a keyboard shortcut.
-     - Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
-          and this selected (armed) script can then be run by using the shortcut for the 
-          aforementioned "js_Run..." script.
-     - For further instructions - please refer to the "js_Run..." script.      
   
-  Note: Since this function is a user script, the way it responds to shortcut keys and 
+  KEYBOARD SHORTCUT
+        
+  There are two ways in which this script can be run:  
+  
+  1) First, the script can be linked to its own easy-to-remember shortcut key, such as "1".  
+      (Using the standard steps of linking any REAPER action to a shortcut key.)
+
+  2) Second, this script, together with other "js_" scripts that edit the "lane under mouse",
+      can each be linked to a toolbar button.  
+      * In this case, each script need not be linked to its own shortcut key.  Instead, only the 
+        accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua"
+        script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).
+      * Clicking the toolbar button will 'arm' the linked script (and the button will light up), 
+        and this selected (armed) script can then be run by using the shortcut for the 
+        aforementioned "js_Run..." script.
+      * For further instructions - please refer to the "js_Run..." script.                 
+ 
+  Since this function is a user script, the way it responds to shortcut keys and 
     mouse buttons is opposite to that of REAPER's built-in mouse actions 
     with mouse modifiers:  To run the script, press the shortcut key *once* 
-    to start the script and then move the mouse *without* pressing any 
-    mouse buttons.  Press the shortcut key again once to stop the script.  
-      
+    to start the script and then move the mouse or mousewheel *without* 
+    pressing any mouse buttons.  Press the shortcut key again once to 
+    stop the script.  
+
   (The first time that the script is stopped, REAPER will pop up a dialog box 
     asking whether to terminate or restart the script.  Select "Terminate"
-    and "Remember my answer for this script".)
-        
+    and "Remember my answer for this script".)   
+    
+    
+  MOUSEWHEEL CONTROL
+   
+  A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an
+  Action, similar to how keyboard shortcuts are assigned.  
+  
+  Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user 
+  must remember several modifier combinations, one for each script.  (Mousewheel modifiers such as 
+  Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)
+  
+  An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, 
+  which will then broadcast mousewheel movement to any js script that is running:
+  
+  * js_Run the js_'lane under mouse' script that is selected in toolbar
+  * js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down
+  * js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally
+  
+  By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other mouse editing scripts. 
       
+   
   PERFORMANCE TIPS
   
   * The responsiveness of the MIDI editor is significantly influenced by the total number of events in 
@@ -103,6 +130,14 @@ About:
     + Mouse cursor changes to indicate that script is running.    
   * v3.21 (2017-12-14)
     + Tweak mouse cursor icon.
+  * v3.30 (2018-03-29)
+    + Stretch all selected events in all lanes, if mouse starting position is over lane divider.
+  * v3.31 (2018-03-29)
+    + Display notification about new feature.
+  * v3.40 (2018-05-26)
+    + Mousewheel flips events.
+  * v3.41 (2018-05-29)
+    + Return focus to MIDI editor after arming button in floating toolbar.
 ]]
 
 ---------------------------------------
@@ -112,7 +147,7 @@ About:
     -- If the starting position of the mouse is within this distance (as a fraction of total time range of selected events) 
     --    of the right or left edge of the time range, the script will will stretch left/right, otherwise top/bottom
     -- Useful values are between 0 and 0.5.
-    edgeSize = 0.1 
+    edgeSize = 0.2
     
     -- If CC events are stretched left or right until they overlap other CCs in the same lane (and same channel), 
     --    should the pre-existing CCs be deleted?
@@ -189,7 +224,7 @@ local includeNoteOffsInPPQrange = true -- ***** Should origPPQrange and origPPQr
 local tableEditedMIDI = {}
 
 -- Starting values and position of mouse 
--- mouseOrigCClane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
+-- mouseOrigCCLane: (CC0-127 = 7-bit CC, 0x100|(0-31) = 14-bit CC, 0x200 = velocity, 0x201 = pitch, 
 --    0x202=program, 0x203=channel pressure, 0x204=bank/program select, 
 --    0x205=text, 0x206=sysex, 0x207=off velocity)
 local window, segment, details -- given by the SWS function reaper.BR_GetMouseCursorContext()
@@ -205,8 +240,9 @@ local laneIsPIANOROLL = false
 local laneIsNOTES     = false -- Includes laneIsPIANOROLL, laneIsVELOCITY and laneIsOFFVEL
 local laneIsSYSEX     = false
 local laneIsTEXT      = false
+local laneIsALL       = false
 local laneMin, laneMax -- The minimum and maximum values in the target lane
-local mouseOrigCClane, mouseOrigCCvalue, mouseOrigPPQpos, mouseOrigPitch, mouseOrigCClaneID
+local mouseOrigCCLane, mouseOrigCCValue, mouseOrigPPQpos, mouseOrigPitch, mouseOrigCCLaneID
 local gridOrigPPQpos -- If snap-to-grid is enabled, these will give the closest grid PPQ to the left. (Swing is not implemented.)
 
 -- Stretch direction, based on initial mouse position
@@ -216,7 +252,7 @@ local stretchTOP    = false
 local stretchBOTTOM = false
 
 -- Tracking the new value and position of the mouse while the script is running
-local mouseNewCClane, mouseNewCCvalue, mouseNewPPQpos, mouseNewPitch, mouseNewCClaneID
+local mouseNewCCLane, mouseNewCCValue, mouseNewPPQpos, mouseNewPitch, mouseNewCCLaneID
 local gridNewPPQpos 
 local mouseWheel = 0 -- Track mousewheel movement.  ***** This default value may change, depending on the script and formulae used. *****
 
@@ -238,6 +274,13 @@ local sourceLengthTicks -- = reaper.BR_GetMidiSourceLenPPQ(take)
 local loopStartPPQpos -- Start of loop iteration under mouse
 local takeIsCleared = false --Flag to record whether the take has been cleared (and must therefore be uploaded again before quitting)
 
+-- The functions MIDI_SetAllEvts and BR_GetMouseCursorContext (both of which will be called
+--    in each iteration of this script) get considerably slowed down by extra data in non-active takes.
+-- (Presumably, both have to deal with the full MIDI chunk.)
+-- To speed these function up, the non-active takes will therefore temporarily be cleared of all MIDI data.
+-- The MIDI data will be stored in this table and restored when the script exists.
+local tOtherTakes = {}
+
 -- Some internal stuff that will be used to set up everything
 local _, item, take, editor, isInline
 
@@ -248,7 +291,10 @@ local t_insert = table.insert -- myTable[i] = X is actually much faster than t_i
 local m_floor  = math.floor
 
 -- User preferences that can be customized in the js_MIDI editing preferences script
-local mustDrawCustomCursor
+local mustDrawCustomCursor = true
+local clearNonActiveTakes  = true
+local flipped = false
+local prevFlipTime = reaper.time_precise()
 
   
 --#############################################################################################
@@ -269,11 +315,11 @@ local mustDrawCustomCursor
 --           it may be helpful to temporarily make all non-active takes invisible. 
 -- The Lua script parts of this function - even if it calculates thousands of events per cycle,
 --    make up only a small fraction of the execution time.
-local function loop_trackMouseMovement()
+local function trackMouseAndDrawMIDI()
 
     -------------------------------------------------------------------------------------------
     -- The js_Run... script can communicate with and control the other js_ scripts via ExtState
-    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(0) end
+    if reaper.GetExtState("js_Mouse actions", "Status") == "Must quit" then return(false) end
    
     -------------------------------------------
     -- Track the new mouse (vertical) position.
@@ -292,11 +338,7 @@ local function loop_trackMouseMovement()
         end
     end
     window, segment, details = reaper.BR_GetMouseCursorContext()  
-    if SWS283 == true then 
-        _, mouseNewPitch, mouseNewCClane, mouseNewCCvalue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    else -- SWS287
-        _, _, mouseNewPitch, mouseNewCClane, mouseNewCCvalue, mouseNewCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-    end
+    _, _, mouseNewPitch, mouseNewCCLane, mouseNewCCValue, mouseNewCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
     
     ----------------------------------------------------------------------------------
     -- What must the script do if the mouse moves out of the original CC lane area?
@@ -307,20 +349,24 @@ local function loop_trackMouseMovement()
     --    will complete the function before quitting.
     if laneIsPIANOROLL then
         if not (segment == "notes") then 
-            return 
+            return false
+        end
+    elseif laneIsALL then
+        if not (segment == "notes" or details == "cc_lane") then
+            return false
         end
     elseif segment == "notes" 
-        or (details == "cc_lane" and mouseNewCClaneID < mouseOrigCClaneID and mouseNewCClaneID >= 0) 
+        or (details == "cc_lane" and mouseNewCCLaneID < mouseOrigCCLaneID and mouseNewCCLaneID >= 0) 
         then
-        mouseNewCCvalue = laneMax
+        mouseNewCCValue = laneMax
         mustQuitAfterDrawingOnceMore = true
-    elseif details == "cc_lane" and mouseNewCClaneID > mouseOrigCClaneID then
-        mouseNewCCvalue = laneMin
+    elseif details == "cc_lane" and mouseNewCCLaneID > mouseOrigCCLaneID then
+        mouseNewCCValue = laneMin
         mustQuitAfterDrawingOnceMore = true        
-    elseif mouseNewCClane ~= mouseOrigCClane then
-        return
-    elseif mouseNewCCvalue == -1 then 
-        mouseNewCCvalue = laneMax -- If -1, it means that the mouse is over the separator above the lane.
+    elseif mouseNewCCLane ~= mouseOrigCCLane then
+        return false
+    elseif mouseNewCCValue == -1 then 
+        mouseNewCCValue = laneMax -- If -1, it means that the mouse is over the separator above the lane.
     end
     
     -----------------------------        
@@ -328,18 +374,19 @@ local function loop_trackMouseMovement()
     -- The script can detect mousewheel in two ways: 
     --    * by being linked directly to a mousewheel mouse modifier (return mousewheel movement with reaper.get_action_context)
     --    * or via the js_Run... script that can run and control the other js_ scripts (return movement via ExtState)
-    --[[ 
     -- Stretching doesn't follow mousewheel, so this part is commented out.
     is_new, _, _, _, _, _, moved = reaper.get_action_context()
     if not is_new then -- then try getting from script
-        moved = tonumber(reaper.GetExtState("js_Mouse actions", "Mousewheel"))
-        if moved == nil then moved = 0 end
+        moved = tonumber(reaper.GetExtState("js_Mouse actions", "Mousewheel")) or 0
     end
     reaper.SetExtState("js_Mouse actions", "Mousewheel", "0", false) -- Reset after getting update
-    if moved > 0 then mouseWheel = mouseWheel + 0.2
-    elseif moved < 0 then mouseWheel = mouseWheel - 0.2
+    if moved ~= 0 then 
+        local nowTime = reaper.time_precise() 
+        if nowTime > prevFlipTime + 0.5 then -- Prevent multiple flips when using notebook trackpad
+            flipped = not flipped
+            prevFlipTime = nowTime
+        end
     end
-    ]]
     
     ------------------------------------------
     -- Get mouse new PPQ (horizontal) position
@@ -374,34 +421,33 @@ local function loop_trackMouseMovement()
     local c = 0 -- Count index inside tableEditedMIDI - strangely, this is faster than using table.insert or even #tableEditedMIDI+1
     
     local lastPPQpos = 0
-     
+        
     if stretchRIGHT then
         
         local stretchFactor = (gridNewPPQpos-origPPQleftmost)/origPPQrange
-        
+                        
         -- Safer to keep offsets positive, so check whether events are being reversed
         -- In addtion, avoid drawing multiple events on the same PPQ position
         local startIndex, endIndex, step, newPPQpos, newNoteOffPPQpos, newNoteLength
-        if stretchFactor > 0 then startIndex, endIndex, step = 1, #tablePPQs, 1 
-        elseif stretchFactor < 0 then startIndex, endIndex, step = #tablePPQs, 1, -1
-        else startIndex, endIndex, step = 1, 1, 1
+
+        if (stretchFactor >= 0 and not flipped) or (stretchFactor < 0 and flipped) then startIndex, endIndex, step = 1, #tablePPQs, 1 -- Step forward
+        else startIndex, endIndex, step = #tablePPQs, 1, -1 -- Step backward (forward in PPQ)
         end
             
         for i = startIndex, endIndex, step do
         
-            newPPQpos = m_floor(origPPQleftmost + stretchFactor*(tablePPQs[i] - origPPQleftmost) + 0.5)
+            local flippedPPQpos = flipped and (origPPQleftmost + origPPQrightmost - tablePPQs[i]) or tablePPQs[i]
+            newPPQpos = m_floor(origPPQleftmost + stretchFactor*(flippedPPQpos - origPPQleftmost) + 0.5)                    
+            offset = newPPQpos - lastPPQpos                   
+            lastPPQpos = newPPQpos 
             
-            offset = newPPQpos - lastPPQpos
+            -- Remember that notes and 14bit CCs contain more than one event per tablePPQs entry
             
-            lastPPQpos = newPPQpos
+            if tableNoteLengths[i] then -- note event
             
-            if laneIsCC14BIT then
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlags[i], tableMsgLSB[i])
-            elseif laneIsNOTES then
-                newNoteOffPPQpos = m_floor(origPPQleftmost + stretchFactor*((tablePPQs[i]+tableNoteLengths[i]) - origPPQleftmost) + 0.5)
+                local flippedNoteOffPPQpos = flipped and (origPPQleftmost + origPPQrightmost - (tablePPQs[i]+tableNoteLengths[i])) 
+                                                     or (tablePPQs[i]+tableNoteLengths[i])
+                newNoteOffPPQpos = m_floor(origPPQleftmost + stretchFactor*(flippedNoteOffPPQpos - origPPQleftmost) + 0.5)
                 -- If reversing notes, make sure that note-on is positioned before note-off
                 if newNoteOffPPQpos < newPPQpos then 
                     newPPQpos, newNoteOffPPQpos = newNoteOffPPQpos, newPPQpos
@@ -422,38 +468,44 @@ local function loop_trackMouseMovement()
                 -- Insert note-off
                 c = c + 1
                 tableEditedMIDI[c] = s_pack("i4Bs4", newNoteLength, tableFlags[i], tableMsgNoteOffs[i])
-           else
-               c = c + 1
-               tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
-            end 
-        end
+                                    
+            else           
+                c = c + 1
+                tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
+                
+                if tableMsgLSB[i] then -- Only if laneIs14BIT then tableMsgLSB will contain entries 
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlagsLSB[i], tableMsgLSB[i])
+                end
+            end
+        end  
                     
     elseif stretchLEFT then
     
         local stretchFactor = (origPPQrightmost - gridNewPPQpos)/origPPQrange
-        
+                        
         -- Safer to keep offsets positive, so check whether events are being reversed
         -- In addtion, avoid drawing multiple events on the same PPQ position
         local startIndex, endIndex, step, newPPQpos, newNoteOffPPQpos, newNoteLength
-        if stretchFactor > 0 then startIndex, endIndex, step = 1, #tablePPQs, 1 
-        elseif stretchFactor < 0 then startIndex, endIndex, step = #tablePPQs, 1, -1
-        else startIndex, endIndex, step = 1, 1, 1
+        
+        if (stretchFactor >= 0 and not flipped) or (stretchFactor < 0 and flipped) then startIndex, endIndex, step = 1, #tablePPQs, 1 
+        else startIndex, endIndex, step = #tablePPQs, 1, -1
         end
                     
         for i = startIndex, endIndex, step do        
-            newPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - tablePPQs[i]) + 0.5)
-            
+        
+            local flippedPPQpos = flipped and (origPPQleftmost + origPPQrightmost - tablePPQs[i]) or tablePPQs[i]
+            newPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - flippedPPQpos) + 0.5)
             offset = newPPQpos - lastPPQpos
-            
             lastPPQpos = newPPQpos
             
-            if laneIsCC14BIT then
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
-                c = c + 1
-                tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlags[i], tableMsgLSB[i])
-            elseif laneIsNOTES then
-                newNoteOffPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - (tablePPQs[i]+tableNoteLengths[i])) + 0.5)
+            -- Remember that notes and 14bit CCs contain more than one event per tablePPQs entry
+            
+            if tableNoteLengths[i] then -- note event
+            
+                local flippedNoteOffPPQpos = flipped and (origPPQleftmost + origPPQrightmost - (tablePPQs[i]+tableNoteLengths[i])) 
+                                                     or (tablePPQs[i]+tableNoteLengths[i])
+                newNoteOffPPQpos = m_floor(origPPQrightmost - stretchFactor*(origPPQrightmost - flippedNoteOffPPQpos) + 0.5)
                 -- If reversing notes, make sure that note-on is positioned before note-off
                 if newNoteOffPPQpos < newPPQpos then 
                     newPPQpos, newNoteOffPPQpos = newNoteOffPPQpos, newPPQpos
@@ -474,20 +526,28 @@ local function loop_trackMouseMovement()
                 -- Insert note-off
                 c = c + 1
                 tableEditedMIDI[c] = s_pack("i4Bs4", newNoteLength, tableFlags[i], tableMsgNoteOffs[i])
+                
             else
                 c = c + 1
                 tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
+                
+                if tableMsgLSB[i] then -- Only if laneIs14BIT then tableMsgLSB will contain entries 
+                    c = c + 1
+                    tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlagsLSB[i], tableMsgLSB[i])
+                end
             end 
         end
     
     elseif stretchTOP then
     
-        local stretchFactor = (mouseNewCCvalue - origValueMin)/origValueRange
+        local stretchFactor = (mouseNewCCValue - origValueMin)/origValueRange
         local newValue
             
         for i = 1, #tablePPQs do
         
-            newValue = m_floor(origValueMin + stretchFactor*(tableValues[i] - origValueMin) + 0.5)
+            local flippedValue = flipped and (origValueMin + origValueMax - tableValues[i]) or tableValues[i]
+            newValue = m_floor(origValueMin + stretchFactor*(flippedValue - origValueMin) + 0.5)
+            if newValue > laneMax then newValue = laneMax elseif newValue < laneMin then laneValue = laneMin end
             
             offset = tablePPQs[i] - lastPPQpos
             
@@ -495,7 +555,7 @@ local function loop_trackMouseMovement()
             
             if laneIsCC7BIT then
                 c = c + 1
-                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCClane, newValue)
+                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane, newValue)
             elseif laneIsPITCH then
                 c = c + 1
                 tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], newValue&127, newValue>>7)
@@ -504,9 +564,9 @@ local function loop_trackMouseMovement()
                 tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
             elseif laneIsCC14BIT then
                 c = c + 1
-                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], mouseOrigCClane-256, newValue>>7)
+                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], mouseOrigCCLane-256, newValue>>7)
                 c = c + 1
-                tableEditedMIDI[c] = s_pack("i4BI4BBB", 0,      tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCClane-224, newValue&127)
+                tableEditedMIDI[c] = s_pack("i4BI4BBB", 0,      tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-224, newValue&127)
             elseif laneIsNOTES then
                 -- Insert note-on
                 c = c + 1 
@@ -528,12 +588,14 @@ local function loop_trackMouseMovement()
     
     elseif stretchBOTTOM then
     
-        local stretchFactor = (origValueMax - mouseNewCCvalue)/origValueRange
+        local stretchFactor = (origValueMax - mouseNewCCValue)/origValueRange
         local newValue
             
         for i = 1, #tablePPQs do
-        
-            newValue = m_floor(origValueMax - stretchFactor*(origValueMax - tableValues[i]) + 0.5)
+            
+            local flippedValue = flipped and (origValueMin + origValueMax - tableValues[i]) or tableValues[i]
+            newValue = m_floor(origValueMax - stretchFactor*(origValueMax - flippedValue) + 0.5)
+            if newValue > laneMax then newValue = laneMax elseif newValue < laneMin then laneValue = laneMin end
             
             offset = tablePPQs[i] - lastPPQpos
             
@@ -541,7 +603,7 @@ local function loop_trackMouseMovement()
             
             if laneIsCC7BIT then
                 c = c + 1
-                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCClane, newValue)
+                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane, newValue)
             elseif laneIsPITCH then
                 c = c + 1
                 tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], newValue&127, newValue>>7)
@@ -550,9 +612,9 @@ local function loop_trackMouseMovement()
                 tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], newValue) -- NB Channel Pressure uses only 2 bytes!
             elseif laneIsCC14BIT then
                 c = c + 1
-                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], mouseOrigCClane-256, newValue>>7)
+                tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i],    3, 0xB0 | tableChannels[i], mouseOrigCCLane-256, newValue>>7)
                 c = c + 1
-                tableEditedMIDI[c] = s_pack("i4BI4BBB", 0,      tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCClane-224, newValue&127)
+                tableEditedMIDI[c] = s_pack("i4BI4BBB", 0,      tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-224, newValue&127)
             elseif laneIsNOTES then
                 -- Insert note-on
                 c = c + 1 
@@ -571,27 +633,45 @@ local function loop_trackMouseMovement()
                 tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], newValue) -- NB Program Select uses only 2 bytes!
             end 
         end
-    
     end
                
     -----------------------------------------------------------
     -- DRUMROLL... write the edited events into the MIDI chunk!
     -- This also updates the offset of the first event in MIDIstring relative to the PPQ position of the last event in tableEditedMIDI
     newRemainOffset = remainOffset-lastPPQpos
+
     reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
                                   .. string.pack("i4", newRemainOffset)
                                   .. remainMIDIstringSub5)
     takeIsCleared = false   
-    if isInline then reaper.UpdateArrange() end
+    if isInline then reaper.UpdateItemInProject(item) end
 
-
-    ---------------------------------------------------------
-    -- Continuously loop the function - if don't need to quit
-    if mustQuitAfterDrawingOnceMore then return
-    else reaper.runloop(loop_trackMouseMovement)
-    end
+    if mustQuitAfterDrawingOnceMore then return false else return true end
     
-end -- loop_trackMouseMovement()
+end -- trackMouseAndDrawMIDI()
+
+
+--#######################################################################################
+-----------------------------------------------------------------------------------------
+function loop_pcall()
+    -- Since new versions of the script temporarily clear all MIDI from non-active takes, 
+    --    it is important to ensure that, if things go wrong, the script can restore the cleared takes
+    --    (otherwise the user may not notice the missing MIDI util it is too late).
+    -- Therefore use pcall to call the main trackMouseAndDrawMIDI function.
+    local errorFree, mustContinue = pcall(trackMouseAndDrawMIDI)
+    
+    -- Continuously loop the function - if don't need to quit
+    if not errorFree then
+        reaper.MB("Error while tracking mouse movement.\n\nOriginal MIDI data will be restored.\n\n", "ERROR", 0)
+        reaper.MIDI_SetAllEvts(take, MIDIstring)
+        takeIsCleared = false
+        return
+    elseif not mustContinue then 
+        return
+    else 
+        reaper.runloop(loop_pcall)
+    end
+end
 
 
 --############################################################################################
@@ -601,15 +681,21 @@ function onexit()
     -- Remove tooltip 'custom cursor'
     reaper.TrackCtl_SetToolTip("", 0, 0, true)
     
+    -- For safety, the very first step that must be performed when quitting,
+    --    is to restore all MIDI to the cleared non-active takes.
+    for otherTake, otherMIDI in pairs(tOtherTakes) do
+        reaper.MIDI_SetAllEvts(otherTake, otherMIDI)
+    end 
+    
     if mustDeleteOverlappingCCs 
     and (stretchRIGHT or stretchLEFT)
-    and (laneIsCC7BIT or laneIsCC14BIT or laneIsCHPRESS or laneIsPITCH or laneIsPROGRAM) 
+    and not laneIsNOTES -- (laneIsALL or laneIsCC7BIT or laneIsCC14BIT or laneIsCHPRESS or laneIsPITCH or laneIsPROGRAM or laneIsTEXT or laneIsSYSEX) 
     then
         deleteOverlappingCCs()
     end
     
-    -- Remember that the take was cleared before calling BR_GetMouseCursorContext
-    --    So upload MIDI again.
+    -- Remember that the active take was cleared before calling BR_GetMouseCursorContext
+    --    So may need to upload MIDI again.
     -- In the stretch script, unlike most of the other scripts, the MIDI may be changed after
     --    entering onexit, so upload edited MIDI even if takeIsCleared = false.
     reaper.MIDI_SetAllEvts(take, table.concat(tableEditedMIDI)
@@ -672,12 +758,12 @@ function onexit()
     -- Write nice, informative Undo strings
     if (stretchLEFT or stretchRIGHT) then
         if laneIsCC7BIT then
-            undoString = "Stretch positions of 7-bit CC events in lane ".. tostring(mouseOrigCClane)
+            undoString = "Stretch positions of 7-bit CC events in lane ".. tostring(mouseOrigCCLane)
         elseif laneIsCHPRESS then
             undoString = "Stretch positions of channel pressure events"
         elseif laneIsCC14BIT then
             undoString = "Stretch positions of 14 bit-CC events in lanes ".. 
-                                      tostring(mouseOrigCClane-256) .. "/" .. tostring(mouseOrigCClane-224)
+                                      tostring(mouseOrigCCLane-256) .. "/" .. tostring(mouseOrigCCLane-224)
         elseif laneIsPITCH then
             undoString = "Stretch positions of pitchwheel events"
         elseif laneIsNOTES then
@@ -695,12 +781,12 @@ function onexit()
         end 
     else -- stretchTOP or stretchBOTTOM
         if laneIsCC7BIT then
-            undoString = "Stretch values of 7-bit CC events in lane ".. tostring(mouseOrigCClane)
+            undoString = "Stretch values of 7-bit CC events in lane ".. tostring(mouseOrigCCLane)
         elseif laneIsCHPRESS then
             undoString = "Stretch values of channel pressure events"
         elseif laneIsCC14BIT then
             undoString = "Stretch values of 14 bit-CC events in lanes "
-                          .. tostring(mouseOrigCClane-256) .. "/" .. tostring(mouseOrigCClane-224)
+                          .. tostring(mouseOrigCCLane-256) .. "/" .. tostring(mouseOrigCCLane-224)
         elseif laneIsPITCH then
             undoString = "Stretch values of pitchwheel events"
         elseif laneIsVELOCITY then
@@ -722,28 +808,44 @@ end -- function onexit
 --------------------------------------------------------------------------------------
 function deleteOverlappingCCs()
     
-    if not (laneIsPITCH or laneIsCC7BIT or laneIsCC14BIT or laneIsCHPRESS or laneIsPROGRAM) then
+    if laneIsNOTES then --not (laneIsPITCH or laneIsCC7BIT or laneIsCC14BIT or laneIsCHPRESS or laneIsPROGRAM or laneIsTEXT or laneIsSYSEX or laneIsALL) then
         return
     end
     
-    -- Deletion will be channel-specific.  Therefore search through edited events
-    --     to find the min and max PPQ positions of stretched events in each channel. 
-    -- First, set up the tables with temporary values for each channel.
-    local tableChanMinPPQ = {}
-    local tableChanMaxPPQ = {}
-    for chan = 0, 15 do
-        tableChanMinPPQ[chan] = math.huge
-        tableChanMaxPPQ[chan] = -math.huge
-    end
-    
-    local runningPPQpos = 0
+    -- Construct table with min and max PPQ positions for each event type.
+    -- Deletion will be type-channel-, and lane-specific.
+    -- Get final positions of edited events by parsing tableEditedMIDI.
+    local tableMinMax = {}
+    local runningPPQpos = 0 -- position while parsing edited events
+    local eventIsOtherCC = {[0xC] = true, [0xD] = true, [0xE] = true}
     for i = 1, #tableEditedMIDI do
         runningPPQpos = runningPPQpos + s_unpack("i4", tableEditedMIDI[i], 1)
-        channel = (tableEditedMIDI[i]:byte(10))&0x0F
-        if runningPPQpos > tableChanMaxPPQ[channel] then tableChanMaxPPQ[channel] = runningPPQpos end
-        if runningPPQpos < tableChanMinPPQ[channel] then tableChanMinPPQ[channel] = runningPPQpos end
+        local msg = tableEditedMIDI[i]:sub(10,11)
+        local statusByte = msg:byte(1)
+        local eventType = statusByte and statusByte>>4
+        local eventID -- Will get value if event is type that ust be deleted if overlapped, such as CC or pitch.  NOT notes or text/sysex.
+        if eventType == 0xB then -- Standard CC
+            eventID = msg -- contains type, channel and CC lane
+        elseif eventIsOtherCC[eventType] then -- Other CC types (pitch etc)
+            eventID = msg:byte(1) -- contains type and channel 
+        elseif statusByte == 0xFF then -- text events
+            if msg:byte(2) ~= 0x0F then -- excluding REAPER's notation events
+                eventID = msg
+            end
+        elseif eventType == 0xF then -- sysex (excluding 0xFF text events)
+            eventID = msg:byte(1)
+        end
+        if eventID then
+            if tableMinMax[eventID] then
+                if runningPPQpos < tableMinMax[eventID].min then tableMinMax[eventID].min = runningPPQpos end
+                if runningPPQpos > tableMinMax[eventID].max then tableMinMax[eventID].max = runningPPQpos end
+            else
+                tableMinMax[eventID] = {min = runningPPQpos, max = runningPPQpos}
+            end
+        end
     end
-    local lastStretchedPPQ = runningPPQpos
+    
+    local lastStretchedPPQpos = runningPPQpos -- Rest of unedited events must be offset relative to last PPQ position in edited events.
     
     -- Now search through the remainMIDIstring.
     local tableRemainingEvents = {}
@@ -761,19 +863,22 @@ function deleteOverlappingCCs()
         runningPPQpos = runningPPQpos + offset
         
         local mustDelete = false
-        local msg1      = msg:byte(1)
-        local channel   = msg1 & 0x0F -- Not really channel in case of sysex or text, but doesn't matter.
         
-        if runningPPQpos >= tableChanMinPPQ[channel] and runningPPQpos <= tableChanMaxPPQ[channel] then
-            
-            local msg2      = msg:byte(2)
-            local eventType = msg1>>4
-            
-            if laneIsCC7BIT then if eventType == 11 and msg2 == mouseOrigCClane then mustDelete = true end
-            elseif laneIsPITCH then if eventType == 14 then mustDelete = true end
-            elseif laneIsCHPRESS then if eventType == 13 then mustDelete = true end
-            elseif laneIsCC14BIT then if eventType == 11 and (msg2 == mouseOrigCClane-224 or msg2 == mouseOrigCClane-256) then mustDelete = true end
-            elseif laneIsPROGRAM then if eventType == 12 then mustDelete = true end
+        local statusByte = msg:byte(1)
+        local eventType = statusByte and statusByte>>4
+        local eventID -- Will get value if event is type that ust be deleted if overlapped, such as CC or pitch.  NOT notes or text/sysex.
+        if eventType == 0xB then -- Standard CC
+            eventID = msg:sub(1,2) -- contains type, channel and CC lane
+        elseif eventIsOtherCC[eventType] then -- Other CC types (pitch etc)
+            eventID = msg:byte(1) -- contains type and channel 
+        elseif eventType == 0xF and not (statusByte == 0xFF) then -- sysex
+            eventID = msg:byte(1)
+        elseif statusByte == 0xFF and not (msg:byte(2) == 0x0F) then -- text events, excluding notation
+            eventID = msg:sub(1,2)
+        end
+        if eventID and tableMinMax[eventID] then -- does this event type occur in selected events?
+            if (runningPPQpos >= tableMinMax[eventID].min and runningPPQpos <= tableMinMax[eventID].max) then 
+                mustDelete = true
             end
         end
         
@@ -798,16 +903,15 @@ function deleteOverlappingCCs()
 
     end -- while    
     
-    
     -- Now insert all the events to the right of the targets as one bulk
     if unchangedPos < MIDIlen then
         r = r + 1
         tableRemainingEvents[r] = remainMIDIstring:sub(unchangedPos)
-    end 
+    end
       
     -------------------------------------------------------------
     -- Update first remaining event's offset relative to new ramp
-    newRemainOffset = s_unpack("i4", tableRemainingEvents[1]) - lastStretchedPPQ
+    newRemainOffset = s_unpack("i4", tableRemainingEvents[1]) - lastStretchedPPQpos
     remainMIDIstringSub5 = table.concat(tableRemainingEvents):sub(5)
 
     ------------------------
@@ -843,7 +947,7 @@ function parseAndExtractTargetMIDI()
         local tableTempNotation = {} -- Store notation text while waiting for a note-on with matching position, pitch and channel
         local tableCCMSB = {} -- While waiting for matching LSB of 14-bit CC
         local tableCCLSB = {} -- While waiting for matching MSB of 14-bit CC
-        if laneIsNOTES then
+        if laneIsNOTES or laneIsALL then
             for chan = 0, 15 do
                 tableNoteOns[chan] = {}
                 tableTempNotation[chan] = {}
@@ -890,6 +994,7 @@ function parseAndExtractTargetMIDI()
         local r = 0 -- Count inside tableRemainingEvents
         local offset, flags, msg -- MIDI data that will be unpacked for each event
         
+        --[[
         ---------------------------------------------------------------
         -- This loop will iterate through the MIDI data, event-by-event
         -- In the case of unselected events, only their offsets are relevant, in order to update runningPPQpos.
@@ -903,7 +1008,7 @@ function parseAndExtractTargetMIDI()
         -- Scripts such as "Remove redundant CCs" will only work on sorted MIDI.  For others, sorting is not relevant.
         -- Note that even in sorted MIDI, the first event can have an negative offset if its position is to the left of the item start.
         -- As discussed in the introduction, MIDI sorting entails several problems.  This script will therefore avoid sorting until it exits, and
-        --    will instead notify the user, in the rare case that unsorted MIDI is deteced.  (Checking for negative offsets is also faster than unneccesary sorting.
+        --    will instead notify the user, in the rare case that unsorted MIDI is detected.  (Checking for negative offsets is also faster than unneccesary sorting.
             
         -- This function will try two main things to make execution faster:
         --    * First, an upper bound for positions of the targeted events in MIDIstring must be found. 
@@ -944,6 +1049,7 @@ function parseAndExtractTargetMIDI()
         -- The only problem is msg2 (MIDI byte 2), which can range from 0 to 0xEF.
         -- These bytes must therefore be compared to the above list, and prefixed with a "%" where necessary. gsub will be used.
         -- (It is probably only strictly necessary to prefix % to "%" and ".", but won't hurt to prefix to all of the above.)
+        ]]
         local matchStrReversed, firstTargetPosReversed = "", 0
         --[[if laneIsBANKPROG then
         
@@ -965,8 +1071,11 @@ function parseAndExtractTargetMIDI()
             end
                   
         else ]]
+        if laneIsALL then
+            lastTargetStrPos = MIDIlen-12
+        else
             if laneIsCC7BIT then
-                local msg2string = string.char(mouseOrigCClane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0") -- Replace magic characters.
+                local msg2string = string.char(mouseOrigCCLane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0") -- Replace magic characters.
                 matchStrReversed = table.concat({"[",msg2string,"]",
                                                        "[",string.char(0xB0),"-",string.char(0xBF),"]", 
                                                            string.pack("I4", 3):reverse(),
@@ -984,8 +1093,8 @@ function parseAndExtractTargetMIDI()
                                                            string.pack("I4", 2):reverse(),
                                                        "[",string.char(0x01, 0x03),"]"})                                      
             elseif laneIsCC14BIT then
-                local MSBlane = mouseOrigCClane - 256
-                local LSBlane = mouseOrigCClane - 224
+                local MSBlane = mouseOrigCCLane - 256
+                local LSBlane = mouseOrigCCLane - 224
                 local msg2string = string.char(MSBlane, LSBlane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0")
                 matchStrReversed = table.concat({"[",msg2string,"]",
                                                        "[",string.char(0xB0),"-",string.char(0xBF),"]", 
@@ -1003,17 +1112,18 @@ function parseAndExtractTargetMIDI()
             elseif laneIsPROGRAM then
                 matchStrReversed = table.concat({"[",string.char(0xC0),"-",string.char(0xCF),"]",
                                                            string.pack("I4", 2):reverse(),
-                                                       "[",string.char(0x01, 0x03),"]"})                      
+                                                       "[",string.char(0x01, 0x03),"]"})               
             end
         
+            ----
             firstTargetPosReversed = MIDIstring:reverse():find(matchStrReversed) -- Search backwards by using reversed string. 
-        --end
         
-        if firstTargetPosReversed then 
-            lastTargetStrPos = MIDIlen - firstTargetPosReversed 
-        else -- Found no targeted events
-            lastTargetStrPos = 0
-        end    
+            if firstTargetPosReversed then 
+                lastTargetStrPos = MIDIlen - firstTargetPosReversed 
+            else -- Found no targeted events
+                lastTargetStrPos = 0
+            end    
+        end
         
         ---------------------------------------------------------------------------------------------
         -- OK, got an upper limit.  Now iterate through MIDIstring, until the upper limit is reached.
@@ -1053,15 +1163,76 @@ function parseAndExtractTargetMIDI()
             runningPPQpos = runningPPQpos + offset
 
             -- Only analyze *selected* events - as well as notation text events (which are always unselected)
-            if flags&1 == 1 and msg:len() >= 2 then -- bit 1: selected
+            if flags&1 == 1 and #msg >= 2 then -- bit 1: selected
                 --[[local eventType = (msg:byte(1))>>4
                 local channel   = (msg:byte(1))&0xF
                 local msg2      = msg:byte(2)
                 local msg3      = msg:byte(3)
                     ]]
                 
-                    
-                if laneIsCC7BIT then if msg:byte(2) == mouseOrigCClane and (msg:byte(1))>>4 == 11
+                -- When stretching ALL events, note events (note-ons, note-offs and notation) must be separated from CCs,
+                --    since these may have to be reversed.
+                -- Note that notes and CCs will use the same tablePPQs, tableMsg and tableFlags, but only notes will use tableNotesLengths, tableNotations etc.
+                -- The note tables will therefore only contain entries at certain keys, not every key from 1 to #tablePPQs
+                if laneIsALL 
+                then
+                      -- Note-offs
+                      if ((msg:byte(1))>>4 == 8 or (msg:byte(3) == 0 and (msg:byte(1))>>4 == 9))
+                      then
+                          local channel = msg:byte(1)&0x0F
+                          local msg2 = msg:byte(2)
+                          -- Check whether there was a note-on on this channel and pitch.
+                          if not tableNoteOns[channel][msg2][flags].index then
+                              reaper.ShowMessageBox("There appears to be orphan note-offs (probably caused by overlapping notes or unsorted MIDI data) in the active takes."
+                                                    .. "\n\nIn particular, at position " 
+                                                    .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, runningPPQpos), "", 1)
+                                                    .. "\n\nPlease remove these before retrying the script."
+                                                    .. "\n\n"
+                                                    , "ERROR", 0)
+                              return false
+                          else
+                              mustExtract = true
+                              tableNoteLengths[tableNoteOns[channel][msg2][flags].index] = runningPPQpos - tableNoteOns[channel][msg2][flags].PPQ
+                              tableMsgNoteOffs[tableNoteOns[channel][msg2][flags].index] = msg
+                              tableNoteOns[channel][msg2][flags] = {} -- Reset this channel and pitch
+                          end
+                                                                      
+                      -- Note-Ons
+                      elseif (msg:byte(1))>>4 == 9 -- and msg3 > 0
+                      then
+                          local channel = msg:byte(1)&0x0F
+                          local msg2 = msg:byte(2)
+                          if tableNoteOns[channel][msg2][flags].index then
+                              reaper.ShowMessageBox("There appears to be overlapping notes among the selected notes."
+                                                    .. "\n\nIn particular, at position " 
+                                                    .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(take, runningPPQpos), "", 1)
+                                                    .. "\n\nThe action 'Correct overlapping notes' can be used to correct overlapping notes in the active take."
+                                                    , "ERROR", 0)
+                              return false
+                          else
+                              mustExtract = true
+                              c = c + 1
+                              tableMsg[c] = msg
+                              tablePPQs[c] = runningPPQpos
+                              tableFlags[c] = flags
+                              -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
+                              tableNotation[c] = tableTempNotation[channel][msg2][runningPPQpos]
+                              -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
+                              tableNoteOns[channel][msg2][flags] = {PPQ = runningPPQpos, index = c}
+                          end  
+                          
+                      -- Other CCs  
+                      else
+                          mustExtract = true
+                          c = c + 1
+                          tableMsg[c] = msg
+                          tablePPQs[c] = runningPPQpos
+                          tableFlags[c] = flags
+                      end
+                      
+                      
+                
+                elseif laneIsCC7BIT then if msg:byte(2) == mouseOrigCCLane and (msg:byte(1))>>4 == 11
                 then
                     mustExtract = true
                     c = c + 1 
@@ -1084,7 +1255,7 @@ function parseAndExtractTargetMIDI()
                     end                           
                                         
                 elseif laneIsCC14BIT then 
-                    if msg:byte(2) == mouseOrigCClane-224 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the LSB lane
+                    if msg:byte(2) == mouseOrigCCLane-224 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the LSB lane
                     then
                         mustExtract = true
                         local channel = msg:byte(1)&0x0F
@@ -1103,7 +1274,7 @@ function parseAndExtractTargetMIDI()
                             tableCCLSB[channel][runningPPQpos] = {message = msg, flags = flags}
                         end
                             
-                    elseif msg:byte(2) == mouseOrigCClane-256 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the MSB lane
+                    elseif msg:byte(2) == mouseOrigCCLane-256 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the MSB lane
                     then
                         mustExtract = true
                         local channel = msg:byte(1)&0x0F
@@ -1169,7 +1340,7 @@ function parseAndExtractTargetMIDI()
                             -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
                             tableNotation[c] = tableTempNotation[channel][msg2][runningPPQpos]
                             -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
-                            tableNoteOns[channel][msg2][flags] = {PPQ = runningPPQpos, index = #tableValues}
+                            tableNoteOns[channel][msg2][flags] = {PPQ = runningPPQpos, index = c}
                         end  
                     end
   
@@ -1206,7 +1377,7 @@ function parseAndExtractTargetMIDI()
                     tableMsg[c] = msg
                     end
                              
-                elseif laneIsTEXT then if msg:byte(1) == 0xFF --and not (msg2 == 0x0F) -- text event (0xFF), excluding notation type (0x0F)
+                elseif laneIsTEXT then if msg:byte(1) == 0xFF and not (msg:byte(2) == 0x0F) -- text event (0xFF), excluding notation type (0x0F)
                 then
                     mustExtract = true
                     c = c + 1
@@ -1227,7 +1398,7 @@ function parseAndExtractTargetMIDI()
             end -- if laneIsCC7BIT / CC14BIT / PITCH etc
                 
             -- Check notation text events
-            if laneIsNOTES 
+            if (laneIsNOTES or laneIsALL)
             and msg:byte(1) == 0xFF -- MIDI text event
             and msg:byte(2) == 0x0F -- REAPER's MIDI text event type
             then
@@ -1352,13 +1523,15 @@ function parseAndExtractTargetMIDI()
         
         -- Calculate original PPQ ranges and extremes
         -- * THIS ASSUMES THAT THE MIDI DATA IS SORTED *
-        if includeNoteOffsInPPQrange and laneIsNOTES then
+        if includeNoteOffsInPPQrange and (laneIsNOTES or laneIsALL) then
             origPPQleftmost  = tablePPQs[1]
             origPPQrightmost = tablePPQs[#tablePPQs] -- temporary
             local noteEndPPQ
             for i = 1, #tablePPQs do
-                noteEndPPQ = tablePPQs[i] + tableNoteLengths[i]
-                if noteEndPPQ > origPPQrightmost then origPPQrightmost = noteEndPPQ end
+                if tableNoteLengths[i] then -- laneIsALL event is a note
+                    noteEndPPQ = tablePPQs[i] + tableNoteLengths[i]
+                    if noteEndPPQ > origPPQrightmost then origPPQrightmost = noteEndPPQ end
+                end
             end
             origPPQrange = origPPQrightmost - origPPQleftmost
         else
@@ -1368,7 +1541,7 @@ function parseAndExtractTargetMIDI()
         end
         
         -- Calculate original event value ranges and extremes
-        if laneIsTEXT or laneIsSYSEX or laneIsBANKPROG then
+        if laneIsTEXT or laneIsSYSEX or laneIsBANKPROG or laneIsALL then
             origValueRange = -1
         else
             origValueMin = math.huge
@@ -1456,283 +1629,333 @@ end
 --#####################################################################################################
 -------------------------------------------------------------------------------------------------------
 -- Here execution starts!
--- function main()
 
--- Start with a trick to avoid automatically creating undo states if nothing actually happened
--- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
-function avoidUndo()
-end
-reaper.defer(avoidUndo)
+function main()    
 
-----------------------------------------------------------------------------
--- Check whether SWS is available, as well as the required version of REAPER
-version = tonumber(reaper.GetAppVersion():match("(%d+%.%d+)"))
-if version == nil or version < 5.32 then
-    reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
-                          .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
-                          , "ERROR", 0)
-    return(false) 
-elseif not reaper.APIExists("BR_GetMouseCursorContext") then
-    reaper.ShowMessageBox("This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-    return(false) 
-end   
-
------------------------------------------------------------
--- The following sections checks the position of the mouse:
--- If the script is called from a toolbar, it arms the script as the default js_Run function, but does not run the script further
--- If the mouse is positioned over a CC lane, the script is run.
-window, segment, details = reaper.BR_GetMouseCursorContext()
--- If window == "unknown", assume to be called from floating toolbar
--- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
-if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
-    setAsNewArmedToolbarAction()
-    return(true) 
-elseif not(segment == "notes" or details == "cc_lane") then 
-    reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
-                          .. "This script edits the MIDI events in the part of the MIDI editor that is under the mouse, "
-                          .. "so the mouse should be positioned over either a CC lane or the notes area of an active MIDI editor.", "ERROR", 0)
-    return(false) 
-else
-    -- Communicate with the js_Run.. script that a script is running
-    reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
-end
-
------------------------------------------------------------------------------------------
--- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
--- Also get the mouse starting (vertical) value and CC lane.
--- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
--- mouseOrigCClane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
---    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
---    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
---
--- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
--- https://github.com/Jeff0S/sws/issues/783
--- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
-_, testParam1, _, _, _, testParam2 = reaper.BR_GetMouseCursorContext_MIDI()
-if type(testParam1) == "number" and testParam2 == nil then SWS283 = true else SWS283 = false end
-if type(testParam1) == "boolean" and type(testParam2) == "number" then SWS283again = false else SWS283again = true end 
-if SWS283 ~= SWS283again then
-    reaper.ShowMessageBox("Could not determine compatible SWS version.", "ERROR", 0)
-    return(false)
-end
-
-if SWS283 == true then
-    isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-else 
-    _, isInline, mouseOrigPitch, mouseOrigCClane, mouseOrigCCvalue, mouseOrigCClaneID = reaper.BR_GetMouseCursorContext_MIDI()
-end 
+    -- Start with a trick to avoid automatically creating undo states if nothing actually happened
+    -- Undo_OnStateChange will only be used if reaper.atexit(onexit) has been executed
+    reaper.defer(function() end)    
     
--------------------------------------------------        
--- Get active take (MIDI editor or inline editor)
-if isInline then
-    take = reaper.BR_GetMouseCursorContext_Take()
-else
-    editor = reaper.MIDIEditor_GetActive()
-    if editor == nil then 
-        reaper.ShowMessageBox("No active MIDI editor found.", "ERROR", 0)
+    ----------------------------------------------------------------------------
+    -- Check whether SWS is available, as well as the required version of REAPER
+    if not reaper.APIExists("MIDI_GetAllEvts") then
+        reaper.ShowMessageBox("This version of the script requires REAPER v5.32 or higher."
+                              .. "\n\nOlder versions of the script will work in older versions of REAPER, but may be slow in takes with many thousands of events"
+                              , "ERROR", 0)
+        return(false) 
+    elseif not reaper.APIExists("SN_FocusMIDIEditor") then
+        reaper.ShowMessageBox("This script requires an up-to-date version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
+        return(false) 
+    end   
+    
+    -------------------------------------------
+    -- Display notifications about new features
+    local lastTipVersion = tonumber(reaper.GetExtState("js_Stretch", "Last tip version")) or 0
+    if lastTipVersion < 3.30 then
+        reaper.MB("The Stretch script can now stretch all selected events in all lanes together."
+                  .. "\n\nTo stretch all lanes together, position the mouse over a lane divider when starting the script."
+                  .. "\n\nTo stretch only a single lane separately, position the mouse inside the CC lane (or notes area)."
+                  .. "\n\nWhen stretching all lanes together, stretching can only be horizontal (i.e. event positions), not vertically (event values)."
+                  .. "\n\n(This message will only be displayed once).", 
+                  "New feature notification: v3.30", 0)
+        reaper.SetExtState("js_Stretch", "Last tip version", "3.30", true)
+        displayedNotification = true
+    end
+    if lastTipVersion < 3.40 then
+        reaper.MB("Moving the mousewheel flips the events being stretched."
+                  .. "\n\n(This message will only be displayed once).", 
+                  "New feature notification: v3.40", 0)
+        reaper.SetExtState("js_Stretch", "Last tip version", "3.40", true)
+        displayedNotification = true
+    end
+    if displayedNotification then return(false) end -- If inline editor, will in any case lose focus when clicking in message box window.
+    
+    -----------------------------------------------------------
+    -- The following sections checks the position of the mouse:
+    -- If the script is called from a toolbar, it arms the script as the default js_Run function, but does not run the script further
+    -- If the mouse is positioned over a CC lane, the script is run.
+    window, segment, details = reaper.BR_GetMouseCursorContext()
+    -- If window == "unknown", assume to be called from floating toolbar
+    -- If window == "midi_editor" and segment == "unknown", assume to be called from MIDI editor toolbar
+    if window == "unknown" or (window == "midi_editor" and segment == "unknown") then
+        setAsNewArmedToolbarAction()
+        return(false) 
+    elseif not(segment == "notes" or segment == "ruler" or details == "cc_lane") then 
+        reaper.ShowMessageBox("Mouse is not correctly positioned.\n\n"
+                              .. "This script edits the MIDI events in the part of the MIDI editor that is under the mouse, "
+                              .. "so the mouse should be positioned over either a CC lane or the notes area of an active MIDI editor.", "ERROR", 0)
+        return(false) 
+    else
+        -- Communicate with the js_Run.. script that a script is running
+        reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
+    end
+    
+    -----------------------------------------------------------------------------------------
+    -- We know that the mouse is positioned over a MIDI editor.  Check whether inline or not.
+    -- Also get the mouse starting (vertical) value and CC lane.
+    -- mouseOrigPitch: note row or piano key under mouse cursor (0-127)
+    -- mouseOrigCCLane: CC lane under mouse cursor (CC0-127=CC, 0x100|(0-31)=14-bit CC, 
+    --    0x200=velocity, 0x201=pitch, 0x202=program, 0x203=channel pressure, 
+    --    0x204=bank/program select, 0x205=text, 0x206=sysex, 0x207=off velocity)
+    --
+    -- SWS version 2.8.3 has a bug in the crucial function "BR_GetMouseCursorContext_MIDI"
+    -- No retval is returned: https://github.com/Jeff0S/sws/issues/783
+    -- For compatibility with 2.8.3 as well as other versions, the following lines test the SWS version for compatibility
+    editor, isInline, mouseOrigPitch, mouseOrigCCLane, mouseOrigCCValue, mouseOrigCCLaneID = reaper.BR_GetMouseCursorContext_MIDI()
+
+    if isInline then
+        take = reaper.BR_GetMouseCursorContext_Take()
+    else
+        if editor == nil then 
+            reaper.ShowMessageBox("Could not detect a MIDI editor under the mouse.", "ERROR", 0)
+            return(false)
+        else
+            take = reaper.MIDIEditor_GetTake(editor)
+        end
+    end
+    if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
+        reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
         return(false)
     end
-    take = reaper.MIDIEditor_GetTake(editor)
-end
-if not reaper.ValidatePtr(take, "MediaItem_Take*") then 
-    reaper.ShowMessageBox("Could not find an active take in the MIDI editor.", "ERROR", 0)
-    return(false)
-end
-item = reaper.GetMediaItemTake_Item(take)
-if not reaper.ValidatePtr(item, "MediaItem*") then 
-    reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
-    return(false)
-end
-
--------------------------------------------------------------
--- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
---     require somewhat different tweaks, these must often be 
---     distinguished.   
-if segment == "notes" then
-    laneIsPIANOROLL, laneIsNOTES = true, true
-    laneMax = 127
-    laneMin = 0
-elseif 0 <= mouseOrigCClane and mouseOrigCClane <= 127 then -- CC, 7 bit (single lane)
-    laneIsCC7BIT = true
-    laneMax = 127
-    laneMin = 0
-elseif mouseOrigCClane == 0x200 then
-    laneIsVELOCITY, laneIsNOTES = true, true
-    laneMax = 127
-    laneMin = 1    
-elseif mouseOrigCClane == 0x201 then
-    laneIsPITCH = true
-    laneMax = 16383
-    laneMin = 0
-elseif mouseOrigCClane == 0x202 then
-    laneIsPROGRAM = true
-    laneMax = 127
-    laneMin = 0
-elseif mouseOrigCClane == 0x203 then
-    laneIsCHPRESS = true
-    laneMax = 127
-    laneMin = 0
-elseif mouseOrigCClane == 0x204 then
-    laneIsBANKPROG = true
-    laneMax = 127
-    laneMin = 0
-elseif 256 <= mouseOrigCClane and mouseOrigCClane <= 287 then -- CC, 14 bit (double lane)
-    laneIsCC14BIT = true
-    laneMax = 16383
-    laneMin = 0
-elseif mouseOrigCClane == 0x205 then
-    laneIsTEXT = true
-elseif mouseOrigCClane == 0x206 then
-    laneIsSYSEX = true
-elseif mouseOrigCClane == 0x207 then
-    laneIsOFFVEL, laneIsNOTES = true, true
-    laneMax = 127
-    laneMin = 0
-else -- not a lane type in which script can be used.
-    reaper.ShowMessageBox("This script will only work in the following MIDI lanes: \n* 7-bit CC, \n* 14-bit CC, \n* Velocity, \n* Channel Pressure, \n* Pitch, \n* Program select,\n* Bank/Program,\n* Text or Sysex,\nor in the 'notes area' of the piano roll.", "ERROR", 0)
-    return(0)
-end
-
---[[ Not relevant to this script
--------------------------------------------------------------------
--- Events will be inserted in the active channel of the active take
-if isInline then
-    defaultChannel = 0
-else
-    defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
-end
-
-
------------------------------------------------------------------------
--- CCs will be inserted at the density set in Preferences -> 
---    MIDI editor -> "Events per quarter note when drawing in CC lanes"
-CCdensity = reaper.SNM_GetIntConfigVar("midiCCdensity", 32)
-CCdensity = math.floor(math.max(4, math.min(128, math.abs(CCdensity)))) -- If user selected "Zoom dependent", density<0
-local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
-PPperCC = PPQ/CCdensity -- Not necessarily an integer!
-]]
-
----------------------------------------------------------------------------------------
--- Time to process the MIDI of the take!
--- As mentioned above, this script does not use the standard MIDI API functions such as 
---    MIDI_InsertCC, since these functions are far too slow when dealing with thousands 
---    of events.
-if not parseAndExtractTargetMIDI() then
-    --reaper.Undo_OnStateChange_Item(0, "FAILED: Stretch selected events in lane under mouse", item)
-    return(false)
-end
-
-if #tablePPQs == 0 or (#tablePPQs == 1 and not laneIsNOTES) then -- Single notes can be stretched, but not single CCs
-    reaper.ShowMessageBox("Could not find a sufficient number of selected events in the target lane.", "ERROR", 0)
-    return(false)
-end
-
-
------------------------------------------------------------------------
--- The crucial BR_GetMouseCursorContext function gets slower and slower 
---    as the number of events in the take increases.
--- Therefore, this script will speed up the function by 'clearing' the 
---    take of all MIDI *before* calling the function!
--- To do so, MIDI_SetAllEvts will be run with no events except the
---    All-Notes-Off message that should always terminate the MIDI stream, 
---    and which marks the position of the end of the MIDI source.
--- Instead of parsing the entire MIDI stream to get the final PPQ position,
---    simply get the source length.
--- (Since the MIDI may get sorted in the parseAndExtractTargetMIDI function,
---    getting the source length has been postponed till now.)
--- In addition, the source length will be saved and checked again at the end of
---    the script, to check that no inadvertent shifts in PPQ position happened.
-sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
-AllNotesOffString = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
-
-
------------------------------------------------------------------------------------------------
--- Get the starting PPQ (horizontal) position of the ramp.  Must check whether snap is enabled.
--- Also, contract to position within item, and then divide by source length to get position
---    within first loop iteration.
-mouseOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)
-local itemLengthTicks = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
-mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
-loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
-mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
-
-if isInline then
-    isSnapEnabled = false
-else
-    isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
-end
-if isInline then
-    local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseOrigPPQpos)
-    local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
-    gridOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
-elseif isSnapEnabled then
-    -- If snap is enabled, we must go through several steps to find the closest grid position
-    --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
-    -- !! Note that this script does not take swing into account when calculating the grid
-    -- First, calculate this take's PPQ:
-    -- Calculate position of grid immediately before mouse position
-    QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
-    local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
-    local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
-    gridOrigPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-else 
-    -- Otherwise, destination PPQ is exact mouse position
-    gridOrigPPQpos = math.floor(mouseOrigPPQpos + 0.5)
-end 
-
-
---------------------------------------------------------
--- Determine in which direction events will be stretched
-edgeSize = math.max(0, math.min(0.5, edgeSize))
--- these can only be stretch horizontally    
-if origPPQrange > 0 and (origValueRange == 0 or (laneIsSYSEX or laneIsTEXT or laneIsPIANOROLL or laneIsOFFVEL or laneIsBANKPROG)) then
-    if mouseOrigPPQpos > origPPQleftmost + 0.5*origPPQrange then stretchRIGHT = true
-    else stretchLEFT = true
+    item = reaper.GetMediaItemTake_Item(take)
+    if not reaper.ValidatePtr(item, "MediaItem*") then 
+        reaper.ShowMessageBox("Could not determine the item to which the active take belongs.", "ERROR", 0)
+        return(false)
     end
--- only stretch vertically (origPPQrange == 0 may happen if several notes in a chord are selected)
-elseif not (laneIsSYSEX or laneIsTEXT or laneIsPIANOROLL or laneIsOFFVEL or laneIsBANKPROG) and origValueRange > 0 and origPPQrange == 0 then  
-    if mouseOrigCCvalue > origValueMin + 0.5*origValueRange then stretchTOP = true
-    else stretchBOTTOM = true
+    
+    -------------------------------------------------------------
+    -- Since 7bit CC, 14bit CC, channel pressure, and pitch all 
+    --     require somewhat different tweaks, these must often be 
+    --     distinguished.   
+    if details == "cc_lane" and mouseOrigCCValue == -1 then
+        laneIsALL = true
+    elseif segment == "notes" then
+        laneIsPIANOROLL, laneIsNOTES = true, true
+        laneMax = 127
+        laneMin = 0
+    elseif 0 <= mouseOrigCCLane and mouseOrigCCLane <= 127 then -- CC, 7 bit (single lane)
+        laneIsCC7BIT = true
+        laneMax = 127
+        laneMin = 0
+    elseif mouseOrigCCLane == 0x200 then
+        laneIsVELOCITY, laneIsNOTES = true, true
+        laneMax = 127
+        laneMin = 1    
+    elseif mouseOrigCCLane == 0x201 then
+        laneIsPITCH = true
+        laneMax = 16383
+        laneMin = 0
+    elseif mouseOrigCCLane == 0x202 then
+        laneIsPROGRAM = true
+        laneMax = 127
+        laneMin = 0
+    elseif mouseOrigCCLane == 0x203 then
+        laneIsCHPRESS = true
+        laneMax = 127
+        laneMin = 0
+    elseif mouseOrigCCLane == 0x204 then
+        laneIsBANKPROG = true
+        laneMax = 127
+        laneMin = 0
+    elseif 256 <= mouseOrigCCLane and mouseOrigCCLane <= 287 then -- CC, 14 bit (double lane)
+        laneIsCC14BIT = true
+        laneMax = 16383
+        laneMin = 0
+    elseif mouseOrigCCLane == 0x205 then
+        laneIsTEXT = true
+    elseif mouseOrigCCLane == 0x206 then
+        laneIsSYSEX = true
+    elseif mouseOrigCCLane == 0x207 then
+        laneIsOFFVEL, laneIsNOTES = true, true
+        laneMax = 127
+        laneMin = 0
+    else -- not a lane type in which script can be used.
+        reaper.ShowMessageBox(--[['When starting a "lane under mouse" script, the mouse must be positioned over one of these lanes:'
+                              .. "\n* 7-bit CC, \n* 14-bit CC, \n* Velocity, \n* Channel Pressure, \n* Pitch, \n* Program select,\n* Bank/Program,\n* Text or Sysex,"
+                              .. "\nor in the 'notes area' of the piano roll."]]
+                              "Mouse is not correctly positioned."
+                              .. "\n\nThis script edits the MIDI events in the part of the MIDI editor that is under the mouse, "
+                              .. "so the mouse should be positioned over either \n* a CC lane, or \n* the notes area \nof an active MIDI editor."
+                              .. "\n\nTo stretch all selected events in all lanes together, position the mouse over a lane divider."
+                              , "ERROR", 0)
+        return(false)
     end
-elseif origValueRange > 0 and origPPQrange > 0 then
-    if mouseOrigPPQpos > origPPQrightmost - edgeSize*origPPQrange then stretchRIGHT = true
-    elseif mouseOrigPPQpos < origPPQleftmost + edgeSize*origPPQrange then stretchLEFT = true
-    elseif mouseOrigCCvalue > origValueMin + 0.5*origValueRange then stretchTOP = true
-    else stretchBOTTOM = true
+    
+    --[[ Not relevant to this script
+    -------------------------------------------------------------------
+    -- Events will be inserted in the active channel of the active take
+    if isInline then
+        defaultChannel = 0
+    else
+        defaultChannel = reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")
     end
-else
-    reaper.ShowMessageBox("Could not find a sufficient number of selected events with different values and/or PPQ positions in the target lane.", "ERROR", 0)
-    return(false)
+    
+    
+    -----------------------------------------------------------------------
+    -- CCs will be inserted at the density set in Preferences -> 
+    --    MIDI editor -> "Events per quarter note when drawing in CC lanes"
+    CCdensity = reaper.SNM_GetIntConfigVar("midiCCdensity", 32)
+    CCdensity = math.floor(math.max(4, math.min(128, math.abs(CCdensity)))) -- If user selected "Zoom dependent", density<0
+    local startQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+    PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, startQN+1)
+    PPperCC = PPQ/CCdensity -- Not necessarily an integer!
+    ]]
+    
+    ---------------------------------------------------------------------------------------
+    -- Time to process the MIDI of the take!
+    -- As mentioned above, this script does not use the standard MIDI API functions such as 
+    --    MIDI_InsertCC, since these functions are far too slow when dealing with thousands 
+    --    of events.
+    if not parseAndExtractTargetMIDI() then
+        --reaper.Undo_OnStateChange_Item(0, "FAILED: Stretch selected events in lane under mouse", item)
+        return(false)
+    end
+    
+    if #tablePPQs == 0 or (#tablePPQs == 1 and not tableNoteLengths[1]) then -- Single notes can be stretched, but not single CCs
+        reaper.ShowMessageBox("Could not find a sufficient number of selected events in the target lane.", "ERROR", 0)
+        return(false)
+    end
+    
+    
+    -----------------------------------------------------------------------
+    -- The crucial BR_GetMouseCursorContext function gets slower and slower 
+    --    as the number of events in the take increases.
+    -- Therefore, this script will speed up the function by 'clearing' the 
+    --    take of all MIDI *before* calling the function!
+    -- To do so, MIDI_SetAllEvts will be run with no events except the
+    --    All-Notes-Off message that should always terminate the MIDI stream, 
+    --    and which marks the position of the end of the MIDI source.
+    -- Instead of parsing the entire MIDI stream to get the final PPQ position,
+    --    simply get the source length.
+    -- (Since the MIDI may get sorted in the parseAndExtractTargetMIDI function,
+    --    getting the source length has been postponed till now.)
+    -- In addition, the source length will be saved and checked again at the end of
+    --    the script, to check that no inadvertent shifts in PPQ position happened.
+    sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(take)
+    AllNotesOffString = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
+    
+    
+    -----------------------------------------------------------------------------------------------
+    -- Get the starting PPQ (horizontal) position of the ramp.  Must check whether snap is enabled.
+    -- Also, contract to position within item, and then divide by source length to get position
+    --    within first loop iteration.
+    mouseOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.BR_GetMouseCursorContext_Position()) + 0.5)
+    local itemLengthTicks = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))+0.5)
+    mouseOrigPPQpos = math.max(0, math.min(itemLengthTicks-1, mouseOrigPPQpos)) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
+    loopStartPPQpos = (mouseOrigPPQpos // sourceLengthTicks) * sourceLengthTicks
+    mouseOrigPPQpos = mouseOrigPPQpos - loopStartPPQpos
+    
+    if isInline then
+        isSnapEnabled = false
+    else
+        isSnapEnabled = (reaper.MIDIEditor_GetSetting_int(editor, "snap_enabled")==1)
+    end
+    if isInline then
+        local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseOrigPPQpos)
+        local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
+        gridOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
+    elseif isSnapEnabled then
+        -- If snap is enabled, we must go through several steps to find the closest grid position
+        --     immediately before (to the left of) the mouse position, aka the 'floor' grid.
+        -- !! Note that this script does not take swing into account when calculating the grid
+        -- First, calculate this take's PPQ:
+        -- Calculate position of grid immediately before mouse position
+        QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
+        local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
+        local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+        gridOrigPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
+    else 
+        -- Otherwise, destination PPQ is exact mouse position
+        gridOrigPPQpos = math.floor(mouseOrigPPQpos + 0.5)
+    end 
+    
+    
+    --------------------------------------------------------
+    -- Determine in which direction events will be stretched
+    edgeSize = math.max(0, math.min(0.5, edgeSize))
+    -- these can only be stretch horizontally    
+    if origPPQrange > 0 and (origValueRange == 0 or (laneIsALL or laneIsSYSEX or laneIsTEXT or laneIsPIANOROLL or laneIsOFFVEL or laneIsBANKPROG)) then
+        if mouseOrigPPQpos > origPPQleftmost + 0.5*origPPQrange then stretchRIGHT = true
+        else stretchLEFT = true
+        end
+    -- only stretch vertically (origPPQrange == 0 may happen if several notes in a chord are selected)
+    elseif not (laneIsSYSEX or laneIsTEXT or laneIsPIANOROLL or laneIsOFFVEL or laneIsBANKPROG) and origValueRange > 0 and origPPQrange == 0 then  
+        if mouseOrigCCValue > origValueMin + 0.5*origValueRange then stretchTOP = true
+        else stretchBOTTOM = true
+        end
+    elseif origValueRange > 0 and origPPQrange > 0 then
+        if mouseOrigPPQpos > origPPQrightmost - edgeSize*origPPQrange then stretchRIGHT = true
+        elseif mouseOrigPPQpos < origPPQleftmost + edgeSize*origPPQrange then stretchLEFT = true
+        elseif mouseOrigCCValue > origValueMin + 0.5*origValueRange then stretchTOP = true
+        else stretchBOTTOM = true
+        end
+    else
+        reaper.ShowMessageBox("Could not find a sufficient number of selected events with different values and/or PPQ positions in the target lane.", "ERROR", 0)
+        return(false)
+    end
+    
+    ---------------------------------------------------------------------------
+    -- Must the mouse cursor be changed to indicate that the script is running?
+    -- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
+    -- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
+    --    and this may appear inelegant to the user.
+    if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
+        mustDrawCustomCursor = false
+    else
+        mustDrawCustomCursor = true
+    end
+    
+    ---------------------------------------------------------------------------
+    -- OK, tests passed, and it seems like this script will do something, 
+    --    so toggle button (if any) and define atexit with its Undo statements,
+    --    before making any changes to the MIDI.
+    reaper.atexit(onexit)
+    
+    _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
+    if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
+        prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
+        reaper.SetToggleCommandState(sectionID, cmdID, 1)
+        reaper.RefreshToolbar2(sectionID, cmdID)
+    end
+    
+    -------------------------------------------------------------------------------------------
+    -- The functions MIDI_SetAllEvts and BR_GetMouseCursorContext (both of which will be called
+    --    in each iteration of this script) get considerably slowed down by extra data in non-active takes.
+    -- (Presumably, both have to deal with the full MIDI chunk.)
+    -- To speed these function up, the non-active takes will therefore temporarily be cleared of all MIDI data.
+    -- The MIDI data will be returned when the script exists.
+    if not (reaper.GetExtState("js_Mouse actions", "Clear non-active takes") == "false") then
+        for t = 0, reaper.CountTakes(item)-1 do
+            local otherTake = reaper.GetTake(item, t)
+            if otherTake ~= take then --and reaper.TakeIsMIDI(otherTake) then
+                -- In rare circumstances, source length may differ between takes, if user changed loop points of individual takes.
+                local otherSourceLen = reaper.BR_GetMidiSourceLenPPQ(otherTake)
+                if otherSourceLen > 0 then -- If not a MIDI take, will return -1
+                    local gotMIDIOK, otherTakeMIDI = reaper.MIDI_GetAllEvts(otherTake, "")
+                    if gotMIDIOK then
+                        tOtherTakes[otherTake] = otherTakeMIDI
+                        otherSourceLen = math.floor(otherSourceLen)
+                        reaper.MIDI_SetAllEvts(otherTake, string.pack("i4Bi4BBB", otherSourceLen, 0, 3, 0xB0, 0x7B, 0x00))
+                    end
+                end
+            end
+        end
+    end
+    
+    -------------------------------------------------------------
+    -- Finally, start running the loop!
+    -- (But first, reset the mousewheel movement.)
+    is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
+    
+    loop_pcall()
+
+end -- main
+
+
+--------------------------------------------------
+--------------------------------------------------
+mainOK = main()
+if mainOK == false then
+    if reaper.APIExists("SN_FocusMIDIEditor") then reaper.SN_FocusMIDIEditor() end
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)    
 end
-
----------------------------------------------------------------------------
--- Must the mouse cursor be changed to indicate that the script is running?
--- Currently, the script must 'fake' a custom cursor by drawing a tooltip behind the mouse cursor.
--- Problem: due to the unnecessary sluggishness of the MIDI editor, the tooltip may lag behind the cursor, 
---    and this may appear inelegant to the user.
-if reaper.GetExtState("js_Mouse actions", "Draw custom cursor") == "false" then
-    mustDrawCustomCursor = false
-else
-    mustDrawCustomCursor = true
-end
-
----------------------------------------------------------------------------
--- OK, tests passed, and it seems like this script will do something, 
---    so toggle button (if any) and define atexit with its Undo statements,
---    before making any changes to the MIDI.
-reaper.atexit(onexit)
-
-_, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
-if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
-    prevToggleState = reaper.GetToggleCommandStateEx(sectionID, cmdID)
-    reaper.SetToggleCommandState(sectionID, cmdID, 1)
-    reaper.RefreshToolbar2(sectionID, cmdID)
-end
-
--------------------------------------------------------------
--- Finally, start running the loop!
--- (But first, reset the mousewheel movement.)
-is_new,name,sec,cmd,rel,res,val = reaper.get_action_context()
-
-loop_trackMouseMovement()

@@ -1,0 +1,22 @@
+// @description Mute or unmute track X (MIDI CC/OSC only)
+// @version 1.0
+// @author Michael Schnell (mschnell@bschnell.de) 
+// @about
+//   ## Description
+//     Mute and Unmute tracks remote controlled e.g. by Midi CC messages
+//
+//   ## Usage
+//
+//     The Package will install two eel file with identical content for muting and unmuting with appropriate names.
+//
+//     For remote controlling the muting by Midi CC actions, you need to learn a different CC # / Midi Channel for the action calling either of the scrips scripts. Now an appropriate CC message will mute or unmute the track the number of which is given in the CC value.
+//     For this the technical track numbering starting form Zero is used. Hence CC val 0 will (un)mute the track labeled "1" in the GUI.
+//
+// @changelog Initial release
+// @metapackage
+// @provides
+//   [main] . > mschnell_Mute track X (MIDI CC only).eel
+//   [main] . > mschnell_Unmute track X (MIDI CC only).eel
+  get_action_context(#filename,sectionID,cmdID,mode,resolution,val);
+  tr = GetTrack(0,val);
+  SetMediaTrackInfo_Value(tr, "B_MUTE",  !match("*unmute*", #filename));
