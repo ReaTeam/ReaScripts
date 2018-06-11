@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Mouse editing - Swipe select events in lane under mouse.lua
+ReaScript name: js_Mouse editing - Swipe select.lua
 Version: 0.90
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -10,9 +10,10 @@ About:
   
   Select events in the lane under the mouse by simply swiping the mouse.  
   
-  All events within the horizontal (time) range of mouse movement will be selected.
-  
-  The mouse does not need to touch the CC bars.)
+  All events within the horizontal (time) range of mouse movement will be selected. 
+  (The mouse does not need to touch the CC bars.)
+
+  If snap-to-grid is enabled in the MIDI editor, the selection range will also snap to grid.
 ]]
  
 --[[
