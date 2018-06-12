@@ -1,15 +1,17 @@
 --[[
 Description: Create send from selected tracks
-Version: 1.10
+Version: 1.21
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Accepts a track number or track name
+    Will now ignore tracks already sending to the destination
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
     Prompts for a track number, then creates sends to that track
-    from every selected track.
+    from every selected track
+Provides:
+    
 --]]
 
 -- Licensed under the GNU GPL v3
@@ -58,10 +60,21 @@ local function Main()
     for i = 0, num_tracks - 1 do
         
         local sel = reaper.GetSelectedTrack(0, i)
+        
+        -- Skip any tracks that are already sending to the destination
+        local num_sends = reaper.GetTrackNumSends(sel, 0)
+        if num_sends and num_sends > 0 then
+            for i = 1, num_sends do
+                --reaper.BR_GetMediaTrackSendInfo_Track( track, category, sendidx, trackType )            
+                if dest == reaper.BR_GetMediaTrackSendInfo_Track(sel, 0, i-1, 1) then goto skip end       
+            end
+        end
 
         -- Create a default send
         --reaper.CreateTrackSend( tr, desttrInOptional )
-        reaper.CreateTrackSend(sel, dest)
+        reaper.CreateTrackSend(sel, dest)        
+        
+        ::skip::
         
     end
     
