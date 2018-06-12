@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="235ee044ccad6f04ef817f675039b751c6c4382c" name="ReaTeam Scripts">
+<index version="1" commit="4e88608c76755046c7933725376ee8520a66011d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7113,7 +7113,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Prompts for a track number, then creates sends to that track from every selected track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Prompts for a track number, then creates sends to that track from every selected track\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
@@ -7126,6 +7126,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.10" author="Lokasenna" time="2018-06-04T17:55:08Z">
         <changelog><![CDATA[Accepts a track number or track name]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/72355d78cb97240b7dac0711d7640b9fe0a99132/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.21" author="Lokasenna" time="2018-06-12T14:47:07Z">
+        <changelog><![CDATA[Will now ignore tracks already sending to the destination]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e88608c76755046c7933725376ee8520a66011d/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
