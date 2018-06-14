@@ -1,6 +1,6 @@
 --[[
 Description: Create send from selected tracks
-Version: 1.3
+Version: 1.30
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
