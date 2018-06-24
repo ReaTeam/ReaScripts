@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cfe19d7fcf66e611b353a4d4734c3d96501b1a5a" name="ReaTeam Scripts">
+<index version="1" commit="f0d0c4129124923b1a625365ee7eaeec630c44fa" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1980,6 +1980,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.00" author="Lokasenna" time="2018-06-24T14:12:42Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfe19d7fcf66e611b353a4d4734c3d96501b1a5a/Items%20Editing/Lokasenna_Trim%20items%20to%20specified%20length.lua</source>
+      </version>
+      <version name="1.01" author="Lokasenna" time="2018-06-24T16:54:52Z">
+        <changelog><![CDATA[Fix for font issues on Mac]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f0d0c4129124923b1a625365ee7eaeec630c44fa/Items%20Editing/Lokasenna_Trim%20items%20to%20specified%20length.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Unselect all MIDI notes in selected items.lua" type="script" desc="Unselect all MIDI notes in selected items">
@@ -6882,6 +6886,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <changelog><![CDATA[Added a couple of extra error checks.
 "Save as action" dialog now includes a warning not to rename the file.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b663f66f1164bb0f295de61803bfdd48ac3eefb4/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
+      </version>
+      <version name="1.13" author="Lokasenna" time="2018-06-24T16:54:52Z">
+        <changelog><![CDATA[Fix for font issues on Mac]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f0d0c4129124923b1a625365ee7eaeec630c44fa/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
