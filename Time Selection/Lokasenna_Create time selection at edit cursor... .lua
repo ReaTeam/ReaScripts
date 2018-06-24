@@ -1,11 +1,10 @@
 --[[
 Description: Create time selection at edit cursor...
-Version: 1.12
+Version: 1.13
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Added a couple of extra error checks.
-    "Save as action" dialog now includes a warning not to rename the file.
+    Fix for font issues on Mac
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -3016,7 +3015,7 @@ end
 
 
 -- Managing text is MUCH easier with a monospace font.
-GUI.fonts.textbox = {"Courier", 8}
+GUI.fonts.textbox = {"Courier", 14}
 
 
 GUI.Textbox = GUI.Element:new()

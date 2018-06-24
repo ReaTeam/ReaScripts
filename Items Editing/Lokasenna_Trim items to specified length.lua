@@ -1,10 +1,10 @@
 --[[
 Description: Trim items to specified length
-Version: 1.00
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Initial release
+    Fix for font issues on Mac
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -2908,7 +2908,7 @@ end
 
 
 -- Managing text is MUCH easier with a monospace font.
-GUI.fonts.textbox = {"Courier", 8}
+GUI.fonts.textbox = {"Courier", 14}
 
 
 GUI.Textbox = GUI.Element:new()
