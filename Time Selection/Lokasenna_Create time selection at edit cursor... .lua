@@ -1,10 +1,10 @@
 --[[
 Description: Create time selection at edit cursor...
-Version: 1.13
+Version: 1.14
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Fix for font issues on Mac
+    Increased width to work with larger textbox font
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -3015,7 +3015,7 @@ end
 
 
 -- Managing text is MUCH easier with a monospace font.
-GUI.fonts.textbox = {"Courier", 14}
+GUI.fonts.textbox = {"Courier", 16}
 
 
 GUI.Textbox = GUI.Element:new()
@@ -3386,7 +3386,7 @@ function GUI.Textbox:drawgradient()
     if not (left or right) then return end
     
     local x, y, w, h = self.x, self.y, self.w, self.h
-    local fade_w = 12
+    local fade_w = 8
 
     GUI.color("elm_bg")
     for i = 0, fade_w do
@@ -4173,24 +4173,24 @@ end
 
 
 GUI.name = "Create time selection..."
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 256, 164
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 292, 164
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
-GUI.New("txt_len", "Textbox", 1, 64, 16.0, 32, 20, "Length:", 4)
-GUI.New("mnu_units", "Menubox", 1, 100, 16.0, 128, 20, "", {"seconds", "minutes", "beats", "measures", "gridlines", "visible gridlines", "frames"}, 4, false)
+GUI.New("txt_len", "Textbox", 1, 64, 16.0, 64, 20, "Length:", 4)
+GUI.New("mnu_units", "Menubox", 1, 132, 16.0, 128, 20, "", {"seconds", "minutes", "beats", "measures", "gridlines", "visible gridlines", "frames"}, 4, false)
 GUI.elms.mnu_units.retval = 3
 
-GUI.New("mnu_pos", "Menubox", 1, 64, 44, 96, 20, "Position:", {"Right of", "Left of", "Centered on"}, 4, false)
+GUI.New("mnu_pos", "Menubox", 1, 64, 44, 128, 20, "Position:", {"Right of", "Left of", "Centered on"}, 4, false)
 GUI.elms.mnu_pos.retval = 3
 GUI.elms.mnu_pos.align = 1
 
-GUI.New("lbl_edit", "Label", 1, 164, 47, "the edit cursor.")
+GUI.New("lbl_edit", "Label", 1, 196, 47, "the edit cursor.")
 GUI.elms.lbl_edit.shadow = true
 GUI.elms.lbl_edit.font = 3
 
-GUI.New("btn_create", "Button", 1, 64, 80, 128, 24, "Create time selection", btn_create)
-GUI.New("btn_save", "Button", 1, 64, 112, 128, 24, "Save as action", btn_save)
+GUI.New("btn_create", "Button", 1, 82, 80, 128, 24, "Create time selection", btn_create)
+GUI.New("btn_save", "Button", 1, 82, 112, 128, 24, "Save as action", btn_save)
 
 
 -- Load ext states

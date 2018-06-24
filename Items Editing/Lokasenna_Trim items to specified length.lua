@@ -1,10 +1,10 @@
 --[[
 Description: Trim items to specified length
-Version: 1.01
+Version: 1.02
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Fix for font issues on Mac
+    Increased width to work with larger textbox font
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -2908,7 +2908,7 @@ end
 
 
 -- Managing text is MUCH easier with a monospace font.
-GUI.fonts.textbox = {"Courier", 14}
+GUI.fonts.textbox = {"Courier", 16}
 
 
 GUI.Textbox = GUI.Element:new()
@@ -3279,7 +3279,7 @@ function GUI.Textbox:drawgradient()
     if not (left or right) then return end
     
     local x, y, w, h = self.x, self.y, self.w, self.h
-    local fade_w = 12
+    local fade_w = 8
 
     GUI.color("elm_bg")
     for i = 0, fade_w do
@@ -3851,14 +3851,14 @@ end
 
 
 GUI.name = "Trim items to..."
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 272, 96
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 280, 96
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
 
 GUI.New("Button1", "Button", {
     z = 11,
-    x = 112.0,
+    x = 116.0,
     y = 48,
     w = 48,
     h = 24,
@@ -3871,7 +3871,7 @@ GUI.New("Button1", "Button", {
 
 GUI.New("Menubox1", "Menubox", {
     z = 11,
-    x = 124,
+    x = 132,
     y = 16.0,
     w = 112,
     h = 20,
@@ -3892,7 +3892,7 @@ GUI.New("Textbox1", "Textbox", {
     z = 11,
     x = 64.0,
     y = 16.0,
-    w = 56,
+    w = 64,
     h = 20,
     caption = "Length:",
     cap_pos = "left",
