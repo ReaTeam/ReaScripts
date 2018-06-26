@@ -1,8 +1,8 @@
+-- NoIndex: true
+
 --[[
 	Lokasenna_GUI example
-    
-    NoIndex: true
-	
+
 	- Demonstration of the Listbox, Menubar, and TextEditor classes
 
 ]]--

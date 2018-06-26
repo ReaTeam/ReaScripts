@@ -1,8 +1,8 @@
+-- NoIndex: true
+
 --[[
 	Lokasenna_GUI example
-    
-    NoIndex: true
-	
+
 	- Creating elements with keyed tables rather than parameter strings.
     
     This approach doesn't offer anything new, it's just a different way of

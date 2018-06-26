@@ -1,7 +1,7 @@
+-- NoIndex: true
+
 --[[	Lokasenna_GUI - Template class
 	
-    NoIndex: true
-    
 	---- User parameters ----
 
 	(name, z, x, y, w, h[, caption, pad])

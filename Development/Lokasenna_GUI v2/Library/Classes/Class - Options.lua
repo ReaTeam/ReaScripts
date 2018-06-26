@@ -1,7 +1,7 @@
+-- NoIndex: true
+
 --[[	Lokasenna_GUI - Options classes
-    
-    NoIndex: true
-	
+
     This file provides two separate element classes:
     
     Radio       A list of options from which the user can only choose one at a time.

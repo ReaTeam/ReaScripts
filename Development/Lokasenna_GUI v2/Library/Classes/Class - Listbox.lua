@@ -1,7 +1,7 @@
+-- NoIndex: true
+
 --[[	Lokasenna_GUI - Listbox class
-    
-    NoIndex: true
-	
+
     For documentation, see this class's page on the project wiki:
     https://github.com/jalovatt/Lokasenna_GUI/wiki/Listbox
     

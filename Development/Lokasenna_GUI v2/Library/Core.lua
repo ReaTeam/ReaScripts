@@ -1,8 +1,8 @@
+-- NoIndex: true
+
 --[[
 	
 	Lokasenna_GUI 2.9
-	
-    NoIndex: true
     
 	Core functionality
 	
