@@ -14,7 +14,6 @@ About:
 Provides:
     [nomain] Lokasenna_GUI v2/Developer Tools/*.*
     [nomain] Lokasenna_GUI v2/Developer Tools/**/*.*
-    
 Metapackage: true
     
 --]]

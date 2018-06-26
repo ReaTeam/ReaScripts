@@ -11,10 +11,19 @@ Links:
 About:
     Provides a framework allowing Lua scripts to use a graphical interface, since Reaper
     has no ability to do so natively.
+    
+    IMPORTANT: After installing this package, you must tell Reaper
+    where to find the library.
+    
+    - In the Action List: 
+      "ReaScript: Run reaScript (EEL, lua, or python)..."
+    - Find the script folder in Reaper's resource path. On Windows:
+      REAPER\Scripts\ReaTeam Scripts\Development\Lokasenna_GUI v2\Library
+    - Run "Set Lokasenna_GUI v2 library path.lua"
+    - Done!
 Provides:
     [nomain] Lokasenna_GUI v2/Library/*.*
     [nomain] Lokasenna_GUI v2/Library/**/*.*
-    
 Metapackage: true
     
 --]]
