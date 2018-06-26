@@ -1,9 +1,11 @@
 --[[	Lokasenna_GUI - Template class
 	
+    NoIndex: true
+    
 	---- User parameters ----
 
 	(name, z, x, y, w, h[, caption, pad])
-
+    
 Required:
 z				Element depth, used for hiding and disabling layers. 1 is the highest.
 x, y			Coordinates of top-left corner

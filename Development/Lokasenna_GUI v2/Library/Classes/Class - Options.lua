@@ -1,4 +1,6 @@
 --[[	Lokasenna_GUI - Options classes
+    
+    NoIndex: true
 	
     This file provides two separate element classes:
     

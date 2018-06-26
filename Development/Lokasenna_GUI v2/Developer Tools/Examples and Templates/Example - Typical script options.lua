@@ -1,5 +1,7 @@
 --[[
 	Lokasenna_GUI example
+    
+    NoIndex: true
 	
 	- Getting user input before running an action; i.e. replacing GetUserInputs
 

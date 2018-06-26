@@ -1,7 +1,9 @@
 --[[
 	Lokasenna_GUI
+    
+    NoIndex: true
 
-	- Using the Main loop to monitor and interact with things in Reaper
+- Using the Main loop to monitor and interact with things in Reaper
 	- Using z layers and related functions to move elements around
 	- Changing elements' methods for your own purposes
 

@@ -1,4 +1,6 @@
 --[[	Lokasenna_GUI - Slider class
+    
+    NoIndex: true
 
     For documentation, see this class's page on the project wiki:
     https://github.com/jalovatt/Lokasenna_GUI/wiki/Slider

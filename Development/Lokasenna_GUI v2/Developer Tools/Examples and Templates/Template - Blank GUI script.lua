@@ -3,6 +3,7 @@
 
 	- Blank GUI template
 
+    NoIndex: true
 ]]--
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v3")

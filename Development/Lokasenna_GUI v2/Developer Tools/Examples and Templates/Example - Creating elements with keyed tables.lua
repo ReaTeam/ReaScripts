@@ -1,5 +1,7 @@
 --[[
 	Lokasenna_GUI example
+    
+    NoIndex: true
 	
 	- Creating elements with keyed tables rather than parameter strings.
     

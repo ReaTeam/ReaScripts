@@ -1,3 +1,5 @@
+-- NoIndex: true
+
 -- Stores the path to Lokasenna_GUI v2 for other scripts to access
 -- Must be run prior to using Lokasenna_GUI scripts
 

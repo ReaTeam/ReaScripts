@@ -1,6 +1,8 @@
 --[[
     Lokasenna_GUI example
     
+    NoIndex: true
+    
     - General demonstration
 	- Tabs and layer sets
     - Subwindows
