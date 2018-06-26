@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c7c7351ceb956c77de96292ef144e5150fd78392" name="ReaTeam Scripts">
+<index version="1" commit="991fc44da9905b40c64ab455e28055804d1aae1a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1150,6 +1150,23 @@ would add a cent of error every 13 semitones or so.]]></changelog>
         <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 0.1 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/46dcb4f2d5f3d713e42d3a357428b6fac59023c3/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%200.1%20semitones.lua</source>
         <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 0.5 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/46dcb4f2d5f3d713e42d3a357428b6fac59023c3/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%200.5%20semitones.lua</source>
         <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset/Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset - Up 1 semitone.lua">https://github.com/ReaTeam/ReaScripts/raw/46dcb4f2d5f3d713e42d3a357428b6fac59023c3/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset%20-%20Up%201%20semitone.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Toggle FX bypass by track and slot.lua" type="script" desc="Toggle FX bypass by track and slot">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows toggling of the bypass state for FX by track name/number and slot number (numbered from 1. Can also export specific settings as a separate action.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=1993961">Forum thread</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.00" author="Lokasenna" time="2018-06-26T16:57:39Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/991fc44da9905b40c64ab455e28055804d1aae1a/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameter">
