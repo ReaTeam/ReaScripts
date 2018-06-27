@@ -1,18 +1,17 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.10
+Version: 1.20
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Work with the Master track, by name or number (0)
+    Add support for toggling FX by name (case insensitive)
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
     Allows toggling of the bypass state for FX by track name/number
-    and slot number (numbered from 1. Can also export specific settings 
-    as a separate action.
-Extensions:
+    and FX name/slot number (counting from 1). Can also export specific 
+    settings as a separate action for easy recall.
 --]]
 
 -- Licensed under the GNU GPL v3
@@ -35,7 +34,6 @@ local track, slot
 
 local function toggle_bypass()
 
-    slot = tonumber(slot)
     if not (track and slot) then return end
     
     local tr
@@ -75,7 +73,18 @@ local function toggle_bypass()
     
     local slots = reaper.TrackFX_GetCount( tr )
     
-    if slots < slot then return end
+    if tonumber(slot) then
+        
+        
+        
+    elseif tostring(slot) then
+    
+        slot = reaper.TrackFX_GetByName(tr, tostring(slot), false)
+        if slot then slot = slot + 1 end
+    
+    end
+    
+    if not slot or slots < slot then return end
     
     -- Attempt to toggle bypass
     local state = reaper.TrackFX_GetEnabled(tr, slot - 1)
@@ -3645,15 +3654,14 @@ if missing_lib then return 0 end
 local function set_vals()
 
     track = GUI.Val("txt_track")
-    slot = tonumber( GUI.Val("txt_slot") )
+    slot = GUI.Val("txt_slot")
         
 end
 
 local function btn_create()
     
     set_vals()
-    
-   toggle_bypass()
+    toggle_bypass()
     
 end
 
@@ -3724,8 +3732,8 @@ GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 288, 164
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
-GUI.New("txt_track", "Textbox", 1, 48, 16.0, 192, 20, "Track:")
-GUI.New("txt_slot", "Textbox", 1, 48, 40, 64, 20, "FX Slot:")
+GUI.New("txt_track", "Textbox", 1, 56, 16.0, 176, 20, "Track:")
+GUI.New("txt_slot", "Textbox", 1, 56, 40, 176, 20, "FX:")
 
 GUI.New("btn_create", "Button", 1, 82, 80, 128, 24, "Toggle", btn_create)
 GUI.New("btn_save", "Button", 1, 82, 112, 128, 24, "Save as action", btn_save)
