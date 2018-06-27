@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="90b71b277e6c0d37d507c0a2af0d282537015e5a" name="ReaTeam Scripts">
+<index version="1" commit="1cc05c5ca66620ce33cef3717d2bde92b0aa4bb9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1158,7 +1158,7 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Allows toggling of the bypass state for FX by track name/number and slot number (numbered from 1. Can also export specific settings as a separate action.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows toggling of the bypass state for FX by track name/number and FX name/slot number (counting from 1). Can also export specific settings as a separate action for easy recall.\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?p=1993961">Forum thread</link>
@@ -1171,6 +1171,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.10" author="Lokasenna" time="2018-06-27T00:11:52Z">
         <changelog><![CDATA[Work with the Master track, by name or number (0)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/90b71b277e6c0d37d507c0a2af0d282537015e5a/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
+      </version>
+      <version name="1.20" author="Lokasenna" time="2018-06-27T01:26:09Z">
+        <changelog><![CDATA[Add support for toggling FX by name (case insensitive)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1cc05c5ca66620ce33cef3717d2bde92b0aa4bb9/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameter">
