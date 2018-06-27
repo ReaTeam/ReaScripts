@@ -75,7 +75,7 @@ local function toggle_bypass()
     
     if tonumber(slot) then
         
-        
+        slot = tonumber(slot)
         
     elseif tostring(slot) then
     
