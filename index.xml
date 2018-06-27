@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5aa1804f517a1a2272d0f6ac92f397ec03b16540" name="ReaTeam Scripts">
+<index version="1" commit="244869a9c53caf65f2b7b36e20865ce5aff3bf33" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -398,6 +398,68 @@ fix crash when displaying table with mixed key types
 fix length counting of tables containing mixed key types
 use Lua-compatible syntax for displaying keys in tables]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0af7959298aeade417103851322248ba2adb0d83/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_GUI library v2 (developer tools).lua" type="script" desc="Lokasenna's GUI library v2 for Lua (developer tools)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Provides a framework allowing Lua scripts to use a graphical interface, since Reaper has no ability to do so natively.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=177772</link>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="2.9.0" author="Lokasenna" time="2018-06-27T11:51:41Z">
+        <changelog><![CDATA[First stable release]]></changelog>
+        <source file="Lokasenna_GUI v2/Developer Tools/Documentation.html">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Documentation.html</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Adding a Main loop, working with Z layers, and Rewriting Methods.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Adding%20a%20Main%20loop,%20working%20with%20Z%20layers,%20and%20Rewriting%20Methods.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Creating elements with keyed tables.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Creating%20elements%20with%20keyed%20tables.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - General demonstration.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20General%20demonstration.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Menubar, Listbox, and TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Menubar,%20Listbox,%20and%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Typical script options.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Typical%20script%20options.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Template - Blank GUI script.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Template%20-%20Blank%20GUI%20script.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Template - Blank class.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Template%20-%20Blank%20class.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_GUI library v2.lua" type="script" desc="Lokasenna's GUI library v2 for Lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Provides a framework allowing Lua scripts to use a graphical interface, since Reaper has no ability to do so natively.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 IMPORTANT: After installing this package, you must tell Reaper where to find the library.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In the Action List: "ReaScript: Run reaScript (EEL, lua, or python)..."\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Find the script folder in Reaper's resource path. On Windows: REAPER\\Scripts\\ReaTeam Scripts\\Development\\Lokasenna_GUI v2\\Library\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run "Set Lokasenna_GUI v2 library path.lua"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Done!\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=177772">Forum Thread</link>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="2.9.0" author="Lokasenna" time="2018-06-27T11:51:41Z">
+        <changelog><![CDATA[First stable release]]></changelog>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
