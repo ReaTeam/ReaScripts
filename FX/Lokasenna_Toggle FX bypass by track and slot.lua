@@ -1,10 +1,10 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.00
+Version: 1.10
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Initial release
+    Work with the Master track, by name or number (0)
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -43,20 +43,29 @@ local function toggle_bypass()
     -- Get the track
     -- Track number?
     if tonumber(track) then 
-        tr = reaper.GetTrack(0, tonumber(track) - 1)
+        tr = tonumber(track) > 0    and reaper.GetTrack(0, tonumber(track) - 1)
+                                    or  reaper.GetMasterTrack(0)
         
     -- Track name?
     elseif tostring(track) then
     
-        for i = 0, reaper.GetNumTracks() - 1 do
+        if string.lower( tostring(track) ) == "master" then
             
-            local t = reaper.GetTrack(0, i)
-            local ret, name = reaper.GetTrackName(t, "")
-            if ret and name == tostring(track) then
-                tr = t
-                break
+            tr = reaper.GetMasterTrack(0)
+            
+        else
+    
+            for i = 0, reaper.GetNumTracks() - 1 do
+                
+                local t = reaper.GetTrack(0, i)
+                local ret, name = reaper.GetTrackName(t, "")
+                if ret and name == tostring(track) then
+                    tr = t
+                    break
+                end
+                
             end
-            
+        
         end
     
     end
