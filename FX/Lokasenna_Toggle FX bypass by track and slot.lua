@@ -1,12 +1,10 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.30
+Version: 1.31
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Add "fuzzy" string matching
-    Remove illegal characters from filenames before writing
-    Better error-checking in general
+    Fix for me being an idiot and breaking the export code
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -141,7 +139,7 @@ end
 if script_filename ~= "Lokasenna_Toggle FX bypass by track and slot.lua" then
     
     -- Parse vals from filename
-    track, slot = string.match(script_filename, "bypass%sfor%strack%s(.*)%sslot%s(%d+)%.lua")
+    track, slot = string.match(script_filename, "bypass%sfor%strack%s(.*)%seffect%s(%d+)%.lua")
     
     if track and slot then
         toggle_bypass()
@@ -3780,7 +3778,7 @@ GUI.anchor, GUI.corner = "mouse", "C"
 
 
 GUI.New("txt_track", "Textbox", 1, 56, 16.0, 176, 20, "Track:")
-GUI.New("txt_slot", "Textbox", 1, 56, 40, 176, 20, "FX:")
+GUI.New("txt_slot", "Textbox", 1, 56, 40, 176, 20, "Effect:")
 
 GUI.New("btn_toggle", "Button", 1, 82, 80, 128, 24, "Toggle", btn_toggle)
 GUI.New("btn_save", "Button", 1, 82, 112, 128, 24, "Save as action", btn_save)
