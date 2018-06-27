@@ -1,10 +1,10 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.20
+Version: 1.21
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Add support for toggling FX by name (case insensitive)
+    Fix for crashes with slot numbers
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
