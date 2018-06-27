@@ -1,10 +1,10 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.32
+Version: 1.33
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Fix for me still being an idiot and trying to make words be numbers
+    Fix for crashes if someone types in a decimal value by mistake
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -68,7 +68,11 @@ local function toggle_bypass()
     
     -- Get the track
     -- Track number?
-    if tonumber(track) then 
+    if tonumber(track) then
+        
+        -- Force an integer until/unless I come up with some sort of multiple track syntax
+        track = math.floor( tonumber(track) )
+        
         tr = tonumber(track) > 0    and reaper.GetTrack(0, tonumber(track) - 1)
                                     or  reaper.GetMasterTrack(0)
         
@@ -104,7 +108,8 @@ local function toggle_bypass()
     
     if tonumber(slot) then
         
-        s = tonumber(slot) - 1
+        -- Force an integer until/unless I come up with some sort of multiple FX syntax
+        s = math.floor( tonumber(slot) ) - 1
         
     elseif tostring(slot) then
     
