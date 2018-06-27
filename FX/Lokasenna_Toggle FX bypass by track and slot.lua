@@ -1,10 +1,10 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.31
+Version: 1.32
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Fix for me being an idiot and breaking the export code
+    Fix for me still being an idiot and trying to make words be numbers
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -139,7 +139,7 @@ end
 if script_filename ~= "Lokasenna_Toggle FX bypass by track and slot.lua" then
     
     -- Parse vals from filename
-    track, slot = string.match(script_filename, "bypass%sfor%strack%s(.*)%seffect%s(%d+)%.lua")
+    track, slot = string.match(script_filename, "bypass%sfor%strack%s(.+)%seffect%s(.+)%.lua")
     
     if track and slot then
         toggle_bypass()
@@ -3758,7 +3758,7 @@ local function btn_save()
     end
     
     -- Pop up an MB?
-    reaper.MB(  "Saved current settings and added to the action list:\n" .. name .. ".lua" ..
+    reaper.MB(  "Saved current settings and added to the action list:\n" .. name_out .. ".lua" ..
                 "\n\nImportant: Do NOT change the script's filename, or it will crash.",
                 "Done!", 0)
     
