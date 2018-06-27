@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="991fc44da9905b40c64ab455e28055804d1aae1a" name="ReaTeam Scripts">
+<index version="1" commit="90b71b277e6c0d37d507c0a2af0d282537015e5a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1167,6 +1167,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
       <version name="1.00" author="Lokasenna" time="2018-06-26T16:57:39Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/991fc44da9905b40c64ab455e28055804d1aae1a/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
+      </version>
+      <version name="1.10" author="Lokasenna" time="2018-06-27T00:11:52Z">
+        <changelog><![CDATA[Work with the Master track, by name or number (0)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/90b71b277e6c0d37d507c0a2af0d282537015e5a/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameter">
