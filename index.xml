@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="244869a9c53caf65f2b7b36e20865ce5aff3bf33" name="ReaTeam Scripts">
+<index version="1" commit="2554659136d777d12859f89e9442ace03d7fad57" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1248,6 +1248,10 @@ would add a cent of error every 13 semitones or so.]]></changelog>
 Remove illegal characters from filenames before writing
 Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5aa1804f517a1a2272d0f6ac92f397ec03b16540/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
+      </version>
+      <version name="1.31" author="Lokasenna" time="2018-06-27T16:49:34Z">
+        <changelog><![CDATA[Fix for me being an idiot and breaking the export code]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2554659136d777d12859f89e9442ace03d7fad57/FX/Lokasenna_Toggle%20FX%20bypass%20by%20track%20and%20slot.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Link selected tracks FX parameters.lua" type="script" desc="Link selected tracks FX parameter">
