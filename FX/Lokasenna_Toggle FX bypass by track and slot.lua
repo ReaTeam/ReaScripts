@@ -1,10 +1,12 @@
 --[[
 Description: Toggle FX bypass by track and slot
-Version: 1.21
+Version: 1.30
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Fix for crashes with slot numbers
+    Add "fuzzy" string matching
+    Remove illegal characters from filenames before writing
+    Better error-checking in general
 Links:
     Forum thread https://forum.cockos.com/showthread.php?p=1993961
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -12,6 +14,11 @@ About:
     Allows toggling of the bypass state for FX by track name/number
     and FX name/slot number (counting from 1). Can also export specific 
     settings as a separate action for easy recall.
+    
+    Both track and FX names are compared per-word, matching the first
+    result found. If the wrong effect is toggling, your search strings
+    are probably too vague.
+    
 --]]
 
 -- Licensed under the GNU GPL v3
@@ -27,10 +34,33 @@ local script_filename = ({reaper.get_action_context()})[2]:match("([^/\\]+)$")
 
 local track, slot
 
-------------------------------------
--------- Time sel. functions -------
-------------------------------------
 
+local function Msg(str)
+    reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
+
+
+local function sanitize_filename(name)
+    return string.gsub(name, "[^%w%s]", "-")
+end
+
+
+-- Returns true if the individual words of str_b all appear in str_a
+local function fuzzy_match(str_a, str_b)
+    
+    str_a, str_b = string.lower(tostring(str_a)), string.lower(tostring(str_b))
+    if not (str_a and str_b) then return end
+    
+    --Msg("fuzzy match, looking for:\n\t" .. str_b .. "\nin:\n\t" .. str_a .. "\n")
+    
+    for word in string.gmatch(str_b, "[%a%d]+") do
+        --Msg( tostring(word) .. ": " .. tostring( string.match(str_a, word) ) )
+        if not string.match(str_a, word) then return end
+    end
+    
+    return true
+    
+end
 
 local function toggle_bypass()
 
@@ -46,7 +76,7 @@ local function toggle_bypass()
         
     -- Track name?
     elseif tostring(track) then
-    
+        
         if string.lower( tostring(track) ) == "master" then
             
             tr = reaper.GetMasterTrack(0)
@@ -57,7 +87,7 @@ local function toggle_bypass()
                 
                 local t = reaper.GetTrack(0, i)
                 local ret, name = reaper.GetTrackName(t, "")
-                if ret and name == tostring(track) then
+                if ret and fuzzy_match( sanitize_filename(name), tostring(track) ) then
                     tr = t
                     break
                 end
@@ -70,26 +100,40 @@ local function toggle_bypass()
     
     if not tr then return end
     
-    
+
+    local s
     local slots = reaper.TrackFX_GetCount( tr )
     
     if tonumber(slot) then
         
-        slot = tonumber(slot)
+        s = tonumber(slot) - 1
         
     elseif tostring(slot) then
     
-        slot = reaper.TrackFX_GetByName(tr, tostring(slot), false)
-        if slot then slot = slot + 1 end
+        for i = 0, slots - 1 do
+            
+            -- Get FX name
+            local ret, name = reaper.TrackFX_GetFXName(tr, i, "")
+            
+            -- Sanitize it to match what the filename would be
+            name = sanitize_filename(name)
+            
+            if fuzzy_match(name, sanitize_filename(tostring(slot))) then
+                s = i
+                break
+            end
+            
+        end
+        --slot = reaper.TrackFX_GetByName(tr, tostring(slot), false)
     
     end
     
-    if not slot or slots < slot then return end
+    if not s or slots < (s + 1) then return end
     
     -- Attempt to toggle bypass
-    local state = reaper.TrackFX_GetEnabled(tr, slot - 1)
+    local state = reaper.TrackFX_GetEnabled(tr, s)
     if state ~= nil then
-        reaper.TrackFX_SetEnabled( tr, slot - 1, not state )
+        reaper.TrackFX_SetEnabled( tr, s, not state )
     end
     
 end
@@ -3658,7 +3702,7 @@ local function set_vals()
         
 end
 
-local function btn_create()
+local function btn_toggle()
     
     set_vals()
     toggle_bypass()
@@ -3671,7 +3715,7 @@ local function btn_save()
     set_vals()
     
     -- Generate a coherent filename from the current options
-    local name =    "Lokasenna_Toggle FX bypass for track " .. track .. " slot " .. slot
+    local name =    "Lokasenna_Toggle FX bypass for track " .. track .. " effect " .. slot
     
     -- Copy everything from the file between the ReaPack header and GUI stuff
     local file_in, err = io.open(script_path .. script_filename, "r")
@@ -3696,8 +3740,11 @@ local function btn_save()
     end
     
     -- Write the file
-    local name_out = name .. ".lua"
-    file_out = io.open(script_path .. name_out, "w")
+    
+    
+    
+    local name_out = sanitize_filename(name) .. ".lua"
+    local file_out, err = io.open(script_path .. name_out, "w")
     if err then
         reaper.MB("Error opening output file:\n" .. script_path..name_out .. "\n\n".. tostring(err), "Whoops!", 0)
         return
@@ -3735,7 +3782,7 @@ GUI.anchor, GUI.corner = "mouse", "C"
 GUI.New("txt_track", "Textbox", 1, 56, 16.0, 176, 20, "Track:")
 GUI.New("txt_slot", "Textbox", 1, 56, 40, 176, 20, "FX:")
 
-GUI.New("btn_create", "Button", 1, 82, 80, 128, 24, "Toggle", btn_create)
+GUI.New("btn_toggle", "Button", 1, 82, 80, 128, 24, "Toggle", btn_toggle)
 GUI.New("btn_save", "Button", 1, 82, 112, 128, 24, "Save as action", btn_save)
 
 
