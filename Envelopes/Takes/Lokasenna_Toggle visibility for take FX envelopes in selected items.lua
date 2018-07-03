@@ -1,6 +1,6 @@
 --[[
 Description: Toggle take FX visibility for all selected items
-Version: 1.00
+Version: 1.01
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -8,9 +8,14 @@ Changelog:
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 Provides:
+    [main] .
     [main] . > Lokasenna_Show all take FX envelopes for selected items.lua
     [main] . > Lokasenna_Hide all take FX envelopes for selected items.lua
+About:
+    Provides actions for managing large numbers of take FX envelopes. Toggle,
+    Show, and Hide actions are installed.
 --]]
+
 
 -- Licensed under the GNU GPL v3
 
