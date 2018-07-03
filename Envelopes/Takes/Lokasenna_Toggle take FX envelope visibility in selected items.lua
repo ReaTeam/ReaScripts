@@ -1,6 +1,6 @@
 --[[
-Description: Toggle take FX visibility for all selected items
-Version: 1.01
+Description: Toggle take FX envelope visibility for all selected items
+Version: 1.02
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
