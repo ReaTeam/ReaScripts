@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="df9bca929891c9a68d6048979fecce047fb36de2" name="ReaTeam Scripts">
+<index version="1" commit="8f2ecf079f8df65b6af4b06643b0a6d3ba6dcf47" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1002,7 +1002,7 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes/Takes">
-    <reapack name="Lokasenna_Toggle visibility for take FX envelopes in selected items.lua" type="script" desc="Toggle take FX visibility for all selected items">
+    <reapack name="Lokasenna_Toggle take FX envelope visibility in selected items.lua" type="script" desc="Toggle take FX envelope visibility for all selected items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -1014,16 +1014,11 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
       </metadata>
-      <version name="1.00" author="Lokasenna" time="2018-06-28T12:22:49Z">
+      <version name="1.02" author="Lokasenna" time="2018-07-03T14:08:45Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main" file="Lokasenna_Show all take FX envelopes for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/2823eb008af0e32d5755ee96a3263580ed5d559e/Envelopes/Takes/Lokasenna_Toggle%20visibility%20for%20take%20FX%20envelopes%20in%20selected%20items.lua</source>
-        <source main="main" file="Lokasenna_Hide all take FX envelopes for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/2823eb008af0e32d5755ee96a3263580ed5d559e/Envelopes/Takes/Lokasenna_Toggle%20visibility%20for%20take%20FX%20envelopes%20in%20selected%20items.lua</source>
-      </version>
-      <version name="1.01" author="Lokasenna" time="2018-07-03T13:58:07Z">
-        <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df9bca929891c9a68d6048979fecce047fb36de2/Envelopes/Takes/Lokasenna_Toggle%20visibility%20for%20take%20FX%20envelopes%20in%20selected%20items.lua</source>
-        <source main="main" file="Lokasenna_Show all take FX envelopes for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/df9bca929891c9a68d6048979fecce047fb36de2/Envelopes/Takes/Lokasenna_Toggle%20visibility%20for%20take%20FX%20envelopes%20in%20selected%20items.lua</source>
-        <source main="main" file="Lokasenna_Hide all take FX envelopes for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/df9bca929891c9a68d6048979fecce047fb36de2/Envelopes/Takes/Lokasenna_Toggle%20visibility%20for%20take%20FX%20envelopes%20in%20selected%20items.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f2ecf079f8df65b6af4b06643b0a6d3ba6dcf47/Envelopes/Takes/Lokasenna_Toggle%20take%20FX%20envelope%20visibility%20in%20selected%20items.lua</source>
+        <source main="main" file="Lokasenna_Show all take FX envelopes for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/8f2ecf079f8df65b6af4b06643b0a6d3ba6dcf47/Envelopes/Takes/Lokasenna_Toggle%20take%20FX%20envelope%20visibility%20in%20selected%20items.lua</source>
+        <source main="main" file="Lokasenna_Hide all take FX envelopes for selected items.lua">https://github.com/ReaTeam/ReaScripts/raw/8f2ecf079f8df65b6af4b06643b0a6d3ba6dcf47/Envelopes/Takes/Lokasenna_Toggle%20take%20FX%20envelope%20visibility%20in%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy take mute envelope from selected take to other takes in same group.lua" type="script" desc="Copy take mute envelope from selected take to other takes in same group">
