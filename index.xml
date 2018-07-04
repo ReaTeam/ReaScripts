@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f2ecf079f8df65b6af4b06643b0a6d3ba6dcf47" name="ReaTeam Scripts">
+<index version="1" commit="1f6536f862a1efee5d31e76e90b29d1529de6eb8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9168,6 +9168,24 @@ Fixed:
 Will work with ReaScript and custom action IDs now]]></changelog>
         <source file="Lokasenna_Repeat Action/Lokasenna_Repeat Action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action.lua</source>
         <source main="main" file="Lokasenna_Repeat Action/Lokasenna_Repeat Action - Add new action.lua">https://github.com/ReaTeam/ReaScripts/raw/c91603cdcd92f01cabd12185d284965ea2a0ede4/Various/Lokasenna_Repeat%20Action%20-%20Add%20new%20action.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Reverse order of selected tracks.lua" type="script" desc="Reverse order of selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Reverses the order of selected tracks. i.e. if 1-16 are selected then 1 -> 16, 2 -> 15 ... 15 -> 2, 16 -> 1.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 NOTE: Will only work correctly with contiguous selections (no gaps).\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-07-04T02:18:58Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1f6536f862a1efee5d31e76e90b29d1529de6eb8/Various/Lokasenna_Reverse%20order%20of%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Scroll mixer to first selected track.lua" type="script" desc="Scroll mixer to first selected track">
