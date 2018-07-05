@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua (developer tools)
-Version: 2.9.01
+Version: 2.9.02
 Changelog:
-    Correct a mistake in Listbox's documentation
+    Script template was looking for the wrong library version
 Author: Lokasenna
 Provides: [nomain] Lokasenna_GUI v2/Developer Tools/**/*
 Metapackage: true

@@ -7,9 +7,9 @@
 
 ]]--
 
-local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v3")
+local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v3 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
     return
 end
 loadfile(lib_path .. "Lokasenna_GUI.lua")()
