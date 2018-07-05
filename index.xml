@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1f6536f862a1efee5d31e76e90b29d1529de6eb8" name="ReaTeam Scripts">
+<index version="1" commit="d06a5b8f90e23b03deae109122e8c4ac9325eb1e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -434,6 +434,17 @@ use Lua-compatible syntax for displaying keys in tables]]></changelog>
         <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Typical script options.lua">https://github.com/ReaTeam/ReaScripts/raw/a110d15d8e9a7ffd51140fcdb8fe4212bb57a471/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Typical%20script%20options.lua</source>
         <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Template - Blank GUI script.lua">https://github.com/ReaTeam/ReaScripts/raw/a110d15d8e9a7ffd51140fcdb8fe4212bb57a471/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Template%20-%20Blank%20GUI%20script.lua</source>
         <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Template - Blank class.lua">https://github.com/ReaTeam/ReaScripts/raw/a110d15d8e9a7ffd51140fcdb8fe4212bb57a471/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Template%20-%20Blank%20class.lua</source>
+      </version>
+      <version name="2.9.02" author="Lokasenna" time="2018-07-05T15:04:07Z">
+        <changelog><![CDATA[Script template was looking for the wrong library version]]></changelog>
+        <source file="Lokasenna_GUI v2/Developer Tools/Documentation.html">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Documentation.html</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Adding a Main loop, working with Z layers, and Rewriting Methods.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Adding%20a%20Main%20loop,%20working%20with%20Z%20layers,%20and%20Rewriting%20Methods.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Creating elements with keyed tables.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Creating%20elements%20with%20keyed%20tables.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - General demonstration.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20General%20demonstration.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Menubar, Listbox, and TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Menubar,%20Listbox,%20and%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Example - Typical script options.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Example%20-%20Typical%20script%20options.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Template - Blank GUI script.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Template%20-%20Blank%20GUI%20script.lua</source>
+        <source file="Lokasenna_GUI v2/Developer Tools/Examples and Templates/Template - Blank class.lua">https://github.com/ReaTeam/ReaScripts/raw/d06a5b8f90e23b03deae109122e8c4ac9325eb1e/Development/Lokasenna_GUI%20v2/Developer%20Tools/Examples%20and%20Templates/Template%20-%20Blank%20class.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_GUI library v2.lua" type="script" desc="Lokasenna's GUI library v2 for Lua">
