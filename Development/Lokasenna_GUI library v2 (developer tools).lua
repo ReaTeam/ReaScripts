@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua (developer tools)
-Version: 2.9.02
+Version: 2.9.03
 Changelog:
-    Script template was looking for the wrong library version
+    Script template was looking for the wrong library version (again)
 Author: Lokasenna
 Provides: [nomain] Lokasenna_GUI v2/Developer Tools/**/*
 Metapackage: true

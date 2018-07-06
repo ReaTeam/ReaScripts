@@ -12,7 +12,7 @@ if not lib_path or lib_path == "" then
     reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
     return
 end
-loadfile(lib_path .. "Lokasenna_GUI.lua")()
+loadfile(lib_path .. "Core.lua")()
 
 --[[
     Require element classes here:
