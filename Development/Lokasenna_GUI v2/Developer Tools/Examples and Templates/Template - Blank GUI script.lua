@@ -1,10 +1,12 @@
 -- NoIndex: true
-
 --[[
 	Lokasenna_GUI
 
 	- Blank GUI template
 
+    1. Place your ReaPack header here.
+    2. IMPORTANT: Make sure to remove the 'NoIndex: true' line above, or ReaPack will
+    ignore your script. 
 ]]--
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
