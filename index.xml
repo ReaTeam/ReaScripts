@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="61a71ebdcbe37f2a393af7b23580173c277b2c0e" name="ReaTeam Scripts">
+<index version="1" commit="c423fc02b9920505c07642b09bd188d56e9105d2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7373,6 +7373,24 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.00" author="Lokasenna" time="2018-06-13T01:47:03Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/afb8f9b7e55faea6fc83eddad754a338b00a1fa7/Tracks%20Properties/Lokasenna_Select%20tracks%20in%20selection%20with%20no%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Show only specified track and children in the mixer.lua" type="script" desc="Show only specified track and children in the mixer">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Prompts for a track name/number, finds the first matching track, and hides all tracks in the mixer aside from that and its children.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also provides an option to export specific names/numbers as a standalone action.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-07-07T03:51:06Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c423fc02b9920505c07642b09bd188d56e9105d2/Tracks%20Properties/Lokasenna_Show%20only%20specified%20track%20and%20children%20in%20the%20mixer.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
