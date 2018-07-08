@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.11.0
+Version: 2.11.1
 Changelog:
-    The displayed GUI version is now grabbed from ReaPack.
+    The install script now displays a message, so users will know it actually did something.
 Author: Lokasenna
 Provides: 
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
