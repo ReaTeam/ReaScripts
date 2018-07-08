@@ -2,31 +2,30 @@
 -- @author solger
 -- @version 0.1
 -- @changelog
---   + Initial release
+--  + Initial release
 -- @screenshot https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174
 -- @about
 --   # ReaLauncher 
 --
 --   A custom version of the startup prompt window for loading (recent) projects and project/track templates
 --
--- ## Screenshot
+--   ## Screenshot
 --
--- https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174
+--   https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174
 --
--- ## Main features
+--   ## Main features
 --
---  - Separate Tabs for Recent Projects, Project Templates and Track Templates
---	- Simple (case-sensitive) pattern-matching filter textboxes at the top of each Tab
---	- Global buttons for 'New Tab' and 'New Project'
---  - [Recent Projects]-Tab: In addition to the default list order, it's also possible to sort the list alphabetically (ascending/descending)
---	- Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)
---	- 'Window-pin' checkbox at the top right: when enabled (= default setting) the window is kept open after using any of the [New], [Load] or [Insert] buttons
+--   - Separate Tabs for Recent Projects, Project Templates and Track Templates
+--   - Simple (case-sensitive) pattern-matching filter textboxes at the top of each Tab
+--   - Global buttons for 'New Tab' and 'New Project'
+--   - [Recent Projects]-Tab: In addition to the default list order, it's also possible to sort the list alphabetically (ascending/descending)
+--   - Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)
+--   - 'Window-pin' checkbox at the top right: when enabled (= default setting) the window is kept open after using any of the [New], [Load] or [Insert] buttons
 --
--- ## Discussion thread
+--   ## Discussion thread
 --
--- https://forum.cockos.com/showthread.php?t=208697
---
---
+--   https://forum.cockos.com/showthread.php?t=208697
+
 ------------------------------------------------------------------------------------------------------
 -- Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772
 -- Big thanks to Lokasenna for his work!!
