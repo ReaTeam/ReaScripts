@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.10.1
+Version: 2.11.0
 Changelog:
-    Fix: The Textbox class' caret was dependent on the padding value, causing glitches.
+    The displayed GUI version is now grabbed from ReaPack.
 Author: Lokasenna
 Provides: 
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
