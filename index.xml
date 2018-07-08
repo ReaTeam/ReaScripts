@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c423fc02b9920505c07642b09bd188d56e9105d2" name="ReaTeam Scripts">
+<index version="1" commit="19b18b50b1720617ebab0126ad2cad32d002dd0c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -465,11 +465,8 @@ use Lua-compatible syntax for displaying keys in tables]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides a framework allowing Lua scripts to use a graphical interface, since Reaper has no ability to do so natively.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 IMPORTANT: After installing this package, you must tell Reaper where to find the library.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab In the Action List: "ReaScript: Run reaScript (EEL, lua, or python)..."\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Find the script folder in Reaper's resource path. On Windows: REAPER\\Scripts\\ReaTeam Scripts\\Development\\Lokasenna_GUI v2\\Library\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Run "Set Lokasenna_GUI v2 library path.lua"\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Done!\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 INSTALLATION: After installing this package, you must tell Reaper where to find the library. In the Action List, find and run:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 "Script: Set Lokasenna_GUI v2 library path.lua"\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=177772">Forum Thread</link>
@@ -493,6 +490,43 @@ use Lua-compatible syntax for displaying keys in tables]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/244869a9c53caf65f2b7b36e20865ce5aff3bf33/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+      </version>
+      <version name="2.10.0" author="Lokasenna" time="2018-07-08T03:40:22Z">
+        <changelog><![CDATA[Registers the installation script as an action so users don't have to hunt the
+file down themselves.]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/bc63c1f4c405d9c0c77e514588fad4685ce2b0a9/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+      </version>
+      <version name="2.10.1" author="Lokasenna" time="2018-07-08T16:48:49Z">
+        <changelog><![CDATA[Fix: The Textbox class' caret was dependent on the padding value, causing glitches.]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/19b18b50b1720617ebab0126ad2cad32d002dd0c/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
@@ -6698,6 +6732,34 @@ enter or a = Exit and apply changes\par}
       <version name="1.3" author="JerContact" time="2018-04-19T02:29:19Z">
         <changelog><![CDATA[+ 1.3 - adding a little feature to make this work with files named with .wav at the end inside reaper.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e7fcfac5ff272d9c41518e6963766d9ad166829/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="solger_ReaLauncher.lua" type="script" desc="ReaLauncher: A custom (recent) projects and project/track-templates launcher">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate Tabs for Recent Projects, Project Templates and Track Templates\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Simple (case-sensitive) pattern-matching filter textboxes at the top of each Tab\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global buttons for 'New Tab' and 'New Project'\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: In addition to the default list order, it's also possible to sort the list alphabetically (ascending/descending)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Window-pin' checkbox at the top right: when enabled (= default setting) the window is kept open after using any of the [New], [Load] or [Insert] buttons\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
+}
+]]></description>
+        <link rel="screenshot">https://forum.cockos.com/attachment.php?attachmentid=34088&amp;stc=1&amp;d=1530957174</link>
+      </metadata>
+      <version name="0.1" author="solger" time="2018-07-08T14:35:16Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8cf3d8870907d212ff187163773cdd957eff5c/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>

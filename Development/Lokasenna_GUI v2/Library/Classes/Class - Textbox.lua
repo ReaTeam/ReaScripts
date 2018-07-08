@@ -347,10 +347,12 @@ function GUI.Textbox:drawcaret()
 
         GUI.color("txt")
         
+        local caret_h = self.char_h - 2
+
         gfx.rect(   self.x + self.pad + (caret_wnd * self.char_w),
-                    self.y + self.pad,
+                    self.y + (self.h - caret_h) / 2,
                     self.insert_caret and self.char_w or 2,
-                    self.char_h - 2)
+                    caret_h)
                     
     end
     

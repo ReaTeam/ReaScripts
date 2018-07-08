@@ -487,7 +487,7 @@ local function BTN_Filter_RecentProject_Apply()
  
   RecentProjectFilterActive = true
   UpdateListFilter_RecentProjects()
-  
+
   GUI.Val("lst_recentProjects",{})
 end
 
@@ -504,7 +504,7 @@ local function BTN_Filter_ProjectTemplate_Apply()
  
   ProjectTemplateFilterActive = true
   UpdateListFilter_ProjectTemplates()
-  
+
   GUI.Val("lst_projectTemplates",{})
 end
 
@@ -518,10 +518,10 @@ local function BTN_Filter_TrackTemplate_Apply()
        table.insert(filteredTrackTemplates, trackTemplates[i])
    end
  end
- 
- TrackTemplateFilterActive = true
+
+  TrackTemplateFilterActive = true
  UpdateListFilter_TrackTemplates()
- 
+  
  GUI.Val("lst_trackTemplates",{})
 end
 ---------------------
@@ -659,6 +659,7 @@ RecentProjectFilterActive = false
 TrackTemplateFilterActive = false
 ProjectTemplateFilterActive = false
 
+
 GUI.onresize = function()
   -- check and force the resize
   local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
@@ -666,7 +667,6 @@ GUI.onresize = function()
   gfx.init(GUI.name, GUI.w, GUI.h, 0, x, y)
   GUI.redraw_z[0] = true
 end
-
 
 local function Main()
   window_pin = GUI.Val("cklist_wnd") -- Get the current window pin state  
