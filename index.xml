@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bc63c1f4c405d9c0c77e514588fad4685ce2b0a9" name="ReaTeam Scripts">
+<index version="1" commit="ca8cf3d8870907d212ff187163773cdd957eff5c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6714,6 +6714,34 @@ enter or a = Exit and apply changes\par}
       <version name="1.3" author="JerContact" time="2018-04-19T02:29:19Z">
         <changelog><![CDATA[+ 1.3 - adding a little feature to make this work with files named with .wav at the end inside reaper.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e7fcfac5ff272d9c41518e6963766d9ad166829/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="solger_ReaLauncher.lua" type="script" desc="ReaLauncher: A custom (recent) projects and project/track-templates launcher">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate Tabs for Recent Projects, Project Templates and Track Templates\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Simple (case-sensitive) pattern-matching filter textboxes at the top of each Tab\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global buttons for 'New Tab' and 'New Project'\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: In addition to the default list order, it's also possible to sort the list alphabetically (ascending/descending)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Window-pin' checkbox at the top right: when enabled (= default setting) the window is kept open after using any of the [New], [Load] or [Insert] buttons\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
+}
+]]></description>
+        <link rel="screenshot">https://forum.cockos.com/attachment.php?attachmentid=34088&amp;stc=1&amp;d=1530957174</link>
+      </metadata>
+      <version name="0.1" author="solger" time="2018-07-08T14:35:16Z">
+        <changelog><![CDATA[+ Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8cf3d8870907d212ff187163773cdd957eff5c/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
