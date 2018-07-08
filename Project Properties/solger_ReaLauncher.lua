@@ -606,7 +606,7 @@ GUI.elms.tabs:update_sets(
 GUI.New("tb_filterRecentProjects", "Textbox", 3, 50, 30, 310, 20, "Filter:", 8)
 GUI.New("btn_filterRecentProjects", "Button", 3, 370, 28, 40,  24, "Apply", BTN_Filter_RecentProject_Apply)
 GUI.New("btn_filterRecentProjectsRemove", "Button", 3, 420, 28, 20,  24, "X", BTN_Filter_RecentProject_Remove)
-GUI.New("menu_sort", "Menubox", 3, 40, 465, 68, 20, "Sort:", "Default,Asc,Desc")
+GUI.New("menu_sort", "Menubox", 3, 40, 465, 95, 20, "Sort:", "Most Recent,Ascending,Descending")
 GUI.New("lst_recentProjects", "Listbox", 3, 10, 56, 460, 400,"", true)
 
 GUI.New("btn_loadRecentProjectInTab", "Button", 3, 485, 250, 100,  28, "Load in Tab", BTN_RecentProject_LoadInTab)
