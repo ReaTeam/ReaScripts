@@ -1,8 +1,9 @@
--- @description ReaLauncher: A custom (recent) projects and project/track-templates launcher 
+-- @description ReaLauncher
 -- @author solger
--- @version 0.1
+-- @version 0.1.1
 -- @changelog
---  + Initial release
+--   + changed filter and sort function structure - should now be more CPU friendly
+--   + last window position is now stored
 -- @screenshot https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174
 -- @about
 --   # ReaLauncher 
@@ -44,7 +45,6 @@ local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 end
 
 loadfile(lib_path .. "Core.lua")()
-GUI.req("Classes/Class - Slider.lua")()
 GUI.req("Classes/Class - Button.lua")()
 GUI.req("Classes/Class - Frame.lua")()
 GUI.req("Classes/Class - Label.lua")()
@@ -405,26 +405,70 @@ local function SortDesc()
     GUI.elms.lst_recentProjects.list = recentProjItemsShort
 end
 
+local function UpdateSortMode()
+ -- Listbox sort mode: Default (most recent project at the top) / Ascending / Descending
+    local sortMode = GUI.Val("menu_sort")
+    if sortMode == 1 then
+      SortDef()
+    elseif sortMode == 2 then
+      SortAsc()     
+    else
+      SortDesc()
+    end
+end
+
+----------------------
+-- Filter functions --
+----------------------
+local function UpdateListFilter_RecentProjects()
+  -- Recent Projects tab
+  if RecentProjectFilterActive then
+    GUI.elms.lst_recentProjects.list = filteredRecentProjects
+  else
+   UpdateSortMode()
+  end
+end
+
+local function UpdateListFilter_ProjectTemplates()
+ -- Project Templates tab
+  if ProjectTemplateFilterActive then
+    GUI.elms.lst_projectTemplates.list = filteredProjectTemplates
+  else
+    GUI.elms.lst_projectTemplates.list = projectTemplates 
+  end
+end
+
+local function UpdateListFilter_TrackTemplates()
+  -- Track Templates tab
+  if TrackTemplateFilterActive then
+    GUI.elms.lst_trackTemplates.list = filteredTrackTemplates
+  else
+   GUI.elms.lst_trackTemplates.list = trackTemplates
+  end
+end
+
 -----------------------------
 -- Filter Remove functions --
 -----------------------------
 local function BTN_Filter_RecentProject_Remove()
-  RecentProjectFilterActive = false
   FillRecentProjectsListbox()
+  RecentProjectFilterActive = false
+  UpdateListFilter_RecentProjects()
   GUI.Val("lst_recentProjects",{})
+end 
+
+local function BTN_Filter_ProjectTemplate_Remove()
+  ProjectTemplateFilterActive = false
+  UpdateListFilter_ProjectTemplates()
+--  FillProjectTemplateListBox()
+  GUI.Val("lst_projectTemplates",{})
 end 
 
 local function BTN_Filter_TrackTemplate_Remove()
   TrackTemplateFilterActive = false
+  UpdateListFilter_TrackTemplates()
  -- FillTrackTemplateListBox()
   GUI.Val("lst_trackTemplates",{})
-end 
-
-
-local function BTN_Filter_ProjectTemplate_Remove()
-  ProjectTemplateFilterActive = false
---  FillProjectTemplateListBox()
-  GUI.Val("lst_projectTemplates",{})
 end 
 
 ----------------------------
@@ -440,7 +484,10 @@ local function BTN_Filter_RecentProject_Apply()
        table.insert(filteredRecentProjects, recentProjItemsShort[i])
    end
  end
+ 
   RecentProjectFilterActive = true
+  UpdateListFilter_RecentProjects()
+  
   GUI.Val("lst_recentProjects",{})
 end
 
@@ -454,7 +501,10 @@ local function BTN_Filter_ProjectTemplate_Apply()
       table.insert(filteredProjectTemplates, projectTemplates[i])
    end  
  end
+ 
   ProjectTemplateFilterActive = true
+  UpdateListFilter_ProjectTemplates()
+  
   GUI.Val("lst_projectTemplates",{})
 end
 
@@ -468,7 +518,10 @@ local function BTN_Filter_TrackTemplate_Apply()
        table.insert(filteredTrackTemplates, trackTemplates[i])
    end
  end
+ 
  TrackTemplateFilterActive = true
+ UpdateListFilter_TrackTemplates()
+ 
  GUI.Val("lst_trackTemplates",{})
 end
 ---------------------
@@ -477,6 +530,7 @@ end
 GUI.name = "ReaLauncher"
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 600, 500
 GUI.anchor, GUI.corner = "mouse", "C" -- Center on "mouse" or "screen"
+GUI.load_window_state("solger_ReaLauncher.lua")
 
 -------------------------------------------------------------
 -- Overwrites the Listbox.lua core function 
@@ -563,6 +617,11 @@ function GUI.elms.lst_recentProjects:ondoubleclick()
   BTN_RecentProject_Load()
 end
 
+function GUI.elms.menu_sort:onmousedown()
+  GUI.Menubox.onmouseup(self)
+  UpdateSortMode()
+end
+
 ----------------------------------------
 -- Tab 2 Elements - Project Templates --
 ----------------------------------------
@@ -600,52 +659,18 @@ RecentProjectFilterActive = false
 TrackTemplateFilterActive = false
 ProjectTemplateFilterActive = false
 
-local function UpdateListFilters()
-  -- Recent Projects tab
-  if GUI.Val("tabs") == 1 then
-    if RecentProjectFilterActive then
-      GUI.elms.lst_recentProjects.list = filteredRecentProjects
-    else
-      -- Listbox sort mode: Default (most recent project at the top) / Ascending / Descending
-      local sortMode = GUI.Val("menu_sort")
-      if sortMode == 1 then
-        SortDef()
-      elseif sortMode == 2 then
-        SortAsc()     
-      else
-        SortDesc()
-      end
-    end
-  end
-  -- Project Templates tab
-  if GUI.Val("tabs") == 2 then
-    if ProjectTemplateFilterActive then
-      GUI.elms.lst_projectTemplates.list = filteredProjectTemplates
-    else
-      GUI.elms.lst_projectTemplates.list = projectTemplates
-    end
-  end
-  -- Track Templatse tab
-  if GUI.Val("tabs") == 3 then
-    if TrackTemplateFilterActive then
-      GUI.elms.lst_trackTemplates.list = filteredTrackTemplates
-    else
-      GUI.elms.lst_trackTemplates.list = trackTemplates
-    end
-  end
+GUI.onresize = function()
+  -- check and force the resize
+  local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
+  gfx.quit()
+  gfx.init(GUI.name, GUI.w, GUI.h, 0, x, y)
+  GUI.redraw_z[0] = true
 end
 
-local function Main()
-  -- If the window's size has been changed, reopen it at the current position with the size we specified
-  if GUI.resized then
-    local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
-    gfx.quit()
-    gfx.init(GUI.name, GUI.w, GUI.h, 0, x, y)
-    GUI.redraw_z[0] = true
-  end    
 
-  UpdateListFilters()  -- Show  only the filtered results in case a filter is active 
+local function Main()
   window_pin = GUI.Val("cklist_wnd") -- Get the current window pin state  
+  GUI.save_window_state("solger_ReaLauncher.lua")
 end
 
 GUI.Val("cklist_wnd",{1}) -- keep the window pinned by default when showing the window
