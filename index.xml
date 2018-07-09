@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a2d2959c6a8984d6e171216b389a0c3da6f7eae1" name="ReaTeam Scripts">
+<index version="1" commit="610a6e7d01983a8b7f1135acfd311207f9a85543" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6770,7 +6770,7 @@ enter or a = Exit and apply changes\par}
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4e7fcfac5ff272d9c41518e6963766d9ad166829/Project%20Properties/JerContact_Open%20project%20based%20on%20file%20in%20clipboard.lua</source>
       </version>
     </reapack>
-    <reapack name="solger_ReaLauncher.lua" type="script" desc="ReaLauncher: A custom (recent) projects and project/track-templates launcher">
+    <reapack name="solger_ReaLauncher.lua" type="script" desc="ReaLauncher">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -6796,6 +6796,11 @@ enter or a = Exit and apply changes\par}
       <version name="0.1" author="solger" time="2018-07-08T14:35:16Z">
         <changelog><![CDATA[+ Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca8cf3d8870907d212ff187163773cdd957eff5c/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="0.1.1" author="solger" time="2018-07-09T02:03:55Z">
+        <changelog><![CDATA[+ changed filter and sort function structure - should now be more CPU friendly
++ last window position is now stored]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/610a6e7d01983a8b7f1135acfd311207f9a85543/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
