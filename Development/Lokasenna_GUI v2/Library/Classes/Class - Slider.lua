@@ -96,7 +96,7 @@ function GUI.Slider:new(name, z, x, y, w, caption, min, max, defaults, inc, dir)
         
         -- Make sure the handles are all valid
         for i = 1, #self.defaults do
-            self.defaults[i] = math.floor( GUI.clamp(0, self.defaults[i], self.steps) )
+            self.defaults[i] = math.floor( GUI.clamp(0, tonumber(self.defaults[i]), self.steps) )
         end
     
         self.handles = {}
