@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.11.1
+Version: 2.11.2
 Changelog:
-    The install script now displays a message, so users will know it actually did something.
+    Fix: Ensuring a number value for slider handles
 Author: Lokasenna
 Provides: 
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
