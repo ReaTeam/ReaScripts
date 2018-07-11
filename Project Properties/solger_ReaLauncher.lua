@@ -1,9 +1,9 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 0.1.1
+-- @version 0.1.2
 -- @changelog
---   + changed filter and sort function structure - should now be more CPU friendly
---   + last window position is now stored
+--   + fixed issue with empty lists
+--   + filter is now automatically applied to the list when typing
 -- @screenshot https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174
 -- @about
 --   # ReaLauncher 
@@ -61,6 +61,10 @@ if missing_lib then return 0 end -- If any of the requested libraries weren't fo
 -------------------------------
 reaperIniPath = reaper.get_ini_file()
 resourcePath = reaper.GetResourcePath()
+
+if (resourcePath == nil) then
+  reaper.ShowMessageBox("Could not retrieve the Reaper resource path!","Error", 0)
+end
 
 if reaper.GetOS():find("OSX") then
   -- macOS paths
@@ -166,14 +170,21 @@ function FillRecentProjectsListbox()
       
     end
   until (found == true)
+
+  if #recentProjItemsShort == 0 then
+    noRecentProjects = true
+  else
+    noRecentProjects = false  
   
-  -- Reverse the element order in order to place the most recent entry at the top
-  InvertElementOrder(recentProjItemsShort)
-  InvertElementOrder(recentProjItemsFull)
+    -- Reverse the element order in order to place the most recent entry at the top
+    InvertElementOrder(recentProjItemsShort)
+    InvertElementOrder(recentProjItemsFull)
   
-  for i = 1, #recentProjItemsShort do
-    recentProjects[recentProjItemsShort[i]] = recentProjItemsFull[i]
-    --table.insert(recentProjects, recentProjItemsShort[i])
+  
+    for i = 1, #recentProjItemsShort do
+      recentProjects[recentProjItemsShort[i]] = recentProjItemsFull[i]
+      --table.insert(recentProjects, recentProjItemsShort[i])
+    end
   end
 end
 
@@ -182,26 +193,32 @@ local function FillProjectTemplateListBox()
   projectTemplates = {}
   local projectTemplateFiles = GetFiles(projectTemplatePath)
 
-  for i = 1, #projectTemplateFiles do
-    if reaper.GetOS():find("OSX") then
-      filename = projectTemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
-    else
-      filename = projectTemplateFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
-    end
+  if #projectTemplateFiles == 0 then
+    noProjectTemplates = true
+  else
+    noProjectTemplates = false  
 
-    projectTemplates[i] = string.sub(filename,1,#filename-4) -- get (filename) without .RPP
-   
-    -- handling of .RPP-bak files
-    if string.sub(filename, #filename-3, #filename) == "-bak" then
-      projectTemplates[i] =  string.sub(filename,1,#filename-8) .. "  (.rpp-bak file)"
+    for i = 1, #projectTemplateFiles do
+      if reaper.GetOS():find("OSX") then
+        filename = projectTemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
+      else
+        filename = projectTemplateFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+      end
+  
+      projectTemplates[i] = string.sub(filename,1,#filename-4) -- get (filename) without .RPP
+     
+      -- handling of .RPP-bak files
+      if string.sub(filename, #filename-3, #filename) == "-bak" then
+        projectTemplates[i] =  string.sub(filename,1,#filename-8) .. "  (.rpp-bak file)"
+      end
+      
+      if reaper.GetOS():find("OSX") then
+        projectTemplateItems[projectTemplates[i]] = projectTemplatePath .. "/" .. filename
+      else
+        projectTemplateItems[projectTemplates[i]] = projectTemplateFiles[i]
+      end
+    --  table.insert(projectTemplateItems, projectTemplateItems[i])
     end
-    
-    if reaper.GetOS():find("OSX") then
-      projectTemplateItems[projectTemplates[i]] = projectTemplatePath .. "/" .. filename
-    else
-      projectTemplateItems[projectTemplates[i]] = projectTemplateFiles[i]
-    end
-  --  table.insert(projectTemplateItems, projectTemplateItems[i])
   end
 end
 
@@ -210,16 +227,22 @@ local function FillTrackTemplateListBox()
   trackTemplates = {}  
   local tracktemplateFiles = GetFiles(trackTemplatePath)
 
-  for i = 1, #tracktemplateFiles do
-    if reaper.GetOS():find("OSX") then
-      filename = tracktemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
-    else
-      filename = tracktemplateFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+  if #tracktemplateFiles == 0 then
+    noTrackTemplates = true
+  else
+    noTrackTemplates = false  
+  
+    for i = 1, #tracktemplateFiles do
+      if reaper.GetOS():find("OSX") then
+        filename = tracktemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
+      else
+        filename = tracktemplateFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+      end
+  
+      trackTemplates[i] = string.sub(filename,1,#filename-15) -- get (filename) without .RTrackTemplate
+      trackTemplateItems[trackTemplates[i]] = trackTemplatePath .. "/" .. filename
+      -- table.insert(trackTemplateItems, trackTemplateItems[i])
     end
-
-    trackTemplates[i] = string.sub(filename,1,#filename-15) -- get (filename) without .RTrackTemplate
-    trackTemplateItems[trackTemplates[i]] = trackTemplatePath .. "/" .. filename
-    -- table.insert(trackTemplateItems, trackTemplateItems[i])
   end
 end
 
@@ -247,144 +270,154 @@ end
 --  Recent project buttons --
 -----------------------------
 local function BTN_RecentProject_Load()
-  local selected = GUI.Val("lst_recentProjects")
-  if type(selected) == "number" then selected = {[selected] = true} end
-
-  local vals = {}
-  for k, v in pairs(selected) do
-    table.insert(vals, k)
-  end
-
-  if debug_enabled then
-    for p = 1, #vals do
-      reaper.ShowConsoleMsg("vals: '" .. vals[p] .. "'\n")
-    end
-  end
-
-  for p = 1, #vals do
+  if (noRecentProjects == false) then
+    local selected = GUI.Val("lst_recentProjects")
+    if type(selected) == "number" then selected = {[selected] = true} end
   
+    local vals = {}
+    for k, v in pairs(selected) do
+      table.insert(vals, k)
+    end
+  
+    if debug_enabled then
+      for p = 1, #vals do
+        reaper.ShowConsoleMsg("vals: '" .. vals[p] .. "'\n")
+      end
+    end
+  
+    for p = 1, #vals do
+    
+      if RecentProjectFilterActive == true then
+        selectedProject = recentProjects[filteredRecentProjects[vals[p]]]
+      else
+        selectedProject = recentProjects[recentProjItemsShort[vals[p]]]
+      end
+  
+      -- if more than 1 project is selected, load the other projects in a tab
+      if p > 1 then
+        reaper.Main_OnCommand(40859, 0)
+        reaper.Main_openProject(selectedProject) 
+      else
+         reaper.Main_openProject(selectedProject) 
+      end
+    end
+      
+    GUI.Val("lst_recentProjects",{})
+    if window_pin == false then gfx.quit() end
+  end
+end
+
+
+local function BTN_RecentProject_LoadInTab()
+  if (noRecentProjects == false) then
+    local selected = GUI.Val("lst_recentProjects")
+    if type(selected) == "number" then selected = {[selected] = true} end
+
+    local vals = {}
+    for k, v in pairs(selected) do
+      table.insert(vals, k)
+    end
+
+    for p = 1, #vals do
     if RecentProjectFilterActive == true then
       selectedProject = recentProjects[filteredRecentProjects[vals[p]]]
     else
       selectedProject = recentProjects[recentProjItemsShort[vals[p]]]
     end
-
-    -- if more than 1 project is selected, load the other projects in a tab
-    if p > 1 then
       reaper.Main_OnCommand(40859, 0)
       reaper.Main_openProject(selectedProject) 
-    else
-       reaper.Main_openProject(selectedProject) 
     end
+  
+    GUI.Val("lst_recentProjects",{})
+    if window_pin == false then gfx.quit() end
   end
-    
-  GUI.Val("lst_recentProjects",{})
-  if window_pin == false then gfx.quit() end
-end
-
-
-local function BTN_RecentProject_LoadInTab()
-  local selected = GUI.Val("lst_recentProjects")
-  if type(selected) == "number" then selected = {[selected] = true} end
-
-  local vals = {}
-  for k, v in pairs(selected) do
-    table.insert(vals, k)
-  end
-
-  for p = 1, #vals do
-  if RecentProjectFilterActive == true then
-    selectedProject = recentProjects[filteredRecentProjects[vals[p]]]
-  else
-    selectedProject = recentProjects[recentProjItemsShort[vals[p]]]
-  end
-    reaper.Main_OnCommand(40859, 0)
-    reaper.Main_openProject(selectedProject) 
-  end
-
-  GUI.Val("lst_recentProjects",{})
-  if window_pin == false then gfx.quit() end
 end
 
 ------------------------------
 -- Project Template buttons --
 ------------------------------
 local function BTN_ProjectTemplate_Load()
-   local selected = GUI.Val("lst_projectTemplates")
-   if type(selected) == "number" then selected = {[selected] = true} end
+  if (noProjectTemplates == false) then
+    local selected = GUI.Val("lst_projectTemplates")
+    if type(selected) == "number" then selected = {[selected] = true} end
   
-   local vals = {}
-     for k, v in pairs(selected) do
-     table.insert(vals, k)
-   end
+    local vals = {}
+      for k, v in pairs(selected) do
+      table.insert(vals, k)
+    end
    
-   for p = 1, #vals do 
-     if ProjectTemplateFilterActive == true then
-        selectedProjectTemplate = projectTemplateItems[filteredProjectTemplates[vals[p]]]
-     else
+    for p = 1, #vals do 
+      if ProjectTemplateFilterActive == true then
+       selectedProjectTemplate = projectTemplateItems[filteredProjectTemplates[vals[p]]]
+      else
         selectedProjectTemplate = projectTemplateItems[projectTemplates[vals[p]]]
-     end
+      end
      
-     if p > 1 then
+      if p > 1 then
         reaper.Main_OnCommand(40859, 0)
         reaper.Main_openProject(selectedProjectTemplate) 
-     else
+      else
         reaper.Main_openProject(selectedProjectTemplate) 
      end
   end  
     
 --    GUI.Val("lst_projectTemplates",{})
     if window_pin == false then gfx.quit() end
+  end
 end
 
 
 local function BTN_ProjectTemplate_LoadInTab()
-   local selected = GUI.Val("lst_projectTemplates")
-   if type(selected) == "number" then selected = {[selected] = true} end
+  if (noProjectTemplates == false) then
+    local selected = GUI.Val("lst_projectTemplates")
+    if type(selected) == "number" then selected = {[selected] = true} end
   
-   local vals = {}
-     for k, v in pairs(selected) do
-     table.insert(vals, k)
-   end
+    local vals = {}
+      for k, v in pairs(selected) do
+      table.insert(vals, k)
+    end
    
-   for p = 1, #vals do 
-     if ProjectTemplateFilterActive == true then
+    for p = 1, #vals do 
+      if ProjectTemplateFilterActive == true then
         selectedProjectTemplate = projectTemplateItems[filteredProjectTemplates[vals[p]]]
-     else
-        selectedProjectTemplate = projectTemplateItems[projectTemplates[vals[p]]]
-     end
+      else
+       selectedProjectTemplate = projectTemplateItems[projectTemplates[vals[p]]]
+    end
 
-     reaper.Main_OnCommand(40859, 0)
-     reaper.Main_openProject(selectedProjectTemplate) 
+    reaper.Main_OnCommand(40859, 0)
+    reaper.Main_openProject(selectedProjectTemplate) 
   end  
 
 --    GUI.Val("lst_projectTemplates",{})
     if window_pin == false then gfx.quit() end
+  end
 end
 
 ----------------------------
 -- Track Template buttons --
 ----------------------------
 local function BTN_TrackTemplate_Load()
-   local selected = GUI.Val("lst_trackTemplates")
-   if type(selected) == "number" then selected = {[selected] = true} end
- 
-   local vals = {}
+  if (noTrackTemplates == false) then
+    local selected = GUI.Val("lst_trackTemplates")
+    if type(selected) == "number" then selected = {[selected] = true} end
+
+    local vals = {}
      for k, v in pairs(selected) do
        table.insert(vals, k)
      end
    
-   for p = 1, #vals do
-     if TrackTemplateFilterActive == true then
-      selectedTrackTemplate = trackTemplateItems[filteredTrackTemplates[vals[p]]]
-     else
+    for p = 1, #vals do
+      if TrackTemplateFilterActive == true then
+        selectedTrackTemplate = trackTemplateItems[filteredTrackTemplates[vals[p]]]
+      else
        selectedTrackTemplate = trackTemplateItems[trackTemplates[vals[p]]]
-     end
-     reaper.Main_openProject(selectedTrackTemplate) 
+    end
+      reaper.Main_openProject(selectedTrackTemplate) 
    end 
   
 --   GUI.Val("lst_trackTemplates",{})
    if window_pin == false then gfx.quit() end
+  end
 end  
   
 --------------------
@@ -604,8 +637,7 @@ GUI.elms.tabs:update_sets(
 -- Tab 1 Elements - Recent Projects --
 --------------------------------------
 GUI.New("tb_filterRecentProjects", "Textbox", 3, 50, 30, 310, 20, "Filter:", 8)
-GUI.New("btn_filterRecentProjects", "Button", 3, 370, 28, 40,  24, "Apply", BTN_Filter_RecentProject_Apply)
-GUI.New("btn_filterRecentProjectsRemove", "Button", 3, 420, 28, 20,  24, "X", BTN_Filter_RecentProject_Remove)
+GUI.New("btn_filterRecentProjectsRemove", "Button", 3, 370, 28, 20,  24, "X", BTN_Filter_RecentProject_Remove)
 GUI.New("menu_sort", "Menubox", 3, 40, 465, 95, 20, "Sort:", "Most Recent,Ascending,Descending")
 GUI.New("lst_recentProjects", "Listbox", 3, 10, 56, 460, 400,"", true)
 
@@ -617,17 +649,23 @@ function GUI.elms.lst_recentProjects:ondoubleclick()
   BTN_RecentProject_Load()
 end
 
+function GUI.elms.tb_filterRecentProjects:ontype()
+   GUI.Textbox.ontype(self)
+   BTN_Filter_RecentProject_Apply()
+end
+
 function GUI.elms.menu_sort:onmousedown()
-  GUI.Menubox.onmouseup(self)
-  UpdateSortMode()
+  if (noRecentProjects == false) then
+    GUI.Menubox.onmouseup(self)
+    UpdateSortMode()
+  end
 end
 
 ----------------------------------------
 -- Tab 2 Elements - Project Templates --
 ----------------------------------------
 GUI.New("tb_filterProjectTemplates", "Textbox", 4, 50, 30, 310, 20, "Filter:", 8)
-GUI.New("btn_filterProjectTemplates", "Button", 4, 370, 28, 40,  24, "Apply", BTN_Filter_ProjectTemplate_Apply)
-GUI.New("btn_filterProjectTemplatesRemove", "Button", 4, 420, 28, 20,  24, "X",BTN_Filter_ProjectTemplate_Remove)
+GUI.New("btn_filterProjectTemplatesRemove", "Button", 4, 370, 28, 20,  24, "X",BTN_Filter_ProjectTemplate_Remove)
 GUI.New("lst_projectTemplates", "Listbox", 4, 10, 56, 460, 400, "", true)
 GUI.New("btn_loadProjectTemplateInTab", "Button", 4, 485, 250, 100,  28, "Load in Tab", BTN_ProjectTemplate_LoadInTab)
 GUI.New("btn_loadProjectTemplate", "Button", 4, 485, 285, 100,  28, "Load", BTN_ProjectTemplate_Load)
@@ -636,13 +674,18 @@ GUI.elms.lst_projectTemplates.list = projectTemplates
 function GUI.elms.lst_projectTemplates:ondoubleclick()
   BTN_ProjectTemplate_Load()
 end
+
+function GUI.elms.tb_filterProjectTemplates:ontype()
+   GUI.Textbox.ontype(self)
+   BTN_Filter_ProjectTemplate_Apply()
+end
+
 --------------------------------------
 -- Tab 3 Elements - Track Templates --
 --------------------------------------
 
 GUI.New("tb_filterTrackTemplates", "Textbox", 5, 50, 30, 310, 20, "Filter:", 8)
-GUI.New("btn_filterTrackTemplates", "Button", 5, 370, 28, 40,  24, "Apply",BTN_Filter_TrackTemplate_Apply )
-GUI.New("btn_filterTrackTemplatesRemove", "Button", 5, 420, 28, 20,  24, "X", BTN_Filter_TrackTemplate_Remove)
+GUI.New("btn_filterTrackTemplatesRemove", "Button", 5, 370, 28, 20,  24, "X", BTN_Filter_TrackTemplate_Remove)
 
 GUI.New("lst_trackTemplates", "Listbox", 5, 10, 56, 460, 400, "", true)
 GUI.New("btn_loadTrackTemplate", "Button", 5, 485, 250, 100,  28, "Insert", BTN_TrackTemplate_Load)
@@ -650,6 +693,11 @@ GUI.elms.lst_trackTemplates.list = trackTemplates
 
 function GUI.elms.lst_trackTemplates:ondoubleclick()
   BTN_TrackTemplate_Load()
+end
+
+function GUI.elms.tb_filterTrackTemplates:ontype()
+   GUI.Textbox.ontype(self)
+   BTN_Filter_TrackTemplate_Apply()
 end
 
 --------------------
