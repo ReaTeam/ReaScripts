@@ -970,6 +970,7 @@ does the opposite, fonts are handled by way of presets. </p>
 GUI.fonts[<span class="hljs-number">4</span>] = {<span class="hljs-string">"Calibri"</span>, <span class="hljs-number">12</span>, <span class="hljs-string">"bi"</span>}
 GUI.fonts[<span class="hljs-number">5</span>] = {<span class="hljs-string">"Arial"</span>,   <span class="hljs-number">10</span>}
 GUI.fonts[<span class="hljs-string">"meme"</span>] = {<span class="hljs-string">"Impact"</span>, <span class="hljs-number">20</span>, <span class="hljs-string">"b"</span>}</pre><p><em>GUI.font</em> will also directly accept a table in the same format.</p>
+<p><strong>Note:</strong> Sizes are internally multiplied by 0.7 on OSX, because Mac and Windows apparently can&#39;t agree on something as simple as font sizes.</p>
 <h2 id="colors">Colors</h2>
 <p>Colors are dealt with in a similar fashion.</p>
 <pre class="hljs">wnd_bg      <span class="hljs-comment">-- Window BG</span>
@@ -1066,6 +1067,9 @@ if you want, I suppose.</p>
 <h3 id="msg-property1-property2-">Msg(&quot;property1&quot;, &quot;property2&quot;, ...)</h3>
 <p>For development/debugging purposes. Returns a string with the specified properties. If 
 called with no arguments, returns <strong>all</strong> of the Element&#39;s properties.</p>
+<h2 id="misc-variables">Misc. Variables</h2>
+<h3 id="tooltip">tooltip</h3>
+<p>String. If specified for an element (<code>GUI.elms.my_button.toolip = &quot;I am a button!&quot;</code>), GUI will display a tooltip when the mouse is hovered over it. The delay time is specified by <code>GUI.tooltip_time</code>, and defaults to 0.8s.</p>
 <hr><p class="page" id="2.00-Button"></p><h1>1. Button</h1>
 <p>It&#39;s a button. You click on it. Things happen.
 <br><br>
@@ -1762,6 +1766,8 @@ script needs to use Esc for something itself.</p>
 <p>Boolean. <code>True</code> if the SWS extension is available (currently only SWS v2.9.7 or newer).</p>
 <h3 id="gui-script_restricted">GUI.script_restricted</h3>
 <p>Boolean. <code>True</code> if the script is running in &quot;restricted permissions&quot; mode.</p>
+<h3 id="gui-tooltip_time">GUI.tooltip_time</h3>
+<p>Number. Specifies the delay time when the mouse is hovered over an element before a tooltip is shown (if <code>GUI.elms.my_elm.tooltip = &quot;Hello!&quot;</code> is specified).</p>
 <hr><p class="page" id="3.03-Script-hooks"></p><h1>3. Script hooks</h1>
 <p>_Lokasenna_GUI_ provides several hooks for user functions, to be run at appropriate times as part of the
 update loop. All of them are set the same way: <code>GUI.func = my_func</code></p>
