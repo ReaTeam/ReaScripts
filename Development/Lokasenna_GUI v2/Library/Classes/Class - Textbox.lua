@@ -349,7 +349,7 @@ function GUI.Textbox:drawcaret()
         
         local caret_h = self.char_h - 2
 
-        gfx.rect(   self.x + self.pad + (caret_wnd * self.char_w),
+        gfx.rect(   self.x + (caret_wnd * self.char_w) + 4,
                     self.y + (self.h - caret_h) / 2,
                     self.insert_caret and self.char_w or 2,
                     caret_h)
@@ -378,14 +378,16 @@ function GUI.Textbox:drawselection()
     if self:selectionvisible(x, w) then
         
         -- Convert from char-based coords to actual pixels
-        x = self.x + self.pad + (x - self.wnd_pos) * self.char_w
-        
-        y = self.y + self.pad
+        x = self.x + (x - self.wnd_pos) * self.char_w + 4
+
+        h = self.char_h - 2
+
+        y = self.y + (self.h - h) / 2
 
         w = w * self.char_w
         w = math.min(w, self.x + self.w - x - self.pad)
 
-        h = self.char_h
+
         
         gfx.rect(x, y, w, h, true)
         

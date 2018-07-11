@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.11.2
+Version: 2.11.3
 Changelog:
-    Fix: Ensuring a number value for slider handles
+    Fix: Issues drawing Textbox caret and selection 
 Author: Lokasenna
 Provides: 
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
