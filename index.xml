@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84a0516d14e9139137dc5fb43f4c027183ca560d" name="ReaTeam Scripts">
+<index version="1" commit="5d4af936af832b5c7f0ef4a421af5ed280533bf6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6819,6 +6819,11 @@ enter or a = Exit and apply changes\par}
         <changelog><![CDATA[+ changed filter and sort function structure - should now be more CPU friendly
 + last window position is now stored]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/610a6e7d01983a8b7f1135acfd311207f9a85543/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="0.1.2" author="solger" time="2018-07-11T03:32:23Z">
+        <changelog><![CDATA[+ fixed issue with empty lists
++ filter is now automatically applied to the list when typing]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5d4af936af832b5c7f0ef4a421af5ed280533bf6/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
