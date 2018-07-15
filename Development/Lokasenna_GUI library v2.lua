@@ -1,8 +1,9 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.11.3
+Version: 2.11.4
 Changelog:
-    Fix: Issues drawing Textbox caret and selection 
+    Fix: Crash if ReaPack wasn't found
+    Fix: Issues with Listbox display while dragging the scrollbar
 Author: Lokasenna
 Provides: 
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
