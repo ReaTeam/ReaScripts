@@ -1,14 +1,19 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 0.1.2
+-- @version 0.1.3
 -- @changelog
---   + fixed issue with empty lists
---   + filter is now automatically applied to the list when typing
+--   + filter is now case-insensitive
+--   + last window pin state (pinned/unpinned) is now remembered
+--   + last openend tab is now remembered
+--   + added 'New project (ignore default template)' button
+--   + code improvements for switching back to 'Most recent' sort option
+--   + adjustable window size (experimental) - requires restart of ReaLauncher afterwards
+--   + adapted file reading function for Reaper 32-bit compatibility
 -- @screenshot https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174
 -- @about
 --   # ReaLauncher 
 --
---   A custom version of the startup prompt window for loading (recent) projects and project/track templates
+--   A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features
 --
 --   ## Screenshot
 --
@@ -17,27 +22,47 @@
 --   ## Main features
 --
 --   - Separate Tabs for Recent Projects, Project Templates and Track Templates
---   - Simple (case-sensitive) pattern-matching filter textboxes at the top of each Tab
+--   - Simple pattern-matching filter at the top of each Tab
 --   - Global buttons for 'New Tab' and 'New Project'
---   - [Recent Projects]-Tab: In addition to the default list order, it's also possible to sort the list alphabetically (ascending/descending)
+--   - [Recent Projects]-Tab: 3 different sort options: 'most recent' projects at the top, alphabetically ascending or descending
 --   - Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)
---   - 'Window-pin' checkbox at the top right: when enabled (= default setting) the window is kept open after using any of the [New], [Load] or [Insert] buttons
+--   - 'PIN'-box at the top right: keeps the window open when checked
 --
+--   Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772
+--   Big thanks to Lokasenna for his work!!
+
 --   ## Discussion thread
 --
 --   https://forum.cockos.com/showthread.php?t=208697
 
-------------------------------------------------------------------------------------------------------
--- Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772
--- Big thanks to Lokasenna for his work!!
-------------------------------------------------------------------------------------------------------
-local debug_enabled = false; -- Set to 'true' in order to show debug messages in the console
+------------------------------------------------------------------------------------------
+local debugEnabled = false -- Set to 'true' in order to show debug messages in the console
 
----------------------------------------------------------------------------------------------
--- Lokasenna's GUI library v2
--- Lokasenna: 'The Core library must be loaded prior to any classes, or the classes will throw up errors
--- when they look for functions that aren't there.'
----------------------------------------------------------------------------------------------
+----------------------
+-- Helper functions --
+----------------------
+local function MsgDebug(str)
+    if debugEnabled then
+      reaper.ShowConsoleMsg( tostring(str) .. "\n" )
+    end
+end
+
+local function MsgError(str)
+  reaper.ShowMessageBox(tostring(str),"Error", 0)
+end
+
+local function MsgInfo(str)
+  reaper.ShowMessageBox(tostring(str),"Info", 0)
+end
+
+bitversion = reaper.GetAppVersion()
+bitversion = string.sub(bitversion, #bitversion-2, #bitversion)
+appname = "solger_ReaLauncher"
+
+--------------------------------------------------------------------------------------------------------
+-- Lokasenna's GUI library v2: 'The Core library must be loaded prior to any classes,
+-- or the classes will throw up errors when they look for functions that aren't there.'
+--------------------------------------------------------------------------------------------------------
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
   if not lib_path or lib_path == "" then
     reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
@@ -61,19 +86,23 @@ if missing_lib then return 0 end -- If any of the requested libraries weren't fo
 -------------------------------
 reaperIniPath = reaper.get_ini_file()
 resourcePath = reaper.GetResourcePath()
+if (resourcePath == nil) then MsgError("Could not retrieve the Reaper resource path!") end
 
-if (resourcePath == nil) then
-  reaper.ShowMessageBox("Could not retrieve the Reaper resource path!","Error", 0)
-end
+trackTemplatePath = resourcePath .. "/TrackTemplates"
+projectTemplatePath = resourcePath .. "/ProjectTemplates"
 
-if reaper.GetOS():find("OSX") then
-  -- macOS paths
-  trackTemplatePath = resourcePath .. "/TrackTemplates"
-  projectTemplatePath = resourcePath .. "/ProjectTemplates"
-else
-  -- Windows paths
-  trackTemplatePath = resourcePath .. "\\TrackTemplates"
-  projectTemplatePath = resourcePath .. "\\ProjectTemplates"
+---------------------------------------
+-- Used for Reaper 32-bit compatibility
+---------------------------------------
+local function EnumerateFiles(folder)
+  local files = {}
+  local i = 0
+    repeat
+      local retval = reaper.EnumerateFiles(folder, i)
+      table.insert(files, retval)
+      i = i + 1
+    until not retval
+  return files
 end
 
 ------------------------------------------------------------------------------------
@@ -84,19 +113,25 @@ local function GetFiles(path)
   local files = {}
 
   if reaper.GetOS():find("OSX") then
-    -- macOS paths
+    -- macOS
     for file in io.popen([[find ]] .. path .. [[ -maxdepth 1 -type f -not -name '.*']]):lines() do
       files[#files + 1] = file
-      if debug_enabled then reaper.ShowConsoleMsg(table.concat(files,"\n").."\n\n\n") end
     end
     else
-    -- Windows paths
-    for file in io.popen([[dir "]] .. path .. [[" /a:-d /s /b | sort]]):lines() do
-      files[#files + 1] = file
-      if debug_enabled then reaper.ShowConsoleMsg(table.concat(files,"\n").."\n\n\n") end
-    end
+      if bitversion == 'x64' then
+        -- Windows (Reaper 64-bit)
+        for file in io.popen([[dir "]] .. path .. [[" /a:-d /s /b | sort]]):lines() do
+          files[#files + 1] = file
+        end
+      else
+        -- Windows (Reaper 32-bit)
+        files = EnumerateFiles(path)
+        for i=1, #files do
+          files[#files + 1] = file
+        end
+      end
+      MsgDebug(table.concat(files,"\n").."\n")
   end
-
   return files
 end
 
@@ -121,7 +156,7 @@ end
 --------------------------
 -- Invert element order --
 --------------------------
- function InvertElementOrder(arr)
+local function InvertElementOrder(arr)
   local e1, e2 = 1, #arr
   while e1 < e2 do
     arr[e1], arr[e2] = arr[e2], arr[e1]
@@ -179,7 +214,6 @@ function FillRecentProjectsListbox()
     -- Reverse the element order in order to place the most recent entry at the top
     InvertElementOrder(recentProjItemsShort)
     InvertElementOrder(recentProjItemsFull)
-  
   
     for i = 1, #recentProjItemsShort do
       recentProjects[recentProjItemsShort[i]] = recentProjItemsFull[i]
@@ -258,12 +292,17 @@ FillProjectTemplateListBox()
 -----------------------------
 local function BTN_New_Project()
   reaper.Main_OnCommand(40023, 0)
-  if window_pin == false then gfx.quit() end
+  if GUI.Val("pin") == false then gfx.quit() end
 end
 
 local function BTN_New_ProjectTab()
   reaper.Main_OnCommand(40859, 0)
-  if window_pin == false then gfx.quit() end
+  if GUI.Val("pin") == false then gfx.quit() end
+end
+
+local function BTN_New_Project_IgnoreTemplate()
+  reaper.Main_OnCommand(41929, 0)
+  if GUI.Val("pin") == false then gfx.quit() end
 end
 
 -----------------------------
@@ -277,12 +316,6 @@ local function BTN_RecentProject_Load()
     local vals = {}
     for k, v in pairs(selected) do
       table.insert(vals, k)
-    end
-  
-    if debug_enabled then
-      for p = 1, #vals do
-        reaper.ShowConsoleMsg("vals: '" .. vals[p] .. "'\n")
-      end
     end
   
     for p = 1, #vals do
@@ -303,7 +336,7 @@ local function BTN_RecentProject_Load()
     end
       
     GUI.Val("lst_recentProjects",{})
-    if window_pin == false then gfx.quit() end
+    if GUI.Val("pin") == false then gfx.quit() end
   end
 end
 
@@ -329,7 +362,7 @@ local function BTN_RecentProject_LoadInTab()
     end
   
     GUI.Val("lst_recentProjects",{})
-    if window_pin == false then gfx.quit() end
+    if GUI.Val("pin") == false then gfx.quit() end
   end
 end
 
@@ -360,9 +393,8 @@ local function BTN_ProjectTemplate_Load()
         reaper.Main_openProject(selectedProjectTemplate) 
      end
   end  
-    
---    GUI.Val("lst_projectTemplates",{})
-    if window_pin == false then gfx.quit() end
+
+    if GUI.Val("pin") == false then gfx.quit() end
   end
 end
 
@@ -388,8 +420,7 @@ local function BTN_ProjectTemplate_LoadInTab()
     reaper.Main_openProject(selectedProjectTemplate) 
   end  
 
---    GUI.Val("lst_projectTemplates",{})
-    if window_pin == false then gfx.quit() end
+    if GUI.Val("pin") == false then gfx.quit() end
   end
 end
 
@@ -415,55 +446,92 @@ local function BTN_TrackTemplate_Load()
       reaper.Main_openProject(selectedTrackTemplate) 
    end 
   
---   GUI.Val("lst_trackTemplates",{})
-   if window_pin == false then gfx.quit() end
+   if GUI.Val("pin") == false then gfx.quit() end
   end
+end  
+  
+----------------------
+-- Make a duplicate --
+----------------------
+isNotMostRecent = true
+  
+local function Duplicate(arr)
+  cloned = true
+  clone = {}
+
+  i,v = next(arr, nil)
+    while i do
+      clone[i] = v
+      i,v = next(arr,i)
+    end
+  return clone
 end  
   
 --------------------
 -- Sort functions --
 --------------------
-local function SortAsc()
-    table.sort(recentProjItemsShort, function(a, b) return a:lower() < b:lower() end)
-    GUI.elms.lst_recentProjects.list = recentProjItemsShort
+-- most recent at the top
+local function Sort_MostRecent()
+  if isNotMostRecent == false then
+    recentProjItemsShort = Duplicate(previousProjectItems)
+    GUI.elms.lst_recentProjects.list = previousProjectItems
+  end
 end
 
-local function SortDef()
-    FillRecentProjectsListbox()
-    GUI.elms.lst_recentProjects.list = recentProjItemsShort
+-- alphabetically - ascending
+local function Sort_Alphabetically_Ascending()
+  if isNotMostRecent then
+    previousProjectItems = Duplicate(recentProjItemsShort)
+    isNotMostRecent = false
+  end
+    
+  table.sort(recentProjItemsShort, function(a, b) return a:lower() < b:lower() end)
+  GUI.elms.lst_recentProjects.list = recentProjItemsShort
 end
 
-local function SortDesc()
-    table.sort(recentProjItemsShort, function(a, b) return b:lower() < a:lower() end)
-    GUI.elms.lst_recentProjects.list = recentProjItemsShort
+-- alphabetically - descending
+local function Sort_Alphabetically_Descending()
+  if isNotMostRecent then
+    previousProjectItems = Duplicate(recentProjItemsShort)
+    isNotMostRecent = false
+  end
+    
+  table.sort(recentProjItemsShort, function(a, b) return b:lower() < a:lower() end)
+  GUI.elms.lst_recentProjects.list = recentProjItemsShort
 end
 
 local function UpdateSortMode()
- -- Listbox sort mode: Default (most recent project at the top) / Ascending / Descending
-    local sortMode = GUI.Val("menu_sort")
-    if sortMode == 1 then
-      SortDef()
-    elseif sortMode == 2 then
-      SortAsc()     
-    else
-      SortDesc()
-    end
+  local sortMode = GUI.Val("menu_sort")
+  if sortMode == 1 then
+    Sort_MostRecent()
+  elseif sortMode == 2 then
+    Sort_Alphabetically_Ascending()     
+  else
+    Sort_Alphabetically_Descending()
+  end
 end
 
 ----------------------
 -- Filter functions --
 ----------------------
+local function FilterNoCase(s)
+    s = string.gsub(s, "%a", function (c)
+          return "[" .. string.lower(c) .. string.upper(c) .. "]"
+        end)
+    return s
+end
+
+-- Recent Projects tab
 local function UpdateListFilter_RecentProjects()
-  -- Recent Projects tab
   if RecentProjectFilterActive then
     GUI.elms.lst_recentProjects.list = filteredRecentProjects
   else
-   UpdateSortMode()
+    UpdateSortMode()
   end
 end
 
+-- Project Templates tab
 local function UpdateListFilter_ProjectTemplates()
- -- Project Templates tab
   if ProjectTemplateFilterActive then
     GUI.elms.lst_projectTemplates.list = filteredProjectTemplates
   else
@@ -471,8 +539,8 @@ local function UpdateListFilter_ProjectTemplates()
   end
 end
 
+-- Track Templates tab
 local function UpdateListFilter_TrackTemplates()
-  -- Track Templates tab
   if TrackTemplateFilterActive then
     GUI.elms.lst_trackTemplates.list = filteredTrackTemplates
   else
@@ -484,34 +552,33 @@ end
 -- Filter Remove functions --
 -----------------------------
 local function BTN_Filter_RecentProject_Remove()
-  FillRecentProjectsListbox()
   RecentProjectFilterActive = false
-  UpdateListFilter_RecentProjects()
   GUI.Val("lst_recentProjects",{})
+--  UpdateListFilter_RecentProjects()
 end 
 
 local function BTN_Filter_ProjectTemplate_Remove()
   ProjectTemplateFilterActive = false
-  UpdateListFilter_ProjectTemplates()
---  FillProjectTemplateListBox()
   GUI.Val("lst_projectTemplates",{})
+--  UpdateListFilter_ProjectTemplates()
 end 
 
 local function BTN_Filter_TrackTemplate_Remove()
   TrackTemplateFilterActive = false
-  UpdateListFilter_TrackTemplates()
- -- FillTrackTemplateListBox()
   GUI.Val("lst_trackTemplates",{})
+--  UpdateListFilter_TrackTemplates()
 end 
 
 ----------------------------
 -- Filter Apply functions --
 ----------------------------
-local function BTN_Filter_RecentProject_Apply()
-  local searchStr = GUI.Val("tb_filterRecentProjects")
+local function Filter_RecentProject_Apply()
   filteredRecentProjects = {}
+  
+  local searchStr = GUI.Val("tb_filterRecentProjects")
+  searchStr = FilterNoCase(searchStr) 
 
- for i = 1, #recentProjItemsShort do
+  for i = 1, #recentProjItemsShort do
    if string.find(recentProjItemsShort[i], searchStr) then
        filteredRecentProjects[recentProjItemsShort[i]] = recentProjItemsFull[i]
        table.insert(filteredRecentProjects, recentProjItemsShort[i])
@@ -524,11 +591,12 @@ local function BTN_Filter_RecentProject_Apply()
   GUI.Val("lst_recentProjects",{})
 end
 
-local function BTN_Filter_ProjectTemplate_Apply()
-  local searchStr = GUI.Val("tb_filterProjectTemplates")
+local function Filter_ProjectTemplate_Apply()
   filteredProjectTemplates = {}
+  local searchStr = GUI.Val("tb_filterProjectTemplates")
+  searchStr = FilterNoCase(searchStr) 
 
- for i = 1, #projectTemplates do
+  for i = 1, #projectTemplates do
    if string.find(projectTemplates[i], searchStr) then
       filteredProjectTemplates[projectTemplates[i]] = projectTemplates[i]
       table.insert(filteredProjectTemplates, projectTemplates[i])
@@ -541,29 +609,24 @@ local function BTN_Filter_ProjectTemplate_Apply()
   GUI.Val("lst_projectTemplates",{})
 end
 
-local function BTN_Filter_TrackTemplate_Apply()
-  local searchStr = GUI.Val("tb_filterTrackTemplates")
+local function Filter_TrackTemplate_Apply()
   filteredTrackTemplates = {}
+  
+  local searchStr = GUI.Val("tb_filterTrackTemplates")
+  searchStr = FilterNoCase(searchStr) 
 
- for i = 1, #trackTemplates do
+  for i = 1, #trackTemplates do
    if string.find(trackTemplates[i], searchStr) then
        filteredTrackTemplates[trackTemplates[i]] = trackTemplates[i]
        table.insert(filteredTrackTemplates, trackTemplates[i])
    end
  end
 
-  TrackTemplateFilterActive = true
+ TrackTemplateFilterActive = true
  UpdateListFilter_TrackTemplates()
   
  GUI.Val("lst_trackTemplates",{})
 end
----------------------
--- Window settings --
----------------------
-GUI.name = "ReaLauncher"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 600, 500
-GUI.anchor, GUI.corner = "mouse", "C" -- Center on "mouse" or "screen"
-GUI.load_window_state("solger_ReaLauncher.lua")
 
 -------------------------------------------------------------
 -- Overwrites the Listbox.lua core function 
@@ -587,7 +650,6 @@ function GUI.Listbox:drawselection()
       -- Windows
         y = off_y + (i - self.wnd_y) * self.char_h
       end
-
       gfx.rect(off_x, y, w, self.char_h, true)
     end
   end  
@@ -595,10 +657,8 @@ function GUI.Listbox:drawselection()
   gfx.a = 1
 end
 
-----------------------------------------
 -- Copied from Lokasenna's Theory Helper
-----------------------------------------
-if reaper.GetOS():find("OSX") then
+--[[if reaper.GetOS():find("OSX") then
   GUI.font = function (fnt)
   local font, size, str = table.unpack( type(fnt) == "table" and fnt or GUI.fonts[fnt])
 
@@ -615,14 +675,36 @@ if reaper.GetOS():find("OSX") then
     gfx.setfont(1, font, size, flags)
   end
 end
+]]--
+
+---------------------
+-- Window settings --
+---------------------
+GUI.name = "ReaLauncher"
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 620, 600
+GUI.anchor, GUI.corner = "mouse", "C" -- Center on "mouse" or "screen"
+GUI.load_window_state(appname)
+
+btn_w = 120
+btn_h = 28
+
+pad_top = 30
+listbox_w = GUI.w - 160
+listbox_h = GUI.h - 60
+
+btn_pad_left = listbox_w + 25
+btn_pad_top = 160
+btn_pad_add = 35
+btn_tab_top = 320
 
 -----------------------
 -- Main GUI Elements --
 -----------------------
 GUI.New("tabs", "Tabs", 1, 0, 0, 100, 20, "Recent Projects, Project Templates, Track Templates", 16)
-GUI.New("cklist_wnd", "Checklist", 1, 560, 30, 20, 20, "", "", "h", 0)
-GUI.New("btn_newProjectTab", "Button", 1, 485, 150, 100,  28, "New Tab", BTN_New_ProjectTab) 
-GUI.New("btn_newProject", "Button", 1, 485, 185, 100,  28, "New Project", BTN_New_Project) 
+GUI.New("pin", "Checklist", 1, GUI.w - 40, pad_top, 20, 20, "", "", "h", 0)
+GUI.New("btn_newProjectTab", "Button", 1, btn_pad_left, btn_pad_top, btn_w, btn_h, "New Tab", BTN_New_ProjectTab) 
+GUI.New("btn_loadIgnoreTemplate", "Button", 1, btn_pad_left, btn_pad_top + btn_pad_add, btn_w, btn_h, "Ignore Template", BTN_New_Project_IgnoreTemplate)
+GUI.New("btn_newProject", "Button", 1, btn_pad_left, btn_pad_top + (3 * btn_pad_add), btn_w, btn_h, "New Project", BTN_New_Project) 
 
 --  Tab | Layers
 GUI.elms.tabs:update_sets(
@@ -632,17 +714,17 @@ GUI.elms.tabs:update_sets(
     [4] = {6}
   }
 )
- 
+
 --------------------------------------
 -- Tab 1 Elements - Recent Projects --
 --------------------------------------
-GUI.New("tb_filterRecentProjects", "Textbox", 3, 50, 30, 310, 20, "Filter:", 8)
-GUI.New("btn_filterRecentProjectsRemove", "Button", 3, 370, 28, 20,  24, "X", BTN_Filter_RecentProject_Remove)
-GUI.New("menu_sort", "Menubox", 3, 40, 465, 95, 20, "Sort:", "Most Recent,Ascending,Descending")
-GUI.New("lst_recentProjects", "Listbox", 3, 10, 56, 460, 400,"", true)
+GUI.New("tb_filterRecentProjects", "Textbox", 3, 80, pad_top, 260, 20, "Filter:", 8)
+GUI.New("btn_filterRecentProjectsRemove", "Button", 3, 10, pad_top - 2, 20,  22, "X", BTN_Filter_RecentProject_Remove)
+GUI.New("menu_sort", "Menubox", 3, 375, 30, 95, 20, "Sort:", "Most Recent,Ascending,Descending")
+GUI.New("lst_recentProjects", "Listbox", 3, 10, 56, listbox_w, listbox_h,"", true)
 
-GUI.New("btn_loadRecentProjectInTab", "Button", 3, 485, 250, 100,  28, "Load in Tab", BTN_RecentProject_LoadInTab)
-GUI.New("btn_loadRecentProject", "Button", 3, 485, 285, 100, 28, "Load", BTN_RecentProject_Load)
+GUI.New("btn_loadRecentProjectInTab", "Button", 3, btn_pad_left, btn_tab_top, btn_w,  btn_h, "Load in Tab", BTN_RecentProject_LoadInTab)
+GUI.New("btn_loadRecentProject", "Button", 3, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", BTN_RecentProject_Load)
 GUI.elms.lst_recentProjects.list = recentProjItemsShort
 
 function GUI.elms.lst_recentProjects:ondoubleclick()
@@ -651,7 +733,7 @@ end
 
 function GUI.elms.tb_filterRecentProjects:ontype()
    GUI.Textbox.ontype(self)
-   BTN_Filter_RecentProject_Apply()
+   Filter_RecentProject_Apply()
 end
 
 function GUI.elms.menu_sort:onmousedown()
@@ -664,11 +746,11 @@ end
 ----------------------------------------
 -- Tab 2 Elements - Project Templates --
 ----------------------------------------
-GUI.New("tb_filterProjectTemplates", "Textbox", 4, 50, 30, 310, 20, "Filter:", 8)
-GUI.New("btn_filterProjectTemplatesRemove", "Button", 4, 370, 28, 20,  24, "X",BTN_Filter_ProjectTemplate_Remove)
-GUI.New("lst_projectTemplates", "Listbox", 4, 10, 56, 460, 400, "", true)
-GUI.New("btn_loadProjectTemplateInTab", "Button", 4, 485, 250, 100,  28, "Load in Tab", BTN_ProjectTemplate_LoadInTab)
-GUI.New("btn_loadProjectTemplate", "Button", 4, 485, 285, 100,  28, "Load", BTN_ProjectTemplate_Load)
+GUI.New("tb_filterProjectTemplates", "Textbox", 4, 80, pad_top, 260, 20, "Filter:", 8)
+GUI.New("btn_filterProjectTemplatesRemove", "Button", 4, 10, pad_top-2, 20,  22,"X", BTN_Filter_ProjectTemplate_Remove)
+GUI.New("lst_projectTemplates", "Listbox", 4, 10, 56, listbox_w, listbox_h, "", true)
+GUI.New("btn_loadProjectTemplateInTab", "Button", 4, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", BTN_ProjectTemplate_LoadInTab)
+GUI.New("btn_loadProjectTemplate", "Button", 4, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", BTN_ProjectTemplate_Load)
 GUI.elms.lst_projectTemplates.list = projectTemplates
 
 function GUI.elms.lst_projectTemplates:ondoubleclick()
@@ -677,18 +759,18 @@ end
 
 function GUI.elms.tb_filterProjectTemplates:ontype()
    GUI.Textbox.ontype(self)
-   BTN_Filter_ProjectTemplate_Apply()
+   Filter_ProjectTemplate_Apply()
 end
 
 --------------------------------------
 -- Tab 3 Elements - Track Templates --
 --------------------------------------
 
-GUI.New("tb_filterTrackTemplates", "Textbox", 5, 50, 30, 310, 20, "Filter:", 8)
-GUI.New("btn_filterTrackTemplatesRemove", "Button", 5, 370, 28, 20,  24, "X", BTN_Filter_TrackTemplate_Remove)
+GUI.New("tb_filterTrackTemplates", "Textbox", 5, 80, pad_top, 260, 20, "Filter:", 8)
+GUI.New("btn_filterTrackTemplatesRemove", "Button", 5, 10, pad_top-2, 20, 22, "X", BTN_Filter_TrackTemplate_Remove)
+GUI.New("lst_trackTemplates", "Listbox", 5, 10, 56, listbox_w, listbox_h, "", true)
 
-GUI.New("lst_trackTemplates", "Listbox", 5, 10, 56, 460, 400, "", true)
-GUI.New("btn_loadTrackTemplate", "Button", 5, 485, 250, 100,  28, "Insert", BTN_TrackTemplate_Load)
+GUI.New("btn_loadTrackTemplate", "Button", 5, btn_pad_left, btn_tab_top, btn_w, btn_h, "Insert", BTN_TrackTemplate_Load)
 GUI.elms.lst_trackTemplates.list = trackTemplates
 
 function GUI.elms.lst_trackTemplates:ondoubleclick()
@@ -697,7 +779,20 @@ end
 
 function GUI.elms.tb_filterTrackTemplates:ontype()
    GUI.Textbox.ontype(self)
-   BTN_Filter_TrackTemplate_Apply()
+   Filter_TrackTemplate_Apply()
+end
+
+local function Load_ExtSettings()
+
+local pin = reaper.GetExtState(appname,"window_pin")
+  GUI.Val("pin", {(pin == "true" and true or false)})
+  GUI.Val("tabs", tonumber(reaper.GetExtState(appname, "last_tab")))
+end
+
+local function Save_ExtSettings()
+  GUI.save_window_state(appname)
+  reaper.SetExtState(appname, "window_pin", tostring(GUI.Val("pin")),1)
+  reaper.SetExtState(appname, "last_tab", GUI.Val("tabs"), 1) 
 end
 
 --------------------
@@ -707,25 +802,14 @@ RecentProjectFilterActive = false
 TrackTemplateFilterActive = false
 ProjectTemplateFilterActive = false
 
-
-GUI.onresize = function()
-  -- check and force the resize
-  local __,x,y,w,h = gfx.dock(-1,0,0,0,0)
-  gfx.quit()
-  gfx.init(GUI.name, GUI.w, GUI.h, 0, x, y)
-  GUI.redraw_z[0] = true
-end
-
-local function Main()
-  window_pin = GUI.Val("cklist_wnd") -- Get the current window pin state  
-  GUI.save_window_state("solger_ReaLauncher.lua")
-end
-
-GUI.Val("cklist_wnd",{1}) -- keep the window pinned by default when showing the window
 GUI.Init() 
+Load_ExtSettings()
 
--- Tell the GUI library to run Main on each update loop
--- Individual elements are updated first, then GUI.func is run, then the GUI is redrawn
 GUI.func = Main
-GUI.freq = 0 -- How often (in seconds) to run GUI.func. 0 = every loop.
+GUI.freq = 0
+
+reaper.atexit(function ()
+  Save_ExtSettings()
+end)
+
 GUI.Main()
