@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f9edfd98ab22994814e1b16075bf10179ce5241d" name="ReaTeam Scripts">
+<index version="1" commit="7627d551f09f84d5efce37113924c672b9082751" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6824,18 +6824,17 @@ enter or a = Exit and apply changes\par}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/attachment.php?attachmentid=34088&stc=1&d=1530957174\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate Tabs for Recent Projects, Project Templates and Track Templates\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Simple (case-sensitive) pattern-matching filter textboxes at the top of each Tab\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Simple pattern-matching filter at the top of each Tab\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global buttons for 'New Tab' and 'New Project'\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: In addition to the default list order, it's also possible to sort the list alphabetically (ascending/descending)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: 3 different sort options: 'most recent' projects at the top, alphabetically ascending or descending\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Window-pin' checkbox at the top right: when enabled (= default setting) the window is kept open after using any of the [New], [Load] or [Insert] buttons\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'PIN'-box at the top right: keeps the window open when checked\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772 Big thanks to Lokasenna for his work!!\par}
 }
 ]]></description>
         <link rel="screenshot">https://forum.cockos.com/attachment.php?attachmentid=34088&amp;stc=1&amp;d=1530957174</link>
@@ -6853,6 +6852,16 @@ enter or a = Exit and apply changes\par}
         <changelog><![CDATA[+ fixed issue with empty lists
 + filter is now automatically applied to the list when typing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5d4af936af832b5c7f0ef4a421af5ed280533bf6/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="0.1.3" author="solger" time="2018-07-15T14:45:10Z">
+        <changelog><![CDATA[+ filter is now case-insensitive
++ last window pin state (pinned/unpinned) is now remembered
++ last openend tab is now remembered
++ added 'New project (ignore default template)' button
++ code improvements for switching back to 'Most recent' sort option
++ adjustable window size (experimental) - requires restart of ReaLauncher afterwards
++ adapted file reading function for Reaper 32-bit compatibility]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7627d551f09f84d5efce37113924c672b9082751/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
