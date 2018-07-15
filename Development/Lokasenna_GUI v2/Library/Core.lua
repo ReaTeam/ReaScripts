@@ -31,15 +31,19 @@ local function GUI_table ()
     GUI.get_version = function()
     
         local file = GUI.lib_path .. "/Core.lua"
-        local package, err = reaper.ReaPack_GetOwner(file)
-        if not package or package == "" then
-            return "(" .. tostring(err) .. ")"
+        if not reaper.ReaPack_GetOwner then
+            return "(" .. "ReaPack not found" .. ")"
         else
-            local ret, repo, cat, pkg, desc, type, ver, author, pinned, fileCount = reaper.ReaPack_GetEntryInfo(package)
-            if ret then
-                return "v" .. tostring(ver)
+            local package, err = reaper.ReaPack_GetOwner(file)
+            if not package or package == "" then
+                return "(" .. tostring(err) .. ")"
             else
-                return "(version error)"
+                local ret, repo, cat, pkg, desc, type, ver, author, pinned, fileCount = reaper.ReaPack_GetEntryInfo(package)
+                if ret then
+                    return "v" .. tostring(ver)
+                else
+                    return "(version error)"
+                end
             end
         end
     
@@ -2304,10 +2308,9 @@ local function GUI_table ()
     end
     
     
-    -- Looks for an ExtState containing saved window parameters and reapplies them
-    -- Call with noapply = true to just return the values
+    -- Looks for an ExtState containing saved window parameters
     -- Returns dock, x, y, w, h
-    GUI.load_window_state = function (name, noapply)
+    GUI.load_window_state = function (name)
     
         if not name then return end
         
