@@ -1,3 +1,4 @@
+-- NoIndex: true
 local Help = {}
 
 function Help.show_help_msg()

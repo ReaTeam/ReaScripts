@@ -1,4 +1,4 @@
-
+-- NoIndex: true
 local Prefs = GUI.req(GUI.script_path .. "modules/func_Prefs.lua")()
 
 -- Global preferencse

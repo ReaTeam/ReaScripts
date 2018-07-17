@@ -1,4 +1,4 @@
-
+-- NoIndex: true
 --local Sidebar = require("wnd_Sidebar")
 
 local Project = {}

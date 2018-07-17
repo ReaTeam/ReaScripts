@@ -1,3 +1,4 @@
+-- NoIndex: true
 --[[
     GUI Builder for Lokasenna_GUI v2.9    
     

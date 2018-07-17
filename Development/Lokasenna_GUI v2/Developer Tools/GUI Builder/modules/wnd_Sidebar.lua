@@ -1,4 +1,4 @@
-
+-- NoIndex: true
 --local Properties = require("tab_Properties")
 
 local Sidebar = {}

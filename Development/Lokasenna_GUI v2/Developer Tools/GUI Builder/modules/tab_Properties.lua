@@ -1,4 +1,4 @@
-
+-- NoIndex: true
 --local Sidebar = require("wnd_Sidebar")
 
 local Property = GUI.req(GUI.script_path .. "modules/class_Properties.lua")()

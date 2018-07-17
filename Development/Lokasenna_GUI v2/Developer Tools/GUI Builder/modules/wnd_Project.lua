@@ -1,4 +1,4 @@
-
+-- NoIndex: true
 local Project = GUI.req(GUI.script_path .. "modules/func_Project.lua")()
 
 -- Project settings

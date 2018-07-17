@@ -1,3 +1,4 @@
+-- NoIndex: true
 local Prefs = {}
 
 Prefs.preferences = {

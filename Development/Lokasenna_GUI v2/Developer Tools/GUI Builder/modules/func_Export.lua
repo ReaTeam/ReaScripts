@@ -1,3 +1,4 @@
+-- NoIndex: true
 ------------------------------------
 -------- File export functions -----
 -------- for GUI Builder -----------

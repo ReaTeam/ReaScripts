@@ -1,3 +1,4 @@
+-- NoIndex: true
 -- Adds creation and property data to the GUI element classes,
 -- as well as GB-specific methods for selecting, deleting, duplicating, dragging, etc
 --[[
