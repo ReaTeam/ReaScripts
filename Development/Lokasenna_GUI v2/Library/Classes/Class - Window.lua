@@ -41,6 +41,8 @@ function GUI.Window:new(name, z, x, y, w, h, caption, z_set, center) -- Add your
         wnd.center = not center and true or center
     end
     
+    wnd.noclose = wnd.noclose or false
+
     wnd.z_set = wnd.z_set or z_set
     wnd.noadjust = {}
 	
@@ -69,10 +71,11 @@ function GUI.Window:init()
 	gfx.setimgdim(self.buffs[1], w, h)
 	
 	GUI.color("elm_frame")
-	gfx.rect(0, 0, w, h, true)
+    --gfx.rect(0, 0, w, h, true)
+    GUI.roundrect(0, 0, w - 2, h - 2, 4, true, true)
 	
 	GUI.color("wnd_bg")
-	gfx.rect(4, th + 4, w - 8, h - (th + 8), true)
+	gfx.rect(4, th + 4, w - 10, h - (th + 10), true)
 	
     
 
@@ -158,7 +161,7 @@ end
 
 function GUI.Window:onmouseup()    
 
-    if self:mouseoverclose() then 
+    if not self.noclose and self:mouseoverclose() then 
         self:close()
         self:redraw()
     end
@@ -168,6 +171,8 @@ end
 
 function GUI.Window:onmouseover()
     
+    if self.noclose then return end
+
     local old = self.hoverclose
     self.hoverclose = self:mouseoverclose()
                     
@@ -203,7 +208,9 @@ function GUI.Window:drawwindow()
     
     -- Copy the pre-drawn bits
 	gfx.blit(self.buffs[1], 1, 0, 0, 0, w, h, x, y)
-    gfx.blit(self.buffs[2], 1, 0, self.hoverclose and cs or 0, 0, cs, cs, x + w - cs - off, y + off)
+    if not self.noclose then
+        gfx.blit(self.buffs[2], 1, 0, self.hoverclose and cs or 0, 0, cs, cs, x + w - cs - off, y + off)
+    end
 
 end
 
@@ -238,7 +245,7 @@ function GUI.Window:open(...)
     GUI.escape_bypass = true
     
     -- Run user hook
-    if self.onopen then self:onopen({...}) end    
+    if self.onopen then self:onopen({...}) end
     
     self:blitwindow()
     
