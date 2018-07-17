@@ -1,11 +1,10 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.11.4
+Version: 2.12.0
 Changelog:
-    Fix: Crash if ReaPack wasn't found
-    Fix: Issues with Listbox display while dragging the scrollbar
+    Add: Window.noclose, to hide the X button when scripts don't want it
 Author: Lokasenna
-Provides: 
+Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
     [nomain] Lokasenna_GUI v2/Library/{Core,Classes/*}.lua
 Metapackage: true
