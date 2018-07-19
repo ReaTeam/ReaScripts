@@ -110,6 +110,8 @@ function Properties.recreate_elm(elm, name, selected, dup_x, dup_y)
         local page = GUI.elms.GB_mnu_pages and GUI.elms.GB_mnu_pages.retval
         Properties.init_properties(GUI.elms[name or old], page)
         
+        GUI.elms.GB_frm_sel_elm.elm = name or old
+
     end
 
 end

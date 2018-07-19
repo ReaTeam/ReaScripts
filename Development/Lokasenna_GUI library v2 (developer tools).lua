@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua (developer tools)
-Version: 2.10.0
+Version: 2.10.1
 Changelog:
-    Initial release of GUI Builder
+    Fix: GUI Builder crash when renaming elements
 Author: Lokasenna
 Provides: [nomain] Lokasenna_GUI v2/Developer Tools/**/*
 Metapackage: true
