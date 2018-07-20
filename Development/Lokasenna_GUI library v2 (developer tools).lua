@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua (developer tools)
-Version: 2.10.1
+Version: 2.11.0
 Changelog:
-    Fix: GUI Builder crash when renaming elements
+    Add: Example script for the new GetUserInputs module
 Author: Lokasenna
 Provides: [nomain] Lokasenna_GUI v2/Developer Tools/**/*
 Metapackage: true

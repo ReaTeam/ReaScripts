@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.12.0
+Version: 2.13.0
 Changelog:
-    Add: Window.noclose, to hide the X button when scripts don't want it
+    Add: GUI version of Reaper's GetUserInputs window
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
