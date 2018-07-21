@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f6aa7ee2dbfc6e24430788eda944da717cd5aa28" name="ReaTeam Scripts">
+<index version="1" commit="9cee54cbdfb02f8b2f5af82e4b01876819d0003d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -740,6 +740,13 @@ Fix: Issues with Listbox display while dragging the scrollbar]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/f6aa7ee2dbfc6e24430788eda944da717cd5aa28/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
         <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/f6aa7ee2dbfc6e24430788eda944da717cd5aa28/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/f6aa7ee2dbfc6e24430788eda944da717cd5aa28/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+      </version>
+      <version name="2.14.0" author="Lokasenna" time="2018-07-21T19:08:32Z">
+        <changelog><![CDATA[Add: More detailed error message when a required file is missing.
+Fix: ReaPack header wasn't including the Modules folder.]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/9cee54cbdfb02f8b2f5af82e4b01876819d0003d/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/9cee54cbdfb02f8b2f5af82e4b01876819d0003d/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/9cee54cbdfb02f8b2f5af82e4b01876819d0003d/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
