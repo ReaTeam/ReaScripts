@@ -60,11 +60,12 @@ local function GUI_table ()
     
     -- A basic crash handler, just to add some helpful detail
     -- to the Reaper error message.
-    GUI.crash = function (errObject)
-                                 
+    GUI.crash = function (errObject, skipMsg)
+                 
         local by_line = "([^\r\n]*)\r?\n?"
         local trim_path = "[\\/]([^\\/]-:%d+:.+)$"
-        local err = string.match(errObject, trim_path) or "Couldn't get error message."
+        local err = errObject   and string.match(errObject, trim_path)
+                                or  "Couldn't get error message."
     
         local trace = debug.traceback()
         local tmp = {}
@@ -78,21 +79,22 @@ local function GUI_table ()
         
         local name = ({reaper.get_action_context()})[2]:match("([^/\\_]+)$")
         
-        local ret = reaper.ShowMessageBox(name.." has crashed!\n\n"..
-                                          "Would you like to have a crash report printed "..
-                                          "to the Reaper console?", 
-                                          "Oops", 4)
+        local ret = skipMsg and 6 or reaper.ShowMessageBox(name.." has crashed!\n\n"..
+                                    "Would you like to have a crash report printed "..
+                                    "to the Reaper console?", 
+                                    "Oops", 4)
         
         if ret == 6 then 
     
-            reaper.ShowConsoleMsg(  "Error: "..err.."\n"..
-                                    (GUI.error_message and tostring(GUI.error_message).."\n\n" or "\n") ..
+            reaper.ShowConsoleMsg(  "Error: "..err.."\n\n"..
+                                    (GUI.error_message and tostring(GUI.error_message).."\n\n" or "") ..
                                     "Stack traceback:\n\t"..table.concat(tmp, "\n\t", 2).."\n\n"..
                                     "Lokasenna_GUI:\t".. GUI.version.."\n"..
                                     "Reaper:       \t"..reaper.GetAppVersion().."\n"..
                                     "Platform:     \t"..reaper.GetOS())
         end
         
+        GUI.quit = true
         gfx.quit()
     end
     
@@ -112,8 +114,21 @@ local function GUI_table ()
         
         local ret, err = loadfile(( file:sub(2, 2) == ":" and "" or GUI.lib_path ) .. file)
         if not ret then
-            reaper.ShowMessageBox("Couldn't load "..file.."\n\nError: "..tostring(err), "Library error", 0)
-            GUI.error_message = "(Couldn't load " .. file .. ")"
+            local ret = reaper.ShowMessageBox(  "Couldn't load " .. file .. 
+                                    "\n\n" ..
+                                    "Error message:\n" .. tostring(err) ..
+                                    "\n\n" ..
+                                    "Please make sure you have the newest version of Lokasenna_GUI. " ..
+                                    "If you're using ReaPack, select Extensions -> ReaPack -> Synchronize Packages. " ..
+                                    "\n\n" ..
+                                    "If this error persists, contact the script author." ..
+                                    "\n\n" ..
+                                    "Would you like to have a crash report printed "..
+                                    "to the Reaper console?"
+                                    , "Library error", 4
+                                )
+            GUI.error_message = tostring(err)
+            if ret == 6 then GUI.crash(nil, true) end
             missing_lib = true		
             return function () end
     
