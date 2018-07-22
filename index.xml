@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="95b4b89ae673134858dc4584dc54493060a5ad3f" name="ReaTeam Scripts">
+<index version="1" commit="3f2e04ee2168f90f9539ce492f019fcb2032b749" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9107,7 +9107,7 @@ Web Interface:
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then reroutes all selected tracks to it and disables their Master/Parent sends.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then reroutes all selected tracks to it and disables their\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
@@ -9117,6 +9117,10 @@ Web Interface:
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f27c1d3526362d51484922526cc276a08b30577/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20selected%20tracks%20to%20it.lua</source>
       </version>
+      <version name="1.1.0" author="Lokasenna" time="2018-07-22T13:54:18Z">
+        <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3f2e04ee2168f90f9539ce492f019fcb2032b749/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20selected%20tracks%20to%20it.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Create mix bus and reroute all top-level tracks to it.lua" type="script" desc="Create mix bus and reroute all top-level tracks to it">
       <metadata>
@@ -9124,9 +9128,7 @@ Web Interface:
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then reroutes all tracks to it that are currently sending out to the Master track.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 i.e. the tracks listed with a * would have their Master/Parent send disabled, and would instead send to the Mix Bus:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Master --Mix Bus <-- new track --Reverb bus * --NY Comp bus * --Drums * ----Kick ----Snare --Bass * --Guitars * ----Guitar L ----Guitar R\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track at track #1, labelled "Mix Bus", then\par}
 }
 ]]></description>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
@@ -9135,6 +9137,10 @@ Web Interface:
       <version name="1.0.0" author="Lokasenna" time="2017-03-27T18:38:20Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39d0d16d8eb78250675ad0fb6a60d4e9bb2ead4d/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20top-level%20tracks%20to%20it.lua</source>
+      </version>
+      <version name="1.1.0" author="Lokasenna" time="2018-07-22T13:54:18Z">
+        <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3f2e04ee2168f90f9539ce492f019fcb2032b749/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20top-level%20tracks%20to%20it.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
