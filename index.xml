@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="85bbff1da0ea55311b145574ffbbdf5c1adf3d4d" name="ReaTeam Scripts">
+<index version="1" commit="95b4b89ae673134858dc4584dc54493060a5ad3f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6578,6 +6578,16 @@ Removed "End Position", replaced with "Length"    ]]></changelog>
       <version name="1.0" author="Lokasenna" time="2016-12-30T02:08:31Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5f4c65866be4cc4df2b66edfc43f1c63554ae8c4/MIDI%20Editor/Lokasenna_Mute%20selected%20notes%20outside%20the%20current%20scale.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Select note and note row under mouse cursor.lua" type="script" desc="Select note and note row under mouse cursor">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-07-22T13:08:13Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/95b4b89ae673134858dc4584dc54493060a5ad3f/MIDI%20Editor/Lokasenna_Select%20note%20and%20note%20row%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select notes above or below note number... .lua" type="script" desc="Select notes above or below note number...">
