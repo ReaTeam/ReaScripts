@@ -1,13 +1,12 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.14.0
+Version: 2.14.1
 Changelog:
-    Add: More detailed error message when a required file is missing.
-    Fix: ReaPack header wasn't including the Modules folder.
+    Fix: Messed up the ReaPack header, Classes folder was being missed
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
-    [nomain] Lokasenna_GUI v2/Library/{Core,Classes,Modules/*}.lua
+    [nomain] Lokasenna_GUI v2/Library/{Core,Classes/*,Modules/*}.lua
 Metapackage: true
 Donation: https://paypal.me/Lokasenna
 Links:
