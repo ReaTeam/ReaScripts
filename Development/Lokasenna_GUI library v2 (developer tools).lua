@@ -1,10 +1,16 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua (developer tools)
-Version: 2.11.0
+Version: 2.12.0
 Changelog:
-    Add: Example script for the new GetUserInputs module
+    Add: Register GUI Builder as an action
+    Add: Register an action to open the Dev. Tools folder
 Author: Lokasenna
-Provides: [nomain] Lokasenna_GUI v2/Developer Tools/**/*
+Provides:
+    [main]   Lokasenna_GUI v2/Developer Tools/Open Lokasenna_GUI v2 Developer Tools folder.lua
+    [main]   Lokasenna_GUI v2/Developer Tools/GUI Builder/Lokasenna_GUI Builder.lua
+    [nomain] Lokasenna_GUI v2/Developer Tools/GUI Builder/modules/*
+    [nomain] Lokasenna_GUI v2/Developer Tools/Documentation.html
+    [nomain] Lokasenna_GUI v2/Developer Tools/Examples and Templates/*
 Metapackage: true
 Donation: https://paypal.me/Lokasenna
 Links:
