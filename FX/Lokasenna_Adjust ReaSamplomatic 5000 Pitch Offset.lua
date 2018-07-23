@@ -1,11 +1,10 @@
 --[[
     Description: Adjust ReaSamplomatic 5000 pitch offset
-    Version: 2.0.0
+    Version: 2.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        New: Rewrote script to only use one source file
-        Add: Actions for adjusting all instances on selected tracks
+        Fix: FX name changes when loading a sample, script couldn't find it
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -103,6 +102,17 @@ local function convert_adjust_amt(adjust_amt)
 end
 
 
+local function is_RS5K(name)
+
+    name = string.lower(name)
+    if string.match(name, "reasamplomatic") 
+    or  string.match(name, "rs5k") then
+        return true
+    end
+
+end
+
+
 local function adjust_FX(media, istrack, idx, adjust_amt)
 
     local get = istrack and reaper.TrackFX_GetParam or reaper.TakeFX_GetParam
@@ -125,6 +135,15 @@ end
 local function get_FX_take(fxnumberOut)
 
     return fxnumberOut >> 16, fxnumberOut & 0xFFFF
+
+end
+
+
+local function take_FX_is_RS5K(take, idx)
+
+    local retval, name = reaper.TakeFX_GetFXName(take, idx, "")
+    return retval and is_RS5K(name)
+
 
 end
 
@@ -154,7 +173,7 @@ local function adjust_focused(adjust_amt)
         local take = reaper.GetMediaItemTake( item, takenumberOut )
         if not take then return end
 
-        adjust_FX(take, false, fxnumberOut, adjust_amt)
+        if take_FX_is_RS5K(take, fxnumberOut) then adjust_FX(take, false, fxnumberOut, adjust_amt) end
 
     end
 
@@ -180,11 +199,11 @@ local function SelectedTracks(proj, idx)
 end
 
 
-local function FX_is_RS5K(track, idx)
+local function track_FX_is_RS5K(track, idx)
 
     local retval, name = reaper.TrackFX_GetFXName(track, idx, "")
+    return retval and is_RS5K(name)
 
-    return( retval and string.match(string.lower(name), "reasamplomatic") )
 
 end
 
@@ -195,7 +214,7 @@ local function adjust_selected_tracks(adjust_amt)
 
         for i = 0, reaper.TrackFX_GetCount(track) - 1 do
 
-            if FX_is_RS5K(track, i) then adjust_FX(track, true, i, adjust_amt) end
+            if track_FX_is_RS5K(track, i) then adjust_FX(track, true, i, adjust_amt) end
 
         end
 
@@ -213,6 +232,7 @@ local function Main()
     local script_mode, adjust_amt = parse_script_name()
     if not (script_mode and adjust_amt) then return end
 
+    --script_mode, adjust_amt = MODE_ALLSELECTED, 0.01
     dMsg("got mode: " .. tostring(script_mode))
     dMsg("got amt: " .. tostring(adjust_amt))
 
