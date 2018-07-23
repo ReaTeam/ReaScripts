@@ -1,9 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua (developer tools)
-Version: 2.12.0
+Version: 2.12.1
 Changelog:
-    Add: Register GUI Builder as an action
-    Add: Register an action to open the Dev. Tools folder
+    Fix: OS and file path logic issues on Linux
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Developer Tools/Open Lokasenna_GUI v2 Developer Tools folder.lua
