@@ -112,7 +112,11 @@ local function GUI_table ()
         
         if missing_lib then return function () end end
         
-        local ret, err = loadfile(( file:sub(2, 2) == ":" and "" or GUI.lib_path ) .. file)
+        local file_path = ( (file:sub(2, 2) == ":" or file:sub(1, 1) == "/") and "" 
+                                                                             or  GUI.lib_path ) 
+                            .. file
+
+        local ret, err = loadfile(file_path)
         if not ret then
             local ret = reaper.ShowMessageBox(  "Couldn't load " .. file .. 
                                     "\n\n" ..
@@ -2286,27 +2290,24 @@ local function GUI_table ()
     ------------------------------------
     
     
-    --[[	Use when working with file paths if you need to add your own /s
-        (Borrowed from X-Raym)
-            
-            Apr. 22/18 - Further reading leads me to believe that simply using
-            '/' as a separator should work just fine on Windows, Mac, and Linux.
-    ]]--
+    -- DEPRECATED: All operating systems seem to be fine with "/"
+    -- Use when working with file paths if you need to add your own /s
+    --    (Borrowed from X-Raym)
     GUI.file_sep = string.match(reaper.GetOS(), "Win") and "\\" or "/"
     
     
     -- To open files in their default app, or URLs in a browser
-    -- Copied from Heda; cheers!
-    GUI.open_file = function (path)
+    -- Using os.execute because reaper.ExecProcess behaves weird
+    -- occasionally stops working entirely on my system.
+    GUI.open_file = function(path)
     
         local OS = reaper.GetOS()
-        
-        if OS == "OSX32" or OS == "OSX64" then
-            os.execute('open "" "' .. path .. '"')
-        else
-            os.execute('start "" "' .. path .. '"')
-        end
-      
+
+        local cmd = ( string.match(OS, "Win") and "start" or "open" ) ..
+                    ' "" "' .. path .. '"'
+
+        os.execute(cmd)
+
     end
     
     
