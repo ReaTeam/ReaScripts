@@ -184,7 +184,7 @@ function Properties.init_mnu_pages(page, numpages)
        
         GUI.Menubox.onmouseup(self)
         
-        Property.init_properties(GUI.elms[GUI.elms.GB_frm_sel_elm.elm], self.retval)
+        Properties.init_properties(GUI.elms[GUI.elms.GB_frm_sel_elm.elm], self.retval)
         
     end
     
