@@ -1,10 +1,10 @@
 --[[
     Description: Adjust ReaSamplomatic 5000 pitch offset
-    Version: 2.0.1
+    Version: 2.1.0
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: FX name changes when loading a sample, script couldn't find it
+        Add: Actions for the last-touched RS5K (track FX only)
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -40,11 +40,24 @@
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of focused ReaSamplomatic 5000 - Up 0.5 semitones.lua
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of focused ReaSamplomatic 5000 - Up 1 semitone.lua
 
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Down 0.01 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Down 0.1 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Down 0.05 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Down 0.5 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Down 1 semitone.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Reset to 0.0 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.01 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.1 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.05 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.5 semitones.lua
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 1 semitone.lua        
+
     Donation: https://www.paypal.me/Lokasenna
 ]]--
 
 local MODE_FOCUSED = 0
 local MODE_ALLSELECTED = 1
+local MODE_LASTTOUCHED = 2
 
 local PARAM_NUMBER = 15 -- RS5K's Pitch Offset parameter
 local PARAM_MULTIPLIER =  0.0000625002384186    -- RS5K's internal value == 0.01 semitones
@@ -57,17 +70,26 @@ end
 
 
 
+------------------------------------
+-------- Parsing Functions ---------
+------------------------------------
+
 
 local function parse_script_name()
 
     local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
+
+    dMsg(script_name)
 
     local script_mode
     if string.match(script_name, "focused ReaSamplomatic") then
         script_mode = MODE_FOCUSED
     elseif string.match(script_name, "selected tracks") then
         script_mode = MODE_ALLSELECTED
+    elseif string.match(script_name, "last%-touched ReaSamplomatic") then
+        script_mode = MODE_LASTTOUCHED
     else
+        dMsg("no script mode found")
         return
     end
     
@@ -102,6 +124,22 @@ local function convert_adjust_amt(adjust_amt)
 end
 
 
+
+
+------------------------------------
+-------- Common Functions ----------
+------------------------------------
+
+
+
+
+local function get_take_from_fxnumberOut(fxnumberOut)
+
+    return fxnumberOut >> 16, fxnumberOut & 0xFFFF
+
+end
+
+
 local function is_RS5K(name)
 
     name = string.lower(name)
@@ -109,6 +147,24 @@ local function is_RS5K(name)
     or  string.match(name, "rs5k") then
         return true
     end
+
+end
+
+
+local function take_FX_is_RS5K(take, idx)
+
+    local retval, name = reaper.TakeFX_GetFXName(take, idx, "")
+    return retval and is_RS5K(name)
+
+
+end
+
+
+local function track_FX_is_RS5K(track, idx)
+
+    local retval, name = reaper.TrackFX_GetFXName(track, idx, "")
+    return retval and is_RS5K(name)
+
 
 end
 
@@ -128,24 +184,8 @@ end
 
 
 ------------------------------------
--------- Focused Instance ----------
+-------- Focused -------------------
 ------------------------------------
-
-
-local function get_FX_take(fxnumberOut)
-
-    return fxnumberOut >> 16, fxnumberOut & 0xFFFF
-
-end
-
-
-local function take_FX_is_RS5K(take, idx)
-
-    local retval, name = reaper.TakeFX_GetFXName(take, idx, "")
-    return retval and is_RS5K(name)
-
-
-end
 
 
 local function adjust_focused(adjust_amt)
@@ -155,17 +195,20 @@ local function adjust_focused(adjust_amt)
     -- Adjust for the track given by GetFocusedFX counting from 1
     local track = reaper.GetTrack( 0, tracknumberOut - 1 )
 
+
     if not retval or retval == 0 then
         
         return
         
+    -- Track FX
     elseif retval == 1 then
 
-        adjust_FX(track, true, fxnumberOut, adjust_amt)
+        if track_FX_is_RS5K(track, fxnumberOut) then adjust_FX(track, true, fxnumberOut, adjust_amt) end
 
+    -- Take FX
     elseif retval == 2 then
 
-        local takenumberOut, fxnumberOut = get_FX_take(fxnumberOut)
+        local takenumberOut, fxnumberOut = get_take_from_fxnumberOut(fxnumberOut)
 
         local item = reaper.GetTrackMediaItem( track, itemnumberOut )
         if not item then return end
@@ -174,6 +217,35 @@ local function adjust_focused(adjust_amt)
         if not take then return end
 
         if take_FX_is_RS5K(take, fxnumberOut) then adjust_FX(take, false, fxnumberOut, adjust_amt) end
+
+    end
+
+end
+
+
+
+------------------------------------
+-------- Last-Touched --------------
+------------------------------------
+--[[
+boolean retval, number tracknumber, number fxnumber, number paramnumber = reaper.GetLastTouchedFX()
+Returns true if the last touched FX parameter is valid, false otherwise. tracknumber==0 means the master track, 1 means track 1, etc. fxnumber and paramnumber are zero-based. See GetFocusedFX.
+]]--
+local function adjust_lasttouched(adjust_amt)
+
+    local retval, tracknumberOut, fxnumberOut, paramnumberOut = reaper.GetLastTouchedFX()
+
+    -- Adjust for the track given by GetFocusedFX counting from 1
+    local track = reaper.GetTrack( 0, tracknumberOut - 1 )
+
+    if not retval then
+        
+        return
+        
+    -- Track FX
+    else
+
+        if track_FX_is_RS5K(track, fxnumberOut) then adjust_FX(track, true, fxnumberOut, adjust_amt) end
 
     end
 
@@ -199,15 +271,6 @@ local function SelectedTracks(proj, idx)
 end
 
 
-local function track_FX_is_RS5K(track, idx)
-
-    local retval, name = reaper.TrackFX_GetFXName(track, idx, "")
-    return retval and is_RS5K(name)
-
-
-end
-
-
 local function adjust_selected_tracks(adjust_amt)
 
     for idx, track in SelectedTracks() do
@@ -225,6 +288,11 @@ end
 
 
 
+------------------------------------
+-------- Main ----------------------
+------------------------------------
+
+
 local function Main()
 
     reaper.Undo_BeginBlock()
@@ -238,9 +306,11 @@ local function Main()
 
     adjust_amt = convert_adjust_amt(adjust_amt)
 
-    if script_mode == MODE_FOCUSED then
+    if      script_mode == MODE_FOCUSED then
         adjust_focused(adjust_amt)
-    elseif script_mode == MODE_ALLSELECTED then
+    elseif  script_mode == MODE_LASTTOUCHED then
+        adjust_lasttouched(adjust_amt)
+    elseif  script_mode == MODE_ALLSELECTED then
         adjust_selected_tracks(adjust_amt)
     end
 
@@ -249,12 +319,3 @@ local function Main()
 end
 
 Main()
-
-
-
-
-
-
-
-
-
