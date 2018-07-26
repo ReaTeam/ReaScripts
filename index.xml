@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c802066be68a00b4a3dc8d91e2971b6e282e06b3" name="ReaTeam Scripts">
+<index version="1" commit="1ae5febb5c0c810b831cf760c4c02bc5e9d527b6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7291,6 +7291,18 @@ enter or a = Exit and apply changes\par}
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Regions/spk77_Create%20regions%20(with%20tail)%20from%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Thonex_Set region at edit cursor to time selection.lua" type="script" desc="Set region at edit cursor to time selection">
+      <version name="1.0.0" author="Thonex" time="2018-07-26T16:56:32Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ae5febb5c0c810b831cf760c4c02bc5e9d527b6/Regions/Thonex_Set%20region%20at%20edit%20cursor%20to%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Thonex_Set time selection to region at edit cursor.lua" type="script" desc="Set time selection to region at edit cursor">
+      <version name="1.0.0" author="Thonex" time="2018-07-26T16:56:32Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ae5febb5c0c810b831cf760c4c02bc5e9d527b6/Regions/Thonex_Set%20time%20selection%20to%20region%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
   </category>
