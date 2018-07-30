@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1ae5febb5c0c810b831cf760c4c02bc5e9d527b6" name="ReaTeam Scripts">
+<index version="1" commit="b748720f562b9374dae40aee3e0e563a0b2aba9c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -992,6 +992,10 @@ Refactored/reorganized the code for readability]]></changelog>
       </version>
       <version name="1.001" author="amagalma" time="2017-10-03T14:14:25Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eea2cdd88109439e3fdabb877c0d9600cd80ff22/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
+      </version>
+      <version name="1.002" author="amagalma" time="2018-07-30T16:15:26Z">
+        <changelog><![CDATA[+ fixed avoiding to create undo when no tracks or no items are selected]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b748720f562b9374dae40aee3e0e563a0b2aba9c/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
