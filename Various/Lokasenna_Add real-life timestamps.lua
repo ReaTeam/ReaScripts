@@ -1,10 +1,10 @@
 --[[
     Description: Add real-life timestamps
-    Version: 1.0.0
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Initial Release
+        Fix: Typo was making the script do nothing
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -38,7 +38,7 @@ if missing_lib then return 0 end
 
 
 
-dm = true
+dm = false
 
 local function dMsg(str)
    if dm then reaper.ShowConsoleMsg(tostring(str) .. "\n") end
@@ -138,7 +138,7 @@ local function parseSettings()
     settings.interval = settings.interval * mults[GUI.Val("mnu_interval")]
 
     settings.start = stringToTime( GUI.Val("txt_start") )
-    if not start then return end
+    if not settings.start then return end
 
     settings.format = GUI.Val("mnu_format")
 
