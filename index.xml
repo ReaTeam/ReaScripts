@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b748720f562b9374dae40aee3e0e563a0b2aba9c" name="ReaTeam Scripts">
+<index version="1" commit="4735302e0e42b8709248bf53ac84a65677831a48" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9249,6 +9249,23 @@ Web Interface:
     <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
       <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Add real-life timestamps.lua" type="script" desc="Add real-life timestamps">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Fills a project with real (i.e. 11:45:01 PM) timestamps, with a variety of user options.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-07-31T23:22:06Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4735302e0e42b8709248bf53ac84a65677831a48/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create action to open a file... .lua" type="script" desc="Create action to open a file...">
