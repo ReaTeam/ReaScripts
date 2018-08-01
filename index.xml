@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fd6c3b711de60669eba748498c7c786809f5b7fb" name="ReaTeam Scripts">
+<index version="1" commit="086f7ffe016f6daa5ee2772bfe08bb0c3b36866d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9091,6 +9091,21 @@ Web Interface:
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/song_switcher.html</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will toggle the mute state of selected items, automation items or tracks, depending on where the mouse clicked last\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2018-08-01T19:18:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f7ffe016f6daa5ee2772bfe08bb0c3b36866d/Various/ED_Smart%20toggle%20mute%20(items,%20automation%20items,%20tracks).lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
