@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1e5ee90e24a4c40071d335c43710c99258ba5b7d" name="ReaTeam Scripts">
+<index version="1" commit="dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9013,23 +9013,23 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df24169a2943824f7605653ad3c987e104edc20c/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
+    <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song Switcher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song switcher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The purpose of this script is to quickly switch between songs in a single project during live shows. It is a replacement for the slow SWS Snapshots (visibility + mute).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name" ("#" being any number).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song Switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song Switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works best with REAPER settings "{\b Do not process muted tracks}" and "{\b Track mute fade}" enabled.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The following actions are included:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher.lua}: This is the main script. It must be open to use the others.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (previous).lua}: Goes to the previous song\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (next).lua}: Goes to the next song\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (reset).lua}: Rebuilds the song list\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher.lua}: This is the main script. It must be open to use the others.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (previous).lua}: Goes to the previous song\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (next).lua}: Goes to the next song\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (reset).lua}: Rebuilds the song list\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+). Note that the timecode displayed in the web interface always starts at 00:00. This means that even if a song starts at 7:45 in the project and ends at 9:12, it's displayed as 00:00 to 01:26 on the web interface for convenience.\par}
 }
 ]]></description>
@@ -9039,71 +9039,22 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
         <link rel="screenshot" href="https://i.imgur.com/DPcRCGh.png">Web Interface</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
-      <version name="1.0" author="cfillion" time="2016-09-06T23:07:07Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e61b24746de1ea829c1751f0d3c44cd7fddf0fb/Various/cfillion_Song%20Switcher.lua</source>
-        <source main="main" file="cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/9e61b24746de1ea829c1751f0d3c44cd7fddf0fb/Various/cfillion_Song%20Switcher%20(next).lua</source>
-        <source main="main" file="cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/9e61b24746de1ea829c1751f0d3c44cd7fddf0fb/Various/cfillion_Song%20Switcher%20(previous).lua</source>
-        <source main="main" file="cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/9e61b24746de1ea829c1751f0d3c44cd7fddf0fb/Various/cfillion_Song%20Switcher%20(reset).lua</source>
-      </version>
-      <version name="1.1" author="cfillion" time="2016-10-14T22:51:37Z">
-        <changelog><![CDATA[+ add onswitch setting (no action, seek, seek+stop) [p=1742908]
-+ exit filter mode if empty when pressing backspace
-+ reduce scrolling when there is enough space]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher.lua</source>
-        <source main="main" file="cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher%20(next).lua</source>
-        <source main="main" file="cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher%20(previous).lua</source>
-        <source main="main" file="cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/d1c69feea5681a0b40f0395fdab6095fda794ff5/Various/cfillion_Song%20Switcher%20(reset).lua</source>
-      </version>
-      <version name="1.2" author="cfillion" time="2017-01-18T06:40:04Z">
-        <changelog><![CDATA[create a new web browser interface (requires REAPER v5.30+)
-improve how the previous docking state is saved
-remember window size and position
-seek to the first item in the song's children tracks [p=1743149]]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher.lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
-        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/30166753b3c20ac101df61a0d7b19c20232192cb/Various/cfillion_Song%20Switcher/song_switcher.html</source>
-      </version>
-      <version name="1.3" author="cfillion" time="2017-03-25T23:01:52Z">
-        <changelog><![CDATA[* fix detection of start/end time when there are no items in the first few tracks
-Web Interface:
-* add midi panic and data reset buttons
-* disable spell check on the input box
-* implement timeline view with seek support and markers
-* make spacebar trigger play/stop on desktop
-* rewrite with cleaner code]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher.lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
-        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e166d2765ef022ef1e6821164a18996aa7dc4b2b/Various/cfillion_Song%20Switcher/song_switcher.html</source>
-      </version>
-      <version name="1.4" author="cfillion" time="2017-05-08T19:40:16Z">
-        <changelog><![CDATA[* only show mousedown button effect for the left button
-* show a context menu on right click
-* stop transport before switching songs rather than after
-* toggle filter box with single click rather than double click
-Web Interface:
-* add Lock button to enable read-only mode
-* change the color of the play button on pause/record
-* confirm tab close in locked mode
-* disable pixel interpolation when scaling the timeline
-* enhance noscript and fix loading flickering
-* implement precise seek on mouse drag in timeline]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher.lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
-        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/e81e1fa2c23b79095256e1687eed0bcad04d7f34/Various/cfillion_Song%20Switcher/song_switcher.html</source>
-      </version>
-      <version name="1.4.1" author="cfillion" time="2018-03-11T13:37:59Z">
-        <changelog><![CDATA[Increase font size in the song list [p=1965158]]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher.lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(next).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
-        <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
-        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/song_switcher.html</source>
+      <version name="1.4.2" author="cfillion" time="2018-08-02T11:26:14Z">
+        <changelog><![CDATA[add help button in windowed mode and in the context menu
+add onswitch mode toggles to the context menu and allow stop-only mode
+rename installed scripts to use sentence case
+use sentence case for the "No song selected" message
+
+Web interface changes:
+fix spelling of "oops" in the noscript error message
+improve host connection error messages
+multiply the refresh rate by 10
+use sentence case for all buttons]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(next).lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(previous).lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(reset).lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
