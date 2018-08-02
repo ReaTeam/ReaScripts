@@ -1,17 +1,11 @@
 -- @description Interactive ReaScript (iReaScript)
--- @version 0.8
+-- @version 0.8.1
 -- @author cfillion
 -- @changelog
---   added support for multibyte characters!
---   iReaScript and print(...) can now be used from external scripts for debugging
---
---   allow reaper and gfx to be overwritten without crashing
---   autocomplete multi-dimensional tables
---   fix table autocompletion when the variable name contains digits
---   fix table autocompletion when there are more than one spaces surrounding the dot
---   fix {[1]=1, [255]=2} being displayed as just {1}
---   redraw the screen only when necessary for reduced CPU usage
---   show a full traceback when iReaScript crashes
+--   add ctrl+w to erase the current word from the cursor
+--   fix moving the cursor to the start of the previous word (shift+left) with multiple leading whitespaces
+--   fix off-by-one character offsets in double-click whole word selection (0.8 regression)
+--   harden against ill-formed UTF-8 sequences in the history file
 -- @links
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
@@ -103,7 +97,7 @@ local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript (iReaScript)',
   NAME = 'Interactive ReaScript',
-  VERSION = '0.8',
+  VERSION = '0.8.1',
 
   MARGIN = 3,
   MAXLINES = 2048,
@@ -148,6 +142,7 @@ local ireascript = {
   KEY_CTRLL = 12,
   KEY_CTRLU = 21,
   KEY_CTRLV = 22,
+  KEY_CTRLW = 23,
   KEY_DELETE = 6579564,
   KEY_DOWN = 1685026670,
   KEY_END = 6647396,
@@ -167,6 +162,8 @@ local ireascript = {
   LEFT_BTN = 1,
   RIGHT_BTN = 2,
   DOUBLECLICK_TIME = 0.2,
+
+  MOD_SHIFT = 8,
 
   EXT_SECTION = 'cfillion_ireascript',
   EXT_WINDOW_STATE = 'window_state',
@@ -319,6 +316,11 @@ function ireascript.keyboard()
     local before, after = ireascript.splitInput()
     ireascript.input = after
     ireascript.moveCaret(0)
+  elseif char == ireascript.KEY_CTRLW then
+    local before, after = ireascript.splitInput()
+    local wordStart = ireascript.lastWord(before)
+    ireascript.input = utf8.sub(before, 1, wordStart) .. after
+    ireascript.moveCaret(wordStart)
   elseif char == ireascript.KEY_ENTER then
     ireascript.removeCaret()
     ireascript.nl()
@@ -333,11 +335,8 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_LEFT then
     local pos
 
-    if gfx.mouse_cap & 8 == 8 then
-      local length = utf8.len(ireascript.input)
-      pos = length - ireascript.nextBoundary(utf8.reverse(ireascript.input),
-        length - ireascript.caret + 1)
-      if pos > 0 then pos = pos + 1 end
+    if gfx.mouse_cap & ireascript.MOD_SHIFT ~= 0 then
+      pos = ireascript.lastWord(ireascript.splitInput())
     else
       pos = ireascript.caret - 1
     end
@@ -346,8 +345,8 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_RIGHT then
     local pos
 
-    if gfx.mouse_cap & 8 == 8 then
-      pos = ireascript.nextBoundary(ireascript.input, ireascript.caret)
+    if gfx.mouse_cap & ireascript.MOD_SHIFT ~= 0 then
+      pos = ireascript.nextWord(ireascript.input, ireascript.caret)
     else
       pos = ireascript.caret + 1
     end
@@ -384,14 +383,18 @@ function ireascript.keyboard()
   return true
 end
 
-function ireascript.nextBoundary(input, from)
-  local boundary = utf8.find(input, '%W%w', from + 1)
+function ireascript.lastWord(str)
+  local pos = utf8.rfind(str, '[^%s]%s')
 
-  if boundary then
-    return utf8.len(utf8.sub(input, 1, boundary))
+  if pos then
+    return pos - 1
   else
-    return utf8.len(input)
+    return 0
   end
+end
+
+function ireascript.nextWord(str, pos)
+  return utf8.find(str, '%s[^%s]', pos + 1) or utf8.len(str)
 end
 
 function ireascript.wrappedLines()
@@ -926,7 +929,9 @@ function ireascript.readHistory()
 
   for line in file:lines() do
     if #ireascript.history >= ireascript.HISTORY_LIMIT then break end
-    table.insert(ireascript.history, line)
+    if utf8.len(line) then
+      table.insert(ireascript.history, line)
+    end
   end
 
   file:close()
@@ -1539,38 +1544,42 @@ function ireascript.selectRange(a, b)
   ireascript.redraw = true
 end
 
-function ireascript.selectWord(point)
-  local segment = ireascript.wrappedBuffer[point.segment]
-  if type(segment) ~= 'table' then return end
-
-  local char = utf8.sub(segment.text, point.char, point.char)
+function ireascript.surroundingBoundaries(str, pos)
+  local char = utf8.sub(str, pos, pos)
   local wordStart, wordEnd
 
   if char:match(ireascript.WORD_SEPARATOR) then
     -- select only repeated same separator characters
-    wordStart, wordEnd = point.char - 1, point.char + 1
+    wordStart, wordEnd = pos - 1, pos + 1
 
-    while wordStart > 0 and utf8.sub(segment.text, wordStart, wordStart) == char do
+    while wordStart > 0 and utf8.sub(str, wordStart, wordStart) == char do
       wordStart = wordStart - 1
     end
 
-    while utf8.sub(segment.text, wordEnd, wordEnd) == char do
+    while utf8.sub(str, wordEnd, wordEnd) == char do
       wordEnd = wordEnd + 1
     end
   else
-    wordStart = utf8.rfind(utf8.sub(segment.text, 1, point.char), ireascript.WORD_SEPARATOR)
-    wordEnd = utf8.find(segment.text, ireascript.WORD_SEPARATOR, point.char, plain)
+    wordStart = utf8.rfind(utf8.sub(str, 1, pos), ireascript.WORD_SEPARATOR) or 0
+    wordEnd = utf8.find(str, ireascript.WORD_SEPARATOR, pos, plain)
+    wordEnd = wordEnd or (utf8.len(str) + 1)
   end
 
-  wordStart = (wordStart or 0) + 1
-  wordEnd = wordEnd or (utf8.len(segment.text) + 1)
+  return (wordStart or 0), wordEnd - 1
+end
+
+function ireascript.selectWord(point)
+  local segment = ireascript.wrappedBuffer[point.segment]
+  if type(segment) ~= 'table' then return end
+
+  local wordStart, wordEnd = ireascript.surroundingBoundaries(segment.text, point.char)
 
   ireascript.useFont(segment.font)
-  local startOffset = gfx.measurestr(utf8.sub(segment.text, 1, wordStart - 1))
-  local stopOffset = gfx.measurestr(utf8.sub(segment.text, 1, wordEnd - 1))
+  local startOffset = gfx.measurestr(utf8.sub(segment.text, 1, wordStart))
+  local stopOffset = gfx.measurestr(utf8.sub(segment.text, 1, wordEnd))
 
-  local start = {segment=point.segment, char=wordStart, offset=startOffset}
-  local stop = {segment=point.segment, char=wordEnd, offset=stopOffset}
+  local start = {segment=point.segment, char=wordStart + 1, offset=startOffset}
+  local stop = {segment=point.segment, char=wordEnd + 1, offset=stopOffset}
 
   ireascript.selectRange(start, stop)
 end
