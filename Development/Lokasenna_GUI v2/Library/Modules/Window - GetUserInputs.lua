@@ -131,7 +131,7 @@ end
 
 
 local function txt_enter(self)
-        
+
     self.focus = false
     self:lostfocus()
     self:redraw()
@@ -261,9 +261,13 @@ function GUI.GetUserInputs(title, captions, defaults, ret_func, extra_width)
     GUI.newfocus = GUI.elms.UserInputs_txt_1
 
     -- Return should also press the OK button
+    -- The metatable stuff is necessary because an individual textbox doesn't
+    -- technically its own .keys table, so adding an entry to it ends up going
+    -- in GUI.Textbox.keys when it looks for its own .keys and can't find it.
     for name in pairs( GUI.elms.UserInputs_wnd:getchildelms() ) do
         if string.match(name, "txt") then
-            GUI.elms[name].keys[GUI.chars.RETURN] = txt_enter
+            GUI.elms[name].keys = {[GUI.chars.RETURN] = txt_enter}
+            setmetatable(GUI.elms[name].keys, GUI.Textbox.keys)
         end
     end
 
