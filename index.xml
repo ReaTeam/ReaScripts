@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="04bab51b2f36750160d1f20530370637973a9524" name="ReaTeam Scripts">
+<index version="1" commit="7c398758325b3875ec808a438e761378893d5e2b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8043,6 +8043,12 @@ Change: Search by track number using #: "#5". "5" will look in track names.]]></
 Add: Option to apply changes in real-time (don't use on large projects)
 Fix: Compatibility with font changes in GUI library]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/04bab51b2f36750160d1f20530370637973a9524/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.3.2" author="Lokasenna" time="2018-08-03T21:47:18Z">
+        <changelog><![CDATA[Fix: Crash looking for children at the top level
+Fix: Crash looking for siblings at the top level
+FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c398758325b3875ec808a438e761378893d5e2b/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
