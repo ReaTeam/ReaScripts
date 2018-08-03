@@ -1379,15 +1379,31 @@ local function GUI_table ()
         aware of which format you're getting in return.
             
     ]]--
+
+    GUI.get_OS_fonts = function()
+
+        local os = reaper.GetOS()
+        if os:match("Win") then
+            return "Calibri", "Lucida Console"
+        elseif os:match("OSX") then
+            return "Helvetica Neue", "Andale Mono"
+        else
+            return "Arial", "DejaVu Sans Mono"
+        end
+
+    end
+    GUI.OS_font, GUI.OS_monospace_font = GUI.get_OS_fonts()
+
     GUI.fonts = {
         
                     -- Font, size, bold/italics/underline
                     -- 				^ One string: "b", "iu", etc.
-                    {"Calibri", 32},	-- 1. Title
-                    {"Calibri", 20},	-- 2. Header
-                    {"Calibri", 16},	-- 3. Label
-                    {"Calibri", 16},	-- 4. Value
-        version = 	{"Calibri", 12, "i"},
+                    {GUI.OS_font, 32},	-- 1. Title
+                    {GUI.OS_font, 20},	-- 2. Header
+                    {GUI.OS_font, 16},	-- 3. Label
+                    {GUI.OS_font, 16},	-- 4. Value
+        monospace = {GUI.OS_monospace_font, 14},
+        version = 	{GUI.OS_font, 12, "i"},
         
     }
     

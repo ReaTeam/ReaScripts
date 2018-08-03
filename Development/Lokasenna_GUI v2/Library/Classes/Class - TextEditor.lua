@@ -17,10 +17,6 @@ if not GUI then
 end
 
 
--- Managing text is MUCH easier with a monospace font.
-GUI.fonts.texteditor = {"Courier", 16}
-
-
 GUI.TextEditor = GUI.Element:new()
 function GUI.TextEditor:new(name, z, x, y, w, h, text, caption, pad)
 	
@@ -54,7 +50,7 @@ function GUI.TextEditor:new(name, z, x, y, w, h, text, caption, pad)
 	txt.font_a = txt.font_a or 3
 	
 	-- Forcing a safe monospace font to make our lives easier
-	txt.font_b = txt.font_bg or "texteditor"
+	txt.font_b = txt.font_bg or "monospace"
 	
 	txt.wnd_pos = {x = 0, y = 1}
 	txt.caret = {x = 0, y = 1}
