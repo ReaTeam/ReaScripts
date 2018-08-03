@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="678f5f930e17689feab1824f425b92e50ad4bf2e" name="ReaTeam Scripts">
+<index version="1" commit="22fcf18af0adaa11696badf2c03940da99f6e64d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7969,7 +7969,12 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <changelog><![CDATA[Add: Options to find all matches and include children
 Add: Separate options for the TCP and MCP
 Add: Exported files prompt for a name rather than generating one]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2972656448d21254e51a37e4a6c401f6dcd6d6c3/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22fcf18af0adaa11696badf2c03940da99f6e64d/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.2.0" author="Lokasenna" time="2018-08-03T04:19:45Z">
+        <changelog><![CDATA[Add: Expanded the match and search options
+Change: Search by track number using #: "#5". "5" will look in track names.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/912fb89496fac15580256bdaa3e11833995e203d/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
@@ -9321,7 +9326,11 @@ use sentence case for all buttons]]></changelog>
       </version>
       <version name="1.0.1" author="Lokasenna" time="2018-07-31T23:32:10Z">
         <changelog><![CDATA[Fix: Typo was making the script do nothing]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd6c3b711de60669eba748498c7c786809f5b7fb/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22fcf18af0adaa11696badf2c03940da99f6e64d/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
+      </version>
+      <version name="1.0.2" author="Lokasenna" time="2018-08-03T04:19:45Z">
+        <changelog><![CDATA[Fix: Better crash protection]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/912fb89496fac15580256bdaa3e11833995e203d/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create action to open a file... .lua" type="script" desc="Create action to open a file...">
