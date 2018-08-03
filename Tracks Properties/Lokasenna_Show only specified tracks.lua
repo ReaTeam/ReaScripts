@@ -1,12 +1,12 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.3.0
+    Version: 1.3.2
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Add: Show siblings of matches
-        Add: Option to apply changes in real-time (don't use on large projects)
-        Fix: Compatibility with font changes in GUI library
+        Fix: Crash looking for children at the top level
+        Fix: Crash looking for siblings at the top level
+        FIx: Tracks disappearing with both children + siblings checked.
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -73,8 +73,7 @@ end
 
 -- Returns an array of MediaTrack == true for all parents of the given MediaTrack
 local function recursive_parents(track)
-
-    if reaper.GetTrackDepth(track) == 0 then 
+    if reaper.GetTrackDepth(track) == 0 then
         return {[track] = true}
     else
         local ret = recursive_parents( reaper.GetParentTrack(track) )
@@ -92,8 +91,7 @@ local function get_children(tracks)
 
         local tr = reaper.GetTrack(0, idx - 1)
         local i = idx + 1
-        while true do
-
+        while i <= reaper.CountTracks(0) do
             children[i] = recursive_parents( reaper.GetTrack(0, i-1) )[tr] == true
             if not children[i] then break end
             i = i + 1
@@ -122,6 +120,18 @@ local function get_parents(tracks)
 end
 
 
+local function get_top_level_tracks()
+
+    local top = {}
+    for i = 1, reaper.CountTracks() do
+        if reaper.GetTrackDepth( reaper.GetTrack(0, i-1) ) == 0 then
+            top[i] = true
+        end
+    end
+
+end
+
+
 local function get_siblings(tracks)
 
     local siblings = {}
@@ -129,16 +139,25 @@ local function get_siblings(tracks)
 
         local tr = reaper.GetTrack(0, idx - 1)
         local sibling_depth = reaper.GetTrackDepth(tr)
-        local parent = reaper.GetParentTrack(tr)
 
-        local children = get_children( {[reaper.GetMediaTrackInfo_Value(parent, "IP_TRACKNUMBER")] = true} )
-        for child_idx in pairs(children) do
+        if sibling_depth > 0 then
+            local parent = reaper.GetParentTrack(tr)
 
-            -- Can't use siblings[idx] = ___ here because we don't want to set existing
-            -- siblings to false
-            if reaper.GetTrackDepth( reaper.GetTrack(0, child_idx-1) ) == sibling_depth then
-                siblings[child_idx] = true
-            end            
+            local children = get_children( {[reaper.GetMediaTrackInfo_Value(parent, "IP_TRACKNUMBER")] = true} )
+            for child_idx in pairs(children) do
+
+                -- Can't use siblings[idx] = ___ here because we don't want to set existing
+                -- siblings to false
+                if reaper.GetTrackDepth( reaper.GetTrack(0, child_idx-1) ) == sibling_depth then
+                    siblings[child_idx] = true
+                end            
+
+            end
+
+        else
+
+            -- Find all top-level tracks
+            return get_top_level_tracks()
 
         end
 
@@ -157,7 +176,7 @@ local function merge_tables(...)
     for i = #tables, 1, -1 do
         if tables[i] then
             for k, v in pairs(tables[i]) do
-                ret[k] = v
+                if v then ret[k] = v end
             end
         end
     end
