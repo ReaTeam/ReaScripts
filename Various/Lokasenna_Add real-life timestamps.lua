@@ -1,10 +1,10 @@
 --[[
     Description: Add real-life timestamps
-    Version: 1.0.1
+    Version: 1.0.3
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: Typo was making the script do nothing
+        Fix: Compatibility with font changes in GUI library
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -133,12 +133,18 @@ local function parseSettings()
     --  Parse settings
     local mults = {1, 60, 3600}
     settings.interval = GUI.Val("txt_interval")
-    if not tonumber(settings.interval) then return end
+    if not tonumber(settings.interval) then 
+        reaper.MB("Please enter a valid interval.", "Whoops!", 0)
+        return 
+    end
 
     settings.interval = settings.interval * mults[GUI.Val("mnu_interval")]
 
     settings.start = stringToTime( GUI.Val("txt_start") )
-    if not settings.start then return end
+    if not settings.start then
+        reaper.MB("Please enter a valid start time. (HH:MM:SS)", "Whoops!", 0)
+        return 
+    end
 
     settings.format = GUI.Val("mnu_format")
 
@@ -221,7 +227,7 @@ local function doMarkerLoop()
 
     end
 
-    reaper.Undo_EndBlock("Add markers with real time", -1)
+    reaper.Undo_EndBlock("Add real-life timestamps", -1)
 
 end
 
@@ -268,7 +274,7 @@ GUI.New("txt_interval", "Textbox", {
     caption = "Marker interval:",
     cap_pos = "left",
     font_a = 3,
-    font_b = "textbox",
+    font_b = "monospace",
     color = "txt",
     bg = "wnd_bg",
     shadow = true,
@@ -347,7 +353,7 @@ GUI.New("txt_start", "Textbox", {
     caption = "Real-life start:",
     cap_pos = "left",
     font_a = 3,
-    font_b = "textbox",
+    font_b = "monospace",
     color = "txt",
     bg = "wnd_bg",
     shadow = true,
