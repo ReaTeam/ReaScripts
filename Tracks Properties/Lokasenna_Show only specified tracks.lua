@@ -1,9 +1,11 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.2.1
+    Version: 1.3.0
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
+        Add: Show siblings of matches
+        Add: Option to apply changes in real-time (don't use on large projects)
         Fix: Compatibility with font changes in GUI library
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -89,12 +91,11 @@ local function get_children(tracks)
     for idx in pairs(tracks) do
 
         local tr = reaper.GetTrack(0, idx - 1)
-        i = idx + 1
+        local i = idx + 1
         while true do
 
             children[i] = recursive_parents( reaper.GetTrack(0, i-1) )[tr] == true
             if not children[i] then break end
-            local _, name = reaper.GetTrackName(reaper.GetTrack(0, i-1), "")
             i = i + 1
         end
     end
@@ -121,15 +122,43 @@ local function get_parents(tracks)
 end
 
 
+local function get_siblings(tracks)
+
+    local siblings = {}
+    for idx in pairs(tracks) do
+
+        local tr = reaper.GetTrack(0, idx - 1)
+        local sibling_depth = reaper.GetTrackDepth(tr)
+        local parent = reaper.GetParentTrack(tr)
+
+        local children = get_children( {[reaper.GetMediaTrackInfo_Value(parent, "IP_TRACKNUMBER")] = true} )
+        for child_idx in pairs(children) do
+
+            -- Can't use siblings[idx] = ___ here because we don't want to set existing
+            -- siblings to false
+            if reaper.GetTrackDepth( reaper.GetTrack(0, child_idx-1) ) == sibling_depth then
+                siblings[child_idx] = true
+            end            
+
+        end
+
+    end
+
+    return siblings
+
+end
+
+
 local function merge_tables(...)
 
     local tables = {...}
-    if not tables[2] then return tables[1] end
 
     local ret = {}
     for i = #tables, 1, -1 do
-        for k, v in pairs(tables[i]) do
-            ret[k] = v
+        if tables[i] then
+            for k, v in pairs(tables[i]) do
+                ret[k] = v
+            end
         end
     end
 
@@ -152,7 +181,10 @@ local function get_tracks_to_show(settings)
             tcp = bool
         }
     ]]--
-    local matches
+    local matches = {}
+
+    -- Abort if we don't need to be doing this
+    if not (settings.tcp or settings.mcp) then return nil end
 
     -- Find all matches
     for i = 1, reaper.CountTracks(0) do
@@ -164,7 +196,6 @@ local function get_tracks_to_show(settings)
 
         if is_match(settings.search, name, idx) and not (ischild and settings.matchonlytop) then
 
-            if not matches then matches = {} end
             matches[idx] = true
             if not settings.matchmultiple then break end
 
@@ -172,13 +203,16 @@ local function get_tracks_to_show(settings)
 
     end
 
-    -- Didn't get any matches
-    if not matches then return matches end
+    -- Hacky way to check if length of a hash table == 0
+    for k in pairs(matches) do
+        if not k then return {} end
+    end
 
     local parents = settings.showparents and get_parents(matches)
     local children = settings.showchildren and get_children(matches)
+    local siblings = settings.showsiblings and get_siblings(matches)
 
-    return merge_tables(matches, parents or nil, children or nil)
+    return merge_tables(matches, parents, children, siblings)
 
 end
 
@@ -248,15 +282,17 @@ end
 local function get_settings()
 
     local search = GUI.Val("txt_search")
-    local opts = GUI.Val("chk_options")
+    local matchopts = GUI.Val("chk_matchopts")
+    local showopts = GUI.Val("chk_showopts")
     local apply = GUI.Val("chk_apply")
 
     return {
         search = search,
-        matchmultiple = opts[1],
-        matchonlytop = opts[2],
-        showchildren = opts[3],
-        showparents = opts[4],
+        matchmultiple = matchopts[1],
+        matchonlytop = matchopts[2],
+        showchildren = showopts[1],
+        showparents = showopts[2],
+        showsiblings = showopts[3],
         tcp = apply[1],
         mcp = apply[2]
     }
@@ -265,7 +301,7 @@ local function get_settings()
 end
 
 
-local function btn_go()
+local function apply_settings()
     
     local settings = get_settings()
     local tracks = get_tracks_to_show(settings)
@@ -274,6 +310,13 @@ local function btn_go()
 end
 
 
+local function btn_go()
+    apply_settings()
+end
+
+local function update_realtime()
+    if GUI.Val("chk_realtime") then apply_settings() end
+end
 
 
 ------------------------------------
@@ -375,6 +418,27 @@ end
 
 
 
+------------------------------------
+-------- Show Tracks buttons -------
+------------------------------------
+
+local function btn_showTCP()
+
+    --_SWSTL_SHOWALLTCP
+    reaper.Main_OnCommand( reaper.NamedCommandLookup("_SWSTL_SHOWALLTCP"), 0)
+
+end
+
+local function btn_showMCP()
+
+    --_SWSTL_SHOWALLMCP
+    reaper.Main_OnCommand( reaper.NamedCommandLookup("_SWSTL_SHOWALLMCP"), 0)
+
+end
+
+
+
+
 
 ------------------------------------
 -------- GUI Stuff -----------------
@@ -392,6 +456,7 @@ GUI.req("Classes/Class - Options.lua")()
 GUI.req("Classes/Class - Button.lua")()
 GUI.req("Classes/Class - Textbox.lua")()
 GUI.req("Classes/Class - Window.lua")()
+GUI.req("Classes/Class - Label.lua")()
 GUI.req("Modules/Window - GetUserInputs.lua")()
 
 
@@ -400,7 +465,7 @@ if missing_lib then return 0 end
 
 
 GUI.name = "Show only specified tracks"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 320, 336
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 320, 512
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
@@ -421,14 +486,14 @@ GUI.New("txt_search", "Textbox", {
     undo_limit = 20
 })
 
-GUI.New("chk_options", "Checklist", {
+GUI.New("chk_matchopts", "Checklist", {
     z = 11,
-    x = 48.0,
+    x = 64,
     y = 56.0,
-    w = 224,
-    h = 112,
-    caption = "Options",
-    optarray = {"Match more than one track", "Match only top-level tracks", "Show children of matches", "Show parents of matches"},
+    w = 192,
+    h = 72,
+    caption = "Match:",
+    optarray = {"More than one track", "Only top-level tracks"},
     dir = "v",
     pad = 4,
     font_a = 2,
@@ -442,11 +507,32 @@ GUI.New("chk_options", "Checklist", {
     opt_size = 20
 })
 
+GUI.New("chk_showopts", "Checklist", {
+    z = 11,
+    x = 64,
+    y = 144,
+    w = 192,
+    h = 96,
+    caption = "Show:",
+    optarray = {"Children of matches", "Parents of matches", "Siblings of matches"},
+    dir = "v",
+    pad = 4,
+    font_a = 2,
+    font_b = 3,
+    col_txt = "txt",
+    col_fill = "elm_fill",
+    bg = "wnd_bg",
+    frame = true,
+    shadow = true,
+    swap = nil,
+    opt_size = 20
+}) 
+
 GUI.New("chk_apply", "Checklist", {
     z = 11,
-    x = 112.0,
-    y = 192.0,
-    w = 96,
+    x = 64,
+    y = 256,
+    w = 192,
     h = 72,
     caption = "Apply to:",
     optarray = {"TCP", "MCP"},
@@ -463,11 +549,43 @@ GUI.New("chk_apply", "Checklist", {
     opt_size = 20
 })
 
+GUI.New("chk_realtime", "Checklist", {
+    z = 11,
+    x = 64,
+    y = 344,
+    w = 192,
+    h = 32,
+    caption = "",
+    optarray = {"Apply changes in real-time"},
+    dir = "v",
+    pad = 4,
+    font_a = 2,
+    font_b = 3,
+    col_txt = "txt",
+    col_fill = "elm_fill",
+    bg = "wnd_bg",
+    frame = false,
+    shadow = true,
+    swap = nil,
+    opt_size = 20
+})
+
+GUI.New("lbl_realtime", "Label", {
+    z = 11,
+    x = 128.0,
+    y = 376,
+    caption = "(Not advisable for large projects!!)",
+    font = 3,
+    color = "txt",
+    bg = "wnd_bg",
+    shadow = true
+})
+
 GUI.New("btn_go", "Button", {
     z = 11,
-    x = 80.0,
-    y = 284.0,
-    w = 48,
+    x = 16,
+    y = 416,
+    w = 140,
     h = 24,
     caption = "Go!",
     font = 3,
@@ -478,19 +596,68 @@ GUI.New("btn_go", "Button", {
 
 GUI.New("btn_export", "Button", {
     z = 11,
-    x = 144.0,
-    y = 284.0,
-    w = 96,
+    x = 164,
+    y = 416,
+    w = 140,
     h = 24,
-    caption = "Export action",
+    caption = "Export preset",
     font = 3,
     col_txt = "txt",
     col_fill = "elm_frame",
     func = btn_export
 })
 
+GUI.New("btn_showTCP", "Button", {
+    z = 11,
+    x = 16,
+    y = 448,
+    w = 140,
+    h = 24,
+    caption = "Show all tracks in TCP",
+    font = 3,
+    col_txt = "txt",
+    col_fill = "elm_frame",
+    func = btn_showTCP
+})
+
+GUI.New("btn_showMCP", "Button", {
+    z = 11,
+    x = 164,
+    y = 448,
+    w = 140,
+    h = 24,
+    caption = "Show all tracks in MCP",
+    font = 3,
+    col_txt = "txt",
+    col_fill = "elm_frame",
+    func = btn_showMCP
+})
+
+
+function GUI.elms.txt_search:lostfocus()
+    GUI.Textbox.lostfocus(self)
+    update_realtime()
+end
+
+function GUI.elms.chk_matchopts:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    update_realtime()
+end
+
+function GUI.elms.chk_showopts:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    update_realtime()
+end
+
+function GUI.elms.chk_apply:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    update_realtime()
+end
 
 
 
 GUI.Init()
+
+GUI.elms.lbl_realtime.x = (GUI.w - GUI.elms.lbl_realtime.w) / 2
+
 GUI.Main()
