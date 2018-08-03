@@ -1,12 +1,10 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.3.2
+    Version: 1.4.0
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: Crash looking for children at the top level
-        Fix: Crash looking for siblings at the top level
-        FIx: Tracks disappearing with both children + siblings checked.
+        Change: Real-time mode updates on every text change
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -652,10 +650,13 @@ GUI.New("btn_showMCP", "Button", {
     func = btn_showMCP
 })
 
-
-function GUI.elms.txt_search:lostfocus()
-    GUI.Textbox.lostfocus(self)
-    update_realtime()
+GUI.elms.txt_search.last_val = ""
+function GUI.elms.txt_search:ontype()
+    GUI.Textbox.ontype(self)
+    if self.retval ~= self.last_val then
+        update_realtime()
+        self.last_val = self.retval
+    end
 end
 
 function GUI.elms.chk_matchopts:onmouseup()
