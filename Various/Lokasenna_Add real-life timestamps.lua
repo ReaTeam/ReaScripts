@@ -1,10 +1,10 @@
 --[[
     Description: Add real-life timestamps
-    Version: 1.0.2
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: Better crash protection
+        Fix: Typo was making the script do nothing
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -133,18 +133,12 @@ local function parseSettings()
     --  Parse settings
     local mults = {1, 60, 3600}
     settings.interval = GUI.Val("txt_interval")
-    if not tonumber(settings.interval) then 
-        reaper.MB("Please enter a valid interval.", "Whoops!", 0)
-        return 
-    end
+    if not tonumber(settings.interval) then return end
 
     settings.interval = settings.interval * mults[GUI.Val("mnu_interval")]
 
     settings.start = stringToTime( GUI.Val("txt_start") )
-    if not settings.start then
-        reaper.MB("Please enter a valid start time. (HH:MM:SS)", "Whoops!", 0)
-        return 
-    end
+    if not settings.start then return end
 
     settings.format = GUI.Val("mnu_format")
 
@@ -227,7 +221,7 @@ local function doMarkerLoop()
 
     end
 
-    reaper.Undo_EndBlock("Add real-life timestamps", -1)
+    reaper.Undo_EndBlock("Add markers with real time", -1)
 
 end
 
