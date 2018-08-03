@@ -1,9 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.0
+Version: 2.15.1
 Changelog:
-    Add: OS-dependent fonts
-    Fix: Textbox/TextEditor cursor placement on OSX
+    Fix: Tidier OS font logic
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

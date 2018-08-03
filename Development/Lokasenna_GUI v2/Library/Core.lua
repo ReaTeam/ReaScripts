@@ -258,7 +258,8 @@ local function GUI_table ()
             GUI.mouse_down_elm = nil
             GUI.rmouse_down_elm = nil
             GUI.mmouse_down_elm = nil
-                
+            
+
             -- Convert color presets from 0..255 to 0..1
             for i, col in pairs(GUI.colors) do
                 col[1], col[2], col[3], col[4] =    col[1] / 255, col[2] / 255, 
@@ -1380,33 +1381,53 @@ local function GUI_table ()
             
     ]]--
 
+    GUI.OS_fonts = {
+
+        Windows = {
+            sans = "Calibri",
+            mono = "Lucida Console"
+        },
+
+        OSX = {
+            sans = "Helvetica Neue",
+            mono = "Andale Mono"
+        },
+
+        Linux = {
+            sans = "Arial",
+            mono = "DejaVu Sans Mono"
+        }
+
+    }
+
     GUI.get_OS_fonts = function()
 
         local os = reaper.GetOS()
         if os:match("Win") then
-            return "Calibri", "Lucida Console"
+            return GUI.OS_fonts.Windows
         elseif os:match("OSX") then
-            return "Helvetica Neue", "Andale Mono"
+            return GUI.OS_fonts.OSX
         else
-            return "Arial", "DejaVu Sans Mono"
+            return GUI.OS_fonts.Linux
         end
 
     end
-    GUI.OS_font, GUI.OS_monospace_font = GUI.get_OS_fonts()
 
+    local fonts = GUI.get_OS_fonts()        
     GUI.fonts = {
         
                     -- Font, size, bold/italics/underline
                     -- 				^ One string: "b", "iu", etc.
-                    {GUI.OS_font, 32},	-- 1. Title
-                    {GUI.OS_font, 20},	-- 2. Header
-                    {GUI.OS_font, 16},	-- 3. Label
-                    {GUI.OS_font, 16},	-- 4. Value
-        monospace = {GUI.OS_monospace_font, 14},
-        version = 	{GUI.OS_font, 12, "i"},
+                    {fonts.sans, 32},	-- 1. Title
+                    {fonts.sans, 20},	-- 2. Header
+                    {fonts.sans, 16},	-- 3. Label
+                    {fonts.sans, 16},	-- 4. Value
+        monospace = {fonts.mono, 14},
+        version = 	{fonts.sans, 12, "i"},
         
     }
-    
+
+
     
     GUI.colors = {
         
