@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.2
+Version: 2.15.3
 Changelog:
-    Fix: GetUserInputs module was overwriting Textbox's key functions
+    Fix: Issues with Listbox's selection bar on OSX
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
