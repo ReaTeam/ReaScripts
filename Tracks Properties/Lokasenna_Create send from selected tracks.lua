@@ -1,18 +1,25 @@
 --[[
 Description: Create send from selected tracks
-Version: 1.10
+Version: 1.30
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Accepts a track number or track name
+    Added pre-FX and post-FX versions
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
     Prompts for a track number, then creates sends to that track
-    from every selected track.
+    from every selected track
+Provides:
+    . > Lokasenna_Create send from selected tracks (post-FX).lua
+    . > Lokasenna_Create send from selected tracks (pre-FX).lua
+    
 --]]
 
 -- Licensed under the GNU GPL v3
+local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
+local post_FX = string.match(script_name, "post%-FX")
+local pre_FX = string.match(script_name, "pre%-FX")
 
 local function Main()
 
@@ -58,10 +65,31 @@ local function Main()
     for i = 0, num_tracks - 1 do
         
         local sel = reaper.GetSelectedTrack(0, i)
+        
+        -- Skip any tracks that are already sending to the destination
+        local num_sends = reaper.GetTrackNumSends(sel, 0)
+        if num_sends and num_sends > 0 then
+            for i = 1, num_sends do
+                --reaper.BR_GetMediaTrackSendInfo_Track( track, category, sendidx, trackType )            
+                if dest == reaper.BR_GetMediaTrackSendInfo_Track(sel, 0, i-1, 1) then goto skip end       
+            end
+        end
 
         -- Create a default send
         --reaper.CreateTrackSend( tr, desttrInOptional )
-        reaper.CreateTrackSend(sel, dest)
+        local idx = reaper.CreateTrackSend(sel, dest)
+        
+        if post_FX then
+            -- reaper.SetTrackSendInfo_Value( tr, category, sendidx, parmname, newvalue )
+            local ret = reaper.SetTrackSendInfo_Value(sel, 0, idx, "I_SENDMODE", 3)
+        
+        elseif pre_FX then
+        
+            local ret = reaper.SetTrackSendInfo_Value(sel, 0, idx, "I_SENDMODE", 1)
+            
+        end
+        
+        ::skip::
         
     end
     

@@ -1,23 +1,26 @@
 --[[
 Description: Create mix bus and reroute all selected tracks to it
-Version: 1.0.0
+Version: 1.1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release
+	Make sure sends are at unity gain, post-fader
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
 	Inserts a new track at track #1, labelled "Mix Bus", then
 	reroutes all selected tracks to it and disables their
-	Master/Parent sends.
+    Master/Parent sends.
+    
+    This will only work properly for mono/stereo audio. Reaper makes
+    multichannel support impractical. :(
 	
 --]]
 
 -- Licensed under the GNU GPL v3
 
-local function Msg(str)
-	reaper.ShowConsoleMsg(tostring(str).."\n")
+local function dMsg(str)
+	if debug_mode then reaper.ShowConsoleMsg(tostring(str).."\n") end
 end
 
 reaper.Undo_BeginBlock()
@@ -34,20 +37,24 @@ retval, __ = reaper.GetSetMediaTrackInfo_String( bus, "P_NAME", "Mix Bus", true 
 -- Loop through all tracks in the project
 for i = 0, reaper.CountSelectedTracks(0) - 1 do
 	
-	_=dm and Msg("looking at track "..i)
+	dMsg("looking at track "..i)
 	
 	local tr = reaper.GetSelectedTrack(0, i)
 	
-	_=dm and Msg("\tdepth = "..reaper.GetTrackDepth(tr))
-	_=dm and Msg("\tp_send = "..tostring( reaper.GetMediaTrackInfo_Value(tr, "B_MAINSEND") ) )
+	dMsg("\tdepth = "..reaper.GetTrackDepth(tr))
+	dMsg("\tp_send = "..tostring( reaper.GetMediaTrackInfo_Value(tr, "B_MAINSEND") ) )
 	
-	_=dm and Msg("\trerouting")
+	dMsg("\trerouting")
 	
 	-- Disable Master Out
 	reaper.SetMediaTrackInfo_Value(tr, "B_MAINSEND", 0)
 		
 	-- Add a post-fader send to idx 1
-	reaper.CreateTrackSend(tr, bus)
+    local send = reaper.CreateTrackSend(tr, bus)
+    
+    -- Make sure send is at unity, post-fader (overriding default send values)
+    reaper.SetTrackSendInfo_Value(tr, 0, send, "D_VOL", 1)
+    reaper.SetTrackSendInfo_Value(tr, 0, send, "I_SENDMODE", 0)    
 	
 end
 
@@ -57,5 +64,5 @@ reaper.PreventUIRefresh( -1 )
 reaper.TrackList_AdjustWindows( false )
 reaper.UpdateArrange()
 
-reaper.Undo_EndBlock("Create mix bus and route all top-level tracks to it", 0)
+reaper.Undo_EndBlock("Create mix bus and route all selected tracks to it", 0)
 
