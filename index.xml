@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1ae5febb5c0c810b831cf760c4c02bc5e9d527b6" name="ReaTeam Scripts">
+<index version="1" commit="83ac015fc92a957e3a85463af4472fab8fc032bc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -398,6 +398,26 @@ fix crash when displaying table with mixed key types
 fix length counting of tables containing mixed key types
 use Lua-compatible syntax for displaying keys in tables]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0af7959298aeade417103851322248ba2adb0d83/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.8" author="cfillion" time="2018-08-01T23:41:51Z">
+        <changelog><![CDATA[added support for multibyte characters!
+iReaScript and print(...) can now be used from external scripts for debugging
+
+allow reaper and gfx to be overwritten without crashing
+autocomplete multi-dimensional tables
+fix table autocompletion when the variable name contains digits
+fix table autocompletion when there are more than one spaces surrounding the dot
+fix {[1]=1, [255]=2} being displayed as just {1}
+redraw the screen only when necessary for reduced CPU usage
+show a full traceback when iReaScript crashes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e5ee90e24a4c40071d335c43710c99258ba5b7d/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.8.1" author="cfillion" time="2018-08-02T15:23:24Z">
+        <changelog><![CDATA[add ctrl+w to erase the current word from the cursor
+fix moving the cursor to the start of the previous word (shift+left) with multiple leading whitespaces
+fix off-by-one character offsets in double-click whole word selection (0.8 regression)
+harden against ill-formed UTF-8 sequences in the history file]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/678f5f930e17689feab1824f425b92e50ad4bf2e/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_GUI library v2 (developer tools).lua" type="script" desc="Lokasenna's GUI library v2 for Lua (developer tools)">
@@ -847,6 +867,83 @@ Fix: ReaPack header wasn't including the Modules folder.]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/01a4833e3948c967548bcb7a79f3f82bac21c9a4/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/01a4833e3948c967548bcb7a79f3f82bac21c9a4/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
+      <version name="2.15.0" author="Lokasenna" time="2018-08-03T17:36:42Z">
+        <changelog><![CDATA[Add: OS-dependent fonts
+Fix: Textbox/TextEditor cursor placement on OSX]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/a1019e1dbfbbe6fda4bdb31e0eaf03afbcc8452d/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
+      <version name="2.15.1" author="Lokasenna" time="2018-08-03T18:29:12Z">
+        <changelog><![CDATA[Fix: Tidier OS font logic]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/05f28987e6382ab87a5f2160bd54d827d41dfb17/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
+      <version name="2.15.2" author="Lokasenna" time="2018-08-03T20:51:48Z">
+        <changelog><![CDATA[Fix: GetUserInputs module was overwriting Textbox's key functions]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/ef5b393b6dc875d421eaccc4867b2d172e41a408/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
+      <version name="2.15.3" author="Lokasenna" time="2018-08-04T03:56:43Z">
+        <changelog><![CDATA[Fix: Issues with Listbox's selection bar on OSX]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/83ac015fc92a957e3a85463af4472fab8fc032bc/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
       <metadata>
@@ -992,6 +1089,10 @@ Refactored/reorganized the code for readability]]></changelog>
       </version>
       <version name="1.001" author="amagalma" time="2017-10-03T14:14:25Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eea2cdd88109439e3fdabb877c0d9600cd80ff22/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
+      </version>
+      <version name="1.002" author="amagalma" time="2018-07-30T16:15:26Z">
+        <changelog><![CDATA[+ fixed avoiding to create undo when no tracks or no items are selected]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b748720f562b9374dae40aee3e0e563a0b2aba9c/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
@@ -7945,7 +8046,32 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <changelog><![CDATA[Add: Options to find all matches and include children
 Add: Separate options for the TCP and MCP
 Add: Exported files prompt for a name rather than generating one]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2972656448d21254e51a37e4a6c401f6dcd6d6c3/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22fcf18af0adaa11696badf2c03940da99f6e64d/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.2.0" author="Lokasenna" time="2018-08-03T04:19:45Z">
+        <changelog><![CDATA[Add: Expanded the match and search options
+Change: Search by track number using #: "#5". "5" will look in track names.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/912fb89496fac15580256bdaa3e11833995e203d/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.2.1" author="Lokasenna" time="2018-08-03T18:30:30Z">
+        <changelog><![CDATA[Fix: Compatibility with font changes in GUI library]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54c12ff83030b320ecb80e281e432d3050cd05d8/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.3.0" author="Lokasenna" time="2018-08-03T20:51:48Z">
+        <changelog><![CDATA[Add: Show siblings of matches
+Add: Option to apply changes in real-time (don't use on large projects)
+Fix: Compatibility with font changes in GUI library]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/04bab51b2f36750160d1f20530370637973a9524/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.3.2" author="Lokasenna" time="2018-08-03T21:47:18Z">
+        <changelog><![CDATA[Fix: Crash looking for children at the top level
+Fix: Crash looking for siblings at the top level
+FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c398758325b3875ec808a438e761378893d5e2b/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.4.0" author="Lokasenna" time="2018-08-03T22:08:06Z">
+        <changelog><![CDATA[Change: Real-time mode updates on every text change]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c3222ae4ef8a2f1e196a2c33d4b502293c8f408/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
@@ -8996,23 +9122,23 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df24169a2943824f7605653ad3c987e104edc20c/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Song Switcher.lua" type="script" desc="Song Switcher">
+    <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song Switcher\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Song switcher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The purpose of this script is to quickly switch between songs in a single project during live shows. It is a replacement for the slow SWS Snapshots (visibility + mute).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name" ("#" being any number).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song Switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song Switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works best with REAPER settings "{\b Do not process muted tracks}" and "{\b Track mute fade}" enabled.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The following actions are included:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher.lua}: This is the main script. It must be open to use the others.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (previous).lua}: Goes to the previous song\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (next).lua}: Goes to the next song\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song Switcher (reset).lua}: Rebuilds the song list\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher.lua}: This is the main script. It must be open to use the others.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (previous).lua}: Goes to the previous song\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (next).lua}: Goes to the next song\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (reset).lua}: Rebuilds the song list\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+). Note that the timecode displayed in the web interface always starts at 00:00. This means that even if a song starts at 7:45 in the project and ends at 9:12, it's displayed as 00:00 to 01:26 on the web interface for convenience.\par}
 }
 ]]></description>
@@ -9087,6 +9213,38 @@ Web Interface:
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song Switcher/cfillion_Song Switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/cfillion_Song%20Switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/c0d1eadcdbc3bac3f244e6c2479fae337060bc56/Various/cfillion_Song%20Switcher/song_switcher.html</source>
+      </version>
+      <version name="1.4.2" author="cfillion" time="2018-08-02T11:26:14Z">
+        <changelog><![CDATA[add help button in windowed mode and in the context menu
+add onswitch mode toggles to the context menu and allow stop-only mode
+rename installed scripts to use sentence case
+use sentence case for the "No song selected" message
+
+Web interface changes:
+fix spelling of "oops" in the noscript error message
+improve host connection error messages
+multiply the refresh rate by 10
+use sentence case for all buttons]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(next).lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(previous).lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(reset).lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/dcb8f6153ff5415cd1cb6a471fb80ab8e0ea5e16/Various/cfillion_Song%20switcher/song_switcher.html</source>
+      </version>
+    </reapack>
+    <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will toggle the mute state of selected items, automation items or tracks, depending on where the mouse clicked last\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/EvilDragon</link>
+      </metadata>
+      <version name="1.0" author="EvilDragon" time="2018-08-01T19:18:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f7ffe016f6daa5ee2772bfe08bb0c3b36866d/Various/ED_Smart%20toggle%20mute%20(items,%20automation%20items,%20tracks).lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
@@ -9245,6 +9403,35 @@ Web Interface:
     <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
       <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Add real-life timestamps.lua" type="script" desc="Add real-life timestamps">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Fills a project with real (i.e. 11:45:01 PM) timestamps, with a variety of user options.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-07-31T23:22:06Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4735302e0e42b8709248bf53ac84a65677831a48/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2018-07-31T23:32:10Z">
+        <changelog><![CDATA[Fix: Typo was making the script do nothing]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22fcf18af0adaa11696badf2c03940da99f6e64d/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
+      </version>
+      <version name="1.0.2" author="Lokasenna" time="2018-08-03T04:19:45Z">
+        <changelog><![CDATA[Fix: Better crash protection]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/912fb89496fac15580256bdaa3e11833995e203d/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
+      </version>
+      <version name="1.0.3" author="Lokasenna" time="2018-08-03T18:30:30Z">
+        <changelog><![CDATA[Fix: Compatibility with font changes in GUI library]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/54c12ff83030b320ecb80e281e432d3050cd05d8/Various/Lokasenna_Add%20real-life%20timestamps.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create action to open a file... .lua" type="script" desc="Create action to open a file...">
@@ -10276,10 +10463,6 @@ actonDev/Reaper-Scripts
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ambisonictoolkit/atk-reaper"}}{\fldrslt{\ul
 ambisonictoolkit/atk-reaper
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ambisonictoolkit/ausbaxter/Reascripts"}}{\fldrslt{\ul
-ausbaxter/Reascripts
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/belangeo/cookdsp"}}{\fldrslt{\ul

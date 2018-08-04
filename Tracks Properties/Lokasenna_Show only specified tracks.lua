@@ -1,12 +1,10 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.1.0
+    Version: 1.4.0
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Add: Options to find all matches and include children
-        Add: Separate options for the TCP and MCP
-        Add: Exported files prompt for a name rather than generating one
+        Change: Real-time mode updates on every text change
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -28,9 +26,11 @@ local function Msg(str)
 end
 
 
-local function sanitize_filename(name)
-    return string.gsub(name, "[^%w%s_]", "-")
-end
+
+
+------------------------------------
+-------- Search Functions ----------
+------------------------------------
 
 
 -- Returns true if the individual words of str_b all appear in str_a
@@ -54,11 +54,11 @@ end
 
 local function is_match(str, tr_name, tr_idx)
 
-    if tonumber(str) then
+    if str:sub(1, 1) == "#" then
 
         -- Force an integer until/unless I come up with some sort of multiple track syntax
-        str = math.floor( tonumber(str) )
-        return str == tr_idx
+        str = tonumber(str:sub(2, -1))
+        return str and (math.floor( tonumber(str) ) == tr_idx)
 
     elseif tostring(str) then
 
@@ -68,55 +68,176 @@ local function is_match(str, tr_name, tr_idx)
 
 end
 
-local function get_settings()
 
-    local search = GUI.Val("txt_search")
-    local opts = GUI.Val("chk_options")
-    local apply = GUI.Val("chk_apply")
+-- Returns an array of MediaTrack == true for all parents of the given MediaTrack
+local function recursive_parents(track)
+    if reaper.GetTrackDepth(track) == 0 then
+        return {[track] = true}
+    else
+        local ret = recursive_parents( reaper.GetParentTrack(track) )
+        ret[track] = true
+        return ret
+    end
 
-    return {
-        search = search,
-        all = opts[1],
-        children = opts[2],
-        tcp = apply[1],
-        mcp = apply[2]
-    }
+end
 
+
+local function get_children(tracks)
+
+    local children = {}
+    for idx in pairs(tracks) do
+
+        local tr = reaper.GetTrack(0, idx - 1)
+        local i = idx + 1
+        while i <= reaper.CountTracks(0) do
+            children[i] = recursive_parents( reaper.GetTrack(0, i-1) )[tr] == true
+            if not children[i] then break end
+            i = i + 1
+        end
+    end
+
+    return children
+
+end
+
+
+local function get_parents(tracks)
+
+    local parents = {}
+    for idx in pairs(tracks) do
+
+        local tr = reaper.GetTrack(0, idx - 1)
+        for tr in pairs( recursive_parents(tr)) do
+            parents[ math.floor( reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER") ) ] = true
+        end
+
+    end
+
+    return parents
+
+end
+
+
+local function get_top_level_tracks()
+
+    local top = {}
+    for i = 1, reaper.CountTracks() do
+        if reaper.GetTrackDepth( reaper.GetTrack(0, i-1) ) == 0 then
+            top[i] = true
+        end
+    end
+
+end
+
+
+local function get_siblings(tracks)
+
+    local siblings = {}
+    for idx in pairs(tracks) do
+
+        local tr = reaper.GetTrack(0, idx - 1)
+        local sibling_depth = reaper.GetTrackDepth(tr)
+
+        if sibling_depth > 0 then
+            local parent = reaper.GetParentTrack(tr)
+
+            local children = get_children( {[reaper.GetMediaTrackInfo_Value(parent, "IP_TRACKNUMBER")] = true} )
+            for child_idx in pairs(children) do
+
+                -- Can't use siblings[idx] = ___ here because we don't want to set existing
+                -- siblings to false
+                if reaper.GetTrackDepth( reaper.GetTrack(0, child_idx-1) ) == sibling_depth then
+                    siblings[child_idx] = true
+                end            
+
+            end
+
+        else
+
+            -- Find all top-level tracks
+            return get_top_level_tracks()
+
+        end
+
+    end
+
+    return siblings
+
+end
+
+
+local function merge_tables(...)
+
+    local tables = {...}
+
+    local ret = {}
+    for i = #tables, 1, -1 do
+        if tables[i] then
+            for k, v in pairs(tables[i]) do
+                if v then ret[k] = v end
+            end
+        end
+    end
+
+    return ret
 
 end
 
 
 local function get_tracks_to_show(settings)
+    --[[
+        settings = {
+            search = str,
 
-    -- settings = {search = str, all = bool, children = bool, mcp = bool, tcp = bool}
-    local tracks = {}
-    local len_tracks = 0
+            matchmultiple = bool, 
+            matchonlytop = bool,
+            showchildren = bool,
+            showparents = bool,
 
+            mcp = bool, 
+            tcp = bool
+        }
+    ]]--
+    local matches = {}
+
+    -- Abort if we don't need to be doing this
+    if not (settings.tcp or settings.mcp) then return nil end
+
+    -- Find all matches
     for i = 1, reaper.CountTracks(0) do
 
         local tr = reaper.GetTrack(0, i - 1)
         local _, name = reaper.GetTrackName(tr, "")
-        local idx = reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER")
+        local idx = math.floor( reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER") )
         local ischild = reaper.GetTrackDepth(tr) > 0
 
-        if is_match(settings.search, name, idx) and not (ischild and settings.nochildren) then
-            tracks[idx] = true
-            len_tracks = len_tracks + 1
-            if not settings.all then break end
-        else
-            tracks[idx] = false
+        if is_match(settings.search, name, idx) and not (ischild and settings.matchonlytop) then
+
+            matches[idx] = true
+            if not settings.matchmultiple then break end
+
         end
 
     end
 
-    return tracks
+    -- Hacky way to check if length of a hash table == 0
+    for k in pairs(matches) do
+        if not k then return {} end
+    end
+
+    local parents = settings.showparents and get_parents(matches)
+    local children = settings.showchildren and get_children(matches)
+    local siblings = settings.showsiblings and get_siblings(matches)
+
+    return merge_tables(matches, parents, children, siblings)
 
 end
 
 
 local function set_visibility(tracks, settings)
 
-    if not tracks or #tracks == 0 then return end
+    if not tracks then return end
+    --if not tracks or #tracks == 0 then return end
 
     reaper.Undo_BeginBlock()
     reaper.PreventUIRefresh(1)
@@ -142,6 +263,13 @@ local function set_visibility(tracks, settings)
 end
 
 
+
+
+------------------------------------
+-------- Standalone startup --------
+------------------------------------
+
+
 if script_filename ~= "Lokasenna_Show only specified tracks.lua" then
     
     local tracks = get_tracks_to_show(settings)
@@ -160,35 +288,37 @@ end
 -- END FILE COPY HERE
 
 
-local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
-if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
-    return
+
+
+
+------------------------------------
+-------- Go! Button ----------------
+------------------------------------
+
+
+local function get_settings()
+
+    local search = GUI.Val("txt_search")
+    local matchopts = GUI.Val("chk_matchopts")
+    local showopts = GUI.Val("chk_showopts")
+    local apply = GUI.Val("chk_apply")
+
+    return {
+        search = search,
+        matchmultiple = matchopts[1],
+        matchonlytop = matchopts[2],
+        showchildren = showopts[1],
+        showparents = showopts[2],
+        showsiblings = showopts[3],
+        tcp = apply[1],
+        mcp = apply[2]
+    }
+
+
 end
-loadfile(lib_path .. "Core.lua")()
-
-GUI.req("Classes/Class - Options.lua")()
-GUI.req("Classes/Class - Button.lua")()
-GUI.req("Classes/Class - Textbox.lua")()
-GUI.req("Classes/Class - Window.lua")()
-GUI.req("Modules/Window - GetUserInputs.lua")()
 
 
--- If any of the requested libraries weren't found, abort the script.
-if missing_lib then return 0 end
-
-
-
-
-
-
-
-------------------------------------
--------- Button functions ----------
-------------------------------------
-
-
-local function btn_go()
+local function apply_settings()
     
     local settings = get_settings()
     local tracks = get_tracks_to_show(settings)
@@ -197,21 +327,48 @@ local function btn_go()
 end
 
 
-local function get_settings_to_export()
+local function btn_go()
+    apply_settings()
+end
 
-    local settings = get_settings()
+local function update_realtime()
+    if GUI.Val("chk_realtime") then apply_settings() end
+end
+
+
+------------------------------------
+-------- Export button -------------
+------------------------------------
+
+
+local function table_to_code(settings)
+
     local strs = {
-        'local settings = {',
-        '\tsearch = "' .. settings.search .. '",',
-        '\tall = ' .. tostring(settings.all) .. ',',
-        '\tchildren = ' .. tostring(settings.children) .. ',',
-        '\ttcp = ' .. tostring(settings.tcp) .. ',',
-        '\tmcp = ' .. tostring(settings.mcp) .. ',',
-        '}'
+        'local settings = {'
     }
+
+    for k, v in pairs(settings) do
+        local param = type(v) == "boolean"  and tostring(v) 
+                                            or  ('"' .. tostring(v) .. '"')
+        strs[#strs+1] = '\t' .. k .. ' = ' .. param .. ','
+    end
+
+    strs[#strs+1] = '}'
 
     return table.concat(strs, "\n")
 
+end
+
+
+local function get_settings_to_export()
+
+    return table_to_code( get_settings() )
+    
+end
+
+
+local function sanitize_filename(name)
+    return string.gsub(name, "[^%w%s_]", "-")
 end
 
 
@@ -278,14 +435,54 @@ end
 
 
 
+------------------------------------
+-------- Show Tracks buttons -------
+------------------------------------
+
+local function btn_showTCP()
+
+    --_SWSTL_SHOWALLTCP
+    reaper.Main_OnCommand( reaper.NamedCommandLookup("_SWSTL_SHOWALLTCP"), 0)
+
+end
+
+local function btn_showMCP()
+
+    --_SWSTL_SHOWALLMCP
+    reaper.Main_OnCommand( reaper.NamedCommandLookup("_SWSTL_SHOWALLMCP"), 0)
+
+end
+
+
+
+
 
 ------------------------------------
--------- GUI Elements --------------
+-------- GUI Stuff -----------------
 ------------------------------------
 
 
-GUI.name = "New script GUI"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 320, 200
+local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
+if not lib_path or lib_path == "" then
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    return
+end
+loadfile(lib_path .. "Core.lua")()
+
+GUI.req("Classes/Class - Options.lua")()
+GUI.req("Classes/Class - Button.lua")()
+GUI.req("Classes/Class - Textbox.lua")()
+GUI.req("Classes/Class - Window.lua")()
+GUI.req("Classes/Class - Label.lua")()
+GUI.req("Modules/Window - GetUserInputs.lua")()
+
+
+-- If any of the requested libraries weren't found, abort the script.
+if missing_lib then return 0 end
+
+
+GUI.name = "Show only specified tracks"
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 320, 512
 GUI.anchor, GUI.corner = "mouse", "C"
 
 
@@ -298,7 +495,7 @@ GUI.New("txt_search", "Textbox", {
     caption = "Name must match:",
     cap_pos = "left",
     font_a = 3,
-    font_b = "textbox",
+    font_b = "monospace",
     color = "txt",
     bg = "wnd_bg",
     shadow = true,
@@ -306,14 +503,14 @@ GUI.New("txt_search", "Textbox", {
     undo_limit = 20
 })
 
-GUI.New("chk_options", "Checklist", {
+GUI.New("chk_matchopts", "Checklist", {
     z = 11,
-    x = 48.0,
+    x = 64,
     y = 56.0,
-    w = 128,
+    w = 192,
     h = 72,
-    caption = "Options",
-    optarray = {"Find all", "No children"},
+    caption = "Match:",
+    optarray = {"More than one track", "Only top-level tracks"},
     dir = "v",
     pad = 4,
     font_a = 2,
@@ -327,11 +524,32 @@ GUI.New("chk_options", "Checklist", {
     opt_size = 20
 })
 
+GUI.New("chk_showopts", "Checklist", {
+    z = 11,
+    x = 64,
+    y = 144,
+    w = 192,
+    h = 96,
+    caption = "Show:",
+    optarray = {"Children of matches", "Parents of matches", "Siblings of matches"},
+    dir = "v",
+    pad = 4,
+    font_a = 2,
+    font_b = 3,
+    col_txt = "txt",
+    col_fill = "elm_fill",
+    bg = "wnd_bg",
+    frame = true,
+    shadow = true,
+    swap = nil,
+    opt_size = 20
+}) 
+
 GUI.New("chk_apply", "Checklist", {
     z = 11,
-    x = 192.0,
-    y = 56.0,
-    w = 80,
+    x = 64,
+    y = 256,
+    w = 192,
     h = 72,
     caption = "Apply to:",
     optarray = {"TCP", "MCP"},
@@ -348,11 +566,43 @@ GUI.New("chk_apply", "Checklist", {
     opt_size = 20
 })
 
+GUI.New("chk_realtime", "Checklist", {
+    z = 11,
+    x = 64,
+    y = 344,
+    w = 192,
+    h = 32,
+    caption = "",
+    optarray = {"Apply changes in real-time"},
+    dir = "v",
+    pad = 4,
+    font_a = 2,
+    font_b = 3,
+    col_txt = "txt",
+    col_fill = "elm_fill",
+    bg = "wnd_bg",
+    frame = false,
+    shadow = true,
+    swap = nil,
+    opt_size = 20
+})
+
+GUI.New("lbl_realtime", "Label", {
+    z = 11,
+    x = 128.0,
+    y = 376,
+    caption = "(Not advisable for large projects!!)",
+    font = 3,
+    color = "txt",
+    bg = "wnd_bg",
+    shadow = true
+})
+
 GUI.New("btn_go", "Button", {
     z = 11,
-    x = 80.0,
-    y = 152.0,
-    w = 48,
+    x = 16,
+    y = 416,
+    w = 140,
     h = 24,
     caption = "Go!",
     font = 3,
@@ -363,19 +613,71 @@ GUI.New("btn_go", "Button", {
 
 GUI.New("btn_export", "Button", {
     z = 11,
-    x = 144.0,
-    y = 152.0,
-    w = 96,
+    x = 164,
+    y = 416,
+    w = 140,
     h = 24,
-    caption = "Export action",
+    caption = "Export preset",
     font = 3,
     col_txt = "txt",
     col_fill = "elm_frame",
     func = btn_export
 })
 
+GUI.New("btn_showTCP", "Button", {
+    z = 11,
+    x = 16,
+    y = 448,
+    w = 140,
+    h = 24,
+    caption = "Show all tracks in TCP",
+    font = 3,
+    col_txt = "txt",
+    col_fill = "elm_frame",
+    func = btn_showTCP
+})
+
+GUI.New("btn_showMCP", "Button", {
+    z = 11,
+    x = 164,
+    y = 448,
+    w = 140,
+    h = 24,
+    caption = "Show all tracks in MCP",
+    font = 3,
+    col_txt = "txt",
+    col_fill = "elm_frame",
+    func = btn_showMCP
+})
+
+GUI.elms.txt_search.last_val = ""
+function GUI.elms.txt_search:ontype()
+    GUI.Textbox.ontype(self)
+    if self.retval ~= self.last_val then
+        update_realtime()
+        self.last_val = self.retval
+    end
+end
+
+function GUI.elms.chk_matchopts:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    update_realtime()
+end
+
+function GUI.elms.chk_showopts:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    update_realtime()
+end
+
+function GUI.elms.chk_apply:onmouseup()
+    GUI.Checklist.onmouseup(self)
+    update_realtime()
+end
 
 
 
 GUI.Init()
+
+GUI.elms.lbl_realtime.x = (GUI.w - GUI.elms.lbl_realtime.w) / 2
+
 GUI.Main()

@@ -17,10 +17,6 @@ if not GUI then
 end
 
 
--- Managing text is MUCH easier with a monospace font.
-GUI.fonts.textbox = {"Courier", 16}
-
-
 GUI.Textbox = GUI.Element:new()
 function GUI.Textbox:new(name, z, x, y, w, h, caption, pad)
 	
@@ -49,7 +45,7 @@ function GUI.Textbox:new(name, z, x, y, w, h, caption, pad)
 	
 	txt.font_a = txt.font_a or 3
     
-	txt.font_b = txt.font_b or "textbox"
+	txt.font_b = txt.font_b or "monospace"
     
     txt.cap_pos = txt.cap_pos or "left"
 	    
@@ -547,8 +543,11 @@ function GUI.Textbox:wnd_recalc()
     
     GUI.font(self.font_b)
     
+    --[[
     self.char_h = gfx.texth
     self.char_w = gfx.measurestr("_")
+    ]]--
+    self.char_w, self.char_h = gfx.measurestr("i")
     self.wnd_w = math.floor(self.w / self.char_w)
     
 end

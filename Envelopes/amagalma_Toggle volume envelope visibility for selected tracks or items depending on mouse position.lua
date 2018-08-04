@@ -1,12 +1,18 @@
 -- @description amagalma_Toggle volume envelope visibility for selected tracks/items depending on mouse position
 -- @author amagalma
--- @version 1.001
+-- @version 1.002
 -- @about
 --   # Toggles volume envelope visibility for the selected tracks or items
 --
 --   - If mouse is over Arrange, then it toggles selected items' volume envelopes' visibility
 --   - If mouse is over TCP, then it toggles selected tracks' volume envelopes' visibility
 --   - Undo point is created if needed and is named accordingly
+
+--[[
+ * Changelog:
+ * v1.002 (2018-07-30)
+  + fixed avoiding to create undo when no tracks or no items are selected
+--]]
 
 ------------------------------------------------------------------------------------------------
 
@@ -73,6 +79,7 @@ local function SetItemTakeVolEnvVis()
       ToggleVisibility(item)
     end
     reaper.PreventUIRefresh( -1 )
+    done = "items"
   end
 end
 
@@ -82,13 +89,12 @@ end
 local window, segment, details = reaper.BR_GetMouseCursorContext()
 
 -- If mouse is over TCP, toggle volume envelope for selected tracks
-if string.match(window, "tcp") then
+if string.match(window, "tcp") and reaper.CountSelectedTracks2( 0, true) > 0 then
   reaper.Main_OnCommand(40406, 0) -- Track: Toggle track volume envelope visible
   done = "tracks"
 -- If mouse is over Arrange, toggle volume envelope for selected items
 elseif string.match(window, "arrange") then
   SetItemTakeVolEnvVis()
-  done = "items"
 end
 
 -- Undo point creation -------------------------------------------------------------------------

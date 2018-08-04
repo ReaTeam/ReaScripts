@@ -352,11 +352,10 @@ end
 function GUI.Listbox:wnd_recalc()
 	
 	GUI.font(self.font_b)
-	
-	self.char_h = gfx.texth
+    
+    self.char_w, self.char_h = gfx.measurestr("_")
 	self.wnd_h = math.floor((self.h - 2*self.pad) / self.char_h)
-	self.char_w = self.char_w or gfx.measurestr("_")
-	self.wnd_w = self.wnd_w or math.floor(self.w / self.char_w)	
+	self.wnd_w = math.floor(self.w / self.char_w)	
 	
 end
 

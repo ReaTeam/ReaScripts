@@ -1,10 +1,20 @@
--- @description Song Switcher
--- @version 1.4.1
--- @changelog Increase font size in the song list [p=1965158]
+-- @description Song switcher
+-- @version 1.4.2
+-- @changelog
+--   add help button in windowed mode and in the context menu
+--   add onswitch mode toggles to the context menu and allow stop-only mode
+--   rename installed scripts to use sentence case
+--   use sentence case for the "No song selected" message
+--
+--   Web interface changes:
+--   fix spelling of "oops" in the noscript error message
+--   improve host connection error messages
+--   multiply the refresh rate by 10
+--   use sentence case for all buttons
 -- @author cfillion
 -- @provides
---   [main] cfillion_Song Switcher/*.lua
---   [webinterface] cfillion_Song Switcher/song_switcher.html > song_switcher.html
+--   [main] cfillion_Song switcher/*.lua
+--   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=181159
 -- @donation https://www.paypal.me/cfillion
 -- @screenshot
@@ -12,7 +22,7 @@
 --   Windowed Mode https://i.imgur.com/KOP2yK3.png
 --   Web Interface https://i.imgur.com/DPcRCGh.png
 -- @about
---   # Song Switcher
+--   # Song switcher
 --
 --   The purpose of this script is to quickly switch between songs in a single
 --   project during live shows. It is a replacement for the slow
@@ -23,10 +33,10 @@
 --   Each song must be in a top-level folder track named "#. Song Name"
 --   ("#" being any number).
 --
---   After selecting a song, Song Switcher mutes and hides all songs in the
+--   After selecting a song, Song switcher mutes and hides all songs in the
 --   project except for the current one. Other tracks/folders that are not part
 --   of a song's top-level folder are left untouched.  
---   Song Switcher can also optionally stop playback and/or seek to the
+--   Song switcher can also optionally stop playback and/or seek to the
 --   first item in the song when switching.
 --
 --   This script works best with REAPER settings "**Do not process muted tracks**"
@@ -34,11 +44,11 @@
 --
 --   The following actions are included:
 --
---   - **cfillion_Song Switcher.lua**:
+--   - **cfillion_Song switcher.lua**:
 --     This is the main script. It must be open to use the others.
---   - **cfillion_Song Switcher (previous).lua**: Goes to the previous song
---   - **cfillion_Song Switcher (next).lua**: Goes to the next song
---   - **cfillion_Song Switcher (reset).lua**: Rebuilds the song list
+--   - **cfillion_Song switcher (previous).lua**: Goes to the previous song
+--   - **cfillion_Song switcher (next).lua**: Goes to the next song
+--   - **cfillion_Song switcher (reset).lua**: Rebuilds the song list
 --
 --   A web browser interface is also installed as **song_switcher.html** for
 --   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
@@ -46,7 +56,7 @@
 --   This means that even if a song starts at 7:45 in the project and ends at 9:12,
 --   it's displayed as 00:00 to 01:26 on the web interface for convenience.
 
-WINDOW_TITLE = 'Song Switcher'
+WINDOW_TITLE = 'Song switcher'
 
 FONT_DEFAULT = 0
 FONT_LARGE = 1
@@ -106,9 +116,9 @@ EXT_RESET = 'reset'
 EXT_STATE = 'state'
 EXT_FILTER = 'filter'
 
-SWITCH_NOACTION = 0
 SWITCH_SEEK = 1
-SWITCH_SEEKSTOP = 2
+SWITCH_STOP = 2
+SWITCH_ALL  = SWITCH_SEEK | SWITCH_STOP
 
 function loadTracks()
   local songs = {}
@@ -218,7 +228,7 @@ function setCurrentIndex(index)
 
   local mode = getSwitchMode()
 
-  if mode == SWITCH_SEEKSTOP then
+  if mode & SWITCH_STOP ~= 0 then
     reaper.CSurf_OnStop()
   end
 
@@ -230,7 +240,7 @@ function setCurrentIndex(index)
     currentIndex = index
     setNextIndex(index)
 
-    if mode == SWITCH_SEEK or mode == SWITCH_SEEKSTOP then
+    if mode & SWITCH_SEEK ~= 0 then
       reaper.SetEditCurPos(song.startTime, true, true)
     end
   end
@@ -312,7 +322,7 @@ function drawTextLine(line)
 end
 
 function drawName(song)
-  local name = '## No Song Selected ##'
+  local name = '## No song selected ##'
 
   if song ~= nil then
     name = song.name
@@ -431,25 +441,27 @@ function switchModeButton()
   gfx.x = 0
   gfx.y = LIST_START - (MARGIN / 2)
 
-  local mode, action = getSwitchMode()
+  local mode, actions = getSwitchMode(), {}
 
-  if mode == SWITCH_SEEK then
-    action = 'seek'
-  elseif mode == SWITCH_SEEKSTOP then
-    action = 'stop+seek'
-  else
-    action = 'onswitch'
+  if mode & SWITCH_STOP ~= 0 then
+    table.insert(actions, 'stop')
+  end
+  if mode & SWITCH_SEEK ~= 0 then
+    table.insert(actions, 'seek')
+  end
+  if #actions < 1 then
+    table.insert(actions, 'onswitch')
   end
 
-  btn = textLine(action)
+  btn = textLine(table.concat(actions, '+'))
   btn.tx = btn.rect.w - btn.tw
   btn.ty = btn.ty - btn.rect.h
   btn.rect.w = btn.tw
   btn.rect.x = btn.tx
   btn.rect.y = btn.ty
 
-  if button(btn, mode > SWITCH_NOACTION, false, false) then
-    setSwitchMode((mode + 1) % (SWITCH_SEEKSTOP + 1))
+  if button(btn, mode > 0, false, false) then
+    setSwitchMode((mode + 1) % (SWITCH_ALL + 1))
   end
 end
 
@@ -465,6 +477,24 @@ function dockButton()
 
   if button(btn, dockState ~= 0, false, false) then
     toggleDock(dockState)
+  end
+end
+
+function helpButton()
+  gfx.setfont(FONT_DEFAULT)
+  gfx.x = 0
+  gfx.y = LIST_START - (MARGIN / 2)
+
+  btn = textLine('help', 0)
+  btn.ty = btn.ty - btn.rect.h
+  btn.rect.w = btn.tw
+  btn.rect.x = btn.tx
+  btn.rect.y = btn.ty
+
+  local dockState = gfx.dock(-1)
+
+  if button(btn, dockState ~= 0, false, false) then
+    about()
   end
 end
 
@@ -692,8 +722,9 @@ function loop()
     useColor(COLOR_BORDER)
     gfx.line(0, gfx.y, gfx.w, gfx.y)
 
-    dockButton()
     switchModeButton()
+    helpButton()
+    dockButton()
     resetButton()
 
     gfx.setfont(FONT_LARGE)
@@ -823,10 +854,10 @@ end
 function getSwitchMode()
   local mode = tonumber(reaper.GetExtState(EXT_SECTION, EXT_SWITCH_MODE))
 
-  if mode and mode <= SWITCH_SEEKSTOP then
+  if mode then
     return mode
   else
-    return SWITCH_NOACTION
+    return 0
   end
 end
 
@@ -859,23 +890,37 @@ function toggleDock(dockState)
 end
 
 function contextMenu()
+  function checkbox(bool) if bool then return '!' else return '' end end
+
   local dockState = gfx.dock(-1)
-  local dockFlag
-  if dockState > 0 then dockFlag = '!' else dockFlag = '' end
+  local mode = getSwitchMode()
 
   local menu = string.format(
-    '%sDock window|Reset data',
-    dockFlag
+    '%sDock window|Reset data|>onswitch|%sStop|<%sSeek||Help',
+    checkbox(dockState > 0), checkbox(mode & SWITCH_STOP ~= 0),
+    checkbox(mode & SWITCH_SEEK ~= 0),
+    about
   )
 
   local actions = {
     function() toggleDock(dockState) end,
     reset,
+    function() setSwitchMode(mode ~ SWITCH_STOP) end,
+    function() setSwitchMode(mode ~ SWITCH_SEEK) end,
+    about,
   }
 
   gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
   local index = gfx.showmenu(menu)
   if actions[index] then actions[index]() end
+end
+
+function about()
+  local owner = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
+  if owner then
+    reaper.ReaPack_AboutInstalledPackage(owner)
+    reaper.ReaPack_FreeEntry(owner)
+  end
 end
 
 -- graphics initialization

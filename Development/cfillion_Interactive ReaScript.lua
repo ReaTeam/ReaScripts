@@ -1,11 +1,11 @@
 -- @description Interactive ReaScript (iReaScript)
--- @version 0.7.1
+-- @version 0.8.1
 -- @author cfillion
 -- @changelog
---   don't select to the buffer end when a partial line is diplayed at the bottom
---   fix crash when displaying table with mixed key types
---   fix length counting of tables containing mixed key types
---   use Lua-compatible syntax for displaying keys in tables
+--   add ctrl+w to erase the current word from the cursor
+--   fix moving the cursor to the start of the previous word (shift+left) with multiple leading whitespaces
+--   fix off-by-one character offsets in double-click whole word selection (0.8 regression)
+--   harden against ill-formed UTF-8 sequences in the history file
 -- @links
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
@@ -44,19 +44,65 @@
 --
 --   Send patches at <https://github.com/cfillion/reascripts>.
 
-local string, table, math, os = string, table, math, os
+local string, table, math, os, utf8 = string, table, math, os, utf8
 local load, xpcall, pairs, ipairs = load, xpcall, pairs, ipairs, select
+local reaper, gfx = reaper, gfx
+
+function utf8.sub(s, i, j)
+  i = utf8.offset(s, i)
+  if not i then return '' end -- i is out of bounds
+
+  if j and (j > 0 or j < -1) then
+    j = utf8.offset(s, j + 1)
+    if j then j = j - 1 end
+  end
+
+  return string.sub(s, i, j)
+end
+
+function utf8.reverse(s)
+  local ns = ''
+
+  for p, c in utf8.codes(s) do
+    ns = utf8.char(c) .. ns
+  end
+
+  return ns
+end
+
+function utf8.find(s, pattern, i, plain)
+  if i then
+    i = utf8.offset(s, i)
+
+    if not i then
+      return
+    end
+  end
+
+  local startPos = string.find(s, pattern, i, plain)
+  if startPos then
+    return utf8.len(s:sub(1, startPos))
+  end
+end
+
+function utf8.rfind(str, pattern, plain)
+  local pos = utf8.find(utf8.reverse(str), pattern, nil, plain)
+
+  if pos then
+    return utf8.len(str) - pos + 1
+  end
+end
 
 local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript (iReaScript)',
   NAME = 'Interactive ReaScript',
-  VERSION = '0.7.1',
+  VERSION = '0.8.1',
 
   MARGIN = 3,
   MAXLINES = 2048,
   MAXDEPTH = 3, -- maximum array depth
-  MAXLEN = 2048, -- maximum array size
+  MAXLEN = 2048, -- maximum array and string size
   INDENT = 2,
   INDENT_THRESHOLD = 5,
   PROMPT = '> ',
@@ -96,6 +142,7 @@ local ireascript = {
   KEY_CTRLL = 12,
   KEY_CTRLU = 21,
   KEY_CTRLV = 22,
+  KEY_CTRLW = 23,
   KEY_DELETE = 6579564,
   KEY_DOWN = 1685026670,
   KEY_END = 6647396,
@@ -116,6 +163,8 @@ local ireascript = {
   RIGHT_BTN = 2,
   DOUBLECLICK_TIME = 0.2,
 
+  MOD_SHIFT = 8,
+
   EXT_SECTION = 'cfillion_ireascript',
   EXT_WINDOW_STATE = 'window_state',
   EXT_LAST_DOCK = 'last_dock',
@@ -123,7 +172,7 @@ local ireascript = {
   HISTORY_FILE = ({reaper.get_action_context()})[2] .. '.history',
   HISTORY_LIMIT = 1000,
 
-  WORD_SEPARATORS = '%s"\'<>:;,!&|=/\\%(%)%%%+%-%*%?%[%]%^%$',
+  WORD_SEPARATOR = '[%s"\'<>:;,!&|=/\\%(%)%%%+%-%*%?%[%]%^%$]',
 
   NO_CLIPBOARD_API = 'Copy/paste requires SWS v2.9.6 or newer',
   NO_REAPACK_API = 'ReaPack v1.2+ is required to use this feature',
@@ -131,11 +180,15 @@ local ireascript = {
 }
 
 print = function(...)
+  ireascript.backtrack()
+
   for i=1,select('#', ...) do
     if i > 1 then ireascript.push("\t") end
     ireascript.format(select(i, ...))
   end
   ireascript.nl()
+
+  ireascript.doprompt = true
 end
 
 function ireascript.help()
@@ -233,8 +286,9 @@ function ireascript.run()
   ireascript.mouseCap = 0
   ireascript.selection = nil
   ireascript.lastClick = 0.0
-
   ireascript.reset(true)
+
+  ireascript.initgfx()
   ireascript.loop()
 end
 
@@ -246,18 +300,13 @@ function ireascript.keyboard()
     return false
   end
 
-  -- if char ~= 0 then
-  --   reaper.ShowConsoleMsg(char)
-  --   reaper.ShowConsoleMsg("\n")
-  -- end
-
   if char == ireascript.KEY_BACKSPACE then
     local before, after = ireascript.splitInput()
-    ireascript.input = string.sub(before, 0, -2) .. after
+    ireascript.input = utf8.sub(before, 0, -2) .. after
     ireascript.moveCaret(ireascript.caret - 1)
   elseif char == ireascript.KEY_DELETE then
     local before, after = ireascript.splitInput()
-    ireascript.input = before .. string.sub(after, 2)
+    ireascript.input = before .. utf8.sub(after, 2)
     ireascript.scrollTo(0)
     ireascript.prompt()
   elseif char == ireascript.KEY_CLEAR then
@@ -267,6 +316,11 @@ function ireascript.keyboard()
     local before, after = ireascript.splitInput()
     ireascript.input = after
     ireascript.moveCaret(0)
+  elseif char == ireascript.KEY_CTRLW then
+    local before, after = ireascript.splitInput()
+    local wordStart = ireascript.lastWord(before)
+    ireascript.input = utf8.sub(before, 1, wordStart) .. after
+    ireascript.moveCaret(wordStart)
   elseif char == ireascript.KEY_ENTER then
     ireascript.removeCaret()
     ireascript.nl()
@@ -281,11 +335,8 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_LEFT then
     local pos
 
-    if gfx.mouse_cap & 8 == 8 then
-      local length = ireascript.input:len()
-      pos = length - ireascript.nextBoundary(ireascript.input:reverse(),
-        length - ireascript.caret + 1)
-      if pos > 0 then pos = pos + 1 end
+    if gfx.mouse_cap & ireascript.MOD_SHIFT ~= 0 then
+      pos = ireascript.lastWord(ireascript.splitInput())
     else
       pos = ireascript.caret - 1
     end
@@ -294,15 +345,15 @@ function ireascript.keyboard()
   elseif char == ireascript.KEY_RIGHT then
     local pos
 
-    if gfx.mouse_cap & 8 == 8 then
-      pos = ireascript.nextBoundary(ireascript.input, ireascript.caret)
+    if gfx.mouse_cap & ireascript.MOD_SHIFT ~= 0 then
+      pos = ireascript.nextWord(ireascript.input, ireascript.caret)
     else
       pos = ireascript.caret + 1
     end
 
     ireascript.moveCaret(pos)
   elseif char == ireascript.KEY_END then
-    ireascript.moveCaret(ireascript.input:len())
+    ireascript.moveCaret(utf8.len(ireascript.input))
   elseif char == ireascript.KEY_UP then
     ireascript.historyJump(ireascript.hindex + 1)
   elseif char == ireascript.KEY_DOWN then
@@ -325,21 +376,25 @@ function ireascript.keyboard()
     ireascript.selection = nil
   elseif char >= ireascript.KEY_INPUTRANGE_FIRST and char <= ireascript.KEY_INPUTRANGE_LAST then
     local before, after = ireascript.splitInput()
-    ireascript.input = before .. string.char(char) .. after
+    ireascript.input = before .. utf8.char(char) .. after
     ireascript.moveCaret(ireascript.caret + 1)
   end
 
   return true
 end
 
-function ireascript.nextBoundary(input, from)
-  local boundary = input:find('%W%w', from + 1)
+function ireascript.lastWord(str)
+  local pos = utf8.rfind(str, '[^%s]%s')
 
-  if boundary then
-    return boundary
+  if pos then
+    return pos - 1
   else
-    return input:len()
+    return 0
   end
+end
+
+function ireascript.nextWord(str, pos)
+  return utf8.find(str, '%s[^%s]', pos + 1) or utf8.len(str)
 end
 
 function ireascript.wrappedLines()
@@ -475,7 +530,7 @@ function ireascript.drawLine(line)
       ireascript.useColor(segment.fg)
 
       if segment.caret and (now % 2 == 0 or now - ireascript.lastMove < 1) then
-        local w, _ = gfx.measurestr(segment.text:sub(0, segment.caret))
+        local w, _ = gfx.measurestr(utf8.sub(segment.text, 0, segment.caret))
         ireascript.drawCaret(gfx.x + w, gfx.y, line.height)
       end
 
@@ -556,32 +611,19 @@ function ireascript.update()
 
       while text:len() > 0 do
         local w, h = gfx.measurestr(text)
-        local count = segment.text:len()
+        local count = utf8.len(segment.text)
         local resized = false
 
-        resizeBy = function(chars)
-          count = count - chars
-          w, h = gfx.measurestr(segment.text:sub(0, count))
-          resized = true
-        end
-
-        -- rough first try for speed
-        local overflow = (w + left) - gfx.w
-        if overflow > 0 then
-          local firstCharWidth, _ = gfx.measurestr(segment.text:match("%w"))
-          if firstCharWidth > 0 then
-            resizeBy(math.floor(overflow / firstCharWidth))
-          end
-        end
-
         while w + left > gfx.w do
-          resizeBy(1)
+          count = count - 1
+          w, h = gfx.measurestr(utf8.sub(segment.text, 1, count))
+          resized = true
         end
 
         left = left + w
 
         local newSeg = ireascript.dup(segment)
-        newSeg.text = text:sub(0, count)
+        newSeg.text = utf8.sub(text, 1, count)
         newSeg.w = w
         newSeg.h = h
 
@@ -600,13 +642,14 @@ function ireascript.update()
           left = leftmost
         end
 
-        text = text:sub(count + 1)
+        text = utf8.sub(text, count + 1)
         startpos = startpos + count
       end
     end
   end
 
   ireascript.from = {buffer=#ireascript.buffer + 1, wrapped=#ireascript.wrappedBuffer + 1}
+  ireascript.redraw = true
 end
 
 function ireascript.contextMenu()
@@ -680,8 +723,13 @@ function ireascript.mouseBtnEvent()
 end
 
 function ireascript.loop()
+  if ireascript.doprompt then
+    ireascript.doprompt = false
+    ireascript.prompt()
+  end
+
   if ireascript.keyboard() then
-    reaper.defer(ireascript.loop)
+    reaper.defer(function() ireascript.try(ireascript.loop) end)
   end
 
   ireascript.mouseWheel()
@@ -699,10 +747,14 @@ function ireascript.loop()
     ireascript.update()
   end
 
-  ireascript.draw()
-  ireascript.scrollTo(ireascript.scroll) -- refreshed bound check
+  if ireascript.redraw then
+    ireascript.redraw = false
+    ireascript.draw()
+  end
 
   gfx.update()
+
+  ireascript.scrollTo(ireascript.scroll) -- refreshed bound check
 end
 
 function ireascript.isMouseDown(flag)
@@ -862,7 +914,7 @@ end
 function ireascript.moveCaret(pos)
   ireascript.scrollTo(0)
 
-  if pos >= 0 and pos <= ireascript.input:len() then
+  if pos >= 0 and pos <= utf8.len(ireascript.input) then
     ireascript.caret = pos
     ireascript.lastMove = os.time()
     ireascript.prompt()
@@ -877,7 +929,9 @@ function ireascript.readHistory()
 
   for line in file:lines() do
     if #ireascript.history >= ireascript.HISTORY_LIMIT then break end
-    table.insert(ireascript.history, line)
+    if utf8.len(line) then
+      table.insert(ireascript.history, line)
+    end
   end
 
   file:close()
@@ -918,13 +972,18 @@ function ireascript.historyJump(pos)
 
   ireascript.hindex = pos
   ireascript.input = ireascript.history[ireascript.hindex]
-  ireascript.moveCaret(ireascript.input:len())
+  ireascript.moveCaret(utf8.len(ireascript.input))
   ireascript.prompt()
 end
 
 function ireascript.scrollTo(pos)
   local max = ireascript.wrappedBuffer.lines - (ireascript.page - 1)
-  ireascript.scroll = math.max(0, math.min(pos, max))
+  local newscroll = math.max(0, math.min(pos, max))
+
+  if newscroll ~= ireascript.scroll then
+    ireascript.scroll = newscroll
+    ireascript.redraw = true
+  end
 end
 
 function ireascript.eval(nested)
@@ -1083,17 +1142,34 @@ function ireascript.format(value)
   elseif t == 'string' then
     ireascript.foreground = ireascript.COLOR_GREEN
 
-    if value:len() > ireascript.MAXLEN then
-      value = value:sub(1, ireascript.MAXLEN) .. '...'
+    local len = utf8.len(value)
+    local illformed = not len
+
+    if (len or value:len()) > ireascript.MAXLEN then
+      value = utf8.sub(value, 1, ireascript.MAXLEN) .. '...'
     end
 
-    value = string.format('%q', value):
-      gsub("\\\n", '\\n'):
-      gsub('\\0*13', '\\r'):
-      gsub("\\0*9", '\\t')
+    value = ireascript.tostringliteral(value)
+
+    if illformed then
+      value = ireascript.repairUTF8(value)
+    end
   end
 
   ireascript.push(tostring(value))
+end
+
+function ireascript.tostringliteral(value)
+  return string.format('%q', value):
+    gsub("\\\n", '\\n'):
+    gsub('\\0*13', '\\r'):
+    gsub("\\0*9", '\\t')
+end
+
+function ireascript.repairUTF8(value)
+  return value:gsub('[\128-\255]', function(c)
+    return string.format('\\%03d', c:byte())
+  end)
 end
 
 function ireascript.formatAnyTable(value)
@@ -1198,8 +1274,8 @@ function ireascript.formatTable(value, size)
 end
 
 function ireascript.splitInput()
-  local before = ireascript.input:sub(0, ireascript.caret)
-  local after = ireascript.input:sub(ireascript.caret + 1)
+  local before = utf8.sub(ireascript.input, 0, ireascript.caret)
+  local after = utf8.sub(ireascript.input, ireascript.caret + 1)
   return before, after
 end
 
@@ -1257,7 +1333,7 @@ function ireascript.paste(selection)
 
       local before, after = ireascript.splitInput()
       ireascript.input = before .. line .. after
-      ireascript.moveCaret(ireascript.caret + line:len())
+      ireascript.moveCaret(ireascript.caret + utf8.len(line))
     end
   end
 end
@@ -1276,25 +1352,25 @@ function ireascript.complete()
   local before, after = ireascript.splitInput()
 
   local code = ireascript.prepend .. "\x20" .. before
-  local matches, source = {}
-  local var, word = code:match("([%a$d_]+)%s?%.%s?([%a%d_]*)$")
+  local matches, source = {}, _G
+  local prefix, word = code:match("([%a%d_%s%.]*[%a%d_]+)%s*%.%s*([^%s]*)$")
 
   if word then
-    source = _G[var]
-    if type(source) ~= 'table' then return end
+    for key in prefix:gmatch('[^%.%s]+') do
+      source = source[key]
+      if type(source) ~= 'table' then return end
+    end
   else
-    var = before:match("([%a%d_]+)$")
-    if not var then return end
-
-    source = _G
-    word = var
+    word = before:match("([%a%d_]+)$")
+    if not word then return end
   end
 
+  local wordLength = utf8.len(word)
   word = word:lower()
 
   for k, _ in pairs(source) do
     local test = k:lower()
-    if test:sub(1, word:len()) == word then
+    if utf8.sub(test, 1, wordLength) == word then
       matches[#matches + 1] = k
     end
   end
@@ -1309,10 +1385,10 @@ function ireascript.complete()
   else
     table.sort(matches)
 
-    len = matches[1]:len()
+    local len = utf8.len(matches[1])
     for i=1,#matches-1 do
-      while len > word:len() do
-        if matches[i]:sub(1, len) == matches[i + 1]:sub(1, len) then
+      while len > wordLength do
+        if utf8.sub(matches[i], 1, len) == utf8.sub(matches[i + 1], 1, len) then
           break
         else
           len = len - 1
@@ -1320,15 +1396,21 @@ function ireascript.complete()
       end
     end
 
-    if len >= word:len() then
-      exact = matches[1]:sub(1, len)
+    if len >= wordLength then
+      exact = utf8.sub(matches[1], 1, len)
     end
   end
 
   if exact then
-    before = before:sub(1, -(word:len() + 1))
+    if exact:match('[^%a%d_]') then
+      local dot = utf8.rfind(before, '%.')
+      before = utf8.sub(before, 1, dot - 1)
+      exact = string.format('[%s]', ireascript.tostringliteral(exact))
+    else
+      before = utf8.sub(before, 1, -(wordLength + 1))
+    end
     ireascript.input = before .. exact .. after
-    ireascript.caret = ireascript.caret + (exact:len() - word:len())
+    ireascript.caret = utf8.len(before .. exact)
   end
 
   if #matches > 0 then
@@ -1388,8 +1470,8 @@ function ireascript.characterAt(segment, xpos)
 
   ireascript.useFont(segment.font)
 
-  for i=1,segment.text:len() do
-    local charRight = gfx.measurestr(segment.text:sub(1, i))
+  for i=1,utf8.len(segment.text) do
+    local charRight = gfx.measurestr(utf8.sub(segment.text, 1, i))
 
     if charLeft <= xpos and charRight >= xpos then
       return i, charLeft
@@ -1435,7 +1517,7 @@ function ireascript.pointUnderMouse()
     end
 
     if type(segment) == 'table' then
-      return {segment=line.back, char=segment.text:len() + 1, offset=segment.w}
+      return {segment=line.back, char=utf8.len(segment.text) + 1, offset=segment.w}
     else
       return {segment=line.back, char=0, offset=0}
     end
@@ -1458,34 +1540,46 @@ function ireascript.selectRange(a, b)
     ireascript.selection = {a, b}
     table.sort(ireascript.selection, ireascript.comparePoints)
   end
+
+  ireascript.redraw = true
+end
+
+function ireascript.surroundingBoundaries(str, pos)
+  local char = utf8.sub(str, pos, pos)
+  local wordStart, wordEnd
+
+  if char:match(ireascript.WORD_SEPARATOR) then
+    -- select only repeated same separator characters
+    wordStart, wordEnd = pos - 1, pos + 1
+
+    while wordStart > 0 and utf8.sub(str, wordStart, wordStart) == char do
+      wordStart = wordStart - 1
+    end
+
+    while utf8.sub(str, wordEnd, wordEnd) == char do
+      wordEnd = wordEnd + 1
+    end
+  else
+    wordStart = utf8.rfind(utf8.sub(str, 1, pos), ireascript.WORD_SEPARATOR) or 0
+    wordEnd = utf8.find(str, ireascript.WORD_SEPARATOR, pos, plain)
+    wordEnd = wordEnd or (utf8.len(str) + 1)
+  end
+
+  return (wordStart or 0), wordEnd - 1
 end
 
 function ireascript.selectWord(point)
   local segment = ireascript.wrappedBuffer[point.segment]
   if type(segment) ~= 'table' then return end
 
-  local match = string.format('[%s]', ireascript.WORD_SEPARATORS)
-  if segment.text:sub(point.char, point.char):match(match) then
-    -- select only whitespace if the point is between words
-    match = string.format('[^%s]', ireascript.WORD_SEPARATORS)
-  end
-
-  local before = segment.text:sub(1, point.char):reverse()
-  local wordStart = before:find(match)
-  if wordStart then
-    wordStart = before:len() - wordStart + 2
-  else
-    wordStart = 1
-  end
-
-  local wordEnd = segment.text:find(match, point.char) or (segment.text:len() + 1)
+  local wordStart, wordEnd = ireascript.surroundingBoundaries(segment.text, point.char)
 
   ireascript.useFont(segment.font)
-  local startOffset = gfx.measurestr(segment.text:sub(1, wordStart - 1))
-  local stopOffset = gfx.measurestr(segment.text:sub(1, wordEnd - 1))
+  local startOffset = gfx.measurestr(utf8.sub(segment.text, 1, wordStart))
+  local stopOffset = gfx.measurestr(utf8.sub(segment.text, 1, wordEnd))
 
-  local start = {segment=point.segment, char=wordStart, offset=startOffset}
-  local stop = {segment=point.segment, char=wordEnd, offset=stopOffset}
+  local start = {segment=point.segment, char=wordStart + 1, offset=startOffset}
+  local stop = {segment=point.segment, char=wordEnd + 1, offset=stopOffset}
 
   ireascript.selectRange(start, stop)
 end
@@ -1510,10 +1604,10 @@ function ireascript.selectedText()
       if i == ireascript.selection[2].segment then
         stop = ireascript.selection[2].char - 1
       else
-        stop = segment.text:len()
+        stop = utf8.len(segment.text)
       end
 
-      text = text .. segment.text:sub(start, stop)
+      text = text .. utf8.sub(segment.text, start, stop)
     elseif segment == ireascript.SG_BUFNEWLINE then
       text = text .. "\n"
     end
@@ -1524,6 +1618,7 @@ end
 
 function ireascript.selectAll()
   ireascript.selection = {ireascript.bufferStartPoint(), ireascript.bufferEndPoint()}
+  ireascript.redraw = true
 end
 
 function ireascript.iswindows()
@@ -1553,7 +1648,7 @@ end
 function ireascript.realTableSize(table)
   local i, array, last = 0, true, 0
 
-  for k,v in pairs(table) do
+  for k,v in ireascript.sortedPairs(table) do
     if type(k) == 'number' and k > 0 then
       i = i + (k - last) - 1
       last = k
@@ -1640,26 +1735,41 @@ function ireascript.saveWindowState()
     string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
 end
 
-local w, h, dockState, x, y = ireascript.previousWindowState()
+function ireascript.try(callback)
+  local report
 
-if w then
-  gfx.init(ireascript.TITLE, w, h, dockState, x, y)
-else
-  gfx.init(ireascript.TITLE, 550, 350)
+  xpcall(callback, function(errObject)
+    report = string.format('%s\n%s', errObject, debug.traceback())
+  end)
+
+  if report then
+    error(report)
+  end
 end
 
-gfx.setcursor(ireascript.IDC_IBEAM)
+function ireascript.initgfx()
+  local w, h, dockState, x, y = ireascript.previousWindowState()
 
-if ireascript.iswindows() then
-  gfx.setfont(ireascript.FONT_NORMAL, 'Consolas', 16)
-  gfx.setfont(ireascript.FONT_BOLD, 'Consolas', 16, string.byte('b'))
-else
-  gfx.setfont(ireascript.FONT_NORMAL, 'Courier', 14)
-  gfx.setfont(ireascript.FONT_BOLD, 'Courier', 14, string.byte('b'))
+  if w then
+    gfx.init(ireascript.TITLE, w, h, dockState, x, y)
+  else
+    gfx.init(ireascript.TITLE, 550, 350)
+  end
+
+  gfx.setcursor(ireascript.IDC_IBEAM)
+  gfx.clear = -1
+
+  if ireascript.iswindows() then
+    gfx.setfont(ireascript.FONT_NORMAL, 'Consolas', 16)
+    gfx.setfont(ireascript.FONT_BOLD, 'Consolas', 16, string.byte('b'))
+  else
+    gfx.setfont(ireascript.FONT_NORMAL, 'Courier', 14)
+    gfx.setfont(ireascript.FONT_BOLD, 'Courier', 14, string.byte('b'))
+  end
 end
 
 -- GO!!
-ireascript.run()
+ireascript.try(ireascript.run)
 
 reaper.atexit(function()
   ireascript.saveWindowState()
