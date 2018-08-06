@@ -1,11 +1,12 @@
 --[[
     Description: Toolbar button shortcuts
-    Version: 1.0.0
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Initial Release
+        Add: Link to forum thread
     Links:
+        Forum thread https://forum.cockos.com/showthread.php?p=2019689
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         *** WARNING: THIS PACKAGE WILL INSTALL MORE THAN 400 ACTIONS ***    
