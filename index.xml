@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="31f670f10a34ead0020e727e1e0fd84307689592" name="ReaTeam Scripts">
+<index version="1" commit="0d30d094dba02745bc0e947ee9f5aab2facda9c2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2644,6 +2644,23 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.01" author="Lokasenna" time="2017-02-27T15:04:08Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2ad198844839295e1a6c12f4c6fe70c4dcd1762/Items%20Editing/Lokasenna_Select%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Set item start and end (spot mode).lua" type="script" desc="Set item start and end (spot mode)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Prompts for a start and end time from the user, then sets the selected item appropriately. Intended as a replacement for Pro Tools' "spot mode".\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://www.paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-08-06T13:57:44Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0d30d094dba02745bc0e947ee9f5aab2facda9c2/Items%20Editing/Lokasenna_Set%20item%20start%20and%20end%20(spot%20mode).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Shuffle selected items to mouse cursor.lua" type="script" desc="Shuffle selected items to mouse cursor">
