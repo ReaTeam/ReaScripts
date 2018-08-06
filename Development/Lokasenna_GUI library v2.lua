@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.3
+Version: 2.15.4
 Changelog:
-    Fix: Issues with Listbox's selection bar on OSX
+    Fix: Missed TextEditor for the Mac font fix
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
