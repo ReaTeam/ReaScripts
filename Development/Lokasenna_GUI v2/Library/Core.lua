@@ -61,7 +61,9 @@ local function GUI_table ()
     -- A basic crash handler, just to add some helpful detail
     -- to the Reaper error message.
     GUI.crash = function (errObject, skipMsg)
-                 
+        
+        if GUI.oncrash then GUI.oncrash() end
+
         local by_line = "([^\r\n]*)\r?\n?"
         local trim_path = "[\\/]([^\\/]-:%d+:.+)$"
         local err = errObject   and string.match(errObject, trim_path)

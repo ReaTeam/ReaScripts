@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.4
+Version: 2.15.5
 Changelog:
-    Fix: Missed TextEditor for the Mac font fix
+    Add: GUI.oncrash as a hook for user functions to run if the script crashes
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
