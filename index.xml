@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e27d31e6e201cc18d65ec9f8266fce9848fff357" name="ReaTeam Scripts">
+<index version="1" commit="f2e74724c02eca62abc94fc0d19f372b934348ff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7383,14 +7383,19 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate Tabs for Recent Projects, Project Templates and Track Templates\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Simple pattern-matching filter at the top of each Tab\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global buttons for 'New Tab' and 'New Project'\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: 3 different sort options: 'most recent' projects at the top, alphabetically ascending or descending\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'PIN'-box at the top right: keeps the window open when checked\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Big thanks to Lokasenna for his work!!\sa180\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, Project Templates and Track Templates\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Support for custom Project & Track Template folders (used in addition to the default locations)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Simple list filter at the top of each tab\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Open in Explorer/Finder] button for browsing to the location of the selected file\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global 'New Tab' and 'New Project' buttons\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: 3 different sort options: 'Most Recent' projects at the top, 'Alphabetically' ascending and descending\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep window open' checkbox at the top right\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Experimental: [Projects] tab (projects folder can be set in the [Options])\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
 }
 ]]></description>
         <link rel="screenshot">https://forum.cockos.com/showthread.php?t=208697</link>
@@ -7429,6 +7434,13 @@ enter or a = Exit and apply changes\par}
 + Added Tooltips
 + Fixed another file loading issue with Reaper 32-bit]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/02981fa31a713ac7cf996f6109c7ef157f2a9461/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="0.1.5" author="solger" time="2018-08-09T02:05:13Z">
+        <changelog><![CDATA[+ Added [Open Project] Button
++ [Open in Explorer/Finder] Button: when nothing is selected it now opens the default template folder and custom projects folder location 
++ Added 'Hold Ctrl/Cmd + Shift to load with FX offline' tooltip to [Load in Tab] and [Load] buttons
++ Some minor bugfixes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2e74724c02eca62abc94fc0d19f372b934348ff/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
