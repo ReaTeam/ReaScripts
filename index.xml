@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f2e74724c02eca62abc94fc0d19f372b934348ff" name="ReaTeam Scripts">
+<index version="1" commit="6506bc2ef7528a9090651d91e20ff44607c7e6c7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8941,11 +8941,13 @@ Folder structure is maintained when using in-place rendering]]></changelog>
       </version>
       <version name="1.2" author="ausbaxter" time="2018-06-05T15:07:56Z">
         <changelog><![CDATA[v1.2
-Actually fixed breakage of folder structure when using in-place rendering
++ folder and (pre)master routing options will now render through sends correctly
 v1.1
-Handle bad item selection for in-place rendering
-Folder structure is maintained when using in-place rendering]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af423a7b88decb7586131edda25e22e2ac908ec6/Various/ausbaxter_Render%20item%20columns.lua</source>
++ Handle bad item selection for in-place rendering
++ Folder structure is maintained when using in-place rendering
+v1.0
++ Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6506bc2ef7528a9090651d91e20ff44607c7e6c7/Various/ausbaxter_Render%20item%20columns.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Import_clip_splicer_specification_json.py" type="script" desc="Import Clip Splicer JSON file">
