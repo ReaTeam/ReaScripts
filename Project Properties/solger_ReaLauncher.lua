@@ -1,15 +1,11 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 0.1.4
+-- @version 0.1.5
 -- @changelog
---   + Added [R] Refresh Buttons for each Listbox
---   + Added MenuBox to toggle full file paths
---   + Added [Open in Explorer/Finder] Button to open the location of the selected file
---   + Added [Options] tab (currently for managing additional custom folder paths of Project Templates, Track Templates and Projects)
---   + Sort options are now split into two MenuBoxes
---   + Experimental: First implementation of [Projects] tab added (folder path is set in the Options tab)
---   + Added Tooltips
---   + Fixed another file loading issue with Reaper 32-bit
+--   + Added [Open Project] Button
+--   + [Open in Explorer/Finder] Button: when nothing is selected it now opens the default template folder and custom projects folder location 
+--   + Added 'Hold Ctrl/Cmd + Shift to load with FX offline' tooltip to [Load in Tab] and [Load] buttons
+--   + Some minor bugfixes
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher 
@@ -18,16 +14,19 @@
 --
 --   ## Main features
 --
---   - Separate Tabs for Recent Projects, Project Templates and Track Templates
---   - Simple pattern-matching filter at the top of each Tab
---   - Global buttons for 'New Tab' and 'New Project'
---   - [Recent Projects]-Tab: 3 different sort options: 'most recent' projects at the top, alphabetically ascending or descending
---   - Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library for LUA)
---   - 'PIN'-box at the top right: keeps the window open when checked
+--   - Separate tabs for Recent Projects, Project Templates and Track Templates
+--   - Support for custom Project & Track Template folders (used in addition to the default locations)
+--   - Simple list filter at the top of each tab
+--   - [Open in Explorer/Finder] button for browsing to the location of the selected file
+--   - Global 'New Tab' and 'New Project' buttons
+--   - [Recent Projects]-Tab: 3 different sort options: 'Most Recent' projects at the top, 'Alphabetically' ascending and descending
+--   - Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library)
+--   - File paths can be shown/hidden
+--   - 'Keep window open' checkbox at the top right
+--   - Experimental: [Projects] tab (projects folder can be set in the [Options])
 --
---   - Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772
---   - Big thanks to Lokasenna for his work!!
-
+--   - Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!
+--
 --   ## Discussion thread
 --
 --   https://forum.cockos.com/showthread.php?t=208697
@@ -292,7 +291,7 @@ local function OpenLocation_ProjectTemplates()
     local vals = {}
       for k, v in pairs(selected) do table.insert(vals, k) end
    
-   if #vals == 0 then MsgInfo("No files selected in the list!")
+   if #vals == 0 then OpenLocationInExplorer(projectTemplatePath)
       else
      for p = 1, #vals do 
         if ProjectTemplateFilterActive == true then selectedProjectTemplate = projectTemplateItems[filteredProjectTemplates[vals[p]]]
@@ -312,7 +311,7 @@ local function OpenLocation_TrackTemplates()
     local vals = {}
     for k, v in pairs(selected) do table.insert(vals, k)end
    
-   if #vals == 0 then MsgInfo("No files selected in the list!")
+   if #vals == 0 then OpenLocationInExplorer(trackTemplatePath)
    else
     for p = 1, #vals do
       if TrackTemplateFilterActive == true then selectedTrackTemplate = trackTemplateItems[filteredTrackTemplates[vals[p]]]
@@ -331,7 +330,11 @@ local function OpenLocation_CustomProject()
     local vals = {}
     for k, v in pairs(selected) do table.insert(vals, k) end
     
-    if #vals == 0 then MsgInfo("No files selected in the list!")
+    if #vals == 0 then
+      if GUI.Val("opt_customProjects_Path") == "" then MsgInfo("No files selected in the list!")
+      else
+        OpenLocationInExplorer(GUI.Val("opt_customProjects_Path"))
+      end
     else
       for p = 1, #vals do
         if CustomProjectsFilterActive == true then selectedProject = customProjectItems[filteredCustomProjects[vals[p]]]
@@ -572,6 +575,11 @@ end
 
 local function New_Project_IgnoreTemplate()
   reaper.Main_OnCommand(41929, 0)
+  CheckWindowPinState()
+end
+
+local function Open_Project()
+  reaper.Main_OnCommand(40025, 0)
   CheckWindowPinState()
 end
 
@@ -1039,72 +1047,36 @@ end
 -- set custom project template path
 function Path_Set_ProjectTemplates()
   custom_path_projects = GUI.Val("opt_projectTemplates_Path")
-  reaper.SetExtState(appname, "custompath_projecttemplates",custom_path_projects,1)
-  Refresh_ProjectTemplates()
-  MsgInfo("Additional project template folder set to " .. custom_path_projects)
+  if custom_path_projects == "" then
+    MsgInfo("Please enter a custom project template folder path first!")
+  else
+    reaper.SetExtState(appname, "custompath_projecttemplates",custom_path_projects,1)
+    Refresh_ProjectTemplates()
+    MsgInfo("Additional project template folder set to " .. custom_path_projects)
+  end
 end
 
 -- set  track template path
 function Path_Set_TrackTemplates()
   custom_path_projects = GUI.Val("opt_trackTemplates_Path")
-  reaper.SetExtState(appname, "custompath_tracktemplates",custom_path_projects,1)
-  Refresh_TrackTemplates()
-  MsgInfo("Additional track template folder set to " .. custom_path_projects)
+  if custom_path_projects == "" then
+    MsgInfo("Please enter a custom track template folder path first!")
+  else
+    reaper.SetExtState(appname, "custompath_tracktemplates",custom_path_projects,1)
+    Refresh_TrackTemplates()
+    MsgInfo("Additional track template folder set to " .. custom_path_projects)
+  end
 end
 
 -- set custom projects path
 function Path_Set_CustomProjects()
   custom_path_projects = GUI.Val("opt_customProjects_Path")
-  reaper.SetExtState(appname, "custompath_projects",custom_path_projects,1)
-  Refresh_CustomProjects()
-  MsgInfo("Custom project folder set to " .. custom_path_projects)
-end
-
--------------------------------------------------------------
--- Overwrites the Listbox.lua core function 
--- For adjusting the selection rectangle position under macOS
--------------------------------------------------------------
-function GUI.Listbox:drawselection()
-  local off_x, off_y = self.x + self.pad, self.y + self.pad
-  local x, y, w, h
-  w = self.w - 2 * self.pad
-  
-  GUI.color("elm_fill")
-  gfx.a = 0.5
-  gfx.mode = 1
-
-  for i = 1, #self.list do
-    if self.retval[i] and i >= self.wnd_y and i < self:wnd_bottom() then
-      if osversion:find("OSX") then
-      -- macOS  
-        y = off_y + (i * 1.4) + ( (i - self.wnd_y) * self.char_h)
-      else
-      -- Windows
-        y = off_y + (i - self.wnd_y) * self.char_h
-      end
-      gfx.rect(off_x, y, w, self.char_h, true)
-    end
-  end  
-  gfx.mode = 0
-  gfx.a = 1
-end
-
--- Copied from Lokasenna's Theory Helper
-if osversion:find("OSX") then
-  GUI.font = function (fnt)
-  local font, size, str = table.unpack( type(fnt) == "table" and fnt or GUI.fonts[fnt])
-
-  if osversion:find("OSX") then
-    size = math.floor(size * 0.8)
-  end
-  
-  local flags = 0  
-  if str then
-    for i = 1, str:len() do 
-      flags = flags * 256 + string.byte(str, i) 
-    end   
-  end
-    gfx.setfont(1, font, size, flags)
+  if custom_path_projects == "" then 
+    MsgInfo("Please enter a custom project folder path first!")
+  else
+    reaper.SetExtState(appname, "custompath_projects",custom_path_projects,1)
+    Refresh_CustomProjects()
+    MsgInfo("Custom project folder set to " .. custom_path_projects)
   end
 end
 
@@ -1134,7 +1106,7 @@ function SetWindowParameters()
   btn_pad_left = listbox_w + 18
   btn_pad_top = 160
   btn_pad_add = 35
-  btn_tab_top = 310
+  btn_tab_top = 345
 end
 
 SetWindowParameters()
@@ -1163,7 +1135,7 @@ function DrawElements_Main()
   GUI.New("pin_box", "Checklist", 2, GUI.w - 40, pad_top, 20, 20, "", "", "h", 0)
   GUI.elms.pin_box.tooltip = "Check this box to keep the window open"
 
-  GUI.New("menu_showPath", "Menubox", 2, btn_pad_left + 70, 70, 70, 20, "File Paths:", "Hide, Show")
+  GUI.New("menu_showPath", "Menubox", 2, btn_pad_left + 70, 70, 70, 20, "File paths:", "Hide, Show")
   GUI.elms.menu_showPath.tooltip = "Show/Hide file paths in the list"
   
   GUI.New("btn_openInExplorer", "Button", 2, btn_pad_left, 110, btn_w, btn_h, "Open in Explorer/Finder", OpenInExplorer)
@@ -1177,6 +1149,9 @@ function DrawElements_Main()
 
   GUI.New("btn_newProject", "Button", 2, btn_pad_left, btn_pad_top + 95, btn_w, btn_h, "New Project", New_Project) 
   GUI.elms.btn_newProject.tooltip = "Create new project"
+  
+  GUI.New("btn_OpenProject", "Button", 2, btn_pad_left, btn_pad_top + 130, btn_w, btn_h, "Open Project", Open_Project) 
+   GUI.elms.btn_OpenProject.tooltip = "Open a project file via the 'Open project' window"
   
   -- listeners
   function GUI.elms.menu_showPath:onmousedown()
@@ -1197,8 +1172,8 @@ local function DrawFrames()
   GUI.New("frame_side_1",  "Frame", 2, pad_left + listbox_w , 100, GUI.w - pad_left - listbox_w, 2, true, true)
   GUI.New("frame_side_2",  "Frame", 2, pad_left + listbox_w , 145, GUI.w - pad_left - listbox_w, 2, true, true)
   GUI.New("frame_side_3",  "Frame", 2, pad_left + listbox_w , 240, GUI.w - pad_left - listbox_w, 2, true, true)
-  GUI.New("frame_side_4",  "Frame", 2, pad_left + listbox_w , 295, GUI.w - pad_left - listbox_w, 2, true, true)
-  GUI.New("frame_side_5",  "Frame", 2, pad_left + listbox_w , 385, GUI.w - pad_left - listbox_w, 2, true, true)
+  GUI.New("frame_side_4",  "Frame", 2, pad_left + listbox_w , 330, GUI.w - pad_left - listbox_w, 2, true, true)
+  GUI.New("frame_side_5",  "Frame", 2, pad_left + listbox_w , 420, GUI.w - pad_left - listbox_w, 2, true, true)
 end
 
 --------------------------------------
@@ -1223,10 +1198,10 @@ function DrawElements_Tab1()
   GUI.elms.lst_recentProjects.list = recentProjItemsShort
  
   GUI.New("btn_loadRecentProjectInTab", "Button", 3, btn_pad_left, btn_tab_top, btn_w,  btn_h, "Load in Tab", LoadInTab_RecentProject)
-  GUI.elms.btn_loadRecentProjectInTab.tooltip = "Load selected recent project(s) in tab(s)"
+  GUI.elms.btn_loadRecentProjectInTab.tooltip = "Load selected recent project(s) in tab(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
 
   GUI.New("btn_loadRecentProject", "Button", 3, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_RecentProject)
-  GUI.elms.btn_loadRecentProject.tooltip = "Load selected recent project(s)"
+  GUI.elms.btn_loadRecentProject.tooltip = "Load selected recent project(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
 
   -- listeners
   function GUI.elms.lst_recentProjects:ondoubleclick()
@@ -1284,10 +1259,10 @@ function DrawElements_Tab2()
   GUI.elms.lst_projectTemplates.list = projectTemplates
   
   GUI.New("btn_loadProjectTemplateInTab", "Button", 4, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_ProjectTemplate)
-  GUI.elms.btn_loadProjectTemplateInTab.tooltip = "Load selected project template(s) in tab(s)"
+  GUI.elms.btn_loadProjectTemplateInTab.tooltip = "Load selected project template(s) in tab(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
   
   GUI.New("btn_loadProjectTemplate", "Button", 4, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_ProjectTemplate)
-  GUI.elms.btn_loadProjectTemplate.tooltip = "Load selected project templates(s)"
+  GUI.elms.btn_loadProjectTemplate.tooltip = "Load selected project templates(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
 
   -- listeners
   function GUI.elms.lst_projectTemplates:ondoubleclick()
@@ -1344,10 +1319,10 @@ function DrawElements_Tab4()
   GUI.elms.lst_customProjects.list = customProjects
    
   GUI.New("btn_loadCustomProjectInTab", "Button", 6, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_CustomProject)
-  GUI.elms.btn_loadCustomProjectInTab.tooltip = "Load the selected project(s) in tab(s)"
+  GUI.elms.btn_loadCustomProjectInTab.tooltip = "Load the selected project(s) in tab(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
   
   GUI.New("btn_loadCustomProject", "Button", 6, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_CustomProject)
-  GUI.elms.btn_loadCustomProject.tooltip = "Load the selected project(s) "
+  GUI.elms.btn_loadCustomProject.tooltip = "Load the selected project(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
   
   -- listeners
   function GUI.elms.lst_customProjects:ondoubleclick()
@@ -1381,7 +1356,7 @@ function DrawElements_Tab5()
   GUI.New("opt_trackTemplates_Clear", "Button", 7, 40, pad_top * 6, 55, 20, "Remove", Path_Clear_TrackTemplates)
   GUI.elms.opt_trackTemplates_Clear.tooltip = "Remove track template folder path"
 
-  GUI.New("opt_trackTemplates_Path", "Textbox", 7, 100, pad_top * 6, GUI.w-340, 20, "Additional [Track Templates] folder):", 8)
+  GUI.New("opt_trackTemplates_Path", "Textbox", 7, 100, pad_top * 6, GUI.w-340, 20, "Additional [Track Templates] folder:", 8)
   GUI.elms.opt_trackTemplates_Path.cap_pos = "top"
   GUI.elms.opt_trackTemplates_Path.tooltip = "Enter a custom track template folder path"
 
