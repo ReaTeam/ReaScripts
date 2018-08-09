@@ -1,4 +1,4 @@
---@description ausbaxter_Render item columns
+--@description Render item columns
 --@version 1.2
 --@author ausbaxter
 --@about
