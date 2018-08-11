@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.5
+Version: 2.15.6
 Changelog:
-    Add: GUI.oncrash as a hook for user functions to run if the script crashes
+    Fix: Use the same font sizing on Linux as on Mac
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

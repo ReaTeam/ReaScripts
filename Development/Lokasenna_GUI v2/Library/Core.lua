@@ -1725,8 +1725,8 @@ local function GUI_table ()
                                                 or  GUI.fonts[fnt])
         
         -- Different OSes use different font sizes, for some reason
-        -- This should give a roughly equal size on Mac
-        if string.find(reaper.GetOS(), "OSX") then
+        -- This should give a similar size on Mac/Linux as on Windows
+        if not string.match( reaper.GetOS(), "Win") then
             size = math.floor(size * 0.7)
         end
         
