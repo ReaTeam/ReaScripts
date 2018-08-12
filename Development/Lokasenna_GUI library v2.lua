@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.6
+Version: 2.15.7
 Changelog:
-    Fix: Use the same font sizing on Linux as on Mac
+    Fix: Mac/Linux fonts were too small
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
