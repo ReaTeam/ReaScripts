@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.7
+Version: 2.15.8
 Changelog:
-    Fix: Mac/Linux fonts were too small
+    Fix: Invalid monospace font on Linux
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

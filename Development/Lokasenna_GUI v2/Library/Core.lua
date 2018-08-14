@@ -1397,7 +1397,7 @@ local function GUI_table ()
 
         Linux = {
             sans = "Arial",
-            mono = "DejaVu Sans Mono"
+            mono = "DejaVuSansMono"
         }
 
     }
