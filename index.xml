@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b171876c09cf3dc34e5941ef85c8573eab64c6e1" name="ReaTeam Scripts">
+<index version="1" commit="87a32a4aa603179d067e386ab10d15d66d1284fb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -418,6 +418,10 @@ fix moving the cursor to the start of the previous word (shift+left) with multip
 fix off-by-one character offsets in double-click whole word selection (0.8 regression)
 harden against ill-formed UTF-8 sequences in the history file]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/678f5f930e17689feab1824f425b92e50ad4bf2e/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.8.2" author="cfillion" time="2018-08-18T21:52:36Z">
+        <changelog><![CDATA[Use the default monospace font on Linux and Menlo on macOS.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/87a32a4aa603179d067e386ab10d15d66d1284fb/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_GUI library v2 (developer tools).lua" type="script" desc="Lokasenna's GUI library v2 for Lua (developer tools)">
