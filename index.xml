@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e4bcf31724d4f23ae5cff64175ec00b2a6cd0049" name="ReaTeam Scripts">
+<index version="1" commit="b171876c09cf3dc34e5941ef85c8573eab64c6e1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7452,12 +7452,13 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, Project Templates and Track Templates\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Support for custom Project & Track Template folders (used in addition to the default locations)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Simple list filter at the top of each tab\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Open in Explorer/Finder] button for browsing to the location of the selected file\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global 'New Tab' and 'New Project' buttons\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Open in Explorer/Finder] button for opening the folder location of the selected file\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global [New Tab], [New Project] and [Open Project] buttons\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: 3 different sort options: 'Most Recent' projects at the top, 'Alphabetically' ascending and descending\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-select of listbox entries is already part of Lokasenna's GUI library)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep window open' checkbox at the top right\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Resizeable window (currently requires restart of ReaLauncher afterwards)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Experimental: [Projects] tab (projects folder can be set in the [Options])\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
@@ -7507,6 +7508,13 @@ enter or a = Exit and apply changes\par}
 + Added 'Hold Ctrl/Cmd + Shift to load with FX offline' tooltip to [Load in Tab] and [Load] buttons
 + Some minor bugfixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f2e74724c02eca62abc94fc0d19f372b934348ff/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="0.1.6" author="solger" time="2018-08-18T10:16:41Z">
+        <changelog><![CDATA[+ Code update for Linux support
++ Listbox entries are now kept filtered when switching tabs
++ Using the [Open in Explorer/Finder] Button on Track/Project Template tabs with empty listboxes also opens the default locations now
++ [Options]-tab: Added info about multi-select in listboxes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b171876c09cf3dc34e5941ef85c8573eab64c6e1/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
