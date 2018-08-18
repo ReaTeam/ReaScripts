@@ -1,11 +1,7 @@
 -- @description Interactive ReaScript (iReaScript)
--- @version 0.8.1
+-- @version 0.8.2
 -- @author cfillion
--- @changelog
---   add ctrl+w to erase the current word from the cursor
---   fix moving the cursor to the start of the previous word (shift+left) with multiple leading whitespaces
---   fix off-by-one character offsets in double-click whole word selection (0.8 regression)
---   harden against ill-formed UTF-8 sequences in the history file
+-- @changelog Use the default monospace font on Linux and Menlo on macOS.
 -- @links
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
@@ -97,7 +93,7 @@ local ireascript = {
   -- settings
   TITLE = 'Interactive ReaScript (iReaScript)',
   NAME = 'Interactive ReaScript',
-  VERSION = '0.8.1',
+  VERSION = '0.8.2',
 
   MARGIN = 3,
   MAXLINES = 2048,
@@ -1762,9 +1758,12 @@ function ireascript.initgfx()
   if ireascript.iswindows() then
     gfx.setfont(ireascript.FONT_NORMAL, 'Consolas', 16)
     gfx.setfont(ireascript.FONT_BOLD, 'Consolas', 16, string.byte('b'))
+  elseif ireascript.ismacos() then
+    gfx.setfont(ireascript.FONT_NORMAL, 'Menlo', 14)
+    gfx.setfont(ireascript.FONT_BOLD, 'Menlo', 14, string.byte('b'))
   else
-    gfx.setfont(ireascript.FONT_NORMAL, 'Courier', 14)
-    gfx.setfont(ireascript.FONT_BOLD, 'Courier', 14, string.byte('b'))
+    gfx.setfont(ireascript.FONT_NORMAL, 'monospace', 14)
+    gfx.setfont(ireascript.FONT_BOLD, 'monospace', 14, string.byte('b'))
   end
 end
 
