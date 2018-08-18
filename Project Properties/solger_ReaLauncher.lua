@@ -1,11 +1,11 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 0.1.5
+-- @version 0.1.6
 -- @changelog
---   + Added [Open Project] Button
---   + [Open in Explorer/Finder] Button: when nothing is selected it now opens the default template folder and custom projects folder location 
---   + Added 'Hold Ctrl/Cmd + Shift to load with FX offline' tooltip to [Load in Tab] and [Load] buttons
---   + Some minor bugfixes
+--   + Code update for Linux support
+--   + Listbox entries are now kept filtered when switching tabs
+--   + Using the [Open in Explorer/Finder] Button on Track/Project Template tabs with empty listboxes also opens the default locations now
+--   + [Options]-tab: Added info about multi-select in listboxes
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher 
@@ -17,12 +17,13 @@
 --   - Separate tabs for Recent Projects, Project Templates and Track Templates
 --   - Support for custom Project & Track Template folders (used in addition to the default locations)
 --   - Simple list filter at the top of each tab
---   - [Open in Explorer/Finder] button for browsing to the location of the selected file
---   - Global 'New Tab' and 'New Project' buttons
+--   - [Open in Explorer/Finder] button for opening the folder location of the selected file
+--   - Global [New Tab], [New Project] and [Open Project] buttons
 --   - [Recent Projects]-Tab: 3 different sort options: 'Most Recent' projects at the top, 'Alphabetically' ascending and descending
---   - Selection and loading of multiple entries (multi-selection is already part of Lokasenna's GUI library)
+--   - Selection and loading of multiple entries (multi-select of listbox entries is already part of Lokasenna's GUI library)
 --   - File paths can be shown/hidden
 --   - 'Keep window open' checkbox at the top right
+--   - Resizeable window (currently requires restart of ReaLauncher afterwards)
 --   - Experimental: [Projects] tab (projects folder can be set in the [Options])
 --
 --   - Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!
@@ -70,14 +71,14 @@ reaperIniPath = reaper.get_ini_file()
 resourcePath = reaper.GetResourcePath()
 if (resourcePath == nil) then MsgError("Could not retrieve the Reaper resource path!") end
 
-if osversion:find("OSX") then
-  -- macOS paths
-  trackTemplatePath = resourcePath .. "/TrackTemplates"
-  projectTemplatePath = resourcePath .. "/ProjectTemplates"
-else
+if osversion:find("Win") then
   -- Windows paths
   trackTemplatePath = resourcePath .. "\\TrackTemplates"
   projectTemplatePath = resourcePath .. "\\ProjectTemplates"
+else
+  -- macOS / Linux paths
+  trackTemplatePath = resourcePath .. "/TrackTemplates"
+  projectTemplatePath = resourcePath .. "/ProjectTemplates"
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -194,12 +195,12 @@ end
 -- Get directory from full file path
 ------------------------------------
 function GetDirectoryPath(filepath)
-  if osversion:find("OSX") then
-  -- OSX
-    index = (filepath:reverse()):find("%/")
-  else
-  -- Windows
+  if osversion:find("Win") then
+    -- Windows
     index = (filepath:reverse()):find("%\\")
+  else
+    -- macOS / Linux
+    index = (filepath:reverse()):find("%/")
   end
   return string.sub(filepath, 1,#filepath-index)
 end
@@ -211,23 +212,24 @@ end
 local function GetFiles(path)
   local files = {}
 
-  if osversion:find("OSX") then
-    -- macOS
-    for file in io.popen([[find ]] .. path .. [[ -maxdepth 3 -type f -not -name '.*']]):lines() do
+  if osversion:find("Win") then
+    -- Windows
+    if bitversion == 'x64' then
+      -- Windows (Reaper 64-bit)
+      for file in io.popen([[dir "]] .. path .. [[" /a:-d /s /b | sort]]):lines() do
+        files[#files + 1] = file
+      end
+    else
+      -- Windows (Reaper 32-bit)
+      -- files = EnumerateFiles(path)
+      files = ScanPath(path)
+    end
+    MsgDebug("Get Files (" .. path .. ")\n------\n" .. table.concat(files,"\n").."\n")
+  else  
+    -- macOS / Linux
+    for file in io.popen([[find ]] .. path .. [[ -maxdepth 3 -type f -not -name '.*' -not -name '*.reapeaks' -not -name '*.wav']]):lines() do
       files[#files + 1] = file
     end
-    else
-      if bitversion == 'x64' then
-        -- Windows (Reaper 64-bit)
-        for file in io.popen([[dir "]] .. path .. [[" /a:-d /s /b | sort]]):lines() do
-          files[#files + 1] = file
-        end
-      else
-        -- Windows (Reaper 32-bit)
-        -- files = EnumerateFiles(path)
-        files = ScanPath(path)
-      end
-      MsgDebug("Get Files (" .. path .. ")\n------\n" .. table.concat(files,"\n").."\n")
   end
   return files
 end
@@ -253,9 +255,11 @@ end
 ---------------------------------------------
 function OpenLocationInExplorer(path)
   if osversion:find("OSX") then  
-    os.execute('open "" "' .. path .. '"')
+    os.execute('open "" "' .. path .. '"') -- macOS
+  elseif osversion:find("Win") then  
+    os.execute('start "" "' .. path .. '"') -- Windows    
   else
-    os.execute('start "" "' .. path .. '"')
+    os.execute('xdg-open \"' .. path .. '\"') -- Linux
   end
 end           
 
@@ -299,6 +303,8 @@ local function OpenLocation_ProjectTemplates()
         OpenLocationInExplorer(GetDirectoryPath(selectedProjectTemplate))
       end
     end
+    else
+      OpenLocationInExplorer(projectTemplatePath)
   end
 end
 
@@ -319,6 +325,8 @@ local function OpenLocation_TrackTemplates()
       OpenLocationInExplorer(GetDirectoryPath(selectedTrackTemplate)) 
     end 
    end
+   else
+     OpenLocationInExplorer(trackTemplatePath)
   end
 end  
 
@@ -406,10 +414,10 @@ function FillRecentProjectsListbox()
       break 
     else
       fullPath = GetReaperIniKeyValue(recentpathtag[p])
-      if osversion:find("OSX") then
-        filename = fullPath:match "([^/]-([^.]+))$" -- macOS: get (filename.extension) substring
-      else
+      if osversion:find("Win") then
         filename = fullPath:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+      else
+        filename = fullPath:match "([^/]-([^.]+))$" -- macOS / Linux: get (filename.extension) substring
       end
       MsgDebug(fullPath)
       recentProjItemsFull[p] = fullPath
@@ -458,10 +466,10 @@ local function FillProjectTemplateListbox()
     noProjectTemplates = false  
 
     for i = 1, #projectTemplateFiles do
-      if osversion:find("OSX") then
-        filename = projectTemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
-      else
+      if osversion:find("Win") then
         filename = projectTemplateFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+      else
+        filename = projectTemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS / Linux: (filename.extension) 
       end
   
       projectTemplates[i] = string.sub(filename,1,#filename-4) -- get (filename) without .RPP
@@ -496,10 +504,10 @@ local function FillTrackTemplateListbox()
       noTrackTemplates = false  
     
       for i = 1 , #trackTemplateFiles do
-        if osversion:find("OSX") then
-          filename = trackTemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
-        else
+        if osversion:find("Win") then
           filename = trackTemplateFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+        else
+          filename = trackTemplateFiles[i]:match "([^/]-([^.]+))$" -- macOS / Linux: (filename.extension) 
         end
         trackTemplates[i] = string.sub(filename,1,#filename-15) -- get (filename) without .RTrackTemplate
         trackTemplateItems[trackTemplates[i]] = trackTemplateFiles[i]
@@ -517,14 +525,17 @@ local function FillCustomProjectsListbox()
   
   if #custom_path_projects > 1 then
     
-    if bitversion == "x64" then customProjectFiles = GetRPPFiles(custom_path_projects)
-    else customProjectFiles = GetFiles(custom_path_projects) end
+   if (osversion:find("Win")) and (bitversion == "x64") then
+    customProjectFiles = GetRPPFiles(custom_path_projects)
+   else
+     customProjectFiles = GetFiles(custom_path_projects)
+   end
   
      for i = 1, #customProjectFiles do
-        if osversion:find("OSX") then
-          filename = customProjectFiles[i]:match "([^/]-([^.]+))$" -- macOS: (filename.extension) 
-        else
+        if osversion:find("Win") then
           filename = customProjectFiles[i]:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
+        else
+          filename = customProjectFiles[i]:match "([^/]-([^.]+))$" -- macOS / Linux: (filename.extension) 
         end
 
         -- handling of .RPP files  
@@ -870,6 +881,15 @@ local function UpdateListFilter_CustomProjects()
   end
 end
 
+-- Update Filter on all Tabs
+local function UpdateListFilter_All()
+  UpdateListFilter_RecentProjects()
+  UpdateListFilter_ProjectTemplates()
+  UpdateListFilter_TrackTemplates()
+  UpdateListFilter_CustomProjects()
+  HidePaths()
+end
+
 ----------------------
 -- Filter functions --
 ----------------------
@@ -1111,6 +1131,9 @@ end
 
 SetWindowParameters()
 
+
+ttLoadFXoffline = "To load with FX offline: \n\n- Hold 'Ctrl + Shift' (Windows & Linux)\n- Hold 'Cmd + Shift' (macOS)\n- Or use the option in the [Open Project] window"
+
 ---------------------------------
 -- Main GUI Elements
 ---------------------------------
@@ -1128,6 +1151,12 @@ function DrawElements_Main()
        [5] = {7},
      }
    )
+
+  function GUI.elms.tabs:onmousedown()
+    GUI.Tabs.onmousedown(self)
+    UpdatePathDisplayMode()
+    UpdateListFilter_All()
+  end
 
   -- layer 2
   GUI.New("pin_label", "Label", 2, GUI.w - 152, pad_top + 2, "Keep window open:", false, 3)
@@ -1198,10 +1227,10 @@ function DrawElements_Tab1()
   GUI.elms.lst_recentProjects.list = recentProjItemsShort
  
   GUI.New("btn_loadRecentProjectInTab", "Button", 3, btn_pad_left, btn_tab_top, btn_w,  btn_h, "Load in Tab", LoadInTab_RecentProject)
-  GUI.elms.btn_loadRecentProjectInTab.tooltip = "Load selected recent project(s) in tab(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
+  GUI.elms.btn_loadRecentProjectInTab.tooltip = "Load selected recent project(s) in tab(s)\n\n" .. ttLoadFXoffline
 
   GUI.New("btn_loadRecentProject", "Button", 3, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_RecentProject)
-  GUI.elms.btn_loadRecentProject.tooltip = "Load selected recent project(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
+  GUI.elms.btn_loadRecentProject.tooltip = "Load selected recent project(s)\n\n" .. ttLoadFXoffline
 
   -- listeners
   function GUI.elms.lst_recentProjects:ondoubleclick()
@@ -1259,10 +1288,10 @@ function DrawElements_Tab2()
   GUI.elms.lst_projectTemplates.list = projectTemplates
   
   GUI.New("btn_loadProjectTemplateInTab", "Button", 4, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_ProjectTemplate)
-  GUI.elms.btn_loadProjectTemplateInTab.tooltip = "Load selected project template(s) in tab(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
+  GUI.elms.btn_loadProjectTemplateInTab.tooltip = "Load selected project template(s) in tab(s)\n\n" .. ttLoadFXoffline
   
   GUI.New("btn_loadProjectTemplate", "Button", 4, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_ProjectTemplate)
-  GUI.elms.btn_loadProjectTemplate.tooltip = "Load selected project templates(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
+  GUI.elms.btn_loadProjectTemplate.tooltip = "Load selected project templates(s)\n\n" .. ttLoadFXoffline
 
   -- listeners
   function GUI.elms.lst_projectTemplates:ondoubleclick()
@@ -1319,10 +1348,10 @@ function DrawElements_Tab4()
   GUI.elms.lst_customProjects.list = customProjects
    
   GUI.New("btn_loadCustomProjectInTab", "Button", 6, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_CustomProject)
-  GUI.elms.btn_loadCustomProjectInTab.tooltip = "Load the selected project(s) in tab(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
+  GUI.elms.btn_loadCustomProjectInTab.tooltip = "Load the selected project(s) in tab(s)\n\n" .. ttLoadFXoffline
   
   GUI.New("btn_loadCustomProject", "Button", 6, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_CustomProject)
-  GUI.elms.btn_loadCustomProject.tooltip = "Load the selected project(s)\n\nTo load with FX offline:\n\nHold 'Ctrl + Shift' (Windows) /  'Cmd + Shift' (macOS)\nor use the option in the [Open Project] window"
+  GUI.elms.btn_loadCustomProject.tooltip = "Load the selected project(s)\n\n" .. ttLoadFXoffline
   
   -- listeners
   function GUI.elms.lst_customProjects:ondoubleclick()
@@ -1339,6 +1368,7 @@ end
 ------------------------------
 -- Tab 5 Elements - Options --
 ------------------------------
+
 function DrawElements_Tab5()
 
   -- custom project template folder
@@ -1379,7 +1409,12 @@ function DrawElements_Tab5()
 
   GUI.New("opt_description4", "Label", 7, 40, 300, "The [Template] folders are used in addition to the default template folder locations.")
   GUI.elms.opt_description4.font = 3
- 
+  
+  GUI.New("opt_selectiontext", "Label", 7, 40, 360, "Multi-Select:\n\n- 'Shift + Left Mouse Click':             adjacent listbox entries \n- 'Ctrl/Cmd + Left Mouse Click':     non-adjacent listbox entries\n\n- Loading a single listbox entry directly via 'Double-Click' is also possible")
+  GUI.elms.opt_selectiontext.font = 3
+  
+  GUI.New("frame_options_1",  "Frame", 7, 0 , 340, GUI.w, 2, true, true)
+
 end
 
 -----------------------
