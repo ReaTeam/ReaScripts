@@ -6,7 +6,6 @@
     Changelog:
         Initial Release
     Links:
-        Forum Thread 
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         On Linux, EZDrummer is unable to drag-and-drop MIDI loops into Reaper.
