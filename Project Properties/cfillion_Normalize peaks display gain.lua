@@ -1,5 +1,6 @@
 -- @description Normalize peaks display gain
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Mark project as modified after adjusting the peaks gain
 -- @author cfillion
 -- @website cfillion.ca https://cfillion.ca
 -- @donate https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Normalize+peaks+display+gian
@@ -87,4 +88,5 @@ if gainFactor then
   gainFactor = math.max(1, gainFactor)
   reaper.SNM_SetDoubleConfigVar('projpeaksgain', gainFactor)
   reaper.UpdateArrange()
+  reaper.MarkProjectDirty(0)
 end
