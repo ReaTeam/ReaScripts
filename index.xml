@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="564578aba367c28e8eb39d146f7ae2cecbe58b7d" name="ReaTeam Scripts">
+<index version="1" commit="c70b42d9a2dcc9607a7dfdb5f9b9598f721ad27e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7776,6 +7776,22 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.0" author="Mordi" time="2016-12-23T18:26:44Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9905277302b7d6ebc7661ef8348d41a7d4c0d695/Takes%20Properties/Mordi_Move%20first%20character%20of%20active%20takes%20name%20to%20end%20(on%20selected%20items).lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Namecount from x.lua" type="script" desc="Namecount from x">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 You have Fart 01.wav and Fart 02.wav in your sound effects folder, and now you've recorded twenty new farts, so they will need to be counted from 03 to 22. Name your takes "Fart" and then use this script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It will be formatted like this: "takename 99"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made by Mordi, Aug 2018\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2018-08-22T21:38:40Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c70b42d9a2dcc9607a7dfdb5f9b9598f721ad27e/Takes%20Properties/Mordi_Namecount%20from%20x.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Set selected items active takes name to track name.lua" type="script" desc="Set selected items active takes name to track name">
