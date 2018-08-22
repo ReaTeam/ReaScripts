@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.8
+Version: 2.15.9
 Changelog:
-    Fix: Invalid monospace font on Linux
+    Add: Listbox's Val method will also accept a number to select only that entry
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

@@ -126,10 +126,19 @@ function GUI.Listbox:val(newval)
 	
 	if newval then
 		--self.list = type(newval) == "string" and self:CSVtotable(newval) or newval
-        if type(newval) ~= "table" then return end
+        if type(newval) == "table" then 
         
-        for i = 1, #self.list do
-            self.retval[i] = newval[i] or nil
+            for i = 1, #self.list do
+                self.retval[i] = newval[i] or nil
+            end
+        
+        elseif type(newval) == "number" then
+
+            newval = math.floor(newval)
+            for i = 1, #self.list do
+                self.retval[i] = (i == newval)
+            end
+
         end
         
 		self:redraw()
