@@ -55,34 +55,9 @@ reapack-index's [packaging documentation](https://github.com/cfillion/reapack-in
 
 - [ReaTeam/JSFX](https://github.com/ReaTeam/JSFX)
 
-### Other ReaPack compatible repositories (included in ReaPack)
+### Other ReaPack compatible repositories
 
-- [X-Raym/REAPER-ReaScripts](https://github.com/X-Raym/REAPER-ReaScripts)
-- [mpl/ReaScripts](https://github.com/MichaelPilyavskiy/ReaScripts)
-
-### Other ReaPack compatible repositories (not included in ReaPack)
-
-- [bfut/ReaScripts](https://github.com/bfut/ReaScripts)
-- [chtammik/chtammik_Reaper_Scripts](https://github.com/chtammik/chtammik_Reaper_Scripts)
-- [Claudiohbsantos/Claudiohbsantos-Scripts](https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts)
-- [Erriez/erriez-reaper-jsfx](https://github.com/Erriez/erriez-reaper-jsfx)
-- [EUGEN27771/ReaScripts](https://github.com/EUGEN27771/ReaScripts)
-- [fernsehmuell/reaper_scripts](https://github.com/fernsehmuell/reaper_scripts)
-- [geraintluff/jsfx](https://github.com/geraintluff/jsfx)
-- [kawaCat/ReaScript-M2BPack](https://bitbucket.org/kawaCat/reascript-m2bpack/wiki/Home)
-- [jtackaberry/reascripts](https://github.com/jtackaberry/reascripts/tree/master/MIDI)
-- [luckyxxl/reaper-scripts](https://github.com/luckyxxl/reaper-scripts/)
-- [mrlimbic/reascripts](https://github.com/mrlimbic/reascripts)
-- [nikolalkc/nikolalkc_reaper_scripts](https://github.com/nikolalkc/nikolalkc_reaper_scripts)
-- [nofishonfriday/ReaScripts](https://github.com/nofishonfriday/ReaScripts)
-- [przemoc/REAPER-ReaScripts](https://github.com/przemoc/REAPER-ReaScripts)
-- [RCJacH/ReaScripts](https://github.com/RCJacH/ReaScripts/)
-- [RobU23/ReaScripts](https://github.com/RobU23/ReaScripts/)
-- [Sonic-Anomaly/Sonic-Anomaly-JSFX](https://github.com/Sonic-Anomaly/Sonic-Anomaly-JSFX)
-- [StephanRoemer/ReaScripts](https://github.com/StephanRoemer/ReaScripts)
-- [X-Raym/ReaScripts-Premium](https://www.extremraym.com/en/downloads/category/reascripts/)
-- [X-Raym/MIDI-Makey-Makey](https://github.com/X-Raym/MIDI-Makey-Makey)
-- [JoepVanlier/Hackey-Trackey](https://github.com/JoepVanlier/Hackey-Trackey)
+See [Reapack.com Respository List](https://reapack.com/repos)
 
 ### Other repositories or packs not compatible with ReaPack
 
