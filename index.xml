@@ -11492,100 +11492,11 @@ Create
 ReaTeam/JSFX
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaPack compatible repositories (included in ReaPack)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/X-Raym/REAPER-ReaScripts"}}{\fldrslt{\ul
-X-Raym/REAPER-ReaScripts
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaPack compatible repositories\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See {\field{\*\fldinst{HYPERLINK "https://reapack.com/repos"}}{\fldrslt{\ul
+Reapack.com Respository List
 }}}
 \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts"}}{\fldrslt{\ul
-mpl/ReaScripts
-}}}
-\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaPack compatible repositories (not included in ReaPack)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/bfut/ReaScripts"}}{\fldrslt{\ul
-bfut/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/chtammik/chtammik_Reaper_Scripts"}}{\fldrslt{\ul
-chtammik/chtammik_Reaper_Scripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Claudiohbsantos/Claudiohbsantos-Scripts"}}{\fldrslt{\ul
-Claudiohbsantos/Claudiohbsantos-Scripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Erriez/erriez-reaper-jsfx"}}{\fldrslt{\ul
-Erriez/erriez-reaper-jsfx
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/EUGEN27771/ReaScripts"}}{\fldrslt{\ul
-EUGEN27771/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/fernsehmuell/reaper_scripts"}}{\fldrslt{\ul
-fernsehmuell/reaper_scripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/geraintluff/jsfx"}}{\fldrslt{\ul
-geraintluff/jsfx
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://bitbucket.org/kawaCat/reascript-m2bpack/wiki/Home"}}{\fldrslt{\ul
-kawaCat/ReaScript-M2BPack
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/jtackaberry/reascripts/tree/master/MIDI"}}{\fldrslt{\ul
-jtackaberry/reascripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/luckyxxl/reaper-scripts/"}}{\fldrslt{\ul
-luckyxxl/reaper-scripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/mrlimbic/reascripts"}}{\fldrslt{\ul
-mrlimbic/reascripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/nikolalkc/nikolalkc_reaper_scripts"}}{\fldrslt{\ul
-nikolalkc/nikolalkc_reaper_scripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/nofishonfriday/ReaScripts"}}{\fldrslt{\ul
-nofishonfriday/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/przemoc/REAPER-ReaScripts"}}{\fldrslt{\ul
-przemoc/REAPER-ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/RCJacH/ReaScripts/"}}{\fldrslt{\ul
-RCJacH/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/RobU23/ReaScripts/"}}{\fldrslt{\ul
-RobU23/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/Sonic-Anomaly/Sonic-Anomaly-JSFX"}}{\fldrslt{\ul
-Sonic-Anomaly/Sonic-Anomaly-JSFX
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/StephanRoemer/ReaScripts"}}{\fldrslt{\ul
-StephanRoemer/ReaScripts
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.extremraym.com/en/downloads/category/reascripts/"}}{\fldrslt{\ul
-X-Raym/ReaScripts-Premium
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/X-Raym/MIDI-Makey-Makey"}}{\fldrslt{\ul
-X-Raym/MIDI-Makey-Makey
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/JoepVanlier/Hackey-Trackey"}}{\fldrslt{\ul
-JoepVanlier/Hackey-Trackey
-}}}
-\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other repositories or packs not compatible with ReaPack\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/actonDev/Reaper-Scripts"}}{\fldrslt{\ul
 actonDev/Reaper-Scripts
