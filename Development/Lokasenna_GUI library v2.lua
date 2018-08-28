@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.9
+Version: 2.15.10
 Changelog:
-    Add: Listbox's Val method will also accept a number to select only that entry
+    Fix: Textbox and TextEditor's states weren't being reset after GUI.Val()
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

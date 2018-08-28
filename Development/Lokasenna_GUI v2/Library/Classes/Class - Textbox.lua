@@ -129,7 +129,7 @@ end
 function GUI.Textbox:val(newval)
 	
 	if newval then
-		self.retval = tostring(newval)
+        self:seteditorstate(tostring(newval))        
 		self:redraw()		
 	else
 		return self.retval
@@ -858,6 +858,17 @@ function GUI.Textbox:geteditorstate()
 	return { retval = self.retval, caret = self.caret }
 	
 end
+
+
+function GUI.Textbox:seteditorstate(retval, caret, wnd_pos, sel_s, sel_e)
+
+    self.retval = retval or ""
+    self.caret = math.min(caret and caret or self.caret, string.len(self.retval))
+    self.wnd_pos = wnd_pos or 0
+    self.sel_s, self.sel_e = sel_s or nil, sel_e or nil
+
+end
+
 
 
 -- See if we have a new-enough version of SWS for the clipboard functions

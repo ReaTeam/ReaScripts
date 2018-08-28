@@ -152,9 +152,9 @@ end
 function GUI.TextEditor:val(newval)
 	
 	if newval then
-		self.retval = (type(newval) == "table" and newval
-                                                or self:stringtotable(newval))
-		self:clearselection()
+		self:seteditorstate( 
+            type(newval) == "table" and newval
+                                    or self:stringtotable(newval))
 		self:redraw()		
 	else
 		return table.concat(self.retval, "\n")
@@ -1369,6 +1369,18 @@ function GUI.TextEditor:geteditorstate()
 	return state
 	
 end
+
+
+function GUI.TextEditor:seteditorstate(retval, caret, wnd_pos, sel_s, sel_e)
+
+    self.retval = retval or {""}
+    self.wnd_pos = wnd_pos or {x = 0, y = 1}
+	self.caret = caret or {x = 0, y = 1}
+    self.sel_s = sel_s or nil
+    self.sel_e = sel_e or nil
+
+end
+
 
 
 -- See if we have a new-enough version of SWS for the clipboard functions
