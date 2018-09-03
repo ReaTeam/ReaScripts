@@ -1,10 +1,10 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.4.0
+    Version: 1.4.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Change: Real-time mode updates on every text change
+        Fix: Issues with siblings of top-level tracks
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -127,6 +127,7 @@ local function get_top_level_tracks()
         end
     end
 
+    return top
 end
 
 
@@ -155,7 +156,7 @@ local function get_siblings(tracks)
         else
 
             -- Find all top-level tracks
-            return get_top_level_tracks()
+            siblings = merge_tables(siblings, get_top_level_tracks())
 
         end
 
