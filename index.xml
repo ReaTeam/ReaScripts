@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b5ec28a49e5d88ba6aeb197b5263d696ba75497a" name="ReaTeam Scripts">
+<index version="1" commit="56c29acd76e95b73970cf77e2f510b07b2c3706e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8298,6 +8298,24 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/edf2903781addc312c249076aadbc7ade8750d84/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="Lokasenna_Select tracks by name.lua" type="script" desc="Select tracks by name">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows quickly selecting multiple tracks based on a name search and several options.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also allows exporting of specific settings as a standalone action.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-09-03T20:28:13Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/56c29acd76e95b73970cf77e2f510b07b2c3706e/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
+      </version>
+    </reapack>
     <reapack name="Lokasenna_Select tracks in selection with items.lua" type="script" desc="Select tracks in selection with items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -8375,6 +8393,10 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="1.4.0" author="Lokasenna" time="2018-08-03T22:08:06Z">
         <changelog><![CDATA[Change: Real-time mode updates on every text change]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c3222ae4ef8a2f1e196a2c33d4b502293c8f408/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.4.1" author="Lokasenna" time="2018-09-03T20:28:02Z">
+        <changelog><![CDATA[Fix: Issues with siblings of top-level tracks]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83f5589cbd9d00d551ca2826f6eddfd987a1c0b5/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
