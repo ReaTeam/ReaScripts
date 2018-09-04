@@ -267,7 +267,7 @@ function GUI.GetUserInputs(title, captions, defaults, ret_func, extra_width)
     for name in pairs( GUI.elms.UserInputs_wnd:getchildelms() ) do
         if string.match(name, "txt") then
             GUI.elms[name].keys = {[GUI.chars.RETURN] = txt_enter}
-            setmetatable(GUI.elms[name].keys, GUI.Textbox.keys)
+            setmetatable(GUI.elms[name].keys, {__index=GUI.Textbox.keys})
         end
     end
 

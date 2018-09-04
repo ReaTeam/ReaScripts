@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.10
+Version: 2.15.11
 Changelog:
-    Fix: Textbox and TextEditor's states weren't being reset after GUI.Val()
+    Fix: GetUserInputs' textboxes missing key commands
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
