@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bb85a213e5913ef726b13a25bb55a193fdce23cc" name="ReaTeam Scripts">
+<index version="1" commit="87ff7b9aa023dd325359e40961af90c15c2d80be" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1961,23 +1961,6 @@ Add: Actions for adjusting all instances on selected tracks]]></changelog>
         <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.05 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/c802066be68a00b4a3dc8d91e2971b6e282e06b3/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset.lua</source>
         <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.5 semitones.lua">https://github.com/ReaTeam/ReaScripts/raw/c802066be68a00b4a3dc8d91e2971b6e282e06b3/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset.lua</source>
         <source main="main" file="Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 1 semitone.lua">https://github.com/ReaTeam/ReaScripts/raw/c802066be68a00b4a3dc8d91e2971b6e282e06b3/FX/Lokasenna_Adjust%20ReaSamplomatic%205000%20Pitch%20Offset.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Lokasenna_Insert most recent EZDrummer export at mouse cursor on EZDrummer track.lua" type="script" desc="Insert most recent EZDrummer export at mouse cursor on EZDrummer track">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 On Linux, EZDrummer is unable to drag-and-drop MIDI loops into Reaper. This script provides a simple workaround: Drag a loop out of EZD, as normal, run the script, and the MIDI will be inserted on your EZD track at the current mouse position (snapped to grid).\par}
-}
-]]></description>
-        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
-        <link rel="donation">https://www.paypal.me/Lokasenna</link>
-      </metadata>
-      <version name="1.0.0" author="Lokasenna" time="2018-08-19T04:46:03Z">
-        <changelog><![CDATA[Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89ee00853eb0f075a56a57452d4b43040d295b99/FX/Lokasenna_Insert%20most%20recent%20EZDrummer%20export%20at%20mouse%20cursor%20on%20EZDrummer%20track.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Toggle FX bypass by track and slot.lua" type="script" desc="Toggle FX bypass by track and slot">
@@ -9855,6 +9838,27 @@ use sentence case for all buttons]]></changelog>
       <version name="1.1.0" author="Lokasenna" time="2018-07-22T13:54:18Z">
         <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3f2e04ee2168f90f9539ce492f019fcb2032b749/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20top-level%20tracks%20to%20it.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Insert most recent exported file....lua" type="script" desc="Insert most recent exported file...">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 IMPORTANT: Linux only. Maybe OSX too, I'm not sure.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is intended as a workaround for issues using some plugins on Linux.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When running under Wine, plugins such as EZDrummer aren't able to export MIDI to Reaper via drag-and-drop. They {\i do} still export the file to disk, though, so if you know where they've put it you can import it by hand.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script takes a few parameters and then looks for the most recent file matching them, which it then inserts in your Reaper project.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A given set of parameters can also be saved as a separate action for quick access via shortcut keys or the action list.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://www.paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-09-04T22:18:06Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/87ff7b9aa023dd325359e40961af90c15c2d80be/Various/Lokasenna_Insert%20most%20recent%20exported%20file....lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
