@@ -1,11 +1,12 @@
 --[[
     Description: Insert most recent exported file...
-    Version: 1.0.0
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
         Initial Release
     Links:
+        Forum Thread https://forum.cockos.com/showthread.php?p=2030985
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         IMPORTANT: Linux only. Maybe OSX too, I'm not sure.
