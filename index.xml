@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cdc3a88ceecc4806fa17e9bec4b8d4c0481782b2" name="ReaTeam Scripts">
+<index version="1" commit="a22bb49688a60e84c8c29f6f951e06342f517650" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1803,6 +1803,17 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <source main="main" file="cfillion_Toggle monitoring FX 6 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
         <source main="main" file="cfillion_Toggle monitoring FX 7 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
         <source main="main" file="cfillion_Toggle monitoring FX 8 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
+      </version>
+    </reapack>
+    <reapack name="kawa_TrackFXs_Routing_Matrix_DS_KW.lua" type="script" desc="TrackFXs Routing Matrix (Kawa mod)">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=173867">Forum</link>
+        <link rel="website" href="https://stash.reaper.fm/v/28892/TrackFXs_Routing_Matrix_DS_KW.lua">Doc</link>
+        <link rel="screenshot">https://stash.reaper.fm/30683/TrackFxRouting_Mod_1.gif</link>
+      </metadata>
+      <version name="1.0" author="Eugen2777, DarkStar, Kawa" time="2018-09-07T07:55:54Z">
+        <changelog><![CDATA[# Reapack Release by X-Raym from version c01]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a22bb49688a60e84c8c29f6f951e06342f517650/FX/kawa_TrackFXs_Routing_Matrix_DS_KW.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Adjust ReaSamplomatic 5000 Pitch Offset.lua" type="script" desc="Adjust ReaSamplomatic 5000 pitch offset">
