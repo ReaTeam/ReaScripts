@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a22bb49688a60e84c8c29f6f951e06342f517650" name="ReaTeam Scripts">
+<index version="1" commit="cc48b8d9ba6db3f854289d8e9ded7e341472e883" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8274,6 +8274,40 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.02" author="juliansader" time="2016-07-22T11:02:03Z">
         <changelog><![CDATA[+ Prevent sysex events from confusing channel detector.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2dac1e58556e9e562b26de1551dcaf4ebd4a550/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create bus after selected tracks and reroute them.lua" type="script" desc="Create bus after selected tracks and reroute them">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track before the selected tracks, labelled "Bus", then reroutes all selected tracks to it and disables their\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-09-08T17:12:11Z">
+        <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc48b8d9ba6db3f854289d8e9ded7e341472e883/Tracks%20Properties/Lokasenna_Create%20bus%20after%20selected%20tracks%20and%20reroute%20them.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create bus before selected tracks and reroute them.lua" type="script" desc="Create bus before selected tracks and reroute them">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts a new track before the selected tracks, labelled "Bus", then reroutes all selected tracks to it and disables their\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-09-08T17:12:11Z">
+        <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc48b8d9ba6db3f854289d8e9ded7e341472e883/Tracks%20Properties/Lokasenna_Create%20bus%20before%20selected%20tracks%20and%20reroute%20them.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create send from selected tracks.lua" type="script" desc="Create send from selected tracks">
