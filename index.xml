@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="feb6e9a2830a07e0ace2133d937b7f890f50c57d" name="ReaTeam Scripts">
+<index version="1" commit="b4baa2abd3244675714925667a0b1a7d2b22f91c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4056,6 +4056,10 @@ Renumber markers and regions when pasting]]></changelog>
 + Script will recall last-used curve shape.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.50" author="juliansader" time="2018-09-09T09:19:57Z">
+        <changelog><![CDATA[+ Snap to closest grid, instead of preceding grid.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/cd622017552938f0e9c514040779b45a344f8959/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
       <metadata>
@@ -4182,6 +4186,10 @@ Renumber markers and regions when pasting]]></changelog>
 + Script will recall last-used curve shape.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
+      <version name="3.50" author="juliansader" time="2018-09-09T09:20:04Z">
+        <changelog><![CDATA[+ Snap to closest grid, instead of preceding grid.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5b1545e9ada7bd4ad98443995b55cda88053c7ca/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
       <metadata>
@@ -4290,6 +4298,10 @@ Renumber markers and regions when pasting]]></changelog>
 + Script will recall last-used curve shape.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
+      <version name="3.50" author="juliansader" time="2018-09-09T09:20:10Z">
+        <changelog><![CDATA[+ Snap to closest grid, instead of preceding grid.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4588cd95676d82718b92c20f031b64b8cf7ee756/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
       <metadata>
@@ -4397,6 +4409,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Return focus to MIDI editor after arming button in floating toolbar.
 + Script will recall last-used curve shape.    ]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+      </version>
+      <version name="3.50" author="juliansader" time="2018-09-09T09:20:15Z">
+        <changelog><![CDATA[+ Snap to closest grid, instead of preceding grid.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a95abf4283f4461c8c8e2e512f1670771758319d/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -5368,8 +5384,8 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
       </version>
       <version name="3.50" author="juliansader" time="2018-09-09T07:58:10Z">
-        <changelog><![CDATA[+ Snap to closest grid, instead of left grid.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/feb6e9a2830a07e0ace2133d937b7f890f50c57d/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
+        <changelog><![CDATA[+ Snap to closest grid, instead of preceding grid.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/71a47c50c04fa752c8e394f345ce54ff35987752/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Reveal peak nodes in LFO.lua" type="script" desc="js_Mouse editing - Reveal peak nodes in LFO.lua">
@@ -6488,6 +6504,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="3.41" author="juliansader" time="2018-05-30T17:01:16Z">
         <changelog><![CDATA[+ Return focus to MIDI editor after arming button in floating toolbar.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="3.50" author="juliansader" time="2018-09-09T09:22:13Z">
+        <changelog><![CDATA[+ Snap to closest grid, instead of preceding grid.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b4baa2abd3244675714925667a0b1a7d2b22f91c/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
