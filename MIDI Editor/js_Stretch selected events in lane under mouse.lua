@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Stretch selected events in lane under mouse.lua
-Version: 3.41
+Version: 3.50
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27594/Stretch%20selected%20events%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -138,6 +138,8 @@ About:
     + Mousewheel flips events.
   * v3.41 (2018-05-29)
     + Return focus to MIDI editor after arming button in floating toolbar.
+  * v3.50 (2018-09-09)
+    + Snap to closest grid, instead of preceding grid.
 ]]
 
 ---------------------------------------
@@ -406,7 +408,7 @@ local function trackMouseAndDrawMIDI()
             gridNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
         elseif isSnapEnabled then
             local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
-            local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+            local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
             gridNewPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
         -- Otherwise, destination PPQ is exact mouse position
         else 
@@ -1862,7 +1864,7 @@ function main()
         -- Calculate position of grid immediately before mouse position
         QNperGrid, _, _ = reaper.MIDI_GetGrid(take) -- Quarter notes per grid
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
-        local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+        local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         gridOrigPPQpos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
     else 
         -- Otherwise, destination PPQ is exact mouse position
