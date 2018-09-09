@@ -123,7 +123,7 @@ About:
   * v3.40 (2018-05-26)
     + New version of Draw script: Draw LFOs!
   * v3.50 (2018-09-09)
-    + Snap to closest grid, instead of left grid.
+    + Snap to closest grid, instead of preceding grid.
 ]]
 
 ----------------------------------------
