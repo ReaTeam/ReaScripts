@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Draw linear or curved ramps in real time, chasing start values.lua
-Version: 3.50
+Version: 3.51
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -176,7 +176,7 @@ About:
   * v3.34 (2018-05-29)
     + Return focus to MIDI editor after arming button in floating toolbar.
     + Script will recall last-used curve shape.
-  * v3.50 (2018-09-09)
+  * v3.51 (2018-09-09)
     + Snap to closest grid, instead of preceding grid.
 ]]
 
@@ -277,6 +277,8 @@ local AllNotesOffMsg = string.char(0xB0, 0x7B, 0x00)
 local AllNotesOffString -- = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
 local loopStartPPQpos -- Start of loop iteration under mouse
 --local takeIsCleared = false --Flag to record whether the take has been cleared (and must therefore be uploaded again before quitting)
+local lastPPQpos
+local lastValue
 
 -- Some internal stuff that will be used to set up everything
 local _, item, take, editor, isInline, QNperGrid
@@ -390,22 +392,23 @@ local function loop_trackMouseMovement()
     mouseNewPPQpos = mouseNewPPQpos - loopStartPPQpos
     if mouseNewPPQpos < 0 then mouseNewPPQpos = 0
     elseif mouseNewPPQpos > sourceLengthTicks-1 then mouseNewPPQpos = sourceLengthTicks-1
-    else mouseNewPPQpos = m_floor(mouseNewPPQpos + 0.5)
+    --else mouseNewPPQpos = m_floor(mouseNewPPQpos + 0.5)
     end
     
     if not isSnapEnabled then
-        snappedNewPPQpos = mouseNewPPQpos
+        snappedNewPPQpos = m_floor(mouseNewPPQpos + 0.5)
     elseif isInline then
         local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseNewPPQpos)
         local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
         snappedNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
-        if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
+        --if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
     else
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
         local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         snappedNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-        if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
+        --if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
     end
+    --if snappedNewPPQpos > sourceLengthTicks-1 then snappedNewPPQpos = sourceLengthTicks-1 end
         
     -----------------------------------------------------------
     -- Prefer to draw the line from left to right, so check whether mouse is to left or right of starting point
@@ -430,31 +433,32 @@ local function loop_trackMouseMovement()
     tableLine = {}
     local c = 0 -- Count index in tableLine - This is faster than using table.insert or even #table+1
     
-    -- The MIDI data of the line will be inserted AFTER the existing MIDI, so the starting
-    --    PPQ position from which to calculate offsets is lastOrigMIDIPPQpos.
-    local lastPPQpos = 0
+    lastPPQpos = 0
+    lastValue = -1
 
     if lineLeftPPQpos ~= lineRightPPQpos then
     
-        -- Insert the leftmost endpoint (which is not necessarily a grid position)
-        local offset = lineLeftPPQpos-lastPPQpos
-        if laneIsCC7BIT then
-            c = c + 1
-            tableLine[c] = s_pack("i4BI4BBB", offset, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, lineLeftValue)
-        elseif laneIsPITCH then
-            c = c + 1
-            tableLine[c] = s_pack("i4BI4BBB", offset, 1, 3, 0xE0 | defaultChannel, lineLeftValue&127, lineLeftValue>>7)
-        elseif laneIsCHPRESS then
-            c = c + 1
-            tableLine[c] = s_pack("i4BI4BB",  offset, 1, 2, 0xD0 | defaultChannel, lineLeftValue)
-        else -- laneIsCC14BIT
-            c = c + 1
-            tableLine[c] = s_pack("i4BI4BBB", offset, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, lineLeftValue>>7)
-            c = c + 1
-            tableLine[c] = s_pack("i4BI4BBB", 0             , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, lineLeftValue&127)
+        if lineLeftPPQpos >= 0 and lineLeftPPQpos < sourceLengthTicks then
+            -- Insert the leftmost endpoint (which is not necessarily a grid position)
+            local offset = lineLeftPPQpos-lastPPQpos
+            if laneIsCC7BIT then
+                c = c + 1
+                tableLine[c] = s_pack("i4BI4BBB", offset, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, lineLeftValue)
+            elseif laneIsPITCH then
+                c = c + 1
+                tableLine[c] = s_pack("i4BI4BBB", offset, 1, 3, 0xE0 | defaultChannel, lineLeftValue&127, lineLeftValue>>7)
+            elseif laneIsCHPRESS then
+                c = c + 1
+                tableLine[c] = s_pack("i4BI4BB",  offset, 1, 2, 0xD0 | defaultChannel, lineLeftValue)
+            else -- laneIsCC14BIT
+                c = c + 1
+                tableLine[c] = s_pack("i4BI4BBB", offset, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, lineLeftValue>>7)
+                c = c + 1
+                tableLine[c] = s_pack("i4BI4BBB", 0             , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, lineLeftValue&127)
+            end
+            lastValue = lineLeftValue
+            lastPPQpos = lineLeftPPQpos
         end
-        local lastValue = lineLeftValue
-        lastPPQpos = lineLeftPPQpos
         
         
         -- Now insert all the CCs in-between the endpoints.  These positions will follow the "midiCCdensity" setting (which 
@@ -474,52 +478,58 @@ local function loop_trackMouseMovement()
         
         for PPQpos = nextCCdensityPPQpos, lineRightPPQpos-1, PPperCC do
             insertPPQpos = m_floor(PPQpos + 0.5)
-            -- Powers <1 and >1 give different shapes, so these two options select the one that looks (to me) most musical 
-            if mouseWheelLargerThanOne then
-                insertValue = m_floor(lineLeftValue + (valueRange)*(((insertPPQpos-lineLeftPPQpos)/(PPQrange))^(power)) + 0.5)
-            else
-                insertValue = m_floor(lineRightValue - (valueRange)*(((lineRightPPQpos-insertPPQpos)/(PPQrange))^(power)) + 0.5)
-            end
             
-            if insertValue ~= lastValue or skipRedundantCCs == false then
-                if laneIsCC7BIT then
-                    c = c + 1
-                    tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, insertValue)
-                elseif laneIsPITCH then
-                    c = c + 1
-                    tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xE0 | defaultChannel, insertValue&127, insertValue>>7)
-                elseif laneIsCHPRESS then
-                    c = c + 1
-                    tableLine[c] = s_pack("i4BI4BB",  insertPPQpos-lastPPQpos, 1, 2, 0xD0 | defaultChannel, insertValue)
-                else -- laneIsCC14BIT
-                    c = c + 1
-                    tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, insertValue>>7)
-                    c = c + 1
-                    tableLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, insertValue&127)
+            if 0 <= insertPPQpos and insertPPQpos < sourceLengthTicks then
+                -- Powers <1 and >1 give different shapes, so these two options select the one that looks (to me) most musical 
+                if mouseWheelLargerThanOne then
+                    insertValue = m_floor(lineLeftValue + (valueRange)*(((insertPPQpos-lineLeftPPQpos)/(PPQrange))^(power)) + 0.5)
+                else
+                    insertValue = m_floor(lineRightValue - (valueRange)*(((lineRightPPQpos-insertPPQpos)/(PPQrange))^(power)) + 0.5)
                 end
-                lastValue = insertValue
-                lastPPQpos = insertPPQpos
-            end 
+                
+                if insertValue ~= lastValue or skipRedundantCCs == false then
+                    if laneIsCC7BIT then
+                        c = c + 1
+                        tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, insertValue)
+                    elseif laneIsPITCH then
+                        c = c + 1
+                        tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xE0 | defaultChannel, insertValue&127, insertValue>>7)
+                    elseif laneIsCHPRESS then
+                        c = c + 1
+                        tableLine[c] = s_pack("i4BI4BB",  insertPPQpos-lastPPQpos, 1, 2, 0xD0 | defaultChannel, insertValue)
+                    else -- laneIsCC14BIT
+                        c = c + 1
+                        tableLine[c] = s_pack("i4BI4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, insertValue>>7)
+                        c = c + 1
+                        tableLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, insertValue&127)
+                    end
+                    lastValue = insertValue
+                    lastPPQpos = insertPPQpos
+                end 
+            end
         end
     
     end -- if lineLeftPPQpos ~= lineRightPPQpos
     
     -- Insert the rightmost endpoint
-    if laneIsCC7BIT then
-        c = c + 1
-        tableLine[c] = s_pack("i4BI4BBB", lineRightPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, lineRightValue)
-    elseif laneIsPITCH then
-        c = c + 1
-        tableLine[c] = s_pack("i4BI4BBB", lineRightPPQpos-lastPPQpos, 1, 3, 0xE0 | defaultChannel, lineRightValue&127, lineRightValue>>7)
-    elseif laneIsCHPRESS then
-        c = c + 1
-        tableLine[c] = s_pack("i4BI4BB",  lineRightPPQpos-lastPPQpos, 1, 2, 0xD0 | defaultChannel, lineRightValue)
-    else -- laneIsCC14BIT
-        c = c + 1
-        tableLine[c] = s_pack("i4BI4BBB", lineRightPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, lineRightValue>>7)
-        c = c + 1
-        tableLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, lineRightValue&127)
-    end    
+    if 0 <= lineRightPPQpos and lineRightPPQpos < sourceLengthTicks then 
+        if laneIsCC7BIT then
+            c = c + 1
+            tableLine[c] = s_pack("i4BI4BBB", lineRightPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane, lineRightValue)
+        elseif laneIsPITCH then
+            c = c + 1
+            tableLine[c] = s_pack("i4BI4BBB", lineRightPPQpos-lastPPQpos, 1, 3, 0xE0 | defaultChannel, lineRightValue&127, lineRightValue>>7)
+        elseif laneIsCHPRESS then
+            c = c + 1
+            tableLine[c] = s_pack("i4BI4BB",  lineRightPPQpos-lastPPQpos, 1, 2, 0xD0 | defaultChannel, lineRightValue)
+        else -- laneIsCC14BIT
+            c = c + 1
+            tableLine[c] = s_pack("i4BI4BBB", lineRightPPQpos-lastPPQpos, 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-256, lineRightValue>>7)
+            c = c + 1
+            tableLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | defaultChannel, mouseOrigCCLane-224, lineRightValue&127)
+        end    
+        lastPPQpos = lineRightPPQpos
+    end
 
     ------------------------------------------------------------------------------------------------
     -- These drawing scripts will parse the MIDI before quitting in order to delete overlapping CCs,
@@ -528,7 +538,7 @@ local function loop_trackMouseMovement()
                                 
     ------------------------------------------------------------
     -- DRUMROLL... write the edited events into the MIDI string!  
-    local newOrigOffset = originalOffset-lineRightPPQpos
+    local newOrigOffset = originalOffset-lastPPQpos
     reaper.MIDI_SetAllEvts(take, table.concat(tableLine)
                                 .. string.pack("i4", newOrigOffset)
                                 .. MIDIstringSub5)    
@@ -710,9 +720,8 @@ function deleteExistingCCsInRange()
     
     -------------------------------------------------------------
     -- Update first remaining event's offset relative to new ramp
-    tableLine[1] = s_pack("i4", lineLeftPPQpos) .. tableLine[1]:sub(5)
     local remainOffset = s_unpack("i4", tableRemainingEvents[1])
-    tableRemainingEvents[1] = s_pack("i4", remainOffset-lineRightPPQpos) .. tableRemainingEvents[1]:sub(5)
+    tableRemainingEvents[1] = s_pack("i4", remainOffset-lastPPQpos) .. tableRemainingEvents[1]:sub(5)
 
     ------------------------
     -- Upload into the take!
@@ -971,12 +980,12 @@ function main()
         local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseOrigPPQpos)
         local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
         snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
-        if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
+        --if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
     else
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
         local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-        if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
+        --if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
     end 
     
     

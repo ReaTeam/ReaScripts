@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Draw basic LFO curves in real time.lua
-Version: 3.50
+Version: 3.51
 Author: juliansader
 Screenshot: https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -122,7 +122,7 @@ About:
     + Skipping redundant events can be toggled by separate script.
   * v3.40 (2018-05-26)
     + New version of Draw script: Draw LFOs!
-  * v3.50 (2018-09-09)
+  * v3.51 (2018-09-09)
     + Snap to closest grid, instead of preceding grid.
 ]]
 
@@ -222,6 +222,8 @@ local AllNotesOffMsg = string.char(0xB0, 0x7B, 0x00)
 local AllNotesOffString -- = string.pack("i4Bi4BBB", sourceLengthTicks, 0, 3, 0xB0, 0x7B, 0x00)
 local loopStartPPQpos -- Start of loop iteration under mouse
 --local takeIsCleared = false --Flag to record whether the take has been cleared (and must therefore be uploaded again before quitting)
+local lastPPQpos
+local lastValue
 
 -- Some internal stuff that will be used to set up everything
 local _, item, take, editor, QNperGrid
@@ -238,7 +240,6 @@ local m_pi  = math.pi
 local mustDrawCustomCursor
 local skipRedundantCCs
 local LFOtype = tonumber(reaper.GetExtState("js_Mouse actions", "LFO last type")) or 0
-local lastPPQpos = 0
 
   
 --#############################################################################################
@@ -351,12 +352,12 @@ local function loop_trackMouseMovement()
         local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseNewPPQpos)
         local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
         snappedNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
-        if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
+        --if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
     else
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
         local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         snappedNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-        if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
+        --if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
     end
         
     -----------------------------------------------------------
@@ -442,17 +443,24 @@ local function loop_trackMouseMovement()
     end
 
     if lineLeftPPQpos <= lineRightPPQpos then
-
-        insertLFOPoint(lineLeftPPQpos)
+        
+        if 0 <= lineLeftPPQpos and lineLeftPPQpos < sourceLengthTicks then
+            insertLFOPoint(lineLeftPPQpos)
+        end
         
         local nextCCdensityPPQpos = firstCCinTakePPQpos + PPperCC * math.ceil((lineLeftPPQpos-firstCCinTakePPQpos+1)/PPperCC)
         local power, insertValue, mouseWheelLargerThanOne
         for PPQpos = nextCCdensityPPQpos, lineRightPPQpos-1, PPperCC do -- -1 so that falls within time selection
             insertPPQpos = m_floor(PPQpos + 0.5) -- PPperCC is not necessarily an integer
-            insertLFOPoint(insertPPQpos)          
+            if 0 <= insertPPQpos and insertPPQpos < sourceLengthTicks then
+                insertLFOPoint(insertPPQpos)   
+            end       
         end
+        
         if not isSnapEnabled then -- If CC is inserted precisely at grid, will not be selected with note that ends on that grid
-            insertLFOPoint(lineRightPPQpos)
+            if 0 <= lineRightPPQpos and lineRightPPQpos < sourceLengthTicks then
+                insertLFOPoint(lineRightPPQpos)
+            end
         end
     
     end -- if lineLeftPPQpos ~= lineRightPPQpos
@@ -921,12 +929,12 @@ function main()
         local timePos = reaper.MIDI_GetProjTimeFromPPQPos(take, mouseOrigPPQpos)
         local snappedTimePos = reaper.SnapToGrid(0, timePos) -- If snap-to-grid is not enabled, will return timePos unchanged
         snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjTime(take, snappedTimePos) + 0.5)
-        if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
+        --if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
     else
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
         local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
-        if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
+        --if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
     end 
     
     
