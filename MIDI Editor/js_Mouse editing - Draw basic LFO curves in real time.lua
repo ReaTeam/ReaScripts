@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Draw basic LFO curves in real time.lua
-Version: 3.40
+Version: 3.50
 Author: juliansader
 Screenshot: https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -122,6 +122,8 @@ About:
     + Skipping redundant events can be toggled by separate script.
   * v3.40 (2018-05-26)
     + New version of Draw script: Draw LFOs!
+  * v3.50 (2018-09-09)
+    + Snap to closest grid, instead of left grid.
 ]]
 
 ----------------------------------------
@@ -352,7 +354,7 @@ local function loop_trackMouseMovement()
         if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
     else
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseNewPPQpos) -- Mouse position in quarter notes
-        local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+        local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         snappedNewPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
         if snappedNewPPQpos < firstGridInsideTakePPQpos then snappedNewPPQpos = firstGridInsideTakePPQpos end
     end
@@ -922,7 +924,7 @@ function main()
         if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
     else
         local mouseQNpos = reaper.MIDI_GetProjQNFromPPQPos(take, mouseOrigPPQpos) -- Mouse position in quarter notes
-        local floorGridQN = (mouseQNpos//QNperGrid)*QNperGrid -- last grid before mouse position
+        local floorGridQN = m_floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- grid closest to mouse position
         snappedOrigPPQpos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(take, floorGridQN) + 0.5)
         if snappedOrigPPQpos < firstGridInsideTakePPQpos then snappedOrigPPQpos = firstGridInsideTakePPQpos end
     end 
