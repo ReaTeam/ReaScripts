@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e2e84a046f79b382f2e7237fea817b501a649a44" name="ReaTeam Scripts">
+<index version="1" commit="f638e15996b72b877f917b80542803040860a096" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8387,6 +8387,12 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <changelog><![CDATA[Added pre-FX and post-FX versions]]></changelog>
         <source main="main" file="Lokasenna_Create send from selected tracks (post-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/edf2903781addc312c249076aadbc7ade8750d84/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
         <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/edf2903781addc312c249076aadbc7ade8750d84/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.40" author="Lokasenna" time="2018-09-10T14:27:19Z">
+        <changelog><![CDATA[Fix: Post-fader option got lost]]></changelog>
+        <source main="main" file="Lokasenna_Create send from selected tracks (post-fader).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (post-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select tracks by name.lua" type="script" desc="Select tracks by name">
