@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f638e15996b72b877f917b80542803040860a096" name="ReaTeam Scripts">
+<index version="1" commit="7f652fc09ee8bc5c9943bf9962cf0d244814ffff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1394,6 +1394,24 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="1.51" author="juliansader / Xenakios" time="2017-10-03T21:26:46Z">
         <changelog><![CDATA[+ Keep edge nodes in order when inserting new nodes.    ]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9ae2a9c604f420f8a803f18a99b32d2ee62a54ba/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows you to flip through the main track envelopes (Volume, Pan, Width, Trim, Mute) one at a time, closing the others to avoid clutter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: Requires Reaper v5.95 or higher.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://www.paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-09-10T17:31:53Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f652fc09ee8bc5c9943bf9962cf0d244814ffff/Envelopes/Lokasenna_Switch%20to%20next%20track%20envelope%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
