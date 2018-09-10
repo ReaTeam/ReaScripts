@@ -1,16 +1,17 @@
 --[[
 Description: Create send from selected tracks
-Version: 1.30
+Version: 1.40
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-    Added pre-FX and post-FX versions
+    Fix: Post-fader option got lost
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
     Prompts for a track number, then creates sends to that track
     from every selected track
 Provides:
+    . > Lokasenna_Create send from selected tracks (post-fader).lua
     . > Lokasenna_Create send from selected tracks (post-FX).lua
     . > Lokasenna_Create send from selected tracks (pre-FX).lua
     
@@ -18,8 +19,13 @@ Provides:
 
 -- Licensed under the GNU GPL v3
 local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
-local post_FX = string.match(script_name, "post%-FX")
-local pre_FX = string.match(script_name, "pre%-FX")
+local mode = string.match(script_name, "%((.+)%)")
+
+local modes = {
+  ["post-fader"] = 0,  
+  ["pre-FX"] = 1,
+  ["post-FX"] = 3,
+}
 
 local function Main()
 
@@ -48,6 +54,7 @@ local function Main()
             local ret, name = reaper.GetTrackName(track, "")
             if ret and name == tostring(dest_val) then
                 dest = track
+                break
             end
             
         end
@@ -79,14 +86,8 @@ local function Main()
         --reaper.CreateTrackSend( tr, desttrInOptional )
         local idx = reaper.CreateTrackSend(sel, dest)
         
-        if post_FX then
-            -- reaper.SetTrackSendInfo_Value( tr, category, sendidx, parmname, newvalue )
-            local ret = reaper.SetTrackSendInfo_Value(sel, 0, idx, "I_SENDMODE", 3)
-        
-        elseif pre_FX then
-        
-            local ret = reaper.SetTrackSendInfo_Value(sel, 0, idx, "I_SENDMODE", 1)
-            
+        if modes[mode] then
+            reaper.SetTrackSendInfo_Value(sel, 0, idx, "I_SENDMODE", modes[mode])
         end
         
         ::skip::
