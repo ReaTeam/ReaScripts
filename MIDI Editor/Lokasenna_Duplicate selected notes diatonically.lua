@@ -1,10 +1,10 @@
 --[[
 Description: Duplicate selected notes diatonically...
-Version: 1.5
+Version: 1.5.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Reworked the script to include individual actions
+	Fix: Individual actions were leaving a window open
 Links:
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About: 
@@ -3036,11 +3036,6 @@ local function chrom_skip()
 	if #chrom_notes > 0 then table.remove(chrom_notes, 1) end
 end
 
-local function goto_chrom()
-	
-
-	
-end
 
 
 
@@ -3144,7 +3139,10 @@ end
 
 -- If the script was called by one of the individual actions,
 -- we can just go ahead and duplicate the notes
-if interval then dup_notes() end
+if interval then 
+  dup_notes()
+  if #chrom_notes == 0 then return end
+end
 	
 	
 GUI.version = nil
