@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f8837a00221a4c576c46c80316e757e35c019b48" name="ReaTeam Scripts">
+<index version="1" commit="8a3e0980dee005274a87b92d7fcfbcc046dee70f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9975,6 +9975,24 @@ use sentence case for all buttons]]></changelog>
       <version name="1.1.0" author="Lokasenna" time="2018-07-22T13:54:18Z">
         <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3f2e04ee2168f90f9539ce492f019fcb2032b749/Various/Lokasenna_Create%20mix%20bus%20and%20reroute%20all%20top-level%20tracks%20to%20it.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Enable metronome until playback reaches edit cursor.lua" type="script" desc="Enable metronome until playback reaches edit cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Turns Reaper's metronome on and automatically turns it off again once the playback cursor reaches the edit cursor. When used as part of a custom action, this provides a workaround for Reaper's inability to monitor input during Count-In.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: This must be used {\i AFTER} the Record action if Pre-Roll is enabled, as Pre-Roll will turn off the metronome.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2018-09-13T02:25:47Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8a3e0980dee005274a87b92d7fcfbcc046dee70f/Various/Lokasenna_Enable%20metronome%20until%20playback%20reaches%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Insert most recent exported file....lua" type="script" desc="Insert most recent exported file...">
