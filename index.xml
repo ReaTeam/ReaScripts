@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8a3e0980dee005274a87b92d7fcfbcc046dee70f" name="ReaTeam Scripts">
+<index version="1" commit="c066a00d30d993b8661b02351c77763c6c01be8f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2741,6 +2741,33 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="2.00" author="juliansader" time="2017-03-18T23:39:12Z">
         <changelog><![CDATA[+ Much faster execution, using new API in REAPER v5.30.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/53a3d75d3cc88d0e7c5ff3aeee0d083394be7012/Items%20Editing/js_Remove%20all%20CCs,%20pitch,%20channel%20pressure%20and%20program%20change%20events%20from%20all%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Render items INTO next take (and toggle freeze active take).lua" type="script" desc="js_Render items INTO next take (and toggle freeze active take).lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script employs REAPER's multi-take capabilities to achieve multi-step freezing of items, as well as easy editing and re-rendering of frozen items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Each take can represent a step in the editing process, e.g. MIDI (with VSTi's as Take FX) -> audio (with Take Envelopes) -> audio (with stretch markers) -> etc\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Edits can be made to first MIDI take, and re-rendered as new audio into the subsequent takes, without losing any of the audio edits in later takes.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Take FX, particularly VSTi samplers that require lots of memory, can be set offline after rendering the MIDI.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DETAILS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The active take is rendered {\i into} the next take, replacing the next take's source without altering the next take's FX, stretch markers or envelopes.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Before rendering, the active take's offline Take FX are set online; and after rendering, online Take FX are set offline. (Track FX are ignored during rendering.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script automatically renders to the same source type as the next take: either MIDI, mono audio or multi-channel audio.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If any of the selected items cannot be rendered (for example if the active take is the last take), it will be deselected.\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=202505</link>
+        <link rel="screenshot">https://stash.reaper.fm/32789/REAPER%20-%20Render%20take%20INTO%20next%20take%2C%20set%20FX%20offline.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2018-09-14T17:06:37Z">
+        <changelog><![CDATA[+ Initial beta release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c066a00d30d993b8661b02351c77763c6c01be8f/Items%20Editing/js_Render%20items%20INTO%20next%20take%20(and%20toggle%20freeze%20active%20take).lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Fill selected MIDI item with notes... .lua" type="script" desc="Fill selected MIDI item with notes...">
