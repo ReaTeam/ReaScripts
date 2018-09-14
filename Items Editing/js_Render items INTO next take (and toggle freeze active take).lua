@@ -1,6 +1,6 @@
 --[[
-ReaScript name: js_Render items INTO next take (and toggle freeze active take).lua
-Version: 0.90
+ReaScript name: js_Render items INTO next take (toggle freeze active take).lua
+Version: 0.91
 Author: juliansader
 Screenshot: https://stash.reaper.fm/32789/REAPER%20-%20Render%20take%20INTO%20next%20take%2C%20set%20FX%20offline.gif
 Website: https://forum.cockos.com/showthread.php?t=202505
@@ -33,7 +33,9 @@ About:
 --[[
   Changelog:
   * v0.90 (2018-09-14)
-    + Initial beta release
+    + Initial beta release.
+  * v0.91 (2018-09-14)
+    + Stretch marker warning message.
 ]]
 
 reaper.Undo_BeginBlock2(0)
@@ -79,7 +81,7 @@ for item in pairs(tItems) do
     
         local nextTake   = reaper.GetTake(item, 1 + activeNum) -- Next take in sequence
         local nextSource = reaper.GetMediaItemTake_Source(nextTake)
-         nextOffset = reaper.GetMediaItemTakeInfo_Value(nextTake, "D_STARTOFFS") 
+        local nextOffset = reaper.GetMediaItemTakeInfo_Value(nextTake, "D_STARTOFFS") 
         
         -- REAPER offers several "Appply FX to new take" actions. Must find action that will give same source type as next take's
         local command
@@ -107,16 +109,19 @@ for item in pairs(tItems) do
             end
             
             -- Stretch markers prevent changing take offset.  So store and temporarily delete.
-            tStretch = {}
-            numStretchMarkers = reaper.GetTakeNumStretchMarkers(nextTake)
+            local tStretch = {}
+            local numStretchMarkers = reaper.GetTakeNumStretchMarkers(nextTake)
             for s = 0, numStretchMarkers-1 do
                 local OK, pos, srcpos = reaper.GetTakeStretchMarker(nextTake, s)
                 if OK then 
                     slope = reaper.GetTakeStretchMarkerSlope(nextTake, s)
                     tStretch[#tStretch+1] = {pos = pos, srcpos = srcpos, slope = slope}
+                else
+                    stretchError = true
                 end
             end
-            numDeleted = reaper.DeleteTakeStretchMarkers(nextTake, 0, numStretchMarkers)
+            local numDeleted = reaper.DeleteTakeStretchMarkers(nextTake, 0, numStretchMarkers)
+                if not (numDeleted == numStretchMarkers) then stretchError = true end
         
             -- Set all *offline* Take FX of active take online (ignore bypassed FX)
             for f = 0, reaper.TakeFX_GetCount(activeTake)-1 do
@@ -153,6 +158,7 @@ for item in pairs(tItems) do
             -- Move newTake's source into nextTake.  
             --    NB: Must swap, otherwise REAPER will crash.
             --    NB: Must perform in this sequence, otherwise nextTake cannot be opened in MIDI editor - don't know why?
+            -- A rendered take has same start position as item, so STARTOFFS must be 0.
             if newTake then
                 newSource = reaper.GetMediaItemTake_Source(newTake)
                 reaper.SetMediaItemTake_Source(newTake, nextSource)
@@ -172,9 +178,11 @@ for item in pairs(tItems) do
             -- Thus all srcpos must be adjusted with (- tStretch[1].srcpos + tStretch[1].pos)
             for s = 1, #tStretch do
                 local newSourcePos = tStretch[s].srcpos - tStretch[1].srcpos + tStretch[1].pos
-                index = reaper.SetTakeStretchMarker(nextTake, -1, tStretch[s].pos, newSourcePos) ---nextOffset)
+                local index = reaper.SetTakeStretchMarker(nextTake, -1, tStretch[s].pos, newSourcePos) ---nextOffset)
                 if index ~= -1 then
                     reaper.SetTakeStretchMarkerSlope(nextTake, index, tStretch[s].slope)
+                else
+                    stretchError = true
                 end
             end
         end
@@ -199,5 +207,9 @@ end
 reaper.PreventUIRefresh(-1)
 reaper.UpdateArrange()
 
-reaper.Undo_EndBlock2(0, "Render items *into* next take", -1)
+if stretchError then
+    reaper.MB("Some stretch markers may have been misplaced or deleted", "WARNING", 0)
+end
+
+reaper.Undo_EndBlock2(0, "Render items into next take", -1)
 
