@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a19df35fe464f8b8bb21184064344cd11d579833" name="ReaTeam Scripts">
+<index version="1" commit="705ce86e87b925826d7e6019e2d57e3e268187aa" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4746,11 +4746,11 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This version of the script applies the LFO to existing events -- velocities or CCs -- in the lane under the mouse.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -4829,6 +4829,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2de91e11886c1cfa3965ab97ba119568cd962329/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.50" author="juliansader" time="2018-09-15T23:21:52Z">
+        <changelog><![CDATA[+ Fixed: Enable MIDI playback while script is running.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/705ce86e87b925826d7e6019e2d57e3e268187aa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
       <metadata>
@@ -4836,11 +4840,11 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This version applies the LFO to existing events -- velocities or CCs -- in the last clicked lane.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -4919,6 +4923,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1b5341c989cd98b74e85869d587cfa038a1c2bab/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="2.50" author="juliansader" time="2018-09-15T23:21:52Z">
+        <changelog><![CDATA[+ Fixed: Enable MIDI playback while script is running.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/705ce86e87b925826d7e6019e2d57e3e268187aa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
       <metadata>
@@ -4926,11 +4934,11 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This version of the script fills the time selection with new CCs in the lane under the mouse, using the MIDI editor's active channel (after removing any pre-existing CCs in the same time range and channel).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -4961,7 +4969,7 @@ Renumber markers and regions when pasting]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
-        <link rel="screenshot">http://stash.reaper.fm/27716/LFO%20tool%20-%20MIDI%20editor%20%28default%29%20-%20Copy.gif</link>
+        <link rel="screenshot">http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
@@ -5013,6 +5021,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/72c7b443cc3305a5293362f83a1d5600a690a600/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.50" author="juliansader" time="2018-09-15T23:21:52Z">
+        <changelog><![CDATA[+ Fixed: Enable MIDI playback while script is running.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/705ce86e87b925826d7e6019e2d57e3e268187aa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
       <metadata>
@@ -5020,11 +5032,11 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This version of the script fills the time selection with new CCs in the last clicked lane, using the MIDI editor's active channel (after removing any pre-existing CCs in the same time range and channel).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -5055,7 +5067,7 @@ Renumber markers and regions when pasting]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
-        <link rel="screenshot">http://stash.reaper.fm/27716/LFO%20tool%20-%20MIDI%20editor%20%28default%29%20-%20Copy.gif</link>
+        <link rel="screenshot">http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
@@ -5107,6 +5119,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f93a9e90f501ab9c71e3be09f02ff758794fe39f/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
+      <version name="2.50" author="juliansader" time="2018-09-15T23:21:52Z">
+        <changelog><![CDATA[+ Fixed: Enable MIDI playback while script is running.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/705ce86e87b925826d7e6019e2d57e3e268187aa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
       <metadata>
@@ -5114,11 +5130,11 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This version of the script inserts new CCs under selected notes in the lane under the mouse, using the same channels as the notes above (after removing any pre-existing CCs in the same time range and channels).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -5149,7 +5165,7 @@ Renumber markers and regions when pasting]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
-        <link rel="screenshot">http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif</link>
+        <link rel="screenshot">http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
@@ -5201,6 +5217,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8f789c959527ac66b5186e8f47a4775671358592/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.50" author="juliansader" time="2018-09-15T23:21:52Z">
+        <changelog><![CDATA[+ Fixed: Enable MIDI playback while script is running.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/705ce86e87b925826d7e6019e2d57e3e268187aa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
       <metadata>
@@ -5208,11 +5228,11 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LFO generator and shaper - MIDI editor version\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Draw fancy LFO curves in REAPER's piano roll.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This version of the script inserts new CCs under selected notes in the last clicked lane, using the same channels as the notes above (after removing any pre-existing CCs in the same time range and channels).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING ENVELOPES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -5243,7 +5263,7 @@ Renumber markers and regions when pasting]]></changelog>
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=177437</link>
-        <link rel="screenshot">http://stash.reaper.fm/27848/LFO%20Tool%20-%20fill%20note%20positions%20with%20CCs.gif</link>
+        <link rel="screenshot">http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.04" author="Xenakios / juliansader" time="2016-07-04T19:22:47Z">
@@ -5294,6 +5314,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="2.32" author="juliansader" time="2017-12-13T22:38:09Z">
         <changelog><![CDATA[+ Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e5418013727081cae70bd867929df0e3c68fbba9/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.50" author="juliansader" time="2018-09-15T23:21:52Z">
+        <changelog><![CDATA[+ Fixed: Enable MIDI playback while script is running.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/705ce86e87b925826d7e6019e2d57e3e268187aa/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
