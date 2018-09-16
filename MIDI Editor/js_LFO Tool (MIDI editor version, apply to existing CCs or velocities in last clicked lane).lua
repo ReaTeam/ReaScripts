@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua
-Version: 2.50
+Version: 2.60
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -92,6 +92,8 @@ About:
     + Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).
   v2.50 (2018-09-15)
     + Fixed: Enable MIDI playback while script is running.
+  v2.60 (2018-09-17)
+    + "Morph" slider when applied to existing events.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -433,6 +435,8 @@ local notevalues={{1,8,"32nd"},
 use_note_rates=false         
    
 
+local GUIelement_RATE, GUIelement_AMPLITUDE, GUIelement_CENTER, GUIelement_TIMEBASE, GUIelement_SHAPE, GUIelement_PHASE
+local GUIelement_RANDOMNESS, GUIelement_QUANTSTEPS, GUIelement_SMOOTH, GUIelement_FADEIN, GUIelement_FADEOUT, GUIelement_MORPH, GUIelement_ENV
 
 ---------------------------------------------------------------
 -- Julian's mod: these new "make_" functions are basically just 
@@ -533,9 +537,9 @@ end -- function make_question
 function make_envelope(x,y,w,h,assocslider)
   result={}
   result.x=function() return x end
-  result.y=function() return y end
+  result.y=function() return borderWidth + GUIelementHeight*(#tableGUIelements+0.5) end
   result.w=function() return gfx.w-20 end
-  result.h=function() return h+gfx.h-initYsize end
+  result.h=function() return (gfx.h - 34 -  borderWidth - GUIelementHeight*(#tableGUIelements+0.5)) end
   
   result.type="Envelope"
   result.hotpoint=0
@@ -628,6 +632,8 @@ function slider_to_string(slid)
         local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
         local phaseStep = math.floor(slid.value * totalSteps)
         return tostring(phaseStep) .."/".. tostring(totalSteps)
+    elseif slid.name=="Morph" then
+        return tostring((math.floor(0.5 + (slid.value-0.5)*200))/100)
     else
        return tostring((math.floor(0.5 + slid.value*100))/100)
     end
@@ -644,12 +650,13 @@ function drawGUIobject(slid)
         gfx.a=gfx.a - 0.6;
         --gfx.rect(slid.x(),slid.y()+15,slid.w(),2,true)
         local thumbx=slid.x()+(slid.w()-(imgw/1))*slid.value
+        local slidWVal = slid.w() * slid.value
         if shadows == true then
             setColor({0,0,0,1})
-            gfx.rect(slid.x()+1,slid.y()+16,slid.w()*slid.value,7,true)  
+            gfx.rect(slid.x()+1,slid.y()+16,slidWVal,7,true)  
         end
         setColor(foregroundColor)
-        gfx.rect(slid.x(),slid.y()+15,slid.w()*slid.value,7,true)
+        gfx.gradrect(slid.x(), slid.y()+15, slidWVal,7, gfx.r*0.15, gfx.g*0.15, gfx.b*0.15, 0.5, gfx.r/slidWVal, gfx.g/slidWVal, gfx.b/slidWVal)
         --gfx.rect(thumbx,slid.y(),imgw,imgh,true)  
     
     elseif slid.type == "Button" then
@@ -665,7 +672,7 @@ function drawGUIobject(slid)
         end
         stringw,stringh = gfx.measurestr(slid.name)
         ampw,amph = gfx.measurestr("Amplitude")
-        if slid.name == tableGUIelements[100].name then
+        if slid.name == tableGUIelements[GUIelement_ENV].name then
             --local stringw,stringh = gfx.measurestr("Amplitude")
             if shadows == true then
                 setColor({0,0,0,1})
@@ -673,7 +680,7 @@ function drawGUIobject(slid)
                 fillRoundRect(gfx.w/2-ampw/2-5, slid.y()-1, ampw+12, stringh+7, 1)
             end
             setColor(foregroundColor)
-            gfx.a = gfx.a*0.9
+            gfx.a = gfx.a*0.7
             --gfx.a = gfx.a+0.1
             --gfx.rect(gfx.w/2-ampw/2-6, slid.y()-2, ampw+12, stringh+7, true) --(slid.x(),slid.y()-2,stringw+6,stringh+8,true)
             fillRoundRect(gfx.w/2-ampw/2-6, slid.y()-2, ampw+12, stringh+7, 1)
@@ -926,8 +933,19 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- The important function that generates the nodes
-function generateNodes(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip)
+function generateNodes()
 
+    local freq = GUIelement_RATE and tableGUIelements[GUIelement_RATE].value or 0.5
+    local amp  = GUIelement_AMPLITUDE and tableGUIelements[GUIelement_AMPLITUDE].value or 0.5
+    local center = GUIelement_CENTER and tableGUIelements[GUIelement_CENTER].value or 0.5
+    local phase = GUIelement_PHASE and tableGUIelements[GUIelement_PHASE].value or 0
+    local randomness = GUIelement_RANDOMNESS and tableGUIelements[GUIelement_RANDOMNESS].value or 0
+    local quansteps = GUIelement_QUANTSTEPS and tableGUIelements[GUIelement_QUANTSTEPS].value or 0
+    local tilt = 0
+    local fadindur = GUIelement_FADEIN and tableGUIelements[GUIelement_FADEIN].value or 0
+    local fadoutdur = GUIelement_FADEOUT and tableGUIelements[GUIelement_FADEOUT].value or 0
+    local ratemode = GUIelement_TIMEBASE and tableGUIelements[GUIelement_TIMEBASE].value or 0
+             
     math.randomseed(1)
        
     tableVals = nil
@@ -980,7 +998,7 @@ function generateNodes(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,
     repeat
         time_to_interp = (1.0/timeseldur)*(time-gen_time_start) --!!time_start
 
-        freq_norm_to_use = get_env_interpolated_value(tableGUIelements[1].envelope,time_to_interp, rateInterpolationType)
+        freq_norm_to_use = get_env_interpolated_value(tableGUIelements[GUIelement_RATE].envelope,time_to_interp, rateInterpolationType)
         if ratemode < 0.5 then
             -- Timebase is time, so step size in seconds
             nextNodeStepSize = (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
@@ -1052,10 +1070,10 @@ function generateNodes(freq,amp,center,phase,randomness,quansteps,tilt,fadindur,
             
             --if time_to_interp<0.0 or time_to_interp>1.0 then
             --  reaper.ShowConsoleMsg(time_to_interp.." ") end
-            amp_to_use = get_env_interpolated_value(tableGUIelements[2].envelope,time_to_interp, "linear")
+            amp_to_use = get_env_interpolated_value(tableGUIelements[GUIelement_AMPLITUDE].envelope,time_to_interp, "linear")
             --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
             val=0.5+(0.5*amp_to_use*fade_gain)*val
-            local center_to_use=get_env_interpolated_value(tableGUIelements[3].envelope,time_to_interp, "linear")
+            local center_to_use=get_env_interpolated_value(tableGUIelements[GUIelement_CENTER].envelope,time_to_interp, "linear")
             local rangea=laneMaxValue-laneMinValue
             val=laneMinValue+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
             local z=(2*math.random()-1)*randomness*(laneMaxValue-laneMinValue)/2
@@ -1266,7 +1284,7 @@ function loop_GetInputsAndUpdate()
     for key, tempcontrol in pairs(tableGUIelements) do
     
       if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
-      or (key == GUIelement_env and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
+      or (key == GUIelement_ENV and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
       --get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)>0) -- Envelope gets captured if on hotbutton, even if outside rectangle
       then
           if gfx.mouse_cap==LEFTBUTTON and captured_control==nil then
@@ -1299,18 +1317,18 @@ function loop_GetInputsAndUpdate()
               dogenerate = true
           end ]]
           if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
-              tableGUIelements[100].envelope=tableGUIelements[GUIelement_RATE].envelope
-              tableGUIelements[100].name=tableGUIelements[GUIelement_RATE].name -- = tempcontrol.name
+              tableGUIelements[GUIelement_ENV].envelope=tableGUIelements[GUIelement_RATE].envelope
+              tableGUIelements[GUIelement_ENV].name=tableGUIelements[GUIelement_RATE].name -- = tempcontrol.name
               firstClick = false
               dogenerate = true
           elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
-              tableGUIelements[100].envelope=tableGUIelements[GUIelement_CENTER].envelope
-              tableGUIelements[100].name=tableGUIelements[GUIelement_CENTER].name -- = tempcontrol.name
+              tableGUIelements[GUIelement_ENV].envelope=tableGUIelements[GUIelement_CENTER].envelope
+              tableGUIelements[GUIelement_ENV].name=tableGUIelements[GUIelement_CENTER].name -- = tempcontrol.name
               firstClick = false
               dogenerate = true
           elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
-              tableGUIelements[100].envelope=tableGUIelements[GUIelement_AMPLITUDE].envelope
-              tableGUIelements[100].name=tableGUIelements[GUIelement_AMPLITUDE].name -- tempcontrol.name
+              tableGUIelements[GUIelement_ENV].envelope=tableGUIelements[GUIelement_AMPLITUDE].envelope
+              tableGUIelements[GUIelement_ENV].name=tableGUIelements[GUIelement_AMPLITUDE].name -- tempcontrol.name
               firstClick = false
               dogenerate = true
           end
@@ -1701,7 +1719,7 @@ function loop_GetInputsAndUpdate()
               --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
           end
           if captured_control.type=="Slider" then
-              if captured_control.envelope==tableGUIelements[100].envelope then 
+              if captured_control.envelope==tableGUIelements[GUIelement_ENV].envelope then 
                    env_enabled=captured_control.env_enabled
               end
               local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
@@ -1725,9 +1743,9 @@ function loop_GetInputsAndUpdate()
         and not is_in_rect(gfx.mouse_x,
                            gfx.mouse_y,
                            0, --tableGUIelements[100].x(),
-                           tableGUIelements[100].y(),
+                           tableGUIelements[GUIelement_ENV].y(),
                            gfx.w, --tableGUIelements[100].w(),
-                           gfx.h - tableGUIelements[100].y()) --tableGUIelements[100].h()) 
+                           gfx.h - tableGUIelements[GUIelement_ENV].y()) --tableGUIelements[100].h()) 
        )
     -- Left-click on menu button bottom left !!!!!New in 2.20
     or (gfx.mouse_cap == LEFTBUTTON
@@ -1804,12 +1822,12 @@ function loop_GetInputsAndUpdate()
             
             -------------------------------------------------------
             -- Draw the newly loaded envelope
-            if tableGUIelements[100].name == tableGUIelements[1].name then -- "Rate"
-                tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[1])
-            elseif tableGUIelements[100].name == tableGUIelements[2].name then -- "Amplitude"
-                tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[2])
+            if tableGUIelements[GUIelement_ENV].name == tableGUIelements[1].name then -- "Rate"
+                tableGUIelements[GUIelement_ENV]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_RATE])
+            elseif tableGUIelements[GUIelement_ENV].name == tableGUIelements[2].name then -- "Amplitude"
+                tableGUIelements[GUIelement_ENV]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_AMPLITUDE])
             else -- "Center"
-                tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[3])
+                tableGUIelements[GUIelement_ENV]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_CENTER])
             end
             
         ------------------------
@@ -1821,7 +1839,7 @@ function loop_GetInputsAndUpdate()
             
             if retval ~= false then
                 saveString = curveName
-                for i = 0, 10 do
+                for i = 0, #tableGUIelements do
                     if tableGUIelements[i] == nil then -- skip
                     elseif tableGUIelements[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(shapeSelected)
                     --elseif tableGUIelements[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(tableGUIelements[i].enabled) 
@@ -1904,24 +1922,15 @@ function loop_GetInputsAndUpdate()
     reaper.defer(loop_GetInputsAndUpdate)
 end 
 
+
 --------------------------------
 
 function callGenerateNodesThenUpdateEvents()
-      generateNodes(tableGUIelements[1].value, -- freq
-             tableGUIelements[2].value, -- amp
-             tableGUIelements[3].value, -- center
-             tableGUIelements[4].value, -- phase
-             tableGUIelements[5].value, -- randomness
-             tableGUIelements[6].value, -- quansteps
-             tableGUIelements[7].value, -- tilt
-             tableGUIelements[8].value, -- fadindur
-             tableGUIelements[9].value, -- fadoutdur
-             tableGUIelements[10].value, -- timebase (aka ratemode)
-             clip) 
-      was_changed=true
+     generateNodes() 
+     was_changed=true
     
-    -- Draw the envelope in CC lane
-    updateEventValuesAndUploadIntoTake()
+     -- Draw the envelope in CC lane
+     updateEventValuesAndUploadIntoTake()
 end
 
 
@@ -1937,6 +1946,12 @@ function updateEventValuesAndUploadIntoTake()
     local numNodesMinus1 = #tableNodes-1
     tableNodes[0] = {value = tableNodes[1].value, PPQ = tableNodes[1].PPQ-1, shape = 0}
     tableNodes[#tableNodes+1] = {value = tableNodes[#tableNodes].value, PPQ = tableNodes[#tableNodes].PPQ + 1}
+    
+    -- Morphing can only be done when Morph slider is available 
+    local morph = GUIelement_MORPH and tableGUIelements[GUIelement_MORPH].value or 1
+    local laneAvgValue = (laneMaxValue+laneMinValue)/2
+    
+    local smooth = GUIelement_SMOOTH and tableGUIelements[GUIelement_SMOOTH].value or 0
     
     -- Iterate through all the nodes
     for n = 1, numNodesMinus1 do
@@ -1971,7 +1986,7 @@ function updateEventValuesAndUploadIntoTake()
         -- If the preceding and next inter-node slopes have the same sign, it tries to approximate the slope with the lowest absolute value.
         -- Square shapes have idiosyncratic issues.
         local mustSmooth = false -- Only do smoothing if necessary
-        if tableGUIelements[GUIelement_SMOOTH].value ~= 0 -- Slider value = 0 implies no smoothing
+        if smooth ~= 0 -- Slider value = 0 implies no smoothing
         and nextNodePPQ - prevNodePPQ > 2 -- If nodes are too close, too few CCs in-between to smooth, and avoid divide-by-zero
         and prevNodeValue ~= nextNodeValue -- Unlike REAPER's Bézier curves, the LFO Tool will not shift CC values beyond node boundaries, so not smoothing will be applied if node values are equal.
         then
@@ -1986,9 +2001,9 @@ function updateEventValuesAndUploadIntoTake()
             -- Square shapes have idiosyncratic issues.
             if tableNodes[n].shape == 1 then -- square
                 slopeBetweenNodesCurrent = 0
-                squareSmoothRadiusX = (nextNodePPQ - prevNodePPQ)*0.5*tableGUIelements[GUIelement_SMOOTH].value
-                squareSmoothRadiusYleft  = math.abs((prevNodeValue - prevPrevNodeValue)*0.5*tableGUIelements[GUIelement_SMOOTH].value)
-                squareSmoothRadiusYright = math.abs((prevNodeValue - nextNodeValue)*0.5*tableGUIelements[GUIelement_SMOOTH].value)
+                squareSmoothRadiusX = (nextNodePPQ - prevNodePPQ)*0.5*smooth
+                squareSmoothRadiusYleft  = math.abs((prevNodeValue - prevPrevNodeValue)*0.5*smooth)
+                squareSmoothRadiusYright = math.abs((prevNodeValue - nextNodeValue)*0.5*smooth)
                 squareSmoothLeftPPQ  = prevNodePPQ + squareSmoothRadiusX
                 squareSmoothRightPPQ = nextNodePPQ - squareSmoothRadiusX
             else
@@ -2130,6 +2145,22 @@ function updateEventValuesAndUploadIntoTake()
                 end
                 
                 
+                -- Morph
+                if morph ~= 1 then
+                    --[[if morph < 0.5 then
+                        newValue = (2*morph*(newValue-laneAvgValue)) + tSel[i].val
+                    else
+                        newValue = 2*(1-morph)*((newValue-laneAvgValue) + tSel[i].val) + 2*(morph-0.5)*newValue
+                    end]]
+                    if morph < 0.5 then
+                        newValue = (1 - 2*morph) * (newValue-laneAvgValue) + tSel[i].val
+                    else
+                        newValue = (1 - 2*(morph-0.5))*tSel[i].val + 2*(morph-0.5)*newValue
+                    end
+                    
+                end
+                
+                
                 -- Ensure that values do not exceed bounds of CC lane
                 if newValue < laneMinValue then newValue = laneMinValue
                 elseif newValue > laneMaxValue then newValue = laneMaxValue
@@ -2139,7 +2170,7 @@ function updateEventValuesAndUploadIntoTake()
                 
                 -- Insert the MIDI events into REAPER's MIDI stream
                 --!!!!!!!!New in 2.20: skipRedundantCCs
-                local channel = tSel[i].chan
+                local channel = tSel[i].chan 
                 
                 if laneIsVELOCITY then --skipRedundantCCs is only applied to CCs, not note velocities
                     tMIDI[tSel[i].index] = s_pack("I4BBB", 3, 0x90 | channel, tSel[i].pitch, newValue)                  
@@ -2323,28 +2354,18 @@ function loadCurve(curveNum)
         -------------------------------------------------------
         -- Draw the newly loaded envelope
         if tableGUIelements[100].name == tableGUIelements[1].name then -- "Rate"
-            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[1])
+            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_RATE])
         elseif tableGUIelements[100].name == tableGUIelements[2].name then -- "Amplitude"
-            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[2])
+            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_AMPLITUDE])
         else -- "Center"
-            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[3])
+            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_CENTER])
         end
         
-        generateNodes(tableGUIelements[1].value, -- freq
-               tableGUIelements[2].value, -- amp
-               tableGUIelements[3].value, -- center
-               tableGUIelements[4].value, -- phase
-               tableGUIelements[5].value, -- randomness
-               tableGUIelements[6].value, -- quansteps
-               tableGUIelements[7].value, -- tilt
-               tableGUIelements[8].value, -- fadindur
-               tableGUIelements[9].value, -- fadoutdur
-               tableGUIelements[10].value, -- timebase (aka ratemode)
-               clip)
-               was_changed=true
+        generateNodes()
+        was_changed=true
                               
-       -- Draw the envelope in CC lane
-       updateEventValuesAndUploadIntoTake()
+        -- Draw the envelope in CC lane
+        updateEventValuesAndUploadIntoTake()
         
     end -- savedCurves ~= nil and #savedCurves ~= nil and
 
@@ -2367,31 +2388,38 @@ function constructNewGUI()
     
     tableGUIelements[1]=make_radiobutton(borderWidth,borderWidth,0,0,0.5,"Rate", function(nx) end)
     GUIelement_RATE = 1
-    tableGUIelements[2]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*1,0,0,0.5,"Amplitude",function(nx) end)
+    tableGUIelements[2]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.5,"Amplitude",function(nx) end)
     GUIelement_AMPLITUDE = 2
-    tableGUIelements[3]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*2,0,0,0.5,"Center",function(nx) end)
+    tableGUIelements[3]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.5,"Center",function(nx) end)
     GUIelement_CENTER = 3
-    tableGUIelements[10]=make_question(borderWidth,borderWidth+GUIelementHeight*3,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
-    GUIelement_TIMEBASE = 10
-    tableGUIelements[0]=make_menubutton(borderWidth,borderWidth+GUIelementHeight*4,0,0,0.0,"LFO shape?",function(nx) end)
-    GUIelement_shape = 0
+    tableGUIelements[4]=make_question(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
+    GUIelement_TIMEBASE = 4
+    tableGUIelements[5]=make_menubutton(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"LFO shape?",function(nx) end)
+    GUIelement_SHAPE = 5
     --tableGUIelements[11]=make_question(borderWidth,borderWidth+GUIelementHeight*5,0,0,0.0,"Real-time copy to CC?",function(nx) end, "Enabled", "Disabled")
     --GUIelement_copyCC = 11
     -- The following slider was originally named "Phase"
-    tableGUIelements[4]=make_slider(borderWidth,borderWidth+GUIelementHeight*5,0,0,0.0,"Phase step",function(nx) end)
-    GUIelement_PHASE = 4
-    tableGUIelements[5]=make_slider(borderWidth,borderWidth+GUIelementHeight*6,0,0,0.0,"Randomness",function(nx) end)
-    GUIelement_RANDOMNESS = 5
-    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*7,0,0,1.0,"Quant steps",function(nx) end)
-    GUIelement_QUANTSTEPS = 6
-    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*8,0,0,0.0,"Smoothing",function(nx) end)
-    GUIelement_SMOOTH = 7 
-    tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*9,0,0,0.0,"Fade in duration",function(nx) end)
-    GUIelement_FADEIN = 8
-    tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*10,0,0,0.0,"Fade out duration",function(nx) end)
-    GUIelement_FADEOUT = 9
-    tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight,tableGUIelements[1]) --315-30
-    GUIelement_env = 100
+    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Phase step",function(nx) end)
+    GUIelement_PHASE = 6
+    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Randomness",function(nx) end)
+    GUIelement_RANDOMNESS = 7
+    tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,1.0,"Quant steps",function(nx) end)
+    GUIelement_QUANTSTEPS = 8
+    tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Smoothing",function(nx) end)
+    GUIelement_SMOOTH = 9 
+    tableGUIelements[10]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Fade in duration",function(nx) end)
+    GUIelement_FADEIN = 10
+    -- make_slider(x,y,w,h,val,name,valcb)
+    tableGUIelements[11]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Fade out duration",function(nx) end)
+    GUIelement_FADEOUT = 11
+    if selectionToUse == "existing" then
+        tableGUIelements[12]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,1,"Morph",function(nx) end)
+        GUIelement_MORPH = 12
+    end
+    -- make_envelope(x,y,w,h,assocslider)
+    tableGUIelements[100]=make_envelope(borderWidth, borderWidth+GUIelementHeight*#tableGUIelements, 0, 0, tableGUIelements[1])
+    --tableGUIelements[100]=make_envelope(borderWidth, borderWidth+GUIelementHeight*12, 0, envHeight,tableGUIelements[1]) --315-30
+    GUIelement_ENV = 100
       
     --[[for key,tempcontrol in pairs(tableGUIelements) do
       reaper.ShowConsoleMsg(key.." "..tempcontrol.type.." "..tempcontrol.name.."\n")
