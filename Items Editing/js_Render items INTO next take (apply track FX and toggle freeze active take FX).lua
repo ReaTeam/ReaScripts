@@ -23,7 +23,9 @@ About:
   
   * The active take is rendered *into* the next take, replacing the next take's source without altering the next take's FX, stretch markers or envelopes.
   
-  * Before rendering, the active take's offline Take FX are set online; and after rendering, online Take FX are set offline.  (Track FX are ignored during rendering.)
+  * Before rendering, the active take's offline Take FX are set online; and after rendering, online Take FX are set offline.
+
+  * In this variant of the script, track FX are applied, and their online/offline/bypass status are not changed.
 
   * The script automatically renders to the same source type as the next take: either MIDI, mono audio or multi-channel audio.
   
