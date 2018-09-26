@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
-Version: 1.01
+Version: 1.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
 Donation: https://www.paypal.me/juliansader
@@ -62,6 +62,9 @@ About:
     + Also adjust Master track envelopes as if Timebase=time.
   * v1.01 (2018-06-01)
     + Fix bug when no tempo makers after insertion point.
+  * v1.10 (2018-09-26)
+    + Fix bug with empty takes.
+    + Split items that contain MIDI takes as well as audio takes.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then
@@ -335,22 +338,24 @@ end
 for i = 0, reaper.CountMediaItems(0)-1 do
     local item = reaper.GetMediaItem(0, i)
     local timebase = reaper.GetMediaItemInfo_Value(item, "C_BEATATTACHMODE") -- -1=def, 0=time, 1=allbeats, 2=beatsosonly
-    for t = 0, reaper.CountTakes(item)-1 do
-        local take = reaper.GetTake(item, t)
-        local retval, name = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
-        local setOK = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "@@Timebase=" .. string.format("%02i", timebase) .. "@@" .. name, true)
-        if not setOK then
-            reaper.MB("The script could not access the names of all takes.", "ERROR", 0)
+    local notesOK, notes = reaper.GetSetMediaItemInfo_String(item, "P_NOTES", "", false)
+        if not notesOK then
+            reaper.MB("The script could not access the text notes of all items.", "ERROR", 0)
             tryToUndo = true
             goto quit
         end
-    end
+    local newOK, newNotes = reaper.GetSetMediaItemInfo_String(item, "P_NOTES", string.format("%02i", timebase) .. notes, true)
+        if not (newNotes and #newNotes == #notes+2) then
+            reaper.MB("The script could not temporarily save the timebase of all items in their text notes. Some items' text notes may be too long to edit.", "ERROR", 0)
+            tryToUndo = true
+            goto quit
+        end
     local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", 0)
-    if not setOK then
-        reaper.MB("The script could not set the timebase of all items.", "ERROR", 0)
-        tryToUndo = true
-        goto quit
-    end
+        if not setOK then
+            reaper.MB("The script could not temporarily set the timebase of all items.", "ERROR", 0)
+            tryToUndo = true
+            goto quit
+        end
 end
 
 
@@ -381,6 +386,7 @@ for i = 0, reaper.CountMediaItems(0)-1 do
             end
         end
         
+        -- In case of protected locked items, don't matter whether MIDI or audio
         if userLockChoice == LOCK and itemLocked and itemEnd > spaceTimeStart then
             tLockedItemPositions[item] = itemStart
             if itemStart < spaceTimeStart then
@@ -394,36 +400,36 @@ for i = 0, reaper.CountMediaItems(0)-1 do
         -- Check if MIDI that may be split
         else
             if itemStart < spaceTimeStart and itemEnd > spaceTimeStart then -- only bother with items that overlap and will therefore be split
-                local gotMIDI, gotAudio, gotEnvelopes = false, false, false
+                gotMIDI, gotAudio, gotEnvMIDI = false, false, false
                 for t = 0, reaper.CountTakes(item)-1 do
                     local take = reaper.GetTake(item, t)
-                    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") then
-                        if reaper.TakeIsMIDI(take) then
-                            gotMIDI = true
-                            if reaper.CountTakeEnvelopes(take) > 0 then
-                                gotEnvelopes = true
+                    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then -- empty takes do not return valid take pointers
+                        gotMIDI = true
+                        if reaper.CountTakeEnvelopes(take) > 0 then
+                            gotEnvMIDI = true
+                            if not hasWarnedAboutMIDIEnvelopes then
+                                hasWarnedAboutMIDIEnvelopes = true
+                                reaper.MB("Some items contain MIDI takes with take envelopes.\n\nThese items will not be lengthened like plain MIDI items, but will be split like audio takes.", "WARNING", 0)
                             end
-                            
-                            tMIDIItemPositions[item] = {position = itemStart, length = itemLength}
-                            local setPosOK = reaper.SetMediaItemPosition(item, spaceTimeEnd, false)
-                            if not setPosOK then
-                                reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 0)
-                                tryToUndo = true
-                                goto quit
-                            end
-                        else
-                            gotAudio = true
-                        end -- if reaper.TakeIsMIDI(take)
-                    end -- if reaper.ValidatePtr2              
-                end -- for t = 0, reaper.CountTakes(item)-1
-                
-                if gotMIDI and (gotAudio or gotEnvelopes) then
-                    reaper.MB("The current version of the script cannot yet insert beats into items that mix MIDI takes with audio takes and/or take envelopes.", "ERROR", 0)
-                    tryToUndo = true
-                    goto quit
+                        end
+                    else
+                        gotAudio = true
+                    end
                 end
+                if gotMIDI and not gotAudio and not gotEnvMIDI then
+                    tMIDIItemPositions[item] = {position = itemStart, length = itemLength}
+                    local setPosOK = reaper.SetMediaItemPosition(item, spaceTimeEnd, false)
+                    if not setPosOK then
+                        reaper.MB("The script could not protect the positions of all MIDI items.", "ERROR", 0)
+                        tryToUndo = true
+                        goto quit
+                    end             
+                end -- if gotMIDI and not gotAudio and not gotEnvMIDI
+                
             end -- if itemStart < spaceTimeStart and itemEnd > spaceTimeStart
-end end end 
+            
+        end -- if userLockChoice == LOCK and itemLocked and itemEnd > spaceTimeStart
+end end 
 
 
 -------------------------------------------------------------------------
@@ -438,7 +444,7 @@ reaper.Main_OnCommandEx(40200, -1, 0) -- Time selection: Insert empty space at t
 do -- goto doesn't like jumping past declaration of local variables, so let's try hiding stuff within a do-end block
     local setChunkOK = reaper.SetEnvelopeStateChunk(tempoEnv, tempoChunk, true)
     if not setChunkOK then
-        reaper.MB("ERROR", "Could not update tempo markers", 0)
+        reaper.MB("ERROR", "The srcript could not update tempo markers.", 0)
         tryToUndo = true
         goto quit
     end
@@ -477,30 +483,30 @@ end
 
 for i = 0, reaper.CountMediaItems(0)-1 do
     local item = reaper.GetMediaItem(0, i)
-    local timebaseInteger = nil
-    for t = 0, reaper.CountTakes(item)-1 do
-        local take = reaper.GetTake(item, t)
-        local retval, name = reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", "", false)
-        local timebase, origName = name:match("@@Timebase=([%d%-]+)@@(.*)")
-        if timebase then timebaseInteger = tonumber(timebase) end
-        if origName then reaper.GetSetMediaItemTakeInfo_String(take, "P_NAME", origName, true) end
-    end
-    --[[
-    if not timebaseInteger then
-        reaper.MB("The script could not re-access the timebases of all takes.", "ERROR", 0)
-        tryToUndo = true
-        goto quit
-    else
-    ]]
-    -- If an item is split within an empty extension, the later child item is simply named "Empty".
-    -- It is therefore possible to encounter items without timebase info in their names.
-    if not timebaseInteger then timebaseInteger = -1 end -- -1 is default
-    local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", timebaseInteger)
-    if not setOK then
-        reaper.MB("The script could not reset the timebase of all items.", "ERROR", 0)
-        tryToUndo = true
-        goto quit
-    end
+    local notesOK, notes = reaper.GetSetMediaItemInfo_String(item, "P_NOTES", "", false)
+        if not notesOK then
+            reaper.MB("The script could not re-load the text notes of some items after inserting empty space.", "ERROR", 0)
+            tryToUndo = true
+            goto quit
+        end
+    local timebase = tonumber(notes:sub(1,2))
+        if not timebase then
+            reaper.MB("The script could not parse the timebase from the text notes of some items after inserting empty space.", "ERROR", 0)
+            tryToUndo = true
+            goto quit
+        end
+    local newOK = reaper.GetSetMediaItemInfo_String(item, "P_NOTES", notes:sub(3,nil), true)
+        if not newOK then
+            reaper.MB("The script could not restore the original text notes of some items.", "ERROR", 0)
+            tryToUndo = true
+            goto quit
+        end
+    local setOK = reaper.SetMediaItemInfo_Value(item, "C_BEATATTACHMODE", timebase)
+        if not setOK then
+            reaper.MB("The script could not reset the timebase of all items after inserting empty space.", "ERROR", 0)
+            tryToUndo = true
+            goto quit
+        end
 end
 
 if projectTimebaseBeatsAll == 1 then
