@@ -6123,7 +6123,7 @@ local function check_bind()
 
 			k = k >= 0 and (k - 1) or k
 
-			bound_mnu = {k - 1, reaper.time_precise(), mnu_arr[cur_depth][k] and mnu_arr[cur_depth][k].act or ""}
+			bound_mnu = {k, reaper.time_precise(), mnu_arr[cur_depth][k] and mnu_arr[cur_depth][k].act or ""}
 
 			--GUI.Msg("detect key bind: "..char.." -> act = "..table.concat(bound_mnu, ", "))
 
