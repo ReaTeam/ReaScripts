@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9fdc84762ee3ca165c287bd0a2a17e1d4878d158" name="ReaTeam Scripts">
+<index version="1" commit="576562eca8e8add14c7a8286ef95433af35f5ed6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8648,6 +8648,10 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="1.4.1" author="Lokasenna" time="2018-09-03T20:28:02Z">
         <changelog><![CDATA[Fix: Issues with siblings of top-level tracks]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83f5589cbd9d00d551ca2826f6eddfd987a1c0b5/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.4.2" author="Lokasenna" time="2018-10-13T20:21:19Z">
+        <changelog><![CDATA[Fix: Crash referring to "merge_tables" being nil]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/576562eca8e8add14c7a8286ef95433af35f5ed6/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
