@@ -6,7 +6,7 @@
     Changelog:
         Initial Release
     Links:
-        Forum Thread
+        Forum Thread https://forum.cockos.com/showthread.php?p=2046085
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
 
