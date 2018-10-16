@@ -1,10 +1,10 @@
 --[[
     Description: Smart fill gaps by stretching item tails
-    Version: 1.0.0
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Initial Release
+        Add: Remember the window position
     Links:
         Forum Thread https://forum.cockos.com/showthread.php?p=2046085
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -753,6 +753,20 @@ end
 ------------------------------------
 
 
+local function saveWindowState()
+
+  GUI.save_window_state("Lokasenna", script_title .. ".window")
+
+end
+
+local function loadWindowState()
+
+  GUI.load_window_state("Lokasenna", script_title .. ".window")
+
+end
+
+
+
 local function getUnitMultiplier(unit)
 
     unit = GUI.elms.S_unit.optarray[unit]
@@ -920,7 +934,7 @@ end
 
 GUI.name = "Split and stretch item tails"
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 480
-GUI.anchor, GUI.corner = "mouse", "C"
+GUI.anchor, GUI.corner = "screen", "C"
 
 
 
@@ -1295,9 +1309,9 @@ end
 
 
 settingsToGUI()
+local ret = {GUI.load_window_state("Lokasenna", script_title .. ".window")}
 
-GUI.oncrash = print_dMsgs
-GUI.exit = print_dMsgs
+GUI.exit = saveWindowState
 
 GUI.Init()
 GUI.Main()
