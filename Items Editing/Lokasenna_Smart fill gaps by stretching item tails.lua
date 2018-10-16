@@ -1,10 +1,11 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.0.2
+  Version: 1.1.0
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Add: Remember the window position
+    Add: Maximum length of gaps to process
+    Fix: Items being skipped for no apparent reason
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -17,7 +18,7 @@
 ]]--
 
 
-
+local settings = {}
 local default_settings = {
 
     thresh_db = -24,
@@ -36,21 +37,20 @@ local default_settings = {
     trim_items = true,
     step_markers = true,
 
+    next_item_distance = 0.3
+
 }
-
-local next_item_distance = 0.1
-
 
 local script_title = "Smart fill gaps by stretching item tails"
 
 local added_markers = {}
 
 -- Print debug messages to Reaper's console
-dm = false
+dm = true
 
 -- True:    Debug messages are printed instantly, which can make Reaper lag/freeze for a bit.
 -- False:   Debug messages are saved until the script is finished and then printed all at once.
-dm_realtime = false
+dm_realtime = true
 
 local dMsgs = {}
 local function dMsg(str)
@@ -106,7 +106,7 @@ if missing_lib then return 0 end
 
 
 local errors = {}
-errors.noNextItem = "Next item not found within " .. next_item_distance*1000 .. " ms"
+errors.noNextItem = "Next item not found within specified range"
 errors.splitPastEnd = "Calculated split point is past the end of the item"
 errors.noSplitPoint = "No point that satisfies the current parameters"
 
@@ -285,10 +285,12 @@ function Item:doWorkflow()
     ret, err = self:isGap()
     --if err then goto skip end
 
+    GUI.Msg("\tisGap? " .. tostring(ret) .. "|" .. tostring(err))
     if ret then
         ret, err = self:doSplit()
         --if err then goto skip end
 
+        GUI.Msg("\tsplit? " .. tostring(ret) .. "|" .. tostring(err))
         if ret then
             self:fillGap()
             self:addSplitMarker()
@@ -297,6 +299,7 @@ function Item:doWorkflow()
         end
 
     elseif not err and settings.trim_items then
+
         self:trimExcess()
         self:crossfadeRight()
     end
@@ -349,8 +352,13 @@ function Item:doSplit()
     if self.splitpos >= self:getEnd() then
         return nil, errors.splitPastEnd
     end
+
+    GUI.Msg("item start: " .. self.pos .. "\nitem end:  " .. self:getEnd() .. "\nsplit pos: " .. self.splitpos)
+
     self.item = reaper.SplitMediaItem( self.item, self.splitpos )
-    if not self.item then return end
+    if not self.item then
+      return
+     end
     self:initValues()
     return true
 
@@ -420,7 +428,8 @@ function Item:getNextItem()
     if not next.item then return end
 
     next.pos = reaper.GetMediaItemInfo_Value(next.item, "D_POSITION")
-    if next.pos >= self:getEnd() + next_item_distance then return end
+
+    if (next.pos - self:getEnd()) > tonumber(settings.next_item_distance) then return end
 
     next.len = reaper.GetMediaItemInfo_Value(next.item, "D_LENGTH")
 
@@ -440,6 +449,11 @@ function Item:getSplitPos()
     local pos_left = self:posProtectLeft() or 0
     local pos_stretch = self:posAtStretchLimit()
 
+    GUI.Msg("end: " .. self:getEnd() .. "\t\tpos_left: " .. pos_left .. "\t\tfade_left: " .. settings.crossfade_left)
+
+    GUI.Msg("calling lastPosAboveThreshold with args:\n\t"
+        .. self:getEnd() - pos_left - settings.crossfade_left .. "\n\t"
+        .. pos_stretch - self.pos)
     local pos_thresh = self:lastPosAboveThreshold(
         self:getEnd() - pos_left - settings.crossfade_left,
         pos_stretch - self.pos
@@ -525,7 +539,9 @@ function Item:lastPosAboveThreshold(window, start_pos)
             dMsg("\trms over threshold at " .. pos)
             return last_zero_pos-- and last_zero_pos or self:getEnd()
         elseif (pos <= start_pos) and ( spl == 0 or (last_spl * spl < 0) ) then
-            last_zero_pos = (pos + last_pos) / 2
+
+            -- pos was occasionally negative... not sure why
+            last_zero_pos = math.abs((pos + last_pos) / 2)
         end
 
 
@@ -542,6 +558,7 @@ function Item:lastPosAboveThreshold(window, start_pos)
     local splitpos = audio.iterateSamples(self.item, check_sample, window, true)
     dMsg("\titerateSamples returned a zero-crossing at: " .. tostring(splitpos))
     splitpos = splitpos or last_zero_pos
+    dMsg("\tusing a zero-crossing of: " .. tostring(splitpos))
     dMsg("\tlastposAboveThreshold returning: " .. (splitpos and (self.pos + splitpos) or "No split, no zero-crossing"))
     return splitpos and (self.pos + splitpos)
 
@@ -936,7 +953,7 @@ end
 
 
 GUI.name = "Split and stretch item tails"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 480
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 560
 GUI.anchor, GUI.corner = "screen", "C"
 
 
@@ -1083,11 +1100,30 @@ GUI.New("S_crossfade_shape", "Menubox", {
 })
 
 
+GUI.New("S_next_item_distance", "Textbox", {
+  z = 11,
+  x = 136.0,
+  y = 256.0,
+  w = 80,
+  h = 20,
+  caption = "Max. gap to process:",
+  cap_pos = "left",
+  font_a = 3,
+  font_b = "monospace",
+  color = "txt",
+  bg = "wnd_bg",
+  shadow = true,
+  pad = 4,
+  undo_limit = 20,
+  retval = 0.3,
+  tooltip = "Maximum length of gap between items that should be processed"
+})
+
 
 GUI.New("S_markers", "Checklist", {
     z = 11,
     x = 48.0,
-    y = 268.0,
+    y = 308.0,
     w = 240,
     h = 72,
     caption = "Place markers:",
@@ -1108,9 +1144,9 @@ GUI.New("S_markers", "Checklist", {
 GUI.New("S_opts", "Checklist", {
     z = 11,
     x = 48,
-    y = 352,
+    y = 392,
     w = 208,
-    h = 32,
+    h = 56,
     caption = "",
     optarray = {"Trim ends of overlapping items","Step through markers afterward"},
     frame = false
@@ -1163,12 +1199,23 @@ GUI.New("lbl_unit3", "Label", {
     shadow = true
 })
 
+GUI.New("lbl_unit4", "Label", {
+  z = 11,
+  x = 222,
+  y = 262,
+  caption = "s",
+  font = 4,
+  color = "txt",
+  bg = "wnd_bg",
+  shadow = true
+})
+
 
 
 GUI.New("btn_go", "Button", {
     z = 11,
     x = 144,
-    y = 432,
+    y = 472,
     w = 48,
     h = 24,
     caption = "Go!",
