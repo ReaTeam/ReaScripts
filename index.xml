@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f4346efd9f8b983375b3468a8685b234c38d9b0c" name="ReaTeam Scripts">
+<index version="1" commit="104412614b9c7facb7e041f68cc3c3ae83087ec2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2945,6 +2945,13 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
     </reapack>
     <reapack name="Lokasenna_Smart fill gaps by stretching item tails.lua" type="script" desc="Smart fill gaps by stretching item tails">
       <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Intelligently fills gaps between items, using a combination of RMS level detection and max/min lengths to identify the "tail" of a signal and leave the transient alone.\par}
+}
+]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?p=2046085">Forum Thread</link>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://paypal.me/Lokasenna</link>
@@ -2956,6 +2963,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="1.0.1" author="Lokasenna" time="2018-10-16T12:15:43Z">
         <changelog><![CDATA[Add: Remember the window position]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f4346efd9f8b983375b3468a8685b234c38d9b0c/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
+      </version>
+      <version name="1.0.2" author="Lokasenna" time="2018-10-16T12:20:27Z">
+        <changelog><![CDATA[Add: Remember the window position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/104412614b9c7facb7e041f68cc3c3ae83087ec2/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Trim items to specified length.lua" type="script" desc="Trim items to specified length">
