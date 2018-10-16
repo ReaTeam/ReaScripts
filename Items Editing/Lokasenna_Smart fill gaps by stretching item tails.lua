@@ -1,16 +1,19 @@
 --[[
-    Description: Smart fill gaps by stretching item tails
-    Version: 1.0.1
-    Author: Lokasenna
-    Donation: https://paypal.me/Lokasenna
-    Changelog:
-        Add: Remember the window position
-    Links:
-        Forum Thread https://forum.cockos.com/showthread.php?p=2046085
-        Lokasenna's Website http://forum.cockos.com/member.php?u=10417
-    About:
+  Description: Smart fill gaps by stretching item tails
+  Version: 1.0.2
+  Author: Lokasenna
+  Donation: https://paypal.me/Lokasenna
+  Changelog:
+    Add: Remember the window position
+  Links:
+    Forum Thread https://forum.cockos.com/showthread.php?p=2046085
+    Lokasenna's Website http://forum.cockos.com/member.php?u=10417
+  About:
+    Intelligently fills gaps between items, using a combination of RMS level
+    detection and max/min lengths to identify the "tail" of a signal and leave
+    the transient alone.
 
-    Donation: https://www.paypal.me/Lokasenna
+  Donation: https://www.paypal.me/Lokasenna
 ]]--
 
 
