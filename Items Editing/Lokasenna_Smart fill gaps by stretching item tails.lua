@@ -1,11 +1,10 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.1.0
+  Version: 1.1.1
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Add: Maximum length of gaps to process
-    Fix: Items being skipped for no apparent reason
+    Fix: Left debug messages on
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -46,11 +45,11 @@ local script_title = "Smart fill gaps by stretching item tails"
 local added_markers = {}
 
 -- Print debug messages to Reaper's console
-dm = true
+dm = false
 
 -- True:    Debug messages are printed instantly, which can make Reaper lag/freeze for a bit.
 -- False:   Debug messages are saved until the script is finished and then printed all at once.
-dm_realtime = true
+dm_realtime = false
 
 local dMsgs = {}
 local function dMsg(str)
