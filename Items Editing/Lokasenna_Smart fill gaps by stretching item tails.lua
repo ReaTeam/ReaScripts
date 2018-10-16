@@ -1,10 +1,10 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.1.1
+  Version: 1.1.2
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Fix: Left debug messages on
+    Fix: Left more debug messages on
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -284,12 +284,10 @@ function Item:doWorkflow()
     ret, err = self:isGap()
     --if err then goto skip end
 
-    GUI.Msg("\tisGap? " .. tostring(ret) .. "|" .. tostring(err))
     if ret then
         ret, err = self:doSplit()
         --if err then goto skip end
 
-        GUI.Msg("\tsplit? " .. tostring(ret) .. "|" .. tostring(err))
         if ret then
             self:fillGap()
             self:addSplitMarker()
@@ -351,8 +349,6 @@ function Item:doSplit()
     if self.splitpos >= self:getEnd() then
         return nil, errors.splitPastEnd
     end
-
-    GUI.Msg("item start: " .. self.pos .. "\nitem end:  " .. self:getEnd() .. "\nsplit pos: " .. self.splitpos)
 
     self.item = reaper.SplitMediaItem( self.item, self.splitpos )
     if not self.item then
@@ -448,11 +444,6 @@ function Item:getSplitPos()
     local pos_left = self:posProtectLeft() or 0
     local pos_stretch = self:posAtStretchLimit()
 
-    GUI.Msg("end: " .. self:getEnd() .. "\t\tpos_left: " .. pos_left .. "\t\tfade_left: " .. settings.crossfade_left)
-
-    GUI.Msg("calling lastPosAboveThreshold with args:\n\t"
-        .. self:getEnd() - pos_left - settings.crossfade_left .. "\n\t"
-        .. pos_stretch - self.pos)
     local pos_thresh = self:lastPosAboveThreshold(
         self:getEnd() - pos_left - settings.crossfade_left,
         pos_stretch - self.pos
