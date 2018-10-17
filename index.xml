@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="08e817f0a05c5d34b9c292c50f1e9ab5ca2e8af8" name="ReaTeam Scripts">
+<index version="1" commit="ea92d173e77b08bed28f0188e406a679f3f66758" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2980,6 +2980,11 @@ Fix: Items being skipped for no apparent reason]]></changelog>
       <version name="1.1.2" author="Lokasenna" time="2018-10-16T19:09:57Z">
         <changelog><![CDATA[Fix: Left more debug messages on]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/08e817f0a05c5d34b9c292c50f1e9ab5ca2e8af8/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
+      </version>
+      <version name="1.1.3" author="Lokasenna" time="2018-10-17T03:20:14Z">
+        <changelog><![CDATA[Add: Extra error message for items skipped because of failed splits
+Fix: Was skipping most items with >1 audio channel]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea92d173e77b08bed28f0188e406a679f3f66758/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Trim items to specified length.lua" type="script" desc="Trim items to specified length">
