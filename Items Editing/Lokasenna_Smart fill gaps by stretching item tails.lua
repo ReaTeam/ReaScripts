@@ -1,10 +1,11 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.1.2
+  Version: 1.1.3
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Fix: Left more debug messages on
+    Add: Extra error message for items skipped because of failed splits
+    Fix: Was skipping most items with >1 audio channel
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -108,6 +109,7 @@ local errors = {}
 errors.noNextItem = "Next item not found within specified range"
 errors.splitPastEnd = "Calculated split point is past the end of the item"
 errors.noSplitPoint = "No point that satisfies the current parameters"
+errors.splitFailed = "Error splitting item. Probably an invalid split position"
 
 
 ------------------------------------
@@ -151,6 +153,7 @@ function audio.iterateSamples(item, func, window, reverse)
     if not (item and func) then return end
 
     local val_out
+    local iterated_samples = 0
 
 
     local take = reaper.GetActiveTake(item)
@@ -219,22 +222,29 @@ function audio.iterateSamples(item, func, window, reverse)
         GetSamples(audio, samplerate, n_channels, time_start, block_size, samplebuffer)
 
         -- Loop through each channel separately
-        local ia, ib, ja, jb, step
+        local chan_start, chan_end, spl_start, spl_end, step
         if reverse then
-            ia, ib, ja, jb, step = n_channels, 1, block_size, 1, -1
+            chan_start, chan_end = n_channels, 1
+            spl_start, spl_end = block_size, 1
+            step = -1
         else
-            ia, ib, ja, jb, step = 1, n_channels, 1, block_size, 1
+            chan_start, chan_end = 1, n_channels
+            spl_start, spl_end = 1, block_size
+            step = 1
         end
 
-        for i = ia, ib, step do
+        for chan_cur = chan_start, chan_end, step do
 
-            for j = ja, jb, step do
+            for spl_cur = spl_start, spl_end, step do
+
+                iterated_samples = iterated_samples + 1
 
                 -- Sample position in the block
-                local pos = (j - 1) * n_channels + i
-                local spl = samplebuffer[pos]
+                local pos = (spl_cur - 1) * n_channels + chan_cur
+                local val = samplebuffer[pos]
 
-                val_out = func(spl, time_start + ((pos * n_channels) / samplerate))
+                --val_out = func(spl, time_start + ((pos * n_channels) / samplerate))
+                val_out = func(val, time_start + (spl_cur / samplerate))
                 if val_out then goto finished end
 
             end
@@ -247,7 +257,10 @@ function audio.iterateSamples(item, func, window, reverse)
 
     ::finished::
 
-    if dm then iterated_items = iterated_items + 1 end
+    if dm then
+      iterated_items = iterated_items + 1
+      dMsg("\t\titerate samples looked through " .. iterated_samples .. " samples")
+    end
 
     -- Tell Reaper we're done working with this item, so the memory can be freed
     reaper.DestroyAudioAccessor(audio)
@@ -352,7 +365,7 @@ function Item:doSplit()
 
     self.item = reaper.SplitMediaItem( self.item, self.splitpos )
     if not self.item then
-      return
+      return nil, errors.splitFailed
      end
     self:initValues()
     return true
@@ -486,6 +499,7 @@ end
 function Item:lastPosAboveThreshold(window, start_pos)
 
     dMsg("lastPosAboveThreshold")
+    dMsg("\tsearch window: " .. tostring(window) .. "\n\tstart pos: " .. tostring(start_pos))
     local thresh = audio.ValFromdB(settings.thresh_db)
 
     local last_zero_pos
@@ -531,7 +545,8 @@ function Item:lastPosAboveThreshold(window, start_pos)
         elseif (pos <= start_pos) and ( spl == 0 or (last_spl * spl < 0) ) then
 
             -- pos was occasionally negative... not sure why
-            last_zero_pos = math.abs((pos + last_pos) / 2)
+            --last_zero_pos = math.abs((pos + last_pos) / 2)
+            last_zero_pos = (pos + last_pos) / 2
         end
 
 
@@ -732,6 +747,7 @@ local function Main()
 
     local num_items = reaper.CountSelectedMediaItems(0)
 
+    iterated_items = 0
     dMsg("Processing " .. num_items .. " items")
     local start_time = reaper.time_precise()
 
