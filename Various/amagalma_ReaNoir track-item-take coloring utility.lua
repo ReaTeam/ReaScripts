@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.05
+-- @version 2.06
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,8 +33,8 @@
 
 --[[
  * Changelog:
- * v2.05 (2017-10-07)
-  + Make use of cfillion's new CF_SetClipboard function to copy hex code to clipboard
+ * v2.06 (2018-10-19)
+  + fix GetColor for tracks
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
@@ -55,7 +55,7 @@
 
 
 
-version = "v2.04"
+version = "v2.06"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -1164,8 +1164,8 @@ end
             if seltracks > 0 then 
                  local track =  reaper.GetSelectedTrack( 0, 0 )
                  local color = reaper.GetMediaTrackInfo_Value( track, "I_CUSTOMCOLOR" )
-                 if color ~= 16576 or 0 then
-                 R, G, B = IntToRGB(color)
+                 if color ~= 0 then
+                 R, G, B = reaper.ColorFromNative(color|0x1000000)
                  else R,G,B = 127,127,127
                  end
                  if mode == "rgb" or mode == "compact" then
