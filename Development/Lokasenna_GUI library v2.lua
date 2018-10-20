@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.11
+Version: 2.15.12
 Changelog:
-    Fix: GetUserInputs' textboxes missing key commands
+    Fix: Menuboxes crashing Reaper with no options
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
@@ -15,8 +15,8 @@ Links:
 About:
     Provides a framework allowing Lua scripts to use a graphical interface, since Reaper
     has no ability to do so natively.
-    
-    INSTALLATION: After installing this package, you must tell Reaper where to find the 
+
+    INSTALLATION: After installing this package, you must tell Reaper where to find the
     library. In the Action List, find and run:
 
     "Script: Set Lokasenna_GUI v2 library path.lua"
