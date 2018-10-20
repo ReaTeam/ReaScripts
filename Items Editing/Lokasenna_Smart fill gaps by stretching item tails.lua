@@ -1,11 +1,11 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.1.3
+  Version: 1.2
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Add: Extra error message for items skipped because of failed splits
-    Fix: Was skipping most items with >1 audio channel
+    Complete rewrite of audio processing logic, should fix issues with stereo
+    items being skipped.
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -45,21 +45,21 @@ local script_title = "Smart fill gaps by stretching item tails"
 
 local added_markers = {}
 
--- Print debug messages to Reaper's console
-dm = false
+
+------------------------------------
+-------- Debugging stuff -----------
+------------------------------------
+
+-- Press Ctrl+Shift+Alt+Z to enable GUI.dev_mode
 
 -- True:    Debug messages are printed instantly, which can make Reaper lag/freeze for a bit.
 -- False:   Debug messages are saved until the script is finished and then printed all at once.
-dm_realtime = false
+dm_realtime = true
 
 local dMsgs = {}
 local function dMsg(str)
     if GUI.dev_mode then
-        if dm_realtime then
-            reaper.ShowConsoleMsg( tostring(str) .. "\n" )
-        else
-            dMsgs[#dMsgs+1] = tostring(str)
-        end
+      dMsgs[#dMsgs+1] = tostring(str)
     end
 end
 
@@ -67,10 +67,11 @@ local function print_dMsgs()
     if #dMsgs > 0 then
         local str = string.sub( table.concat(dMsgs, "\n"), -15000 )
         reaper.ShowConsoleMsg( str:match("\n.+") .. "\n" )
+        dMsgs = {}
     end
 end
 
-if dm then iterated_items = 0 end
+local iterated_items = 0
 
 
 ------------------------------------
@@ -126,10 +127,11 @@ function audio.ValFromdB(dB_val) return 10^(dB_val/20) end
 
     item    MediaItem
 
-    func    Function to run for each sample. Will be passed two arguments:
+    func    Function to run for each sample. Will be passed three arguments:
 
             spl     Sample level (-1 to +1)
             pos     Time position in the item (seconds)
+            chan    Audio channel
 
             If the function returns anything other than false/nil, the loop
             will terminate and iterateSamples will pass that as a return value.
@@ -189,6 +191,8 @@ function audio.iterateSamples(item, func, window, reverse)
     local range_end = range_start + range_len
     local range_len_spls = math.floor(range_len * samplerate)
 
+    dMsg("\t\trange_spls = " .. range_len_spls)
+
     -- Break the range into blocks
     local block_size = 65536
     local n_blocks = math.floor(range_len_spls / block_size)
@@ -197,29 +201,45 @@ function audio.iterateSamples(item, func, window, reverse)
     -- Allow for multichannel audio
     local n_channels = reaper.GetMediaSourceNumChannels(PCM_source)
 
+    dMsg("\t\titem has " .. n_channels .. " channels")
+
     -- It's significantly faster to use locals for CPU-intensive tasks
     local GetSamples = reaper.GetAudioAccessorSamples
-    local reaper = reaper
 
     -- 'samplebuffer' will hold all of the audio data for each block
     local samplebuffer = reaper.new_array(block_size * n_channels)
     local audio = reaper.CreateTakeAudioAccessor(take)
 
+    dMsg("\t\trange_len: " .. range_len)
+    dMsg("\t\trange_start: " .. range_start)
+    dMsg("\t\trange_end: " .. range_end)
+    dMsg("\t\tn_blocks: " .. n_blocks)
+    dMsg("\t\textra_spls: " .. extra_spls)
+
     -- Loop through the audio, one block at a time
-    local time_start = reverse   and (range_end - ((extra_spls * n_channels) / samplerate))
-                                    or  0
+    local time_start =
+        --reverse   and (range_end - ((extra_spls * n_channels) / samplerate))
+        reverse   and (range_end - extra_spls / samplerate)
+                   or  0
+
+    time_start = 0
 
     local time_offset = ((block_size * n_channels) / samplerate) * (reverse and -1 or 1)
 
     for cur_block = 0, n_blocks do
 
         -- The last iteration will almost never be a full block
-        if cur_block == n_blocks then block_size = extra_spls end
+        --if cur_block == n_blocks then block_size = extra_spls end
+        local block_size = (cur_block == n_blocks) and extra_spls or block_size
 
         samplebuffer.clear()
 
         -- Loads 'samplebuffer' with the next block
         GetSamples(audio, samplerate, n_channels, time_start, block_size, samplebuffer)
+
+        dMsg("getting block: " .. block_size .. " samples")
+        dMsg("starting @: " .. time_start)
+        --[[
 
         -- Loop through each channel separately
         local chan_start, chan_end, spl_start, spl_end, step
@@ -233,6 +253,7 @@ function audio.iterateSamples(item, func, window, reverse)
             step = 1
         end
 
+
         for chan_cur = chan_start, chan_end, step do
 
             for spl_cur = spl_start, spl_end, step do
@@ -245,9 +266,40 @@ function audio.iterateSamples(item, func, window, reverse)
 
                 --val_out = func(spl, time_start + ((pos * n_channels) / samplerate))
                 val_out = func(val, time_start + (spl_cur / samplerate))
-                if val_out then goto finished end
+                if val_out then
+                  dMsg("\t\tgot val_out: " .. tostring(val_out))
+                  goto finished
+                end
 
             end
+
+        end
+
+        ]]--
+
+        local spl_start, spl_end, step
+        if reverse then
+          spl_start, spl_end = block_size * n_channels, 1
+          step = -1
+        else
+          spl_start, spl_end = 1, block_size * n_channels
+          step = 1
+        end
+
+        for i = spl_start, spl_end, step do
+
+          iterated_samples = iterated_samples + 1
+
+          local val = samplebuffer[i]
+          local chan = (i - 1) % n_channels + 1
+          local pos = math.modf((i - 1) / n_channels) / samplerate
+
+          val_out = func(val, pos, chan)
+          if val_out then
+            dMsg("\t\tgot val_out: " .. tostring(val_out))
+            goto finished
+
+          end
 
         end
 
@@ -257,7 +309,7 @@ function audio.iterateSamples(item, func, window, reverse)
 
     ::finished::
 
-    if dm then
+    if GUI.dev_mode then
       iterated_items = iterated_items + 1
       dMsg("\t\titerate samples looked through " .. iterated_samples .. " samples")
     end
@@ -457,10 +509,11 @@ function Item:getSplitPos()
     local pos_left = self:posProtectLeft() or 0
     local pos_stretch = self:posAtStretchLimit()
 
-    local pos_thresh = self:lastPosAboveThreshold(
-        self:getEnd() - pos_left - settings.crossfade_left,
-        pos_stretch - self.pos
-        )
+    local window = self:getEnd() - pos_left - settings.crossfade_left
+    local start = pos_stretch - self.pos
+
+    local pos_thresh =
+      (window > 0 and start >= 0) and self:lastPosAboveThreshold(window, start)
 
     if pos_thresh then
         return pos_thresh
@@ -507,10 +560,14 @@ function Item:lastPosAboveThreshold(window, start_pos)
 
     local rms_window = math.max( self:splsFromTime( settings.rms_window ), 1 )
     dMsg("\trms window = " .. rms_window .. " samples (" .. settings.rms_window .. " seconds)")
+
+    local PCM_source = reaper.GetMediaItemTake_Source(self.take)
+    local n_channels = reaper.GetMediaSourceNumChannels(PCM_source)
+
     local rms_tracking = {}
-    local rms_square_sum = 0
-    local rms_last_square = 0
-    local rms_num_samples = 0
+    for i = 1, n_channels do
+      rms_tracking[i] = {square_sum = 0}
+    end
 
     -- Yay efficiency
     local sqrt = math.sqrt
@@ -518,40 +575,49 @@ function Item:lastPosAboveThreshold(window, start_pos)
 
 
     -- Will be passed to iterateSamples
-    local function check_sample(spl, pos)
+    local function check_sample(spl, pos, chan)
 
-        local rms
-        if rms_window > 1 then
+      local rms
+      if rms_window > 1 then
 
-            rms_tracking[#rms_tracking + 1] = spl^2
+          rms_tracking[chan][#rms_tracking[chan] + 1] = spl^2
 
-            rms_square_sum = rms_square_sum + rms_tracking[#rms_tracking]
+          rms_tracking[chan].square_sum =
+            rms_tracking[chan].square_sum + rms_tracking[chan][#rms_tracking[chan]]
 
-            if #rms_tracking > rms_window then
+          if #rms_tracking[chan] > rms_window then
 
-                rms_square_sum = rms_square_sum - rms_tracking[#rms_tracking - rms_window]
-                rms = sqrt(rms_square_sum / rms_window)
+            rms_tracking[chan].square_sum =
+              rms_tracking[chan].square_sum - rms_tracking[chan][#rms_tracking[chan] - rms_window]
+              rms = sqrt(rms_tracking[chan].square_sum / rms_window)
 
-            end
+          end
 
-        else
-            rms = math.abs(spl)
+      else
+          rms = math.abs(spl)
+      end
+
+
+      if rms and rms >= thresh and rms_tracking[chan].last_zero_pos then
+          dMsg("\trms over threshold at " .. pos)
+          return rms_tracking[chan].last_zero_pos
+
+      elseif (pos <= start_pos) then
+
+        if spl == 0 then
+          rms_tracking[chan].last_zero_pos = pos
+        elseif rms_tracking[chan].last_spl and (rms_tracking[chan].last_spl * spl < 0) then
+
+          -- pos was occasionally negative... not sure why
+          --last_zero_pos = math.abs((pos + last_pos) / 2)
+          rms_tracking[chan].last_zero_pos = (pos + rms_tracking[chan].last_pos) / 2
         end
 
-
-        if rms and rms >= thresh and last_zero_pos then
-            dMsg("\trms over threshold at " .. pos)
-            return last_zero_pos-- and last_zero_pos or self:getEnd()
-        elseif (pos <= start_pos) and ( spl == 0 or (last_spl * spl < 0) ) then
-
-            -- pos was occasionally negative... not sure why
-            --last_zero_pos = math.abs((pos + last_pos) / 2)
-            last_zero_pos = (pos + last_pos) / 2
-        end
+      end
 
 
-        last_pos = pos
-        last_spl = spl
+      rms_tracking[chan].last_pos = pos
+      rms_tracking[chan].last_spl = spl
 
     end
 
@@ -591,6 +657,8 @@ function Item:crossfadeLeft()
     local fade = settings.crossfade_left
     if not fade or fade == 0 then return end
 
+    dMsg("\tcrossfading left")
+
     local track, item, take = self.track, self.item, self.take
 
     local half = fade / 2
@@ -621,6 +689,8 @@ end
 
 function Item:crossfadeRight()
 
+    dMsg("\tcrossfading right")
+
     -- Get next (should be under self.next)
     local fade = settings.crossfade_right
     if not fade or fade == 0 or not self.next then return end
@@ -649,7 +719,6 @@ end
 -------- Step functions ------------
 ------------------------------------
 
---added_markers[i] = marker idx
 
 local Step = {curidx = 0}
 
@@ -725,6 +794,8 @@ local function processItems(items_by_pos)
     -- the remaining items rather than scanning them too.
     for pos, items in GUI.kpairs(items_by_pos) do
 
+        dMsg("\nItem begins...")
+
         local first = Item.new(items[1])
         first:doWorkflow()
 
@@ -734,6 +805,8 @@ local function processItems(items_by_pos)
             cur.splitpos = first.splitpos
             cur:doWorkflow()
         end
+
+        dMsg("Item ends...")
 
     end
 
@@ -757,11 +830,9 @@ local function Main()
 
     local elapsed = reaper.time_precise() - start_time
 
-    if dm then
-        dMsg("\niterateSamples looked at " .. iterated_items .. " items")
-        dMsg("\nAll done!\nTotal time: " .. elapsed .. " seconds\n" ..
-            "Average: " .. elapsed / iterated_items .. " seconds per item")
-    end
+    dMsg("\niterateSamples looked at " .. iterated_items .. " items")
+    dMsg("\nAll done!\nTotal time: " .. elapsed .. " seconds\n" ..
+        "Average: " .. elapsed / iterated_items .. " seconds per item")
 
     reaper.PreventUIRefresh(-1)
     reaper.UpdateTimeline()
@@ -1368,6 +1439,9 @@ settingsToGUI()
 local ret = {GUI.load_window_state("Lokasenna", script_title .. ".window")}
 
 GUI.exit = saveWindowState
+
+GUI.func = print_dMsgs
+GUI.freq = 1
 
 GUI.Init()
 GUI.Main()
