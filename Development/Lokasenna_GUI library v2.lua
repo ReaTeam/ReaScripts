@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.15.12
+Version: 2.16.0
 Changelog:
-    Fix: Menuboxes crashing Reaper with no options
+    Add: GUI.script_version, reads version info from ReaPack
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
