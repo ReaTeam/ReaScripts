@@ -4,49 +4,65 @@
    * Author: spk77
    * Author URI: http://forum.cockos.com/member.php?u=49553
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.1
 */
-  
-  // EEL script - Convert stretch markers to MIDI_notes (7.10.2014 by spk77)
-//
-// Version: 0.2014.10.7
 
+/**
+ * Changelog:
+ * v1.0 (2014-10-7)
+  + Initial Release
+ * v1.1 (2018-10-25)
+  + Fixed incorrect note positions and missing notes
+ */
+  
 function convert_stretch_markers_to_MIDI_notes()
-	local(source_take, item, source_item_pos, source_item_len, index, num_sm, i, buffer, pos, start, take)
+	local(source_take, item, source_item_pos,
+		source_item_len, index, num_sm, i, buffer, pos, start, 
+		take, source_take_play_rate, dest_item, dest_item_pos)
+	
 (
 	(item = GetSelectedMediaItem(0, 0)) ? (
 		(source_take = GetActiveTake(item)) ? (
-			source_item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
-			source_item_len = GetMediaItemInfo_Value(item, "D_LENGTH");
+			!TakeIsMIDI(source_take) ? (
+				source_item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+				source_item_len = GetMediaItemInfo_Value(item, "D_LENGTH");
+				//source_take_offset = GetMediaItemTakeInfo_Value(source_take, "D_STARTOFFS");
+				source_take_play_rate = GetMediaItemTakeInfo_Value(source_take, "D_PLAYRATE");
 
-			index = 0;
-			buffer = 10000;
-			num_sm = GetTakeNumStretchMarkers(source_take);
-			i = 0;
-			while(pos <= source_item_len && i < num_sm) (
-				GetTakeStretchMarker(source_take, index, pos, 0);
-				buffer[index] = pos;
-				index += 1;
-				i += 1;
-			);
-			num_sm = index;
-
-			(take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
-				MIDIEditor_OnCommand(MIDIEditor_GetActive(), 40002); // delete notes
 				index = 0;
-				loop(num_sm,
-					start = MIDI_GetPPQPosFromProjTime(take, buffer[index] + source_item_pos);
-					//ShowConsoleMsg(sprintf(#, "%f", buffer[index]));
-					buffer[index] + source_item_pos >= source_item_pos ? (
-						MIDI_InsertNote(take, 1, 0, start, start + 480, 9, 36, 96);
+				buffer = 10000;
+				num_sm = GetTakeNumStretchMarkers(source_take);
+				pos = -1;
+				i = 0;
+				while(i < num_sm) (
+					GetTakeStretchMarker(source_take, i, pos, 0);
+					pos >= 0 && pos/source_take_play_rate <= source_item_len ? (
+						buffer[index] = pos;
+						index += 1;
 					);
-					index += 1;
+					i += 1;
 				);
+				num_sm = index;
+
+				(take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+					(dest_item = GetMediaItemTake_Item(take)) ? (
+						dest_item_pos = GetMediaItemInfo_Value(dest_item, "D_POSITION");
+						MIDIEditor_OnCommand(MIDIEditor_GetActive(), 40002); // delete notes
+						index = 0;
+						loop(num_sm,
+							start = MIDI_GetPPQPosFromProjTime(take, (buffer[index]/source_take_play_rate + source_item_pos));
+							start >= dest_item_pos ? (
+								MIDI_InsertNote(take, 1, 0, start, start + 480, 9, 36, 96);
+							);
+							index += 1;
+						);
+					);
+				);
+				UpdateArrange();
+				Undo_OnStateChange("Convert stretch markers to MIDI notes");
 			);
-			UpdateArrange();
-			Undo_OnStateChange("Convert stretch markers to MIDI notes");
 		);
-  );
+	);
 );
 
 convert_stretch_markers_to_MIDI_notes();
