@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a0a8269c6e236c2a12a72d3f493bc6a27e403e43" name="ReaTeam Scripts">
+<index version="1" commit="36babf261e9854b83366148a1e9be5ef9d1d6ed1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11672,6 +11672,10 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
+      </version>
+      <version name="1.1" author="spk77" time="2018-10-25T16:58:07Z">
+        <changelog><![CDATA[+ Fixed incorrect note positions and missing notes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/36babf261e9854b83366148a1e9be5ef9d1d6ed1/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Info display (mouse cursor context).eel" type="script" desc="Info display (mouse cursor context)">
