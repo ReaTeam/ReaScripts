@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="36babf261e9854b83366148a1e9be5ef9d1d6ed1" name="ReaTeam Scripts">
+<index version="1" commit="39466a614dec0753f6b65c3a1139040fc5a15a7c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1137,6 +1137,27 @@ Fix: Textbox/TextEditor cursor placement on OSX]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/a0a8269c6e236c2a12a72d3f493bc6a27e403e43/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/a0a8269c6e236c2a12a72d3f493bc6a27e403e43/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/a0a8269c6e236c2a12a72d3f493bc6a27e403e43/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
+      <version name="2.16.1" author="Lokasenna" time="2018-10-29T17:23:44Z">
+        <changelog><![CDATA[Fix: Menuboxes hanging Reaper if created with no options.
+If creating one with opts = "", it will be converted
+automatically to " ".    ]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
@@ -11675,7 +11696,7 @@ Will work with ReaScript and custom action IDs now]]></changelog>
       </version>
       <version name="1.1" author="spk77" time="2018-10-25T16:58:07Z">
         <changelog><![CDATA[+ Fixed incorrect note positions and missing notes]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/36babf261e9854b83366148a1e9be5ef9d1d6ed1/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39466a614dec0753f6b65c3a1139040fc5a15a7c/Various/spk77_Convert%20stretch%20markers%20to%20MIDI%20notes.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Info display (mouse cursor context).eel" type="script" desc="Info display (mouse cursor context)">
