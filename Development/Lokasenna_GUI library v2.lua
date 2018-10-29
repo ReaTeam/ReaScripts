@@ -1,8 +1,10 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.0
+Version: 2.16.1
 Changelog:
-    Add: GUI.script_version, reads version info from ReaPack
+    Fix: Menuboxes hanging Reaper if created with no options.
+    If creating one with opts = "", it will be converted
+    automatically to " ".    
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

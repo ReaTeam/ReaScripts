@@ -55,7 +55,14 @@ function GUI.Menubox:new(name, z, x, y, w, h, caption, opts, pad, noarrow)
 
   local opts = menu.opts or opts
 
-  if type(opts) == "string" then
+  if not opts then
+
+    menu.optarray = {" "}
+
+  elseif type(opts) == "string" then
+
+    if opts == "" then opts = " " end
+
     -- Parse the string of options into a table
     menu.optarray = {}
 
@@ -64,9 +71,8 @@ function GUI.Menubox:new(name, z, x, y, w, h, caption, opts, pad, noarrow)
     end
   elseif type(opts) == "table" then
       menu.optarray = opts
+      if #menu.optarray == 0 then menu.optarray = {" "} end
   end
-
-  if #menu.optarray == 0 then menu.optarray = "" end
 
   GUI.redraw_z[menu.z] = true
 
@@ -112,7 +118,6 @@ function GUI.Menubox:draw()
   end
 
   gfx.blit(self.buff, 1, 0, 0, (focus and (h + 2) or 0) , w + 2, h + 2, x - 1, y - 1)
-
 
     -- Draw the text
     self:drawtext()
@@ -282,7 +287,6 @@ function GUI.Menubox:drawtext()
 
     -- Avoid any crashes from weird user data
     text = tostring(text)
-
 
     str_w, str_h = gfx.measurestr(text)
   gfx.x = self.x + 4
