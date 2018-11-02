@@ -20,6 +20,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 - [mpl](https://forum.cockos.com/member.php?u=70694) ([donate](https://www.paypal.me/donate2mpl))
 - [Nagasaki45](https://github.com/Nagasaki45) ([website](http://www.tomgurion.me/))
 - [nofish](https://forum.cockos.com/member.php?u=6870)
+- [pandabot](https://forum.cockos.com/member.php?u=127396) ([donate](https://paypal.me/benjohnson2001))
 - [planetnine](https://forum.cockos.com/member.php?u=6549)
 - [spk77](https://forum.cockos.com/member.php?u=49553) ([donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted))
 - [X-Raym](https://forum.cockos.com/member.php?u=58284) ([website](http://extremraym.com/), [donate](http://www.extremraym.com/en/donation/))
