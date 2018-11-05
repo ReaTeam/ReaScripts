@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="39466a614dec0753f6b65c3a1139040fc5a15a7c" name="ReaTeam Scripts">
+<index version="1" commit="bbaa88e6ae080b0ba3342e0f7bf877ede608d83f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1159,6 +1159,28 @@ automatically to " ".    ]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
+      <version name="2.16.2" author="Lokasenna" time="2018-11-05T22:53:59Z">
+        <changelog><![CDATA[Fix: Deleted elements weren't having their buffers freed, causing crashes
+in scripts with a lot of creating/deleting going on.
+Add: Explicit error message when a crash occurs because there were no more
+buffers available.]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
       <metadata>
@@ -1470,7 +1492,7 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-10T17:31:53Z">
         <changelog><![CDATA[Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f652fc09ee8bc5c9943bf9962cf0d244814ffff/Envelopes/Lokasenna_Switch%20to%20next%20track%20envelope%20in%20selected%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Envelopes/Lokasenna_Switch%20to%20next%20track%20envelope%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
@@ -3048,7 +3070,7 @@ Fix: Was skipping most items with >1 audio channel]]></changelog>
       <version name="1.2" author="Lokasenna" time="2018-10-20T17:25:19Z">
         <changelog><![CDATA[Complete rewrite of audio processing logic, should fix issues with stereo
 items being skipped.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24d63a6e55b55c114b80e0facedd3d78a8f4f599/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Trim items to specified length.lua" type="script" desc="Trim items to specified length">
@@ -8610,7 +8632,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-08T17:12:11Z">
         <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc48b8d9ba6db3f854289d8e9ded7e341472e883/Tracks%20Properties/Lokasenna_Create%20bus%20after%20selected%20tracks%20and%20reroute%20them.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20bus%20after%20selected%20tracks%20and%20reroute%20them.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create bus before selected tracks and reroute them.lua" type="script" desc="Create bus before selected tracks and reroute them">
@@ -8627,7 +8649,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-08T17:12:11Z">
         <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc48b8d9ba6db3f854289d8e9ded7e341472e883/Tracks%20Properties/Lokasenna_Create%20bus%20before%20selected%20tracks%20and%20reroute%20them.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20bus%20before%20selected%20tracks%20and%20reroute%20them.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create send from selected tracks.lua" type="script" desc="Create send from selected tracks">
@@ -8666,9 +8688,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </version>
       <version name="1.40" author="Lokasenna" time="2018-09-10T14:27:19Z">
         <changelog><![CDATA[Fix: Post-fader option got lost]]></changelog>
-        <source main="main" file="Lokasenna_Create send from selected tracks (post-fader).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
-        <source main="main" file="Lokasenna_Create send from selected tracks (post-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
-        <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (post-fader).lua">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (post-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select tracks by name.lua" type="script" desc="Select tracks by name">
@@ -8686,7 +8708,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-03T20:28:13Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/56c29acd76e95b73970cf77e2f510b07b2c3706e/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select tracks in selection with items.lua" type="script" desc="Select tracks in selection with items">
@@ -10260,7 +10282,7 @@ use sentence case for all buttons]]></changelog>
       </version>
       <version name="1.0.1" author="Lokasenna" time="2018-09-04T22:26:25Z">
         <changelog><![CDATA[Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cdc3a88ceecc4806fa17e9bec4b8d4c0481782b2/Various/Lokasenna_Insert%20most%20recent%20exported%20file....lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Various/Lokasenna_Insert%20most%20recent%20exported%20file....lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
