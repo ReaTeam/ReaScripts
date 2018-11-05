@@ -100,6 +100,13 @@ function GUI.Menubox:init()
 end
 
 
+function GUI.Menubox:ondelete()
+
+	GUI.FreeBuffer(self.buff)
+
+end
+
+
 function GUI.Menubox:draw()
 
   local x, y, w, h = self.x, self.y, self.w, self.h

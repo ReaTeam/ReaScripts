@@ -4,7 +4,7 @@
 
     For documentation, see this class's page on the project wiki:
     https://github.com/jalovatt/Lokasenna_GUI/wiki/Label
-    
+
     Creation parameters:
 	name, z, x, y, caption[, shadow, font, color, bg]
 
@@ -20,12 +20,12 @@ end
 -- Label - New
 GUI.Label = GUI.Element:new()
 function GUI.Label:new(name, z, x, y, caption, shadow, font, color, bg)
-	
-	local label = (not x and type(z) == "table") and z or {}	
-	
+
+	local label = (not x and type(z) == "table") and z or {}
+
 	label.name = name
 	label.type = "Label"
-	
+
 	label.z = label.z or z
 	label.x = label.x or x
     label.y = label.y or y
@@ -43,9 +43,9 @@ function GUI.Label:new(name, z, x, y, caption, shadow, font, color, bg)
 	GUI.redraw_z[label.z] = true
 
 	setmetatable(label, self)
-    self.__index = self 
+    self.__index = self
     return label
-	
+
 end
 
 
@@ -53,11 +53,11 @@ function GUI.Label:init(open)
 
     -- We can't do font measurements without an open window
     if gfx.w == 0 then return end
-    
+
     self.buffs = self.buffs or GUI.GetBuffer(2)
 
     GUI.font(self.font)
-    self.w, self.h = gfx.measurestr(self.caption) 
+    self.w, self.h = gfx.measurestr(self.caption)
 
     local w, h = self.w + 4, self.h + 4
 
@@ -71,7 +71,7 @@ function GUI.Label:init(open)
     gfx.dest = self.buffs[1]
     gfx.setimgdim(self.buffs[1], -1, -1)
     gfx.setimgdim(self.buffs[1], w, h)
-    
+
     GUI.color(self.bg)
     gfx.rect(0, 0, w, h)
 
@@ -88,28 +88,35 @@ function GUI.Label:init(open)
 
     GUI.color(self.color)
 
-	if self.shadow then	
+	if self.shadow then
         GUI.shadow(self.caption, self.color, "shadow")
     else
         gfx.drawstr(self.caption)
-    end   
-    
+    end
+
     gfx.dest = dest
-    
+
+end
+
+
+function GUI.Label:ondelete()
+
+	GUI.FreeBuffer(self.buffs)
+
 end
 
 
 function GUI.Label:fade(len, z_new, z_end, curve)
-	
+
 	self.z = z_new
 	self.fade_arr = { len, z_end, reaper.time_precise(), curve or 3 }
 	self:redraw()
-	
+
 end
 
 
 function GUI.Label:draw()
-	
+
     -- Font stuff doesn't work until we definitely have a gfx window
 	if self.w == 0 then self:init() end
 
@@ -117,17 +124,17 @@ function GUI.Label:draw()
     if a == 0 then return end
 
     gfx.x, gfx.y = self.x - 2, self.y - 2
-    
+
     -- Background
     gfx.blit(self.buffs[1], 1, 0)
-    
+
     gfx.a = a
-    
+
     -- Text
     gfx.blit(self.buffs[2], 1, 0)
 
     gfx.a = 1
-    
+
 end
 
 
@@ -145,17 +152,17 @@ end
 
 
 function GUI.Label:getalpha()
-    
+
     local sign = self.fade_arr[4] > 0 and 1 or -1
-    
+
     local diff = (reaper.time_precise() - self.fade_arr[3]) / self.fade_arr[1]
     diff = math.floor(diff * 100) / 100
     diff = diff^(math.abs(self.fade_arr[4]))
-    
+
     local a = sign > 0 and (1 - (gfx.a * diff)) or (gfx.a * diff)
 
     self:redraw()
-    
+
     -- Terminate the fade loop at some point
     if sign == 1 and a < 0.02 then
         self.z = self.fade_arr[2]
@@ -166,5 +173,5 @@ function GUI.Label:getalpha()
     end
 
     return a
-    
+
 end
