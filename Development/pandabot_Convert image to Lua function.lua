@@ -1,10 +1,12 @@
 --[[
-Description: Convert Image To Lua Function
+Description: Convert image to Lua function
 Author: pandabot
 License: MIT
 Version: 1.0
 Donate: https://paypal.me/benjohnson2001
-Link: https://forum.cockos.com/member.php?u=127396
+Links:
+  pandabot (Cockos forum) https://forum.cockos.com/member.php?u=127396
+  Source repository (GitHub) https://github.com/benjohnson2001/ConvertImageToLuaFunction
 About: 
     Reaper tool that converts image to Lua source code for drawing images pixel by pixel
 
