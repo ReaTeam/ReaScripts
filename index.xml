@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bbaa88e6ae080b0ba3342e0f7bf877ede608d83f" name="ReaTeam Scripts">
+<index version="1" commit="e9da84fda5c48a889d139d433aa2d40e779dfd9e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1245,6 +1245,26 @@ Checking if the output folder was created is disabled, due to
 the API function giving buggy return values
 Refactored/reorganized the code for readability]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0015c2a01143fac7c272b099d1f1ae39c0b9454f/Development/Lokasenna_Script%20Compiler.lua</source>
+      </version>
+    </reapack>
+    <reapack name="pandabot_Convert image to Lua function.lua" type="script" desc="Convert image to Lua function">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Reaper tool that converts image to Lua source code for drawing images pixel by pixel\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: requires SWS extensions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab select png image\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab source code is put into system clipboard\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=127396">pandabot (Cockos forum)</link>
+        <link rel="website" href="https://github.com/benjohnson2001/ConvertImageToLuaFunction">Source repository (GitHub)</link>
+        <link rel="donation">https://paypal.me/benjohnson2001</link>
+      </metadata>
+      <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Development/pandabot_Convert%20image%20to%20Lua%20function.lua</source>
       </version>
     </reapack>
   </category>
@@ -11654,6 +11674,114 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source main="main" file="mschnell_Unmute track X (MIDI CC only).eel">https://github.com/ReaTeam/ReaScripts/raw/ffa67087c1b585fb15138cda03827261a9a9577a/Various/mschnell_Mute%20Track%20X.eel</source>
       </version>
     </reapack>
+    <reapack name="pandabot_ChordGun.lua" type="script" desc="ChordGun">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Chord Gun\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 What is it?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Reaper tool that fires scale chords and notes into a composition, either by sequencing through the MIDI Editor or recording directly into Media Items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 How do I use it?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There is an instructional video {\field{\*\fldinst{HYPERLINK "www.youtube.com/watch?v=1CqVYcN3VAw"}}{\fldrslt{\ul
+here
+}}}
+\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 keyboard shortcuts (when GUI has focus)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 0 - stop all notes from playing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 1 - play scale chord 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 2 - play scale chord 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 3 - play scale chord 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 4 - play scale chord 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 5 - play scale chord 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 6 - play scale chord 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 7 - play scale chord 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 q - higher scale note 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 w - higher scale note 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 e - higher scale note 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 r - higher scale note 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 t - higher scale note 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 y - higher scale note 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 u - higher scale note 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 a - scale note 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 s - scale note 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 d - scale note 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 f - scale note 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 g - scale note 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 h - scale note 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 j - scale note 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 z - lower scale note 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 x - lower scale note 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 c - lower scale note 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 v - lower scale note 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 b - lower scale note 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 n - lower scale note 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 m - lower scale note 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+, - decrement scale tonic note\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+. - increment scale tonic note\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+shift+, - decrement scale type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+shift+. - increment scale type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+, - halve grid size\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+. - double grid size\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+shift+, - decrement octave\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+shift+. - increment octave\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+, - decrement chord type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+. - increment chord type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+shift+, - decrement chord inversion\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+shift+. - increment chord inversion\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=127396">pandabot (Cockos forum)</link>
+        <link rel="website" href="https://github.com/benjohnson2001/ChordGun/tree/release">Source repository (GitHub)</link>
+        <link rel="screenshot">https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png</link>
+        <link rel="donation">https://paypal.me/benjohnson2001</link>
+      </metadata>
+      <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun double grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20double%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun halve grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20halve%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment octave.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
+      </version>
+    </reapack>
     <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -11937,6 +12065,13 @@ website
 nofish
 }}}
 \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/member.php?u=127396"}}{\fldrslt{\ul
+pandabot
+}}}
+ ({\field{\*\fldinst{HYPERLINK "https://paypal.me/benjohnson2001"}}{\fldrslt{\ul
+donate
+}}}
+)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/member.php?u=6549"}}{\fldrslt{\ul
 planetnine
 }}}
