@@ -1,7 +1,7 @@
 -- @description amagalma_Delete CC-Text-Sysex events by type
 -- @author amagalma
 -- @version 1.0
--- @provides [main = midi_editor, midi_inlineeditor, midi_eventlisteditor]
+-- @provides: [main = midi_editor, midi_inlineeditor, midi_eventlisteditor]
 -- @about
 --   # Deletes MIDI events by type (except notes) of the active take of the focused MIDI editor
 --   - requires Lokasenna's GUI
