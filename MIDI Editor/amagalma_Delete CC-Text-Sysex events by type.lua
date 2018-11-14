@@ -1,10 +1,12 @@
--- @description amagalma_Delete CC-Text-Sysex events by type
--- @author amagalma
--- @version 1.0
--- @provides: [main=midi_editor,midi_inlineeditor,midi_eventlisteditor] .
--- @about
---   # Deletes MIDI events by type (except notes) of the active take of the focused MIDI editor
---   - requires Lokasenna's GUI
+--[[
+ReaScript name: amagalma_Delete CC-Text-Sysex events by type.lua
+Version: 1.0
+Author: amagalma
+Provides: [main=midi_editor,midi_inlineeditor,midi_eventlisteditor] .
+About:
+  # Deletes MIDI events by type (except notes) of the active take of the focused MIDI editor
+     - requires Lokasenna's GUI
+--]] 
 
 --------------------------------------------------------------------------------------
 
@@ -183,9 +185,13 @@ else
   
   -- GUI functions ---------------------------------------------------------------------
   
-  local check_to_delete
-  function check_to_delete()
-    check_to_delete = GUI.Val("Checklist")
+  local check_to_delete = {}
+  function check_to_del()
+    if #categories == 1 then
+      check_to_delete[1] = GUI.Val("Checklist")
+    else
+      check_to_delete = GUI.Val("Checklist")
+    end
   end
   
   local events_to_delete = {}
@@ -204,6 +210,19 @@ else
         end
       end
     end
+  end
+  
+  function delete_all()
+    reaper.PreventUIRefresh( 1 )
+    for i = ccevtcnt-1, 0, -1 do
+      reaper.MIDI_DeleteCC( take, i )
+    end
+    for i = textsyxevtcnt-1, 0, -1  do
+      reaper.MIDI_DeleteTextSysexEvt( take, i )
+    end
+    reaper.PreventUIRefresh( -1 )
+    reaper.Undo_OnStateChange( "Delete all MIDI events except notes" )
+    gfx.quit()
   end
   
   function do_action()
@@ -228,20 +247,7 @@ else
     reaper.PreventUIRefresh( -1 )
     reaper.Undo_OnStateChange( "Delete MIDI events" )
     gfx.quit()
-  end
-  
-  function delete_all()
-    reaper.PreventUIRefresh( 1 )
-    for i = ccevtcnt-1, 0, -1 do
-      reaper.MIDI_DeleteCC( take, i )
-    end
-    for i = textsyxevtcnt-1, 0, -1  do
-      reaper.MIDI_DeleteTextSysexEvt( take, i )
-    end
-    reaper.PreventUIRefresh( -1 )
-    reaper.Undo_OnStateChange( "Delete all MIDI events except notes" )
-    gfx.quit()
-  end
+  end  
   
   -- GUI -------------------------------------------------------------------------------
   
@@ -316,7 +322,7 @@ else
   end
   GUI.onresize = force_size
   
-  GUI.func = check_to_delete
+  GUI.func = check_to_del
   GUI.Init()
   GUI.Main()
 end
