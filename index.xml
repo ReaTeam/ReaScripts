@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="21dc9b5c3cc74a3c4f4182b29933e4a584e79a4c" name="ReaTeam Scripts">
+<index version="1" commit="8162d3448a1dbdd34f6bc4a80a0d066b84672997" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2179,6 +2179,9 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-14T17:01:40Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bef21264f65b7e32d6d56884ce434a1bc2374e3c/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-11-16T18:53:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8162d3448a1dbdd34f6bc4a80a0d066b84672997/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Delete crossfade under mouse cursor.lua" type="script" desc="amagalma_Delete crossfade under mouse cursor">
