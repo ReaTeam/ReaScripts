@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.06
+-- @version 2.07
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,12 +33,14 @@
 
 --[[
  * Changelog:
- * v2.06 (2018-10-19)
-  + fix GetColor for tracks
+ * v2.07 (2018-11-16)
+  + do net ReaNoir window to be resized
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
+
+version = "v2.07"
 
 
 
@@ -55,7 +57,6 @@
 
 
 
-version = "v2.06"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -2022,6 +2023,13 @@ function main()
           SaveColorFile(last_palette_on_exit)
           Write_Prefs()
       end  
+  
+  -- do not let resize
+  if gfx.w ~= GUI_xend or gfx.h ~= GUI_yend then
+    local _, x_pos, y_pos, _, _ = gfx.dock(-1, 0, 0, 0, 0)
+    gfx.quit()
+    gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, x_pos, y_pos)
+  end
   
 end
 
