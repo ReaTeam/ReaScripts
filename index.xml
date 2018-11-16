@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8162d3448a1dbdd34f6bc4a80a0d066b84672997" name="ReaTeam Scripts">
+<index version="1" commit="f8ee8fe0f0e91f7487853c4523e5f9274ee7b8d3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9308,6 +9308,10 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="2.06" author="amagalma" time="2018-10-19T10:28:51Z">
         <changelog><![CDATA[+ fix GetColor for tracks]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8a4a7040d699e293175a057635f96f8445a6e67e/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.07" author="amagalma" time="2018-11-16T21:03:08Z">
+        <changelog><![CDATA[+ do net ReaNoir window to be resized]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f8ee8fe0f0e91f7487853c4523e5f9274ee7b8d3/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
