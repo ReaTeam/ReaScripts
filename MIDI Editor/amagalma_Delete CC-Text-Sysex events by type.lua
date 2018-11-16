@@ -1,12 +1,18 @@
 --[[
 ReaScript name: amagalma_Delete CC-Text-Sysex events by type.lua
-Version: 1.0
+Version: 1.01
 Author: amagalma
 Provides: [main=midi_editor,midi_inlineeditor,midi_eventlisteditor] .
 About:
   # Deletes MIDI events by type (except notes) of the active take of the focused MIDI editor
      - requires Lokasenna's GUI
 --]] 
+
+--[[
+ * Changelog:
+ * v1.01 (2018-11-16)
+  + fix working with MIDI Inline Editor
+--]]
 
 --------------------------------------------------------------------------------------
 
@@ -105,9 +111,22 @@ end
 
 --------------------------------------------------------------------------------------
 
--- Get the active take of the focused MIDI Editor
+-- Get the active take of the focused MIDI Editor or Midi Inline Editor
 local take = reaper.MIDIEditor_GetTake(reaper.MIDIEditor_GetActive())
-if not take then no_undo() return end
+if not take then 
+  local item = reaper.GetSelectedMediaItem( 0, 0 )
+  take = reaper.GetActiveTake( item )
+  if take then
+    local inline = reaper.BR_IsMidiOpenInInlineEditor( take )
+    if not inline then no_undo() return end
+  else
+    no_undo()
+    return 
+  end
+else 
+  no_undo()
+  return
+end
 
 local _, _, ccevtcnt, textsyxevtcnt = reaper.MIDI_CountEvts( take )
 
@@ -245,7 +264,7 @@ else
       end
     end
     reaper.PreventUIRefresh( -1 )
-    reaper.Undo_OnStateChange( "Delete MIDI events" )
+    reaper.Undo_OnStateChange( "Delete MIDI events by type" )
     gfx.quit()
   end  
   
