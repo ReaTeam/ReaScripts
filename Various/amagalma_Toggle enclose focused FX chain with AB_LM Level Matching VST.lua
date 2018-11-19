@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST at the start and at the end of the FX Chain in focus
 --
@@ -9,9 +9,7 @@
 
 --[[
   @changelog
-    -- Fixed bug with Item FX
-    -- Script automatically finds correct version of AB_LM (VST2 or VST3)
-    -- AB_LM opens floating
+    -- Smart undo creation
 --]]
 
 ------------------------------------------------------------------------------------------------
@@ -335,4 +333,6 @@ if track and trackGUID then
     reaper.SetProjExtState(0, "AB VST3 Toggle", trackGUID, "1")
     reaper.Undo_EndBlock("Enclose focused FX Chain with AB_LM VST3", -1)
   end
+else
+  reaper.defer(NoUndoPoint)
 end
