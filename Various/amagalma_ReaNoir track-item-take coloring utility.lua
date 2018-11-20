@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.07
+-- @version 2.08
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,14 +33,14 @@
 
 --[[
  * Changelog:
- * v2.07 (2018-11-16)
-  + do net ReaNoir window to be resized
+ * v2.08 (2018-11-20)
+  + automatically backup to "last_palette_on_exit.txt" every time the palette changes
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.07"
+version = "v2.08"
 
 
 
@@ -600,6 +600,7 @@ end
             boxID.g = slider_btn_g.val -0.2 
             boxID.b = slider_btn_b.val -0.2 
             boxID.a = slider_btn_a.val
+            SaveColorFile(last_palette_on_exit)
           end  
         end
         boxID.onCtrlClick = function ()
@@ -2030,7 +2031,7 @@ function main()
     gfx.quit()
     gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, x_pos, y_pos)
   end
-  
+
 end
 
 
