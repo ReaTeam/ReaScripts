@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.08
+-- @version 2.09
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,14 +33,14 @@
 
 --[[
  * Changelog:
- * v2.08 (2018-11-20)
-  + automatically backup to "last_palette_on_exit.txt" every time the palette changes
+ * v2.09 (2018-11-21)
+  + if js_ReaScriptAPI extension in installed, a "pin on top" button is available
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.08"
+version = "v2.09"
 
 
 
@@ -1945,6 +1945,12 @@ function init ()
   if init_focus < 1 then what = "tracks" else what = "items" end
   if what == "tracks" then reaper.SetCursorContext(0) else reaper.SetCursorContext(1) end
   
+  -- Add "pin on top"
+  local js_exists = reaper.APIExists( "JS_Window_Find" )
+  if js_exists then
+    local w = reaper.JS_Window_Find("ReaNoir "..version, true)
+    if w then reaper.JS_Window_AttachTopmostPin(w) end
+  end
 end
 
 ------------------------------------------
