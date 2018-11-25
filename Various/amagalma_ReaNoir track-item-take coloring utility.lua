@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.09
+-- @version 2.10
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,14 +33,15 @@
 
 --[[
  * Changelog:
- * v2.09 (2018-11-21)
-  + if js_ReaScriptAPI extension in installed, a "pin on top" button is available
+ * v2.10 (2018-11-25)
+  + fix flickering bug when docked (introduced in v2.07)
+  + fix loss of focus from Reaper when initially opening the script (introduced in v2.09)
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.09"
+version = "v2.10"
 
 
 
@@ -851,7 +852,7 @@ end
             end   
           end
         end
-        SavePalette_btn.onRClick = function ()          
+        SavePalette_btn.onRClick = function ()
           SaveAsPalette()
         end
     end
@@ -1942,15 +1943,15 @@ function init ()
       
   -- Initialize focus
   local init_focus = reaper.GetCursorContext2(true)
-  if init_focus < 1 then what = "tracks" else what = "items" end
-  if what == "tracks" then reaper.SetCursorContext(0) else reaper.SetCursorContext(1) end
-  
+  if init_focus < 1 then what = "tracks" else what = "items" end  
   -- Add "pin on top"
   local js_exists = reaper.APIExists( "JS_Window_Find" )
   if js_exists then
     local w = reaper.JS_Window_Find("ReaNoir "..version, true)
     if w then reaper.JS_Window_AttachTopmostPin(w) end
   end
+  if what == "tracks" then reaper.SetCursorContext(0) else reaper.SetCursorContext(1) end
+  
 end
 
 ------------------------------------------
@@ -2032,7 +2033,7 @@ function main()
       end  
   
   -- do not let resize
-  if gfx.w ~= GUI_xend or gfx.h ~= GUI_yend then
+  if dock == 0 and (gfx.w ~= GUI_xend or gfx.h ~= GUI_yend) then
     local _, x_pos, y_pos, _, _ = gfx.dock(-1, 0, 0, 0, 0)
     gfx.quit()
     gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, x_pos, y_pos)
