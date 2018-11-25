@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a2a3907cdc3fa386ef7a652989e4e3c5180d6641" name="ReaTeam Scripts">
+<index version="1" commit="666eed25a9efa4ffae98396e14988c1aff56eebf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9351,6 +9351,11 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="2.09" author="amagalma" time="2018-11-21T08:52:57Z">
         <changelog><![CDATA[+ if js_ReaScriptAPI extension in installed, a "pin on top" button is available]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/00bcc7319baf61960b1169e5159111e45d4c09eb/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.10" author="amagalma" time="2018-11-25T19:13:17Z">
+        <changelog><![CDATA[+ fix flickering bug when docked (introduced in v2.07)
++ fix loss of focus from Reaper when initially opening the script (introduced in v2.09)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/666eed25a9efa4ffae98396e14988c1aff56eebf/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
