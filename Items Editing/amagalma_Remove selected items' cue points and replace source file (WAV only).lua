@@ -1,6 +1,6 @@
 -- @description amagalma_Remove selected items' cue points and replace source file (WAV only)
 -- @author amagalma
--- @version 1.1
+-- @version 1.11
 -- @about
 --   # Substitutes the source file of each selected item's active take with a duplicate file with the extension " no cues.wav"
 --   - works only with WAV files
@@ -8,7 +8,7 @@
 
 --[[
 @changelog
-  Fix: correct file size written to wav header chunk
+  # Fix: correct file size written to wav header chunk
 --]]
 
 --------------------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ function remove_cues(item)
             contents = string.gsub(contents, escape_lua_pattern(list_chunk), "") -- remove list_chunk
           end
           -- set correct size chunk size
-          local new_file_size = string.len(contents)
+          local new_file_size = string.len(contents) - 8
           contents = string.gsub(contents, escape_lua_pattern(file_size_buf), string.pack("I", new_file_size))
           -- write to new file
           new_file:write(contents)
