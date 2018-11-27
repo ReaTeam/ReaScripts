@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="666eed25a9efa4ffae98396e14988c1aff56eebf" name="ReaTeam Scripts">
+<index version="1" commit="b5bd54c2e9890a862a82270385bc488840306ac3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2282,6 +2282,9 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-23T19:59:55Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a2a3907cdc3fa386ef7a652989e4e3c5180d6641/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-11-27T11:34:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5bd54c2e9890a862a82270385bc488840306ac3/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove visible content (trim) behind items.lua" type="script" desc="amagalma_Remove visible content (trim) behind items">
