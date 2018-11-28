@@ -1,0 +1,247 @@
+/**
+ * ReaScript Name: Apply track-take FX to selected items and propagate new files to other items with same source
+ * Author: AtmanActive
+ * Licence: GPL v3
+ * REAPER: 5.0
+ * Version: 1.0
+ **/
+ 
+/**
+ * Changelog:
+ * v1.0 (2018-11-29)
+	+ Initial Release
+ **/
+
+items_selected_original_items = 1000000;
+items_selected_original_count = 0;
+items_selected_clones_items   = 2000000;
+items_selected_clones_count   = 0;
+item_selected_first = 0;
+https://forum.cockos.com/member.php?u=18498
+
+function util_save_selection_original() local( i, j, item_this, selected_this )
+(
+  j = 0;
+  i = 0;
+  loop
+  ( 
+    CountMediaItems(0),
+    (
+      ( item_this = GetMediaItem( 0, i ) ) ? 
+      ( 
+        selected_this = IsMediaItemSelected( item_this );
+        ( selected_this == 1 ) ? 
+        ( 
+          items_selected_original_items[j] = item_this; j += 1;
+        );
+      );
+    );
+    i += 1;
+  );
+  items_selected_original_count = j;
+);
+
+
+
+function util_restore_selection( item_array, item_count ) local( i )
+(
+  SelectAllMediaItems( 0, 0 );
+  i = 0;
+  loop
+  ( 
+    item_count,
+    (
+      SetMediaItemSelected( item_array[i], 1 );
+    );
+    i += 1;
+  );
+);
+
+
+
+function util_save_selection_first() local( i, item_this, selected_this )
+(
+  i = 0;
+  loop
+  ( 
+    CountMediaItems(0),
+    (
+      ( item_this = GetMediaItem( 0, i ) ) ? 
+      ( 
+        selected_this = IsMediaItemSelected( item_this );
+        ( selected_this == 1 ) ? ( item_selected_first[0] = item_this; );
+      );
+    );
+    i += 1;
+  );
+);
+
+
+
+function util_save_selection_clones() local( i, j, item_this, selected_this )
+(
+  j = 0;
+  i = 0;
+  loop
+  ( 
+    CountMediaItems(0),
+    (
+      ( item_this = GetMediaItem( 0, i ) ) ? 
+      ( 
+        selected_this = IsMediaItemSelected( item_this );
+        ( selected_this == 1 ) ? ( items_selected_clones_items[j] = item_this; j += 1; );
+      );
+    );
+    i += 1;
+  );
+  items_selected_clones_count = j;
+);
+
+
+
+function util_deselect_all_but_first() local( i, item, take )
+(
+  i = 1;
+  loop
+  ( 
+    CountSelectedMediaItems(0),
+    ( item = GetSelectedMediaItem( 0, i ) ) ? 
+    (
+      SetMediaItemSelected( item, 0 );
+    );
+    //i += 1;
+  );
+);
+
+
+
+function util_select_items_with_same_source() 
+local( i, item_first, take_first, source_first, item_this, take_this, source_this, file_same )
+(
+  item_first = GetSelectedMediaItem( 0, 0 );
+  take_first = GetActiveTake( item_first );
+  source_first = GetMediaItemTake_Source( take_first );
+  GetMediaSourceFileName( source_first, #old_filename );
+  
+  i = 0;
+  loop
+  ( 
+    CountMediaItems(0),
+    (
+      ( item_this = GetMediaItem( 0, i ) ) ? 
+      ( 
+        ( take_this = GetActiveTake( item_this ) ) ? 
+        (
+          ( source_this = GetMediaItemTake_Source( take_this ) ) ? 
+          ( 
+            GetMediaSourceFileName( source_this, #loop_filename );
+            file_same = stricmp( #loop_filename, #old_filename );
+            ( file_same == 0  ) ? ( SetMediaItemSelected( item_this, 1 ) );
+            ( file_same == -1 ) ? ( SetMediaItemSelected( item_this, 0 ) );
+          );
+        );
+      );
+    );
+    i += 1;
+  );
+);
+
+
+
+function util_get_selected_media_source_filename() local( item, take, source )
+(
+  ( item = GetSelectedMediaItem( 0, 0 ) ) ? 
+  ( 
+    ( take = GetActiveTake( item ) ) ? 
+    (
+      ( source = GetMediaItemTake_Source( take ) ) ? 
+      ( 
+        GetMediaSourceFileName( source, #new_filename );
+      );
+    );
+  );
+);
+
+
+
+function util_change_source_item_for_all_selected() local(i, item, take, new_source )
+(
+  Main_OnCommand(40440,0); // Selected Media Offline
+  new_source = PCM_Source_CreateFromFileEx( #new_filename, 1 );
+  i = 0;
+  loop
+  ( 
+    CountSelectedMediaItems(0),
+    ( item = GetSelectedMediaItem( 0, i ) ) ? 
+    (
+      ( take = GetActiveTake( item ) ) ? 
+      (
+        SetMediaItemTake_Source( take, new_source );
+      );
+    );
+    i += 1;
+  );
+  Main_OnCommand(40047,0); // Build any missing peaks
+  Main_OnCommand(40439,0); // Selected Media Online
+);
+
+
+
+function main_apply_track_take_fx_to_source() local( i, item, take )
+(
+  //ShowConsoleMsg( sprintf( #, "%.100s", "" ) );
+  
+  ( item = GetSelectedMediaItem( 0, 0 ) ) ? 
+  (
+   ( take = GetActiveTake( item ) ) ? 
+   (
+      // SOMETHING IS SELECTED - CAN CONTINUE
+      
+      PreventUIRefresh(1);
+      Undo_BeginBlock();
+      
+      // REMEMBER WHAT WAS THE ORIGINAL SELECTION
+      util_save_selection_original();
+      
+      // MAKE SURE THERE IS ONLY THE FIRST ONE SELECTED FOR ALL FUTURE PROCESSING
+      util_deselect_all_but_first();
+      
+      // REMEMBER WHICH ITEM IS THIS ONE
+      util_save_selection_first();
+      
+      // AUTO-SELECT ALL ITEMS THAT USE THE SAME SOURCE FILE
+      util_select_items_with_same_source();
+      
+      // REMEMBER ALL OF THOSE NOW, WE'LL NEED THEM LATER
+      util_save_selection_clones();
+      
+      // SELECT THAT FIRST ONE AGAIN
+      util_restore_selection( item_selected_first, 1 );
+      
+      // APPLY TRACK/TAKE FX TO NEW TAKE AND CROP TO THAT NEW TAKE, REMOVING THE OLD TAKE
+      Main_OnCommandEx( 40209, 0, 0 ); // Item: Apply track/take FX to items
+      Main_OnCommandEx( 40131, 0, 0 ); // Take: Crop to active take in items
+      
+      // EXTRACT THE NEWLY PROCESSED SOURCE FILE NAME
+      util_get_selected_media_source_filename();
+      
+      // SELECT AGAIN ALL ITEMS THAT USE THE OLD SOURCE
+      util_restore_selection( items_selected_clones_items, items_selected_clones_count );
+      
+      // CHANGE THEIR SOURCE TO THIS NEWLY RENDERED FILE
+      util_change_source_item_for_all_selected();
+      
+      // RESTORE BACK THE ORIGINAL ITEM SELECTION, JUST TO BE POLITE
+      util_restore_selection( items_selected_original_items, items_selected_original_count );
+      
+      Undo_EndBlock( "Apply track-take FX to selected items and propagate new files to other items with same source", -1 );
+      UpdateArrange();
+      PreventUIRefresh(-1);
+    );
+  );
+);
+
+
+
+main_apply_track_take_fx_to_source();
+
