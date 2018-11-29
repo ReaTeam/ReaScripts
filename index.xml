@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a5d68e45ee7e2c48a5ed610e083e09d0484f66db" name="ReaTeam Scripts">
+<index version="1" commit="3c428cd80d206700a8507b9d25b67f09266c2ad4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2481,7 +2481,7 @@ Better error-checking in general]]></changelog>
     </reapack>
     <reapack name="AtmanActive_Apply track-take FX to selected items and propagate new files to other items with same source.eel" type="script" desc="Apply track-take FX to selected items and propagate new files to other items with same source">
       <version name="1.0" author="AtmanActive" time="2018-11-28T23:26:53Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1708b3243a33cfc5757611012572fca4380e189e/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c428cd80d206700a8507b9d25b67f09266c2ad4/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
