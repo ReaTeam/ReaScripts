@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1708b3243a33cfc5757611012572fca4380e189e" name="ReaTeam Scripts">
+<index version="1" commit="a5d68e45ee7e2c48a5ed610e083e09d0484f66db" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2166,6 +2166,22 @@ Better error-checking in general]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Opens a temporary project and renders the selected items with project markers as cues. Temp project gets deleted and replaces the active takes of the selected items with the rendered ones.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Project must be saved for action to run\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-11-29T03:22:58Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a5d68e45ee7e2c48a5ed610e083e09d0484f66db/Items%20Editing/Add%20project%20markers%20as%20cue%20points%20to%20selected%20items%20and%20replace%20source%20files.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
