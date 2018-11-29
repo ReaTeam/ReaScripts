@@ -1,6 +1,7 @@
 /**
  * ReaScript Name: Apply track-take FX to selected items and propagate new files to other items with same source
  * Author: AtmanActive
+ * Author URI: https://forum.cockos.com/member.php?u=18498
  * Licence: GPL v3
  * REAPER: 5.0
  * Version: 1.0
@@ -8,6 +9,8 @@
  
 /**
  * Changelog:
+ * v1.0.1 (2018-11-29)
+	# Bug fixed
  * v1.0 (2018-11-29)
 	+ Initial Release
  **/
@@ -17,7 +20,6 @@ items_selected_original_count = 0;
 items_selected_clones_items   = 2000000;
 items_selected_clones_count   = 0;
 item_selected_first = 0;
-https://forum.cockos.com/member.php?u=18498
 
 function util_save_selection_original() local( i, j, item_this, selected_this )
 (
