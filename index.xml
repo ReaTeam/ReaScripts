@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="39466a614dec0753f6b65c3a1139040fc5a15a7c" name="ReaTeam Scripts">
+<index version="1" commit="3c428cd80d206700a8507b9d25b67f09266c2ad4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1159,6 +1159,28 @@ automatically to " ".    ]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/3157f4031eb62ee5b70f194305752bd7c393896a/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
+      <version name="2.16.2" author="Lokasenna" time="2018-11-05T22:53:59Z">
+        <changelog><![CDATA[Fix: Deleted elements weren't having their buffers freed, causing crashes
+in scripts with a lot of creating/deleting going on.
+Add: Explicit error message when a crash occurs because there were no more
+buffers available.]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
       <metadata>
@@ -1223,6 +1245,26 @@ Checking if the output folder was created is disabled, due to
 the API function giving buggy return values
 Refactored/reorganized the code for readability]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0015c2a01143fac7c272b099d1f1ae39c0b9454f/Development/Lokasenna_Script%20Compiler.lua</source>
+      </version>
+    </reapack>
+    <reapack name="pandabot_Convert image to Lua function.lua" type="script" desc="Convert image to Lua function">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Reaper tool that converts image to Lua source code for drawing images pixel by pixel\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: requires SWS extensions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab select png image\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab source code is put into system clipboard\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=127396">pandabot (Cockos forum)</link>
+        <link rel="website" href="https://github.com/benjohnson2001/ConvertImageToLuaFunction">Source repository (GitHub)</link>
+        <link rel="donation">https://paypal.me/benjohnson2001</link>
+      </metadata>
+      <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Development/pandabot_Convert%20image%20to%20Lua%20function.lua</source>
       </version>
     </reapack>
   </category>
@@ -1470,7 +1512,7 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-10T17:31:53Z">
         <changelog><![CDATA[Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7f652fc09ee8bc5c9943bf9962cf0d244814ffff/Envelopes/Lokasenna_Switch%20to%20next%20track%20envelope%20in%20selected%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Envelopes/Lokasenna_Switch%20to%20next%20track%20envelope%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua" type="script" desc="Adjust volume envelope point at mouse cursor via mousewheel">
@@ -2124,6 +2166,40 @@ Better error-checking in general]]></changelog>
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="Add project markers as cue points to selected items and replace source files.lua" type="script" desc="amagalma_Add project markers as cue points to selected items and replace source files">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Opens a temporary project and renders the selected items with project markers as cues. Temp project gets deleted and replaces the active takes of the selected items with the rendered ones.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Project must be saved for action to run\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-11-29T03:22:58Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a5d68e45ee7e2c48a5ed610e083e09d0484f66db/Items%20Editing/Add%20project%20markers%20as%20cue%20points%20to%20selected%20items%20and%20replace%20source%20files.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Deletes MIDI events by type (except notes) of the active takes of the selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab requires Lokasenna's GUI\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-11-14T17:01:40Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bef21264f65b7e32d6d56884ce434a1bc2374e3c/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-11-16T18:53:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8162d3448a1dbdd34f6bc4a80a0d066b84672997/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Delete crossfade under mouse cursor.lua" type="script" desc="amagalma_Delete crossfade under mouse cursor">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -2166,6 +2242,21 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93d335f83ad051d9821fa015f273a0aa6f7f7348/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Nudge to source preferred position (used by BWF) for selected items' active takes.lua" type="script" desc="amagalma_Take: Nudge to source preferred position (used by BWF) for selected items' active takes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Nudges the active takes of the selected items to their source preferred position (used by BWF) without changing the items length and position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo creation\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-11-22T13:41:18Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39843a021ad6a73674e59caa9cc9d2416ab96f38/Items%20Editing/amagalma_Nudge%20to%20source%20preferred%20position%20(used%20by%20BWF)%20for%20selected%20items'%20active%20takes.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Remove content (trim) behind items preserving crossfades.lua" type="script" desc="amagalma_Remove content (trim) behind items preserving crossfades">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -2191,6 +2282,28 @@ Better error-checking in general]]></changelog>
       <version name="1.03" author="amagalma" time="2017-09-19T08:26:54Z">
         <changelog><![CDATA[+ fixed bug not trimming when there were a fade-in and fade-out in both items and the fades were not crossing (no crossfade)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c29c5b80b11f59ff7fa16667ed0a11b1326dc68/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Remove selected items' cue points and replace source file (WAV only).lua" type="script" desc="amagalma_Remove selected items' cue points and replace source file (WAV only)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Substitutes the source file of each selected item's active take with a duplicate file with the extension " no cues.wav"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab works only with WAV files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-11-23T19:59:55Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a2a3907cdc3fa386ef7a652989e4e3c5180d6641/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-11-27T11:34:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5bd54c2e9890a862a82270385bc488840306ac3/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2018-11-27T13:31:59Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/69124bd9bcd397afad49a434e69d0e41efb5f639/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove visible content (trim) behind items.lua" type="script" desc="amagalma_Remove visible content (trim) behind items">
@@ -2364,6 +2477,11 @@ Better error-checking in general]]></changelog>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
+      </version>
+    </reapack>
+    <reapack name="AtmanActive_Apply track-take FX to selected items and propagate new files to other items with same source.eel" type="script" desc="Apply track-take FX to selected items and propagate new files to other items with same source">
+      <version name="1.0" author="AtmanActive" time="2018-11-28T23:26:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c428cd80d206700a8507b9d25b67f09266c2ad4/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
@@ -3048,7 +3166,7 @@ Fix: Was skipping most items with >1 audio channel]]></changelog>
       <version name="1.2" author="Lokasenna" time="2018-10-20T17:25:19Z">
         <changelog><![CDATA[Complete rewrite of audio processing logic, should fix issues with stereo
 items being skipped.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24d63a6e55b55c114b80e0facedd3d78a8f4f599/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Trim items to specified length.lua" type="script" desc="Trim items to specified length">
@@ -3536,6 +3654,25 @@ Renumber markers and regions when pasting]]></changelog>
     </reapack>
   </category>
   <category name="MIDI Editor">
+    <reapack name="amagalma_Delete CC-Text-Sysex events by type.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Deletes MIDI events by type (except notes) of the active take of the focused MIDI editor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab requires Lokasenna's GUI\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-11-14T03:20:33Z">
+        <source main="midi_eventlisteditor midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b5194dd009af768ff293427a0fece15fa0297a1e/MIDI%20Editor/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2018-11-16T13:59:51Z">
+        <changelog><![CDATA[+ fix working with MIDI Inline Editor]]></changelog>
+        <source main="midi_eventlisteditor midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/21dc9b5c3cc74a3c4f4182b29933e4a584e79a4c/MIDI%20Editor/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Set space between selected notes from grid size.lua" type="script" desc="Set space between selected notes from grid size">
       <metadata>
         <link rel="website" href="http://forum.cockos.com/showthread.php?t=187255">Forum Thread</link>
@@ -8610,7 +8747,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-08T17:12:11Z">
         <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc48b8d9ba6db3f854289d8e9ded7e341472e883/Tracks%20Properties/Lokasenna_Create%20bus%20after%20selected%20tracks%20and%20reroute%20them.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20bus%20after%20selected%20tracks%20and%20reroute%20them.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create bus before selected tracks and reroute them.lua" type="script" desc="Create bus before selected tracks and reroute them">
@@ -8627,7 +8764,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-08T17:12:11Z">
         <changelog><![CDATA[Make sure sends are at unity gain, post-fader]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc48b8d9ba6db3f854289d8e9ded7e341472e883/Tracks%20Properties/Lokasenna_Create%20bus%20before%20selected%20tracks%20and%20reroute%20them.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20bus%20before%20selected%20tracks%20and%20reroute%20them.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create send from selected tracks.lua" type="script" desc="Create send from selected tracks">
@@ -8666,9 +8803,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </version>
       <version name="1.40" author="Lokasenna" time="2018-09-10T14:27:19Z">
         <changelog><![CDATA[Fix: Post-fader option got lost]]></changelog>
-        <source main="main" file="Lokasenna_Create send from selected tracks (post-fader).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
-        <source main="main" file="Lokasenna_Create send from selected tracks (post-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
-        <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/f638e15996b72b877f917b80542803040860a096/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (post-fader).lua">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (post-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
+        <source main="main" file="Lokasenna_Create send from selected tracks (pre-FX).lua">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Create%20send%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select tracks by name.lua" type="script" desc="Select tracks by name">
@@ -8686,7 +8823,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2018-09-03T20:28:13Z">
         <changelog><![CDATA[Initial release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/56c29acd76e95b73970cf77e2f510b07b2c3706e/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select tracks in selection with items.lua" type="script" desc="Select tracks in selection with items">
@@ -9230,6 +9367,23 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
         <changelog><![CDATA[+ fix GetColor for tracks]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8a4a7040d699e293175a057635f96f8445a6e67e/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
+      <version name="2.07" author="amagalma" time="2018-11-16T21:03:08Z">
+        <changelog><![CDATA[+ do net ReaNoir window to be resized]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f8ee8fe0f0e91f7487853c4523e5f9274ee7b8d3/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.08" author="amagalma" time="2018-11-20T19:15:07Z">
+        <changelog><![CDATA[+ automatically backup to "last_palette_on_exit.txt" every time the palette changes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab4d01a2eefc50ccc1e5c47341a53bb141b28ee7/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.09" author="amagalma" time="2018-11-21T08:52:57Z">
+        <changelog><![CDATA[+ if js_ReaScriptAPI extension in installed, a "pin on top" button is available]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/00bcc7319baf61960b1169e5159111e45d4c09eb/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.10" author="amagalma" time="2018-11-25T19:13:17Z">
+        <changelog><![CDATA[+ fix flickering bug when docked (introduced in v2.07)
++ fix loss of focus from Reaper when initially opening the script (introduced in v2.09)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/666eed25a9efa4ffae98396e14988c1aff56eebf/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
       <metadata>
@@ -9356,20 +9510,23 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3676c5fe35bb5032b3922284163ddb954dde5e/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST3.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST3">
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST3 at the start and at the end of the FX Chain in focus\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's AB_LM VST3\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST at the start and at the end of the FX Chain in focus\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically checks if AB_LM VST2 or VST3 is present in your system\sa180\par}
 }
 ]]></description>
         <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
       </metadata>
-      <version name="1.0" author="amagalma" time="2018-04-24T12:42:26Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea9c63954d0fe44a905f6bdc5280085ed06017a2/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST3.lua</source>
+      <version name="1.0" author="amagalma" time="2018-11-19T15:09:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2fe26f0d87b3bf45485797e6a312f3e9329117ce/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-11-19T16:44:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/748232cb1cab9f61b09a98489ce9360c650fb3ed/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
@@ -9405,20 +9562,23 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f26ad7c4abf157ccbf690787a990bcccdfb6a131/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Toggle insert-remove AB_LM Level Matching VST3 to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB_LM Level Matching VST3 to focused FX">
+    <reapack name="amagalma_Toggle insert-remove AB_LM Level Matching VST to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB_LM Level Matching VST to focused FX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST3 before and after focused FX\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's AB_LM VST3\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST2 or VST3 before and after focused FX\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's AB_LM VST\sa180\par}
 }
 ]]></description>
         <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
       </metadata>
-      <version name="1.0" author="amagalma" time="2018-04-24T12:43:21Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/782ac2b469f114d00c9b1d15ad6c56a5ef159a2e/Various/amagalma_Toggle%20insert-remove%20AB_LM%20Level%20Matching%20VST3%20to%20focused%20FX.lua</source>
+      <version name="1.0" author="amagalma" time="2018-11-19T16:39:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5b11265d43ddbca708b7c9344801225c17a148d7/Various/amagalma_Toggle%20insert-remove%20AB_LM%20Level%20Matching%20VST%20to%20focused%20FX.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-11-19T16:43:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2db8f0985dcac92b3d0135689fba9cf923ec4ac3/Various/amagalma_Toggle%20insert-remove%20AB_LM%20Level%20Matching%20VST%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
@@ -10260,7 +10420,7 @@ use sentence case for all buttons]]></changelog>
       </version>
       <version name="1.0.1" author="Lokasenna" time="2018-09-04T22:26:25Z">
         <changelog><![CDATA[Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cdc3a88ceecc4806fa17e9bec4b8d4c0481782b2/Various/Lokasenna_Insert%20most%20recent%20exported%20file....lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Various/Lokasenna_Insert%20most%20recent%20exported%20file....lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Open Reaper folder.lua" type="script" desc="Open Reaper folder">
@@ -11632,6 +11792,114 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source main="main" file="mschnell_Unmute track X (MIDI CC only).eel">https://github.com/ReaTeam/ReaScripts/raw/ffa67087c1b585fb15138cda03827261a9a9577a/Various/mschnell_Mute%20Track%20X.eel</source>
       </version>
     </reapack>
+    <reapack name="pandabot_ChordGun.lua" type="script" desc="ChordGun">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Chord Gun\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 What is it?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Reaper tool that fires scale chords and notes into a composition, either by sequencing through the MIDI Editor or recording directly into Media Items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 How do I use it?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There is an instructional video {\field{\*\fldinst{HYPERLINK "www.youtube.com/watch?v=1CqVYcN3VAw"}}{\fldrslt{\ul
+here
+}}}
+\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 keyboard shortcuts (when GUI has focus)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 0 - stop all notes from playing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 1 - play scale chord 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 2 - play scale chord 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 3 - play scale chord 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 4 - play scale chord 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 5 - play scale chord 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 6 - play scale chord 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 7 - play scale chord 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 q - higher scale note 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 w - higher scale note 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 e - higher scale note 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 r - higher scale note 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 t - higher scale note 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 y - higher scale note 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 u - higher scale note 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 a - scale note 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 s - scale note 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 d - scale note 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 f - scale note 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 g - scale note 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 h - scale note 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 j - scale note 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 z - lower scale note 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 x - lower scale note 2\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 c - lower scale note 3\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 v - lower scale note 4\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 b - lower scale note 5\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 n - lower scale note 6\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 m - lower scale note 7\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+, - decrement scale tonic note\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+. - increment scale tonic note\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+shift+, - decrement scale type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ctrl+shift+. - increment scale type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+, - halve grid size\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+. - double grid size\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+shift+, - decrement octave\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 option+shift+. - increment octave\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+, - decrement chord type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+. - increment chord type\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+shift+, - decrement chord inversion\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 command+shift+. - increment chord inversion\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=127396">pandabot (Cockos forum)</link>
+        <link rel="website" href="https://github.com/benjohnson2001/ChordGun/tree/release">Source repository (GitHub)</link>
+        <link rel="screenshot">https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png</link>
+        <link rel="donation">https://paypal.me/benjohnson2001</link>
+      </metadata>
+      <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun double grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20double%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun halve grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20halve%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment octave.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
+      </version>
+    </reapack>
     <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -11915,6 +12183,13 @@ website
 nofish
 }}}
 \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/member.php?u=127396"}}{\fldrslt{\ul
+pandabot
+}}}
+ ({\field{\*\fldinst{HYPERLINK "https://paypal.me/benjohnson2001"}}{\fldrslt{\ul
+donate
+}}}
+)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/member.php?u=6549"}}{\fldrslt{\ul
 planetnine
 }}}

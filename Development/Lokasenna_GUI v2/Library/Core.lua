@@ -614,7 +614,7 @@ GUI.freed_buffers = {}
 GUI.GetBuffer = function (num)
 
     local ret = {}
-    local prev
+    --local prev
 
     for i = 1, (num or 1) do
 
@@ -624,16 +624,22 @@ GUI.GetBuffer = function (num)
 
         else
 
-            for j = (not prev and 1023 or prev - 1), 0, -1 do
+            for j = 1023, GUI.z_max + 1, -1 do
+            --for j = (not prev and 1023 or prev - 1), 0, -1 do
 
                 if not GUI.buffers[j] then
                     ret[i] = j
+
                     GUI.buffers[j] = true
-                    break
+                    goto skip
                 end
 
             end
 
+            -- Something bad happened, probably my fault
+            GUI.error_message = "Couldn't get a new graphics buffer - buffer would overlap element space. z = " .. GUI.z_max
+
+            ::skip::
         end
 
     end
@@ -736,7 +742,7 @@ GUI.New = function (name, elm, ...)
     end
 
     -- If we're overwriting a previous elm, make sure it frees its buffers, etc
-    if GUI.elms[name] and GUI.elms.type then GUI.elms[name]:delete() end
+    if GUI.elms[name] and GUI.elms[name].type then GUI.elms[name]:delete() end
 
     GUI.elms[name] = params and elm:new(name, params) or elm:new(name, ...)
     --GUI.elms[name] = elm:new(name, params or ...)
@@ -1987,7 +1993,7 @@ end
     GUI.text_bg(self.text, "elm_bg")
 
 ]]--
-GUI.text_bg = function (str, col)
+GUI.text_bg = function (str, col, align)
 
     local x, y = gfx.x, gfx.y
     local r, g, b, a = gfx.r, gfx.g, gfx.b, gfx.a
@@ -1998,6 +2004,16 @@ GUI.text_bg = function (str, col)
 
     local w, h = gfx.measurestr(str)
     w, h = w + 4, h + 4
+
+    if align then
+
+      if align & 1 == 1 then
+        gfx.x = gfx.x - w/2
+      elseif align & 4 == 4 then
+        gfx.y = gfx.y - h/2
+      end
+
+    end
 
     gfx.rect(gfx.x - 2, gfx.y - 2, w, h, true)
 
