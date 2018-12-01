@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3c428cd80d206700a8507b9d25b67f09266c2ad4" name="ReaTeam Scripts">
+<index version="1" commit="f20d1daae05a3564fdde974b0b22b22e12b45215" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3208,6 +3208,31 @@ items being skipped.]]></changelog>
       <version name="1.0" author="Mordi &amp; spk77" time="2016-06-26T17:32:59Z">
         <changelog><![CDATA[+ Changed script to only work on selected items.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c2dbb59ba8a7a4bfaf0499a944b9bf1e3bdc40e3/Items%20Editing/Mordi_spk77_Sort%20items%20by%20length.lua</source>
+      </version>
+    </reapack>
+    <reapack name="pandabot_Copy and paste rhythm.lua" type="script" desc="Copy and paste rhythm">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Copy and Paste Rhythm\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 What is this?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Reaper scripts for copy/pasting rhythm information to Media Items, leaving pitches intact\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 How do I use it?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There is an instructional gif {\field{\*\fldinst{HYPERLINK "https://github.com/benjohnson2001/CopyAndPasteRhythm/raw/release/copypasterhythm.gif"}}{\fldrslt{\ul
+here
+}}}
+\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=127396">pandabot (Cockos forum)</link>
+        <link rel="website" href="https://github.com/benjohnson2001/CopyAndPasteRhythm/tree/release">Source repository (GitHub)</link>
+        <link rel="donation">https://paypal.me/benjohnson2001</link>
+      </metadata>
+      <version name="1.0" author="pandabot" time="2018-12-01T11:41:00Z">
+        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Copy rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/f20d1daae05a3564fdde974b0b22b22e12b45215/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Copy%20rhythm.lua</source>
+        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Paste rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/f20d1daae05a3564fdde974b0b22b22e12b45215/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Paste%20rhythm.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy items and store positions.eel" type="script" desc="Copy items and store positions">
