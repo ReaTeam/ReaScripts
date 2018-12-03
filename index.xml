@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f20d1daae05a3564fdde974b0b22b22e12b45215" name="ReaTeam Scripts">
+<index version="1" commit="a445b7d75d3be605bedb27c337d6d89cb0262754" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2282,6 +2282,21 @@ Better error-checking in general]]></changelog>
       <version name="1.03" author="amagalma" time="2017-09-19T08:26:54Z">
         <changelog><![CDATA[+ fixed bug not trimming when there were a fade-in and fade-out in both items and the fades were not crossing (no crossfade)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c29c5b80b11f59ff7fa16667ed0a11b1326dc68/Items%20Editing/amagalma_Remove%20content%20(trim)%20behind%20items%20preserving%20crossfades.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Remove selected items' active takes' source file cue points (WAV only) - NO UNDO.lua" type="script" desc="amagalma_Remove selected items' active takes' source file cue points (WAV only) - NO UNDO!">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Deletes all cues points from the wav files (removes cue and list chunks)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab works only with WAV files\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-12-03T22:15:45Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a445b7d75d3be605bedb27c337d6d89cb0262754/Items%20Editing/amagalma_Remove%20selected%20items'%20active%20takes'%20source%20file%20cue%20points%20(WAV%20only)%20-%20NO%20UNDO.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove selected items' cue points and replace source file (WAV only).lua" type="script" desc="amagalma_Remove selected items' cue points and replace source file (WAV only)">
