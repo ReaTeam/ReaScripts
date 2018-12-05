@@ -12265,27 +12265,15 @@ ReaPack
 ReaPack user guide
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussing\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Talk about this repository and ReaTeam in this thread on the REAPER forums:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=169127"}}{\fldrslt{\ul
-Developing thread
-}}}
-\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Check out the {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Examples"}}{\fldrslt{\ul
-package examples
+{\pard \ql \f0 \sa180 \li0 \fi0 Use {\field{\*\fldinst{HYPERLINK "https://reapack.com/upload/reascript"}}{\fldrslt{\ul
+https://reapack.com/upload/reascript
 }}}
- and reapack-index's {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation"}}{\fldrslt{\ul
-packaging documentation
+ to upload your scripts on this repository.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Have a question? Come discuss in the {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=169127"}}{\fldrslt{\ul
+development thread
 }}}
 .\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/ReaScripts/new/master"}}{\fldrslt{\ul
-Create
-}}}
- a file for your script named {\f1 Category Name/username_Name of the Script.lua} (or .eel, .py)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Click on "Propose new file" and create a Pull Request\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Wait for a team member to validate the request (it should be quick)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab If everything is ok... it's done!\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Other ReaTeam Scripts Repository (included in ReaPack)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/ReaTeam/JSFX"}}{\fldrslt{\ul
 ReaTeam/JSFX
