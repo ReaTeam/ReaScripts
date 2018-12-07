@@ -1,12 +1,11 @@
 --[[
 Description: Radial Menu 
-Version: 2.7.3
+Version: 2.7.4
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Fixed:
-	- Crash when pressing key bind for the center button with
-	  no center button in the current menu
+	Fixed issue with shortcuts highlighting the wrong menu
+        (Courtesy of AdmiralBumbleBee)
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1788321
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
