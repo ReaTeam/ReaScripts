@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c6eec70c2848e94e999933480bd68fbaf48fe070" name="ReaTeam Scripts">
+<index version="1" commit="5047b2c4875883e448c2d3f67689eb059f8a297b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10861,6 +10861,12 @@ Fixed:
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9fdc84762ee3ca165c287bd0a2a17e1d4878d158/Various/Lokasenna_Radial%20Menu.lua</source>
         <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/9fdc84762ee3ca165c287bd0a2a17e1d4878d158/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
         <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/9fdc84762ee3ca165c287bd0a2a17e1d4878d158/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
+      </version>
+      <version name="2.7.4" author="Lokasenna" time="2018-12-07T15:33:42Z">
+        <changelog><![CDATA[Fixed issue with shortcuts highlighting the wrong menu]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5047b2c4875883e448c2d3f67689eb059f8a297b/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/5047b2c4875883e448c2d3f67689eb059f8a297b/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/5047b2c4875883e448c2d3f67689eb059f8a297b/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
