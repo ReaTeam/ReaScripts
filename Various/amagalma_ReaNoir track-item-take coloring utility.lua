@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.11
+-- @version 2.12
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,14 +33,14 @@
 
 --[[
  * Changelog:
- * v2.11 (2018-12-05)
-  + fix for OSX font size
+ * v2.12 (2018-12-08)
+  + fix for Linux font size
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.11"
+version = "v2.12"
 
 
 
@@ -176,10 +176,12 @@ end
 
 function Slider:set_help_text()
   if self.help_text == "" then return false end
-  if string.match(reaper.GetOS(), "OSX") then
+  if string.match(reaper.GetOS(), "Win") then
+      gfx.setfont(2,"Tahoma", 13)
+  elseif string.match(reaper.GetOS(), "OSX") then
     gfx.setfont(2,"Geneva", 10)
   else
-    gfx.setfont(2,"Tahoma", 13)
+    gfx.setfont(2,"Tahoma", 11)
   end
   local width = gfx.measurestr(self.help_text)
   gfx.set(0.85,0.85,0.85,1)
@@ -1914,12 +1916,15 @@ function init ()
 
   Read_Prefs()
   gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
-  if string.match(reaper.GetOS(), "OSX") then
+  if string.match(reaper.GetOS(), "Win") then
+    gfx.setfont(2,"Tahoma", 13)
+    gfx.setfont(1,"Arial", 15)
+  elseif string.match(reaper.GetOS(), "OSX") then
     gfx.setfont(2,"Geneva", 10)
     gfx.setfont(1,"Arial", 12)
   else
-    gfx.setfont(2,"Tahoma", 13)
-    gfx.setfont(1,"Arial", 15)
+    gfx.setfont(2,"Tahoma", 11)
+    gfx.setfont(1,"Arial", 12)
   end
   Dock_selector_INIT()
   ColorBx_INIT()
