@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1f6bb783caaa883ddeda4193b12ae4d1d52bd96a" name="ReaTeam Scripts">
+<index version="1" commit="a82d06450215a228096f90394e3122d022058bf7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1495,6 +1495,11 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="1.51" author="juliansader / Xenakios" time="2017-10-03T21:26:46Z">
         <changelog><![CDATA[+ Keep edge nodes in order when inserting new nodes.    ]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9ae2a9c604f420f8a803f18a99b32d2ee62a54ba/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="2.00" author="juliansader / Xenakios" time="2018-12-09T19:40:14Z">
+        <changelog><![CDATA[+ Swing envelope.
++ Recalls AI curve by ID.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a82d06450215a228096f90394e3122d022058bf7/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
