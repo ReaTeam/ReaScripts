@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e5c9c351820f765b3a702c29f896068632b895bf" name="ReaTeam Scripts">
+<index version="1" commit="6940fca61999ea3d7d2f9cb7d954ddf4e93cfa3f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1367,6 +1367,7 @@ Refactored/reorganized the code for readability]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into the time selection, select an envelope and deselect all automation items.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds of the selected automation item, the LFO will be inserted into only the selected part of the automation item.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 (The time selection and the target envelope or automation item can be changed while the script is running.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When a new AI is selected, the script will try to recall the last-used curve for that AI (or any AI sharing the same ID).\line To wake the script after working in the arrange view, click on any GUI element (such as the Rate of Swing button).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 DRAWING CURVES\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Leftclick in open space in the envelope drawing area to add an envelope node.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Shift + Leftdrag to add multiple envelope nodes.\par}
@@ -1500,6 +1501,10 @@ Refactored/reorganized the code for readability]]></changelog>
         <changelog><![CDATA[+ Swing envelope.
 + Recalls AI curve by ID.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a82d06450215a228096f90394e3122d022058bf7/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="2.01" author="juliansader / Xenakios" time="2018-12-10T21:00:18Z">
+        <changelog><![CDATA[+ Fix bug when recalling AI curve.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6940fca61999ea3d7d2f9cb7d954ddf4e93cfa3f/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
