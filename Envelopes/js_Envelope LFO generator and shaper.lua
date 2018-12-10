@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.00
+Version: 2.01
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -25,6 +25,9 @@ About:
       of the selected automation item, the LFO will be inserted into only the selected part of the automation item.
   
   (The time selection and the target envelope or automation item can be changed while the script is running.)
+  
+  When a new AI is selected, the script will try to recall the last-used curve for that AI (or any AI sharing the same ID).  
+      To wake the script after working in the arrange view, click on any GUI element (such as the Rate of Swing button).
   
   
   DRAWING CURVES
@@ -102,6 +105,8 @@ About:
   * v2.00 (2018-12-09)
     + Swing envelope.
     + Recalls AI curve by ID.
+  * v2.01 (2018-12-10)
+    + Fix bug when recalling AI curve.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -276,6 +281,8 @@ helpText = "SELECTION OF TARGET ENVELOPE:"
           .."\n\nTo insert an LFO into an automation item, select a single automation item. If the time selection falls within the bounds of the selected automation item, "
           .."the LFO will be inserted into only the selected part of the automation item."
           .."\n\n(The time selection and the target envelope or automation item can be changed while the script is running.)"
+          .."\n\n When a new AI is selected, the script will try to recall the last-used curve for that AI (or any AI sharing the same ID)."  
+          .."\nTo wake the script after working in the arrange view, click on any GUI element (such as the Rate of Swing button)."
           
           .."\n\n\nDRAWING CURVES:"
           .."\n\n  * Leftclick in open space in the envelope drawing area to add an envelope node."
@@ -864,12 +871,14 @@ function MAIN_CalculateAndInsertPoints()
     envNameOK, envName = reaper.GetEnvelopeName(env, "")    
     
     selectedAutoItem = -1
+    selectedAutoItemID = nil
     for a = 0, reaper.CountAutomationItems(env)-1 do
         if reaper.GetSetAutomationItemInfo(env, a, "D_UISEL", 0, false) ~= 0 then
             if selectedAutoItem ~= -1 then 
                 return -- !!!!!!!!!!!!!!!!! If more than one auto item selected, do nothing
             else 
                 selectedAutoItem = a 
+                selectedAutoItemID = tostring(reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POOL_ID", 0, false))
             end
         end
     end    
@@ -889,19 +898,19 @@ function MAIN_CalculateAndInsertPoints()
         local autoItemStart = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
         local autoItemEnd   = autoItemStart + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
         if time_start > autoItemStart-0.00000001 and time_start < autoItemStart+0.00000001 then 
-            time_start = autoItemStart
+            time_start = autoItemStart+0.000000001 -- Why add 0.000000001? Because REAPER sometimes thinks point on left edge is outside AI. Seemingly if AI doesn't start on grid.
             noNeedToPreserveStartValue = true    
         end
         if time_end > autoItemEnd-0.00000001 and time_end < autoItemEnd+0.00000001 then 
-            time_end = autoItemEnd-0.00000001
+            time_end = autoItemEnd-0.000000001
             noNeedToPreserveEndValue = true
         end
-        if (time_start >= autoItemStart and time_end <= autoItemEnd-0.00000001) then
+        if (time_start >= autoItemStart and time_end <= autoItemEnd) then
             timeWithinAutoItem = true
         else
             timeWithinAutoItem = false
             -- If time selection is not inside AI, use AI boundaries as time range for LFO
-            time_start, time_end = autoItemStart, autoItemEnd - 0.00000001 -- Why subtract 0.00000001? Because REAPER thinks point on right edge is outside AI.
+            time_start, time_end = autoItemStart+0.000000001, autoItemEnd - 0.000000001 -- Why subtract 0.00000001? Because REAPER thinks point on right edge is outside AI.
         end
         --[[
         or (time_start > autoItemStart and time_end <= autoItemEnd-0.00000001)
@@ -947,8 +956,8 @@ function MAIN_CalculateAndInsertPoints()
     --------------------------------------------------
     -- AUTOMATION ITEM?  TRY TO LOAD SAVED CURVE
     -- If newly selected AI, check if any saved curves
-    if isNewSelection and selectedAutoItem ~= -1 then
-        local OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", tostring(selectedAutoItem))
+    if isNewSelection and selectedAutoItem ~= -1 and selectedAutoItemID then
+        local OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", selectedAutoItemID)
         if OK and type(savedCurve) == "string" and #savedCurve > 50 then
             LoadCurveFromString(savedCurve)
         end
@@ -1361,39 +1370,14 @@ function MAIN_CalculateAndInsertPoints()
             -- Insert point in envelope        
             -- NB:  Remember that takes envelopes require a time offset
             -- NB2: If beyond time selection, must calculate and insert *interpolated* point
-            --if time < timeEnd_Base then
-                if linearJump == true then
-                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, 0, 0, true, true)
-                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
-                    --prevVal = oppositeVal
-                else             
-                    reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, pointShape, tension, true, true)
-                    --prevVal = val
-                end
-                --prevTime = time --instime
-                --prevShape = pointShape
-                --prevTension = tension
-                
-            -- Beyond end?  Calculate and insert *interpolated* point at edge
-            --[[
-            else 
-                nodeBeyondEnd = true
-                if prevShape == 0 then -- linear
-                    endVal = prevVal + (val-prevVal)*(time_end - prevTime)/(instime-prevTime)
-                elseif prevShape == 1 then -- square
-                    endVal = prevVal
-                elseif prevShape == 2 then -- slow start/end (seems to be sine?)
-                    local pifrac    = (math.pi)*(time_end - prevTime)/(instime-prevTime)
-                    local cosfrac = (1-math.cos(pifrac))/2
-                    endVal = prevVal + cosfrac*(val-prevVal)
-                else
-                    endVal = prevVal + (val-prevVal)*(time_end-prevTime)/(instime-prevTime)
-                end
-                -- What shape should the final point have, if endEnvPointFound == false?  
-                -- The script uses "square", which keeps the envelope flat till the next point.
-                reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end-timeOffset, endVal, 1, tension, true, false) -- endTime-timeOffset
-                
-            end]]
+            if linearJump == true then
+                reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, 0, 0, true, true)
+                reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
+                --prevVal = oppositeVal
+            else             
+                reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, pointShape, tension, true, true)
+                --prevVal = val
+            end
                 
         end -- if val ~= false
         
@@ -1421,8 +1405,8 @@ function MAIN_CalculateAndInsertPoints()
 
     -- SAVE CURVE
     -- After each update, save AI curve
-    if selectedAutoItem ~= -1 then
-        reaper.SetProjExtState(0, "LFO Generator", tostring(selectedAutoItem), SaveCurveToString(tostring(selectedAutoItem)))
+    if selectedAutoItem ~= -1 and selectedAutoItemID then
+        reaper.SetProjExtState(0, "LFO Generator", selectedAutoItemID, SaveCurveToString(selectedAutoItemID))
     end
     --
 end -- MAIN_CalculateAndInsertPoints
