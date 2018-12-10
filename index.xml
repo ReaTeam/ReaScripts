@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="74211c5fe2ba8159790fc77a110751262e9f9191" name="ReaTeam Scripts">
+<index version="1" commit="e5c9c351820f765b3a702c29f896068632b895bf" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3519,7 +3519,7 @@ here
     </reapack>
   </category>
   <category name="Markers">
-    <reapack name="amagalma_Write project markers as media cues to selected items' active takes' source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
+    <reapack name="amagalma_Write project markers as media cues to selected items active takes source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -3532,8 +3532,8 @@ here
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="amagalma" time="2018-12-10T01:53:23Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74211c5fe2ba8159790fc77a110751262e9f9191/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items'%20active%20takes'%20source%20files.lua</source>
+      <version name="1.0" author="amagalma" time="2018-12-10T02:02:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e5c9c351820f765b3a702c29f896068632b895bf/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
