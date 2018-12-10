@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a82d06450215a228096f90394e3122d022058bf7" name="ReaTeam Scripts">
+<index version="1" commit="74211c5fe2ba8159790fc77a110751262e9f9191" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3519,6 +3519,23 @@ here
     </reapack>
   </category>
   <category name="Markers">
+    <reapack name="amagalma_Write project markers as media cues to selected items' active takes' source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Writes the project markers that cross the selected items as media cues of the selected items' active takes' source files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Overwrites the files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Issues warning if markers are going to appear to other items in the project that share the same source file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To erase an existing media cue, place an unnamed project marker at the position of the cue\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2018-12-10T01:53:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/74211c5fe2ba8159790fc77a110751262e9f9191/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items'%20active%20takes'%20source%20files.lua</source>
+      </version>
+    </reapack>
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
