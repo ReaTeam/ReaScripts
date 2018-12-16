@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.01
+Version: 2.02
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -27,7 +27,7 @@ About:
   (The time selection and the target envelope or automation item can be changed while the script is running.)
   
   When a new AI is selected, the script will try to recall the last-used curve for that AI (or any AI sharing the same ID).  
-      To wake the script after working in the arrange view, click on any GUI element (such as the Rate of Swing button).
+      To wake the script after working in the arrange view, click on any GUI element (such as the Rate of Swing button) or move the mouse across the envelope window.
   
   
   DRAWING CURVES
@@ -107,6 +107,9 @@ About:
     + Recalls AI curve by ID.
   * v2.01 (2018-12-10)
     + Fix bug when recalling AI curve.
+  * v2.02 (2018-12-16)
+    + Improved reset behavior.
+    + Other small improvements when using AIs.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -257,10 +260,10 @@ START_SHAPE = 6 -- Default starting shape (if no default curve)
 NUM_SLIDERS = 12
 SLIDER_HEIGHT = 28 
 BORDER_WIDTH = 10
-ENV_HEIGHT = 190
-initXsize = 209 --300 -- Initial sizes for the GUI
-initYsize = BORDER_WIDTH + SLIDER_HEIGHT*NUM_SLIDERS + ENV_HEIGHT + 45
-envYpos = initYsize - ENV_HEIGHT - 30
+INIT_ENV_HEIGHT = 200
+SPACE_BELOW_ENV = 31
+INIT_X_SIZE = 209 --300 -- Initial sizes for the GUI
+INIT_Y_SIZE = BORDER_WIDTH + SLIDER_HEIGHT*NUM_SLIDERS + INIT_ENV_HEIGHT + SPACE_BELOW_ENV
 
 hotpointRateDisplayType = "period note length" -- "frequency" or "period note length"
 hotpointTimeDisplayType = -1
@@ -449,17 +452,17 @@ end -- function make_question
 
 function make_envelope(x,y,w,h,assocslider)
   result={}
-  result.x=function() return x end
+  result.x=function() return BORDER_WIDTH end
   result.y=function() return y end
-  result.w=function() return gfx.w-20 end
-  result.h=function() return h+gfx.h-initYsize end
+  result.w=function() return gfx.w-(2*BORDER_WIDTH) end
+  result.h=function() return gfx.h - SPACE_BELOW_ENV - y end -- h+gfx.h-INIT_Y_SIZE end
   
-  result.type="Envelope"
-  result.hotpoint=0
-  result.envelope=assocslider.envelope
-  result.name=assocslider.name
+  result.type     = "Envelope"
+  result.hotpoint = 0
+  result.slider   = assocslider
   return result
 end
+
 
 -- The column of buttons in original release was removed,
 --     so this function is not necessary any more
@@ -577,7 +580,7 @@ function draw_slider(slid)
         end       
         stringw,stringh = gfx.measurestr(slid.name)
         ampw,amph = gfx.measurestr("Amplitude")
-        if slid.name == egsliders[slidNum_env].name then
+        if slid == egsliders[slidNum_env].slider then
             --local stringw,stringh = gfx.measurestr("Amplitude")
             --[[if shadows == true then
                 setColor({0,0,0,1})
@@ -651,11 +654,11 @@ function draw_slider(slid)
 end
 
 
-function draw_envelope(env,enabled)
+function draw_envelope(env) --,enabled)
 
     -- Draw Envelope title
     if env.type~="Envelope" then return end
-    local title=env.name
+    local title=env.slider.name
     setColor(textColor)
     title = "Envelope: " .. title
     gfx.x = gfx.w/2 - gfx.measurestr(title)/2
@@ -681,7 +684,7 @@ function draw_envelope(env,enabled)
     local xcor0=0.0
     local ycor0=0.0
     local i=1
-    for key,envpoint in pairs(env.envelope) do
+    for key,envpoint in pairs(env.slider.envelope) do
         local xcor = env.x()+envpoint[1]*env.w()
         local ycor = env.y()+(1.0-envpoint[2])*env.h()
         
@@ -711,7 +714,7 @@ function draw_envelope(env,enabled)
             end
             
             -- If Rate envelope, display either period or frequency above hotpoint
-            if env.name == "Rate" then
+            if env.slider.name == "Rate" then
                 
                 if egsliders[slidNum_timebase].value == 1 and hotpointRateDisplayType == "period note length" then
                     local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
@@ -744,17 +747,17 @@ function draw_envelope(env,enabled)
                 
             -- If Amplitude or Center, display value scaled to actual envelope range.
             -- (The BRenvMaxValue and BRenvMinValue variables are calculated in the MAIN_DeferLoop() function.)
-            elseif env.name == "Amplitude" then
+            elseif env.slider.name == "Amplitude" then
                 if type(BRenvMinValue) == "number" and type(BRenvMaxValue) == "number" then
                     hotString = "A =" .. string.format("%.3f", tostring(envpoint[2]*0.5*(BRenvMaxValue-BRenvMinValue)))
                 else
                     hotString = "A = ?"
                 end
-            else -- env.name == "Center"
+            else -- env.name == "Center" / "Swing"
                 if type(BRenvMinValue) == "number" and type(BRenvMaxValue) == "number" then
-                    hotString = "C =" .. string.format("%.3f", tostring(BRenvMinValue + envpoint[2]*(BRenvMaxValue-BRenvMinValue)))
+                    hotString = "v =" .. string.format("%.3f", tostring(BRenvMinValue + envpoint[2]*(BRenvMaxValue-BRenvMinValue)))
                 else
-                    hotString = "C = ?"
+                    hotString = "v = ?"
                 end
             end
             
@@ -779,8 +782,24 @@ function draw_envelope(env,enabled)
     end
 end
 
+function DrawGUI()
+    setColor(backgroundColor)
+    gfx.rect(0,0,gfx.w,gfx.h,true)
+    for key, slid in pairs(egsliders) do
+        if slid.type == "Envelope" then
+            draw_envelope(slid)
+        else
+            draw_slider(slid)
+        end
+    end
+  
+    gfx.update()
+end
+
+
 function get_hot_env_point(env,mx,my)
-  for key,envpoint in pairs(env.envelope) do
+  for key,envpoint in pairs(env.slider.envelope) do
+    -- Convert normalized env point data to pixel coordinates
     local xcor = env.x()+envpoint[1]*env.w()
     local ycor = env.y()+(1.0-envpoint[2])*env.h()
     if is_in_rect(mx,my,xcor-5,ycor-5,10,10) then return key end
@@ -860,16 +879,20 @@ last_envelope=nil
 --    inserts the points into whatever envelope is active.
 function MAIN_CalculateAndInsertPoints()
 
+    tttt = {}
     --------------------------------------------------------------------------------------------
     -- IS NEW SELECTION?
     -- If new selection, must re-calculate edge values.
     -- If selecting a new AI, the script will also check for saved curves for AIs with that ID.
-    local isNewSelection = false -- temporary
+    local isNewSelection     = false -- temporary
+    local isNewTimeSelection = false -- Only if time selection changes, ignores AI or env selection
     
+    -- New envelope?    
     env  = reaper.GetSelectedEnvelope(0)
         if env == nil then return end -- !!!!!!!!!!!!!!!!!!!
     envNameOK, envName = reaper.GetEnvelopeName(env, "")    
     
+    -- New AI?
     selectedAutoItem = -1
     selectedAutoItemID = nil
     for a = 0, reaper.CountAutomationItems(env)-1 do
@@ -883,48 +906,53 @@ function MAIN_CalculateAndInsertPoints()
         end
     end    
     
-    -- Get time selection.  If neither an AI nor time range is selected, don't do anything
+    -- New time selection?  If neither an AI nor time range is selected, don't do anything
     time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
-        if selectedAutoItem == -1 and time_end <= time_start then return end -- !!!!!!!!!!!!!!!! , time_start = time_end = 0
+    if selectedAutoItem == -1 and time_end <= time_start then 
+        return -- !!!!!!!!!!!!!!!! , time_start = time_end = 0
+    elseif timeStartPrev ~= time_start or timeEndPrev ~= time_end then
+        isNewSelection     = true
+        isNewTimeSelection = true
+        timeStartPrev      = time_start
+        timeEndPrev        = time_end
+    end
     
     -- Adjust time selection to AI selection.
-    --    If time selection is not inside AI, use AI boundaries as time range for LFO
-    --    Automtion items are a special case:
-    --      AI selection overrides time selection, if the time selection is *outside* the AI
-    --      However, if the time selection is *within* the AI, use the time selection.
-    --    Preservation of edge points: The user can preserve AI edge points through Actions, so the script won't bother
-    local autoItemStart, autoItemEnd, noNeedToPreserveStartValue, noNeedToPreserveEndValue, timeWithinAutoItem = nil, nil, nil, nil, nil
-    if selectedAutoItem ~= -1 then
+    -- AI selection overrides time selection, if the time selection is *outside* the AI.
+    -- If an AI is eelected, must insert points into the AI, otherwise insert into underlying envelope.
+    -- If the time selection is *within* a selected AI, use time selection, otherwise use AI boundaries as time range for LFO.
+    -- If time selection is not inside selected AI, use selected AI boundaries as time range for LFO.
+    -- Preservation of edge points: The user can preserve AI edge points through Actions, so the script won't bother
+    local autoItemStart, autoItemEnd, noNeedToPreserveStartValue, noNeedToPreserveEndValue, timeWithinAutoItem = nil, nil, false, false, false
+    if selectedAutoItem ~= -1 then -- Only if an AI is selected
         local autoItemStart = reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_POSITION", 0, false)
         local autoItemEnd   = autoItemStart + reaper.GetSetAutomationItemInfo(env, selectedAutoItem, "D_LENGTH", 0, false)
-        if time_start > autoItemStart-0.00000001 and time_start < autoItemStart+0.00000001 then 
-            time_start = autoItemStart+0.000000001 -- Why add 0.000000001? Because REAPER sometimes thinks point on left edge is outside AI. Seemingly if AI doesn't start on grid.
-            noNeedToPreserveStartValue = true    
-        end
-        if time_end > autoItemEnd-0.00000001 and time_end < autoItemEnd+0.00000001 then 
-            time_end = autoItemEnd-0.000000001
-            noNeedToPreserveEndValue = true
-        end
-        if (time_start >= autoItemStart and time_end <= autoItemEnd) then
+        
+        -- If the time selection is within a selected AI, use time selection
+        if (time_start >= autoItemStart-0.00000001 and time_end <= autoItemEnd+0.00000001) then
             timeWithinAutoItem = true
+            -- To avoid rounding errors, if time selection is very close to AI edges, assume that it is actually precisely at AI
+            -- Preservation of edge points: The user can preserve AI edge points through Actions, so the script won't bother
+            if time_start < autoItemStart+0.00000001 then 
+                time_start = autoItemStart+0.000000001 -- Why add 0.000000001? Because REAPER sometimes thinks point on left edge is outside AI. Seemingly if AI doesn't start on grid.
+                noNeedToPreserveStartValue = true    
+            end
+            if time_end > autoItemEnd-0.00000001 then 
+                time_end = autoItemEnd-0.000000001
+                noNeedToPreserveEndValue = true
+            end
+        -- otherwise use AI boundaries as time range for LFO.
         else
             timeWithinAutoItem = false
+            noNeedToPreserveStartValue = true
+            noNeedToPreserveEndValue = true
             -- If time selection is not inside AI, use AI boundaries as time range for LFO
-            time_start, time_end = autoItemStart+0.000000001, autoItemEnd - 0.000000001 -- Why subtract 0.00000001? Because REAPER thinks point on right edge is outside AI.
+            time_start, time_end = autoItemStart+0.000000001, autoItemEnd-0.000000001 -- Why subtract 0.00000001? Because REAPER thinks point on right edge is outside AI.
         end
-        --[[
-        or (time_start > autoItemStart and time_end <= autoItemEnd-0.00000001)
-        then -- time selection is within automation item, but not 
-            preserveExistingEnvelopeInAutoItem = true
-        else
-            time_start = autoItemStart
-            time_end   = autoItemEnd - 0.00000001 -- Inserting points precisely at end of automation items does not seem to work
-            preserveExistingEnvelopeInAutoItem = false 
-        end]]
     end
     
     -- Is new selection?
-    if env ~= envPrev or selectedAutoItem ~= selectedAutoItemPrev or time_start ~= timeStartPrev or time_end ~= timeEndPrev then
+    if isNewTimeSelection or env ~= envPrev or selectedAutoItem ~= selectedAutoItemPrev then -- or time_start ~= timeStartPrev or time_end ~= timeEndPrev then
         isNewSelection = true
         -- Must calculate new edge point values
         startEnvPointFound = false
@@ -947,8 +975,6 @@ function MAIN_CalculateAndInsertPoints()
         envPrevName = envName
         
         selectedAutoItemPrev = selectedAutoItem
-        timeStartPrev = time_start
-        timeEndPrev = time_end
         envPrev = env
     end
     
@@ -960,6 +986,7 @@ function MAIN_CalculateAndInsertPoints()
         local OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", selectedAutoItemID)
         if OK and type(savedCurve) == "string" and #savedCurve > 50 then
             LoadCurveFromString(savedCurve)
+            DrawGUI()
         end
     end
             
@@ -1031,6 +1058,7 @@ function MAIN_CalculateAndInsertPoints()
                     if timeOut >= time_start - timeOffset - 0.00000001 and timeOut <= time_start - timeOffset + 0.00000001 then
                         startEnvPointFound = true
                         startEnvPoint.value = valueOut
+                        startEnvPointInterpolated = false
                         break
                     elseif retval == true and timeOut > time_start - timeOffset + 0.00000001 then
                         break
@@ -1041,6 +1069,7 @@ function MAIN_CalculateAndInsertPoints()
             if not startEnvPointFound then
                 local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_start-timeOffset, 0, 0)
                 --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
+                    startEnvPointInterpolated = true
                     startEnvPointFound = true
                     startEnvPoint.value = valueOut
                 --end
@@ -1067,7 +1096,7 @@ function MAIN_CalculateAndInsertPoints()
             
             -- If no point found, interpolate envelope value to insert new point
             if endEnvPointFound == false then
-                local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_end-timeOffset, 0, 0)
+                local retval, valueOut, _, _, _ = reaper.Envelope_Evaluate(env, time_end-timeOffset-0.00000001, 0, 0)
                 --if retval ~= 1 --!! What is the return value is REAPER cannot determine the envelope value?
                     endEnvPointFound = true
                     endEnvPoint.value = valueOut
@@ -1083,14 +1112,15 @@ function MAIN_CalculateAndInsertPoints()
     -----------------------------------------------------
     -- DELETE EXISTING POINTS
     -- Remember that take envelopes require a time offset
-    reaper.DeleteEnvelopePointRangeEx(env, selectedAutoItem, time_start - timeOffset - 0.00000001, time_end - timeOffset + 0.00000001) -- time_start - phase?
+    -- In order to catch all
+    reaper.DeleteEnvelopePointRangeEx(env, selectedAutoItem, time_start - timeOffset - 0.0000001, time_end - timeOffset + 0.0000001) -- time_start - phase?
     
     
     -- INSERT LEFTMOST EDGE POINT
     -- startEnvPoint (to preserve existing envelope values) must be inserted before 
     --    the LFO's own points
-    if preserveExistingEnvelope and startEnvPointFound and not (startEnvPoint.shape == 1) then -- If square shape, not need to insert point
-        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_start - timeOffset, startEnvPoint.value, 0, 0, true, false)
+    if preserveExistingEnvelope and startEnvPointFound then
+        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_start - timeOffset - 0.0000000001, startEnvPoint.value, 0, 0, true, false)
     end
     
     
@@ -1374,7 +1404,7 @@ function MAIN_CalculateAndInsertPoints()
                 reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, 0, 0, true, true)
                 reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, oppositeVal, pointShape, tension, true, true)
                 --prevVal = oppositeVal
-            else             
+            else          
                 reaper.InsertEnvelopePointEx(env, selectedAutoItem, instime-timeOffset, val, pointShape, tension, true, true)
                 --prevVal = val
             end
@@ -1388,10 +1418,10 @@ function MAIN_CalculateAndInsertPoints()
      
     -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
     if preserveExistingEnvelope and endEnvPointFound then
-        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
+        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset + 0.0000000001, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
     end
     
-    reaper.Envelope_SortPointsEx(env, selectedAutoItem)
+    --reaper.Envelope_SortPointsEx(env, selectedAutoItem)
     if envNameOK and envName == "Tempo map" then 
         local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
         if firstOK then
@@ -1457,17 +1487,25 @@ already_removed_pt=false
 last_mouse_cap=0
 
 function MAIN_DeferLoop() 
+   
+    -- gfx.update()
+    -- The script should only spend time updating if something actually changed
+    local dogenerate = false
     
-    gfx.update()
-
     ---------------------------------------------------------------------------
     -- First, test whether the script should exit
     -- Quit script if GUI has been closed, or Esc has been pressed
     local char = gfx.getchar()
     if char<0 or char==27 then return end -- Tests whether GUI has been closed, or Esc has been pressed
-    setColor(backgroundColor)
-    gfx.rect(0,0,gfx.w,gfx.h,true)
-    curenv=reaper.GetSelectedEnvelope(0)
+    
+    -- Was the GUI size changed?
+    if gfx.w ~= prevGUIWidth or gfx.h ~= prevGUIHeight then
+        prevGUIWidth = gfx.w
+        prevGUIHeight = gfx.h
+        dogenerate = true
+    end
+    
+    --curenv=reaper.GetSelectedEnvelope(0)
 
     ------------------------------------------------------------------------
     -- Reset several parameters
@@ -1494,36 +1532,35 @@ function MAIN_DeferLoop()
     end  
     
     -- Iterate through all the buttons and sliders in the GUI  
-    local dogenerate=false
     for key,tempcontrol in pairs(egsliders) do
     
-      --if key>=200 and tempcontrol.type=="Button" then reaper.ShowConsoleMsg(tostring(tempcontrol).." ") end
-      if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
-      or (key == slidNum_env and is_in_rect(gfx.mouse_x,gfx.mouse_y,0,tempcontrol.y()-15,gfx.w,tempcontrol.h()+22))
-      --get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)>0) -- Envelope gets captured if on hotbutton, even if outside rectangle
-      then
-          if gfx.mouse_cap==LEFTBUTTON and captured_control==nil then
-              captured_control=tempcontrol
-          end
-          --[[
-          if tempcontrol.type=="Slider" and gfx.mouse_cap==2 
-            and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude") then
-            gfx.x=gfx.mouse_x
-            gfx.y=gfx.mouse_y
-            local menuresult=gfx.showmenu("Toggle envelope active|Show envelope")
-            if menuresult==1 then
-              if tempcontrol.env_enabled==false then
-                tempcontrol.env_enabled=true else
-                tempcontrol.env_enabled=false
+        -- Find the GUI element under the mouse
+        if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
+        or (tempcontrol.type == "Envelope" and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x()-7,tempcontrol.y()-15,gfx.w+14,tempcontrol.h()+22))
+        --get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)>0) -- Envelope gets captured if on hotbutton, even if outside rectangle
+        then
+            if gfx.mouse_cap==LEFTBUTTON and captured_control==nil then
+                captured_control=tempcontrol
+            end
+            --[[
+            if tempcontrol.type=="Slider" and gfx.mouse_cap==2 
+              and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude") then
+              gfx.x=gfx.mouse_x
+              gfx.y=gfx.mouse_y
+              local menuresult=gfx.showmenu("Toggle envelope active|Show envelope")
+              if menuresult==1 then
+                if tempcontrol.env_enabled==false then
+                  tempcontrol.env_enabled=true else
+                  tempcontrol.env_enabled=false
+                end
+              end
+              if menuresult==2 then
+                egsliders[100].envelope=tempcontrol.envelope
+                egsliders[100].name=tempcontrol.name
               end
             end
-            if menuresult==2 then
-              egsliders[100].envelope=tempcontrol.envelope
-              egsliders[100].name=tempcontrol.name
-            end
-          end
-          ]]
-        
+            ]]
+          
             -- Click on Rate/Center/Amplitude buttons to change envelope type
             --[[if gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
                 egsliders[100].envelope=tempcontrol.envelope
@@ -1532,29 +1569,32 @@ function MAIN_DeferLoop()
                 dogenerate = true
             end   ]]
             if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
-                egsliders[slidNum_env].envelope=egsliders[slidNum_rate].envelope
-                egsliders[slidNum_env].name=egsliders[slidNum_rate].name -- = tempcontrol.name
+                egsliders[slidNum_env].slider = egsliders[slidNum_rate]
+                --egsliders[slidNum_env].envelope=egsliders[slidNum_rate].envelope
+                --egsliders[slidNum_env].name=egsliders[slidNum_rate].name
                 firstClick = false
                 dogenerate = true
             elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
-                egsliders[slidNum_env].envelope=egsliders[slidNum_center].envelope
-                egsliders[slidNum_env].name=egsliders[slidNum_center].name -- = tempcontrol.name
+                egsliders[slidNum_env].slider = egsliders[slidNum_center]
+                --egsliders[slidNum_env].envelope=egsliders[slidNum_center].envelope
+                --egsliders[slidNum_env].name=egsliders[slidNum_center].name
                 firstClick = false
                 dogenerate = true
             elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
-                egsliders[slidNum_env].envelope=egsliders[slidNum_amp].envelope
-                egsliders[slidNum_env].name=egsliders[slidNum_amp].name -- tempcontrol.name
+                egsliders[slidNum_env].slider = egsliders[slidNum_amp]
+                --egsliders[slidNum_env].envelope=egsliders[slidNum_amp].envelope
+                --egsliders[slidNum_env].name=egsliders[slidNum_amp].name
                 firstClick = false
                 dogenerate = true
             elseif char == string.byte("s") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Swing") then
-                egsliders[slidNum_env].envelope=egsliders[slidNum_swing].envelope
-                egsliders[slidNum_env].name=egsliders[slidNum_swing].name -- tempcontrol.name
+                egsliders[slidNum_env].slider = egsliders[slidNum_swing]
+                --egsliders[slidNum_env].envelope=egsliders[slidNum_swing].envelope
+                --egsliders[slidNum_env].name=egsliders[slidNum_swing].name
                 firstClick = false
                 dogenerate = true
-            end
         
-            -- Enable or disable Real-time copy-to-CC
-            if gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
+            -- Timebase
+            elseif gfx.mouse_cap==LEFTBUTTON and tempcontrol.type == "Question" --name=="Real-time copy to CC?") 
             and firstClick == true
             then
               if tempcontrol.value == 0 then
@@ -1564,532 +1604,532 @@ function MAIN_DeferLoop()
               end
               firstClick = false
               dogenerate = true
-            end 
         
-            -- Choose envelope shape
-            if gfx.mouse_cap == LEFTBUTTON and tempcontrol.name == "LFO shape?" then
+            -- Choose LFO shape
+            elseif gfx.mouse_cap == LEFTBUTTON and tempcontrol.name == "LFO shape?" then
                 gfx.x = gfx.mouse_x
                 gfx.y = gfx.mouse_y
                 retval = gfx.showmenu(shapeMenu)
                 if retval ~= 0 then egsliders[slidNum_shape].value = retval end
                 dogenerate = true
-                firstClick = false
-            end       
+                firstClick = false     
         
             --------------------------------------------------------------------------------------------------
+            -- ENVELOPE
             -- Several options when drawing in envelope
-            if tempcontrol.type=="Envelope" then
-            
-              -- Detect hotpoint if hovering over or drag-deleting
-              -- The value of the tempcontrol.hotpoint variable is the number of the 'hot'
-              --       node of the envelope.  0 if no hotpoint.
-              if gfx.mouse_cap==NOTHING or gfx.mouse_cap==(LEFTBUTTON+ALTKEY) then
-                tempcontrol.hotpoint=get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)
-              end
+            elseif tempcontrol.type=="Envelope" then
               
-              -- Ctrl+left click in envelope area to set all nodes to same value
-              if gfx.mouse_cap == (LEFTBUTTON + CTRLKEY) then
-                  pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  for i = 1, #tempcontrol.envelope do
-                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, 1 - pt_y))
-                  end
+                --tempcontrol.envelope = tempcontrol.envelope -- copy pointer so that I don't have to replace all occurrences in this part
+                
+                -- Detect hotpoint if hovering over or drag-deleting
+                -- The value of the tempcontrol.hotpoint variable is the number of the 'hot'
+                --       node of the envelope.  0 if no hotpoint.
+                if gfx.mouse_cap==NOTHING or gfx.mouse_cap==(LEFTBUTTON+ALTKEY) then
+                  tempcontrol.hotpoint = get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)
+                  -- Always generate as long as mouse is over envelope, so that hotpoint immediately updates.
+                  --    Also, easy way to update curve after selecting new AI is to simply move mouse over envelope window.
                   dogenerate = true
-                  firstClick = false
-              end 
-              
-      
-              -- Leftclick to add an envelope node at mouse position
-              -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
-              if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false 
-              and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
-              and tempcontrol == captured_control -- To prevent adding nodes while moving Fade out slider
-              then
-                  --reaper.ShowConsoleMsg("gonna add point ")
-                  local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
-                  local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  pt_x = math.min(1, math.max(0, pt_x))
-                  pt_y = math.min(1, math.max(0, 1.0-pt_y))
-                  -- Insert new points *before* last node, so that sorting isn't necessary.
-                  for p = 1, #tempcontrol.envelope-1 do
-                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
-                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
-                          break
-                      end
-                  end
-                  dogenerate=true
-                  already_added_pt=true
-                  --sort_envelope(tempcontrol.envelope)
-                  firstClick = false
-              end
-              
-              -- Shift+left-drag to add multiple envelope nodes
-              -- Ignore already_added_pt to allow left-drag
-              -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
-              if tempcontrol.hotpoint==0 and gfx.mouse_cap==(LEFTBUTTON+SHIFTKEY) 
-              and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
-              then --and already_added_pt==false then
-                  --reaper.ShowConsoleMsg("gonna add point ")
-                  local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
-                  local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  pt_x = math.min(1, math.max(0, pt_x))
-                  pt_y = math.min(1, math.max(0, 1.0-pt_y))
-                  -- Insert new points *before* last node, so that sorting isn't necessary.
-                  for p = 1, #tempcontrol.envelope-1 do
-                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
-                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
-                          break
-                      end
-                  end
-                  dogenerate=true
-                  already_added_pt=true
-                  --sort_envelope(tempcontrol.envelope)
-                  firstClick = false
-              end
-              
-              --Remove envelope point under mouse
-              --Prevent removal of endpoint nodes
-              --if already_removed_pt==false and tempcontrol.hotpoint>0 and gfx.mouse_cap == 17  then
-              if tempcontrol.hotpoint > 0 and gfx.mouse_cap == (LEFTBUTTON+ALTKEY)
-                  and not (tempcontrol.hotpoint == 1 or tempcontrol.hotpoint == #tempcontrol.envelope)
-                  then
-                  table.remove(tempcontrol.envelope,tempcontrol.hotpoint)
-                  dogenerate=true
-                  firstClick = false
-                  --already_removed_pt=true
-                  --reaper.ShowConsoleMsg("remove pt "..tempcontrol.hotpoint)
-              end  
-                           
-              -- Move existing envelope node
-              if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==LEFTBUTTON then
-                  local pt_x = (1.0/captured_control.w())*(gfx.mouse_x-captured_control.x())
-                  local pt_y = (1.0/captured_control.h())*(gfx.mouse_y-captured_control.y())
-                  local ept = tempcontrol.envelope[tempcontrol.hotpoint]
-                  ept[2]=math.min(1, math.max(0, 1.0-pt_y))
-                  if tempcontrol.hotpoint == 1 then 
-                      ept[1]=0
-                  elseif tempcontrol.hotpoint == #tempcontrol.envelope then
-                      ept[1]=1
-                  else
-                      ept[1]=math.min(1, math.max(0, pt_x))
-                      -- Did the hotpoint pass beyond another point?  If so, re-sort the envelope
-                      -- (These explicit tests are faster than calling sort_envelope for the entire envelope.)
-                      ::checkPointsForSorting::
-                          if ept[1] < tempcontrol.envelope[tempcontrol.hotpoint-1][1] then
-                              tempcontrol.envelope[tempcontrol.hotpoint] = tempcontrol.envelope[tempcontrol.hotpoint-1]
-                              tempcontrol.envelope[tempcontrol.hotpoint-1] = ept
-                              tempcontrol.hotpoint = tempcontrol.hotpoint - 1
-                              goto checkPointsForSorting
-                          elseif ept[1] > tempcontrol.envelope[tempcontrol.hotpoint+1][1] then
-                              tempcontrol.envelope[tempcontrol.hotpoint] = tempcontrol.envelope[tempcontrol.hotpoint+1]
-                              tempcontrol.envelope[tempcontrol.hotpoint+1] = ept
-                              tempcontrol.hotpoint = tempcontrol.hotpoint + 1
-                              goto checkPointsForSorting
-                          end
-                  end
-                  dogenerate=true
-                  firstClick = false
-                  --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
-              end
-      
-              -- Fine adjust hotpoint using mousewheel
-              if tempcontrol.hotpoint>0 and gfx.mouse_cap==NOTHING and gfx.mouse_wheel ~= 0 then
-                  if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
-                  gfx.mouse_wheel = 0
-                  tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, tempcontrol.envelope[tempcontrol.hotpoint][2] + fineAdjust))
-                  dogenerate=true
-                  --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
-              end
-              
-                              
-              -- Ctrl+mousewheel for fine adjustment of all points simultaneously
-              if gfx.mouse_cap == CTRLKEY and gfx.mouse_wheel ~= 0 then
-                  if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
-                  gfx.mouse_wheel = 0
-                  for i = 1, #tempcontrol.envelope do
-                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
-                  end
-                  dogenerate = true
-              end 
+                end
+                
+                -- Ctrl+left click in envelope area to set all nodes to same value
+                if gfx.mouse_cap == (LEFTBUTTON + CTRLKEY) then
+                    pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
+                    for i = 1, #tempcontrol.slider.envelope do 
+                        tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, 1 - pt_y))
+                    end
+                    dogenerate = true
+                    firstClick = false
+                end 
+                
         
-              -- Rightclick away from nodes: select rate and time display
-              if type(tempcontrol.hotpoint)=="number" and tempcontrol.hotpoint<=0
-                  and gfx.mouse_cap==RIGHTBUTTON 
-                  then
-                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  if hotpointRateDisplayType == "frequency" then
-                      rateMenuString = "#Display hotpoint rate as|!Time (Frequency)|Beats (Period note length)"
-                  else
-                      rateMenuString = "#Display hotpoint rate as|Time (Frequency)|!Beats (Period note length)"
-                  end 
-                  
-                  if hotpointTimeDisplayType == -1 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|!Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 0 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|!Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 1 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|!Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 2 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|!Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 3 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|!Seconds|Samples|h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 4 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|!Samples|h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 5 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|!h:m:s:f|Normalized|Do not display time"
-                  elseif hotpointTimeDisplayType == 6 then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|!Normalized|Do not display time"
-                  else --if hotpointTimeDisplayType == false then
-                      rateMenuString = rateMenuString .. 
-                      "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|!Do not display time"
-                  end
-                  
-                  retval = gfx.showmenu(rateMenuString)
-                  if retval == 2 then hotpointRateDisplayType = "frequency" 
-                  elseif retval == 3 then hotpointRateDisplayType = "period note length" 
-                  elseif type(retval) == "number" and retval > 3 then hotpointTimeDisplayType = retval-6
-                  end
-                  
-                  dogenerate = true       
-              end
+                -- Leftclick to add an envelope node at mouse position
+                -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
+                if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false 
+                and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
+                and tempcontrol == captured_control -- To prevent adding nodes while moving Fade out slider
+                then
+                    --reaper.ShowConsoleMsg("gonna add point ")
+                    local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
+                    local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
+                    pt_x = math.min(1, math.max(0, pt_x))
+                    pt_y = math.min(1, math.max(0, 1.0-pt_y))
+                    -- Insert new points *before* last node, so that sorting isn't necessary.
+                    for p = 1, #tempcontrol.slider.envelope-1 do
+                        if tempcontrol.slider.envelope[p][1] <= pt_x and pt_x <= tempcontrol.slider.envelope[p+1][1] then
+                            table.insert(tempcontrol.slider.envelope, p+1, {pt_x, pt_y})
+                            break
+                        end
+                    end
+                    dogenerate=true
+                    already_added_pt=true
+                    --sort_envelope(tempcontrol.slider.envelope)
+                    firstClick = false
+                end
+                
+                -- Shift+left-drag to add multiple envelope nodes
+                -- Ignore already_added_pt to allow left-drag
+                -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
+                if tempcontrol.hotpoint==0 and gfx.mouse_cap==(LEFTBUTTON+SHIFTKEY) 
+                and is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
+                then --and already_added_pt==false then
+                    --reaper.ShowConsoleMsg("gonna add point ")
+                    local pt_x = 1.0/tempcontrol.w()*(gfx.mouse_x-tempcontrol.x())
+                    local pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
+                    pt_x = math.min(1, math.max(0, pt_x))
+                    pt_y = math.min(1, math.max(0, 1.0-pt_y))
+                    -- Insert new points *before* last node, so that sorting isn't necessary.
+                    for p = 1, #tempcontrol.slider.envelope-1 do
+                        if tempcontrol.slider.envelope[p][1] <= pt_x and pt_x <= tempcontrol.slider.envelope[p+1][1] then
+                            table.insert(tempcontrol.slider.envelope, p+1, {pt_x, pt_y})
+                            break
+                        end
+                    end
+                    dogenerate=true
+                    already_added_pt=true
+                    --sort_envelope(tempcontrol.slider.envelope)
+                    firstClick = false
+                end
+                
+                --Remove envelope point under mouse
+                --Prevent removal of endpoint nodes
+                --if already_removed_pt==false and tempcontrol.hotpoint>0 and gfx.mouse_cap == 17  then
+                if tempcontrol.hotpoint > 0 and gfx.mouse_cap == (LEFTBUTTON+ALTKEY)
+                    and not (tempcontrol.hotpoint == 1 or tempcontrol.hotpoint == #tempcontrol.slider.envelope)
+                    then
+                    table.remove(tempcontrol.slider.envelope,tempcontrol.hotpoint)
+                    dogenerate=true
+                    firstClick = false
+                    --already_removed_pt=true
+                    --reaper.ShowConsoleMsg("remove pt "..tempcontrol.hotpoint)
+                end  
+                             
+                -- Move existing envelope node
+                if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==LEFTBUTTON then
+                    local pt_x = (1.0/captured_control.w())*(gfx.mouse_x-captured_control.x())
+                    local pt_y = (1.0/captured_control.h())*(gfx.mouse_y-captured_control.y())
+                    local ept = tempcontrol.slider.envelope[tempcontrol.hotpoint]
+                    ept[2]=math.min(1, math.max(0, 1.0-pt_y))
+                    if tempcontrol.hotpoint == 1 then 
+                        ept[1]=0
+                    elseif tempcontrol.hotpoint == #tempcontrol.slider.envelope then
+                        ept[1]=1
+                    else
+                        ept[1]=math.min(1, math.max(0, pt_x))
+                        -- Did the hotpoint pass beyond another point?  If so, re-sort the envelope
+                        -- (These explicit tests are faster than calling sort_envelope for the entire envelope.)
+                        ::checkPointsForSorting::
+                            if ept[1] < tempcontrol.slider.envelope[tempcontrol.hotpoint-1][1] then
+                                tempcontrol.slider.envelope[tempcontrol.hotpoint] = tempcontrol.slider.envelope[tempcontrol.hotpoint-1]
+                                tempcontrol.slider.envelope[tempcontrol.hotpoint-1] = ept
+                                tempcontrol.hotpoint = tempcontrol.hotpoint - 1
+                                goto checkPointsForSorting
+                            elseif ept[1] > tempcontrol.slider.envelope[tempcontrol.hotpoint+1][1] then
+                                tempcontrol.slider.envelope[tempcontrol.hotpoint] = tempcontrol.slider.envelope[tempcontrol.hotpoint+1]
+                                tempcontrol.slider.envelope[tempcontrol.hotpoint+1] = ept
+                                tempcontrol.hotpoint = tempcontrol.hotpoint + 1
+                                goto checkPointsForSorting
+                            end
+                    end
+                    dogenerate=true
+                    firstClick = false
+                    --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
+                end
         
-              -- If Rate: Ctrl-RightClick to quantize period of ALL nodes
-              if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
-                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
-                  quantmenuSel = gfx.showmenu("#Set rate at ALL nodes to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
-                  userNoteFound = false
-                  userFreqFound = false
-                  if quantmenuSel >= 2 and quantmenuSel <= #tableNoteRates then 
-                      --local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
-                      userNote = tableNoteRates[quantmenuSel]
-                      userNoteFound = true
-                  elseif quantmenuSel == #tableNoteRates + 1 then
-                      repeat
-                          retval, userNote = reaper.GetUserInputs("Set rate at all nodes", 1, "Periods per whole note", "")
-                          userNote = tonumber(userNote)
-                          if type(userNote) == "number" and userNote > 0 then -- >= beatBaseMin and userNote <= beatBaseMax  then 
-                              userNoteFound = true 
-                          end
-                      until retval == false or userNoteFound == true
-                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-                  elseif quantmenuSel == #tableNoteRates + 2 then
-                      repeat
-                          retval, userFreq = reaper.GetUserInputs("Set rate at all nodes", 1, "Frequency in Hz"
-                                                                                             --[[
-                                                                                             .. " ("
-                                                                                             .. tostring(timeBaseMin) 
-                                                                                             .. "-" 
-                                                                                             .. tostring(timeBaseMax)
-                                                                                             .. ")"
-                                                                                             ]]
-                                                                                             , "")
-                          userFreq = tonumber(userFreq)
-                          if type(userFreq) == "number" and userFreq > 0 then -- >= timeBaseMin and userFreq <= timeBaseMax then 
-                              userFreqFound = true 
-                          end
-                      until retval == false or userFreqFound == true
-                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-                  end
+                -- Fine adjust hotpoint using mousewheel
+                if tempcontrol.hotpoint>0 and gfx.mouse_cap==NOTHING and gfx.mouse_wheel ~= 0 then
+                    if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
+                    gfx.mouse_wheel = 0
+                    tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, tempcontrol.slider.envelope[tempcontrol.hotpoint][2] + fineAdjust))
+                    dogenerate=true
+                    --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
+                end
+                
+                                
+                -- Ctrl+mousewheel for fine adjustment of all points simultaneously
+                if gfx.mouse_cap == CTRLKEY and gfx.mouse_wheel ~= 0 then
+                    if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
+                    gfx.mouse_wheel = 0
+                    for i = 1, #tempcontrol.slider.envelope do
+                        tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, tempcontrol.slider.envelope[i][2] + fineAdjust))
+                    end
+                    dogenerate = true
+                end 
+          
+                -- Rightclick away from nodes: select rate and time display
+                if type(tempcontrol.hotpoint)=="number" and tempcontrol.hotpoint<=0
+                    and gfx.mouse_cap==RIGHTBUTTON 
+                    then
+                    gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                    if hotpointRateDisplayType == "frequency" then
+                        rateMenuString = "#Display hotpoint rate as|!Time (Frequency)|Beats (Period note length)"
+                    else
+                        rateMenuString = "#Display hotpoint rate as|Time (Frequency)|!Beats (Period note length)"
+                    end 
                     
-                  if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
-                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      for i = 1, #tempcontrol.envelope do
-                          local bpm = getBPM(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
-                          local userFreq = (1.0/240) * userNote * bpm
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
-                      end
-                      dogenerate = true
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
-                      local normalizedValue = ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)
-                      for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
-                      end
-                      dogenerate = true
-                  elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
-                      local normalizedValue = ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)
-                      for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
-                      end
-                      dogenerate = true
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
-                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      for i = 1, #tempcontrol.envelope do
-                          local timeStartQN = reaper.TimeMap_timeToQN(time_start)
-                          local timeEndQN = reaper.TimeMap_timeToQN(time_end)
-                          local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[i][1]*(timeEndQN-timeStartQN))
-                          local bpm = getBPM(timeAtNode)
-                          local userNote = (1.0/bpm) * 240.0 * userFreq
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
-                      end
-                      dogenerate = true
-                  end 
-                                          
-              end -- if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON
-              
-              
-              -- If Rate and right-click on hotpoint: Quantize period of hotpoint
-              if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON then
-                  gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-                  local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
-                  quantmenuSel = gfx.showmenu("#Set rate at node to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
-                  userNoteFound = false
-                  userFreqFound = false
-                  if quantmenuSel >= 2 and quantmenuSel <= #tableNoteRates then 
-                      --local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
-                      userNote = tableNoteRates[quantmenuSel]
-                      userNoteFound = true
-                  elseif quantmenuSel == #tableNoteRates + 1 then
-                      repeat
-                          retval, userNote = reaper.GetUserInputs("Set rate at node", 1, "Periods per whole note", "")
-                          userNote = tonumber(userNote)
-                          if type(userNote) == "number" and userNote > 0 then -- >= beatBaseMin and userNote <= beatBaseMax  then 
-                              userNoteFound = true 
-                          end
-                      until retval == false or userNoteFound == true
-                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-                  elseif quantmenuSel == #tableNoteRates + 2 then
-                      repeat
-                          retval, userFreq = reaper.GetUserInputs("Set rate at node", 1, "Frequency in Hz"
-                                                                                      --[[
-                                                                                      .. " ("
-                                                                                      .. tostring(timeBaseMin) 
-                                                                                      .. "-" 
-                                                                                      .. tostring(timeBaseMax)
-                                                                                      .. ")"
-                                                                                      ]]
-                                                                                      , "")
-                          userFreq = tonumber(userFreq)
-                          if type(userFreq) == "number" and userFreq > 0 then -- >= timeBaseMin and userFreq <= timeBaseMax then 
-                              userFreqFound = true 
-                          end
-                      until retval == false or userFreqFound == true
-                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-                  end
-                  
-                  if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
-                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      local bpm = getBPM(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
-                      local userFreq = (1.0/240.0) * userNote * bpm
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
-                      dogenerate = true                                            
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
-                      dogenerate = true
-                  elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
-                      dogenerate = true
-                  elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
-                      and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      local timeStartQN = reaper.TimeMap_timeToQN(time_start)
-                      local timeEndQN = reaper.TimeMap_timeToQN(time_end)
-                      local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[tempcontrol.hotpoint][1]*(timeEndQN-timeStartQN))
-                      local bpm = getBPM(timeAtNode)
-                      local userNote = (1.0/bpm) * 240.0 * userFreq
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
-                      dogenerate = true
-                  end              
-              end -- if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON
-              
-              
-              -- If Amplitude or Center and rightclick on hotpoint: Set to precise custom value
-              if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center" or tempcontrol.name == "Swing") 
-                  and tempcontrol.hotpoint>0 
-                  and gfx.mouse_cap==RIGHTBUTTON 
-                  then
-                  repeat
-                          retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "0.5")
-                          userVal = tonumber(userVal)
-                  until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
-                  if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-                  
-                  if retval == true then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = userVal
-                      dogenerate = true
-                  end 
-              end
-              
-              
-              -- If Amplitude or Center and Ctrl-rightclick: Set ALL nodes to precise custom value
-              if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center" or tempcontrol.name == "Swing") 
-                  and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON 
-                  then
-                  repeat
-                          retval, userVal = reaper.GetUserInputs("Set value of all nodes", 1, "Node value (normalized)", "0.5")
-                          userVal = tonumber(userVal)
-                  until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
-                  if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-                  
-                  if retval == true then                  
-                      for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, userVal))
-                      end                 
-                      dogenerate = true        
-                  end
-              end              
-                            
-          end -- if tempcontrol.type=="Envelope"
-                  
-      end -- if is_in_rect
-      
-      local env_enabled=false
-      if captured_control~=nil then
-          if captured_control.OnMouse~=nil then 
-              --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
-          end
-          if captured_control.type=="Slider" then
-              if captured_control.envelope==egsliders[slidNum_env].envelope then 
-                   env_enabled=captured_control.env_enabled
-              end
-              local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
-              new_value=bound_value(0.0,new_value,1.0)
-              --reaper.ShowConsoleMsg(captured_control.type .. " ")
-              if captured_control.value~=new_value then
-                  dogenerate=true
-                  captured_control.value=new_value
-              end
-          end
-      end -- if captured_control~=nil
-      
-      draw_slider(tempcontrol)
-      draw_envelope(tempcontrol,env_enabled)
+                    if hotpointTimeDisplayType == -1 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|!Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 0 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|!Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 1 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|!Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 2 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|Measures.beats+time|!Measures.beats|Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 3 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|!Seconds|Samples|h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 4 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|!Samples|h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 5 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|!h:m:s:f|Normalized|Do not display time"
+                    elseif hotpointTimeDisplayType == 6 then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|!Normalized|Do not display time"
+                    else --if hotpointTimeDisplayType == false then
+                        rateMenuString = rateMenuString .. 
+                        "||#Display hotpoint position as|Project default|Time|Measures.beats+time|Measures.beats|Seconds|Samples|h:m:s:f|Normalized|!Do not display time"
+                    end
+                    
+                    retval = gfx.showmenu(rateMenuString)
+                    if retval == 2 then hotpointRateDisplayType = "frequency" 
+                    elseif retval == 3 then hotpointRateDisplayType = "period note length" 
+                    elseif type(retval) == "number" and retval > 3 then hotpointTimeDisplayType = retval-6
+                    end
+                    
+                    dogenerate = true       
+                end
+          
+                -- If Rate: Ctrl-RightClick to quantize period of ALL nodes
+                if tempcontrol.slider == egsliders[slidNum_rate] and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
+                    gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                    local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
+                    quantmenuSel = gfx.showmenu("#Set rate at ALL nodes to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
+                    userNoteFound = false
+                    userFreqFound = false
+                    if quantmenuSel >= 2 and quantmenuSel <= #tableNoteRates then 
+                        --local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
+                        userNote = tableNoteRates[quantmenuSel]
+                        userNoteFound = true
+                    elseif quantmenuSel == #tableNoteRates + 1 then
+                        repeat
+                            retval, userNote = reaper.GetUserInputs("Set rate at all nodes", 1, "Periods per whole note", "")
+                            userNote = tonumber(userNote)
+                            if type(userNote) == "number" and userNote > 0 then -- >= beatBaseMin and userNote <= beatBaseMax  then 
+                                userNoteFound = true 
+                            end
+                        until retval == false or userNoteFound == true
+                        if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+                    elseif quantmenuSel == #tableNoteRates + 2 then
+                        repeat
+                            retval, userFreq = reaper.GetUserInputs("Set rate at all nodes", 1, "Frequency in Hz"
+                                                                                               --[[
+                                                                                               .. " ("
+                                                                                               .. tostring(timeBaseMin) 
+                                                                                               .. "-" 
+                                                                                               .. tostring(timeBaseMax)
+                                                                                               .. ")"
+                                                                                               ]]
+                                                                                               , "")
+                            userFreq = tonumber(userFreq)
+                            if type(userFreq) == "number" and userFreq > 0 then -- >= timeBaseMin and userFreq <= timeBaseMax then 
+                                userFreqFound = true 
+                            end
+                        until retval == false or userFreqFound == true
+                        if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+                    end
+                      
+                    if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
+                        and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                        for i = 1, #tempcontrol.slider.envelope do
+                            local bpm = getBPM(time_start + tempcontrol.slider.envelope[i][1]*(time_end-time_start))
+                            local userFreq = (1.0/240) * userNote * bpm
+                            tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                        end
+                        dogenerate = true
+                    elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
+                        local normalizedValue = ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)
+                        for i = 1, #tempcontrol.slider.envelope do
+                            tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
+                        end
+                        dogenerate = true
+                    elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
+                        local normalizedValue = ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)
+                        for i = 1, #tempcontrol.slider.envelope do
+                            tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
+                        end
+                        dogenerate = true
+                    elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
+                        and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                        for i = 1, #tempcontrol.slider.envelope do
+                            local timeStartQN = reaper.TimeMap_timeToQN(time_start)
+                            local timeEndQN = reaper.TimeMap_timeToQN(time_end)
+                            local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.slider.envelope[i][1]*(timeEndQN-timeStartQN))
+                            local bpm = getBPM(timeAtNode)
+                            local userNote = (1.0/bpm) * 240.0 * userFreq
+                            tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                        end
+                        dogenerate = true
+                    end 
+                                            
+                end -- if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON
+                
+                
+                -- If Rate and right-click on hotpoint: Quantize period of hotpoint
+                if tempcontrol.slider.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON then
+                    gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+                    local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
+                    quantmenuSel = gfx.showmenu("#Set rate at node to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
+                    userNoteFound = false
+                    userFreqFound = false
+                    if quantmenuSel >= 2 and quantmenuSel <= #tableNoteRates then 
+                        --local tableNoteRates = {nil, (1/64)*(2/3), (1/64), (1/32)*(2/3), (1/32), (1/16)*(2/3), (1/16), (1/8)*(2/3), (1/8), (1/4)*(2/3), (1/4), (1/2)*(2/3), (1/2), 1}
+                        userNote = tableNoteRates[quantmenuSel]
+                        userNoteFound = true
+                    elseif quantmenuSel == #tableNoteRates + 1 then
+                        repeat
+                            retval, userNote = reaper.GetUserInputs("Set rate at node", 1, "Periods per whole note", "")
+                            userNote = tonumber(userNote)
+                            if type(userNote) == "number" and userNote > 0 then -- >= beatBaseMin and userNote <= beatBaseMax  then 
+                                userNoteFound = true 
+                            end
+                        until retval == false or userNoteFound == true
+                        if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+                    elseif quantmenuSel == #tableNoteRates + 2 then
+                        repeat
+                            retval, userFreq = reaper.GetUserInputs("Set rate at node", 1, "Frequency in Hz"
+                                                                                        --[[
+                                                                                        .. " ("
+                                                                                        .. tostring(timeBaseMin) 
+                                                                                        .. "-" 
+                                                                                        .. tostring(timeBaseMax)
+                                                                                        .. ")"
+                                                                                        ]]
+                                                                                        , "")
+                            userFreq = tonumber(userFreq)
+                            if type(userFreq) == "number" and userFreq > 0 then -- >= timeBaseMin and userFreq <= timeBaseMax then 
+                                userFreqFound = true 
+                            end
+                        until retval == false or userFreqFound == true
+                        if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+                    end
+                    
+                    if userNoteFound == true and egsliders[slidNum_timebase].value == 0 
+                        and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                        local bpm = getBPM(time_start + tempcontrol.slider.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
+                        local userFreq = (1.0/240.0) * userNote * bpm
+                        tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                        dogenerate = true                                            
+                    elseif userFreqFound == true and egsliders[slidNum_timebase].value == 0 then
+                        tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                        dogenerate = true
+                    elseif userNoteFound == true and egsliders[slidNum_timebase].value == 1 then
+                        tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                        dogenerate = true
+                    elseif userFreqFound == true and egsliders[slidNum_timebase].value == 1 
+                        and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
+                        local timeStartQN = reaper.TimeMap_timeToQN(time_start)
+                        local timeEndQN = reaper.TimeMap_timeToQN(time_end)
+                        local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.slider.envelope[tempcontrol.hotpoint][1]*(timeEndQN-timeStartQN))
+                        local bpm = getBPM(timeAtNode)
+                        local userNote = (1.0/bpm) * 240.0 * userFreq
+                        tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                        dogenerate = true
+                    end              
+                end -- if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON
+                
+                
+                -- If Amplitude or Center and rightclick on hotpoint: Set to precise custom value
+                if (tempcontrol.slider.name == "Amplitude" or tempcontrol.slider.name == "Center" or tempcontrol.slider.name == "Swing") 
+                    and tempcontrol.hotpoint>0 
+                    and gfx.mouse_cap==RIGHTBUTTON 
+                    then
+                    repeat
+                            retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "0.5")
+                            userVal = tonumber(userVal)
+                    until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
+                    if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+                    
+                    if retval == true then
+                        tempcontrol.envelope[tempcontrol.hotpoint][2] = userVal
+                        dogenerate = true
+                    end 
+                end
+                
+                
+                -- If Amplitude or Center and Ctrl-rightclick: Set ALL nodes to precise custom value
+                if (tempcontrol.slider.name == "Amplitude" or tempcontrol.slider.name == "Center" or tempcontrol.slider.name == "Swing") 
+                    and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON 
+                    then
+                    repeat
+                            retval, userVal = reaper.GetUserInputs("Set value of all nodes", 1, "Node value (normalized)", "0.5")
+                            userVal = tonumber(userVal)
+                    until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
+                    if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+                    
+                    if retval == true then                  
+                        for i = 1, #tempcontrol.slider.envelope do
+                            tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, userVal))
+                        end                 
+                        dogenerate = true        
+                    end
+                end              
+                              
+            end -- if tempcontrol.type=="Envelope"
+                    
+        end -- if is_in_rect
+        
+        --local env_enabled=false
+        if captured_control~=nil then
+            if captured_control.OnMouse~=nil then 
+                --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
+            end
+            if captured_control.type=="Slider" then
+                local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
+                new_value=bound_value(0.0,new_value,1.0)
+                --reaper.ShowConsoleMsg(captured_control.type .. " ")
+                if captured_control.value~=new_value then
+                    dogenerate=true
+                    captured_control.value=new_value
+                end
+            end
+        end -- if captured_control~=nil
+        
+        --draw_slider(tempcontrol)
+        --draw_envelope(tempcontrol) --, env_enabled)
     end -- for key,tempcontrol in pairs(egsliders)
+    
+    ---------------------------------------------
+    -- If right-click, show save/load/delete menu
+    -- (But not if in envelope drawing area)
+    if gfx.mouse_cap == RIGHTBUTTON and not is_in_rect(gfx.mouse_x,
+                                                       gfx.mouse_y,
+                                                       0, --egsliders[100].x(),
+                                                       egsliders[slidNum_env].y(),
+                                                       gfx.w, --egsliders[100].w(),
+                                                       gfx.h - egsliders[slidNum_env].y()) --egsliders[100].h()) 
+                                                       then
+    
+        --reaper.DeleteExtState("LFO generator", "savedCurves", true) -- delete the ExtState
+    
+        -------------------------------
+        -- First, try to load all saved curves
+        getSavedCurvesAndNames()
+        
+        -- AI curves need to be reset now and then. This is probably a good time
+        DeleteUnusedAICurveExtStates()
+        
+        local gotSavedNames
+        loadStr = ""
+        if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
   
-  ---------------------------------------------
-  -- If right-click, show save/load/delete menu
-  -- (But not if in envelope drawing area)
-  if gfx.mouse_cap == RIGHTBUTTON and not is_in_rect(gfx.mouse_x,
-                                                     gfx.mouse_y,
-                                                     0, --egsliders[100].x(),
-                                                     egsliders[slidNum_env].y(),
-                                                     gfx.w, --egsliders[100].w(),
-                                                     gfx.h - egsliders[slidNum_env].y()) --egsliders[100].h()) 
-                                                     then
+            gotSavedNames = true
+            loadStr = ">Load curve"
+            for i = 1, #savedNames do
+                loadStr = loadStr .. "|" .. savedNames[i]
+            end
+            
+            loadStr = loadStr .. "|<||>Delete curve"
+            for i = 1, #savedNames do
+                loadStr = loadStr .. "|" .. savedNames[i] 
+            end
+            loadStr = loadStr .. "|<||"           
+        else
+            gotSavedNames = false
+            loadStr = "#Load curve||#Delete curve||"
+        end
+        
+        saveLoadString = "Save curve||" .. loadStr .. "Reset envelopes"     
+        
+        
+        ----------------------------------------
+        -- Show save/load/delete menu
+        gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
+        menuSel = gfx.showmenu(saveLoadString)
+        
+        if menuSel == 0 then  
+            -- do nothing
+            
+        ------------------
+        -- Reset envelopes
+        elseif (gotSavedNames == true and menuSel == 2 + 2*#savedNames)
+            or (gotSavedNames == false and menuSel == 4)
+            then
+            for i = 1, #egsliders do
+                if egsliders[i] and egsliders[i].type == "Button" then
+                    egsliders[i].envelope = {{0,0.5}, {1,0.5}}
+                end
+            end
+            dogenerate = true
   
-      --reaper.DeleteExtState("LFO generator", "savedCurves", true) -- delete the ExtState
-  
-      -------------------------------
-      -- First, try to load all saved curves
-      getSavedCurvesAndNames()
-      
-      local gotSavedNames
-      loadStr = ""
-      if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
-
-          gotSavedNames = true
-          loadStr = ">Load curve"
-          for i = 1, #savedNames do
-              loadStr = loadStr .. "|" .. savedNames[i]
-          end
-          
-          loadStr = loadStr .. "|<||>Delete curve"
-          for i = 1, #savedNames do
-              loadStr = loadStr .. "|" .. savedNames[i] 
-          end
-          loadStr = loadStr .. "|<||"           
-      else
-          gotSavedNames = false
-          loadStr = "#Load curve||#Delete curve||"
-      end
-      
-      saveLoadString = "Save curve||" .. loadStr .. "Reset curve"     
-      
-      
-      ----------------------------------------
-      -- Show save/load/delete menu
-      gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
-      menuSel = gfx.showmenu(saveLoadString)
-      
-      if menuSel == 0 then  
-          -- do nothing
-          
-      --------------   
-      -- Reset curve
-      elseif (gotSavedNames == true and menuSel == 2 + 2*#savedNames)
-          or (gotSavedNames == false and menuSel == 4)
-          then
-          egsliders[slidNum_rate].envelope = {{0,0.5}, {1,0.5}}
-          egsliders[slidNum_amp].envelope = {{0,0.5}, {1,0.5}}
-          egsliders[slidNum_center].envelope = {{0,0.5}, {1,0.5}}
-          dogenerate = true
-          
-          -------------------------------------------------------
-          -- Draw the newly loaded envelope
-          if egsliders[slidNum_env].name == egsliders[slidNum_rate].name then -- "Rate"
-              egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, envYpos, 0, ENV_HEIGHT, egsliders[slidNum_rate])
-          elseif egsliders[slidNum_env].name == egsliders[slidNum_amp].name then -- "Amplitude"
-              egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, envYpos, 0, ENV_HEIGHT, egsliders[slidNum_amp])
-          else -- "Center"
-              egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, envYpos, 0, ENV_HEIGHT, egsliders[slidNum_center])
-          end
-
-      ------------------------
-      -- Save curve
-      elseif menuSel == 1 then
-          repeat
-              retval, curveName = reaper.GetUserInputs("Save curve", 1, "Curve name (no | or ,)", "")
-          until retval == false or (curveName:find("|") == nil and curveName:find(",") == nil and curveName:len()>0)
-          if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
-          
-          if retval ~= false then
-              saveString = SaveCurveToString(curveName)
-              
-              if reaper.HasExtState("LFO generator", "savedCurves") then
-                  reaper.SetExtState("LFO generator", "savedCurves", saveString .. "|" .. reaper.GetExtState("LFO generator", "savedCurves"), true)
-              else
-                  reaper.SetExtState("LFO generator", "savedCurves", saveString .. "|", true)
-              end
-              
-              
-          end -- if retval ~= false
-  
-      elseif savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
-          -----------------------------------
-          -- delete curve
-          if 1+#savedNames < menuSel then 
-          
-              --retval, curveName = reaper.GetUserInputs("Delete curve", 1, "Curve name", "")
-              extStateString = ""
-              for i = 1, #savedCurves do
-                  if i ~= menuSel - (#savedNames+1) then
-                      extStateString = savedCurves[i] .. "|" .. extStateString
-                  end
-              end
-              if extStateString == "" then 
-                  reaper.DeleteExtState("LFO generator", "savedCurves", true)
-              else
-                  reaper.SetExtState("LFO generator", "savedCurves", extStateString, true)
-              end
-          
-          ---------------------------------------------------
-          -- load curve 
-          elseif 1 < menuSel and menuSel <= 1+#savedNames then 
-          
-              if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
-                  LoadCurveFromString(savedCurves[menuSel-1])
-                  dogenerate = true
-              end
-          end             
-      end -- if menuSel == ...  
-  
-  end -- if gfx.mouse_cap == 2
-  
-  
-  if dogenerate then
-      --if not pcall(MAIN_CalculateAndInsertPoints) then return end   
-      MAIN_CalculateAndInsertPoints()   
-      was_changed=true
-  end
-  last_mouse_cap=gfx.mouse_cap
-  
-  reaper.defer(MAIN_DeferLoop)
+        ------------------------
+        -- Save curve
+        elseif menuSel == 1 then
+            repeat
+                retval, curveName = reaper.GetUserInputs("Save curve", 1, "Curve name (no | or ,)", "")
+            until retval == false or (curveName:find("|") == nil and curveName:find(",") == nil and curveName:len()>0)
+            if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
+            
+            if retval ~= false then
+                saveString = SaveCurveToString(curveName)
+                
+                if reaper.HasExtState("LFO generator", "savedCurves") then
+                    reaper.SetExtState("LFO generator", "savedCurves", saveString .. "|" .. reaper.GetExtState("LFO generator", "savedCurves"), true)
+                else
+                    reaper.SetExtState("LFO generator", "savedCurves", saveString .. "|", true)
+                end
+                
+                
+            end -- if retval ~= false
+    
+        elseif savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
+            -----------------------------------
+            -- delete curve
+            if 1+#savedNames < menuSel then 
+            
+                --retval, curveName = reaper.GetUserInputs("Delete curve", 1, "Curve name", "")
+                extStateString = ""
+                for i = 1, #savedCurves do
+                    if i ~= menuSel - (#savedNames+1) then
+                        extStateString = savedCurves[i] .. "|" .. extStateString
+                    end
+                end
+                if extStateString == "" then 
+                    reaper.DeleteExtState("LFO generator", "savedCurves", true)
+                else
+                    reaper.SetExtState("LFO generator", "savedCurves", extStateString, true)
+                end
+            
+            ---------------------------------------------------
+            -- load curve 
+            elseif 1 < menuSel and menuSel <= 1+#savedNames then 
+            
+                if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
+                    LoadCurveFromString(savedCurves[menuSel-1])
+                    dogenerate = true
+                end
+            end             
+        end -- if menuSel == ...  
+    
+    end -- if gfx.mouse_cap == 2
+    
+    
+    if dogenerate then
+        -- Draw GUI
+        DrawGUI()
+        
+        -- Update arrange view
+        --if not pcall(MAIN_CalculateAndInsertPoints) then return end   
+        MAIN_CalculateAndInsertPoints()   
+        was_changed=true
+    end
+    last_mouse_cap=gfx.mouse_cap
+    
+    reaper.defer(MAIN_DeferLoop)
 end
 
 --------------------------
@@ -2139,7 +2179,7 @@ end -- function getSavedCurvesAndNames()
 
 function SaveCurveToString(curveName)
     local saveString = curveName
-    for i = 0, #egsliders do
+    for i = 1, #egsliders do
         if type(egsliders[i]) ~= "table" then -- skip
         --elseif egsliders[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(egsliders[i].value)
         --elseif egsliders[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(egsliders[i].enabled) 
@@ -2179,7 +2219,7 @@ function SaveCurveToString(curveName)
             end
         ]]
         end
-    end -- for i = 0, #egsliders
+    end -- for i = 1, #egsliders
     return saveString
 end
 
@@ -2251,28 +2291,67 @@ function LoadCurveFromString(curveStr)
           end
           
           sliderName = nextStr()
-      end -- for i = 0, 11 
+      end -- while sliderName do
       
       -------------------------------------------------------
-      -- Draw the newly loaded envelope
-      if egsliders[slidNum_env].name == egsliders[1].name then -- "Rate"
-          egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, envYpos, 0, ENV_HEIGHT, egsliders[slidNum_rate])
-      elseif egsliders[slidNum_env].name == egsliders[2].name then -- "Amplitude"
-          egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, envYpos, 0, ENV_HEIGHT, egsliders[slidNum_amp])
-      else -- "Center"
-          egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, envYpos, 0, ENV_HEIGHT, egsliders[slidNum_center])
-      end
+      --[[ Draw the newly loaded envelope
+      for i = 1, #egsliders do
+          if egsliders[slidNum_env].name == egsliders[i].name then
+              egsliders[slidNum_env]=change_envelope_to(egsliders[i])
+          end
+      end]]
       
-      MAIN_CalculateAndInsertPoints()
       was_changed=true
                     
 
 end -- LoadCurveFromString()
 
 
+---------------------------------------
+function DeleteUnusedAICurveExtStates()
+    -- The IDs of all saved AI curves will be stored in tAI 
+    local tAI = {}
+    
+    local i = 0
+    ::rep:: do
+        local OK, id, state = reaper.EnumProjExtState(0, "LFO Generator", i)
+        if OK then
+            i = i + 1
+            tAI[id] = true
+            goto rep
+        end
+    end
+    
+    -- Now find all AIs and their IDs, and remove all found AIs from tAI
+    for t = 0, reaper.CountTracks(0)-1 do
+        local track = reaper.GetTrack(0, t)
+        if track then
+            for e = 0, reaper.CountTrackEnvelopes(track)-1 do
+                local env = reaper.GetTrackEnvelope(track, e)
+                if env then
+                    for a = 0, reaper.CountAutomationItems(env)-1 do
+                        local id = reaper.GetSetAutomationItemInfo(env, a, "D_POOL_ID", 0, false)
+                        if id then
+                            tAI[tostring(id)] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- The table entries that remain, are AIs that don't exist any more
+    for id in pairs(tAI) do
+        reaper.SetProjExtState(0, "LFO Generator", id, "")
+    end
+   
+end
+
 ---------------------------------------------------
 -- Here the main part of the code starts execution
 ---------------------------------------------------
+
+-- Check that user values are acceptable
 if type(defaultCurveName) ~= "string" then
     reaper.ShowMessageBox("The setting 'defaultCurveName' must be a string.", "ERROR", 0) return(false) end
 if type(backgroundColor) ~= "table" 
@@ -2303,33 +2382,19 @@ if not reaper.APIExists("CountAutomationItems") then
 if not reaper.APIExists("BR_EnvAlloc") then
     reaper.ShowMessageBox("This script requires the SWS/SNM extension.\n\nThe extension can be downloaded from \nwww.sws-extension.com.", "ERROR", 0) return(false) end
 
+-- Activate toolbar button
 _, _, sectionID, cmdID, _, _, _ = reaper.get_action_context()
 if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
     reaper.SetToggleCommandState(sectionID, cmdID, 1)
     reaper.RefreshToolbar2(sectionID, cmdID)
 end  
+
 reaper.atexit(exit)
 
+-- Get starting time selection
 time_start, time_end = reaper.GetSet_LoopTimeRange(false, false, 0.0, 0.0, false)
 
--- The GUI window will be opened at the last-used coordinates
-local coordinatesExtState = reaper.GetExtState("LFO generator", "Last coordinates (env version)") -- Returns an empty string if the ExtState does not exist
-xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
-if xPos and yPos then
-    gfx.init("LFO tool",initXsize, initYsize, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
-else
-    gfx.init("LFO tool",initXsize, initYsize, 0)
-end
-    
-gfx.setfont(1, font, 15)
-
-if reaper.JS_Window_Find and reaper.JS_Window_AttachTopmostPin then 
-    GUIHwnd = reaper.JS_Window_Find("LFO Tool", true)
-    if GUIHwnd then
-        reaper.JS_Window_AttachTopmostPin(GUIHwnd)
-    end
-end
-
+-- Set up GUI
 egsliders = {}
 slidNum_rate = #egsliders+1
 egsliders[slidNum_rate]=make_radiobutton(BORDER_WIDTH,BORDER_WIDTH,0,0,0.5,"Rate", function(nx) end)
@@ -2359,11 +2424,33 @@ egsliders[slidNum_fadein]=make_slider(BORDER_WIDTH,BORDER_WIDTH+SLIDER_HEIGHT*#e
 slidNum_fadeout = #egsliders+1
 egsliders[slidNum_fadeout]=make_slider(BORDER_WIDTH,BORDER_WIDTH+SLIDER_HEIGHT*#egsliders,0,0,0.0,"Fade out duration",function(nx) end)
 slidNum_env = 100
-egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, BORDER_WIDTH+SLIDER_HEIGHT*#egsliders, 0, ENV_HEIGHT,egsliders[slidNum_rate])
+egsliders[slidNum_env]=make_envelope(BORDER_WIDTH, BORDER_WIDTH + SLIDER_HEIGHT*#egsliders + BORDER_WIDTH, 0, INIT_ENV_HEIGHT,egsliders[slidNum_rate])
+
+INIT_Y_SIZE = BORDER_WIDTH + SLIDER_HEIGHT*#egsliders + INIT_ENV_HEIGHT + SPACE_BELOW_ENV
+-- The GUI window will be opened at the last-used coordinates
+local coordinatesExtState = reaper.GetExtState("LFO generator", "Last coordinates (env version)") -- Returns an empty string if the ExtState does not exist
+xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
+if xPos and yPos then
+    gfx.init("LFO tool",INIT_X_SIZE, INIT_Y_SIZE, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+else
+    gfx.init("LFO tool",INIT_X_SIZE, INIT_Y_SIZE, 0)
+end
+    
+gfx.setfont(1, font, 15)
+
+if reaper.JS_Window_Find and reaper.JS_Window_AttachTopmostPin then 
+    GUIHwnd = reaper.JS_Window_Find("LFO Tool", true)
+    if GUIHwnd then
+        reaper.JS_Window_AttachTopmostPin(GUIHwnd)
+    end
+end
 
 --[[for key,tempcontrol in pairs(egsliders) do
   reaper.ShowConsoleMsg(key.." "..tempcontrol.type.." "..tempcontrol.name.."\n")
 end]]
+
+-- Clean up saved AI curves before continuing
+DeleteUnusedAICurveExtStates()
 
 -- Load default curve, if any
 if getSavedCurvesAndNames() ~= false then
