@@ -879,7 +879,6 @@ last_envelope=nil
 --    inserts the points into whatever envelope is active.
 function MAIN_CalculateAndInsertPoints()
 
-    tttt = {}
     --------------------------------------------------------------------------------------------
     -- IS NEW SELECTION?
     -- If new selection, must re-calculate edge values.
