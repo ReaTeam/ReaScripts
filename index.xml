@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4d7bcf5cc6af5bb833fc015ca5feae4afaf73ae2" name="ReaTeam Scripts">
+<index version="1" commit="20d308bc3d8cd42f50f18ece9e457158f88a6726" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9565,48 +9565,22 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e2de70295f1052ecbfb22d31843d44fe07c2843/Various/amagalma_Toggle%20behavior%20of%20Play-Stop%20buttons.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX">
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX at the start and at the end of the FX Chain in focus\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-08-09T19:28:36Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fa658ac6aa881ba382eaccbf6f84bd1b81220af2/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
-      </version>
-      <version name="1.01" author="amagalma" time="2017-08-09T19:40:08Z">
-        <changelog><![CDATA[+ Small improvements]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e96e6be3e1e1e8072e92793afb17ba84c1163092/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
-      </version>
-      <version name="1.11" author="amagalma" time="2017-08-21T21:06:06Z">
-        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX"]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3676c5fe35bb5032b3922284163ddb954dde5e/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB%20Level%20Matching%20JSFX.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST at the start and at the end of the FX Chain in focus\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically checks if AB_LM VST2 or VST3 is present in your system\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the focused FX chain\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
 }
 ]]></description>
         <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
       </metadata>
-      <version name="1.0" author="amagalma" time="2018-11-19T15:09:48Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2fe26f0d87b3bf45485797e6a312f3e9329117ce/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST.lua</source>
-      </version>
-      <version name="1.1" author="amagalma" time="2018-11-19T16:44:20Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/748232cb1cab9f61b09a98489ce9360c650fb3ed/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST.lua</source>
+      <version name="1.0" author="amagalma" time="2018-12-24T23:55:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/46d757c59be7dfd755cc78fd48a94e1e356d1db3/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX">
@@ -9629,6 +9603,10 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="1.01" author="amagalma" time="2018-12-24T21:33:17Z">
         <changelog><![CDATA[# maintain position of FX Chain window]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4d7bcf5cc6af5bb833fc015ca5feae4afaf73ae2/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20vsible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2018-12-24T23:56:40Z">
+        <changelog><![CDATA[# made to operate better with sister script "enclose visible FX chain"]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/20d308bc3d8cd42f50f18ece9e457158f88a6726/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20vsible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
