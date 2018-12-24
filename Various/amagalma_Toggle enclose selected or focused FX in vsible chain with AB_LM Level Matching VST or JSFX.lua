@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
@@ -8,7 +8,7 @@
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 -- @changelog
---    # maintain position of FX Chain window
+--    # made to operate better with sister script "enclose visible FX chain"
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
@@ -246,17 +246,17 @@ if track and trackGUID then
   local _, left, top, right, bottom = reaper.JS_Window_GetRect( FX_win )
   local width = right - left
   local height = bottom - top
-  local ok, value = reaper.GetProjExtState(0, "AB_LM VST Toggle", trackGUID)
+  local ok, value = reaper.GetProjExtState(0, "AB_LM Toggle", trackGUID)
   if ok and value == "1" then
     reaper.Undo_BeginBlock()
     RemoveAB(track, what, take)
-    reaper.SetProjExtState(0, "AB_LM VST Toggle", trackGUID, "0")
-    reaper.Undo_EndBlock("Remove AB_LM VST from focused FX Chain", -1)
+    reaper.SetProjExtState(0, "AB_LM Toggle", trackGUID, "0")
+    reaper.Undo_EndBlock("Remove AB_LM from focused FX Chain", -1)
   else
     reaper.Undo_BeginBlock()
     InsertAB(fxid, track, what, trackGUID, take, firstselFX, lastselFX)
-    reaper.SetProjExtState(0, "AB_LM VST Toggle", trackGUID, "1")
-    reaper.Undo_EndBlock("Enclose selected/focused FX in Chain with AB_LM VST", -1)
+    reaper.SetProjExtState(0, "AB_LM Toggle", trackGUID, "1")
+    reaper.Undo_EndBlock("Enclose selected/focused FX in Chain with AB_LM", -1)
   end
   reaper.JS_Window_SetPosition( FX_win, left, top, width, height )
 else
