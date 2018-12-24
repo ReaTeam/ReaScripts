@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5414ee4c6ac6537ee4314cfe2792a231b4a8b977" name="ReaTeam Scripts">
+<index version="1" commit="1bb71c77af83e21d8db2410fc21f888451988d76" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9625,39 +9625,6 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-24T20:40:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5414ee4c6ac6537ee4314cfe2792a231b4a8b977/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20vsible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX.lua" type="script" desc="amagalma_Toggle insert-remove AB Level Matching JSFX to focused FX">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB Level Matching JSFX before and after focused FX\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must have TBProAudio's free AB_LM JSFX!\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab http://www.tb-software.com/TBProAudio/ab_lmjsfx.html\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=140268</link>
-      </metadata>
-      <version name="1.0" author="amagalma" time="2017-08-08T21:58:41Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/19aba4be0744b6ee2c52a19c9fd4e67e527e0ab1/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
-      </version>
-      <version name="1.01" author="amagalma" time="2017-08-09T15:35:49Z">
-        <changelog><![CDATA[+ Better handling of Track chunks >4MB (using eugen2777's workaround)
-+ Some code optimization]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e8caafefbe60bc02f43ca2f18b624a9c518adfbc/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
-      </version>
-      <version name="1.02" author="amagalma" time="2017-08-09T19:38:16Z">
-        <changelog><![CDATA[+ Small improvements]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb49688f40f21ff930cc80a31f0be9121a6e7684/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
-      </version>
-      <version name="1.15" author="amagalma" time="2017-08-21T21:07:48Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c190492548a6288765e67a0adea23a5b5bbc0b4b/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
-      </version>
-      <version name="1.11" author="amagalma" time="2017-08-21T21:24:12Z">
-        <changelog><![CDATA[+ Better co-operation with sister script: "amagalma_Toggle enclose focused FX chain with AB Level Matching JSFX"]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f26ad7c4abf157ccbf690787a990bcccdfb6a131/Various/amagalma_Toggle%20insert-remove%20AB%20Level%20Matching%20JSFX%20to%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
