@@ -1,13 +1,15 @@
 -- @description amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the focused FX chain
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
 --   - Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX)
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
-
+-- @changelog
+--    # fix for OSX
+--    # checks are run only the first time the script is run
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
@@ -18,59 +20,67 @@ local pref = 1 -- SET HERE YOUR PREFERENCE (1 = JSFX, 2 = VST2, 3 = VST3  ==
 
 ------------------------------------------------------------------------------------------------
 
--- INITIAL CHECKS
--- Check if js_ReaScriptAPI extension is installed
-local js_vers = reaper.JS_ReaScriptAPI_Version()
-if js_vers < 0.962 then
-  reaper.MB( "You need js_ReaScriptAPI extension (v0.962 and newer) to run this script.", "Cannot run script!", 0 )
-  reaper.defer(function() end)
-  return
-end
-
--- Check if AB_LM .dll or .vst3 or jsfx exist in your system
-local jsfx, vst2, vst3 = false, false, false
-local vst_ini= reaper.GetResourcePath() .. "\\reaper-vstplugins.ini"
-local jsfx_ini = reaper.GetResourcePath() .. "\\reaper-jsfx.ini"
--- check for VST2/3 presence
-local file = io.open (vst_ini)
-for line in file:lines() do
-  if line:match("AB_LM.dll") then
-    vst2 = 2
-  elseif line:match("AB_LM.vst3") then
-    vst3 = 3
+local not_firsttime = reaper.HasExtState( "AB_LM Toggle", "format" )
+if not not_firsttime then
+  -- first time running the script, do the checks
+  -- Check if js_ReaScriptAPI extension is installed
+  local js_vers = reaper.JS_ReaScriptAPI_Version()
+  if js_vers < 0.962 then
+    reaper.MB( "You need js_ReaScriptAPI extension (v0.962 and newer) to run this script.", "Cannot run script!", 0 )
+    reaper.defer(function() end)
+    return
   end
-  if vst2 and vst3 then break end
-end
-io.close(file)
--- check for JSFX presence
-local file = io.open (jsfx_ini)
-local cntrl, src = false, false
-for line in file:lines() do
-  if line:match("AB_LM_cntrl") then
-    cntrl = true
-  elseif line:match("AB_LM_src") then
-    src = true
+  -- Check if AB_LM .dll or .vst3 or jsfx exist in your system
+  local jsfx, vst2, vst3 = false, false, false
+  local separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
+  local vst_ini= reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
+  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
+  -- check for VST2/3 presence
+  local file = io.open (vst_ini)
+  for line in file:lines() do
+    if line:match("AB_LM.dll") then
+      vst2 = 2
+    elseif line:match("AB_LM.vst3") then
+      vst3 = 3
+    end
+    if vst2 and vst3 then break end
   end
-  if cntrl and src then 
-    jsfx = 1
-    break 
+  io.close(file)
+  -- check for JSFX presence
+  local file = io.open (jsfx_ini)
+  local cntrl, src = false, false
+  for line in file:lines() do
+    if line:match("AB_LM_cntrl") then
+      cntrl = true
+    elseif line:match("AB_LM_src") then
+      src = true
+    end
+    if cntrl and src then 
+      jsfx = 1
+      break 
+    end
   end
-end
-io.close(file)
-
-if not vst2 and not vst3 and not jsfx then
-  reaper.MB( "No AB_LM VST2/VST3/JSFX has been found on your system.", "Can't run the action!", 0 )
-  reaper.defer(function() end)
-  return
-end
-
--- what to do if preference does not exist
-if pref == 1 and not jsfx then
-  pref = vst2 and vst2 or vst3
-elseif pref == 2 and not vst2 then
-  pref = vst3 and vst3 or jsfx
-elseif pref == 3 and not vst3 then
-  pref = vst2 and vst2 or jsfx
+  io.close(file)
+  if not vst2 and not vst3 and not jsfx then
+    reaper.MB( "No AB_LM VST2/VST3/JSFX has been found on your system.", "Can't run the action!", 0 )
+    local prev = reaper.HasExtState( "AB_LM Toggle", "format" )
+    if prev then
+      reaper.DeleteExtState( "AB_LM Toggle", "format", true )
+    end
+    reaper.defer(function() end)
+    return
+  end
+  -- what to do if preference does not exist
+  if pref == 1 and not jsfx then
+    pref = vst2 and vst2 or vst3
+  elseif pref == 2 and not vst2 then
+    pref = vst3 and vst3 or jsfx
+  elseif pref == 3 and not vst3 then
+    pref = vst2 and vst2 or jsfx
+  end
+  reaper.SetExtState( "AB_LM Toggle", "format", pref, true )
+else
+  pref = tonumber(reaper.GetExtState( "AB_LM Toggle", "format" ))
 end
 
 ------------------------------------------------------------------------------------------------
