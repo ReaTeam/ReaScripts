@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.02
+Version: 2.03
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -110,6 +110,8 @@ About:
   * v2.02 (2018-12-16)
     + Improved reset behavior.
     + Other small improvements when using AIs.
+  * v2.03 (2018-12-25)
+    + Fix bug with pooled AIs.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1417,10 +1419,10 @@ function MAIN_CalculateAndInsertPoints()
      
     -- And lastly, insert the endEnvPoint to preserve existing envelope value to right of time selection
     if preserveExistingEnvelope and endEnvPointFound then
-        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset + 0.0000000001, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, false)
+        reaper.InsertEnvelopePointEx(env, selectedAutoItem, time_end - timeOffset + 0.0000000001, endEnvPoint.value, endEnvPoint.shape, endEnvPoint.tension, true, true)
     end
     
-    --reaper.Envelope_SortPointsEx(env, selectedAutoItem)
+    reaper.Envelope_SortPointsEx(env, selectedAutoItem)
     if envNameOK and envName == "Tempo map" then 
         local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
         if firstOK then
