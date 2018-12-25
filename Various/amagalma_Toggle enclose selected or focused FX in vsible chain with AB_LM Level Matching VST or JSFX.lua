@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.11
+-- @version 1.2
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
@@ -8,15 +8,15 @@
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 -- @changelog
---    # fix for OSX
---    # checks are run only the first time the script is run
+--    # Ability to set preference of LITE Control JSFX in the script (default: off)
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
 
---==========================================================================
-local pref = 1 -- SET HERE YOUR PREFERENCE (1 = JSFX, 2 = VST2, 3 = VST3  ==
---==========================================================================
+--==============================================================================
+local pref = 1 -- SET HERE YOUR PREFERENCE (1 = JSFX, 2 = VST2, 3 = VST3      ==
+local lite = 0 -- SET TO 1 IF YOU PREFER THE LITE VERSION OF THE JSFX CONTROL ==
+--==============================================================================
 
 ------------------------------------------------------------------------------------------------
 
@@ -48,14 +48,16 @@ if not not_firsttime then
   io.close(file)
   -- check for JSFX presence
   local file = io.open (jsfx_ini)
-  local cntrl, src = false, false
+  local cntrl, src, ltcntrl = false, false, false
   for line in file:lines() do
     if line:match("AB_LM_cntrl") then
       cntrl = true
+    elseif line:match("AB_LMLT_cntrl") then
+      ltcntrl = true
     elseif line:match("AB_LM_src") then
       src = true
     end
-    if cntrl and src then 
+    if cntrl and src and ltcntrl then 
       jsfx = 1
       break 
     end
@@ -133,7 +135,11 @@ local function AddTrackAB(track, pos, x)
     if x == 1 then
       reaper.TrackFX_AddByName(track, "JS:AB_LM_src", false, -1)
     else
-      reaper.TrackFX_AddByName(track, "JS:AB_LM_cntrl", false, -1)
+      if lite == 1 then
+        reaper.TrackFX_AddByName(track, "JS:AB_LMLT_cntrl", false, -1)
+      else
+        reaper.TrackFX_AddByName(track, "JS:AB_LM_cntrl", false, -1)
+      end
     end
   elseif pref == 2 then
     reaper.TrackFX_AddByName(track, "VST2:AB_LM", false, -1)
@@ -148,7 +154,11 @@ local function AddTakeAB(take, pos, x)
    if x == 1 then
      reaper.TakeFX_AddByName(take, "JS:AB_LM_src", -1)
    else
-     reaper.TakeFX_AddByName(take, "JS:AB_LM_cntrl", -1)
+    if lite == 1 then
+      reaper.TakeFX_AddByName(take, "JS:AB_LMLT_cntrl", -1)
+    else
+      reaper.TakeFX_AddByName(take, "JS:AB_LM_cntrl", -1)
+    end
    end 
   elseif pref == 2 then
     reaper.TakeFX_AddByName( take, "VST2:AB_LM", -1 )
@@ -184,7 +194,7 @@ local function AlterChunk(chunk, lastselFX, focusedFX, fxid, t)
       if line:match("<JS.-AB_LM_src") and cnt < 1 then
         line = line:gsub('(.-)""', '%1"-- AB_LM Send --"')
         cnt = cnt + 1
-      elseif (line:match("<JS.-AB_LM_cntrl") and cnt < 2) then  
+      elseif (line:match("<JS.-AB_LM_cntrl") or line:match("<JS.-AB_LMLT_cntrl")) and cnt < 2 then
         line = line:gsub('(.-)""', '%1"-- AB_LM Receive --"')
         cnt = cnt + 1
       elseif not float and cnt == 2 and line:match("FLOATPOS") then -- float AB_LM Receive
