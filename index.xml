@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6f8b7dc1ffbb64be2b1e40acee381e98f176c67e" name="ReaTeam Scripts">
+<index version="1" commit="f0b706a674ff0af2d798eb562cc53f9058ed26d4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9585,6 +9585,11 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-24T23:55:13Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/46d757c59be7dfd755cc78fd48a94e1e356d1db3/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2018-12-25T15:05:34Z">
+        <changelog><![CDATA[# fix for OSX
+# checks are run only the first time the script is run]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f0b706a674ff0af2d798eb562cc53f9058ed26d4/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX">
