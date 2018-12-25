@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.1
+-- @version 1.11
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
