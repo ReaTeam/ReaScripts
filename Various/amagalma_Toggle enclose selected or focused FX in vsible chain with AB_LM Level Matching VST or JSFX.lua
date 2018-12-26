@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.21
+-- @version 1.25
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
@@ -8,7 +8,7 @@
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 -- @changelog
---    # Ability to set preference of LITE Control JSFX in the script (default: off)
+--    # Added more first=time-run checks
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
@@ -22,19 +22,33 @@ local lite = 0 -- SET TO 1 IF YOU PREFER THE LITE VERSION OF THE JSFX CONTROL ==
 
 local not_firsttime = reaper.HasExtState( "AB_LM Toggle", "format" )
 if not not_firsttime then
+  local separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
+  local path = reaper.GetResourcePath()
   -- first time running the script, do the checks
+  -- Check Reaper version
+  if tonumber(reaper.GetAppVersion():match("%d+.%d+")) < 5.965 then
+    reaper.MB( "Please, update to Reaper v5.965 or newer.", "Cannot run script!", 0 )
+    reaper.defer(function() end)
+    return
+  end
   -- Check if js_ReaScriptAPI extension is installed
-  local js_vers = reaper.JS_ReaScriptAPI_Version()
-  if js_vers < 0.962 then
-    reaper.MB( "You need js_ReaScriptAPI extension (v0.962 and newer) to run this script.", "Cannot run script!", 0 )
+  local js_extension = path .. separ .. "UserPlugins" .. separ .."reaper_js_ReaScriptAPI32.dll"
+  if reaper.file_exists( js_extension ) then
+    local js_vers = reaper.JS_ReaScriptAPI_Version()
+    if js_vers < 0.962 then
+      reaper.MB( "You need js_ReaScriptAPI extension v0.962 or newer.", "Cannot run script!", 0 )
+      reaper.defer(function() end)
+      return
+    end
+  else
+    reaper.MB( "You need to install js_ReaScriptAPI extension from ReaPack.", "Cannot run script!", 0 )
     reaper.defer(function() end)
     return
   end
   -- Check if AB_LM .dll or .vst3 or jsfx exist in your system
   local jsfx, vst2, vst3 = false, false, false
-  local separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
-  local vst_ini= reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
-  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
+  local vst_ini= path .. separ .."reaper-vstplugins.ini"
+  local jsfx_ini = path .. separ .. "reaper-jsfx.ini"
   -- check for VST2/3 presence
   local file = io.open (vst_ini)
   for line in file:lines() do
