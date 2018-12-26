@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.25
+-- @version 1.26
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
@@ -8,7 +8,7 @@
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 -- @changelog
---    # Added more first=time-run checks
+--    # first-time-run checks for all platforms
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
@@ -32,8 +32,17 @@ if not not_firsttime then
     return
   end
   -- Check if js_ReaScriptAPI extension is installed
-  local js_extension = path .. separ .. "UserPlugins" .. separ .."reaper_js_ReaScriptAPI32.dll"
-  if reaper.file_exists( js_extension ) then
+  local i = 0
+  local file, exists = true, false
+  while file do
+    file = reaper.EnumerateFiles( path .. separ .. "UserPlugins", i )
+    if file:match"reaper_js_ReaScriptAPI" then
+      exists = true
+      break
+    end
+    i = i + 1
+  end
+  if exists then
     local js_vers = reaper.JS_ReaScriptAPI_Version()
     if js_vers < 0.962 then
       reaper.MB( "You need js_ReaScriptAPI extension v0.962 or newer.", "Cannot run script!", 0 )
