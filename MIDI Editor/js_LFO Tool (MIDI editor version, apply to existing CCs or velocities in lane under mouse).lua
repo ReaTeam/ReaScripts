@@ -2807,7 +2807,7 @@ if not reaper.APIExists("GetArmedCommand") then
     reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0) return(false) end
 if not reaper.SN_FocusMIDIEditor then 
     reaper.MB("This script requires an up-to-date version of the SWS/SNM extension, "
-              .. "which can be downloaded from www.sws-extension.com.", "ERROR", 0) return(false) end
+              .. "which can be downloaded from www.sws-extension.org.", "ERROR", 0) return(false) end
 
 
 ------------------------------------------------------
