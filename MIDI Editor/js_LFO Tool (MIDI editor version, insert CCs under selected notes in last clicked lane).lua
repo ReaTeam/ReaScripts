@@ -2799,25 +2799,21 @@ if type(shadows) ~= "boolean" then
 if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
     reaper.MB("The setting 'fineAdjust' must be a number between 0 and 1.", "ERROR", 0) return(false) end
 if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
-    reaper.MB("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) 
-end
+    reaper.MB("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) end
     
     
--------------------------------------------------------------
--- Check whether the required version of REAPER is available.
+-----------------------------------------------------------------------
+-- Check whether the required versions of REAPER and SWS are available.
 if not reaper.APIExists("GetArmedCommand") then
-    reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0)
-    return(false)
-end
+    reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0) return(false) end
+if not reaper.SN_FocusMIDIEditor then 
+    reaper.MB("This script requires an up-to-date version of the SWS/SNM extension, "
+              .. "which can be downloaded from www.sws-extension.org.", "ERROR", 0) return(false) end
 
 
 ------------------------------------------------------
 -- If laneToUse == "under mouse" then SWS is required.
-if laneToUse == "under mouse" then
-    if not reaper.APIExists("SN_FocusMIDIEditor") then
-        reaper.MB("This script requires an up-to-date version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-        return(false) 
-    end 
+if laneToUse == "under mouse" then 
     window, segment, details = reaper.BR_GetMouseCursorContext()
     if not (segment == "notes" or segment == "cc_lane") then
         reaper.ShowMessageBox('The mouse is not correctly positioned.'
