@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0a499e6333cd89dc8692811738346b389ddb3636" name="ReaTeam Scripts">
+<index version="1" commit="733cd825d7ac4ee8396430d5983d02766b503813" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5208,6 +5208,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ "Swing" envelope.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d76b53016e526533adf2008d968556b64b7041f3/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.71" author="juliansader" time="2018-12-28T10:10:59Z">
+        <changelog><![CDATA[+ Small improvements.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2df2cb1467a78747362feaf15d01024a0b1c818d/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
       <metadata>
@@ -5309,6 +5313,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="2.70" author="juliansader" time="2018-12-27T19:26:40Z">
         <changelog><![CDATA[+ "Swing" envelope.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b085b6b6eb051aa6e5965ad49c2e01f5dd406f3a/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.71" author="juliansader" time="2018-12-28T10:11:28Z">
+        <changelog><![CDATA[+ Small improvements.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7c15bd5320386a5299f5496ab026d5a0bd278551/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
@@ -5416,6 +5424,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ "Swing" envelope.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/05991a8d60085f9b32734691c610a35df9b9b320/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.71" author="juliansader" time="2018-12-28T10:12:00Z">
+        <changelog><![CDATA[+ Small improvements.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fa7fa9297e355d9b698fedc73cb6625324128a9c/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
       <metadata>
@@ -5521,6 +5533,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="2.70" author="juliansader" time="2018-12-27T19:26:40Z">
         <changelog><![CDATA[+ "Swing" envelope.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fce875903b27ce5a45ea7cfdfd3ca64a3b167947/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.71" author="juliansader" time="2018-12-28T10:12:35Z">
+        <changelog><![CDATA[+ Small improvements.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a6384c551de949a5254a77926dbc8cc59103b805/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
@@ -5628,6 +5644,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ "Swing" envelope.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/84e11acbfdf26be262aee2890d5995e15533c87d/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
+      <version name="2.71" author="juliansader" time="2018-12-28T10:13:26Z">
+        <changelog><![CDATA[+ Small improvements.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c64d8283634cabd35e0908b69f7a3f7f230f2f6e/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+      </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
       <metadata>
@@ -5733,6 +5753,10 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="2.70" author="juliansader" time="2018-12-27T19:26:40Z">
         <changelog><![CDATA[+ "Swing" envelope.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/873b92d531fcab47e0be2769d236ec75305d69e9/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+      </version>
+      <version name="2.71" author="juliansader" time="2018-12-28T10:13:54Z">
+        <changelog><![CDATA[+ Small improvements.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/733cd825d7ac4ee8396430d5983d02766b503813/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
