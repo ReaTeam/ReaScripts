@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84e11acbfdf26be262aee2890d5995e15533c87d" name="ReaTeam Scripts">
+<index version="1" commit="0a499e6333cd89dc8692811738346b389ddb3636" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1514,6 +1514,10 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="2.03" author="juliansader / Xenakios" time="2018-12-25T10:28:43Z">
         <changelog><![CDATA[+ Fix bug with pooled AIs.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f8b7dc1ffbb64be2b1e40acee381e98f176c67e/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="2.04" author="juliansader / Xenakios" time="2018-12-28T09:24:10Z">
+        <changelog><![CDATA[+ Fix bug when right-clicking on node to set value.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0a499e6333cd89dc8692811738346b389ddb3636/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
