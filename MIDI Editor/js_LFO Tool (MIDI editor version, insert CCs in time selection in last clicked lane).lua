@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua
-Version: 2.70
+Version: 2.71
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -98,6 +98,8 @@ About:
     + "Morph" slider when applied to existing events.
   v2.70 (2018-12-26)
     + "Swing" envelope.
+  v2.71 (2018-12-28)
+    + Small improvements.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1146,7 +1148,7 @@ function MAIN_generateNodes()
         
         ptcount=ptcount+1   
         
-    until instime >= time_end -- while time < gen_end_time
+    until instime > time_end -- while time < gen_end_time
 end -- function MAIN_generateNodes()
 
 ----------------------------------------------------------
