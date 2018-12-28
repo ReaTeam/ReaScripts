@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.03
+Version: 2.04
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -112,6 +112,8 @@ About:
     + Other small improvements when using AIs.
   * v2.03 (2018-12-25)
     + Fix bug with pooled AIs.
+  * v2.04 (2018-12-28)
+    + Fix bug when right-clicking on node to set value.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -1956,7 +1958,7 @@ function MAIN_DeferLoop()
                     if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                     
                     if retval == true then
-                        tempcontrol.envelope[tempcontrol.hotpoint][2] = userVal
+                        tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = userVal
                         dogenerate = true
                     end 
                 end
