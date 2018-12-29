@@ -61,7 +61,7 @@ if not not_firsttime then
   local vst_ini
   if architecture == "32" then
     vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
-  else
+  elseif architecture == "64" then
     vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins64.ini"
   end
   local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
