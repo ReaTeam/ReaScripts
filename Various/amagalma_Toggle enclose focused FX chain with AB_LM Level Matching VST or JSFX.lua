@@ -1,6 +1,6 @@
 -- @description amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.26
+-- @version 1.27
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the focused FX chain
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
@@ -8,7 +8,7 @@
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 -- @changelog
---    # first-time-run checks for all platforms
+--    # hopefully, first-time-run error-checking should be fixed now for x64 platforms
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
@@ -56,20 +56,30 @@ if not not_firsttime then
     end
   -- Check if AB_LM .dll or .vst3 or jsfx exist in your system
   local jsfx, vst2, vst3 = false, false, false
-  local separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
-  local vst_ini= reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
-  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
-  -- check for VST2/3 presence
-  local file = io.open (vst_ini)
-  for line in file:lines() do
-    if line:match("AB_LM.dll") then
-      vst2 = 2
-    elseif line:match("AB_LM.vst3") then
-      vst3 = 3
-    end
-    if vst2 and vst3 then break end
+  local OS, architecture = string.match(reaper.GetOS(), "(%a+)(%d?%d?)")
+  local separ = OS == "Win" and "\\" or "/"
+  local vst_ini
+  if architecture == "32" then
+    vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
+  else
+    vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins64.ini"
   end
-  io.close(file)
+  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
+  if architecture ~= "" then
+    -- check for VST2/3 presence, if not Linux
+    local file = io.open (vst_ini)
+    if file then
+      for line in file:lines() do
+        if line:match("AB_LM[_x64]*.dll") then
+          vst2 = 2
+        elseif line:match("AB_LM[_x64]*.vst3") then
+          vst3 = 3
+        end
+        if vst2 and vst3 then break end
+      end
+      io.close(file)
+    end
+  end
   -- check for JSFX presence
   local file = io.open (jsfx_ini)
   local cntrl, src, ltcntrl = false, false, false
