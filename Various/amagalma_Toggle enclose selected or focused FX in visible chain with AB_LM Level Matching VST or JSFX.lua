@@ -1,6 +1,6 @@
--- @description amagalma_Toggle enclose selected or focused FX in vsible chain with AB_LM Level Matching VST/JSFX
+-- @description amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.26
+-- @version 1.27
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system
@@ -8,7 +8,7 @@
 --   - Smart undo point creation
 -- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 -- @changelog
---    # first-time-run checks for all platforms
+--    # hopefully, first-time-run error-checking should be fixed now for x64 platforms
 
 ------------------------------------------------------------------------------------------------
 local reaper = reaper
@@ -19,7 +19,6 @@ local lite = 0 -- SET TO 1 IF YOU PREFER THE LITE VERSION OF THE JSFX CONTROL ==
 --==============================================================================
 
 ------------------------------------------------------------------------------------------------
-
 local not_firsttime = reaper.HasExtState( "AB_LM Toggle", "format" )
 if not not_firsttime then
   local separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
@@ -32,43 +31,54 @@ if not not_firsttime then
     return
   end
   -- Check if js_ReaScriptAPI extension is installed
-  local i = 0
-  local file, exists = true, false
-  while file do
-    file = reaper.EnumerateFiles( path .. separ .. "UserPlugins", i )
-    if file:match"reaper_js_ReaScriptAPI" then
-      exists = true
-      break
+    local i = 0
+    local file, exists = true, false
+    while file do
+      file = reaper.EnumerateFiles( path .. separ .. "UserPlugins", i )
+      if file:match"reaper_js_ReaScriptAPI" then
+        exists = true
+        break
+      end
+      i = i + 1
     end
-    i = i + 1
-  end
-  if exists then
-    local js_vers = reaper.JS_ReaScriptAPI_Version()
-    if js_vers < 0.962 then
-      reaper.MB( "You need js_ReaScriptAPI extension v0.962 or newer.", "Cannot run script!", 0 )
+    if exists then
+      local js_vers = reaper.JS_ReaScriptAPI_Version()
+      if js_vers < 0.962 then
+        reaper.MB( "You need js_ReaScriptAPI extension v0.962 or newer.", "Cannot run script!", 0 )
+        reaper.defer(function() end)
+        return
+      end
+    else
+      reaper.MB( "You need to install js_ReaScriptAPI extension from ReaPack.", "Cannot run script!", 0 )
       reaper.defer(function() end)
       return
     end
-  else
-    reaper.MB( "You need to install js_ReaScriptAPI extension from ReaPack.", "Cannot run script!", 0 )
-    reaper.defer(function() end)
-    return
-  end
   -- Check if AB_LM .dll or .vst3 or jsfx exist in your system
   local jsfx, vst2, vst3 = false, false, false
-  local vst_ini= path .. separ .."reaper-vstplugins.ini"
-  local jsfx_ini = path .. separ .. "reaper-jsfx.ini"
-  -- check for VST2/3 presence
-  local file = io.open (vst_ini)
-  for line in file:lines() do
-    if line:match("AB_LM.dll") then
-      vst2 = 2
-    elseif line:match("AB_LM.vst3") then
-      vst3 = 3
-    end
-    if vst2 and vst3 then break end
+  local OS, architecture = string.match(reaper.GetOS(), "(%a+)(%d?%d?)")
+  local separ = OS == "Win" and "\\" or "/"
+  local vst_ini
+  if architecture == "32" then
+    vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins.ini"
+  elseif architecture == "64" then
+    vst_ini = reaper.GetResourcePath() .. separ .."reaper-vstplugins64.ini"
   end
-  io.close(file)
+  local jsfx_ini = reaper.GetResourcePath() .. separ .. "reaper-jsfx.ini"
+  if architecture ~= "" then
+    -- check for VST2/3 presence, if not Linux
+    local file = io.open (vst_ini)
+    if file then
+      for line in file:lines() do
+        if line:match("AB_LM[_x64]*.dll") then
+          vst2 = 2
+        elseif line:match("AB_LM[_x64]*.vst3") then
+          vst3 = 3
+        end
+        if vst2 and vst3 then break end
+      end
+      io.close(file)
+    end
+  end
   -- check for JSFX presence
   local file = io.open (jsfx_ini)
   local cntrl, src, ltcntrl = false, false, false
