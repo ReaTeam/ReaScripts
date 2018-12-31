@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="11d64c3c4f2415b4180be796283303bef1cc55d5" name="ReaTeam Scripts">
+<index version="1" commit="3c407d333ebf80b947810aa25cc13ce06488e182" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12193,23 +12193,28 @@ here
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/908b8574775be377c32e804c1da10bb1c243ab69/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
-    <reapack name="tompad_MusicMath.lua" type="script" desc="musicmath - bpm to ms converter">
+    <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 tompad_MusicMath is a reascript to get ms from bpm in a Reaperproject.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When script window is opened, it takes the current bpm from Reaper and by choosing note buttons it convert bpm to ms. By clicking the resulting ms-text the script is copying the ms to the systems clipboard (for pasting in to delay f.ex)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 tompad_MusicMath is a reascript to get ms from bpm and Hz from pitch in a Reaperproject.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When script window is opened, it takes the current bpm from Reaper and by choosing note buttons it convert bpm to ms.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By clicking the resulting ms-text the script is copying the ms to the systems clipboard (for pasting in to delay f.ex)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Any comments on coding, requests, bugs etc is welcome! PM me (tompad) on Reaper Forum (https://forum.cockos.com/member.php?u=19103).\par}
 }
 ]]></description>
-        <link rel="screenshot" href="https://bitbucket.org/TompaD/tompad_musicmath/downloads/tompad_MusicMath.png">Screenshot of tompad_MusicMath</link>
-        <link rel="donation" href="https://paypal.me/tompad">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="tompad" time="2018-12-27T13:39:05Z">
         <changelog><![CDATA[Published on BitBucket, Reaper forum and.....Reapack?]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0aac839460b482c0bf37d7aa1a7440bd72ea479a/Various/tompad_MusicMath.lua</source>
+      </version>
+      <version name="1.1" author="tompad" time="2018-12-31T23:06:55Z">
+        <changelog><![CDATA[Added coverter pitch to Hz
+Added tooltip "Click to copy to clipboard"
+Added flashing green when clicking on ms or Hz label]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c407d333ebf80b947810aa25cc13ce06488e182/Various/tompad_MusicMath.lua</source>
       </version>
     </reapack>
   </category>
