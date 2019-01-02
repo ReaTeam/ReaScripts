@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3c407d333ebf80b947810aa25cc13ce06488e182" name="ReaTeam Scripts">
+<index version="1" commit="7459d7aa6263dd5b64f85887eed4d6b0a0d2a067" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3240,6 +3240,22 @@ items being skipped.]]></changelog>
       <version name="1.01" author="Lokasenna" time="2017-02-27T15:03:35Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c9d4accc8c3851add25d15874555f50ab74becd9/Items%20Editing/Lokasenna_Unselect%20all%20MIDI%20notes%20in%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mordi_Move selected items to new individual tracks.lua" type="script" desc="Move selected items to new individual tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Takes all selected items and moves them to new individual tracks. You get the option to line them up vertically or keep their horizontal position.\par}
+}
+]]></description>
+        <link rel="website" href="http://www.mordi.net/">Mordi's website</link>
+        <link rel="screenshot">https://i.imgur.com/wESKPou.gif</link>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2019-01-02T14:54:25Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7459d7aa6263dd5b64f85887eed4d6b0a0d2a067/Items%20Editing/mordi_Move%20selected%20items%20to%20new%20individual%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_spk77_Sort items by length.lua" type="script" desc="Sort selected items by length (ascending)">
