@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7459d7aa6263dd5b64f85887eed4d6b0a0d2a067" name="ReaTeam Scripts">
+<index version="1" commit="8914868e32a3d3c1c7c230e7b0529cf5e40777e8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9607,6 +9607,24 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="1.01" author="amagalma" time="2017-06-30T15:57:58Z">
         <changelog><![CDATA[+ fixed problem when using the script to stop recording]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4df7dee986b3dcd70b2ae593e014cf0a819bb6dc/Various/amagalma_Smart%20automatic%20record%20mode.eel</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Smart contextual zoom.lua" type="script" desc="amagalma_Smart contextual zoom">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles zoom to objects under mouse or to selected objects if more than one are selected\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Can zoom to tracks, items, envelopes, regions or time selection\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Mode is stored in projext state so zooming out can be resumed even after loading a saved project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Does not create unecessary undo points\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Undo points are created only when (un)hiding Master Track, which is unavoidable\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2019-01-03T14:51:29Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8914868e32a3d3c1c7c230e7b0529cf5e40777e8/Various/amagalma_Smart%20contextual%20zoom.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
