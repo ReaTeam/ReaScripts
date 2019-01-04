@@ -1,14 +1,29 @@
 -- @description amagalma_Smart contextual zoom
 -- @author amagalma
--- @version 1.0
+-- @version 1.1
 -- @about
---  # Toggles zoom to objects under mouse or to selected objects if more than one are selected
+--  # Toggles zoom to objects under mouse (if none is selected), or to selected objects (if one or more are selected)
 --  # Can zoom to tracks, items, envelopes, regions or time selection
 --  # Mode is stored in projext state so zooming out can be resumed even after loading a saved project
 --  # Does not create unecessary undo points
 --  # Undo points are created only when (un)hiding Master Track, which is unavoidable
+--  # Needs js_ReaScriptAPI extension
+-- @changelog
+--  # Added initial check for js_ReaScriptAPI extension's presence
+--  # Fixed Master Track visibility bug
+--  # Fixed Track under mouse getting selected, when there was no track selection
+--  # Added debug ability (set in the script)
 
 --------------------------------------------------------------------------------
+
+local debug = 0 -- Set to 1 to enable, set to 0 to disable
+
+if not reaper.APIExists( "JS_Window_FindChildByID" ) then
+  reaper.MB( [[The js_ReaScriptAPI extension is needed for this script to run. Please, import the following repository in ReaPack:
+
+https://raw.githubusercontent.com/ReaTeam/Extensions/master/index.xml]], "Cannot run action", 0 )
+return
+end
 
 local reaper = reaper
 local defheightenv = {} -- stored here are envelope lanes with default height (height = 0)
@@ -24,7 +39,6 @@ local mouseTrack = reaper.BR_GetMouseCursorContext_Track()
 local mouseItem = reaper.BR_GetMouseCursorContext_Item()
 local mousePos = reaper.BR_GetMouseCursorContext_Position()
 --local mouseEnvelope = reaper.BR_GetMouseCursorContext_Envelope()
-local debug = 0
 --[[ Get time selection and if mouse is inside
 local overTimeSel
 local tStart, tEnd = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
@@ -32,16 +46,34 @@ if tStart ~= tEnd then
   overTimeSel = (mousePos >= tStart and mousePos <= tEnd)
 end--]]
 
+
 ----------------
 
-local function msg(str)
+local function GetStates()
+  local _, savedTCPView = reaper.GetProjExtState( 0, "Smart Zoom", "SavedTCPView" )
+  local _, v_scroll = reaper.GetProjExtState( 0, "Smart Zoom", "V_Scroll" )
+  local _, arrange = reaper.GetProjExtState( 0, "Smart Zoom", "SavedArrangeView" )
+  local _, hType = reaper.GetProjExtState( 0, "Smart Zoom", "hType" )
+  local _, vType = reaper.GetProjExtState( 0, "Smart Zoom", "vType" )
+  return hType, vType, arrange, savedTCPView, v_scroll
+end
+
+----------------
+
+local function msg(str, hType, vType, arrange, savedTCPView, v_scroll)
   if debug == 1 then
-    reaper.ClearConsole()
-    reaper.ShowConsoleMsg("\n" .. tostring(str) .. "\n")
+    GetStates()
+    hTypeN, vTypeN, arrangeN, savedTCPViewN, v_scrollN = GetStates()
+    if savedTCPView and savedTCPView ~= "" then savedTCPView = "BigString" end
+    if savedTCPViewN and savedTCPViewN ~= "" then savedTCPViewN = "BigString" end
+    reaper.ShowConsoleMsg("\n====  " .. tostring(str) .. "  ====\n")
+    reaper.ShowConsoleMsg(string.format("OLD ---- hType: %s   |   vType: %s   |   arrange: %s   |   savedTCPView: %s   |   v_scroll: %s\n", hType, vType, arrange, savedTCPView, v_scroll))
+    reaper.ShowConsoleMsg(string.format("NEW --- hType: %s   |   vType: %s   |   arrange: %s   |   savedTCPView: %s   | v_scroll: %s\n\n", hTypeN, vTypeN, arrangeN, savedTCPViewN, v_scrollN))
     local context = reaper.GetCursorContext2( true )
     local w = reaper.JS_Window_Find( "ReaScript console output", true )
     if w then
       reaper.JS_Window_SetForeground( w )
+      reaper.JS_Window_SetForeground( reaper.GetMainHwnd() )
       reaper.SetCursorContext( context, nil )
     end
   end
@@ -64,17 +96,6 @@ end
 
 ----------------
 
-local function GetStates()
-  local _, savedTCPView = reaper.GetProjExtState( 0, "Smart Zoom", "SavedTCPView" )
-  local _, v_scroll = reaper.GetProjExtState( 0, "Smart Zoom", "V_Scroll" )
-  local _, arrange = reaper.GetProjExtState( 0, "Smart Zoom", "SavedArrangeView" )
-  local _, hType = reaper.GetProjExtState( 0, "Smart Zoom", "hType" )
-  local _, vType = reaper.GetProjExtState( 0, "Smart Zoom", "vType" )
-  return hType, vType, arrange, savedTCPView, v_scroll
-end
-
-----------------
-
 local function GetSelectedTracksinTCP()
   local t = {}
   local seltracks_cnt = reaper.CountSelectedTracks2( 0, true )
@@ -86,13 +107,9 @@ local function GetSelectedTracksinTCP()
     end
     t.cnt = seltracks_cnt
   else
-    local track, context = reaper.BR_TrackAtMouseCursor()
-    if reaper.ValidatePtr2( 0, track, "MediaTrack*" ) and context == 0 then
-      local guid = reaper.GetTrackGUID( track )
-      t[guid] = track
-      reaper.SetTrackSelected( track, true )
-      t.cnt = 1
-    end
+    local guid = reaper.GetTrackGUID( mouseTrack )
+    t[guid] = mouseTrack
+    t.cnt = 1
   end
   return t
 end
@@ -107,7 +124,12 @@ local function StoreVertical()
     local tr = reaper.CSurf_TrackFromID( i, false )
     local guid = reaper.GetTrackGUID( tr )
     local height = reaper.GetMediaTrackInfo_Value( tr, "I_HEIGHTOVERRIDE" )
-    local vis = reaper.GetMediaTrackInfo_Value( tr, "B_SHOWINTCP" )
+    local vis
+    if i ~= 0 then
+      vis = reaper.GetMediaTrackInfo_Value( tr, "B_SHOWINTCP" )
+    else
+      vis = reaper.GetMasterTrackVisibility() & 1
+    end
     local env_cnt = reaper.CountTrackEnvelopes( tr )
     local trackinfo = string.format("%sh%dv%de%d", guid, height, vis, env_cnt)
     local envelopes = {}
@@ -314,7 +336,7 @@ local function ToggleZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
     ZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
     reaper.SetProjExtState( 0, "Smart Zoom", "hType", "items")
     reaper.SetProjExtState( 0, "Smart Zoom", "vType", "items")
-    msg("1 Zoom to selected items from no active zoom")
+    msg("1 Zoom to selected items from no active zoom", hType, vType, arrange, savedTCPView, v_scroll)
     return 0
   else
     if hType == vType then -- active zoom to sel items
@@ -322,7 +344,7 @@ local function ToggleZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
       ReStoreHorizontal()
       reaper.SetProjExtState( 0, "Smart Zoom", "hType", "")
       reaper.SetProjExtState( 0, "Smart Zoom", "vType", "")
-      msg("2 Exit from zoom to selected items")
+      msg("2 Exit from zoom to selected items", hType, vType, arrange, savedTCPView, v_scroll)
       return v_scroll
     else
       if ok(arrange) then -- horizontal zoom active
@@ -333,7 +355,7 @@ local function ToggleZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
       ZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
       reaper.SetProjExtState( 0, "Smart Zoom", "hType", "items")
       reaper.SetProjExtState( 0, "Smart Zoom", "vType", "items")
-      msg("3 Zoom to selected items from existing horizontal zoom")
+      msg("3 Zoom to selected items from existing horizontal zoom", hType, vType, arrange, savedTCPView, v_scroll)
       return 0
     end
   end
@@ -346,7 +368,7 @@ local function ToggleZoomFitSelectedTracksTCP()
   if vType == "tracks" then -- active zoom to tracks
     RestoreVertical(savedTCPView)
     reaper.SetProjExtState( 0, "Smart Zoom", "vType", "")
-    msg("4 Exit from zoom to selected tracks")
+    msg("4 Exit from zoom to selected tracks", hType, vType, arrange, savedTCPView, v_scroll)
     return v_scroll
   else
     local selectedtracks = GetSelectedTracksinTCP()
@@ -364,10 +386,10 @@ local function ToggleZoomFitSelectedTracksTCP()
         ReStoreHorizontal()
         reaper.SetProjExtState( 0, "Smart Zoom", "hType", "")
         reaper.SetProjExtState( 0, "Smart Zoom", "vType", "")
-        msg("5 Exit from zoom to selected items")
+        msg("5 Exit from zoom to selected items", hType, vType, arrange, savedTCPView, v_scroll)
         return v_scroll
       else
-        msg("6 Zoom to selected track. Keep mode to zoom to selected items")
+        msg("6 Zoom to selected track. Keep mode to zoom to selected items", hType, vType, arrange, savedTCPView, v_scroll)
         ZoomFitTracksTCP(selectedtracks)
         return 0
       end
@@ -375,7 +397,7 @@ local function ToggleZoomFitSelectedTracksTCP()
       StoreVertical()
       ZoomFitTracksTCP(selectedtracks)
       reaper.SetProjExtState( 0, "Smart Zoom", "vType", "tracks")
-      msg("7 Zoom to selected tracks from no active vertical zoom mode")
+      msg("7 Zoom to selected tracks from no active vertical zoom mode", hType, vType, arrange, savedTCPView, v_scroll)
       return 0
     end
   end 
@@ -390,21 +412,21 @@ local function ToggleZoomtoRegion()
     if hType == "region" then -- zoom to region is active
       ReStoreHorizontal()
       reaper.SetProjExtState( 0, "Smart Zoom", "hType", "")
-      msg("8 Exit zoom to region")
+      msg("8 Exit zoom to region", hType, vType, arrange, savedTCPView, v_scroll)
     elseif not ok(hType) then -- no active horizontal zoom
       StoreHorizontal()
       ZoomToRegion(region)
       reaper.SetProjExtState( 0, "Smart Zoom", "hType", "region")
-      msg("9 Zoom to region from no active horizontal zoom")
+      msg("9 Zoom to region from no active horizontal zoom", hType, vType, arrange, savedTCPView, v_scroll)
     elseif hType == "items" then -- active zoom to sel items
       ZoomToRegion(region)
       reaper.SetProjExtState( 0, "Smart Zoom", "hType", "region")
       reaper.SetProjExtState( 0, "Smart Zoom", "vType", "tracks")
-      msg("10 Zoom to region from selected items mode. Now: region & tracks")
+      msg("10 Zoom to region from selected items mode. Now: region & tracks", hType, vType, arrange, savedTCPView, v_scroll)
     elseif hType == "timesel" then -- active zoom to time selection
       ZoomToRegion(region)
       reaper.SetProjExtState( 0, "Smart Zoom", "hType", "region")
-      msg("11 Zoom to region from time selection mode")
+      msg("11 Zoom to region from time selection mode", hType, vType, arrange, savedTCPView, v_scroll)
     end
   end
 end
@@ -416,21 +438,21 @@ local function ToggleZoomTimeSelection()
   if hType == "timesel" then -- zoom to time selection is active
     ReStoreHorizontal()
     reaper.SetProjExtState( 0, "Smart Zoom", "hType", "")
-    msg("12 Exit zoom to time selection")
+    msg("12 Exit zoom to time selection", hType, vType, arrange, savedTCPView, v_scroll)
   elseif not ok(hType) then -- no active horizontal zoom
     StoreHorizontal()
     reaper.Main_OnCommand(40031, 0) -- View: Zoom time selection
     reaper.SetProjExtState( 0, "Smart Zoom", "hType", "timesel")
-    msg("13 Zoom to time selection from no active horizontal zoom mode")
+    msg("13 Zoom to time selection from no active horizontal zoom mode", hType, vType, arrange, savedTCPView, v_scroll)
   elseif hType == "items" then -- active zoom to sel items
     reaper.Main_OnCommand(40031, 0) -- View: Zoom time selection
     reaper.SetProjExtState( 0, "Smart Zoom", "hType", "timesel")
     reaper.SetProjExtState( 0, "Smart Zoom", "vType", "tracks")
-    msg("14 Zoom to time selection from items mode. Now timesel & tracks")
+    msg("14 Zoom to time selection from items mode. Now timesel & tracks", hType, vType, arrange, savedTCPView, v_scroll)
   elseif hType == "region" then -- active zoom to region
     reaper.Main_OnCommand(40031, 0) -- View: Zoom time selection
     reaper.SetProjExtState( 0, "Smart Zoom", "hType", "timesel")
-    msg("15 Zoom to time selection from region mode")
+    msg("15 Zoom to time selection from region mode", hType, vType, arrange, savedTCPView, v_scroll)
   end
 end
 
@@ -442,12 +464,12 @@ local function ToggleZoomSelEnvelope(envelope)
     -- SWS/wol: Set selected envelope height to maximum
     reaper.Main_OnCommand(reaper.NamedCommandLookup('_WOL_SETSELENVHMAX'), 0)
     reaper.SetProjExtState( 0, "Smart Zoom", "Envelope", "1" )
-    msg("16 Zoom to selected envelope")
+    msg("16 Zoom to selected envelope", hType, vType, arrange, savedTCPView, v_scroll)
   else
     -- SWS/wol: Set selected envelope height to default
     reaper.Main_OnCommand(reaper.NamedCommandLookup('_WOL_SETSELENVHDEF'), 0)
     reaper.SetProjExtState( 0, "Smart Zoom", "Envelope", "" )
-    msg("17 Exit zoom to selected envelope")
+    msg("17 Exit zoom to selected envelope", hType, vType, arrange, savedTCPView, v_scroll)
   end
 end
 
