@@ -1,18 +1,20 @@
 -- @description amagalma_Smart contextual zoom
 -- @author amagalma
--- @version 1.1
+-- @version 1.2
+-- @link https://forum.cockos.com/showthread.php?t=215575
 -- @about
---  # Toggles zoom to objects under mouse (if none is selected), or to selected objects (if one or more are selected)
+--  # Toggles zoom to objects under mouse (if 0 or 1 is selected), or to selected objects (if 2+ are selected)
 --  # Can zoom to tracks, items, envelopes, regions or time selection
 --  # Mode is stored in projext state so zooming out can be resumed even after loading a saved project
 --  # Does not create unecessary undo points
 --  # Undo points are created only when (un)hiding Master Track, which is unavoidable
 --  # Needs js_ReaScriptAPI extension
 -- @changelog
---  # Added initial check for js_ReaScriptAPI extension's presence
---  # Fixed Master Track visibility bug
---  # Fixed Track under mouse getting selected, when there was no track selection
---  # Added debug ability (set in the script)
+--  # Fixed display correct scroll position when returning from zoom to envelope mode
+--  # Behavior change: running the script in empty arrange area, it always zooms to the track under mouse (and not the selected ones)
+--  # Behavior change: running the script over a track in TCP: if selected tracks < 2 then zooms to track under mouse, else to the selected tracks
+--  # Behavior change: running the script over an item: if selected items < 2 then zooms to item under mouse, else to the selected items
+--  # Some code optimization
 
 --------------------------------------------------------------------------------
 
@@ -38,7 +40,7 @@ local window, segment, details = reaper.BR_GetMouseCursorContext()
 local mouseTrack = reaper.BR_GetMouseCursorContext_Track()
 local mouseItem = reaper.BR_GetMouseCursorContext_Item()
 local mousePos = reaper.BR_GetMouseCursorContext_Position()
---local mouseEnvelope = reaper.BR_GetMouseCursorContext_Envelope()
+local mouseEnvelope = reaper.BR_GetMouseCursorContext_Envelope()
 --[[ Get time selection and if mouse is inside
 local overTimeSel
 local tStart, tEnd = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
@@ -62,7 +64,6 @@ end
 
 local function msg(str, hType, vType, arrange, savedTCPView, v_scroll)
   if debug == 1 then
-    GetStates()
     hTypeN, vTypeN, arrangeN, savedTCPViewN, v_scrollN = GetStates()
     if savedTCPView and savedTCPView ~= "" then savedTCPView = "BigString" end
     if savedTCPViewN and savedTCPViewN ~= "" then savedTCPViewN = "BigString" end
@@ -96,10 +97,10 @@ end
 
 ----------------
 
-local function GetSelectedTracksinTCP()
+local function GetSelectedTracksinTCP(forcemouseTrack)
   local t = {}
   local seltracks_cnt = reaper.CountSelectedTracks2( 0, true )
-  if seltracks_cnt > 0 then
+  if seltracks_cnt > 1 and forcemouseTrack ~= 1 then
     for i = 0, seltracks_cnt-1 do
       local track = reaper.GetSelectedTrack2(0, i, true)
       local guid = reaper.GetTrackGUID( track )
@@ -289,7 +290,7 @@ local function ZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
   local tracks = {}
   local cnt = 0
   local min, max = reaper.GetProjectLength( 0 ), 0
-  if item_cnt < 1 then
+  if item_cnt < 2 then
     local guid = reaper.GetTrackGUID( mouseTrack )
     tracks[guid] = mouseTrack
     tracks.cnt = 1
@@ -363,7 +364,7 @@ end
 
 ----------------
 
-local function ToggleZoomFitSelectedTracksTCP()
+local function ToggleZoomFitSelectedTracksTCP(forcemouseTrack)
   local hType, vType, arrange, savedTCPView, v_scroll = GetStates()
   if vType == "tracks" then -- active zoom to tracks
     RestoreVertical(savedTCPView)
@@ -371,7 +372,7 @@ local function ToggleZoomFitSelectedTracksTCP()
     msg("4 Exit from zoom to selected tracks", hType, vType, arrange, savedTCPView, v_scroll)
     return v_scroll
   else
-    local selectedtracks = GetSelectedTracksinTCP()
+    local selectedtracks = GetSelectedTracksinTCP(forcemouseTrack)
     if vType == "items" then -- active zoom to sel items
       local track_cnt = reaper.CountTracks( 0 )
       local vis_cnt = 0
@@ -458,18 +459,28 @@ end
 
 ----------------
 
-local function ToggleZoomSelEnvelope(envelope)
-   ok, toggle = reaper.GetProjExtState( 0, "Smart Zoom", "Envelope" )
+local function ToggleZoomSelEnvelope()
+  local hType, vType, arrange, savedTCPView, v_scroll
+  if debug == 1 then
+    hType, vType, arrange, savedTCPView, v_scroll = GetStates()
+  end
+  local ok = reaper.GetProjExtState( 0, "Smart Zoom", "Envelope" )
+  local _, v_scroll = reaper.GetProjExtState( 0, "Smart Zoom", "V_Scroll" )
+  reaper.SetCursorContext( 2, mouseEnvelope )
   if ok ~= 1 then
     -- SWS/wol: Set selected envelope height to maximum
+    local _, v_scrollN = reaper.JS_Window_GetScrollInfo( trackview, "v" )
     reaper.Main_OnCommand(reaper.NamedCommandLookup('_WOL_SETSELENVHMAX'), 0)
     reaper.SetProjExtState( 0, "Smart Zoom", "Envelope", "1" )
+    reaper.SetProjExtState( 0, "Smart Zoom", "V_Scroll", v_scrollN)
     msg("16 Zoom to selected envelope", hType, vType, arrange, savedTCPView, v_scroll)
   else
     -- SWS/wol: Set selected envelope height to default
     reaper.Main_OnCommand(reaper.NamedCommandLookup('_WOL_SETSELENVHDEF'), 0)
     reaper.SetProjExtState( 0, "Smart Zoom", "Envelope", "" )
+    reaper.SetProjExtState( 0, "Smart Zoom", "V_Scroll", "")
     msg("17 Exit zoom to selected envelope", hType, vType, arrange, savedTCPView, v_scroll)
+    return v_scroll
   end
 end
 
@@ -479,40 +490,33 @@ end
 
 -- SMART ZOOM TO CONTEXT
 
-reaper.PreventUIRefresh( 1 )
 local v_scroll = false
-
+reaper.PreventUIRefresh( 1 )
 -- TCP track
 if string.match(window, "tcp") and string.match(segment, "track") then
   v_scroll = ToggleZoomFitSelectedTracksTCP()
--- ECP track
-elseif string.match(window, "tcp") and string.match(segment, "envelope") then
-  -- in order this function to work correctly it should not be inside an active PreventUIRefresh state
-  reaper.PreventUIRefresh( -1 )
-  reaper.Main_OnCommand(reaper.NamedCommandLookup("_S&M_MOUSE_L_CLICK"), 0)
-  ToggleZoomSelEnvelope()
-  reaper.PreventUIRefresh( 1 )
 -- Region, Marker & Tempo lanes
 elseif string.match(window, "ruler") and not string.match(segment, "timeline") then
   ToggleZoomtoRegion()
 -- Timeline
 elseif string.match(window, "ruler") and string.match(segment, "timeline") then
   ToggleZoomTimeSelection()
--- Empty arrange
+-- Empty arrange : always focus to track under mouse
 elseif string.match(window, "arrange") and string.match(segment, "track") and string.match(details, "empty") then
-  v_scroll = ToggleZoomFitSelectedTracksTCP()
--- Envelope track in arrange
-elseif string.match(window, "arrange") and string.match(segment, "envelope") then
-  -- in order this function to work correctly it should not be inside an active PreventUIRefresh state
-  reaper.PreventUIRefresh( -1 )
-  reaper.Main_OnCommand(reaper.NamedCommandLookup("_S&M_MOUSE_L_CLICK"), 0)
-  ToggleZoomSelEnvelope()
-  reaper.PreventUIRefresh( 1 )
+  v_scroll = ToggleZoomFitSelectedTracksTCP(1)
 -- Item
 elseif string.match(window, "arrange") and string.match(segment, "track") and string.match(details, "item") then
   v_scroll = ToggleZoomFitSelectedItemsTCP(mouseTrack, mouseItem)
 end
 reaper.PreventUIRefresh( -1 )
+-- Selected envelope
+-- The SWS envelope actions should not be inside an active PreventUIRefresh state
+if (string.match(window, "tcp") and string.match(segment, "envelope")) -- ECP track
+or (string.match(window, "arrange") and string.match(segment, "envelope")) -- Envelope lane in arrange
+then
+  v_scroll = ToggleZoomSelEnvelope()
+  reaper.PreventUIRefresh( 1 )
+end
 if v_scroll then
   reaper.TrackList_AdjustWindows( false )
   reaper.JS_Window_SetScrollPos( trackview, "v", tonumber(v_scroll) )
