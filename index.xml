@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="913b810f6a20ddc80e067f94bb0ba0c7757e194c" name="ReaTeam Scripts">
+<index version="1" commit="a87d12772c0611faff888e0a3cd84505b49a66be" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9618,7 +9618,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles zoom to objects under mouse (if none is selected), or to selected objects (if one or more are selected)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles zoom to objects under mouse (if 0 or 1 is selected), or to selected objects (if 2+ are selected)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Can zoom to tracks, items, envelopes, regions or time selection\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Mode is stored in projext state so zooming out can be resumed even after loading a saved project\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Does not create unecessary undo points\par}
@@ -9626,6 +9626,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Needs js_ReaScriptAPI extension\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=215575</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2019-01-03T14:51:29Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8914868e32a3d3c1c7c230e7b0529cf5e40777e8/Various/amagalma_Smart%20contextual%20zoom.lua</source>
@@ -9636,6 +9637,14 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
 # Fixed Track under mouse getting selected, when there was no track selection
 # Added debug ability (set in the script)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/913b810f6a20ddc80e067f94bb0ba0c7757e194c/Various/amagalma_Smart%20contextual%20zoom.lua</source>
+      </version>
+      <version name="1.2" author="amagalma" time="2019-01-04T14:36:42Z">
+        <changelog><![CDATA[# Fixed display correct scroll position when returning from zoom to envelope mode
+# Behavior change: running the script in empty arrange area, it always zooms to the track under mouse (and not the selected ones)
+# Behavior change: running the script over a track in TCP: if selected tracks < 2 then zooms to track under mouse, else to the selected tracks
+# Behavior change: running the script over an item: if selected items < 2 then zooms to item under mouse, else to the selected items
+# Some code optimization]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a87d12772c0611faff888e0a3cd84505b49a66be/Various/amagalma_Smart%20contextual%20zoom.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
