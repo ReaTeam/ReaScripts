@@ -1,6 +1,6 @@
 -- @description amagalma_Smart contextual zoom
 -- @author amagalma
--- @version 1.5
+-- @version 1.51
 -- @link https://forum.cockos.com/showthread.php?t=215575
 -- @about
 --  # Toggles zoom to objects under mouse (if 0 or 1 is selected), or to selected objects (if 2+ are selected)
@@ -10,21 +10,28 @@
 --  # Undo points are created only when (un)hiding Master Track, which is unavoidable
 --  # Needs js_ReaScriptAPI extension and offers to install it if not present
 -- @changelog
---  # Major re-work of code
---  # Fixed several corner-cases which resulted to buggy behavior
---  # Improved debugging code
---  # Script now offers to install js_ReaScriptAPI extension if not present
+--  # Improved js_ReaScriptAPI extension installation, if not present
 
 --------------------------------------------------------------------------------
 
 local debug = 0 -- Set to 1 to enable, set to 0 to disable
 
 if not reaper.APIExists( "JS_Window_FindChildByID" ) then
-  local answer = reaper.MB( "The js_ReaScriptAPI extension is needed for this script to run. Do you want to install it?\n\n(You may need to restart Reaper for the installation to take effect)", "Install js_ReaScriptAPI extension", 4 )
+  local msg = [[The js_ReaScriptAPI extension is needed for this script to run.
+  
+Do you want to install it now?
+
+The ReaPack package browser will open. Make sure the API is installed by
+checking there are no parentheses around the version.
+If there are, please right-click and install.
+(You will need to restart Reaper for the installation to take effect)]]
+
+  local answer = reaper.MB( msg, "Install js_ReaScriptAPI extension?", 4 )
   if answer == 6 then
     local url = [[https://raw.githubusercontent.com/ReaTeam/Extensions/master/index.xml]]
     reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", url, true, 2 )
     reaper.ReaPack_ProcessQueue( true )
+    reaper.ReaPack_BrowsePackages('js_ReascriptAPI')
     return
   else
     return  
