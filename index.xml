@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d572ef6832114e7b6bd59317e51bb76976f7969" name="ReaTeam Scripts">
+<index version="1" commit="f34f86481bb9387e925544ed5436a429ba508882" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3571,6 +3571,10 @@ here
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-10T02:02:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e5c9c351820f765b3a702c29f896068632b895bf/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2019-01-09T22:58:19Z">
+        <changelog><![CDATA[# Supports files with samplerate different to that of the project]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f34f86481bb9387e925544ed5436a429ba508882/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
