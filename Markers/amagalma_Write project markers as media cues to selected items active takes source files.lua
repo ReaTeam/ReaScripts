@@ -1,16 +1,24 @@
 -- @description amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Writes the project markers that cross the selected items as media cues of the selected items' active takes' source files
---
 --   - Overwrites the files
 --   - Issues warning if markers are going to appear to other items in the project that share the same source file
 --   - To erase an existing media cue, place an unnamed project marker at the position of the cue
+-- @changelog
+--  # Supports files with samplerate different to that of the project
 
 --------------------------------------------------------------------------------------------------
 
 local reaper = reaper
+local projsrate
+if reaper.SNM_GetIntConfigVar( "projsrateuse", 0 ) == 1 then 
+  projsrate = reaper.SNM_GetIntConfigVar( "projsrate", 0 )
+else
+  _, projsrate = reaper.GetAudioDeviceInfo( "SRATE", "" )
+  projsrate = tonumber(projsrate)
+end
 
 local function escape_lua_pattern(s)
   local matches =
@@ -89,6 +97,7 @@ for i = 0, item_cnt-1 do
   local take = reaper.GetActiveTake(item)
   if take and not reaper.TakeIsMIDI( take ) then
     local source = reaper.GetMediaItemTake_Source( take )
+    local samplerate = reaper.GetMediaSourceSampleRate( source )
     local filename = reaper.GetMediaSourceFileName( source , "" )
     local file = io.open(filename, "rb")
     file:seek("cur", 4) -- riff_header
@@ -218,7 +227,7 @@ for i = 0, item_cnt-1 do
       for m = 0, num_markers-1 do
         local _, _, marker_pos, _, marker_name = reaper.EnumProjectMarkers( m )
         if marker_pos >= vis_source_start and marker_pos <= vis_source_end then
-          local pos = sample_pos(marker_pos-source_start) -- position in samples
+          local pos = sample_pos((marker_pos-source_start)*(samplerate/projsrate)) -- position in samples
           -- it's inside, check if it is new
           if not markers_inside[pos] then
             -- new marker, add
@@ -437,7 +446,7 @@ for i = 1, #items do
   -- file substitution
   for i = 1, math.huge do
     if reaper.file_exists( filename .. "cue" ) then
-      os.remove(filename) -- delete original file
+      retvalf, errorf = os.remove(filename) -- delete original file
       os.rename(filename .. "cue", filename) -- rename temporary file as original
       break
     end
