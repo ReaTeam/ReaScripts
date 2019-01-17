@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f34f86481bb9387e925544ed5436a429ba508882" name="ReaTeam Scripts">
+<index version="1" commit="2710dadab9c426fc5b5adb09f6c35ba094d4c0a1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10173,6 +10173,24 @@ Try harder to fit the button in very small windows]]></changelog>
         <changelog><![CDATA[Show the button even if the window cannot fit the text
 Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Find shortcut in the Action List.lua" type="script" desc="Find shortcut in the Action List">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Find shortcut in the Action List\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script opens the "Find Key or MIDI Controller" window in the Action List.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The js_ReaScriptAPI extension is required and must be installed in order to use this script.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=216102">Forum thread</link>
+        <link rel="donation" href="https://paypal.me/cfillion">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-01-17T11:31:34Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2710dadab9c426fc5b5adb09f6c35ba094d4c0a1/Various/cfillion_Find%20shortcut%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Project underrun monitor (xrun).lua" type="script" desc="Project underrun monitor (xrun)">
