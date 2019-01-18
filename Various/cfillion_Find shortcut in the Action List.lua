@@ -1,6 +1,7 @@
 -- @description Find shortcut in the Action List
 -- @author cfillion
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Fix keyboard input on macOS
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=216102
 -- @donation Donate via PayPal https://paypal.me/cfillion
 -- @about
@@ -39,4 +40,4 @@ reaper.ShowActionList()
 
 local title = reaper.JS_Localize('Actions', 'DLG_274')
 local actionList = reaper.JS_Window_Find(title, false)
-reaper.JS_Window_OnCommand(actionList, 9) -- Find shortcut
+reaper.JS_WindowMessage_Send(actionList, "WM_COMMAND", 9, 0, 0, 0) -- Find shortcut
