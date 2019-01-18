@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2710dadab9c426fc5b5adb09f6c35ba094d4c0a1" name="ReaTeam Scripts">
+<index version="1" commit="81783a088c1723a4a7cc8f32af82d66295aedab8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10191,6 +10191,10 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-01-17T11:31:34Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2710dadab9c426fc5b5adb09f6c35ba094d4c0a1/Various/cfillion_Find%20shortcut%20in%20the%20Action%20List.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2019-01-18T12:39:54Z">
+        <changelog><![CDATA[Fix keyboard input on macOS]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/81783a088c1723a4a7cc8f32af82d66295aedab8/Various/cfillion_Find%20shortcut%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Project underrun monitor (xrun).lua" type="script" desc="Project underrun monitor (xrun)">
