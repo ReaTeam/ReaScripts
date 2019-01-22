@@ -10,6 +10,7 @@
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Request thread https://forum.cockos.com/showthread.php?t=216321
+-- @screenshot https://i.imgur.com/Oo9VRbl.gif
 -- @donation Donate via PayPal https://paypal.me/cfillion
 
 local L = 1<<3
