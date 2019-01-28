@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="982e2e72d26450c6fbe5d49d942a3a8799b1044b" name="ReaTeam Scripts">
+<index version="1" commit="bf81dbba045636057297f6051ac939a7e66d71a4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8179,17 +8179,16 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, Project Templates and Track Templates\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Support for custom Project & Track Template folders (used in addition to the default locations)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Simple list filter at the top of each tab\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Open in Explorer/Finder] button for opening the folder location of the selected file\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global [New Tab], [New Project] and [Open Project] buttons\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Recent Projects]-Tab: 3 different sort options: 'Most Recent' projects at the top, 'Alphabetically' ascending and descending\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, Project Templates, Track Templates, Projects and .RPL Project Lists\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Support for adding custom folder paths\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List filter at the top of each tab (supports multiple search words separated with a 'space' character)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button for browsing to the folder location of a selected file\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-select of listbox entries is already part of Lokasenna's GUI library)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep window open' checkbox at the top right\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Resizeable window (currently requires restart of ReaLauncher afterwards)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Experimental: [Projects] tab (projects folder can be set in the [Options])\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep window open' checkbox\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to switch between Reaper Theme Slots\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Resizeable window\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
@@ -8245,6 +8244,21 @@ enter or a = Exit and apply changes\par}
 + Using the [Open in Explorer/Finder] Button on Track/Project Template tabs with empty listboxes also opens the default locations now
 + [Options]-tab: Added info about multi-select in listboxes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b171876c09cf3dc34e5941ef85c8573eab64c6e1/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.0" author="solger" time="2019-01-28T20:47:55Z">
+        <changelog><![CDATA[+ Filter: Added support for using multiple search words (separated with a 'space' character)
++ General code refactoring and improvements
++ [Project Templates]: Added 'Edit Template Mode' checkbox - if not checked, the 'Save As' window is shown when loading
++ [Project Lists]: First implementation of (SWS Project List) .RPL file loading support
++ [Recent Projects]: Duplicate recent project entries are now added only once to the list
++ [Recent Projects]: Added Right-click menu options 'Remove entry' and 'Clear list'
++ [Recent Projects]: First implementation of subversion filter (support for file namings with a hyphen or underscore like 'project name-number' or 'project name_number')
++ Theme Slots (requires SWS Extensions): Added option to switch between different Reaper Theme Slots
++ Theme Slots (requires SWS Extensions): Option to assign a description to each Theme Slot
++ Window resizing: Added minimum window size check (to prevent overlapping UI elements)
++ Window resizing: now with instant update of the UI elements (no restart required anymore to see the changes)
++ Window: Some general GUI adjustments]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf81dbba045636057297f6051ac939a7e66d71a4/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
