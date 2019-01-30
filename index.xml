@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bf81dbba045636057297f6051ac939a7e66d71a4" name="ReaTeam Scripts">
+<index version="1" commit="0551abca3b908e33a65437a1675f5050a882bf3a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8259,6 +8259,10 @@ enter or a = Exit and apply changes\par}
 + Window resizing: now with instant update of the UI elements (no restart required anymore to see the changes)
 + Window: Some general GUI adjustments]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf81dbba045636057297f6051ac939a7e66d71a4/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.0.1" author="solger" time="2019-01-30T19:39:32Z">
+        <changelog><![CDATA[+ [Recent Projects]: Temporary removal of subversion filter due to further bugfixing]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0551abca3b908e33a65437a1675f5050a882bf3a/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
