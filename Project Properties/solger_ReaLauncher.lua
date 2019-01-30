@@ -1,19 +1,8 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.0
+-- @version 1.0.1
 -- @changelog
---   + Filter: Added support for using multiple search words (separated with a 'space' character)
---   + General code refactoring and improvements
---   + [Project Templates]: Added 'Edit Template Mode' checkbox - if not checked, the 'Save As' window is shown when loading
---   + [Project Lists]: First implementation of (SWS Project List) .RPL file loading support
---   + [Recent Projects]: Duplicate recent project entries are now added only once to the list
---   + [Recent Projects]: Added Right-click menu options 'Remove entry' and 'Clear list'
---   + [Recent Projects]: First implementation of subversion filter (support for file namings with a hyphen or underscore like 'project name-number' or 'project name_number')
---   + Theme Slots (requires SWS Extensions): Added option to switch between different Reaper Theme Slots
---   + Theme Slots (requires SWS Extensions): Option to assign a description to each Theme Slot
---   + Window resizing: Added minimum window size check (to prevent overlapping UI elements)
---   + Window resizing: now with instant update of the UI elements (no restart required anymore to see the changes)
---   + Window: Some general GUI adjustments
+--   + [Recent Projects]: Temporary removal of subversion filter due to further bugfixing
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -66,7 +55,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.0"
+appversion = "1.0.1"
 appname = "solger_ReaLauncher"
 
 osversion =  reaper.GetOS()
@@ -447,11 +436,11 @@ function UpdatePathDisplayMode()
 
     if FilterActive_RecentProjects then GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.filteredNames
     else
-       if FilterActive_RecentSubversions then
-        GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.subversionNames
-       else
+      --  if FilterActive_RecentSubversions then
+      --   GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.subversionNames
+      --  else
         GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.names
-      end
+      --end
     end
    
     if FilterActive_ProjectTemplates then  GUI.elms.tab2_listbox_projectTemplates.list = ProjectTemplates.filteredNames
@@ -472,11 +461,11 @@ function UpdatePathDisplayMode()
 
     if FilterActive_RecentProjects then GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.filteredPaths
     else
-      if FilterActive_RecentSubversions then
-        GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.subversionPaths
-      else
+      -- if FilterActive_RecentSubversions then
+      --   GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.subversionPaths
+      -- else
         GUI.elms.tab1_listbox_recentProjects.list = RecentProjects.paths
-      end
+      --end
     end
     
     if FilterActive_ProjectTemplates then GUI.elms.tab2_listbox_projectTemplates.list = ProjectTemplates.filteredPaths
@@ -677,6 +666,10 @@ end
 function SplitProjectNameAt(matchString, indexType, indexPosition)
   matchFilename = string.sub(matchString, 0, #matchString - indexPosition)
   matchFileversion = string.sub(matchString, #matchString - indexPosition + 2, #matchString)
+
+  -- check for filetype
+
+
   InsertFileWithHighestSubversion(matchFilename, matchFileversion, indexType)
 end
 
@@ -731,16 +724,16 @@ function CheckFilesForSubversions(table)
 end
 
 -- update the recent project tab list depending on the fileNumberFilter box value
-function UpdateSubversionFilter()
-  local subversionFilterState = GUI.Val("tab1_checklist_subversionFilter")
-  if subversionFilterState == true then
-    FilterActive_RecentSubversions = true
-  else 
-    FilterActive_RecentSubversions = false
-    CheckFilesForSubversions(RecentProjects.names)
-  end
-  UpdatePathDisplayMode()
-end
+-- function UpdateSubversionFilter()
+--   local subversionFilterState = GUI.Val("tab1_checklist_subversionFilter")
+--   if subversionFilterState == true then
+--     FilterActive_RecentSubversions = true
+--   else 
+--     FilterActive_RecentSubversions = false
+--     CheckFilesForSubversions(RecentProjects.names)
+--   end
+--   UpdatePathDisplayMode()
+-- end
 -------------------------
 -- Custom Project Listbox
 -------------------------
@@ -946,10 +939,10 @@ local function Load_RecentProject()
     for p = 1, #vals do
       if FilterActive_RecentProjects == true then selectedProject = RecentProjects.items[RecentProjects.filteredNames[vals[p]]]
       else 
-        if FilterActive_RecentSubversions then selectedProject = RecentProjects.items[RecentProjects.subversionNames[vals[p]]]
-        else 
+        -- if FilterActive_RecentSubversions then selectedProject = RecentProjects.items[RecentProjects.subversionNames[vals[p]]]
+        -- else 
           selectedProject = RecentProjects.items[RecentProjects.names[vals[p]]]
-        end
+        --end
       end
       Project_Load(selectedProject, p)
     end
@@ -1181,7 +1174,7 @@ local function Filter_RecentProject_Apply()
   else
     FilterActive_RecentProjects = false
     UpdatePathDisplayMode()
-    if FilterActive_RecentSubversions then filterTable(RecentProjects.subversionNames, RecentProjects.subversionPaths, searchStr) end
+    --if FilterActive_RecentSubversions then filterTable(RecentProjects.subversionNames, RecentProjects.subversionPaths, searchStr) end
   end
 
   UpdateListFilter_RecentProjects()
@@ -1318,7 +1311,7 @@ end
 local function Refresh_RecentProjects()
   FillRecentProjectsListbox()
   UpdatePathDisplayMode()
-  UpdateSubversionFilter()
+  --UpdateSubversionFilter()
   GUI.elms.tab1_listbox_recentProjects:redraw()
 end
 
@@ -1711,7 +1704,7 @@ function RL_Draw_Frames()
   GUI.New("main_frame_side_4", "Frame", 2, pad_left + listbox_w , 320, GUI.w - pad_left - listbox_w, Framewidth, true, true)
   GUI.New("main_frame_side_5", "Frame", 2, pad_left + listbox_w , 355, GUI.w - pad_left - listbox_w, Framewidth, true, true)
   -- recent projects
-  GUI.New("main_frame_side_6", "Frame", 3, pad_left + listbox_w , 390, GUI.w - pad_left - listbox_w, Framewidth, true, true)
+  --GUI.New("main_frame_side_6", "Frame", 3, pad_left + listbox_w , 390, GUI.w - pad_left - listbox_w, Framewidth, true, true)
   -- project templates
   GUI.New("main_frame_side_7", "Frame", 4, pad_left + listbox_w , 390, GUI.w - pad_left - listbox_w, Framewidth, true, true)
 end
@@ -1731,14 +1724,14 @@ function RL_Draw_Tab1()
   GUI.New("tab1_button_loadRecentProjectInTab", "Button", 3, btn_pad_left, btn_tab_top, btn_w,  btn_h, "Load in Tab", LoadInTab_RecentProject)
   GUI.New("tab1_button_loadRecentProject", "Button", 3, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_RecentProject)
 
-  GUI.New("tab1_label_subversionFilter", "Label", 3, GUI.w - 152, 367, "Subversion Filter", false, 3)
-  GUI.New("tab1_checklist_subversionFilter", "Checklist", 3, GUI.w - 46, 365, 20, 20, "", "", "h", 0)
+--   GUI.New("tab1_label_subversionFilter", "Label", 3, GUI.w - 152, 367, "Subversion Filter", false, 3)
+--   GUI.New("tab1_checklist_subversionFilter", "Checklist", 3, GUI.w - 46, 365, 20, 20, "", "", "h", 0)
   
- -- listeners
- function GUI.elms.tab1_checklist_subversionFilter:onmousedown()
-    GUI.Checklist.onmouseup(self)  
-    UpdateSubversionFilter()
-  end
+--  -- listeners
+--  function GUI.elms.tab1_checklist_subversionFilter:onmousedown()
+--     GUI.Checklist.onmouseup(self)  
+--     UpdateSubversionFilter()
+--   end
   
   function GUI.elms.tab1_listbox_recentProjects:ondoubleclick()
     Load_RecentProject()
@@ -1945,7 +1938,7 @@ function RL_Draw_Tooltips()
   GUI.elms.tab1_textbox_filterRecentProjects.tooltip = "Filter the [Recent Projects] list by typing in words"
   GUI.elms.tab1_button_loadRecentProjectInTab.tooltip = "Load selected recent project(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab1_button_loadRecentProject.tooltip = "Load selected recent project(s)\n\n" .. ttLoadFXoffline
-  GUI.elms.tab1_label_subversionFilter.tooltip = "Show only the last project files (if multiple versions exist)"
+  --GUI.elms.tab1_label_subversionFilter.tooltip = "Show only the last project files (if multiple versions exist)"
 
   -- project templates
   GUI.elms.tab2_button_projectTemplatesRefresh.tooltip = "Refresh [Project Templates] list"
@@ -2174,7 +2167,7 @@ function RL_DrawAll()
   RL_Draw_Frames()
   RL_Draw_AddOns()
   Refresh_ProjectList()
-  UpdateSubversionFilter()
+  --UpdateSubversionFilter()
 end
 
 RL_DrawAll()
@@ -2205,8 +2198,8 @@ function RL_RedrawAll()
   GUI.elms.tab1_listbox_recentProjects:ondelete()
   GUI.elms.tab1_button_loadRecentProjectInTab:ondelete()
   GUI.elms.tab1_button_loadRecentProject:ondelete()
-  GUI.elms.tab1_label_subversionFilter:ondelete()
-  GUI.elms.tab1_checklist_subversionFilter:ondelete()
+  -- GUI.elms.tab1_label_subversionFilter:ondelete()
+  -- GUI.elms.tab1_checklist_subversionFilter:ondelete()
 
   -- project templates
   GUI.elms.tab2_button_projectTemplatesRefresh:ondelete()
@@ -2283,7 +2276,7 @@ function RL_RedrawAll()
   GUI.elms.main_frame_side_3:ondelete()
   GUI.elms.main_frame_side_4:ondelete()
   GUI.elms.main_frame_side_5:ondelete()
-  GUI.elms.main_frame_side_6:ondelete()
+  --GUI.elms.main_frame_side_6:ondelete()
   GUI.elms.main_frame_side_7:ondelete()
   RL_Draw_Frames()
 end
@@ -2317,9 +2310,9 @@ local function RL_ExtStates_Load()
   GUI.Val("main_checklist_windowpin", {(pin == "true" and true or false)}) -- window pin state (true = keep window open)
   GUI.Val("main_tabs", tonumber(reaper.GetExtState(appname, "window_tabfocus"))) -- last selected tab
 
-  local subversionsOnly = reaper.GetExtState(appname, "filter_subversion")
-  GUI.Val("tab1_checklist_subversionFilter", {(subversionsOnly == "true" and true or false)}) -- subversion filter
-  UpdateSubversionFilter()
+  -- local subversionsOnly = reaper.GetExtState(appname, "filter_subversion")
+  -- GUI.Val("tab1_checklist_subversionFilter", {(subversionsOnly == "true" and true or false)}) -- subversion filter
+  -- UpdateSubversionFilter()
   
   if GUI.SWS_exists() then
     GUI.Val("themeslot_max", tonumber(reaper.GetExtState(appname, "themeslot_max"))) --  max number of available theme slots
@@ -2336,7 +2329,7 @@ local function RL_ExtStates_Save()
   GUI.save_window_state(appname) -- window state
   reaper.SetExtState(appname, "window_pin", tostring(GUI.Val("main_checklist_windowpin")), 1) -- window pin state (true = keep window open)
   reaper.SetExtState(appname, "window_tabfocus", GUI.Val("main_tabs"), 1)  -- last selected tab
-  reaper.SetExtState(appname, "filter_subversion", tostring(GUI.Val("tab1_checklist_subversionFilter")), 1)  -- subversion filter
+  --reaper.SetExtState(appname, "filter_subversion", tostring(GUI.Val("tab1_checklist_subversionFilter")), 1)  -- subversion filter
 
   if GUI.SWS_exists() then
     reaper.SetExtState(appname, "themeslot_max", tostring(GUI.Val("options_themeslot_number")), 1) --  max number of available theme slots
