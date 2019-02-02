@@ -1,4 +1,4 @@
--- @description amagalma_Remove visible fades from selected items
+-- @description Remove visible fades from selected items
 -- @author amagalma
 -- @version 1.0
 -- @about

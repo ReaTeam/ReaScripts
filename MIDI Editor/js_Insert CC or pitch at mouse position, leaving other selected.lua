@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Insert CC or pitch at mouse position, leaving other selected.lua
+ReaScript name: Insert CC or pitch at mouse position, leaving other selected
 Version: 2.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -40,26 +40,7 @@ About:
         and this selected (armed) script can then be run by using the shortcut for the 
         aforementioned "js_Run..." script.
      For further instructions - please refer to the "js_Run..." script. 
-]]
-
---[[
-  Changelog:
-  * v1.0 (2016-05-05)
-    + Initial Release
-  * v1.1 (2016-05-18)
-    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3) 
-  * v2.0 (2016-07-04)
-    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
-    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
-  * v2.1 (2017-12-15)
-    + Formatted Description and Instructions for ReaPack.
-    + Create undo point after each insertion.
-  * v2.2 (2018-05-18)
-    + Install and work in Inline MIDI editor.
-  * v2.3 (2018-05-18)
-    + Use active channel of Inline MIDI editor.
-  * v2.31 (2018-05-29)
-    + Return focus to MIDI editor after arming button in floating toolbar.
+Changelog: Return focus to MIDI editor after arming button in floating toolbar.
 ]]
 
 

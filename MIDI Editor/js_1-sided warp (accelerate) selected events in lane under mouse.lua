@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_1-sided warp (accelerate) selected events in lane under mouse.lua
+ReaScript name: 1-sided warp (accelerate) selected events in lane under mouse
 Version: 3.42
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29080/Warp%203.00%20-%20left%20and%20right%2C%20or%20up%20and%20down.gif
@@ -94,45 +94,7 @@ About:
       
   PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, 
       check for graphics driver incompatibility by disabling graphics acceleration in the plugin.
-]] 
-
---[[
-  Changelog:
-  * v1.0 (2016-05-15)
-    + Initial Release
-  * v1.1 (2016-05-18)
-    + Added compatibility with SWS versions other than 2.8.3 (still compatible with v2.8.3)
-  * v1.11 (2016-05-29)
-    + If linked to a menu button, script will toggle button state to indicate activation/termination
-  * v1.12 (2016-06-18)
-    + Added a warning about overlapping notes in the instructions, as well as a safety check in the code.
-  * v2.0 (2016-07-04)
-    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
-    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
-  * v3.00 (2016-12-19)
-    + Header (Description and Instructions) updated to ReaPack 1.1 format.
-    + Script will also run in inline MIDI editor.
-    + Warping can now also be vertical (i.e. values instead of positions), depending on initial mouse movement.
-    + Vastly improved speed when working in items with hundreds of thousands of events.
-    + Requires REAPER v5.30 or later.
-  * v3.10 (2016-12-30)
-    + Updated for REAPER v5.32.
-    + Script works in looped takes.
-  * v3.11 (2017-01-30)
-    + Improved reset of toolbar button.
-  * v3.12 (2017-03-18)
-    + Fixed ReaPack header info.   
-  * v3.20 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running. 
-  * v3.21 (2017-12-14)
-    + Tweak mouse cursor icon.
-  * v3.30 (2017-12-21)
-    + Two different acceleration curves that can be switched using mousewheel.
-    + Slghtly faster execution in inline editor and multi-take items.
-  * v3.40 (2018-03-29)
-    + Warp all selected in all lanes together if mouse is positioned over lane divider.
-  * v3.42 (2018-05-29)
-    + Return focus to MIDI editor after arming button in floating toolbar.
+Changelog: Return focus to MIDI editor after arming button in floating toolbar.
 ]]
 
 

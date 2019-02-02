@@ -1,4 +1,4 @@
--- @description amagalma_Group selected items vertically
+-- @description Group selected items vertically
 -- @author amagalma
 -- @version 1.0
 -- @about

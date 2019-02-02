@@ -1,6 +1,6 @@
 --[[
  * Lua script for Cockos REAPER
- * ReaScript Name: Track IO mixer
+ * ReaScript Name: Track I/O mixer
  * Author: spk77
  * Author URI: http://forum.cockos.com/member.php?u=49553
  * Forum Thread URI: http://forum.cockos.com/showthread.php?t=168777

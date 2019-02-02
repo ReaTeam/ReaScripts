@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Move all selected events in active take together with mouse.lua
+ReaScript name: Move all selected events in active take together with mouse
 Version: 1.12
 Author: juliansader
 Screenshot: http://stash.reaper.fm/29102/Move%20events%20to%20mouse%20position.gif
@@ -39,24 +39,8 @@ About:
    (The first time that the script is stopped, REAPER will pop up a dialog box 
        asking whether to terminate or restart the script.  Select "Terminate"
        and "Remember my answer for this script".)
-]]
-
---[[
-  Changelog:
-  * v0.90 (2016-12-16)
-    + Initial beta release
-  * v1.00 (2017-01-10)
-    + Updated for REAPER v5.32.
-    + Script will work in inline editor.
-    + Script will work in looped takes.
-  * v1.01 (2017-01-30)
-    + Improved reset of toolbar button.
-  * v1.10 (2017-07-23)
-    + Mouse cursor changes to indicate that script is running.   
-  * v1.11 (2018-01-26)
-    + A bit nicer mouse cursor icon.  
-  * v1.12 (2018-05-29)
-    + Return focus to MIDI editor after arming button in floating toolbar.
+Changelog:
+  Return focus to MIDI editor after arming button in floating toolbar.
 ]]
 
 ---------------------------------------

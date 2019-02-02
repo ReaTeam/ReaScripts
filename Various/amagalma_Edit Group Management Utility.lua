@@ -1,7 +1,7 @@
--- @description Edit Group Management Utility_amagalma
+-- @description Edit group management utility
 -- @version 1.22
 -- @author amagalma
--- @about Utility to mimick ProTools' Edit Groups - based on Spacemen Tree's "REAzard of Oz"
+-- @about Utility to mimick ProTools Edit Groups - based on Spacemen Tree's "REAzard of Oz"
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=195797
 -- @provides
 --   [main] .

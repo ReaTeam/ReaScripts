@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_MIDI Inspector.lua
+ReaScript name: MIDI Inspector
 Version: 1.22
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
@@ -43,54 +43,7 @@ About:
   Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, 
       particularly if the take contains many thousands of MIDI events.  The GUI therefore provides a
       "Pause" checkbox, which will pause the realtime updating.  
-]]
- 
---[[
-  Changelog:
-  * v0.90 (2016-08-20)
-    + Initial beta release
-  * v0.91 (2016-08-20)
-    + Improved header info
-  * v0.92 (2016-08-20)
-    + When default channel is changed, GUI will immediately update
-    + WARNING: In REAPER v5.2x, the actions for changing the default channel for new events 
-      ("Set channel for new events to 1 [...16]") are buggy and may inappropriately activate 
-      the MIDI editor's event filter (as set in the Filter window).  Changing the default 
-      channel via this script (or by running the actions directly) may therefore make 
-      some notes of CCs invisible.
-  * v0.93 (2016-08-25)
-    + In REAPER itself, the aforementioned bug (setting channel for new events activates 
-      event filter) has been fixed in v2.54.
-    + In the MIDI Inspector, the GUI will immediately update if the channel for new events
-      is changed via the action list or via the MIDI editor's own new channel features.  
-  * v0.94 (2016-09-10)
-    + If user clicks in CC area, the script will ask whether all notes, text and sysex events 
-      should deselected before opening REAPER's Event Properties, to avoid opening the
-      Note Properties or Text/Sysex windows instead.
-    + New position formats: Ticks, and Measure:Beat:Ticks 
-      (the latter is similar to how the MIDI editor's Event Properties displays position).
-  * v0.95 (2016-09-13)
-    + In Measure:Beat:Ticks format, script will display fractional tick values if the MIDI item's
-      ticks are not precisely aligned with the project beats.  (As discussed in t=181211.)
-  * v1.00 (2016-12-15)
-    + Improved speed, using new API functions of REAPER v5.30.
-    + The script requires REAPER v5.30.
-  * v1.01 (2017-02-14)
-    + Interpret note-ons with velocity=0 as note-offs.
-  * v1.10 (2017-06-19)
-    + GUI window will open at last-used screen coordinates.
-  * v1.20 (2017-12-28)
-    + Use negative time or ticks in M:B:ticks or M:B:time formats, if very slightly before beat.
-    + New position display format: ticks. 
-    + Display seconds in higher precision.
-    + Position display follows Project start time and Project start measure.
-    + Display note numbers as well as letters.
-    + Note names follow "MIDI octave name display offset" in Preferences/
-    + GUI window will recall last-used size.
-  * v1.21 (2017-12-28)
-    + Display Time (min;sec) format in high precision.
-  * v1.22 (2017-12-29)
-    + Time format: Samples respects project start time and measure.
+Changelog: Time format: Samples respects project start time and measure.
 ]]
 
 -- USER AREA

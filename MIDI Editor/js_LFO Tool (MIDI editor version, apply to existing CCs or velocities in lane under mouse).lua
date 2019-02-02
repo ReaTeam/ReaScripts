@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse).lua
+ReaScript name: LFO Tool (MIDI editor version, apply to existing CCs or velocities in lane under mouse)
 Version: 2.71
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
@@ -69,38 +69,8 @@ About:
   - Changing interface colors.
   - Changing the default curve name.
   - etc...      
+Changelog: Small improvements.
 ]]
-
---[[
-  Changelog:
-  v2.00 (2017-01-15)
-    + Much faster execution in large takes with hundreds of thousands of events.
-    + Keyboard shortcuts "a", "c" and "r" to switch GUI views.
-    + LFO can be applied to existing events - including velocities - instead of inserting new CCs.
-    + Requires REAPER v5.32 or later.  
-  v2.02 (2017-02-28)
-    + First CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
-  v2.11 (2017-06-04)
-    + New Smoothing slider (replecs non-functional Bezier slider) to smoothen curves at nodes.
-  v2.21 (2017-06-19)
-    + Option to skip redundant CCs.
-    + GUI window will open at last-used screen position.
-  v2.30 (2017-10-03)
-    + Keep nodes in order while moving hot node.
-  v2.31 (2017-10-03)
-    + Keep edge nodes in order when inserting new nodes.
-  v2.32 (2017-12-13)
-    + Refocus MIDI editor after closing script GUI (if SWS v2.9.5 or higher is installed).
-  v2.50 (2018-09-15)
-    + Fixed: Enable MIDI playback while script is running.
-  v2.60 (2018-09-17)
-    + "Morph" slider when applied to existing events.
-  v2.70 (2018-12-26)
-    + "Swing" envelope.
-  v2.71 (2018-12-28)
-    + Small improvements.
-]]
--- The archive of the full changelog is at the end of the script.
 
 --  USER AREA:
 
@@ -3078,54 +3048,3 @@ end
 -- Generate the first version of the envelope nodes and draw the CCs between
 callGenerateNodesThenUpdateEvents()
 DEFERLOOP_GetInputsAndUpdate()
-
---[[ Archive of changelog
- * v0.1
-    + Xenakios' Initial Release
- * v0.2
-    + Julian's mod
- * v0.3 (2016-05-20)
-    + Time selection now works properly with take envelopes when take position is not at start of project.
-    + LFO now uses full range of envelopes with different min and max values (such as pitch).
- * v0.4 (2016-05-20)
-    + Cntl-click (or -drag) in envelope now sets all points to the same value.
-    + Added help text and "?" button.
- * v0.5 (2016-05-21)
-    + Prevent slow mouse clicks from activating buttons multiple times.
-    + Interface colors now easily customizable.
-    + Replaced 'Delay' with 'Phase step', which steps through nodes in shape definition.
-    + The LFO generator now inserts an interpolated envelope point at end of time selection.
- * v0.9 (2016-05-22)
-    + Saving and loading of curves.
-    + New interface look.
- * v0.91 (2016-05-25)
-    + Fixed "attempt to get length of a nil value (global 'savedNames')" bug
- * v0.99 (2016-05-27)
-    + The MIDI editor version!  
-    + Bézier curves are not yet implemented in this v0.99. All REAPER envelope shapes are implemented.
-    + Envelope area now resizeable (allowing finer resolution).
-    + Alt-drag for quick delete of multiple nodes.
-    + Slow start/end shape replaced by Sine in MIDI editor version.
-    + Accurate interpolation of Fast start, Fast end and Sine shapes.
-    + Curve named "default" will be loaded on startup.
- * v0.991 (2016-05-29)
-    + Bug fix: Script does not fail when "Zoom dependent" CC density is selected in Preferences.
- * v0.995 (2016-06-06)
-    + New option to draw LFO underneath selected notes, instead of in time selection.
-    + New option to draw LFO in CC lane under mouse, instead of last clicked CC lane.
-    + Esc closes GUI. 
- * v0.997 (2016-06-13)
-    + Mousewheel can be used for super fine adjustment of node values.
-    + Rightclick in envelope area to set the LFO period to precise note lengths.
-    + Envelope value displayed above hotpoint.
- * v0.999 (2016-06-13)
-    + Changed Rate interpolation between nodes from linear to parabolic.
- * v1.03 (2016-06-18)
-    + Timebase: Beats option.
-    + Fixed regression in fade out.
-    + Added "Reset curve" option in Save/Load menu.
-    + Added optional display of hotpoint time position (in any of REAPER's time formats).
-    + Improved sensitivity of nodes at edges of envelope drawing area.
- * v1.04 (2016-06-23)
-    + User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.
-]]

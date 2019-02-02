@@ -51,7 +51,6 @@
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.05 semitones.lua
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.5 semitones.lua
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 1 semitone.lua        
-
     Donation: https://www.paypal.me/Lokasenna
 ]]--
 

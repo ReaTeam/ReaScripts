@@ -1,5 +1,5 @@
 --[[
-Reascript name:  js_Remove redundant CCs (from selected events in last clicked lane).lua
+Reascript name: Remove redundant CCs (from selected events in last clicked lane)
 Version: 3.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -43,33 +43,8 @@ About:
           aforementioned "js_Run..." script.
 
      - For further instructions - please refer to the "js_Run..." script. 
-]]
-
---[[
- Changelog:
-  * v0.9 (2016-05-28)
-    + Initial release.
-  * v0.91 (2016-06-29)
-    + The "Remove Redundant CCs" script has several settings that the user can customize in the script's USER AREA. This is a version of the script with the following settings:
-    + CC LANE: CCs will be removed from the lane that is under the mouse at the time the script is called (not from the last clicked lane).
-    + SELECTION: Only selected CCs will be analyzed. Unselected CCs will be ignored.
-    + MUTED: Muted CCs will automatically be removed since they are inherently redundant.
-    + 14BIT CC LSB: When analyzing pitchwheel events, the LSB will be ignored.
-  * v2.0 (2016-07-04)
-    + All the "lane under mouse" js_ scripts can now be linked to toolbar buttons and run using a single shortcut.
-    + Description and instructions are included inside script - please read with REAPER's built-in script editor.
-  * v2.1 (2016-11-16)
-    + Header and About info updated for ReaPack 1.1 format.
-    + IMPROVED SPEED!
-  * v3.00 (2016-12-16)
-    + Improved speed.
-    + Works in 14-bit CC lanes.
-    + Requires REAPER v5.30.
-  * v3.10 (2017-01-09)
-    + Requires REAPER 5.32.
-    + Option to analyze all events or only selected events.
-  * v3.20 (2018-05-18)
-    + "lane under mouse" and "all" scripts will install and work in Inline MIDI Editor.
+Changelog:
+  "lane under mouse" and "all" scripts will install and work in Inline MIDI Editor.
 ]]
 
 -- USER AREA:

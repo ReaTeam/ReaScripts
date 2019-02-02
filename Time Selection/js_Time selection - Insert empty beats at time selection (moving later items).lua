@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Time selection - Insert empty beats at time selection (moving later items).lua
+ReaScript name: Time selection: Insert empty beats at time selection (moving later items)
 Version: 1.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=191210
@@ -35,36 +35,9 @@ About:
   
   # WARNING
   The script may require several seconds to parse large MIDI items.
-]]
-
---[[
-  Changelog:
-  * v0.90 (2017-06-30)
-    + Initial beta release as "js_Time selection - Insert empty beats at time selection (moving later items).lua".
-  * v0.95 (2017-08-06)
-    + MIDI items are not split. Instead MIDI is shifted inside item. Script is threfore useful in MIDI editor.
-    + Tempo envelope is duplicated into empty space, so that inserted space is equal to selected time as well as selected beats.
-    + Compatible with linear tempo changes.
-    + User does not need to make any changes to timebase before or after running script.
-    + Locked items can be protected against moving or splitting.
-    + Empty space can be inserted either to the left or right of time selection (determined by edit cursor position).
-  * v0.96 (2017-08-07)
-    + MIDI notes that extend into but not beyond time selection, will not be extended.
-  * v0.97 (2017-08-09)
-    + Much faster execution in large projects.
-  * v0.98 (2017-08-30)
-    + Error message boxes display only OK, not OK and Cancel.
-    + Better compatability with items with empty extensions.
-  * v0.99 (2017-09-24)
-    + Fixed bug when tempo map in time selection starts and ends on linear nodes with exact same values.
-    + Error message when inserting beats into items that mix MIDI takes with audio takes and/or take envelopes.
-  * v1.00 (2017-10-03)
-    + Also adjust Master track envelopes as if Timebase=time.
-  * v1.01 (2018-06-01)
-    + Fix bug when no tempo makers after insertion point.
-  * v1.10 (2018-09-26)
-    + Fix bug with empty takes.
-    + Split items that contain MIDI takes as well as audio takes.
+Changelog:
+  + Fix bug with empty takes.
+  + Split items that contain MIDI takes as well as audio takes.
 ]]
 
 if not reaper.APIExists("SNM_CreateFastString") then

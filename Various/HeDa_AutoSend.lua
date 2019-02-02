@@ -1,7 +1,7 @@
 --[[
-   * ReaScript Name: AutoSend MIDI of selected track to a specific track
+   * ReaScript Name: Auto-send MIDI of selected track to a specific track
    * Lua script for Cockos REAPER
-   * Author: Hector Corcin (HeDa)
+   * Author: HeDa
    * Author URI: http://forum.cockos.com/member.php?u=47822
    * Licence: GPL v3
    * Version: 0.2

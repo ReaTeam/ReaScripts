@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Envelope LFO generator and shaper.lua
+ReaScript name: Envelope LFO generator and shaper
 Version: 2.04
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
@@ -78,44 +78,8 @@ About:
   - Changing interface colors.
   - Changing the default curve name.
   - etc...      
+Changelog: Fix bug when right-clicking on node to set value.
 ]]
---[[
-  Changelog:
-  * v1.04 (2016-06-23)
-    + User can specify the number of phase steps in standard LFO shapes, which allows nearly continuous phase changes.
-  * v1.10 (2017-01-18)    
-    + Header info updated to ReaPack 1.1 format.
-    + Keyboard shortcuts "a", "c" and "r" for quick switching between GUI views.
-  * v1.11 (2017-03-02)
-    + Fixed bug in loading default curves with customized names (different from "default").
-  * v1.20 (2017-08-06)
-    + GUI window will open at last-used screen position.
-  * v1.30 (2017-08-09)
-    + Compatible with automation items.
-    + Requires REAPER v5.50 or higher.
-  * v1.40 (2017-08-09)
-    + LFO can be limited to time selection within automation item.
-    + Undo points more informative.
-  * v1.41 (2017-08-16)
-    + Checks REAPER version and SWS installed.
-  * v1.50 (2017-10-03)
-    + Keep nodes in order while moving hot node.
-  * v1.51 (2017-10-03)
-    + Keep edge nodes in order when inserting new nodes.    
-  * v2.00 (2018-12-09)
-    + Swing envelope.
-    + Recalls AI curve by ID.
-  * v2.01 (2018-12-10)
-    + Fix bug when recalling AI curve.
-  * v2.02 (2018-12-16)
-    + Improved reset behavior.
-    + Other small improvements when using AIs.
-  * v2.03 (2018-12-25)
-    + Fix bug with pooled AIs.
-  * v2.04 (2018-12-28)
-    + Fix bug when right-clicking on node to set value.
-]]
--- The archive of the full changelog is at the end of the script.
 
 --  USER AREA:
     --[[ 
@@ -2467,52 +2431,3 @@ if getSavedCurvesAndNames() ~= false then
 end
 
 MAIN_DeferLoop()
-
---[[ Archive of changelog
- * v0.?
-    + Xenakios' Initial Release
- * v0.2
-    + Julian's mod
- * v0.3 (2016-05-20)
-    + Time selection now works properly with take envelopes when take position is not at start of project.
-    + LFO now uses full range of envelopes with different min and max values (such as pitch).
- * v0.4 (2016-05-20)
-    + Cntl-click (or -drag) in envelope now sets all points to the same value.
-    + Added help text and "?" button.
- * v0.5 (2016-05-21)
-    + Prevent slow mouse clicks from activating buttons multiple times.
-    + Interface colors now easily customizable.
-    + Replaced 'Delay' with 'Phase step', which steps through nodes in shape definition.
-    + The LFO generator now inserts an interpolated envelope point at end of time selection.
- * v0.9 (2016-05-22)
-    + Saving and loading of curves
-    + New interface look
- * v0.91 (2016-05-25)
-    + Fixed "attempt to get length of a nil value (global 'savedNames')" bug
- * v0.99 (2016-05-27)
-    + The MIDI editor version now available!!
-    + Envelope area now resizeable (allowing finer resolution).
-    + Alt-drag for quick delete of multiple nodes.
-    + Accurate interpolation of Fast start, Fast end shapes.
-    + Curve named "default" will be loaded on startup.
- * v0.997 (2016-06-13)
-    + Mousewheel can be used for super fine adjustment of node values.
-    + Rightclick in envelope area to set the LFO period to precise note lengths.
-    + Envelope value displayed above hotpoint.
- * v0.999 (2016-06-13)
-    + Changed Rate interpolation between nodes from linear to parabolic.
- * v0.9999 (2016-06-15)
-    + Timebase: Beats option
- * v1.0 (2016-06-16)
-    + Points at edges of time selection will be preserved, to avoid affecting envelope outside time selection.
- * v1.01 (2016-06-16)
-    + Fixed regression in handling of take envelopes.
- * v1.02 (2016-06-17)
-    + Envelope outside time selection will be preserved by default, even if no points at edges of time selection.
-    + Leftclick only adds a single node point; Shift + Left-drag to add multiple points.
- * v1.03 (2016-06-18)
-    + Fixed regression in fade out.
-    + Added "Reset curve" option in Save/Load menu.
-    + Added optional display of hotpoint time position (in any of REAPER's time formats).
-    + Improved sensitivity of nodes at edges of envelope drawing area.
-]]

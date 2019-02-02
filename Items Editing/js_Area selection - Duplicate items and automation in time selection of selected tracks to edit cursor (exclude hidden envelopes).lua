@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (exclude hidden envelopes).lua
+ReaScript name: Area selection - Duplicate items and automation in time selection of selected tracks to edit cursor (exclude hidden envelopes)
 Version: 0.91
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=193258
@@ -16,14 +16,7 @@ About:
   # Instructions
 
   Select the area to be copied (i.e. select time and tracks), place edit cursor at paste position, and run script.
-]]
-
---[[
-  Changelog:
-  * v0.90 (2017-07-01)
-    + Initial beta release.
-  * v0.91 (2017-10-14)
-    + New version that excludes hidden track envelopes.
+Changelog: New version that excludes hidden track envelopes.
 ]]
 
 -------------------------------------------------------------------

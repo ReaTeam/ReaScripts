@@ -1,32 +1,15 @@
 --[[
-ReaScript name: js_Deselect all MIDI events outside time selection (from all tracks).lua
+ReaScript name: Deselect all MIDI events outside time selection (from all tracks)
 Version: 2.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: http://stash.reaper.fm/27595/Deselect%20all%20MIDI%20events%20outside%20time%20selection%20%28from%20all%20tracks%29%20-%20Copy.gif
 Donation: https://www.paypal.me/juliansader
 Provides: [main=midi_editor,midi_inlineeditor] .
+Changelog: Automatically install script in MIDI Inline Editor section.
+
 REAPER version: 5.30 or later
 Extensions required: -
-]]
- 
---[[
- Changelog:
-  * v1.0 (2015-05-14)
-    + Initial Release
-  * v1.01 (2015-06-06)
-    + CC events at rightmost PPQ of time selection are deselected
-  * v1.10 (2016-08-15)
-    + Trying to create header that is compatible with ReaPack 1.1
-  * v1.11 (2016-08-15)
-    + Trying to create header that is compatible with ReaPack 1.1
-  * v2.00 (2016-12-24)
-    + Much faster execution.
-    + Requires REAPER v5.30.
-  * v2.01 (2017-02-08)
-    + Parse muted notes that overlap with non-muted notes.
-  * v2.02 (2018-04-15)
-    + Automatically install script in MIDI Inline Editor section.
 ]]
 
 

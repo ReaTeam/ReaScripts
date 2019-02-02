@@ -1,5 +1,5 @@
 --[[
-ReaScript name: js_Zoom MIDI editor to 5 measures at mouse position.lua
+ReaScript name: Zoom MIDI editor to 5 measures at mouse position
 Version: 1.30
 Author: juliansader
 Website: Simple but useful MIDI editor tools http://forum.cockos.com/showthread.php?t=176878
@@ -36,23 +36,8 @@ About:
   # Warning
   The script temporarily changes the loop region, so it may be safer to avoid running the script during 
   playback or recording.  
-]]
-
---[[
 Changelog:
-  * v1.0 (2016-09-14)
-    + Initial release.
-  * v1.10 (2016-09-16)
-    + Zooming creates undo point.
-  * v1.20 (2017-11-30)
-    + Compatible with setting "Move edit cursor to start of time selection on time selection change".
-  * v1.22 (2017-12-01)
-    + Accurate zoom if number of measures is even.
-    + Mouse can be placed in arrange view (if SWS extension is installed).
-  * v1.23 (2017-12-01)
-    + Refactored to minimize calling actions.
-  * v1.30 (2017-12-06)
-    + If mouse is not over arrange view, ruler, or MIDI editor's notes or cc area, scroll to current position of edit cursor.
+  If mouse is not over arrange view, ruler, or MIDI editor's notes or cc area, scroll to current position of edit cursor.
 ]]
 
 -- USER AREA
