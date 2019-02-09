@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c849b1fc974f06faf488b74f70dcdd137fac3a36" name="ReaTeam Scripts">
+<index version="1" commit="f871af4d57d507237880591380ea68b4c4d17bf7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5555,6 +5555,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Time format: Samples respects project start time and measure.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b882f393cdb5e03ed370d8c2d644905ab4c7ac06/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
+      <version name="1.30" author="juliansader" time="2019-02-09T22:05:52Z">
+        <changelog><![CDATA[+ If the js_ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f871af4d57d507237880591380ea68b4c4d17bf7/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw basic LFO curves in real time.lua" type="script" desc="js_Mouse editing - Draw basic LFO curves in real time.lua">
       <metadata>
@@ -6250,48 +6254,8 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/82c5d9e4f6875a1a93f74f243d2f580778832762/MIDI%20Editor/js_Remove%20redundant%20CCs.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua" type="script" desc="js_Run the js_'lane under mouse' script that is selected in toolbar (link this script to shortcut and mousewheel).lua">
+    <reapack name="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua" type="script" desc="js_Run the js_'lane under mouse' script that is selected in toolbar (link this to shortcut and mousewheel).lua">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script helps to improve the UI by allowing js_ MIDI editing functions to be selected via toolbar buttons, similar to FL Studio and other DAWs.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Any js_ script that edits the 'lane under mouse' and that has been linked to a toolbar button can be run using a single keyboard shortcut that has been linked to this script -- therefore no more need to remember a different shortcut for each script.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script currently works with the following js_ MIDI editing scripts:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1  ~ Stretch \line
- ~ Tilt\line
- ~ Compress or expand\line
- ~ 1-sided warp (accelerate)\line
- ~ 2-sided warp (and stretch)\line
- ~ Draw linear or curved ramp in real time\line
- ~ Draw linear or curved ramp in real time (chasing start values)\line
- ~ Draw sine curve in real time\line
- ~ Draw sine curve in real time (chasing start values)\line
- ~ Split notes\line
- ~ Split selected notes\line
- ~ Arch\line
- ~ Arch sine\line
- ~ Remove redundancies (in lane under mouse)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Any user-customized variants of these scripts can also be added to the toolbar.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Notes\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The scripts listed above are those that work with events in the lane under mouse.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Since the mouse needs to be positioned over the MIDI editor's CC lanes or notes area for these scripts to work, they cannot be run directly from toolbar buttons.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Scripts that work with events in the last-clicked lane (such as variants the LFO Tool or the Remove Redundancies script) can be run directly from the toolbar.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script must be linked to a keyboard shortcut (such as "S") as well as a mousewheel shortcut (such as Ctrl+mousewheel).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script should not be linked to a toolbar button.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The js_ MIDI functions listed above should each be linked to a toolbar button. (They can also be linked to their own keyboard shortcuts, but this is not necessary.)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 To run the selected js_ MIDI function:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab click its button, which will light up,\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab move the mouse to its position in the CC lane or notes area, and\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab press the shortcut key for this "Run the js_..." script.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Note: Since this script is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.0" author="juliansader" time="2016-07-04T19:22:47Z">
@@ -6310,6 +6274,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.21" author="juliansader" time="2017-12-21T21:01:43Z">
         <changelog><![CDATA[+ Broadcast first mousewheel movement to linked scripts.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3ab2d9759f96c82b8ead5ae2e2cfa8fa9c0381b4/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
+      </version>
+      <version name="4.00" author="juliansader" time="2019-02-09T22:04:51Z">
+        <changelog><![CDATA[+ Deprecation notice.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/55ff0926f2ab202e236f7f07e9a3d08770616287/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="js_Select and deselect MIDI notes by step pattern.lua" type="script" desc="js_Select and deselect MIDI notes by step pattern.lua">
@@ -6372,6 +6340,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.21" author="juliansader" time="2017-08-27T14:13:20Z">
         <changelog><![CDATA[+ Compatible with muted notes.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/01d691be2b86f978883d42270675012911254fac/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+      <version name="1.30" author="juliansader" time="2019-02-09T22:05:52Z">
+        <changelog><![CDATA[+ If ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f871af4d57d507237880591380ea68b4c4d17bf7/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
