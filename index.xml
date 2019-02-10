@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="25b9aecb1a57a5e75ba1104061b1cecea895ed97" name="ReaTeam Scripts">
+<index version="1" commit="f93e8563c97aaec2676052fda564cfeaf0368f96" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4673,6 +4673,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Return focus to MIDI editor after arming button in floating toolbar.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
+      <version name="3.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Works in looped items.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert ramps between selected CCs in lane under mouse (use mouse and mousewheel to shape ramps).lua">
       <metadata>
@@ -5560,6 +5564,301 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f871af4d57d507237880591380ea68b4c4d17bf7/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
+    <reapack name="js_Mouse editing - 1-sided Warp.lua" type="script" desc="js_Mouse editing - 1-sided Warp.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A Lua script for warping the positions or values of MIDI CCs and velocities.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Warp axis:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Events positions can be warped horizontally (to the left or right), and event values can be warp vertically (up or down).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When warping events in multiple lanes together, or events that do not have values, such as text or sysex, warping can only be horizontal.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Warp direction is determined by initial mouse movement: To warp event positions horizontally, move the mouse left/right when the script starts; to warp event values vertically, move the mouse up/down. (This is similar to how REAPER's own "move in one direction only" mouse modifiers work.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Applications:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing a linear ramp into a parabolic (or other power) curve.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Accelerating a series of evenly spaced notes.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Changing the curve shape of LFOs.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Single lane vs all lanes:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the mouse is positioned inside a CC lane (or inside the notes area) when the script starts, the script will only warp selected events in that single lane.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the mouse is positioned over a lane divider (or in the ruler area) when the script starts, the script will warp all selected events in all lanes together.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the mouse is positioned over a toolbar or the Actions list (or, actually anywhere outside the MIDI piano roll and CC lanes), the script will arm itself and can then be run by the "js_Run the mouse editing script that is armed in toolbar" script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can apply two different acceleration curves: smooth or steep:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The mouse middle button can be used to switch between the curves.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Both of the curves are invertible, so events that were warped can later be re-selected and re-warped back to their original positions.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 js_Mouse editing scripts can be controlled by the mouse and keyboard while the script is running: * Mouse movement: Changes the extent of warping * Mouse left click: Terminates the script. * Mouse middle click: Toggle the warp curve shape. * Mouse right click: While right button is down, temporarily warp in both directions. * Mousewheel: -- (not used by this script) * Keyboard modifier key: Terminates the script. * Keyboard shortcut: Starts/Terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 1: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for ReaScriptAPI extension.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%201-sided%20Warp.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - 2-sided Warp.lua" type="script" desc="js_Mouse editing - 2-sided Warp.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A Lua script for warping and stretching the positions of MIDI CCs and notes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script only affects events in the MIDI editor lane under the mouse cursor.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for changing a linear CC ramp into more complex logistic-type curves.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for accelerating and decelerating a series of evenly spaced notes, as is typical in a trill.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select MIDI events to be warped (the script works on any CCs, notes, text or sysex events).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Position mouse in lane, {\i within} the time range of the selected events. (Events to left and right of mouse position will be stretch separately.)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab Press the shortcut key. (Do not press any mouse button.)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Move mouse left or right to stretch the corresponding side, or move mouse up or down to warp towards or away from mouse.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab To stop the script, move the mouse out of the CC lane, or press the shortcut key again.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL AND KEYBAORD CONTROL\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts can be controlled by the mouse and keyboard while the script is running: * Mouse movement: Changes the extent of warping * Mouse left click: Terminates the script. * Mouse middle click: -- (not used by this script) * Mouse right click: -- (not used by this script) * Mousewheel: -- (not used by this script) * Keyboard shortcut (assigned in Actions list): Starts/Terminates the script. * Any keyboard modifier key: Terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, \line
+using the mousewheel, mouse middle button and right button.\line
+\line
+* Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button,\line
+the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Mouse: Left clicking\line
+\line
+* Mouse: Left-dragging and lifting the left button.\line
+\line
+* Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\line
+\line
+* Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off.\line
+  (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box \line
+         asking whether to terminate or restart the script.  Select "Terminate" and "Remember my answer for this script".)  \par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a toolbar arming feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The mouse editing scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 1: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and edit takes. If the MIDI editor is slow, try reducing the number of edit and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for ReaScriptAPI extension.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%202-sided%20Warp.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Arch and Tilt.lua" type="script" desc="js_Mouse editing - Arch and Tilt.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Arch selected CCs or velocities in the lane under mouse towards mouse position, using a linear or power curve.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is outside the selected events' PPQ position range, the Arch curve is similar to a Tilt towards the mouse position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The shape of the curve can be changed with the mousewheel.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for tweaking an existing, complex CC or velocity curve up or down, without having to re-draw the curve.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful for quickly applying and auditioning crescendo-decrescendo (fade-in and fade-out) curves.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select events to be arched/tilted. (Note that the scripts obeys the MIDI editor's "Edit only active channel" setting.)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Position mouse inside the lane. (After the script starts, the mouse may move out of the target lane.)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab Start script.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab Control script with mouse:\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Mouse position determines position to arch towards.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Middle click switches between a linear/power curve and a sine curve.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Mousewheel tweaks the curve shape.\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Left click to terminate the script.\sa180\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/28025/Arch%20events.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for js_ReaScriptAPI extension.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Connect nodes.lua" type="script" desc="js_Mouse editing - Connect nodes.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts CCs between selected "nodes" in the CC lane under the mouse.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Useful for smoothing transitions between CCs that were drawn at low resolution.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Useful for converting a set of nodes into an LFO with any desired curve shape.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MODES: WARP and B\u203?ZIER:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script offers two modes (selected by right-clicking the mouse):\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Warp: The user can the shape of the connecting ramps by moving the mouse.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab B\u233?zier: The script tries to find the smoothest curve to connect all selected nodes. Moving the mouse does not affect the curve.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE MOVEMENT AND WARPING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Warp mode resembles the "js_Mouse editing - Warp" script, except that the Warp script would warp all ramps and all selected events together, whereas this script warps each ramp individually, without changing the position of values of the nodes. Moving the mouse left and right warps each individual ramp horizontally, and moving up and down warps each ramp vertically. All kinds of shapes can be created, from straight lines to "fast start", "fast end", and sine (aka "slow start / slow end".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE BUTTONS:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Left button: Terminates the script. Middle button: In Warp mode, switches between linear/power curves and sine-based curves. Right button: Switches between modes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL AND MIDI CHANNELS:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The mousewheel changes the channel of the inserted MIDI events.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor is set to "Edit only the active MIDI channel", the script will only select nodes that are in the active channel. These channel features are very useful for keeping the ramps and the nodes in separate channels, so that the nodes can easily be re-selected and edited.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 OTHER NOTES:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts works in inline MIDI editors as well as main MIDI editors.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab New CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Any extraneous CCs between selected events will deleted.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Select the "node" CCs between which ramps will be inserted.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Position mouse over the target CC lane.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab Press the shortcut key. (Do not press any mouse button.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab Move the mouse or mousewheel to shape the ramps.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 5)\tx360\tab To stop the script, move the mouse out of the CC lane, or press the shortcut key again.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and edit takes. If the MIDI editor is slow, try reducing the number of edit and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for js_ReaScriptAPI extension.
++ Script can be controlled by mousewheel and mouse buttons.
++ New mode: Bézier smoothing.
++ Ramps can be inserted in different channel than nodes.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Connect%20nodes.lua</source>
+      </version>
+    </reapack>
     <reapack name="js_Mouse editing - Draw basic LFO curves in real time.lua" type="script" desc="js_Mouse editing - Draw basic LFO curves in real time.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5624,54 +5923,255 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e2e84a046f79b382f2e7237fea817b501a649a44/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Mouse editing - Reveal peak nodes in LFO.lua" type="script" desc="js_Mouse editing - Reveal peak nodes in LFO.lua">
+    <reapack name="js_Mouse editing - Draw LFO.lua" type="script" desc="js_Mouse editing - Draw LFO.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A script to extract nodes (i.e. local minima and maxima) from CC curves.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 After extraction the nodes can be edited individually, and the original can be restored with smooth ramps -- or even fancy new shapes -- using the "js_Insert ramps" script.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script works particularly well with LFOs.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script is also useful for smoothing freehand-drawn curves.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw various basic LFO shapes in real time (without chasing start values).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Includes: Triangle, Saw, Sine, Cosine and Square, as well as plain straight line and parabola.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The mousewheel scrolls through the various LFO shapes. (The script will remember the last-used shape.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If snap to grid is enabled in the MIDI editor, the endpoints of the LFO will snap to grid, allowing precise positioning of the LFO.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the script "js_Option - Skip redundant events when inserting CCs" is toggled ON.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 "js_Mouse editing" scripts can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: -- (Usually switces between a sine and linear/power curve, but not used by this script) * Right click: Toggles between chasing start values and using the mouse original position as start value. * Mousewheel: Scrolls through the available LFO curves.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard can terminate the script: * Any mouse modifier key: Terminates the script. * Keyboard shortcut (assigned in Actions list): Starts and terminates the script (do NOT hold shortcut key down while script is running)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for js_ReaScriptAPI extension.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Draw ramp.lua" type="script" desc="js_Mouse editing - Draw ramp.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw linear or curved ramps of CC and pitchwheel events in real time (without chasing start values).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Works in inline MIDI editors as well as full MIDI editors.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An improvement over REAPER's built-in "Linear ramp CC events" mouse action:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SNAP TO GRID: If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab CHASING START VALUES: Right-clicking toggles between chasing existing CC values at the line start position, and starting at the mouse's original vertical position. Chasing ensures that CC values change smoothly.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LINEAR OR SINE SHAPES: Clicking the middle button toggles between a linear shape and a sine shape, which can be tweaked into other shapes such as parabolic.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab TWEAK THE CURVE: By using the mousewheel, the shape of the ramp can be tweaked. Linear ramps can be smotthly morphed to parabolic, for example.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SKIP REDUNDANT CCs: This script (like all other js_ scripts that insert new CCs) can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC). This is controlled by the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard can terminate the script: * Any mouse modifier key: Terminates the script. * Pressing the keyboard shortcut again: Terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIPS\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and edit takes. If the MIDI editor is slow, try reducing the number of edit and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="screenshot">http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for ReaScriptAPI extension.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Extract nodes.lua" type="script" desc="js_Mouse editing - Extract nodes.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A script to extract nodes from CC curves.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After extraction, the nodes can be edited individually, and the original curve can be restored with smooth ramps -- or even fancy new shapes -- using the "Connect nodes" script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script offers two modes, LFO and GRID, which can be toggled by right-clicking:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LFO mode: The script tries to find LFO apex (maximum) and nadir (miinimum) CCs. This is useful for changing an existing LFO into a new LFO of the same rhythm, but with new ramp shapes.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab GRID mode: In addition to find LFO nodes, the script will also extract CCs that are close to the grid spacing (without quantizing their positions to the grid). This is useful for smoothing an existing freehand-drawn curve, since the overall shape will not be changed.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The GRID mode is reminiscent of REAPER's built-in quantize functions, but has two important advantages: 1) the CC positions are not changed, and 2) CC are not overwritten by their neighbors.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In both modes, moving the mouse left and right sets the grid and node spacing, and moving the mouse up and down sets the cut-off height of nodes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To use:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab select CC events from which to extract the nodes,\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab position mouse in lane,\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3)\tx360\tab press shortcut key, and\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab move mouse and mousewheel to change extraction parameters.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab To exit, move mouse out of CC lane, or press shortcut key again.\sa180\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moving the mouse horizontally sets the minimum distance between nodes.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moving the mouse vertically sets the mimimum relative height of the nodes.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Moving the mousewheel switches between deleting and deselecting the CCs between nodes.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 KEYBOARD SHORTCUT\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own shortcut key.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Note: Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL CONTROL\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an Action, similar to how keyboard shortcuts are assigned.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user must remember several modifier combinations, one for each script. (Mousewheel modifiers such as Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, which will then broadcast mousewheel movement to any js script that is running:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Run the js_'lane under mouse' script that is selected in toolbar\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other "lane under mouse" scripts.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4)\tx360\tab use the mouse to change extraction parameters.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5)\tx360\tab To finish, left-click, press shortcut key, or any modifier key.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and edit takes. If the MIDI editor is slow, try reducing the number of edit and visible tracks.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
+      <version name="0.99" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for ReaScriptAPI extension.
++ new GRID mode.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.lua</source>
+        <source file="js_Mouse editing - Extract nodes.cur">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.cur</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Reveal peak nodes in LFO.lua" type="script" desc="js_Mouse editing - Reveal peak nodes in LFO.lua">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
       <version name="0.90" author="juliansader" time="2018-05-31T12:27:39Z">
         <changelog><![CDATA[+ Initial BETA release.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/87c4ffca4e968bfc0f23508701a5bde061defe80/MIDI%20Editor/js_Mouse%20editing%20-%20Reveal%20peak%20nodes%20in%20LFO.lua</source>
+      </version>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:18:51Z">
+        <changelog><![CDATA[+ Deprecation notice.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f93e8563c97aaec2676052fda564cfeaf0368f96/MIDI%20Editor/js_Mouse%20editing%20-%20Reveal%20peak%20nodes%20in%20LFO.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Run script that is armed in toolbar.lua" type="script" desc="js_Mouse editing - Run script that is armed in toolbar.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script allows multiple "Mouse editing" scripts to be run from a single (keyboard or mousewheel) shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The shortcut that is linked to this script will toggle start/stop any "Mouse editing" script that is armed in the toolbar.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 TOOLBAR ARMING\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of "Mouse editing" scripts depends on initial mouse position (similar to REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), these scripts cannot be run by mouse-clicking a toolbar button or the Actions list.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run the script that is armed in toolbar" script to a keyboard or mousewheel (or both) shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 (In other words, the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "js_Run..." script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "js_Run..." script needs to be linked to a shortcut.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="2.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for ReaScriptAPI extension.
++ Mousewheel shortcut starts/stops scripts, instead of controlling CC curves.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Run%20script%20that%20is%20armed%20in%20toolbar.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Slice notes.lua" type="script" desc="js_Mouse editing - Slice notes.lua">
@@ -5685,6 +6185,84 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/25b9aecb1a57a5e75ba1104061b1cecea895ed97/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
         <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/25b9aecb1a57a5e75ba1104061b1cecea895ed97/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
       </version>
+      <version name="4.01" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Correct ReaPack header.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
+        <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
+      </version>
+    </reapack>
+    <reapack name="js_Mouse editing - Stretch and Compress.lua" type="script" desc="js_Mouse editing - Stretch and Compress.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A multifunctional script for stretching and compressing MIDI events.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Depending on mouse position when the script starts, the script can: * stretch event positions (horizontally) to the mouse position, or * stretch event values (vertically) to the mouse position, or * compress/expand the lane boundaries with various types of curves.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 STRETCH EVENTS:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned {\i inside} a CC lane or the notes area when the script starts, it will only affect events in that individual lane. (After the script starts, the mouse may move out of the lane.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned {\i outside} a CC lane when the script starts, i.e. over a lane divider or over the ruler area, and the mouse is moved left or right, the script will stretch selected events on {\i all} lanes together.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned to the {\i right} of the selected events, it will stretch the right edge of event positions to the mouse position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Similarly, if the mouse is positioned to the {\i left} of the selected events, it will stretch the left edge of event positions to the mouse position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned closer to the middle of the time range, and to the top [or bottom] of the CC's value range, it will stretch the top [or bottom] values up or down to the mouse position.\line (MIDI notes, as well as events that do not have CC values, such as Text or Sysex, can only be stretched left/right, not up/down.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 COMPRESS LANE:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned over a lane divider when the script starts, and then moved up or down into the CC lane, the script will compress or expand the lane range. (Think of the movement as "dragging" the lane boudary up or down.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will draw the compression curve on the screen.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Compress mode is not yet available for the inline MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE CONTROL:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Left-clicking terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 While stretching, * flipping the mouse wheel will flip the selected CCs around. (If stretching horizontally, flips event positions; if vertically, flips values.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 While compressing, * the middle button toggles between a linear/power curve and a sine curve, * mouse wheel further tweaks the curve, and * the right button toggles the mode between 1-sided compression (from either the top or bottom) or symmetrical compression.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for js_ReaScriptAPI extension.
++ Combines previous Stretch and Compress scripts.
++ Compression curve can be controlled by mousewheel.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
+        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
+        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Swipe select.lua" type="script" desc="js_Mouse editing - Swipe select.lua">
       <metadata>
@@ -5693,9 +6271,46 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Select events in the lane under the mouse by simply swiping the mouse.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 All events within the horizontal (time) range of mouse movement will be selected. (The mouse does not need to touch the CC bars.)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 If snap-to-grid is enabled in the MIDI editor, the selection range will also snap to grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select events in the MIDI editor's CC lanes by simply swiping the mouse.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All events within the horizontal (time) range of mouse movement will be selected, and the mouse does not need to touch the CC bars.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned over a CC lane when the script starts, only events in that lane will be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the mouse is positioned over a CC lane divider when the script starts, events in all visible lanes will be selected.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the the mouse is not position over the MIDI editor piano roll, the script will arm itself, so that it can be called via the script "js_Run the 'Mouse editing' script that is selected in toolbar (link this to shortcut and mousewheel)".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts' functioning (such as the ramp shape or the channel of inserted CCs) can be tweaked while the script is running, using the mousewheel, mouse middle button and right button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Whereas native actions can only be started and stopped by left-dragging and lifting the mouse button, the scripts be started and stopped in multiple ways, allowing a more customized and streamlined workflow.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Starting a script:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
+  (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) \line
+\line
+* Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  \line
+  (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, \line
+         but the script will automatically detect a left-drag movement. To use left-drag, assign the script to a *double*-click mouse modifier.)\line
+\line
+* Arming a toolbar button, as described below.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off. (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's NATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER natively provides a "toolbar arming" feature: right-click a toolbar button to arm its linked action (the button will light up with an alternative color), and then left-click to run the action after moving the mouse into position over the piano roll.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are two niggles with this feature, though:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run script that is armed in toolbar" script to a keyboard or mousewheel shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1  (I.e. the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -5704,6 +6319,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="0.90" author="juliansader" time="2018-06-11T14:25:47Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/235ee044ccad6f04ef817f675039b751c6c4382c/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
+      </version>
+      <version name="2.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ Updated for ReaScriptAPI extension.
++ Swipe select all visible lanes.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua">
@@ -6356,6 +6976,29 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       <version name="1.30" author="juliansader" time="2019-02-09T22:05:52Z">
         <changelog><![CDATA[+ If ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f871af4d57d507237880591380ea68b4c4d17bf7/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Select channel for new events for inline MIDI editor under mouse.lua" type="script" desc="js_Select MIDI channel for new events for inline MIDI editor under mouse.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not provide native actions to select the channel for new events for the Inline MIDI Editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By default, the MIDI channel is linked to the last-used settings in the (full, not inline) MIDI editor, for each item individually, and the user therefore has to open the full MIDI editor for each item, in order to change the channel.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script provides a dropdown list from which the active MIDI channel can quickly be selected, while working in the inline MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Warnings:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In items with multiple MIDI takes, it is possible that the script does not determine the current channel and filter settings correctly. Changing the filter and channel will still work.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Inline MIDI editors easily lose focus, and keyboard shortcuts will then inadvertently pass through to the Main section. Click in the inline editor after changing channel to re-focus the editor.\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="1.00" author="juliansader" time="2019-02-10T03:15:06Z">
+        <changelog><![CDATA[+ If ReaScriptAPI is installed, return focus to inline editor.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
