@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Slice notes.lua
-Version: 4.01
+Version: 4.02
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27951/Split%20notes%20by%20drawing%20line%20with%20mouse.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -45,6 +45,8 @@ About:
     + Updated for ReaScriptAPI extension.
   * v4.01 (2019-02-10)
     + Correct ReaPack header.
+  * v4.02 (2019-02-11)
+    + Don't display notes as trimmed while drawing.
 ]] 
 
 
@@ -247,14 +249,14 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- If the mouse is held still, no editing is done, and instead the take is sorted, thereby temporarily allowing playback.
     -- NO NEED TO CALCULATE:
     if not mustCalculate then --and not takeIsSorted then
-        if not takeIsSorted then
+        --[[if not takeIsSorted then
             reaper.MIDI_Sort(activeTake)
             takeIsSorted = true
-        end
+        end]]
         
     -- MUST CALCULATE:
     else        
-        takeIsSorted = false
+        --takeIsSorted = false
       
         -- MOUSE NEW CC/PITCH VALUE (vertical position)
         if isInline then
