@@ -15,7 +15,7 @@ About:
 
 reaper.MB([[This script has been replaced by "js_Mouse editing - Stretch and Compress".
 
-The new "Mouse editing" scripts require the js_ReaScriptAPI extension, and offer several improvements:
+The new "Mouse editing" scripts require the js_ReaScriptAPI extension, and offer several improvements, including:
 
 * No helper scripts required for mousewheel control: 
 The new scripts can detect mouse input themselves.
