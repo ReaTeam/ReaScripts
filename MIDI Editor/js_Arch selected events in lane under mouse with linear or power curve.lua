@@ -15,14 +15,13 @@ About:
 
 reaper.MB([[This script has been replaced by "js_Mouse editing - Arch and Tilt".
 
-The new "Mouse editing" scripts require the js_ReaScriptAPI extension, and have several advantages:
+The new "Mouse editing" scripts require the js_ReaScriptAPI extension, and offer several improvements:
 
 * No helper scripts required for mousewheel control: 
 The new scripts can detect mouse input themselves.
 
 * Fewer scripts and fewer shortcuts: 
-Since the new scripts can detect mouse input, each script can be multi-functional, 
-and middle-click and right-click are used to switch between different modes. 
+Since the new scripts can detect mouse input, each script can be multi-functional, and middle-click and right-click are used to switch between different modes. 
 For example, the single new script, "js_Mouse editing - Arch and Tilt", combines and replaces three older scripts: 
 "Arch with linear or power curve", "Arch with sine curve" and "Tilt".
 
