@@ -131,7 +131,7 @@ About:
   Changelog:
   * v0.99 (2019-01-19)
     + Updated for ReaScriptAPI extension.
-    + new GRID mode.
+    + New GRID mode.
 ]]   
 
 
