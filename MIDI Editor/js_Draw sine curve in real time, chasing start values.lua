@@ -15,7 +15,7 @@ About:
 
 reaper.MB([[This script has been replaced by "js_Mouse editing - Draw ramp".
 
-The new "Mouse editing" scripts require the js_ReaScriptAPI extension, and have several advantages:
+The new "Mouse editing" scripts require the js_ReaScriptAPI extension, and offer several improvements:
 
 * No helper scripts required for mousewheel control: 
 The new scripts can detect mouse input themselves.
