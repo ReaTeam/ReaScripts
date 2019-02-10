@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f93e8563c97aaec2676052fda564cfeaf0368f96" name="ReaTeam Scripts">
+<index version="1" commit="7f51d09794bbd891f328a4b28a72d2f4465c4b93" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3940,7 +3940,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T20:53:01Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/67c87138ac44524201ce0eb79c570396ce223b1c/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/421f34521aab3803c98b45eaf1a8f168e9366304/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
@@ -4002,7 +4002,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:06:03Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5a4b311e517f74a4557efb0bf852f0e5140f31a8/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c99101c83f3d7f451f120c948888017696994389/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with linear or power curve.lua" type="script" desc="js_Arch selected events in lane under mouse with linear or power curve.lua">
@@ -4047,7 +4047,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:25:25Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ad5790384589ef20b467e37e6cec182f6a656e2d/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/095df2e5503b1881c5334651e25b77035da7657e/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with sine curve.lua" type="script" desc="js_Arch selected events in lane under mouse with sine curve.lua">
@@ -4092,7 +4092,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:25:42Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/baf0b7c0c1fa7aafe75a3610ca869e3c9c0a3547/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7f51d09794bbd891f328a4b28a72d2f4465c4b93/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script" desc="js_Compress or expand selected CC or velocity events using mousewheel.lua">
@@ -4158,7 +4158,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:47:28Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/bc3fec526b4944e34563e251facacfb1d68d2cd8/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/37f8931c7ce692b0d86bfd155a4a8a955d755356/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script" desc="js_Deselect all MIDI events outside time selection (from all tracks).lua">
@@ -4307,7 +4307,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:51:18Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b894cc97e59662bd7ee25f3eebec1e4fa3c3d86f/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/47e746c8a726ea1e5b2a9e194dd86c0770434032/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
@@ -4398,7 +4398,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:51:37Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1e4ab05a04eb065fe7823b34b5f4cad9fc252c0c/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4e4c1305671c61fdd11218cfb88ba5564db08959/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
@@ -4471,7 +4471,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:51:56Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3a7662d9e40f4dffd59f2d07ac3c9cb5c93de409/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/33cd553585ef1b9b0a56c63ddabbe9a221e55777/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
@@ -4544,7 +4544,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:52:15Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3d9afd6c6cd10d3a73f70c8878a3571b7da77893/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ea231e5d956af1336feda49c6aa57fe45c1cdecb/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -4678,52 +4678,8 @@ Renumber markers and regions when pasting]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
     </reapack>
-    <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert ramps between selected CCs in lane under mouse (use mouse and mousewheel to shape ramps).lua">
+    <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Useful for quickly inserting ramps between 'nodes'.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Useful for smoothing transitions between CCs that were drawn at low resolution.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script uses mousewheel and mouse movement to shape the ramps (similar to REAPER's "mouse modifier" actions such as "Linear ramp CC events"):\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Moving the mousewheel toggles between sine (aka "slow start / slow end") curves and linear (aka "triangle") curves.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Moving the mouse left and right or up and down warps the ramp CCs horizontally or vertically, thereby creating shapes such as "fast start / slow end" or "slow start / fast end" curves, respectively.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Notes:\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab New CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Any extraneous CCs between selected events will deleted.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab By default, newly inserted CCs will be selected. (Can be changed in the script's USER AREA.)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC), if the control script "js_Option - Toggle skip redundant events when inserting CCs" is toggled on.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Select the "node" CCs between which ramps will be inserted.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Position mouse over the target CC lane (in the case of notes, either the notes area or the velocity lane).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab Press the shortcut key. (Do not press any mouse button.)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab Move the mouse or mousewheel to shape the ramps.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 5)\tx360\tab To stop the script, move the mouse out of the CC lane, or press the shortcut key again.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 KEYBOARD SHORTCUT\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 There are two ways in which this script can be run:\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab First, the script can be linked to its own easy-to-remember shortcut key, such as "1".\line (Using the standard steps of linking any REAPER action to a shortcut key.)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Second, this script, together with other "js_" scripts that edit the "lane under mouse", can each be linked to a toolbar button.\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab In this case, each script need not be linked to its own shortcut key. Instead, only the accompanying "js_Run the js_'lane under mouse' script that is selected in toolbar.lua" script needs to be linked to a keyboard shortcut (as well as a mousewheel shortcut).\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab Clicking the toolbar button will 'arm' the linked script (and the button will light up), and this selected (armed) script can then be run by using the shortcut for the aforementioned "js_Run..." script.\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab For further instructions - please refer to the "js_Run..." script.\sa180\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Since this function is a user script, the way it responds to shortcut keys and mouse buttons is opposite to that of REAPER's built-in mouse actions with mouse modifiers: To run the script, press the shortcut key {\i once} to start the script and then move the mouse or mousewheel {\i without} pressing any mouse buttons. Press the shortcut key again once to stop the script.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 (The first time that the script is stopped, REAPER will pop up a dialog box asking whether to terminate or restart the script. Select "Terminate" and "Remember my answer for this script".)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 MOUSEWHEEL CONTROL\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A mousewheel modifier is a combination such as Ctrl+mousewheel, that can be assigned to an Action, similar to how keyboard shortcuts are assigned.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Linking each script to its own mousewheel modifier is not ideal, since it would mean that the user must remember several modifier combinations, one for each script. (Mousewheel modifiers such as Ctrl+Shift+mousewheel are more difficult to remember than keyboard shortcuts such as "A".)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 An easier option is to link a single mousewheel+modifier shortcut to one of the following scripts, which will then broadcast mousewheel movement to any js script that is running:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Run the js_'lane under mouse' script that is selected in toolbar\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 By using the scripts, a single mousewheel+modifier (or even mousewheel without any modifier) can control any of the other mouse editing scripts.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP: The responsiveness of the MIDI editor is significantly influenced by the total number of events in the visible and editable takes. If the MIDI editor is slow, try reducing the number of editable and visible tracks.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 PERFORMANCE TIP 2: If the MIDI editor gets slow and jerky when a certain VST plugin is loaded, check for graphics driver incompatibility by disabling graphics acceleration in the plugin.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
-        <link rel="screenshot">http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.1" author="juliansader" time="2016-05-25T09:30:26Z">
@@ -4788,6 +4744,10 @@ Renumber markers and regions when pasting]]></changelog>
         <changelog><![CDATA[+ Return focus to MIDI editor after arming button in floating toolbar.    
 + Ramps can be warped up and down (as well as left and right, as before)]]></changelog>
         <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+      </version>
+      <version name="4.00" author="juliansader" time="2019-02-10T03:25:49Z">
+        <changelog><![CDATA[+ Deprecation notice.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ecb083aef8863f7c83f0074baaeeab50430da725/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert pitch reset at start of each selected note (all editable takes).lua" type="script" desc="js_Insert pitch reset at start of each selected note (all editable takes).lua">
