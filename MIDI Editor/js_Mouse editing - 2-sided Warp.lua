@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - 2-sided Warp.lua
-Version: 4.00
+Version: 4.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -128,6 +128,8 @@ About:
   Changelog:
   * v4.00 (2019-01-19)
     + Updated for ReaScriptAPI extension.
+  * v4.01 (2019-02-11)
+    + Restore focus to original window, if script opened notification window.
 ]] 
 
 
@@ -509,21 +511,6 @@ function AtExit()
         reaper.SetToggleCommandState(sectionID, commandID, origToggleState)
         reaper.RefreshToolbar2(sectionID, commandID)
     end  
-        
-    -- Restore original focus - except of "Terminate script" dialog box is waiting for user
-    if reaper.JS_Localize then
-        curForegroundWindow = reaper.JS_Window_GetForeground()
-        if curForegroundWindow then 
-            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
-                dontReturnFocus = true
-    end end end
-    if not dontReturnFocus then
-        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
-        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
-    end 
-        
-    -- Communicate with the js_Run.. script that this script is exiting
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
     
     -- DEFERLOOP_pcall was executed, and no exceptions encountered:
@@ -577,26 +564,26 @@ function AtExit()
                   
         -- Write nice, informative Undo strings
         if laneIsCC7BIT then
-            undoString = "Warp positions of 7-bit CC events in lane ".. tostring(mouseOrigCCLane)
+            undoString = "Warp 7-bit CCs in lane ".. tostring(mouseOrigCCLane)
         elseif laneIsCHANPRESS then
-            undoString = "Warp positions of channel pressure events"
+            undoString = "Warp channel pressure events"
         elseif laneIsCC14BIT then
-            undoString = "Warp positions of 14 bit-CC events in lanes ".. 
+            undoString = "Warp 14 bit CCs in lanes ".. 
                                       tostring(mouseOrigCCLane-256) .. "/" .. tostring(mouseOrigCCLane-224)
         elseif laneIsPITCH then
-            undoString = "Warp positions of pitchwheel events"
+            undoString = "Warp pitchwheel"
         elseif laneIsNOTES then
-            undoString = "Warp positions and lengths of notes"
+            undoString = "Warp notes"
         elseif laneIsTEXT then
-            undoString = "Warp positions of text events"
+            undoString = "Warp text events"
         elseif laneIsSYSEX then
-            undoString = "Warp positions of sysex events"
+            undoString = "Warp sysex events"
         elseif laneIsPROGRAM then
-            undoString = "Warp positions of program select events"
+            undoString = "Warp program select events"
         elseif laneIsBANKPROG then
-            undoString = "Warp positions of bank/program select events"
+            undoString = "Warp bank/program select events"
         else
-            undoString = "Warp event positions"
+            undoString = "Warp events"
         end 
         
         -- Undo_OnStateChange_Item is expected to be the fastest undo function, since it limits the info stored 
@@ -608,6 +595,23 @@ function AtExit()
         end
     end   
 
+  
+    -- At the very end, no more notification windows will be opened, 
+    --    so restore original focus - except if "Terminate script" dialog box is waiting for user
+    if reaper.JS_Localize then
+        curForegroundWindow = reaper.JS_Window_GetForeground()
+        if curForegroundWindow then 
+            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
+                dontReturnFocus = true
+    end end end
+    if not dontReturnFocus then
+        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
+        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
+    end     
+        
+    -- Communicate with the js_Run.. script that this script is exiting
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
 end -- function AtExit   
 
 

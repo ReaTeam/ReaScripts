@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Connect nodes.lua
-Version: 4.00
+Version: 4.01
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -49,6 +49,9 @@ About:
   
   OTHER NOTES:
   
+  * The "Connect nodes" script is often used directly after the "Extract nodes" script, and these can usefully be combined in a single custom action, 
+      so that both can be run with a single shortcut.
+      
   * The scripts works in inline MIDI editors as well as main MIDI editors.
   
   * New CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.
@@ -167,6 +170,8 @@ About:
     + Script can be controlled by mousewheel and mouse buttons.
     + New mode: Bézier smoothing.
     + Ramps can be inserted in different channel than nodes.
+  * v4.01 (2019-02-11)
+    + Restore focus to original window, if script opened notification window.
 ]]
  
 
@@ -685,21 +690,6 @@ function AtExit()
         reaper.SetToggleCommandState(sectionID, commandID, origToggleState)
         reaper.RefreshToolbar2(sectionID, commandID)
     end  
-    
-    -- Restore original focus - except if "Terminate script" dialog box is waiting for user
-    if reaper.JS_Localize then
-        curForegroundWindow = reaper.JS_Window_GetForeground()
-        if curForegroundWindow then 
-            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
-                dontReturnFocus = true
-    end end end
-    if not dontReturnFocus then
-        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
-        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
-    end     
-        
-    -- Communicate with the js_Run.. script that this script is exiting
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
      
     
     -- DEFERLOOP_pcall was executed, and no exceptions encountered:
@@ -780,6 +770,23 @@ function AtExit()
             reaper.Undo_OnStateChange2(0, undoString)
         end
     end
+    
+    
+    -- At the very end, no more notification windows will be opened, 
+    --    so restore original focus - except if "Terminate script" dialog box is waiting for user
+    if reaper.JS_Localize then
+        curForegroundWindow = reaper.JS_Window_GetForeground()
+        if curForegroundWindow then 
+            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
+                dontReturnFocus = true
+    end end end
+    if not dontReturnFocus then
+        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
+        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
+    end     
+        
+    -- Communicate with the js_Run.. script that this script is exiting
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
 end -- function AtExit   
 
@@ -1390,11 +1397,11 @@ function Tooltip(text)
         tooltipTime = reaper.time_precise()
         tooltipText = text
         if not (mouseX and mouseY) then mouseX, mouseY = reaper.GetMousePosition() end
-        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, true)
+        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, false)
         reaper.defer(Tooltip)
     elseif reaper.time_precise() < tooltipTime+0.5 then
         if not (mouseX and mouseY) then mouseX, mouseY = reaper.GetMousePosition() end
-        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, true)
+        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, false)
         reaper.defer(Tooltip)
     else
         reaper.TrackCtl_SetToolTip("", 0, 0, false)

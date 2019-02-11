@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Stretch and Compress.lua
-Version: 4.00
+Version: 4.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -152,6 +152,8 @@ About:
     + Updated for js_ReaScriptAPI extension.
     + Combines previous Stretch and Compress scripts.
     + Compression curve can be controlled by mousewheel.
+  * v4.01 (2019-02-11)
+    + Restore focus to original window, if script opened notification window.
 ]]
 
 -- USER AREA 
@@ -1130,27 +1132,12 @@ function AtExit()
         cursor = reaper.JS_Mouse_LoadCursor(32512) -- IDC_ARROW standard arrow
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
     end 
-    
     -- Deactivate toolbar button (if it has been toggled)
     if not leaveToolbarButtonArmed and origToggleState and sectionID and commandID then
         reaper.SetToggleCommandState(sectionID, commandID, origToggleState)
         reaper.RefreshToolbar2(sectionID, commandID)
     end  
-    
-    -- Restore original focus - except if "Terminate script" dialog box is waiting for user
-    if reaper.JS_Localize then
-        curForegroundWindow = reaper.JS_Window_GetForeground()
-        if curForegroundWindow then 
-            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
-                dontReturnFocus = true
-    end end end
-    if not dontReturnFocus then
-        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
-        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
-    end     
-        
-    -- Communicate with the js_Run.. script that this script is exiting
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+
     
     if GDI_DC then reaper.JS_GDI_DeleteObject(GDI_DC) end
     if GDI_Pen_Top then reaper.JS_GDI_DeleteObject(GDI_Pen_Top) end
@@ -1159,20 +1146,7 @@ function AtExit()
     
     -- DEFERLOOP_pcall was executed, and no exceptions encountered:
     if pcallOK == true then        
-     
-        --[[
-        if mustWaitForDoubleClick_Time then
-            repeat
-                peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
-                if peekOK and (time > mustWaitForDoubleClick_Time) then
-                    reaper.ArmCommand(0, armedSectionName)
-                    reaper.MB("fsdf", "sdfad", 0)
-                    xxx = 1
-                    break
-                end
-            until reaper.time_precise() > mustWaitForDoubleClick_Time + 0.5
-        end
-        ]]        
+            
         -- Remove remaining intercepts, restore original intercepts
         if windowUnderMouse then
             for message, passthrough in pairs(tWM_Messages) do
@@ -1208,9 +1182,10 @@ function AtExit()
                       --.. "\n\nThe original MIDI data will be restored to the take."
                       , "ERROR", 0)
         end
-        
+    end
+    
     -- DEFERLOOP_pcall was executed, but exception encountered:
-    elseif pcallOK == false then
+    if pcallOK == false then
     
         if activeTake and MIDIString then reaper.MIDI_SetAllEvts(activeTake, MIDIString) end -- Restore original MIDI
         if windowUnderMouse then reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) end -- Release all intercepts
@@ -1297,6 +1272,23 @@ function AtExit()
         end
     end
 
+
+    -- At the very end, no more notification windows will be opened, 
+    --    so restore original focus - except if "Terminate script" dialog box is waiting for user
+    if reaper.JS_Localize then
+        curForegroundWindow = reaper.JS_Window_GetForeground()
+        if curForegroundWindow then 
+            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
+                dontReturnFocus = true
+    end end end
+    if not dontReturnFocus then
+        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
+        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
+    end     
+        
+    -- Communicate with the js_Run.. script that this script is exiting
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
 end -- function AtExit   
 
 

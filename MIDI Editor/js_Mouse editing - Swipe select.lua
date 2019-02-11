@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Swipe select.lua
-Version: 2.00
+Version: 2.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -112,6 +112,8 @@ About:
   * v2.00 (2018-10-30)
     + Updated for ReaScriptAPI extension.
     + Swipe select all visible lanes.
+  * v2.01 (2019-02-11)
+    + Restore focus to original window, if script opened notification window.
 ]]
 
 
@@ -413,27 +415,11 @@ function AtExit()
         cursor = reaper.JS_Mouse_LoadCursor(32512) -- IDC_ARROW standard arrow
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
     end 
-    
     -- Deactivate toolbar button (if it has been toggled)
     if not leaveToolbarButtonArmed and origToggleState and sectionID and commandID then
         reaper.SetToggleCommandState(sectionID, commandID, origToggleState)
         reaper.RefreshToolbar2(sectionID, commandID)
     end  
-    
-    -- Restore original focus - except if "Terminate script" dialog box is waiting for user
-    if reaper.JS_Localize then
-        curForegroundWindow = reaper.JS_Window_GetForeground()
-        if curForegroundWindow then 
-            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
-                dontReturnFocus = true
-    end end end
-    if not dontReturnFocus then
-        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
-        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
-    end     
-        
-    -- Communicate with the js_Run.. script that this script is exiting
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
     
     -- DEFERLOOP_pcall was executed, and no exceptions encountered:
@@ -512,6 +498,23 @@ function AtExit()
         end
     end
 
+
+    -- At the very end, no more notification windows will be opened, 
+    --    so restore original focus - except if "Terminate script" dialog box is waiting for user
+    if reaper.JS_Localize then
+        curForegroundWindow = reaper.JS_Window_GetForeground()
+        if curForegroundWindow then 
+            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
+                dontReturnFocus = true
+    end end end
+    if not dontReturnFocus then
+        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
+        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
+    end     
+        
+    -- Communicate with the js_Run.. script that this script is exiting
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
 end -- function AtExit   
 
 
