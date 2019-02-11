@@ -49,8 +49,7 @@ About:
   
   OTHER NOTES:
   
-  * The "Connect nodes" script is often used directly after the "Extract nodes" script, and these can usefully be combined in a single custom action, 
-      so that both can be run with a single shortcut.
+  * The "Connect nodes" script is often used directly after the "Extract nodes" script.
       
   * The scripts works in inline MIDI editors as well as main MIDI editors.
   
