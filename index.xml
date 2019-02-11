@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9f579c37955b9c41d85a32dd6314cf6603ec4306" name="ReaTeam Scripts">
+<index version="1" commit="9268eba19b5a8a3c9bb9fc52fc03da1ea0390e04" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8917,6 +8917,22 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-03T21:37:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/77e934fbc6117aabc2fc4058670003f4245e135f/Tracks%20Properties/edgemeal_Disable%20multichannel%20metering%20on%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="jmieszkowski_Set the color of selected tracks from their parent tracks.lua" type="script" desc="Set the color of selected tracks from their parent tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set the color of selected tracks from their parent track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script colors selected tracks according to their parents color How to use: > Select tracks that you want to color > Run the script\par}
+}
+]]></description>
+        <link rel="website">https://github.com/jmieszkowski/ReaScripts</link>
+      </metadata>
+      <version name="1.0" author="jmieszkowski" time="2019-02-11T22:20:14Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9268eba19b5a8a3c9bb9fc52fc03da1ea0390e04/Tracks%20Properties/jmieszkowski_Set%20the%20color%20of%20selected%20tracks%20from%20their%20parent%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
