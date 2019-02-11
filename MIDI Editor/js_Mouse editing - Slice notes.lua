@@ -46,7 +46,7 @@ About:
   * v4.01 (2019-02-10)
     + Correct ReaPack header.
   * v4.02 (2019-02-11)
-    + Restore focus to original window, if script opened notification window.
+    + Restore focus to original window when script ends.
 ]] 
 
 
