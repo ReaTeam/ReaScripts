@@ -26,4 +26,7 @@ For example, the single new script, "js_Mouse editing - Arch and Tilt", combines
 "Arch with linear or power curve", "Arch with sine curve" and "Tilt".
 
 * New editing features such as CC lane compression with customizable curves (in the "Stretch and Compress" script) or Bézier smoothing (in the "Connect nodes" script).
+  
+Remember to read the description and instructions for each script!  
+(The first page of the "MIDI editor tools" forum thread also provides a general overview of the new scripts.)
 ]], "Deprecation notice", 0)
