@@ -26,4 +26,7 @@ For example, a single new script, "js_Mouse editing - Draw ramp", combines and r
 "Draw linear or curved ramps in real time", "Draw linear or curved ramps in real time, chasing start values", "Draw sine curve in real time" and "Draw sine curve in real time, chasing start values".
 
 * New editing features such as adjustable compression curves (in the "Stretch and Compress" script) or Bézier smoothing (in the "Connect nodes" script).
+  
+Remember to read the description and instructions for each script!  
+(The first page of the "MIDI editor tools" forum thread also provides a general overview of the new scripts.)
 ]], "Deprecation notice", 0)
