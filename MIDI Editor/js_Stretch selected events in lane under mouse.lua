@@ -30,4 +30,7 @@ The compression/expansion curve is now adjustable:
   ~ Middle-click switches between a sine curve and a linear/power curve.
   ~ Right-click switches between 1-sided and symmetrical compression.
   ~ Mousewheel adjusts the steepness of the curve.
+  
+Remember to read the description and instructions for each script!  
+(The first page of the "MIDI editor tools" forum thread also provides a general overview of the new scripts.)
 ]], "Deprecation notice", 0)
