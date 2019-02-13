@@ -5,15 +5,15 @@
 -- @provides
 --   [main] . > cfillion_Unselect tracks hidden in MCP.lua
 --   [main] . > cfillion_Unselect tracks hidden in TCP.lua
---   [main] . > cfillion_Unselect tracks hidden in TCP and MCP.lua
+--   [main] . > cfillion_Unselect tracks hidden in MCP and TCP.lua
 -- @link cfillion.ca https://cfillion.ca
 -- @donation Donate via PayPal https://paypal.me/cfillion
 -- @about
 --   This script provides three actions to unselect hidden selected tracks:
 --
---   - cfillion_Unselect tracks hidden in TCP.lua
 --   - cfillion_Unselect tracks hidden in MCP.lua
---   - cfillion_Unselect tracks hidden in TCP and MCP.lua
+--   - cfillion_Unselect tracks hidden in TCP.lua
+--   - cfillion_Unselect tracks hidden in MCP and TCP.lua
 
 function enumSelectedTracksReverse()
   local i = reaper.CountSelectedTracks(0)
@@ -29,7 +29,7 @@ local MCP = 1<<10
 local modes = {
   ['TCP'        ] = TCP,
   ['MCP'        ] = MCP,
-  ['TCP and MCP'] = TCP|MCP,
+  ['MCP and TCP'] = TCP|MCP,
 }
 
 local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
