@@ -1,7 +1,10 @@
 -- @description Select source tracks of selected tracks receives recursively
--- @version 1.0.2
+-- @version 1.2
 -- @author cfillion
--- @changelog Simpler packaging using new ReaPack features (no other code changes).
+-- @changelog
+--   Fix a bug causing some tracks to not be selected in a single shot
+--   Ignore muted receives
+--   Select tracks down the folder hierarchy (obeying parent send)
 -- @donation https://www.paypal.me/cfillion
 -- @metapackage
 -- @provides
