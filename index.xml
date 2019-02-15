@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="baadfe9ec6dad655a10dd19fd019f14ae6a39126" name="ReaTeam Scripts">
+<index version="1" commit="b545f02cb140f7c9b897b0e84787132a153eff03" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8801,7 +8801,7 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
     </reapack>
     <reapack name="cfillion_Select destination tracks of selected tracks sends recursively.lua" type="script" desc="Select destination tracks of selected tracks sends recursively">
       <metadata>
-        <link rel="website" href="http://forum.cockos.com/showthread.php?t=183638">Forum Thread</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=183638">Forum thread</link>
         <link rel="donation">https://www.paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2016-11-10T09:59:25Z">
@@ -8821,6 +8821,13 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <changelog><![CDATA[Simpler packaging using new ReaPack features (no other code changes).]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
         <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
+      <version name="1.2" author="cfillion" time="2019-02-15T08:47:08Z">
+        <changelog><![CDATA[Fix a bug causing some tracks to not be selected in a single shot
+Ignore muted sends
+Select tracks up the folder hierarchy (obeying parent send)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Select source tracks of selected tracks receives recursively.lua" type="script" desc="Select source tracks of selected tracks receives recursively">
@@ -8842,6 +8849,13 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <changelog><![CDATA[Simpler packaging using new ReaPack features (no other code changes).]]></changelog>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b4eb251ba298f65b110ec25a9441ddf9ec03d740/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
+      <version name="1.2" author="cfillion" time="2019-02-15T08:47:08Z">
+        <changelog><![CDATA[Fix a bug causing some tracks to not be selected in a single shot
+Ignore muted receives
+Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle track FX bypass by name.lua" type="script" desc="Toggle track FX bypass by name">
