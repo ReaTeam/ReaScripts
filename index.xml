@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="15a8e98a456b131e45a26d6a0bbe64107aeff4a8" name="ReaTeam Scripts">
+<index version="1" commit="baadfe9ec6dad655a10dd19fd019f14ae6a39126" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10421,6 +10421,21 @@ use sentence case for all buttons]]></changelog>
       </metadata>
       <version name="1.0" author="EvilDragon" time="2018-08-01T19:18:44Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f7ffe016f6daa5ee2772bfe08bb0c3b36866d/Various/ED_Smart%20toggle%20mute%20(items,%20automation%20items,%20tracks).lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Reset VU Meters.lua" type="script" desc="Reset VU Meters">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 For Windows only!\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://stash.reaper.fm/34070/Reset%20VU%20Meters.gif">Example</link>
+      </metadata>
+      <version name="1.21" author="Edgemeal" time="2019-02-15T01:57:22Z">
+        <source main="main" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/baadfe9ec6dad655a10dd19fd019f14ae6a39126/Various/edgemeal_Reset%20VU%20Meters.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
