@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.22
+Version: 1.30
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -91,6 +91,10 @@ About:
     + Display Time (min;sec) format in high precision.
   * v1.22 (2017-12-29)
     + Time format: Samples respects project start time and measure.
+  * v1.23 (2018-05-01)
+    + Automatically pause while playing or recording.
+  * v1.30 (2019-01-19)
+    + If the js_ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.
 ]]
 
 -- USER AREA
@@ -187,6 +191,9 @@ local projStartTime    = 0 --reaper.GetProjectTimeOffset(0, false)
 
 -- Preferences -> MIDI settings -> MIDI octave name display offset
 local octaveOffset = 0
+
+local paused = false
+local playState = 0
 
 ---------------
 function exit()
@@ -552,7 +559,7 @@ function updateGUI()
     gfx.y = CHECKBOX_Y_POS
     gfx.drawstr("Pause")
     
-    if paused == true then
+    if paused == true or playState&5 ~= 0 then
         setColor(shadowColor)
         gfx.x = 13
         --gfx.y = lineHeight * 19.5
@@ -608,7 +615,9 @@ function loopMIDIInspector()
     if editor == nil then return(0) end
         
     -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates
-    if not paused then    
+    -- Also automatically pause while playing or recording.
+    playState = reaper.GetPlayStateEx(0)
+    if not paused and playState&5 == 0 then    
         
         -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
         local take = reaper.MIDIEditor_GetTake(editor)
@@ -1051,8 +1060,7 @@ local lastX, lastY          = coordinatesExtState:match("(%d+),(%d+)") -- Will b
 local lastWidth, lastHeight = dimensionsExtState:match("(%d+),(%d+)")
 if lastHeight then initWidth, initHeight = lastWidth, lastHeight else initWidth, initHeight = 200, 410 end
 
-gfx.init("MIDI Inspector", initWidth, initHeight, 0, lastX, lastY) -- Interesting, this function can accept xPos and yPos strings, without tonumber
-
+gfx.init("MIDI Inspector", initWidth, initHeight, 0, lastX, lastY)
     
 gfx.setfont(1, fontFace, fontSize, 'b')
 strWidth = {}
@@ -1099,7 +1107,6 @@ tabShort = 20 + math.max(gfx.measurestr("Position:  "),
                          gfx.measurestr("Start pos:  "))
 lineHeight = math.max(strHeight, gfx.h / 21)
 
-paused = false
 timeFormat = defaultTimeFormat
 
 -- If this is the first time that the script is run, adapt GUI size to font size.
@@ -1112,6 +1119,12 @@ if not lastHeight then
     gfx.setfont(1, fontFace, fontSize, 'b')
 end
 
---gfx.update()
+if reaper.JS_Window_FindEx then
+    local num, list = reaper.JS_Window_ListFind("MIDI Inspector", true)
+    for address in list:gmatch("[^,]+") do
+        local hwnd = reaper.JS_Window_HandleFromAddress(address)
+        if hwnd then reaper.JS_Window_AttachTopmostPin(hwnd) end
+    end
+end
 
-reaper.runloop(loopMIDIInspector)
+loopMIDIInspector()

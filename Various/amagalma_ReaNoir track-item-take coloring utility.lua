@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.06
+-- @version 2.12
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,12 +33,14 @@
 
 --[[
  * Changelog:
- * v2.06 (2018-10-19)
-  + fix GetColor for tracks
+ * v2.12 (2018-12-08)
+  + fix for Linux font size
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
+
+version = "v2.12"
 
 
 
@@ -55,7 +57,6 @@
 
 
 
-version = "v2.06"
 local reaper = reaper
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
@@ -174,14 +175,20 @@ end
 ) -- end of slider class
 
 function Slider:set_help_text()
-if self.help_text == "" then return false end
-gfx.setfont(2,"Tahoma", 13)
-local width = gfx.measurestr(self.help_text)
-gfx.set(0.85,0.85,0.85,1)
-gfx.x = GUI_centerx-width/2
-gfx.y = 11
-gfx.printf(self.help_text)
-gfx.setfont(1)
+  if self.help_text == "" then return false end
+  if string.match(reaper.GetOS(), "Win") then
+      gfx.setfont(2,"Tahoma", 13)
+  elseif string.match(reaper.GetOS(), "OSX") then
+    gfx.setfont(2,"Geneva", 10)
+  else
+    gfx.setfont(2,"Tahoma", 11)
+  end
+  local width = gfx.measurestr(self.help_text)
+  gfx.set(0.85,0.85,0.85,1)
+  gfx.x = GUI_centerx-width/2
+  gfx.y = 11
+  gfx.printf(self.help_text)
+  gfx.setfont(1)
 end
 
 function Slider:draw()
@@ -599,6 +606,7 @@ end
             boxID.g = slider_btn_g.val -0.2 
             boxID.b = slider_btn_b.val -0.2 
             boxID.a = slider_btn_a.val
+            SaveColorFile(last_palette_on_exit)
           end  
         end
         boxID.onCtrlClick = function ()
@@ -849,7 +857,7 @@ end
             end   
           end
         end
-        SavePalette_btn.onRClick = function ()          
+        SavePalette_btn.onRClick = function ()
           SaveAsPalette()
         end
     end
@@ -1899,17 +1907,25 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
          lasty = tonumber(reaper.GetExtState("ReaNoir", "y"))
       end    
     end
-               
+
 ------------------------------------------
 --------- Init Function ------------------
-------------------------------------------                                  
+------------------------------------------
 
 function init ()
 
   Read_Prefs()
   gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
-  gfx.setfont(2,"Tahoma", 13)
-  gfx.setfont(1,"Arial", 15)          
+  if string.match(reaper.GetOS(), "Win") then
+    gfx.setfont(2,"Tahoma", 13)
+    gfx.setfont(1,"Arial", 15)
+  elseif string.match(reaper.GetOS(), "OSX") then
+    gfx.setfont(2,"Geneva", 10)
+    gfx.setfont(1,"Arial", 12)
+  else
+    gfx.setfont(2,"Tahoma", 11)
+    gfx.setfont(1,"Arial", 12)
+  end
   Dock_selector_INIT()
   ColorBx_INIT()
   
@@ -1940,7 +1956,13 @@ function init ()
       
   -- Initialize focus
   local init_focus = reaper.GetCursorContext2(true)
-  if init_focus < 1 then what = "tracks" else what = "items" end
+  if init_focus < 1 then what = "tracks" else what = "items" end  
+  -- Add "pin on top"
+  local js_exists = reaper.APIExists( "JS_Window_Find" )
+  if js_exists then
+    local w = reaper.JS_Window_Find("ReaNoir "..version, true)
+    if w then reaper.JS_Window_AttachTopmostPin(w) end
+  end
   if what == "tracks" then reaper.SetCursorContext(0) else reaper.SetCursorContext(1) end
   
 end
@@ -2023,6 +2045,13 @@ function main()
           Write_Prefs()
       end  
   
+  -- do not let resize
+  if dock == 0 and (gfx.w ~= GUI_xend or gfx.h ~= GUI_yend) then
+    local _, x_pos, y_pos, _, _ = gfx.dock(-1, 0, 0, 0, 0)
+    gfx.quit()
+    gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, x_pos, y_pos)
+  end
+
 end
 
 

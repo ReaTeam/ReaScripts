@@ -20,6 +20,7 @@ Community-maintained collection of scripts for [REAPER](http://www.reaper.fm) Di
 - [mpl](https://forum.cockos.com/member.php?u=70694) ([donate](https://www.paypal.me/donate2mpl))
 - [Nagasaki45](https://github.com/Nagasaki45) ([website](http://www.tomgurion.me/))
 - [nofish](https://forum.cockos.com/member.php?u=6870)
+- [pandabot](https://forum.cockos.com/member.php?u=127396) ([donate](https://paypal.me/benjohnson2001))
 - [planetnine](https://forum.cockos.com/member.php?u=6549)
 - [spk77](https://forum.cockos.com/member.php?u=49553) ([donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted))
 - [X-Raym](https://forum.cockos.com/member.php?u=58284) ([website](http://extremraym.com/), [donate](http://www.extremraym.com/en/donation/))
@@ -36,20 +37,11 @@ https://github.com/ReaTeam/ReaScripts/raw/master/index.xml
 
 - [ReaPack user guide](https://reapack.com/user-guide)
 
-## Discussing
-
-Talk about this repository and ReaTeam in this thread on the REAPER forums:  
-- [Developing thread](http://forum.cockos.com/showthread.php?t=169127)
-
 ## Contributing
 
-Check out the [package examples](https://github.com/cfillion/reapack-index/wiki/Examples) and
-reapack-index's [packaging documentation](https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation).
+Use <https://reapack.com/upload/reascript> to upload your scripts on this repository.
 
-1. [Create](https://github.com/ReaTeam/ReaScripts/new/master) a file for your script named `Category Name/username_Name of the Script.lua` (or .eel, .py)
-2. Click on "Propose new file" and create a Pull Request
-3. Wait for a team member to validate the request (it should be quick)
-4. If everything is ok... it's done!
+Have a question? Come discuss in the [development thread](https://forum.cockos.com/showthread.php?t=169127).
 
 ### Other ReaTeam Scripts Repository (included in ReaPack)
 
