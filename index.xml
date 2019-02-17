@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e91407f088bfc4e8efe91e79f8fe115fdc7694c" name="ReaTeam Scripts">
+<index version="1" commit="a5ee0c9b012320200a3ed3f4047093396dbfa015" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5618,6 +5618,10 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%201-sided%20Warp.lua</source>
       </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%201-sided%20Warp.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - 2-sided Warp.lua" type="script" desc="js_Mouse editing - 2-sided Warp.lua">
       <metadata>
@@ -5695,6 +5699,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%202-sided%20Warp.lua</source>
       </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%202-sided%20Warp.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Arch and Tilt.lua" type="script" desc="js_Mouse editing - Arch and Tilt.lua">
       <metadata>
@@ -5768,6 +5776,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
       </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.
++ Arching curve displayed in MIDI editor.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Connect nodes.lua" type="script" desc="js_Mouse editing - Connect nodes.lua">
       <metadata>
@@ -5791,7 +5804,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The mousewheel changes the channel of the inserted MIDI events.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor is set to "Edit only the active MIDI channel", the script will only select nodes that are in the active channel. These channel features are very useful for keeping the ramps and the nodes in separate channels, so that the nodes can easily be re-selected and edited.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 OTHER NOTES:\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The "Connect nodes" script is often used directly after the "Extract nodes" script.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The "Connect nodes" script is often used directly after the "Extract nodes" script, and these can usefully be combined in a single custom action, so that both can be run with a single shortcut.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts works in inline MIDI editors as well as main MIDI editors.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab New CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Any extraneous CCs between selected events will deleted.\par}
@@ -5854,6 +5867,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Connect%20nodes.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Connect%20nodes.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw basic LFO curves in real time.lua" type="script" desc="js_Mouse editing - Draw basic LFO curves in real time.lua">
@@ -5944,6 +5961,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
       </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.
++ Fixed: Error if grid very small.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw ramp.lua" type="script" desc="js_Mouse editing - Draw ramp.lua">
       <metadata>
@@ -5958,14 +5980,14 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SNAP TO GRID: If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab CHASING START VALUES: Right-clicking toggles between chasing existing CC values at the line start position, and starting at the mouse's original vertical position. Chasing ensures that CC values change smoothly.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LINEAR OR SINE SHAPES: Clicking the middle button toggles between a linear shape and a sine shape, which can be tweaked into other shapes such as parabolic.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab TWEAK THE CURVE: By using the mousewheel, the shape of the ramp can be tweaked. Linear ramps can be smotthly morphed to parabolic, for example.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab TWEAK THE CURVE: By using the mousewheel, the shape of the ramp can be tweaked. Linear ramps can be smoothly morphed to parabolic, for example.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SKIP REDUNDANT CCs: This script (like all other js_ scripts that insert new CCs) can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC). This is controlled by the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard can terminate the script: * Any mouse modifier key: Terminates the script. * Pressing the keyboard shortcut again: Terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve. (NB: The longer the mousewheel is kept moving, the faster the curve will change. The curve will also momentarily pause when it reaches the default, middle value.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard can also terminate the script: * Any mouse modifier key: Terminates the script. * Pressing the keyboard shortcut again: Terminates the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
@@ -6016,6 +6038,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Extract nodes.lua" type="script" desc="js_Mouse editing - Extract nodes.lua">
@@ -6091,6 +6117,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.lua</source>
         <source file="js_Mouse editing - Extract nodes.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.cur</source>
       </version>
+      <version name="1.01" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.lua</source>
+        <source file="js_Mouse editing - Extract nodes.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.cur</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Reveal peak nodes in LFO.lua" type="script" desc="js_Mouse editing - Reveal peak nodes in LFO.lua">
       <metadata>
@@ -6123,13 +6154,13 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The "Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "Mouse editing" scripts therefore offer an alternative, scripted, solution for toolbar arming:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run the script that is armed in toolbar" script to a keyboard or mousewheel (or both) shortcut.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 (In other words, the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "js_Run..." script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "js_Run..." script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each Mouse editing script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -6139,6 +6170,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ Updated for ReaScriptAPI extension.
 + Mousewheel shortcut starts/stops scripts, instead of controlling CC curves.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Run%20script%20that%20is%20armed%20in%20toolbar.lua</source>
+      </version>
+      <version name="2.10" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Allow right-click arming of scripts that were previously left-click armed.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Run%20script%20that%20is%20armed%20in%20toolbar.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Slice notes.lua" type="script" desc="js_Mouse editing - Slice notes.lua">
@@ -6161,6 +6196,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ Restore focus to original window when script ends.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
         <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
+      </version>
+      <version name="4.03" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
+        <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Stretch and Compress.lua" type="script" desc="js_Mouse editing - Stretch and Compress.lua">
@@ -6241,6 +6281,12 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
         <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
       </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
+        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
+        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Swipe select.lua" type="script" desc="js_Mouse editing - Swipe select.lua">
       <metadata>
@@ -6306,6 +6352,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="2.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
+      </version>
+      <version name="2.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua">
