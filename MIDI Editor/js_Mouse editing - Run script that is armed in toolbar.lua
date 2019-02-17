@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Run script that is armed in toolbar.lua
-Version: 2.00
+Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -38,7 +38,7 @@ About:
         
     ALTERNATIVE TOOLBAR ARMING:
     
-    The "Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:  
+    The "Mouse editing" scripts therefore offer an alternative, scripted, solution for toolbar arming:  
     
     1) Link the "js_Mouse editing - Run the script that is armed in toolbar" script to a keyboard or mousewheel (or both) shortcut.
     
@@ -50,10 +50,10 @@ About:
         (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself 
         and its button will light up with the normal "activated" color.
     
-    4) When the "js_Run..." script is executed with its shortcut, it will run the armed Mouse editing script.
+    4) When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.
     
-    By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key.  Instead, only the 
-      accompanying "js_Run..." script needs to be linked to a shortcut.
+    By using this feature, each Mouse editing script does need not be linked to its own shortcut key.  Instead, only the 
+      accompanying "Run" script needs to be linked to a shortcut.
    
 
 ]]
@@ -72,6 +72,8 @@ About:
   v2.00 (2019-02-08)
     + Updated for ReaScriptAPI extension.
     + Mousewheel shortcut starts/stops scripts, instead of controlling CC curves.
+  v2.10 (2019-02-16)
+    + Allow right-click arming of scripts that were previously left-click armed.
 ]]
 
 status = reaper.GetExtState("js_Mouse actions", "Status") or ""
@@ -84,19 +86,22 @@ if status ~= "" then
 -- No script running?  Start new one.
 else
     armedCommandID = tonumber(reaper.GetExtState("js_Mouse actions", "Armed commandID"))
-    if armedCommandID then
     
-        _, _, sectionID = reaper.get_action_context()
-    
-        -- Make sure previous actions' buttons are dimmed.
-        prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs") or ""
-        for prevID in prevCommandIDs:gmatch("%d+") do
-            if tonumber(prevID) ~= armedCommandID then
-                reaper.SetToggleCommandState(sectionID, prevID, 0)
-                reaper.RefreshToolbar2(sectionID, prevID)
-            end
+    -- Make sure previous actions' buttons are dimmed / disarmed.
+    prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs") or ""
+    _, _, sectionID = reaper.get_action_context()
+    for prevID in prevCommandIDs:gmatch("%d+") do
+        prevID = tonumber(prevID)
+        if prevID == armedCommandID then
+            --reaper.SetToggleCommandState(sectionID, prevID, 1) -- Scripts will activate buttons themselves, so no need to do this here again
+            --reaper.RefreshToolbar2(sectionID, prevID)
+        else
+            reaper.SetToggleCommandState(sectionID, prevID, -1) -- -1 = No state reported, 0 == OFF.  But when OFF, cannot be right-click armed
+            reaper.RefreshToolbar2(sectionID, prevID)
         end
-            
+    end
+    
+    if armedCommandID then
         runOK = reaper.MIDIEditor_LastFocused_OnCommand(armedCommandID, false)
         -- Did anything go wrong when calling the armed commandID?
         if not runOK then
