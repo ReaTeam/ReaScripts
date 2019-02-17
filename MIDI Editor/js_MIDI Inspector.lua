@@ -10,8 +10,9 @@ About:
   
   This script shows important information about the active MIDI take, selected notes, and selected CCs.
   
-  The script can open a separate GUI window, or can be docked in the marker/region lanes of the MIDI editor.
-  
+  The script can open a separate GUI window, or can be docked in the region/marker lanes of the MIDI editor.
+  (Docking in the region/marker lanes is unfortunately not available on Linux.)
+
   
   The script improves on REAPER's native Properties windows in several ways:
   
@@ -28,11 +29,6 @@ About:
   * When working with multiple MIDI editors, the script will automatically switch to the active editor.
   
   
-  LINUX:
-  
-  Docking in the marker/region lanes is unfortunately not available on Linux.
-  
-  
   # INSTRUCTIONS
   
   If the GUI window is open:
@@ -41,9 +37,9 @@ About:
   
     * The default colors of the GUI, as well as the font size, can be customized in the script's USER AREA.  
   
-    * When opening, the script will recall its last-used position and size.
+    * The GUI can be re-sized and re-positioned, and the script will recall its last-used size and position.
     
-  If the Inspector is docked in the marker/region lanes:
+  If the Inspector is docked in the region/marker lanes:
   
     * Right-click on the Inspector to open a context menu.
   
@@ -106,7 +102,7 @@ About:
   * v1.30 (2019-01-19)
     + If the js_ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.
   * v1.40 (2019-02-17)
-    + Inspector can be docked in MIDI editor marker/region lane.
+    + Inspector can be docked in MIDI editor region/marker lanes.
     + Requires the js_ReaScriptAPI extension.
 ]]
 
