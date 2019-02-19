@@ -1,10 +1,10 @@
--- @description Maximize Foreground Window
+-- @description Maximize foreground window
 -- @author Edgemeal
 -- @version 1.0
 -- @about
 --   Call this script from a keyboard shortcut.
---   Mainly useful for floating FX and similar windows that don't have a Maximize option .
---   Companion script:  Restore Foreground Window.
+--   Mainly useful for floating FX and similar windows that don't have a Maximize option.
+--   Companion script: Restore foreground window.
 
 if not reaper.APIExists("JS_WindowMessage_Post") then
   reaper.MB("js_ReaScriptAPI extension is required for this script.", "Missing API", 0)
