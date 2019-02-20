@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b545f02cb140f7c9b897b0e84787132a153eff03" name="ReaTeam Scripts">
+<index version="1" commit="3c13142c3c493da11e7524263d852d64800b0973" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1181,6 +1181,26 @@ buffers available.]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/535be322cffc72aba221482a280a4806d5b19c94/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
+      <version name="2.16.3" author="Lokasenna" time="2019-02-16T18:42:47Z">
+        <changelog><![CDATA[Fix: Scripts created with GUI Builder weren't populating their menuboxes
+with options]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/7e91407f088bfc4e8efe91e79f8fe115fdc7694c/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
       <metadata>
@@ -1264,7 +1284,7 @@ Refactored/reorganized the code for readability]]></changelog>
         <link rel="donation">https://paypal.me/benjohnson2001</link>
       </metadata>
       <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Development/pandabot_Convert%20image%20to%20Lua%20function.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Development/pandabot_Convert%20image%20to%20Lua%20function.lua</source>
       </version>
     </reapack>
   </category>
@@ -1357,7 +1377,7 @@ Refactored/reorganized the code for readability]]></changelog>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=215558">Forum Thread</link>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-04T01:06:54Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec8db421638af28d73a8e9d4e092d9521d9748c9/Envelopes/edgemeal_Toggle%20envelope%20lanes%20for%20selected%20track.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/edgemeal_Toggle%20envelope%20lanes%20for%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
@@ -1525,7 +1545,7 @@ Refactored/reorganized the code for readability]]></changelog>
       </version>
       <version name="2.04" author="juliansader / Xenakios" time="2018-12-28T09:24:10Z">
         <changelog><![CDATA[+ Fix bug when right-clicking on node to set value.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0a499e6333cd89dc8692811738346b389ddb3636/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
@@ -1778,7 +1798,7 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 ]]></description>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-06T20:16:14Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4a24d31425e940d7bdfb8deade06b3255ae239f9/Envelopes/Automation%20Items/edgemeal_Set%20first%20selected%20point%20to%20last%20selected%20point%20value%20in%20AI.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/Automation%20Items/edgemeal_Set%20first%20selected%20point%20to%20last%20selected%20point%20value%20in%20AI.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Set last selected point to first selected point value in AI.lua" type="script" desc="Set last selected point to first selected point value in AI">
@@ -1792,7 +1812,7 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 ]]></description>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-06T20:16:35Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96c0eab686f4a776034e5c4b8927f47bb4b85aaf/Envelopes/Automation%20Items/edgemeal_Set%20last%20selected%20point%20to%20first%20selected%20point%20value%20in%20AI.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/Automation%20Items/edgemeal_Set%20last%20selected%20point%20to%20first%20selected%20point%20value%20in%20AI.lua</source>
       </version>
     </reapack>
     <reapack name="Select all visible synchronous pooled instances of selected automation items across tracks.lua" type="script" desc="amagalma_Select all visible synchronous pooled instances of selected automation items across tracks">
@@ -1817,7 +1837,7 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=215558">Forum Thread</link>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-04T01:12:29Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb2f4d23c8c98617b5e6a86ba7e79ad776e59957/Envelopes/Takes/edgemeal_Toggle%20selected%20take%20envelopes.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/Takes/edgemeal_Toggle%20selected%20take%20envelopes.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Toggle take FX envelope visibility in selected items.lua" type="script" desc="Toggle take FX envelope visibility for all selected items">
@@ -2246,7 +2266,7 @@ Better error-checking in general]]></changelog>
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-29T03:22:58Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a5d68e45ee7e2c48a5ed610e083e09d0484f66db/Items%20Editing/Add%20project%20markers%20as%20cue%20points%20to%20selected%20items%20and%20replace%20source%20files.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/Add%20project%20markers%20as%20cue%20points%20to%20selected%20items%20and%20replace%20source%20files.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua">
@@ -2264,7 +2284,7 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bef21264f65b7e32d6d56884ce434a1bc2374e3c/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
       </version>
       <version name="1.1" author="amagalma" time="2018-11-16T18:53:57Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8162d3448a1dbdd34f6bc4a80a0d066b84672997/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type%20for%20selected%20midi%20items'%20active%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Delete crossfade under mouse cursor.lua" type="script" desc="amagalma_Delete crossfade under mouse cursor">
@@ -2321,7 +2341,7 @@ Better error-checking in general]]></changelog>
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-22T13:41:18Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/39843a021ad6a73674e59caa9cc9d2416ab96f38/Items%20Editing/amagalma_Nudge%20to%20source%20preferred%20position%20(used%20by%20BWF)%20for%20selected%20items'%20active%20takes.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/amagalma_Nudge%20to%20source%20preferred%20position%20(used%20by%20BWF)%20for%20selected%20items'%20active%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove content (trim) behind items preserving crossfades.lua" type="script" desc="amagalma_Remove content (trim) behind items preserving crossfades">
@@ -2366,7 +2386,7 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a445b7d75d3be605bedb27c337d6d89cb0262754/Items%20Editing/amagalma_Remove%20selected%20items'%20active%20takes'%20source%20file%20cue%20points%20(WAV%20only)%20-%20NO%20UNDO.lua</source>
       </version>
       <version name="1.1" author="amagalma" time="2019-01-03T17:28:20Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/06d45d70e844ff19b947860e3074e36c5235d374/Items%20Editing/amagalma_Remove%20selected%20items'%20active%20takes'%20source%20file%20cue%20points%20(WAV%20only)%20-%20NO%20UNDO.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/amagalma_Remove%20selected%20items'%20active%20takes'%20source%20file%20cue%20points%20(WAV%20only)%20-%20NO%20UNDO.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove selected items' cue points and replace source file (WAV only).lua" type="script" desc="amagalma_Remove selected items' cue points and replace source file (WAV only)">
@@ -2388,7 +2408,7 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b5bd54c2e9890a862a82270385bc488840306ac3/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
       </version>
       <version name="1.11" author="amagalma" time="2018-11-27T13:31:59Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/69124bd9bcd397afad49a434e69d0e41efb5f639/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/amagalma_Remove%20selected%20items'%20cue%20points%20and%20replace%20source%20file%20(WAV%20only).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Remove visible content (trim) behind items.lua" type="script" desc="amagalma_Remove visible content (trim) behind items">
@@ -2566,7 +2586,7 @@ Better error-checking in general]]></changelog>
     </reapack>
     <reapack name="AtmanActive_Apply track-take FX to selected items and propagate new files to other items with same source.eel" type="script" desc="Apply track-take FX to selected items and propagate new files to other items with same source">
       <version name="1.0" author="AtmanActive" time="2018-11-28T23:26:53Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c428cd80d206700a8507b9d25b67f09266c2ad4/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/AtmanActive_Apply%20track-take%20FX%20to%20selected%20items%20and%20propagate%20new%20files%20to%20other%20items%20with%20same%20source.eel</source>
       </version>
     </reapack>
     <reapack name="beaunus_Name item takes by last marker to cut item.lua" type="script" desc="Name item takes by last marker to cut item">
@@ -3302,7 +3322,7 @@ items being skipped.]]></changelog>
         <link rel="screenshot">https://i.imgur.com/wESKPou.gif</link>
       </metadata>
       <version name="1.0" author="Mordi" time="2019-01-02T14:54:25Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7459d7aa6263dd5b64f85887eed4d6b0a0d2a067/Items%20Editing/mordi_Move%20selected%20items%20to%20new%20individual%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/mordi_Move%20selected%20items%20to%20new%20individual%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_spk77_Sort items by length.lua" type="script" desc="Sort selected items by length (ascending)">
@@ -3332,8 +3352,8 @@ here
         <link rel="donation">https://paypal.me/benjohnson2001</link>
       </metadata>
       <version name="1.0" author="pandabot" time="2018-12-01T11:41:00Z">
-        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Copy rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/f20d1daae05a3564fdde974b0b22b22e12b45215/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Copy%20rhythm.lua</source>
-        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Paste rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/f20d1daae05a3564fdde974b0b22b22e12b45215/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Paste%20rhythm.lua</source>
+        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Copy rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Copy%20rhythm.lua</source>
+        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Paste rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Paste%20rhythm.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Copy items and store positions.eel" type="script" desc="Copy items and store positions">
@@ -3618,7 +3638,7 @@ here
       </version>
       <version name="1.01" author="amagalma" time="2019-01-09T22:58:19Z">
         <changelog><![CDATA[# Supports files with samplerate different to that of the project]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f34f86481bb9387e925544ed5436a429ba508882/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
       </version>
     </reapack>
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
@@ -3817,7 +3837,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="1.01" author="amagalma" time="2018-11-16T13:59:51Z">
         <changelog><![CDATA[+ fix working with MIDI Inline Editor]]></changelog>
-        <source main="midi_eventlisteditor midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/21dc9b5c3cc74a3c4f4182b29933e4a584e79a4c/MIDI%20Editor/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type.lua</source>
+        <source main="midi_eventlisteditor midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/amagalma_Delete%20CC-Text-Sysex%20events%20by%20type.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set space between selected notes from grid size.lua" type="script" desc="Set space between selected notes from grid size">
@@ -3940,7 +3960,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T20:53:01Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/00d1b9980e20a121bbeb4e1259979585dd175c58/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_1-sided%20warp%20(accelerate)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_2-sided warp (and stretch) selected events in lane under mouse.lua" type="script" desc="js_2-sided warp (and stretch) selected events in lane under mouse.lua">
@@ -4002,7 +4022,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:06:03Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/1a3aaafe368e840e368ad2ec90fcd3d3e7c29e8f/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_2-sided%20warp%20(and%20stretch)%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with linear or power curve.lua" type="script" desc="js_Arch selected events in lane under mouse with linear or power curve.lua">
@@ -4047,7 +4067,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:25:25Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7d3a1444e224b1b1a5b2747a2d0a0b6f15f9af87/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20linear%20or%20power%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Arch selected events in lane under mouse with sine curve.lua" type="script" desc="js_Arch selected events in lane under mouse with sine curve.lua">
@@ -4092,7 +4112,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:25:42Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/69c599a1a6e7a455afa6249a843d03090a88188b/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Arch%20selected%20events%20in%20lane%20under%20mouse%20with%20sine%20curve.lua</source>
       </version>
     </reapack>
     <reapack name="js_Compress or expand selected CC or velocity events using mousewheel.lua" type="script" desc="js_Compress or expand selected CC or velocity events using mousewheel.lua">
@@ -4158,7 +4178,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:47:28Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/3ceadf55bd539e1f10986fbaa1e40ce6d244f811/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Compress%20or%20expand%20selected%20CC%20or%20velocity%20events%20using%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="js_Deselect all events outside time selection (from all tracks).lua" type="script" desc="js_Deselect all MIDI events outside time selection (from all tracks).lua">
@@ -4307,7 +4327,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:51:18Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a2ad0911604a76a75edce9559c29a90e7ea99c40/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw linear or curved ramps in real time.lua" type="script" desc="js_Draw linear or curved ramps in real time.lua">
@@ -4398,7 +4418,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:51:37Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/15bca5a681bc02ff70a19fd1eb05d0843bd36746/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Draw%20linear%20or%20curved%20ramps%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time, chasing start values.lua" type="script" desc="js_Draw sine curve in real time, chasing start values.lua">
@@ -4471,7 +4491,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:51:56Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e493cc512a0ad6a9491869bc12ac304257fb366d/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time,%20chasing%20start%20values.lua</source>
       </version>
     </reapack>
     <reapack name="js_Draw sine curve in real time.lua" type="script" desc="js_Draw sine curve in real time.lua">
@@ -4544,7 +4564,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:52:15Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/02f291cb31b66aa19ef298a1bc49e091cc4d4275/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Draw%20sine%20curve%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Fit all selected events to time selection.lua" type="script" desc="js_Fit all selected events to time selection.lua">
@@ -4675,7 +4695,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="3.00" author="juliansader" time="2019-02-10T03:15:06Z">
         <changelog><![CDATA[+ Works in looped items.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Insert%20CC%20or%20pitch%20at%20mouse%20position,%20leaving%20other%20selected.lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua" type="script" desc="js_Insert linear or shaped ramps between selected CCs or pitches in lane under mouse.lua">
@@ -4747,7 +4767,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="4.00" author="juliansader" time="2019-02-10T03:25:49Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/ecb083aef8863f7c83f0074baaeeab50430da725/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Insert pitch reset at start of each selected note (all editable takes).lua" type="script" desc="js_Insert pitch reset at start of each selected note (all editable takes).lua">
@@ -4874,7 +4894,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="2.71" author="juliansader" time="2018-12-28T10:10:59Z">
         <changelog><![CDATA[+ Small improvements.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2df2cb1467a78747362feaf15d01024a0b1c818d/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, apply to existing CCs or velocities in last clicked lane).lua">
@@ -4980,7 +5000,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="2.71" author="juliansader" time="2018-12-28T10:11:28Z">
         <changelog><![CDATA[+ Small improvements.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/7c15bd5320386a5299f5496ab026d5a0bd278551/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20apply%20to%20existing%20CCs%20or%20velocities%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in lane under mouse).lua">
@@ -5090,7 +5110,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="2.71" author="juliansader" time="2018-12-28T10:12:00Z">
         <changelog><![CDATA[+ Small improvements.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fa7fa9297e355d9b698fedc73cb6625324128a9c/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua">
@@ -5200,7 +5220,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="2.71" author="juliansader" time="2018-12-28T10:12:35Z">
         <changelog><![CDATA[+ Small improvements.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a6384c551de949a5254a77926dbc8cc59103b805/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20in%20time%20selection%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua">
@@ -5310,7 +5330,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="2.71" author="juliansader" time="2018-12-28T10:13:26Z">
         <changelog><![CDATA[+ Small improvements.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c64d8283634cabd35e0908b69f7a3f7f230f2f6e/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20lane%20under%20mouse).lua</source>
       </version>
     </reapack>
     <reapack name="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua" type="script" desc="js_LFO Tool (MIDI editor version, insert CCs under selected notes in last clicked lane).lua">
@@ -5420,7 +5440,7 @@ Renumber markers and regions when pasting]]></changelog>
       </version>
       <version name="2.71" author="juliansader" time="2018-12-28T10:13:54Z">
         <changelog><![CDATA[+ Small improvements.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/733cd825d7ac4ee8396430d5983d02766b503813/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_LFO%20Tool%20(MIDI%20editor%20version,%20insert%20CCs%20under%20selected%20notes%20in%20last%20clicked%20lane).lua</source>
       </version>
     </reapack>
     <reapack name="js_MIDI Inspector.lua" type="script" desc="js_MIDI Inspector.lua">
@@ -5429,22 +5449,25 @@ Renumber markers and regions when pasting]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script opens a GUI that shows important information about the active MIDI take, selected notes, and selected CCs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script shows important information about the active MIDI take, selected notes, and selected CCs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can open a separate GUI window, or can be docked in the region/marker lanes of the MIDI editor. (Docking in the region/marker lanes is unfortunately not available on Linux.)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script improves on REAPER's native Properties windows in several ways:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The GUI is continuously updated and does not interfere with MIDI editing.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If multiple events are selected, value ranges are shown.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Note, CC and take information are all shown simultaneously.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Note and CC positions can be displayed in any of REAPER's time formats.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In Measure:Beat:Ticks format, script can display fractional tick values.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The GUI can be docked.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In addition, the script clearly shows the take's default insert channel, and allows the user to change the channel. (From REAPER v2.54 onward, this crucial setting will also be available by default in the MIDI editor itself.)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The default colors of the GUI, as well as the font size, can be customized in the script's USER AREA.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When opening, the script will recall its last-used position and size.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 If the script GUI is docked, REAPER's own pin-on-top button can be used to keep the docker on top and the script visible at all times. If the script GUI is not docked, 3rd party apps that pin windows on top, such as "FileBox eXtender" (on Windows), can be used.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, particularly if the take contains many thousands of MIDI events. The GUI therefore provides a "Pause" checkbox, which will pause the realtime updating.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab When working with multiple MIDI editors, the script will automatically switch to the active editor.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the GUI window is open:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The default colors of the GUI, as well as the font size, can be customized in the script's USER AREA.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The GUI can be re-sized and re-positioned, and the script will recall its last-used size and position.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the Inspector is docked in the region/marker lanes:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on the Inspector to open a context menu.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 WARNING:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, particularly if the take contains many thousands of MIDI events. The GUI therefore provides a "Pause" option, which will pause the realtime updating.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -5521,7 +5544,12 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       </version>
       <version name="1.30" author="juliansader" time="2019-02-09T22:05:52Z">
         <changelog><![CDATA[+ If the js_ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f871af4d57d507237880591380ea68b4c4d17bf7/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
+      <version name="1.40" author="juliansader" time="2019-02-17T07:16:30Z">
+        <changelog><![CDATA[+ Inspector can be docked in MIDI editor region/marker lanes.
++ Requires the js_ReaScriptAPI extension.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9f7bf8e78d33724e32fa52ff44c3afa218898602/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - 1-sided Warp.lua" type="script" desc="js_Mouse editing - 1-sided Warp.lua">
@@ -5596,7 +5624,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%201-sided%20Warp.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%201-sided%20Warp.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%201-sided%20Warp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - 2-sided Warp.lua" type="script" desc="js_Mouse editing - 2-sided Warp.lua">
@@ -5673,7 +5705,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%202-sided%20Warp.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%202-sided%20Warp.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%202-sided%20Warp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Arch and Tilt.lua" type="script" desc="js_Mouse editing - Arch and Tilt.lua">
@@ -5746,7 +5782,12 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.
++ Arching curve displayed in MIDI editor.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Connect nodes.lua" type="script" desc="js_Mouse editing - Connect nodes.lua">
@@ -5771,7 +5812,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The mousewheel changes the channel of the inserted MIDI events.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the MIDI editor is set to "Edit only the active MIDI channel", the script will only select nodes that are in the active channel. These channel features are very useful for keeping the ramps and the nodes in separate channels, so that the nodes can easily be re-selected and edited.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 OTHER NOTES:\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The "Connect nodes" script is often used directly after the "Extract nodes" script.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The "Connect nodes" script is often used directly after the "Extract nodes" script, and these can usefully be combined in a single custom action, so that both can be run with a single shortcut.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The scripts works in inline MIDI editors as well as main MIDI editors.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab New CCs will be inserted at the MIDI editor's default density that is set in Preferences -> CC density.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Any extraneous CCs between selected events will deleted.\par}
@@ -5833,7 +5874,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/9f579c37955b9c41d85a32dd6314cf6603ec4306/MIDI%20Editor/js_Mouse%20editing%20-%20Connect%20nodes.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Connect%20nodes.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Connect%20nodes.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw basic LFO curves in real time.lua" type="script" desc="js_Mouse editing - Draw basic LFO curves in real time.lua">
@@ -5854,7 +5899,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-10T21:21:26Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a0c2c812d81b7b6cf996b4da26cfac0c9a41191d/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw LFO.lua" type="script" desc="js_Mouse editing - Draw LFO.lua">
@@ -5922,7 +5967,12 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.
++ Fixed: Error if grid very small.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw ramp.lua" type="script" desc="js_Mouse editing - Draw ramp.lua">
@@ -5938,14 +5988,14 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SNAP TO GRID: If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab CHASING START VALUES: Right-clicking toggles between chasing existing CC values at the line start position, and starting at the mouse's original vertical position. Chasing ensures that CC values change smoothly.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LINEAR OR SINE SHAPES: Clicking the middle button toggles between a linear shape and a sine shape, which can be tweaked into other shapes such as parabolic.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab TWEAK THE CURVE: By using the mousewheel, the shape of the ramp can be tweaked. Linear ramps can be smotthly morphed to parabolic, for example.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab TWEAK THE CURVE: By using the mousewheel, the shape of the ramp can be tweaked. Linear ramps can be smoothly morphed to parabolic, for example.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SKIP REDUNDANT CCs: This script (like all other js_ scripts that insert new CCs) can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC). This is controlled by the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard can terminate the script: * Any mouse modifier key: Terminates the script. * Pressing the keyboard shortcut again: Terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve. (NB: The longer the mousewheel is kept moving, the faster the curve will change. The curve will also momentarily pause when it reaches the default, middle value.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The keyboard can also terminate the script: * Any mouse modifier key: Terminates the script. * Pressing the keyboard shortcut again: Terminates the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
@@ -5995,7 +6045,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Extract nodes.lua" type="script" desc="js_Mouse editing - Extract nodes.lua">
@@ -6068,8 +6122,13 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="1.00" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.lua</source>
-        <source file="js_Mouse editing - Extract nodes.cur">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.cur</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.lua</source>
+        <source file="js_Mouse editing - Extract nodes.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.cur</source>
+      </version>
+      <version name="1.01" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.lua</source>
+        <source file="js_Mouse editing - Extract nodes.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Extract%20nodes.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Reveal peak nodes in LFO.lua" type="script" desc="js_Mouse editing - Reveal peak nodes in LFO.lua">
@@ -6082,7 +6141,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-10T03:18:51Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f93e8563c97aaec2676052fda564cfeaf0368f96/MIDI%20Editor/js_Mouse%20editing%20-%20Reveal%20peak%20nodes%20in%20LFO.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Reveal%20peak%20nodes%20in%20LFO.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Run script that is armed in toolbar.lua" type="script" desc="js_Mouse editing - Run script that is armed in toolbar.lua">
@@ -6103,13 +6162,13 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Left-drag is very sensitive: If the mouse is even slightly moved while left-clicking, the left-drag mouse modifier action will be run instead of the armed toolbar action;\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Multiple clicks: The user has to right-click the toolbar (or press Esc) to disarm the toolbar and use left-click normally again, then right-click the toolbar again to use the script.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 ALTERNATIVE TOOLBAR ARMING:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The "Mouse editing" scripts therefore offer an alternative "toolbar arming" solution:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "Mouse editing" scripts therefore offer an alternative, scripted, solution for toolbar arming:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 1)\tx360\tab Link the "js_Mouse editing - Run the script that is armed in toolbar" script to a keyboard or mousewheel (or both) shortcut.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 2)\tx360\tab Link the individual Mouse editing scripts (such as "Draw ramp", "Warp", etc) to toolbar buttons. (No need to link them each to a shortcut.)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 (In other words, the Run script is linked to a shortcut, while the individual Mouse editing scripts are linked to toolbar buttons.)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 3)\tx360\tab If the mouse is positioned over a toolbar or over the Actions list when the Mouse editing script starts (or, actually, anywhere else outside the MIDI piano roll and CC lanes), the script will arm itself and its button will light up with the normal "activated" color.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "js_Run..." script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each "Mouse editing" script does need not be linked to its own shortcut key. Instead, only the accompanying "js_Run..." script needs to be linked to a shortcut.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 4)\tx360\tab When the "Run" script is executed with its shortcut, it will run the armed Mouse editing script.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By using this feature, each Mouse editing script does need not be linked to its own shortcut key. Instead, only the accompanying "Run" script needs to be linked to a shortcut.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -6118,7 +6177,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="2.00" author="juliansader" time="2019-02-10T03:15:06Z">
         <changelog><![CDATA[+ Updated for ReaScriptAPI extension.
 + Mousewheel shortcut starts/stops scripts, instead of controlling CC curves.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Mouse%20editing%20-%20Run%20script%20that%20is%20armed%20in%20toolbar.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Run%20script%20that%20is%20armed%20in%20toolbar.lua</source>
+      </version>
+      <version name="2.10" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Allow right-click arming of scripts that were previously left-click armed.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Run%20script%20that%20is%20armed%20in%20toolbar.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Slice notes.lua" type="script" desc="js_Mouse editing - Slice notes.lua">
@@ -6139,8 +6202,13 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.02" author="juliansader" time="2019-02-10T21:39:36Z">
         <changelog><![CDATA[+ Restore focus to original window when script ends.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2c7add5b6915f0fcae11d69c5fbfedaea2442f0e/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
-        <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/2c7add5b6915f0fcae11d69c5fbfedaea2442f0e/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
+        <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
+      </version>
+      <version name="4.03" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.lua</source>
+        <source file="js_Mouse editing - Slice notes.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Slice%20notes.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Stretch and Compress.lua" type="script" desc="js_Mouse editing - Stretch and Compress.lua">
@@ -6217,9 +6285,15 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
-        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
-        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
+        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
+        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
+      </version>
+      <version name="4.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
+        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
+        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Swipe select.lua" type="script" desc="js_Mouse editing - Swipe select.lua">
@@ -6285,7 +6359,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="2.01" author="juliansader" time="2019-02-11T12:11:43Z">
         <changelog><![CDATA[+ Restore focus to original window, if script opened notification window.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/26b6fad4566e7ff23c801c7b94e79b6d210f61e8/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
+      </version>
+      <version name="2.02" author="juliansader" time="2019-02-17T03:57:41Z">
+        <changelog><![CDATA[+ Fixed: On Linux, crashing if editor closed while script is running.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/a5ee0c9b012320200a3ed3f4047093396dbfa015/MIDI%20Editor/js_Mouse%20editing%20-%20Swipe%20select.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise scroll up or down.lua">
@@ -6298,7 +6376,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:57:47Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b7dfbb8f6a72d496f15118418777f367adadd349/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20scroll%20up%20or%20down.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20scroll%20up%20or%20down.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom horizontally.lua">
@@ -6311,7 +6389,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:57:58Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f3097f26a0882541260ed9d64ed927e640a3e38e/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20zoom%20horizontally.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20zoom%20horizontally.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom vertically.lua" type="script" desc="js_Mousewheel - Control js MIDI editing script (if one is running), otherwise zoom vertically.lua">
@@ -6324,7 +6402,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:58:14Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c849b1fc974f06faf488b74f70dcdd137fac3a36/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20zoom%20vertically.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Mousewheel%20-%20Control%20js%20MIDI%20editing%20script%20(if%20one%20is%20running),%20otherwise%20zoom%20vertically.lua</source>
       </version>
     </reapack>
     <reapack name="js_Move all selected events in active take together with mouse.lua" type="script" desc="js_Move all selected events in active take together with mouse.lua">
@@ -6871,7 +6949,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T22:04:51Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/55ff0926f2ab202e236f7f07e9a3d08770616287/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Run%20the%20js_'lane%20under%20mouse'%20script%20that%20is%20selected%20in%20toolbar%20(link%20this%20to%20shortcut%20and%20mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="js_Select and deselect MIDI notes by step pattern.lua" type="script" desc="js_Select and deselect MIDI notes by step pattern.lua">
@@ -6937,7 +7015,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="1.30" author="juliansader" time="2019-02-09T22:05:52Z">
         <changelog><![CDATA[+ If ReaScriptAPI extension is installed, automatically add pin-on-top button to GUI.]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/f871af4d57d507237880591380ea68b4c4d17bf7/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Select%20and%20deselect%20MIDI%20notes%20by%20step%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="js_Select channel for new events for inline MIDI editor under mouse.lua" type="script" desc="js_Select MIDI channel for new events for inline MIDI editor under mouse.lua">
@@ -6960,7 +7038,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </metadata>
       <version name="1.00" author="juliansader" time="2019-02-10T03:15:06Z">
         <changelog><![CDATA[+ If ReaScriptAPI is installed, return focus to inline editor.]]></changelog>
-        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/8bb6db4e207ec52c24205e30f02ed9ea093d1ab6/MIDI%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Select%20channel%20for%20new%20events%20for%20inline%20MIDI%20editor%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Set time selection to selected events in lane under mouse.lua" type="script" desc="Set time selection to selected events in lane under mouse.">
@@ -7030,7 +7108,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:36:30Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/215d8a25ed7e650d91896dc9505eb98335f8c014/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Split%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Split selected notes by drawing a line with the mouse.lua" type="script" desc="js_Split selected notes by drawing a line with the mouse.lua">
@@ -7085,7 +7163,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:35:44Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/89ffc8c0383077cc0595c767a4773d9484bb1337/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Split%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Stretch selected events in lane under mouse.lua" type="script" desc="js_Stretch selected events in lane under mouse.lua">
@@ -7170,7 +7248,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:46:40Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/16ab3ced964f701131b025c78a58321c945347d0/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Stretch%20selected%20events%20in%20lane%20under%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected CCs or velocities to mouse position.lua" type="script" desc="js_Tilt selected CCs or velocities to mouse position.lua">
@@ -7222,7 +7300,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:32:18Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/21123a8b7f25f5cc944d53ec94ab207fb1cb1e74/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Tilt%20selected%20CCs%20or%20velocities%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="js_Tilt selected events in lane under mouse to fit both sides.lua" type="script" desc="js_Tilt selected events in lane under mouse to fit both sides smoothly.lua">
@@ -7297,7 +7375,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:35:04Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/714e0953e623bcc632fa9049fc9e4c70659b93cb/MIDI%20Editor/js_Trim%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Trim%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Trim selected notes by drawing a line with the mouse.lua" type="script" desc="js_Trim selected notes by drawing a line with the mouse.lua">
@@ -7338,7 +7416,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       </version>
       <version name="4.00" author="juliansader" time="2019-02-09T21:35:27Z">
         <changelog><![CDATA[+ Deprecation notice.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/20b82f8eec3123eda1319003461156a7cd9a4930/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/MIDI%20Editor/js_Trim%20selected%20notes%20by%20drawing%20a%20line%20with%20the%20mouse.lua</source>
       </version>
     </reapack>
     <reapack name="js_Zoom MIDI editor to 5 measures at mouse position.lua" type="script" desc="js_Zoom MIDI editor to 5 measures at mouse position.lua">
@@ -8077,7 +8155,7 @@ enter or a = Exit and apply changes\par}
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-31T14:35:28Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11d64c3c4f2415b4180be796283303bef1cc55d5/Project%20Properties/amagalma_Set%20project%20samplerate%20to%20that%20of%20the%20first%20selected%20item%20(if%20different).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/amagalma_Set%20project%20samplerate%20to%20that%20of%20the%20first%20selected%20item%20(if%20different).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
@@ -8114,10 +8192,10 @@ enter or a = Exit and apply changes\par}
         <link rel="donation" href="https://paypal.me/cfillion">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-01-22T22:14:21Z">
-        <source main="main" file="cfillion_Set master track mono mode to L+R.lua">https://github.com/ReaTeam/ReaScripts/raw/982e2e72d26450c6fbe5d49d942a3a8799b1044b/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
-        <source main="main" file="cfillion_Set master track mono mode to L.lua">https://github.com/ReaTeam/ReaScripts/raw/982e2e72d26450c6fbe5d49d942a3a8799b1044b/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
-        <source main="main" file="cfillion_Set master track mono mode to R.lua">https://github.com/ReaTeam/ReaScripts/raw/982e2e72d26450c6fbe5d49d942a3a8799b1044b/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
-        <source main="main" file="cfillion_Set master track mono mode to L-R.lua">https://github.com/ReaTeam/ReaScripts/raw/982e2e72d26450c6fbe5d49d942a3a8799b1044b/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
+        <source main="main" file="cfillion_Set master track mono mode to L+R.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
+        <source main="main" file="cfillion_Set master track mono mode to L.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
+        <source main="main" file="cfillion_Set master track mono mode to R.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
+        <source main="main" file="cfillion_Set master track mono mode to L-R.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/cfillion_Set%20master%20track%20mono%20mode%20to%20L+R,%20L,%20R%20or%20L-R.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Set timecode at edit cursor.lua" type="script" desc="Set timecode at edit cursor">
@@ -8263,7 +8341,7 @@ enter or a = Exit and apply changes\par}
       </version>
       <version name="1.0.1" author="solger" time="2019-01-30T19:39:32Z">
         <changelog><![CDATA[+ [Recent Projects]: Temporary removal of subversion filter due to further bugfixing]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0551abca3b908e33a65437a1675f5050a882bf3a/Project%20Properties/solger_ReaLauncher.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
@@ -8738,7 +8816,7 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2019-01-07T20:48:48Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9d572ef6832114e7b6bd59317e51bb76976f7969/Tracks%20Properties/amagalma_Fit%20vertically%20all%20tracks%20into%20view%20(if%20possible).lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/amagalma_Fit%20vertically%20all%20tracks%20into%20view%20(if%20possible).lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
@@ -8796,7 +8874,7 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <link rel="donation">https://paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-01-06T06:14:33Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8237932d2d093abee234f99c17f8edc99262065c/Tracks%20Properties/cfillion_Reset%20TCP%20height%20of%20selected%20tracks%20to%20default.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Reset%20TCP%20height%20of%20selected%20tracks%20to%20default.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Select destination tracks of selected tracks sends recursively.lua" type="script" desc="Select destination tracks of selected tracks sends recursively">
@@ -8826,8 +8904,8 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <changelog><![CDATA[Fix a bug causing some tracks to not be selected in a single shot
 Ignore muted sends
 Select tracks up the folder hierarchy (obeying parent send)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
-        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Select source tracks of selected tracks receives recursively.lua" type="script" desc="Select source tracks of selected tracks receives recursively">
@@ -8854,8 +8932,8 @@ Select tracks up the folder hierarchy (obeying parent send)]]></changelog>
         <changelog><![CDATA[Fix a bug causing some tracks to not be selected in a single shot
 Ignore muted receives
 Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
-        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
-        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/b545f02cb140f7c9b897b0e84787132a153eff03/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle track FX bypass by name.lua" type="script" desc="Toggle track FX bypass by name">
@@ -8926,9 +9004,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <link rel="donation" href="https://paypal.me/cfillion">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-02-13T03:44:48Z">
-        <source main="main" file="cfillion_Unselect tracks hidden in MCP.lua">https://github.com/ReaTeam/ReaScripts/raw/15a8e98a456b131e45a26d6a0bbe64107aeff4a8/Tracks%20Properties/cfillion_Unselect%20hidden%20tracks.lua</source>
-        <source main="main" file="cfillion_Unselect tracks hidden in TCP.lua">https://github.com/ReaTeam/ReaScripts/raw/15a8e98a456b131e45a26d6a0bbe64107aeff4a8/Tracks%20Properties/cfillion_Unselect%20hidden%20tracks.lua</source>
-        <source main="main" file="cfillion_Unselect tracks hidden in MCP and TCP.lua">https://github.com/ReaTeam/ReaScripts/raw/15a8e98a456b131e45a26d6a0bbe64107aeff4a8/Tracks%20Properties/cfillion_Unselect%20hidden%20tracks.lua</source>
+        <source main="main" file="cfillion_Unselect tracks hidden in MCP.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Unselect%20hidden%20tracks.lua</source>
+        <source main="main" file="cfillion_Unselect tracks hidden in TCP.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Unselect%20hidden%20tracks.lua</source>
+        <source main="main" file="cfillion_Unselect tracks hidden in MCP and TCP.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Unselect%20hidden%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Toggle free item positioning mode with track name marker.lua" type="script" desc="Toggle free item positioning mode with track name marker">
@@ -8951,7 +9029,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=208982">Forum Thread</link>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-03T21:37:02Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/77e934fbc6117aabc2fc4058670003f4245e135f/Tracks%20Properties/edgemeal_Disable%20multichannel%20metering%20on%20selected%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/edgemeal_Disable%20multichannel%20metering%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="jmieszkowski_Set the color of selected tracks from their parent tracks.lua" type="script" desc="Set the color of selected tracks from their parent tracks">
@@ -8967,7 +9045,7 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <link rel="website">https://github.com/jmieszkowski/ReaScripts</link>
       </metadata>
       <version name="1.0" author="jmieszkowski" time="2019-02-11T22:20:14Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9268eba19b5a8a3c9bb9fc52fc03da1ea0390e04/Tracks%20Properties/jmieszkowski_Set%20the%20color%20of%20selected%20tracks%20from%20their%20parent%20tracks.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/jmieszkowski_Set%20the%20color%20of%20selected%20tracks%20from%20their%20parent%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="js_Autoincrement MIDI send channels of selected tracks.lua" type="script" desc="js_Autoincrement MIDI send channels of selected tracks">
@@ -9672,7 +9750,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </version>
       <version name="2.12" author="amagalma" time="2018-12-08T12:22:24Z">
         <changelog><![CDATA[+ fix for Linux font size]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1f6bb783caaa883ddeda4193b12ae4d1d52bd96a/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
@@ -9781,7 +9859,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
         <changelog><![CDATA[# Behavior change: When zoomed to tracks, zooming to items zooms only horizontally, so when zooming out you don't loose previous track zoom
 # New: when run over empty TCP area, it fits vertically all (as many as possible) tracks into view (no toggle action)
 # Various optimizations]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9d572ef6832114e7b6bd59317e51bb76976f7969/Various/amagalma_Smart%20contextual%20zoom.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/amagalma_Smart%20contextual%20zoom.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
@@ -9859,7 +9937,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </version>
       <version name="1.27" author="amagalma" time="2018-12-29T13:18:38Z">
         <changelog><![CDATA[# hopefully, first-time-run error-checking should be fixed now for x64 platforms]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a3d0a2b4c30721bd9531386200027ef171851240/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX">
@@ -9878,7 +9956,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </metadata>
       <version name="1.27" author="amagalma" time="2018-12-29T13:32:41Z">
         <changelog><![CDATA[# hopefully, first-time-run error-checking should be fixed now for x64 platforms]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/63f556e10f586c3a4b254cffc6a51ce24c8439db/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
@@ -10286,7 +10364,7 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
       </version>
       <version name="1.0.1" author="cfillion" time="2019-01-18T12:39:54Z">
         <changelog><![CDATA[Fix keyboard input on macOS]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/81783a088c1723a4a7cc8f32af82d66295aedab8/Various/cfillion_Find%20shortcut%20in%20the%20Action%20List.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/cfillion_Find%20shortcut%20in%20the%20Action%20List.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Project underrun monitor (xrun).lua" type="script" desc="Project underrun monitor (xrun)">
@@ -10437,6 +10515,20 @@ use sentence case for all buttons]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/086f7ffe016f6daa5ee2772bfe08bb0c3b36866d/Various/ED_Smart%20toggle%20mute%20(items,%20automation%20items,%20tracks).lua</source>
       </version>
     </reapack>
+    <reapack name="edgemeal_Maximize foreground window.lua" type="script" desc="Maximize foreground window">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Call this script from a keyboard shortcut. Mainly useful for floating FX and similar windows that don't have a Maximize option. Companion script: Restore foreground window.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-02-19T06:03:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c13142c3c493da11e7524263d852d64800b0973/Various/edgemeal_Maximize%20foreground%20window.lua</source>
+      </version>
+    </reapack>
     <reapack name="edgemeal_Reset VU Meters.lua" type="script" desc="Reset VU Meters">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -10449,7 +10541,21 @@ use sentence case for all buttons]]></changelog>
         <link rel="screenshot" href="https://stash.reaper.fm/34070/Reset%20VU%20Meters.gif">Example</link>
       </metadata>
       <version name="1.21" author="Edgemeal" time="2019-02-15T01:57:22Z">
-        <source main="main" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/baadfe9ec6dad655a10dd19fd019f14ae6a39126/Various/edgemeal_Reset%20VU%20Meters.lua</source>
+        <source main="main" platform="windows">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/edgemeal_Reset%20VU%20Meters.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Restore foreground window.lua" type="script" desc="Restore foreground window">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Call this script from a keyboard shortcut. Mainly useful for floating FX and similar windows. Companion script: Maximize foreground window.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-02-19T05:49:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/031a78620ff663ea5951fbfe8b02824b55949cf3/Various/edgemeal_Restore%20foreground%20window.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
@@ -11157,9 +11263,9 @@ Fixed:
       </version>
       <version name="2.7.4" author="Lokasenna" time="2018-12-07T15:33:42Z">
         <changelog><![CDATA[Fixed issue with shortcuts highlighting the wrong menu]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5047b2c4875883e448c2d3f67689eb059f8a297b/Various/Lokasenna_Radial%20Menu.lua</source>
-        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/5047b2c4875883e448c2d3f67689eb059f8a297b/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
-        <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/5047b2c4875883e448c2d3f67689eb059f8a297b/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/Lokasenna_Radial%20Menu.lua</source>
+        <source main="main" file="Lokasenna_Radial Menu Setup.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20Setup.lua</source>
+        <source file="Lokasenna_Radial Menu - example settings.txt">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/Lokasenna_Radial%20Menu/Lokasenna_Radial%20Menu%20-%20example%20settings.txt</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Repeat Action.lua" type="script" desc="Repeat Action">
@@ -12106,15 +12212,6 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source main="main" file="Lokasenna_Toolbar button shortcuts/Press MIDI piano roll toolbar button 15.lua">https://github.com/ReaTeam/ReaScripts/raw/31f670f10a34ead0020e727e1e0fd84307689592/Various/Lokasenna_Toolbar%20button%20shortcuts.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Install all known ReaPack repositories.lua" type="script" desc="Install all known repositories for ReaPack">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-09-13T09:53:01Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73cc1948f06b9db2134ffdcd54efa46b6d105ba0/Various/mpl_Install%20all%20known%20ReaPack%20repositories.lua</source>
-      </version>
-    </reapack>
     <reapack name="mschnell_Mute Track X.eel" type="script" desc="Mute or unmute track X (MIDI CC/OSC only)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -12199,48 +12296,48 @@ here
         <link rel="donation">https://paypal.me/benjohnson2001</link>
       </metadata>
       <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20tonic%20note.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20type.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun double grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20double%20grid%20size.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun halve grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20halve%20grid%20size.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%201.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%202.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%203.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%204.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%205.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%206.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%207.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20inversion.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20type.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment octave.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20octave.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20tonic%20note.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20type.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%201.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%202.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%203.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%204.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%205.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%206.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%207.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%201.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%202.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%203.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%204.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%205.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%206.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%207.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%201.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%202.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%203.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%204.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%205.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%206.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
-        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/e9da84fda5c48a889d139d433aa2d40e779dfd9e/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun double grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20double%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun halve grid size.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20halve%20grid%20size.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun higher scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20higher%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20inversion.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20chord%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment octave.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20octave.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale tonic note.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20tonic%20note.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun increment scale type.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20increment%20scale%20type.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun lower scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20lower%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 1.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 2.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 3.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 4.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 5.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 6.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale chord 7.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20chord%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 1.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%201.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 2.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%202.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 3.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%203.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 4.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%204.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 5.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%205.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 6.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%206.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
+        <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
       </version>
     </reapack>
     <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
@@ -12442,7 +12539,7 @@ here
         <changelog><![CDATA[Added coverter pitch to Hz
 Added tooltip "Click to copy to clipboard"
 Added flashing green when clicking on ms or Hz label]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3c407d333ebf80b947810aa25cc13ce06488e182/Various/tompad_MusicMath.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/tompad_MusicMath.lua</source>
       </version>
     </reapack>
   </category>

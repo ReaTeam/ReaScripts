@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Stretch and Compress.lua
-Version: 4.01
+Version: 4.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -154,6 +154,8 @@ About:
     + Compression curve can be controlled by mousewheel.
   * v4.01 (2019-02-11)
     + Restore focus to original window, if script opened notification window.
+  * v4.02 (2019-02-16)
+    + Fixed: On Linux, crashing if editor closed while script is running.
 ]]
 
 -- USER AREA 
@@ -332,8 +334,8 @@ local baseShape = "sine"
 local compressSYMMETRIC, compressBOTTOM, compressTOP = true
 local GDI_COLOR_TOP    = 0x009900
 local GDI_COLOR_BOTTOM = 0x000099
---local GDI_DC, GDI_Pen_Top, GDI_Pen_Bottom, GDI_LeftPixel, GDI_RightPixel, GDI_XStr
---local tGDI_Ticks = {}
+local GDI_DC, GDI_Pen_Top, GDI_Pen_Bottom, GDI_LeftPixel, GDI_RightPixel, GDI_XStr, GDI_YStr_Top, GDI_YStr_Bottom
+local tGDI_Ticks = {}
 
   
 --#############################################################################################
@@ -366,6 +368,9 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
     -- Otherwise, mustCalculate remains nil, and can skip to end of function.
     local mustCalculate = false
     
+    -- TAKE STILL VALID?
+    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
+    
     -- EXTSTATE: Other scripts can communicate with and control the other js_ scripts via ExtStates
     local extState = reaper.GetExtState("js_Mouse actions", "Status") or ""
     if extState == "" or extState == "Must quit" then return(false) end
@@ -377,6 +382,14 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
         mustCalculate = true
     end
     
+    -- MOUSE MODIFIERS / LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
+    -- This can detect left clicks even if the mouse is outside the MIDI editor
+    local prevMouseState = mouseState or 0xFF
+    mouseState = reaper.JS_Mouse_GetState(0xFF)
+    if (mouseState&61) > (prevMouseState&61) then -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+        return false
+    end
+    
     -- MOUSE POSITION: (New versions of the script doesn't quit if mouse moves out of CC lane, but will still quit if moves out of original window.)
     if isInline then
         window = reaper.BR_GetMouseCursorContext()
@@ -385,6 +398,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
         end
     else 
         -- MIDI editor closed or moved?
+        if reaper.MIDIEditor_GetMode(editor) ~= 0 then return false end
         local rOK, l, t, r, b = reaper.JS_Window_GetRect(editor) -- Faster than Window_From Point. Use Rect instead of ClientRect so that mouse can go onto scrollbar
         if not (rOK and l==ME_l and t==ME_t and r==ME_r and b==ME_b) then
             return false
@@ -398,20 +412,13 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
         end
     end  
     
-    -- MOUSE MODIFIERS / LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
-    -- This can detect left clicks even if the mouse is outside the MIDI editor
-    local prevMouseState = mouseState or 0xFF
-    mouseState = reaper.JS_Mouse_GetState(0xFF)
-    if (mouseState&61) > (prevMouseState&61) then -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
-        return false
-    end
-    
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
     if not (peekOK and time > prevMouseTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
     if peekOK and time > prevMouseTime + 0.4 then 
+        if keys&12 ~= 0 then return false end
         flipped = not flipped
         prevMouseTime = time
         mustCalculate = true
@@ -419,7 +426,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
     
     -- LEFT DRAG: (If the left button was kept pressed for 1 second or longer, or after moving the mouse 20 pixels, assume left-drag, so quit when lifting.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONUP")
-    if peekOK and (time > startTime + 1 
+    if peekOK and (time > startTime + 1.5
               or  (time > startTime and (mouseX < mouseOrigX - 20 or mouseX > mouseOrigX + 20 or mouseY < mouseOrigY - 20 or mouseY > mouseOrigY + 20))) then
         return false
     end
@@ -427,34 +434,17 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
     -- LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
     if peekOK and time > startTime then 
-        --armedCommandID, armedSectionName = reaper.GetArmedCommand()
-        --if armedCommandID ~= 0 then
-        --    mustWaitForDoubleClick_Time = reaper.time_precise() 
-        --end
         return false 
     end
-    
-    --[[ MIDDLE BUTTON: Middle button changes curve shape
-    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MBUTTONDOWN")
-    if peekOK and time > prevMouseTime then 
-       
-        prevMouseTime = time
-        mustCalculate = true
-    end
-    
-    -- RIGHT CLICK: Right click changes script mode
-    --    * If script is terminated by right button, disarm toolbar.
-    --    * REAPER shows context menu when right button is *lifted*, so must continue intercepting mouse messages until right button is lifted.
-    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
-    if peekOK and time > prevMouseTime then
-        prevMouseTime = time
-        mustCalculate = true
-    end]]
  
         
+    ---------------------
+    -- DO THE MIDI STUFF!
+    
     -- Scripts that extract selected MIDI events and re-concatenate them out of order (usually at the beginning of the MIDI string, for easier editing)
     --    cannot be auditioned in real-time while events are out of order, since such events are not played.
     -- If the mouse is held still, no editing is done, and instead the take is sorted, thereby temporarily allowing playback.
+    
     -- NO NEED TO CALCULATE:
     if not mustCalculate then --and not takeIsSorted then
         if not takeIsSorted then
@@ -462,8 +452,6 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
             takeIsSorted = true
         end
         
-        
-    ---------------------------------------------
     -- MUST CALCULATE:
     else        
         takeIsSorted = false
@@ -509,7 +497,6 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
                 mouseNewPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + (mouseX-ME_midiviewLeftPixel)/ME_PixelsPerSecond )
             end
             mouseNewPPQPos = mouseNewPPQPos - loopStartPPQPos -- Adjust mouse PPQ position for looped items
-            mouseNewPPQPos = math.max(minimumTick, math.min(maximumTick, mouseNewPPQPos))
             
             -- Adjust mouse PPQ position for snapping
             if not isSnapEnabled then
@@ -523,6 +510,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
                 local roundedGridQN = math.floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- nearest grid to mouse position
                 snappedNewPPQPos = m_floor(reaper.MIDI_GetPPQPosFromProjQN(activeTake, roundedGridQN) + 0.5)
             end
+            snappedNewPPQPos = math.max(minimumTick, math.min(maximumTick, snappedNewPPQPos))
         end
                 
         ---------------------------------------------------------------
@@ -818,7 +806,10 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
     -- Must the script go through the entire function to calculate new MIDI stuff?
     -- MIDI stuff might be changed if the mouse has moved, mousebutton has been clicked, or mousewheel has scrolled, so need to re-calculate.
     -- Otherwise, mustCalculate remains nil, and can skip to end of function.
-     mustCalculate = false
+    local mustCalculate = false
+    
+    -- TAKE STILL VALID?
+    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
     
     -- EXTSTATE: Other scripts can communicate with and control the other js_ scripts via ExtStates
     local extState = reaper.GetExtState("js_Mouse actions", "Status") or ""
@@ -831,6 +822,14 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
         mustCalculate = true
     end
     
+    -- MOUSE MODIFIERS / LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
+    -- This can detect left clicks even if the mouse is outside the MIDI editor
+    local prevMouseState = mouseState or 0xFF
+    mouseState = reaper.JS_Mouse_GetState(0xFF)
+    if (mouseState&61) > (prevMouseState&61) then -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+        return false
+    end
+    
     -- MOUSE POSITION: (New versions of the script doesn't quit if mouse moves out of CC lane, but will still quit if moves out of original window.)
     if isInline then
         window = reaper.BR_GetMouseCursorContext()
@@ -839,6 +838,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
         end
     else 
         -- MIDI editor closed or moved?
+        --if reaper.MIDIEditor_GetMode(editor) ~= 0 then return false end
         local rOK, l, t, r, b = reaper.JS_Window_GetRect(editor) -- Faster than Window_From Point. Use Rect instead of ClientRect so that mouse can go onto scrollbar
         if not (rOK and l==ME_l and t==ME_t and r==ME_r and b==ME_b) then
             return false
@@ -850,15 +850,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
         if (mouseX < ME_midiviewLeftPixel or mouseY > ME_midiviewTopPixel or mouseX > ME_midiviewRightPixel or mouseY > ME_midiviewBottomPixel) and cursor then
             reaper.JS_Mouse_SetCursor(cursor)
         end
-    end  
-    
-    -- MOUSE MODIFIERS / LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
-    -- This can detect left clicks even if the mouse is outside the MIDI editor
-    local prevMouseState = mouseState or 0xFF
-    mouseState = reaper.JS_Mouse_GetState(0xFF)
-    if (mouseState&61) > (prevMouseState&61) then -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
-        return false
-    end
+    end      
     
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
@@ -866,6 +858,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
     if peekOK and time > prevMouseTime + 0.1 then 
+        if keys&12 ~= 0 then return false end
         -- Standardize delta values
         delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
         if compressBOTTOM then delta = -delta end
@@ -897,7 +890,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
     
     -- LEFT DRAG: (If the left button was kept pressed for 1 second or longer, or after moving the mouse 20 pixels, assume left-drag, so quit when lifting.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONUP")
-    if peekOK and (time > startTime + 1 
+    if peekOK and (time > startTime + 1.5
               or  (time > startTime and (mouseX < mouseOrigX - 20 or mouseX > mouseOrigX + 20 or mouseY < mouseOrigY - 20 or mouseY > mouseOrigY + 20))) then
         return false
     end
@@ -905,10 +898,6 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
     -- LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
     if peekOK and time > startTime then 
-        --armedCommandID, armedSectionName = reaper.GetArmedCommand()
-        --if armedCommandID ~= 0 then
-        --    mustWaitForDoubleClick_Time = reaper.time_precise() 
-        --end
         return false 
     end
     
@@ -931,18 +920,21 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
     end
  
         
+    ---------------------
+    -- DO THE MIDI STUFF!
+    
     -- Scripts that extract selected MIDI events and re-concatenate them out of order (usually at the beginning of the MIDI string, for easier editing)
     --    cannot be auditioned in real-time while events are out of order, since such events are not played.
     -- If the mouse is held still, no editing is done, and instead the take is sorted, thereby temporarily allowing playback.
-    -- NO NEED TO CALCULATE:
+    
+    -- NO NEED TO CALCULATE: -- This mode does not change MIDI order, so no need to sort
     if not mustCalculate then --and not takeIsSorted then
         --[[if not takeIsSorted then
             reaper.MIDI_Sort(activeTake)
             takeIsSorted = true
         end]]
         
-        
-    ---------------------------------------------
+
     -- MUST CALCULATE:
     else        
         -- MOUSE NEW CC VALUE (vertical position)
@@ -1045,11 +1037,10 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
         -------------------------------------------------------
         -- GDI
         if GDI_XStr then
-            tTopY = {}
-            tBottomY = {}
-            laneTop_Relative = ME_TargetTopPixel - ME_midiviewTopPixel
-            laneBottom_Relative = ME_TargetBottomPixel - ME_midiviewTopPixel + 1
-            --mouseYFromBottom = 
+            local tTopY = {}
+            local tBottomY = {}
+            local laneTop_Relative = ME_TargetTopPixel - ME_midiviewTopPixel
+            local laneBottom_Relative = ME_TargetBottomPixel - ME_midiviewTopPixel + 1
             
             for i, ticks in ipairs(tGDI_Ticks) do
                 if mousewheel == 0 then --or (mouseNewPPQPos-5 < ticks and ticks < mouseNewPPQPos+5) then 
@@ -1087,16 +1078,22 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
                     end
                 end
             end
-        end
+            
+            GDI_YStr_Top = table.concat(tTopY)
+            GDI_YStr_Bottom = table.concat(tBottomY)
+            
+        end -- if GDI_XStr
         
     end -- mustCalculate stuff
 
 
-    -- Even if not calculate, draw GDI lines again in each cycle, to avoid flickering
-    reaper.JS_GDI_SelectObject(GDI_DC, GDI_Pen_Top)
-    reaper.JS_GDI_Polyline(GDI_DC, GDI_XStr, table.concat(tTopY), #tTopY)
-    reaper.JS_GDI_SelectObject(GDI_DC, GDI_Pen_Bottom)
-    reaper.JS_GDI_Polyline(GDI_DC, GDI_XStr, table.concat(tBottomY), #tBottomY)
+    -- Even if not mustCalculate, draw GDI lines again in each cycle, to avoid flickering
+    if GDI_XStr and GDI_YStr_Top and GDI_YStr_Bottom then
+        reaper.JS_GDI_SelectObject(GDI_DC, GDI_Pen_Top)
+        reaper.JS_GDI_Polyline(GDI_DC, GDI_XStr, GDI_YStr_Top, #tGDI_Ticks)
+        reaper.JS_GDI_SelectObject(GDI_DC, GDI_Pen_Bottom)
+        reaper.JS_GDI_Polyline(GDI_DC, GDI_XStr, GDI_YStr_Bottom, #tGDI_Ticks)
+    end
 
     
     ---------------------------
@@ -1126,82 +1123,80 @@ end
 ----------------------------------------------------------------------------
 function AtExit()    
     
+    -- Remove intercepts, restore original intercepts
+    -- WARNING! v0.963 of ReaScriptAPI may crash on Linux if all intercepts are released from a window that doesn't exist any more.
+    if pcallInterceptOK and pcallInterceptRetval and (isInline or (editor and reaper.MIDIEditor_GetMode(editor) ~= -1)) then
+        for message, passthrough in pairs(tWM_Messages) do
+            if passthrough then 
+                reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
+            else
+                reaper.JS_WindowMessage_Release(windowUnderMouse, message)    
+    end end end
+    
     -- As when starting the script, restore cursor and toolbar button as soon as possible, in order to seem more responsive.
     -- Was a custom cursur loaded? Restore plain cursor.
     if cursor then 
         cursor = reaper.JS_Mouse_LoadCursor(32512) -- IDC_ARROW standard arrow
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
     end 
+    
     -- Deactivate toolbar button (if it has been toggled)
     if not leaveToolbarButtonArmed and origToggleState and sectionID and commandID then
         reaper.SetToggleCommandState(sectionID, commandID, origToggleState)
         reaper.RefreshToolbar2(sectionID, commandID)
     end  
 
-    
+    -- Communicate with the js_Run.. script that this script is exiting
+    reaper.DeleteExtState("js_Mouse actions", "Status", true)        
+  
+    -- Delete GDI stuff to free memory
     if GDI_DC then reaper.JS_GDI_DeleteObject(GDI_DC) end
     if GDI_Pen_Top then reaper.JS_GDI_DeleteObject(GDI_Pen_Top) end
     if GDI_Pen_Bottom then reaper.JS_GDI_DeleteObject(GDI_Pen_Bottom) end
-    
-    
-    -- DEFERLOOP_pcall was executed, and no exceptions encountered:
-    if pcallOK == true then        
-            
-        -- Remove remaining intercepts, restore original intercepts
-        if windowUnderMouse then
-            for message, passthrough in pairs(tWM_Messages) do
-                if passthrough then 
-                    reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
-                else
-                    reaper.JS_WindowMessage_Release(windowUnderMouse, message)
-                end
-            end
+  
+  
+    -- Was an active take found, and does it still exist?  If not, don't need to do anything to the MIDI.
+    if reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.TakeIsMIDI(activeTake) then
+        -- Before exiting, if DEFERLOOP_pcall was successfully executed, delete existing CCs in the stretch's range (and channel)
+        -- The delete function will also ensure that the MIDI is re-uploaded into the active take.
+        if pcallOK == true and modeIsSTRETCH and (stretchRIGHT or stretchLEFT) and mustDeleteOverlappingCCs and not laneIsNOTES then 
+            pcallOK, pcallRetval = pcall(DeleteOverlappingCCs) -- This function does not return any value, but retval will carry exception info, if any
         end
         
-        if modeIsSTRETCH then
-            if mustDeleteOverlappingCCs 
-            and (stretchRIGHT or stretchLEFT)
-            and not laneIsNOTES -- (laneIsALL or laneIsCC7BIT or laneIsCC14BIT or laneIsCHANPRESS or laneIsPITCH or laneIsPROGRAM or laneIsTEXT or laneIsSYSEX) 
-            then
-                DeleteOverlappingCCs() 
-            end
-            
+        -- DEFERLOOP_pcall and DeleteExistingCCsInRange were executed, and no exceptions encountered:
+        if pcallOK then
             -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
             --    causing infinitely extended notes or zero-length notes.
             -- Fortunately, these bugs were seemingly all fixed in v5.32.
-            if activeTake then reaper.MIDI_Sort(activeTake) end
-        end
-        
-        -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
-        if activeTake and not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(activeTake)) then
-            reaper.MIDI_SetAllEvts(activeTake, MIDIString) -- Restore original MIDI
-            reaper.MB("The script has detected inadvertent shifts in the PPQ positions of unedited events."
-                      .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
-                      .. "\n\nPlease report the bug in the following forum thread:"
-                      .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
-                      --.. "\n\nThe original MIDI data will be restored to the take."
-                      , "ERROR", 0)
-        end
-    end
-    
-    -- DEFERLOOP_pcall was executed, but exception encountered:
-    if pcallOK == false then
-    
-        if activeTake and MIDIString then reaper.MIDI_SetAllEvts(activeTake, MIDIString) end -- Restore original MIDI
-        if windowUnderMouse then reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) end -- Release all intercepts
-        reaper.MB("The script encountered an error."
-                .."\n\n* The error text has been copied to the console -- please report this error in the \"MIDI Editor Tools\" thread in the REAPER forums."
-                .."\n\n* The original, unaltered MIDI has been restored to the take."
-                .."\n\n* All intercepts of window messages to the MIDI editor under the mouse (whether by this script or by another script running in the background) have been cancelled."
+            reaper.MIDI_Sort(activeTake)
+             
+            -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
+            if sourceLengthTicks and not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(activeTake)) then
+                if MIDIString then reaper.MIDI_SetAllEvts(activeTake, MIDIString) end -- Restore original MIDI
+                reaper.MB("The script has detected inadvertent shifts in the PPQ positions of unedited events."
+                .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
+                .. "\n\nPlease report the bug in the following forum thread:"
+                .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
+                .. "\n\nThe original MIDI data will be restored to the take."
                 , "ERROR", 0)
-        reaper.ShowConsoleMsg("\n\n" .. tostring(pcallMustContinue)) -- If pcall returs an error, the error data is in the second return value, namely deferMustContinue
+            end
+        end
         
-    end
+        -- DEFERLOOP_pcall was executed, but exception encountered:
+        if pcallOK == false then
+        
+            if MIDIString then reaper.MIDI_SetAllEvts(activeTake, MIDIString) end -- Restore original MIDI
+            reaper.MB("The script encountered an error."
+                    .."\n\n* The detailed error text has been copied to the console -- please report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
+                    .."\n\n* The original, unaltered MIDI has been restored to the take."
+                    , "ERROR", 0)
+            reaper.ShowConsoleMsg("\n\n" .. tostring(pcallRetval)) -- If pcall returs an error, the error data is in the second return value, namely deferMustContinue  
+        end
+    end -- if reaper.ValidatePtr2(0, "MediaItem_Take*", activeTake) and reaper.TakeIsMIDI(activeTake)
+
  
     -- if script reached DEFERLOOP_pcall (or the WindowMessage section), pcallOK ~= nil, and must create undo point:
-    if pcallOK ~= nil then
-                  
-        if activeItem and isInline then reaper.UpdateItemInProject(activeItem) end         
+    if pcallOK ~= nil then      
                   
         -- Write nice, informative Undo strings
         if (stretchLEFT or stretchRIGHT) then
@@ -1265,7 +1260,8 @@ function AtExit()
         
         -- Undo_OnStateChange_Item is expected to be the fastest undo function, since it limits the info stored 
         --    in the undo point to changes in this specific item.
-        if activeItem then    
+        if reaper.ValidatePtr2(0, activeItem, "MediaItem*") then    
+            if isInline then reaper.UpdateItemInProject(activeItem) end
             reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
         else
             reaper.Undo_OnStateChange2(0, undoString)
@@ -1275,19 +1271,12 @@ function AtExit()
 
     -- At the very end, no more notification windows will be opened, 
     --    so restore original focus - except if "Terminate script" dialog box is waiting for user
-    if reaper.JS_Localize then
+    if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 then
         curForegroundWindow = reaper.JS_Window_GetForeground()
-        if curForegroundWindow then 
-            if reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common") then
-                dontReturnFocus = true
-    end end end
-    if not dontReturnFocus then
-        if origForegroundWindow then reaper.JS_Window_SetForeground(origForegroundWindow) end
-        if origFocusWindow then reaper.JS_Window_SetFocus(origFocusWindow) end
-    end     
-        
-    -- Communicate with the js_Run.. script that this script is exiting
-    reaper.DeleteExtState("js_Mouse actions", "Status", true)
+        if not (curForegroundWindow and reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common")) then
+            reaper.JS_Window_SetForeground(editor)
+            reaper.JS_Window_SetFocus(editor)
+    end end           
     
 end -- function AtExit   
 
@@ -2540,18 +2529,6 @@ function MAIN()
     reaper.defer(function() end)  
     
 
-    -- If anyting goes wrong during main(), a dialog box will pop up, so Exit() will try to return focus to original windows.
-    reaper.atexit(AtExit)
-        
-    
-    -- Check whether other js_Mouse editing scripts are running
-    if reaper.HasExtState("js_Mouse actions", "Status") then
-        return false
-    else
-        reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
-    end
-    
-
     -- Check whether SWS and my own extension are available, as well as the required version of REAPER
     if not (reaper.JS_Window_FindEx) then -- FindEx was added in v0.963
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
@@ -2576,11 +2553,26 @@ function MAIN()
     end 
     
     
-    -- GET MOUSE STATE
+    -- ATEXIT BECOMES RELEVANT
+    -- If anyting goes wrong during main(), a dialog box will pop up, so Exit() will try to return focus to original windows,
+    -- This can only be done if the ReaScriptAPI extension is installed.
+    reaper.atexit(AtExit)
+    
+    
+    -- GET MOUSE STARTING STATE:
     -- as soon as possible.  Hopefully, if script is started with mouse click, mouse button will still be down.
     mouseOrigX, mouseOrigY = reaper.GetMousePosition()
     prevMouseTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
     mouseState = reaper.JS_Mouse_GetState(0xFF)
+ 
+    
+    -- CONFLICTING SCRIPTS:
+    -- Check whether other js_Mouse editing scripts are running
+    if reaper.HasExtState("js_Mouse actions", "Status") then
+        return false
+    else
+        reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
+    end
     
     
     -- MOUSE CURSOR AND TOOLBAR BUTTON
@@ -2599,17 +2591,9 @@ function MAIN()
         origToggleState = reaper.GetToggleCommandStateEx(sectionID, commandID)
         reaper.SetToggleCommandState(sectionID, commandID, 1)
         reaper.RefreshToolbar2(sectionID, commandID)
-    end
-    
-    
-    -- WINDOW FOCUS
-    -- As a courtesy to the user, the script will return focus to the original window, if an error message popped up
-    -- REAPER tends to return focus to the main window instead of the last focused MIDI editor.
-    origFocusWindow = reaper.JS_Window_GetFocus()
-    origForegroundWindow = reaper.JS_Window_GetForeground()                   
+    end                  
 
     
-    ----------------------------------------------
     -- GET MIDI EDITOR UNDER MOUSE:
     -- Unfortunately, REAPER's windows don't have the same titles or classes on all three platforms, so must use roundabout way
     -- If platform is Windows, the piano roll area is title "midiview", but not in Linux, and I'm not sure about MacOS.
@@ -2625,7 +2609,7 @@ function MAIN()
             -- Is the mouse over the piano roll of a MIDI editor?
             
             -- MIDI EDITOR:
-            if reaper.MIDIEditor_GetMode(parentWindow) ~= -1 then -- got a window in a MIDI editor
+            if reaper.MIDIEditor_GetMode(parentWindow) == 0 then -- got a window in a MIDI editor
                 isInline = false
                 editor = parentWindow
                 if windowUnderMouse == reaper.JS_Window_FindChildByID(parentWindow, 1001) then -- The piano roll child window, titled "midiview" in Windows.
@@ -2698,6 +2682,7 @@ function MAIN()
                 
                 if isInline then
                     
+                    editor = nil
                     modeIsSTRETCH = true -- inline editor doesn't have COMPRESS mode
                     activeTake = reaper.BR_GetMouseCursorContext_Take()
                     activeTakeOK = activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.TakeIsMIDI(activeTake) 
@@ -2751,7 +2736,6 @@ function MAIN()
     end
     
     
-    ------------------------------------------------
     -- MOUSE PPQ VALUES
     -- Get mouse starting PPQ position -- AND ADJUST FOR LOOPING AND SNAPPING
     if isInline then
@@ -2778,7 +2762,6 @@ function MAIN()
     
     minimumTick = math.max(0, itemFirstVisibleTick)
     maximumTick = math.min(itemLastVisibleTick, sourceLengthTicks-1) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
-    mouseOrigPPQPos = math.max(minimumTick, math.min(maximumTick, mouseOrigPPQPos))
 
     -- If snapping is enabled, the PPQ position must be adjusted to nearest grid.
     -- If snapping is not enabled, snappedOrigPPQPos = mouseOrigPPQPos, snapped to nearest tick
@@ -2803,9 +2786,9 @@ function MAIN()
         local roundedGridQN = math.floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- Grid nearest to mouse position
         snappedOrigPPQPos = math.floor(reaper.MIDI_GetPPQPosFromProjQN(activeTake, roundedGridQN) + 0.5)
     end 
+    snappedOrigPPQPos = math.max(minimumTick, math.min(maximumTick, snappedOrigPPQPos))
     
 
-    ---------------------------------------------------------------------------------------
     -- GET AND PARSE MIDI:
     -- Time to process the MIDI of the take!
     -- As mentioned in the header, this script does not use the old-fashioned MIDI API functions such as 
@@ -2828,9 +2811,7 @@ function MAIN()
     end    
         
     
-    ---------------------------------------------------------
     -- UNIQUE TO THIS SCRIPT:
-    
     if modeIsSTRETCH then
     
         -- Determine in which direction events will be stretched
@@ -2926,41 +2907,43 @@ function MAIN()
     end
 
     
-    ---------------------------------------------------------------------------------------
     -- INTERCEPT WINDOW MESSAGES:
     -- Do the magic that will allow the script to track mouse button and mousewheel events!
     -- The code assumes that all the message types will be blocked.  (Scripts that pass some messages through, must use other code.)
-    -- tWM_Messages entries that are currently being intercepted but passed through, will temporarily be blocked wnd then restored wen the script terminates.
-    -- tWM_Messages entries that are already being intercepted and blocked, do not need to be changed or restored, so will be deleted from the table.   
-    local pcallInterceptOK, interceptOK = pcall( 
-    function()
-        for message in pairs(tWM_Messages) do            
-            local interceptOK = reaper.JS_WindowMessage_Intercept(windowUnderMouse, message, false)
-            -- Is message type already being intercepted by another script?
-            if interceptOK == 0 then 
-                local prevIntercepted, prevPassthrough = reaper.JS_WindowMessage_Peek(windowUnderMouse, message)
-                if prevIntercepted then
-                    if prevPassthrough == false then
-                        interceptOK = 1 
-                        tWM_Messages[message] = nil -- No need to change or restore this message type
-                    else
-                        interceptOK = reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, false)
-                        tWM_Messages[message] = true
+    -- tWM_Messages entries that are currently being intercepted but passed through, will temporarily be blocked and then restored when the script terminates.
+    -- tWM_Messages entries that are already being intercepted and blocked, do not need to be changed or restored, so will be deleted from the table.
+    pcallInterceptOK, pcallInterceptRetval = pcall( 
+        function()
+            for message in pairs(tWM_Messages) do            
+                local interceptOK = reaper.JS_WindowMessage_Intercept(windowUnderMouse, message, false)
+                -- Is message type already being intercepted by another script?
+                if interceptOK == 0 then 
+                    local prevIntercepted, prevPassthrough = reaper.JS_WindowMessage_Peek(windowUnderMouse, message)
+                    if prevIntercepted then
+                        if prevPassthrough == false then
+                            interceptOK = 1 
+                            tWM_Messages[message] = nil -- No need to change or restore this message type
+                        else
+                            interceptOK = reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, false)
+                            tWM_Messages[message] = true
+                        end
                     end
                 end
+                -- Intercept OK?
+                if interceptOK ~= 1 then 
+                    return false
+                end
             end
-            -- Intercept OK?
-            if interceptOK ~= 1 then 
-                reaper.MB("Intercepting window messages failed. All intercept for the window under the mouse will be released", "ERROR", 0) 
-                return false
-            end
-        end
-        return true
-    end)
-    if not pcallInterceptOK and interceptOK then reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) return false end
+            return true
+        end)
+    if not (pcallInterceptOK and pcallInterceptRetval) then 
+        reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) 
+        tWM_Messages = {}
+        reaper.MB("Intercepting window messages failed.\n\nAll intercepts for the window under the mouse will be released. (This may affect other scripts that are currently monitoring this window.)", "ERROR", 0) 
+        return false 
+    end
     
     
-    ------------------
     -- Start the loop!
     DEFERLOOP_pcall()
     
