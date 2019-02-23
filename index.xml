@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="85cf36c56837a0d1f20b950d0ed335e63e76bd55" name="ReaTeam Scripts">
+<index version="1" commit="95ebdcb04713797ab507fdc76ffb64146bb3bd22" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1372,12 +1372,22 @@ Refactored/reorganized the code for readability]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b748720f562b9374dae40aee3e0e563a0b2aba9c/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
       </version>
     </reapack>
+    <reapack name="edgemeal_Toggle active envelopes inlane for selected track.lua" type="script" desc="Toggle active envelopes inlane for selected track">
+      <version name="1.0" author="Edgemeal" time="2019-02-23T10:04:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ee955bca856e7053e8ca1e627599ba76519e3f9/Envelopes/edgemeal_Toggle%20active%20envelopes%20inlane%20for%20selected%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="edgemeal_Toggle envelope lanes for selected track.lua" type="script" desc="Toggle envelope lanes for selected track">
       <metadata>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=215558">Forum Thread</link>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-04T01:06:54Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/edgemeal_Toggle%20envelope%20lanes%20for%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Toggle visible envelopes inlane for selected track.lua" type="script" desc="Toggle visible envelopes inlane for selected track">
+      <version name="1.0" author="Edgemeal" time="2019-02-23T10:04:41Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95ebdcb04713797ab507fdc76ffb64146bb3bd22/Envelopes/edgemeal_Toggle%20visible%20envelopes%20inlane%20for%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="js_Envelope LFO generator and shaper.lua" type="script" desc="js_Envelope LFO generator and shaper.lua">
