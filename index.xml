@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d266c147749c32e484c209baf2631c8c6b764e5d" name="ReaTeam Scripts">
+<index version="1" commit="485c345c5e2b444dd15cff4c5a8e091d089d2d36" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5469,8 +5469,13 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Note and CC positions can be displayed in any of REAPER's time formats.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In Measure:Beat:Ticks format, script can display fractional tick values.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab When working with multiple MIDI editors, the script will automatically switch to the active editor.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 LINUX:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Docking in the marker/region lanes is unfortunately not available on Linux.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 GUI FONTS AND COLORS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the script's USER AREA the user can change fonts and colors.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 TERMINATION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If all MIDI editors are closed, the script will continue running in the background (with negligible CPU usage), and will automatiically reappear when a new editor is opened.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 To terminate the script, the user must explicitly close the GUI window, or click the toolbar button again (or equivalently, run the script action again). The first time that the script is closed by clicking the toolbar button, REAPER will ask whether to terminate the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 LINUX:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Docking in the marker/region lanes is unfortunately not (yet) available on Linux.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If the GUI window is open:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Click on any of the highlighted values to open a Properties window or a dropdown menu in which the values can be changed.\par}
@@ -5480,6 +5485,7 @@ Renumber markers and regions when pasting]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Right-click on the Inspector to open a context menu.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 WARNING:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, particularly if the take contains many thousands of MIDI events. The GUI therefore provides a "Pause" option, which will pause the realtime updating.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Also, the user can set the minimum wait time between updating the inspector.\line To do so, edit the "updateTime" parameter in the script's USER AREA.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
@@ -5567,6 +5573,11 @@ ticks are not precisely aligned with the project beats.  (As discussed in t=1812
         <changelog><![CDATA[+ Recall docked state.
 + If Inspector is active, "js_Option - Selecting single note or CC in active take sets channel for new events" can also be enabled with no performance costs.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/d266c147749c32e484c209baf2631c8c6b764e5d/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
+      </version>
+      <version name="1.46" author="juliansader" time="2019-02-28T16:03:04Z">
+        <changelog><![CDATA[+ Properly release GDI device and objects.
++ Do not terminate when editor is closed; reappear when new editor is opened.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/485c345c5e2b444dd15cff4c5a8e091d089d2d36/MIDI%20Editor/js_MIDI%20Inspector.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - 1-sided Warp.lua" type="script" desc="js_Mouse editing - 1-sided Warp.lua">
