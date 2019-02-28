@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.45
+Version: 1.46
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -28,9 +28,24 @@ About:
   * When working with multiple MIDI editors, the script will automatically switch to the active editor.
   
   
-  LINUX:
+  # GUI FONTS AND COLORS
   
-  Docking in the marker/region lanes is unfortunately not available on Linux.
+  In the script's USER AREA the user can change fonts and colors.  
+  
+  
+  # TERMINATION
+  
+  If all MIDI editors are closed, the script will continue running in the background (with negligible CPU usage),
+      and will automatiically reappear when a new editor is opened.
+      
+  To terminate the script, the user must explicitly close the GUI window, or click the toolbar button again 
+      (or equivalently, run the script action again).  The first time that the script is closed by clicking
+      the toolbar button, REAPER will ask whether to terminate the script.
+  
+  
+  # LINUX:
+  
+  Docking in the marker/region lanes is unfortunately not (yet) available on Linux.
   
   
   # INSTRUCTIONS
@@ -52,7 +67,11 @@ About:
   
   Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, 
       particularly if the take contains many thousands of MIDI events.  The GUI therefore provides a
-      "Pause" option, which will pause the realtime updating.        
+      "Pause" option, which will pause the realtime updating.     
+      
+  Also, the user can set the minimum wait time between updating the inspector.  
+      To do so, edit the "updateTime" parameter in the script's USER AREA.
+   
 ]]
  
 --[[
@@ -111,16 +130,20 @@ About:
   * v1.45 (2019-02-19)
     + Recall docked state.
     + If Inspector is active, "js_Option - Selecting single note or CC in active take sets channel for new events" can also be enabled with no performance costs.
+  * v1.46 (2019-02-27)
+    + Properly release GDI device and objects.
+    + Do not terminate when editor is closed; reappear when new editor is opened.
 ]]
 
 -- USER AREA
--- Settings that the user can customize
+-- Settings that the user can customize:
 
-defaultTimeFormat = 0 -- Refer to tableTimeFormats below for description of the formats
+-- How often should the inspector update?  Longer updateTime can help with (slightly) less CPU usage. (Time in seconds.)
+local updateTime = 0.25 
 
 -- Parameters for GUI window:
 fontFace = "Arial"
-textHeight = 14 
+textHeight = 14
 textColor = {1,1,1,0.7}
 highlightColor = {1,1,0,1}
 backgroundColor = {0.18, 0.18, 0.18, 1}
@@ -236,6 +259,8 @@ local prevTime = 0
 local prevExtStateSetChannel
 
 local lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, dockedGDI = 0, 0, 200, 410, nil, 0, nil
+local midiview, midiviewDC = nil, nil
+local editor, prevEditor, mustUpdate
 
 
 -------------------------
@@ -306,7 +331,7 @@ function initializeGUI()
     end
     lastWidth = lastWidth and tonumber(lastWidth) or 200
     lastHeight = lastHeight and tonumber(lastHeight) or 410
-    timeFormat = timeFormat or (lastFormat and tonumber(lastFormat)) or defaultTimeFormat -- Only load timeFormat if script has just started, so timeFormat = nil
+    timeFormat = timeFormat or (lastFormat and tonumber(lastFormat)) or 0 -- Only load timeFormat if script has just started, so timeFormat = nil
     dockedInDocker = dockedInDocker and tonumber(dockedInDocker) or 0
     if dockedGDI == nil then dockedGDI = (lastDockedGDI == "true") else dockedGDI = (dockedGDI == true) end -- If dockedGDI not yet initialized, use previous state, else keep state
     
@@ -352,6 +377,11 @@ function exit()
     reaper.DeleteExtState("MIDI Inspector", "Last coordinates", true)
     reaper.DeleteExtState("MIDI Inspector", "Last dimensions", true)
     reaper.DeleteExtState("MIDI Inspector", "Set channel", true)
+    
+    if midiview and midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
+    if GDI_Pen then reaper.JS_GDI_DeleteObject(GDI_Pen) end
+    if GDI_Brush then reaper.JS_GDI_DeleteObject(GDI_Brush) end
+    if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
     
     -- Deactivate toolbar button
     _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
@@ -514,6 +544,9 @@ function updateGDI()
             local positionString = "Position " .. tableTimeFormatsShort[timeFormat] .. ": "
             local s1, s2, s4, s6, s9, s12, s15 = tTabs[s][1], tTabs[s][2], tTabs[s][3], tTabs[s][4], tTabs[s][5], tTabs[s][6], tTabs[s][7]
             
+            if mustUpdateGUI then
+                reaper.JS_GDI_FillRect(midiviewDC, 0, 0, s, GDI_TextHeight*2)
+            end
             reaper.JS_GDI_DrawText(midiviewDC, "NOTES:", 6, 2, 0, s1, 40, "TOP LEFT")
             reaper.JS_GDI_DrawText(midiviewDC, numNotes, #numNotes, s1, 0, s2-4, 40, "TOP LEFT")
             reaper.JS_GDI_DrawText(midiviewDC, "Selected: "..countSelNotes, 10+#countSelNotes, s2, 0, s4-4, 40, "TOP LEFT")
@@ -521,6 +554,7 @@ function updateGDI()
             reaper.JS_GDI_DrawText(midiviewDC, "Pitch: "..notePitchString, 7+#notePitchString, s6, 0, s9-4, 40, "TOP LEFT")
             reaper.JS_GDI_DrawText(midiviewDC, "Length: "..noteLengthString, 9+#noteLengthString, s9, 0, s12-4, 40, "TOP LEFT")
             reaper.JS_GDI_DrawText(midiviewDC, "Velocity: "..noteVelocityString, 10+#noteVelocityString, s12, 0, s15-4, 40, "TOP LEFT")
+            reaper.JS_GDI_DrawText(midiviewDC, string.rep(" ", #positionString+#notePositionString), #positionString+#notePositionString, s15, 0, 2000, 40, "TOP LEFT")
             reaper.JS_GDI_DrawText(midiviewDC, positionString..notePositionString, #positionString+#notePositionString, s15, 0, 2000, 40, "TOP LEFT")
             
             reaper.JS_GDI_DrawText(midiviewDC, "CCs:", 4, 2, GDI_TextHeight, s1, 40, "TOP LEFT")
@@ -794,512 +828,544 @@ end -- function updateGUI
 ----------------------------
 function loopMIDIInspector()   
          
-    -- CHECK MIDI EDITOR 
+    mustUpdateGUI = false
     
-    -- Quit if there is no active MIDI editor
+    -- CHECK MIDI EDITOR 
+    -- Skip everthing if no MIDI editor
+    prevEditor = editor
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil then 
-        return(0)
-    elseif editor ~= prevEditor then
-        prevEditor = editor
-        midiview = reaper.JS_Window_FindChildByID(editor, 1001) -- The piano roll child window, titled "midiview" in Windows
-        midiviewDC = midiview and reaper.JS_GDI_GetWindowDC(midiview)
-        if midiviewDC then
-            if GDI_Brush then reaper.JS_GDI_SelectObject(midiviewDC, GDI_Brush) end
-            if GDI_Pen then reaper.JS_GDI_SelectObject(midiviewDC, GDI_Pen) end
-            reaper.JS_GDI_SelectObject(midiviewDC, GDI_Font)
-            reaper.JS_GDI_SetTextBkColor(midiviewDC, GDI_TextBkColor)
-            reaper.JS_GDI_SetTextBkMode(midiviewDC, 1)
-            reaper.JS_GDI_SetTextColor(midiviewDC, GDI_TextColor)
-        else
-            reaper.MB("Could not determine the GDI device context for the active MIDI editor.", "ERROR", 0)
-            return false
+        if prevEditor then -- Previously one or more editors were open, so this is first cycle after all editors have been closed.
+            saveCurrentState()
+            gfx.quit()
         end
-    end    
+    
+    else
+        if not prevEditor then -- Previously no editors were open, so this is first cycle after editor has been opened. 
+            initializeGUI() 
+            mustUpdateGUI = true
+        end
+         
+        if editor ~= prevEditor then
+            if midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
+            midiview = reaper.JS_Window_FindChildByID(editor, 1001) -- The piano roll child window, titled "midiview" in Windows
+            midiviewDC = midiview and reaper.JS_GDI_GetWindowDC(midiview)
+            if midiviewDC then
+                reaper.JS_GDI_SelectObject(midiviewDC, GDI_Brush)
+                reaper.JS_GDI_SelectObject(midiviewDC, GDI_Pen)
+                reaper.JS_GDI_SelectObject(midiviewDC, GDI_Font)
+                reaper.JS_GDI_SetTextBkColor(midiviewDC, GDI_TextBkColor)
+                reaper.JS_GDI_SetTextBkMode(midiviewDC, 0) -- Transparent background, so that markers and regions are still visible underneath
+                reaper.JS_GDI_SetTextColor(midiviewDC, GDI_TextColor)
+            else
+                reaper.MB("Could not determine the GDI device context for the active MIDI editor.", "ERROR", 0)
+                return false
+            end
+        end                
         
-    
-    -- CHECK MOUSE INTERACTION (before updating GUIs)
-    
-    if dockedGDI and midiviewDC then
-    
-        -- Intercept right-click on docked inspector, and give own context menu.
-        local prevMouseState = mouseState or 0
-        mouseState = reaper.JS_Mouse_GetState(2)
-        if mouseState > prevMouseState then
-            local x, y = reaper.GetMousePosition()
-            local cx, cy = reaper.JS_Window_ScreenToClient(midiview, x, y)
-            if 0 <= cy and cy < 24 then
-                local menuString = paused and "!Pause|Undock||#Display position as:|" or "Pause|Undock||#Display position as:|"
+        -- CHECK MOUSE INTERACTION (before updating GUIs)
+        -- This is done continuously and in each cycle, even if paused.
+        
+        if dockedGDI and midiviewDC then
+        
+            -- Intercept right-click on docked inspector, and give own context menu.
+            local prevMouseState = mouseState or 0
+            mouseState = reaper.JS_Mouse_GetState(2)
+            if mouseState > prevMouseState then
+                local x, y = reaper.GetMousePosition()
+                local cx, cy = reaper.JS_Window_ScreenToClient(midiview, x, y)
+                if 0 <= cy and cy < 24 then
+                    local menuString = paused and "!Pause|Undock||#Display position as:|" or "Pause|Undock||#Display position as:|"
+                    -- Time format ranges from -1 (default) to 5
+                    for i = -1, #tableTimeFormats do
+                        if i == timeFormat then menuString = menuString .. "!" end
+                        menuString = menuString .. tableTimeFormats[i] .. "|"
+                    end
+                    gfx.init("", 0, 0, 0, x+20, y+30)
+                    gfx.x = -20
+                    gfx.y = -50
+                    local menuChoice = gfx.showmenu(menuString)
+                    gfx.quit()
+                    if menuChoice == 1 then
+                        paused = not paused
+                    elseif menuChoice == 2 then
+                        dockedGDI = false
+                        mustUpdateGUI = true
+                        initializeGUI()
+                    elseif menuChoice > 3 then 
+                        timeFormat = menuChoice-5
+                        mustUpdateGUI = true
+                        prevHash = nil -- Recalculate positions
+                    end
+                end
+            end
+            
+        -- not dockedGDI: 
+        else
+            -- Apparently gfx.update must be called in order to update gfx.w, gfx.mouse_x and other gfx variables
+            gfx.update()  
+            
+            -- Quit script if GUI has been closed
+            if gfx.getchar() < 0 then 
+                return(0)
+            end
+                        
+            -- Redraw GUI if size has changed
+            if gfx.w ~= prevW or gfx.h ~= prevH then
+                mustUpdateGUI = true
+            end
+            
+            if gfx.mouse_cap == 0 then mouseAlreadyClicked = false end
+            
+            -- Select new default channel for new events
+            if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
+            and gfx.mouse_y > lineHeight*3.5 and gfx.mouse_y < lineHeight*4.5 
+            then
+                mouseAlreadyClicked = true
+                
+                if type(defaultChannel) == "number" 
+                and defaultChannel%1 == 0 
+                and defaultChannel <= 16
+                and defaultChannel >= 1
+                then
+                    gfx.x = tabLong
+                    gfx.y = lineHeight * 4.5
+                    local channelString = "#Channel|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16"
+                    local checkPos = channelString:find(tostring(defaultChannel))
+                    channelString = channelString:sub(1,checkPos-1) .. "!" .. channelString:sub(checkPos, nil)
+                    local menuChoice = gfx.showmenu(channelString)
+                    if menuChoice > 0 then
+                        reaper.MIDIEditor_OnCommand(editor, 40482+menuChoice-2) -- Set channel for new events to 0+channel
+                        mustUpdateGUI = true -- This just to force GUI to update in next loop
+                    end
+                end -- type(defaultChannel) == "number" 
+            end -- if gfx.mouse_cap == 1
+            
+            
+            -- Checkboxes
+            local CHECKBOX_Y_POS = lineHeight*24.5
+            
+            if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
+            and gfx.mouse_y > CHECKBOX_Y_POS and gfx.mouse_y < CHECKBOX_Y_POS+lineHeight 
+            then
+                -- Pause / Unpause
+                if gfx.mouse_x > 0 and gfx.mouse_x < gfx.w/2 then
+                    mouseAlreadyClicked = true
+                    paused = not paused
+                    mustUpdateGUI = true
+                -- Dock / Undock
+                elseif gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w then
+                    saveCurrentState()
+                    gfx.quit()
+                    mouseAlreadyClicked = true
+                    mustUpdateGUI = true
+                    dockedGDI = true
+                end
+            end
+            
+            -- Select time format
+            if (gfx.mouse_cap == 2 or gfx.mouse_cap == 1)
+            and mouseAlreadyClicked == false 
+            and gfx.mouse_y > lineHeight*23.3 and gfx.mouse_y < lineHeight*24.3 
+            --and gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w
+            then
+                mouseAlreadyClicked = true
+                gfx.x = strWidth["Time format"] --tabShort
+                gfx.y = lineHeight*23
+                local menuString = "#Display position as|"
                 -- Time format ranges from -1 (default) to 5
                 for i = -1, #tableTimeFormats do
+                    menuString = menuString .. "|"
                     if i == timeFormat then menuString = menuString .. "!" end
-                    menuString = menuString .. tableTimeFormats[i] .. "|"
+                    menuString = menuString .. tableTimeFormats[i]
                 end
-                gfx.init("", 0, 0, 0, x+20, y+30)
-                gfx.x = -20
-                gfx.y = -50
                 local menuChoice = gfx.showmenu(menuString)
-                gfx.quit()
-                if menuChoice == 1 then
-                    paused = not paused
-                elseif menuChoice == 2 then
-                    dockedGDI = false
-                    initializeGUI()
-                elseif menuChoice > 3 then 
-                    timeFormat = menuChoice-5
-                    reaper.JS_GDI_FillRect(midiviewDC, 0, 0, 2000, GDI_TextHeight*2)
-                    prevHash = nil -- This just to force GUI to update in next loop    
+                if menuChoice > 1 then 
+                    timeFormat = menuChoice-3 
+                    mustUpdateGUI = true   
+                    prevHash = nil -- Recalculate positions
                 end
             end
-        end
-        
-    -- not dockedGDI: Quit script if GUI has been closed
-    else
-        -- Apparently gfx.update must be called in order to update gfx.w, gfx.mouse_x and other gfx variables
-        gfx.update()  
-        if gfx.getchar() < 0 then 
-            return(0)
-        end
-                    
-        if gfx.mouse_cap == 0 then mouseAlreadyClicked = false end
-        
-        -- Select new default channel for new events
-        if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-        and gfx.mouse_y > lineHeight*3.5 and gfx.mouse_y < lineHeight*4.5 
-        then
-            mouseAlreadyClicked = true
             
-            if type(defaultChannel) == "number" 
-            and defaultChannel%1 == 0 
-            and defaultChannel <= 16
-            and defaultChannel >= 1
+            -- Click in notes area, open REAPER's Properties window (which defaults to Note Properties if notes as well as CCs are selected)
+            if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
+            and (  (gfx.mouse_y > lineHeight*8.5 and gfx.mouse_y < lineHeight*14.5)
+                --or (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
+                )
             then
-                gfx.x = tabLong
-                gfx.y = lineHeight * 4.5
-                local channelString = "#Channel|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16"
-                local checkPos = channelString:find(tostring(defaultChannel))
-                channelString = channelString:sub(1,checkPos-1) .. "!" .. channelString:sub(checkPos, nil)
-                local menuChoice = gfx.showmenu(channelString)
-                if menuChoice > 0 then
-                    reaper.MIDIEditor_OnCommand(editor, 40482+menuChoice-2) -- Set channel for new events to 0+channel
-                    prevHash = nil -- This just to force GUI to update in next loop
-                end
-            end -- type(defaultChannel) == "number" 
-        end -- if gfx.mouse_cap == 1
-        
-        
-        -- Checkboxes
-        local CHECKBOX_Y_POS = lineHeight*24.5
-        
-        if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-        and gfx.mouse_y > CHECKBOX_Y_POS and gfx.mouse_y < CHECKBOX_Y_POS+lineHeight 
-        then
-            -- Pause / Unpause
-            if gfx.mouse_x > 0 and gfx.mouse_x < gfx.w/2 then
                 mouseAlreadyClicked = true
-                paused = not paused
-            -- Dock / Undock
-            elseif gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w then
-                saveCurrentState()
-                gfx.quit()
-                mouseAlreadyClicked = true
-                dockedGDI = true
+                reaper.MIDIEditor_OnCommand(editor, 40004)
             end
-        end
-        
-        -- Select time format
-        if (gfx.mouse_cap == 2 or gfx.mouse_cap == 1)
-        and mouseAlreadyClicked == false 
-        and gfx.mouse_y > lineHeight*23.3 and gfx.mouse_y < lineHeight*24.3 
-        --and gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w
-        then
-            mouseAlreadyClicked = true
-            gfx.x = strWidth["Time format"] --tabShort
-            gfx.y = lineHeight*23
-            local menuString = "#Display position as|"
-            -- Time format ranges from -1 (default) to 5
-            for i = -1, #tableTimeFormats do
-                menuString = menuString .. "|"
-                if i == timeFormat then menuString = menuString .. "!" end
-                menuString = menuString .. tableTimeFormats[i]
-            end
-            local menuChoice = gfx.showmenu(menuString)
-            if menuChoice > 1 then 
-                timeFormat = menuChoice-3 
-                prevHash = nil -- This just to force GUI to update in next loop    
-            end
-        end
-        
-        -- Click in notes area, open REAPER's Properties window (which defaults to Note Properties if notes as well as CCs are selected)
-        if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-        and (  (gfx.mouse_y > lineHeight*8.5 and gfx.mouse_y < lineHeight*14.5)
-            --or (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*21.5)
-            )
-        then
-            mouseAlreadyClicked = true
-            reaper.MIDIEditor_OnCommand(editor, 40004)
-        end
-        
-        -- Click in CC area, first ask user whether all notes should be deselected, then call Event Properties
-        --    If notes are not deselected, REAPER will automatically open the Notes Properties window instead
-        if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
-        and (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*22.5)
-        then
-            mouseAlreadyClicked = true
             
-            -- Check whether there are any selected notes. If there are, get user input.
-            local take = reaper.MIDIEditor_GetTake(editor)
-            if reaper.ValidatePtr(take, "MediaItem_Take*")
-            and (reaper.MIDI_EnumSelNotes(take, -1) ~= -1 or reaper.MIDI_EnumSelTextSysexEvts(take, -1) ~= -1) then
-                local userInput = reaper.ShowMessageBox("If any notes or text/sysex are selected (and visible in the MIDI editor), REAPER will automatically open "
-                                                            .. "their Properties window, instead of the CCs' Event Properties. Should all notes and text/sysex be deselected before continuing?", "CC properties", 3)
-                if userInput == 2 then -- "Cancel"
-                    -- Do nothing
-                elseif userInput == 6 then -- "Yes"
-                    local isTarget = {[8] = true, [9] = true, [15] = true} -- Note-offs, note-ons, and text/sysex.  Perhaps also [12] = true for Program Select?
-                    local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
-                    if gotAllOK then
-                        local MIDIlen = MIDIstring:len()
-                        local tableEvents = {} -- All events will be stored in this table until they are concatened again
-                        local t = 0 -- Count index in table.  It is faster to use tableEvents[t] = ... than table.insert(...
-                        local s_unpack = string.unpack
-                        local s_pack   = string.pack
-                        -- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
-                        --    Instead, only changed (i.e. deselected) events will be re-packed and inserted individually, while unchanged events
-                        --    will be inserted as bulk blocks of unchanged sub-strings.
-                        local nextPos, prevPos, unchangedPos = 1, 1, 1 -- unchangedPos is starting position of block of unchanged MIDI.
-                        while nextPos <= MIDIlen do  
-                            local offset, flags, msg
-                            prevPos = nextPos
-                            offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
-                            if flags&1 == 1 and isTarget[msg:byte(1)>>4] then -- then deselect!
-                                -- First write all preceding unchanged events as one bulk block
-                                if unchangedPos < prevPos then
+            -- Click in CC area, first ask user whether all notes should be deselected, then call Event Properties
+            --    If notes are not deselected, REAPER will automatically open the Notes Properties window instead
+            if gfx.mouse_cap == 1 and mouseAlreadyClicked == false 
+            and (gfx.mouse_y > lineHeight*16.5 and gfx.mouse_y < lineHeight*22.5)
+            then
+                mouseAlreadyClicked = true
+                
+                -- Check whether there are any selected notes. If there are, get user input.
+                local take = reaper.MIDIEditor_GetTake(editor)
+                if reaper.ValidatePtr(take, "MediaItem_Take*")
+                and (reaper.MIDI_EnumSelNotes(take, -1) ~= -1 or reaper.MIDI_EnumSelTextSysexEvts(take, -1) ~= -1) then
+                    local userInput = reaper.ShowMessageBox("If any notes or text/sysex are selected (and visible in the MIDI editor), REAPER will automatically open "
+                                                                .. "their Properties window, instead of the CCs' Event Properties. Should all notes and text/sysex be deselected before continuing?", "CC properties", 3)
+                    if userInput == 2 then -- "Cancel"
+                        -- Do nothing
+                    elseif userInput == 6 then -- "Yes"
+                        local isTarget = {[8] = true, [9] = true, [15] = true} -- Note-offs, note-ons, and text/sysex.  Perhaps also [12] = true for Program Select?
+                        local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+                        if gotAllOK then
+                            local MIDIlen = MIDIstring:len()
+                            local tableEvents = {} -- All events will be stored in this table until they are concatened again
+                            local t = 0 -- Count index in table.  It is faster to use tableEvents[t] = ... than table.insert(...
+                            local s_unpack = string.unpack
+                            local s_pack   = string.pack
+                            -- The script will speed up execution by not inserting each event individually into tableEvents as they are parsed.
+                            --    Instead, only changed (i.e. deselected) events will be re-packed and inserted individually, while unchanged events
+                            --    will be inserted as bulk blocks of unchanged sub-strings.
+                            local nextPos, prevPos, unchangedPos = 1, 1, 1 -- unchangedPos is starting position of block of unchanged MIDI.
+                            while nextPos <= MIDIlen do  
+                                local offset, flags, msg
+                                prevPos = nextPos
+                                offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
+                                if flags&1 == 1 and isTarget[msg:byte(1)>>4] then -- then deselect!
+                                    -- First write all preceding unchanged events as one bulk block
+                                    if unchangedPos < prevPos then
+                                        t = t + 1
+                                        tableEvents[t] = MIDIstring:sub(unchangedPos, prevPos-1)
+                                    end
+                                    -- Now write the changed, deselected event
                                     t = t + 1
-                                    tableEvents[t] = MIDIstring:sub(unchangedPos, prevPos-1)
+                                    tableEvents[t] = s_pack("i4Bs4", offset, flags&0xFE, msg)
+                                    unchangedPos = nextPos
                                 end
-                                -- Now write the changed, deselected event
-                                t = t + 1
-                                tableEvents[t] = s_pack("i4Bs4", offset, flags&0xFE, msg)
-                                unchangedPos = nextPos
                             end
+                            t = t + 1
+                            tableEvents[t] = MIDIstring:sub(unchangedPos)
+                            reaper.MIDI_SetAllEvts(take, table.concat(tableEvents))
+                        else -- Not gotAllOK
+                            reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data of the active take.", "ERROR", 0)
                         end
-                        t = t + 1
-                        tableEvents[t] = MIDIstring:sub(unchangedPos)
-                        reaper.MIDI_SetAllEvts(take, table.concat(tableEvents))
-                    else -- Not gotAllOK
-                        reaper.ShowMessageBox("MIDI_GetAllEvts could not load the raw MIDI data of the active take.", "ERROR", 0)
+                        reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
+                    elseif userInput == 7 then -- "No", so call properties without deselecting
+                        reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
                     end
-                    reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
-                elseif userInput == 7 then -- "No", so call properties without deselecting
+                else -- no selected notes and/or sysex found
                     reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
                 end
-            else -- no selected notes and/or sysex found
-                reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
-            end
-        end -- If clicked on yellow CC text
-    end
-    
-    
-    -- PARSE MIDI, CONSTRUCT STRINGS
-    
-    -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates.
-    -- Also automatically pause while playing or recording, or if a js_Mouse editing script is running.
-    
-    local curPaused = paused or reaper.GetPlayState()&5 ~= 0 or reaper.GetExtState("js_Mouse actions", "Status") == "Running" -- playState: &1=playing,&2=pause,&=4 is recording
-    if not curPaused and reaper.time_precise() > prevTime + 0.25 then    
+            end -- If clicked on yellow CC text
+        end
         
-        -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
-        local take = reaper.MIDIEditor_GetTake(editor)
-        if reaper.ValidatePtr(take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
         
-            -- Only do all the time-consuming GetNote and GetCC stuff if there were in fact changes in MIDI,
-            --    or if active take has switched.
-            -- Changes in MIDI can be monitored by getting the take's hash, but not changes in default 
-            --    channel or velocity, so these settings are monitored separately.
-            defaultVelocity = reaper.MIDIEditor_GetSetting_int(editor, "default_note_vel")
-            -- Some of REAPER's MIDI function work with channel range 0-15, others with 1-16
-            defaultChannel  = 1 + reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")  
+        -- PARSE MIDI, CONSTRUCT STRINGS
         
-            -- Has the project start positions changed?
-            projStartMeasure = tonumber(reaper.format_timestr_pos(0, "", 2):match("([%d%-]+)"))
-            projStartTime    = reaper.GetProjectTimeOffset(0, false)
-            
-            -- If take or hash is changed, then update the info.
-            -- If not updated, the info strings simply remain the same.
-            hashOK, takeHash = reaper.MIDI_GetHash(take, false, "")
-            if take ~= prevTake or (hashOK and takeHash ~= prevHash) or projStartMeasure ~= prevProjStartMeasure or projStartTime ~= prevProjStartTime then
-                prevTake = take
-                prevHash = takeHash
-                prevProjStartMeasure = projStartMeasure
-                prevProjStartTime    = projStartTime
+        -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates.
+        -- Also automatically pause while playing or recording, or if a js_Mouse editing script is running.
+        
+        if reaper.time_precise() > prevTime + updateTime then
+            -- prevTime will be update *after* all the analyses
+    
+            local curPaused = paused or reaper.GetPlayState()&5 ~= 0 or reaper.GetExtState("js_Mouse actions", "Status") == "Running" -- playState: &1=playing,&2=pause,&=4 is recording
+            if not curPaused then     
                 
-                -- Initialize temporary values for all the info that will soon be parsed
-                local noteLowPPQ = math.huge
-                local noteHighPPQ = -1
-                local noteLowChannel = 17
-                local noteHighChannel = -1
-                local noteLowPitch = 200
-                local noteHighPitch = -1
-                local noteLowVelocity = 200
-                local noteHighVelocity = -1
-                local noteHighLength = -1
-                local noteLowLength = math.huge
-                local foundOverlaps = false
+                -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
+                local take = reaper.MIDIEditor_GetTake(editor)
+                if reaper.ValidatePtr(take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
                 
-                local ccLowPPQ = math.huge
-                local ccHighPPQ = -1
-                local ccLowChannel = 17
-                local ccHighChannel = -1
-                local ccLowValue = math.huge
-                local ccHighValue = -1
-                local ccHighLane = -1
-                local ccLowLane = math.huge
-                local ccHighType = -1 -- Actually, other 'types' are not CCs at all
-                local ccLowType = math.huge
+                    -- Only do all the time-consuming GetNote and GetCC stuff if there were in fact changes in MIDI,
+                    --    or if active take has switched.
+                    -- Changes in MIDI can be monitored by getting the take's hash, but not changes in default 
+                    --    channel or velocity, so these settings are monitored separately.
+                    defaultVelocity = reaper.MIDIEditor_GetSetting_int(editor, "default_note_vel")
+                    -- Some of REAPER's MIDI function work with channel range 0-15, others with 1-16
+                    defaultChannel  = 1 + reaper.MIDIEditor_GetSetting_int(editor, "default_note_chan")  
                 
-                countSelCCs = 0 -- These are not local, since the draw function must refer to them directly
-                countSelNotes = 0
-
-                countOK, numNotes, numCCs, numSysex = reaper.MIDI_CountEvts(take)
-                --[[if countOK ~= true then
-                    numNotes = "?"
-                    numCCs = "?"
-                    numSysex = "?"
-                end]]
-                
-                ------------------------------------------------------------
-                -- Now get all the info of the selected NOTES in active take
-                -- Note: For later versions: use MIDI_GetHash limited to notes to check whether this section can be skipped
-                
-                local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
-                
-                if not gotAllOK then
-                
-                    countSelCCs = "GetAllEvts error"
-                    countSelNotes = "GetAllEvts error"
-                
-                else
-                
-                    -- The following tables with temporarily store data while parsing:
-                    local tableNoteOns = {} -- Store note-on position and pitch while waiting for the next note-off, to calculate note length
-                    local tableCCMSB = {} -- While waiting for matching LSB of 14-bit CC
-                    local tableCCLSB = {} -- While waiting for matching MSB of 14-bit CC
-                    for chan = 0, 15 do
-                        tableNoteOns[chan] = {}
-                        tableCCMSB[chan] = {}
-                        tableCCLSB[chan] = {}
-                    end
-                
-                    local MIDIlen = MIDIstring:len()
-                    local nextPos = 1 -- Position of current event inside MIDIstring
-                    local runningPPQpos = 0 -- Parsed PPQ position of current event
+                    -- Has the project start positions changed?
+                    projStartMeasure = tonumber(reaper.format_timestr_pos(0, "", 2):match("([%d%-]+)"))
+                    projStartTime    = reaper.GetProjectTimeOffset(0, false)
                     
-                    countSelCCs = 0
-                    countSelNotes = 0
-                    
-                    -----------------------------------------------------
-                    -- Start iterating through all the events in the take
-                    while nextPos < MIDIlen do
-                  
-                        local offset, flags, msg
-                        offset, flags, msg, nextPos = string.unpack("i4Bs4", MIDIstring, nextPos)
-                        runningPPQpos = runningPPQpos + offset
+                    -- If take or hash is changed, then update the info.
+                    -- If not updated, the info strings simply remain the same.
+                    hashOK, takeHash = reaper.MIDI_GetHash(take, false, "")
+                    if take ~= prevTake or (hashOK and takeHash ~= prevHash) or projStartMeasure ~= prevProjStartMeasure or projStartTime ~= prevProjStartTime then
+                        mustUpdateGUI = true
+                        prevTake = take
+                        prevHash = takeHash
+                        prevProjStartMeasure = projStartMeasure
+                        prevProjStartTime    = projStartTime
                         
-                        if flags&1 == 1 and msg:len() ~= 0 then -- selected, and skip empty events
-                            
-                            local eventType = msg:byte(1)>>4
-                            local channel   = msg:byte(1)&0xF
-                            local msg2      = msg:byte(2)
-                            local msg3      = msg:byte(3)
-                               
-                            if eventType == 9 and msg3 ~= 0 then -- note-on
-                                -- Check for overlaps
-                                if tableNoteOns[channel][msg2] then foundOverlaps = true end        
-                                countSelNotes = countSelNotes + 1
-                                if runningPPQpos < noteLowPPQ then noteLowPPQ = runningPPQpos end
-                                if runningPPQpos > noteHighPPQ then noteHighPPQ = runningPPQpos end
-                                if channel < noteLowChannel then noteLowChannel = channel end
-                                if channel > noteHighChannel then noteHighChannel = channel end
-                                if msg2 < noteLowPitch then noteLowPitch = msg2 end
-                                if msg2 > noteHighPitch then noteHighPitch = msg2 end
-                                if msg3 < noteLowVelocity then noteLowVelocity = msg3 end
-                                if msg3 > noteHighVelocity then noteHighVelocity = msg3 end
-                                -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
-                                tableNoteOns[channel][msg2] = runningPPQpos
-                                  
-                            elseif eventType == 8 or eventType == 9 then -- Note-off
-                                -- Check whether there was a note-on on this channel and pitch.
-                                if tableNoteOns[channel][msg2] then
-                                    local noteLength = runningPPQpos - tableNoteOns[channel][msg2]
-                                    if noteLength < noteLowLength then noteLowLength = noteLength end
-                                    if noteLength > noteHighLength then noteHighLength = noteLength end
-                                    tableNoteOns[channel][msg2] = false
-                                end
-                          
-                            elseif eventType >= 11 and eventType <= 14 then 
-                                countSelCCs = countSelCCs + 1
-                                
-                                if eventType < ccLowType then ccLowType = eventType end
-                                if eventType > ccHighType then ccHighType = eventType end
-                                                            
-                                if eventType == 11 then value = msg3 -- standard CCs
-                                elseif eventType == 14 then value = (msg3<<7) + msg2 -- pitch
-                                else value = msg2 -- eventType == 13 or eventType == 12, channel pressure, program select
-                
-                                end
-                                if value < ccLowValue then ccLowValue = value end
-                                if value > ccHighValue then ccHighValue = value end
-                            
-                                if eventType == 11 then -- CC
-                                    if msg2 < ccLowLane then ccLowLane = msg2 end
-                                    if msg2 > ccHighLane then ccHighLane = msg2 end
-                                end
-                                                    
-                                if runningPPQpos < ccLowPPQ then ccLowPPQ = runningPPQpos end
-                                if runningPPQpos > ccHighPPQ then ccHighPPQ = runningPPQpos end
-                                if channel < ccLowChannel then ccLowChannel = channel end
-                                if channel > ccHighChannel then ccHighChannel = channel end
-                            
-                            end -- if eventType...
-                            
-                        end -- if flags&1 = 1 -- selected
-                    
-                    end -- while nextPos < MIDIlen
-                    
-                    
-                    -------------------------------------------------
-                    -- Got all event info, now translate into strings
-                
-                    if noteLowPPQ < noteHighPPQ then 
-                        notePositionString = timeStr(take, noteLowPPQ, timeFormat) .. "\n" .. timeStr(take, noteHighPPQ, timeFormat)
-                    elseif noteLowPPQ == noteHighPPQ then
-                        notePositionString = timeStr(take, noteLowPPQ, timeFormat)
-                    else 
-                        notePositionString = ""
-                    end
-                    
-                    if noteLowChannel < noteHighChannel then
-                        noteChannelString = tostring(noteLowChannel+1) .. " - " .. tostring(noteHighChannel+1)
-                    elseif noteLowChannel == noteHighChannel then 
-                        noteChannelString = tostring(noteLowChannel+1)
-                        noteChannel = noteLowChannel
-                    else 
-                        noteChannelString = ""
-                    end
-                    
-                    if noteLowPitch < noteHighPitch then 
-                        notePitchString = pitchString(noteLowPitch) .. " - " .. pitchString(noteHighPitch) 
-                                        .. "  (" .. string.format("%i", noteLowPitch) .. " - " .. string.format("%i", noteHighPitch) .. ")"
-                    elseif noteLowPitch == noteHighPitch then 
-                        notePitchString = pitchString(noteLowPitch) .. "  (" .. string.format("%i", noteLowPitch) .. ")"
-                    else 
-                        notePitchString = ""
-                    end
-                                
-                    if noteLowVelocity < noteHighVelocity then 
-                        noteVelocityString = tostring(noteLowVelocity) .. " - " .. tostring(noteHighVelocity)
-                    elseif noteLowVelocity == noteHighVelocity then 
-                        noteVelocityString = tostring(noteLowVelocity)
-                    else 
-                        noteVelocityString = ""
-                    end
-                    
-                    if foundOverlaps then noteLengthString = "? (Overlaps found)"
-                    elseif noteLowLength < noteHighLength then 
-                        noteLengthString = tostring(noteLowLength):match("[%d]+") .. " - " .. tostring(noteHighLength):match("[%d]+") .. " ticks"
-                    elseif noteLowLength == noteHighLength then 
-                        noteLengthString = tostring(noteLowLength):match("[%d]+") .. " ticks"
-                    else 
-                        noteLengthString = ""
-                    end                    
-                    
-                    if ccHighType == -1 then ccTypeString = "" -- no CCs selected
-                    elseif ccLowType ~= ccHighType then ccTypeString = "Multiple"
-                    else ccTypeString = tableCCTypes[ccLowType]
-                    end
-                         
-                    -- CC lane will be calculated in ccType == 11, actual CC
-                    if ccLowType == ccHighType and ccLowType == 11 then
-                        if ccLowLane > ccHighLane then ccLaneString = ""    
-                        elseif ccLowLane == ccHighLane then 
-                            ccLaneString = tostring(ccLowLane)
-                            if tableCCLanes[ccLowLane] ~= nil then
-                                ccLaneString = ccLaneString .. " (" .. tableCCLanes[ccLowLane] .. ")"
+                        -- Initialize temporary values for all the info that will soon be parsed
+                        local noteLowPPQ = math.huge
+                        local noteHighPPQ = -1
+                        local noteLowChannel = 17
+                        local noteHighChannel = -1
+                        local noteLowPitch = 200
+                        local noteHighPitch = -1
+                        local noteLowVelocity = 200
+                        local noteHighVelocity = -1
+                        local noteHighLength = -1
+                        local noteLowLength = math.huge
+                        local foundOverlaps = false
+                        
+                        local ccLowPPQ = math.huge
+                        local ccHighPPQ = -1
+                        local ccLowChannel = 17
+                        local ccHighChannel = -1
+                        local ccLowValue = math.huge
+                        local ccHighValue = -1
+                        local ccHighLane = -1
+                        local ccLowLane = math.huge
+                        local ccHighType = -1 -- Actually, other 'types' are not CCs at all
+                        local ccLowType = math.huge
+                        
+                        countSelCCs = 0 -- These are not local, since the draw function must refer to them directly
+                        countSelNotes = 0
+        
+                        countOK, numNotes, numCCs, numSysex = reaper.MIDI_CountEvts(take)
+                        --[[if countOK ~= true then
+                            numNotes = "?"
+                            numCCs = "?"
+                            numSysex = "?"
+                        end]]
+                        
+                        ------------------------------------------------------------
+                        -- Now get all the info of the selected NOTES in active take
+                        -- Note: For later versions: use MIDI_GetHash limited to notes to check whether this section can be skipped
+                        
+                        local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+                        
+                        if not gotAllOK then
+                        
+                            countSelCCs = "GetAllEvts error"
+                            countSelNotes = "GetAllEvts error"
+                        
+                        else
+                        
+                            -- The following tables with temporarily store data while parsing:
+                            local tableNoteOns = {} -- Store note-on position and pitch while waiting for the next note-off, to calculate note length
+                            local tableCCMSB = {} -- While waiting for matching LSB of 14-bit CC
+                            local tableCCLSB = {} -- While waiting for matching MSB of 14-bit CC
+                            for chan = 0, 15 do
+                                tableNoteOns[chan] = {}
+                                tableCCMSB[chan] = {}
+                                tableCCLSB[chan] = {}
                             end
-                        else 
-                           ccLaneString = tostring(ccLowLane) .. " - " .. tostring(ccHighLane)
-                        end
-                    else
-                        ccLaneString = ""
-                    end
+                        
+                            local MIDIlen = MIDIstring:len()
+                            local nextPos = 1 -- Position of current event inside MIDIstring
+                            local runningPPQpos = 0 -- Parsed PPQ position of current event
+                            
+                            countSelCCs = 0
+                            countSelNotes = 0
+                            
+                            -----------------------------------------------------
+                            -- Start iterating through all the events in the take
+                            while nextPos < MIDIlen do
+                          
+                                local offset, flags, msg
+                                offset, flags, msg, nextPos = string.unpack("i4Bs4", MIDIstring, nextPos)
+                                runningPPQpos = runningPPQpos + offset
                                 
-                    if ccLowValue < ccHighValue then 
-                        ccValueString = tostring(ccLowValue) .. " - " .. tostring(ccHighValue)
-                    elseif ccLowValue == ccHighValue then 
-                        ccValueString = tostring(ccLowValue)
-                    else 
-                        ccValueString = ""
-                    end
-                    
-                    if ccLowPPQ < ccHighPPQ then 
-                        ccPositionString = timeStr(take, ccLowPPQ, timeFormat) .. "\n" .. timeStr(take, ccHighPPQ, timeFormat)
-                    elseif ccLowPPQ == ccHighPPQ then 
-                        ccPositionString = timeStr(take, ccLowPPQ, timeFormat)
-                    else 
-                        ccPositionString = ""
-                    end
-                    
-                    if ccLowChannel < ccHighChannel then 
-                        ccChannelString = tostring(ccLowChannel+1) .. " - " .. tostring(ccHighChannel+1)
-                    elseif ccLowChannel == ccHighChannel then 
-                        ccChannelString = tostring(ccLowChannel+1)
-                        ccChannel = ccLowChannel
-                    else 
-                        ccChannelString = ""
-                    end
-                                            
-                    if ccLowValue < ccHighValue then 
-                        ccValueString = tostring(ccLowValue) .. " - " .. tostring(ccHighValue)
-                    elseif ccLowValue == ccHighValue then 
-                        ccValueString = tostring(ccLowValue)
-                    else 
-                        ccValueString = ""
-                    end
-                    
-                end -- if gotAllOK
-                
-                prevTime = reaper.time_precise()
-                
-            end -- if takeHash ~= prevHash: get new note and CC info           
-        end -- if take ~= nil: get new default channel and velocity
-    end -- if paused == false    
+                                if flags&1 == 1 and msg:len() ~= 0 then -- selected, and skip empty events
+                                    
+                                    local eventType = msg:byte(1)>>4
+                                    local channel   = msg:byte(1)&0xF
+                                    local msg2      = msg:byte(2)
+                                    local msg3      = msg:byte(3)
+                                       
+                                    if eventType == 9 and msg3 ~= 0 then -- note-on
+                                        -- Check for overlaps
+                                        if tableNoteOns[channel][msg2] then foundOverlaps = true end        
+                                        countSelNotes = countSelNotes + 1
+                                        if runningPPQpos < noteLowPPQ then noteLowPPQ = runningPPQpos end
+                                        if runningPPQpos > noteHighPPQ then noteHighPPQ = runningPPQpos end
+                                        if channel < noteLowChannel then noteLowChannel = channel end
+                                        if channel > noteHighChannel then noteHighChannel = channel end
+                                        if msg2 < noteLowPitch then noteLowPitch = msg2 end
+                                        if msg2 > noteHighPitch then noteHighPitch = msg2 end
+                                        if msg3 < noteLowVelocity then noteLowVelocity = msg3 end
+                                        if msg3 > noteHighVelocity then noteHighVelocity = msg3 end
+                                        -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
+                                        tableNoteOns[channel][msg2] = runningPPQpos
+                                          
+                                    elseif eventType == 8 or eventType == 9 then -- Note-off
+                                        -- Check whether there was a note-on on this channel and pitch.
+                                        if tableNoteOns[channel][msg2] then
+                                            local noteLength = runningPPQpos - tableNoteOns[channel][msg2]
+                                            if noteLength < noteLowLength then noteLowLength = noteLength end
+                                            if noteLength > noteHighLength then noteHighLength = noteLength end
+                                            tableNoteOns[channel][msg2] = false
+                                        end
+                                  
+                                    elseif eventType >= 11 and eventType <= 14 then 
+                                        countSelCCs = countSelCCs + 1
+                                        
+                                        if eventType < ccLowType then ccLowType = eventType end
+                                        if eventType > ccHighType then ccHighType = eventType end
+                                                                    
+                                        if eventType == 11 then value = msg3 -- standard CCs
+                                        elseif eventType == 14 then value = (msg3<<7) + msg2 -- pitch
+                                        else value = msg2 -- eventType == 13 or eventType == 12, channel pressure, program select
+                        
+                                        end
+                                        if value < ccLowValue then ccLowValue = value end
+                                        if value > ccHighValue then ccHighValue = value end
+                                    
+                                        if eventType == 11 then -- CC
+                                            if msg2 < ccLowLane then ccLowLane = msg2 end
+                                            if msg2 > ccHighLane then ccHighLane = msg2 end
+                                        end
+                                                            
+                                        if runningPPQpos < ccLowPPQ then ccLowPPQ = runningPPQpos end
+                                        if runningPPQpos > ccHighPPQ then ccHighPPQ = runningPPQpos end
+                                        if channel < ccLowChannel then ccLowChannel = channel end
+                                        if channel > ccHighChannel then ccHighChannel = channel end
+                                    
+                                    end -- if eventType...
+                                    
+                                end -- if flags&1 = 1 -- selected
+                            
+                            end -- while nextPos < MIDIlen
+                            
+                            
+                            -------------------------------------------------
+                            -- Got all event info, now translate into strings
+                        
+                            if noteLowPPQ < noteHighPPQ then 
+                                notePositionString = timeStr(take, noteLowPPQ, timeFormat) .. "\n" .. timeStr(take, noteHighPPQ, timeFormat)
+                            elseif noteLowPPQ == noteHighPPQ then
+                                notePositionString = timeStr(take, noteLowPPQ, timeFormat)
+                            else 
+                                notePositionString = ""
+                            end
+                            
+                            if noteLowChannel < noteHighChannel then
+                                noteChannelString = tostring(noteLowChannel+1) .. " - " .. tostring(noteHighChannel+1)
+                            elseif noteLowChannel == noteHighChannel then 
+                                noteChannelString = tostring(noteLowChannel+1)
+                                noteChannel = noteLowChannel
+                            else 
+                                noteChannelString = ""
+                            end
+                            
+                            if noteLowPitch < noteHighPitch then 
+                                notePitchString = pitchString(noteLowPitch) .. " - " .. pitchString(noteHighPitch) 
+                                                .. "  (" .. string.format("%i", noteLowPitch) .. " - " .. string.format("%i", noteHighPitch) .. ")"
+                            elseif noteLowPitch == noteHighPitch then 
+                                notePitchString = pitchString(noteLowPitch) .. "  (" .. string.format("%i", noteLowPitch) .. ")"
+                            else 
+                                notePitchString = ""
+                            end
+                                        
+                            if noteLowVelocity < noteHighVelocity then 
+                                noteVelocityString = tostring(noteLowVelocity) .. " - " .. tostring(noteHighVelocity)
+                            elseif noteLowVelocity == noteHighVelocity then 
+                                noteVelocityString = tostring(noteLowVelocity)
+                            else 
+                                noteVelocityString = ""
+                            end
+                            
+                            if foundOverlaps then noteLengthString = "? (Overlaps found)"
+                            elseif noteLowLength < noteHighLength then 
+                                noteLengthString = tostring(noteLowLength):match("[%d]+") .. " - " .. tostring(noteHighLength):match("[%d]+") .. " ticks"
+                            elseif noteLowLength == noteHighLength then 
+                                noteLengthString = tostring(noteLowLength):match("[%d]+") .. " ticks"
+                            else 
+                                noteLengthString = ""
+                            end                    
+                            
+                            if ccHighType == -1 then ccTypeString = "" -- no CCs selected
+                            elseif ccLowType ~= ccHighType then ccTypeString = "Multiple"
+                            else ccTypeString = tableCCTypes[ccLowType]
+                            end
+                                 
+                            -- CC lane will be calculated in ccType == 11, actual CC
+                            if ccLowType == ccHighType and ccLowType == 11 then
+                                if ccLowLane > ccHighLane then ccLaneString = ""    
+                                elseif ccLowLane == ccHighLane then 
+                                    ccLaneString = tostring(ccLowLane)
+                                    if tableCCLanes[ccLowLane] ~= nil then
+                                        ccLaneString = ccLaneString .. " (" .. tableCCLanes[ccLowLane] .. ")"
+                                    end
+                                else 
+                                   ccLaneString = tostring(ccLowLane) .. " - " .. tostring(ccHighLane)
+                                end
+                            else
+                                ccLaneString = ""
+                            end
+                                        
+                            if ccLowValue < ccHighValue then 
+                                ccValueString = tostring(ccLowValue) .. " - " .. tostring(ccHighValue)
+                            elseif ccLowValue == ccHighValue then 
+                                ccValueString = tostring(ccLowValue)
+                            else 
+                                ccValueString = ""
+                            end
+                            
+                            if ccLowPPQ < ccHighPPQ then 
+                                ccPositionString = timeStr(take, ccLowPPQ, timeFormat) .. "\n" .. timeStr(take, ccHighPPQ, timeFormat)
+                            elseif ccLowPPQ == ccHighPPQ then 
+                                ccPositionString = timeStr(take, ccLowPPQ, timeFormat)
+                            else 
+                                ccPositionString = ""
+                            end
+                            
+                            if ccLowChannel < ccHighChannel then 
+                                ccChannelString = tostring(ccLowChannel+1) .. " - " .. tostring(ccHighChannel+1)
+                            elseif ccLowChannel == ccHighChannel then 
+                                ccChannelString = tostring(ccLowChannel+1)
+                                ccChannel = ccLowChannel
+                            else 
+                                ccChannelString = ""
+                            end
+                                                    
+                            if ccLowValue < ccHighValue then 
+                                ccValueString = tostring(ccLowValue) .. " - " .. tostring(ccHighValue)
+                            elseif ccLowValue == ccHighValue then 
+                                ccValueString = tostring(ccLowValue)
+                            else 
+                                ccValueString = ""
+                            end
+                            
+                        end -- if gotAllOK
+                    end -- if takeHash ~= prevHash: get new note and CC info           
+                end -- if take ~= nil: get new default channel and velocity
+            end -- if curPaused == false               
+            
+            prevTime = reaper.time_precise()
+            
+        end -- if reaper.time_precise() > prevTime + updateTime 
+            
+            
+        -- UPDATE GUI
+        -- GUI window is only redrawn every updateTime.
+        -- GDI is updated each cycle, even if paused, to minimize flickering. However, background is only cleared when mustUpdateGUI.
+        if dockedGDI then
+            updateGDI()
+        elseif mustUpdateGUI then
+            updateGUI()
+        end
+         
         
-        
-    -- UPDATE GUIs
-    if dockedGDI then
-        updateGDI()
-    else
-        updateGUI()
-    end
-     
+        -- COMMUNICATE with the script "js_Option - Selecting single note or CC in active take sets channel for new events.lua"
+        local extStateSetChannel = ""
+        if curPaused then
+            extStateSetChannel = "Paused"
+        elseif countSelNotes == 1 then
+            extStateSetChannel = noteChannel
+        elseif countSelNotes == 0 and countSelCCs == 1 then
+            extStateSetChannel = ccChannel
+        else
+            extStateSetChannel = "Multi"
+        end
+        if extStateSetChannel ~= prevExtStateSetChannel then
+            reaper.SetExtState("MIDI Inspector", "Set channel", extStateSetChannel, false)
+            prevExtStateSetChannel = extStateSetChannel
+        end
     
-    -- COMMUNICATE with the script "js_Option - Selecting single note or CC in active take sets channel for new events.lua"
-    local extStateSetChannel = ""
-    if curPaused then
-        extStateSetChannel = "Paused"
-    elseif countSelNotes == 1 then
-        extStateSetChannel = noteChannel
-    elseif countSelNotes == 0 and countSelCCs == 1 then
-        extStateSetChannel = ccChannel
-    else
-        extStateSetChannel = "Multi"
-    end
-    if extStateSetChannel ~= prevExtStateSetChannel then
-        reaper.SetExtState("MIDI Inspector", "Set channel", extStateSetChannel, false)
-        prevExtStateSetChannel = extStateSetChannel
-    end
-   
+    end -- if editor ~= nil
+       
     reaper.runloop(loopMIDIInspector)
     
 end -- function loop GetSetChannel
@@ -1356,10 +1422,7 @@ function main()
     GDI_Brush = reaper.JS_GDI_CreateFillBrush(GDI_TextBkColor)
     
     -- Strangely, MIDI octave offet is stored in ini file with value 1 higher than that shown in Preferences.
-    octaveOffset = reaper.SNM_GetIntConfigVar("midioctoffs", 0) - 1
-    
-    -- Apparently, the only way to get string sizes, is to first initialize a GUI.
-    initializeGUI()
+    octaveOffset = reaper.SNM_GetIntConfigVar("midioctoffs", 0) - 1    
     
     loopMIDIInspector()
 end
