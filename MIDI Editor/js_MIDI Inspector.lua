@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.46
+Version: 1.47
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -130,7 +130,7 @@ About:
   * v1.45 (2019-02-19)
     + Recall docked state.
     + If Inspector is active, "js_Option - Selecting single note or CC in active take sets channel for new events" can also be enabled with no performance costs.
-  * v1.46 (2019-02-27)
+  * v1.47 (2019-02-28)
     + Properly release GDI device and objects.
     + Do not terminate when editor is closed; reappear when new editor is opened.
 ]]
