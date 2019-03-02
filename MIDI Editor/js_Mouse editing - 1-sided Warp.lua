@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - 1-sided Warp.lua
-Version: 4.02
+Version: 4.03
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -139,6 +139,8 @@ About:
     + Restore focus to original window, if script opened notification window.
   * v4.02 (2019-02-16)
     + Fixed: On Linux, crashing if editor closed while script is running.
+  * v4.03 (2019-03-02)
+    + Fixed: If editor is docked, properly restore focus.
 ]]
 
 -- USER AREA 
@@ -762,11 +764,11 @@ function AtExit()
     
     -- At the very end, no more notification windows will be opened, 
     --    so restore original focus - except if "Terminate script" dialog box is waiting for user
-    if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 then
+    if editor and midiview and reaper.MIDIEditor_GetMode(editor) ~= -1 then
         curForegroundWindow = reaper.JS_Window_GetForeground()
         if not (curForegroundWindow and reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common")) then
-            reaper.JS_Window_SetForeground(editor)
-            reaper.JS_Window_SetFocus(editor)
+            reaper.JS_Window_SetForeground(midiview)
+            reaper.JS_Window_SetFocus(midiview)
     end end
   
 end -- function AtExit   
@@ -1727,6 +1729,12 @@ function MAIN()
     
     
     -- Check whether SWS and my own extension are available, as well as the required version of REAPER
+    if (reaper.GetOS() or ""):match("OSX") then
+        reaper.MB("The new \"Mouse editing\" scripts do not work on macOS -- yet."
+               .. "\n\nIn the meantime, please use the older scripts, all of which can still be installed via ReaPack."
+                , "ERROR", 0)
+        return(false) 
+    end
     if not reaper.JS_Window_FindEx then -- FindEx was added in v0.963
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
                .. "\n\nThe js_ReaScriptAPI extension can be installed via ReaPack, or can be downloaded manually."
