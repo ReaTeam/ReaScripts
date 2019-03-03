@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.47
+Version: 1.48
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -43,9 +43,9 @@ About:
       the toolbar button, REAPER will ask whether to terminate the script.
   
   
-  # LINUX:
+  # LINUX and MACOS:
   
-  Docking in the marker/region lanes is unfortunately not (yet) available on Linux.
+  Docking in the marker/region lanes is unfortunately not (yet) available on Linux and macOS.
   
   
   # INSTRUCTIONS
@@ -130,9 +130,11 @@ About:
   * v1.45 (2019-02-19)
     + Recall docked state.
     + If Inspector is active, "js_Option - Selecting single note or CC in active take sets channel for new events" can also be enabled with no performance costs.
-  * v1.47 (2019-02-28)
+  * v1.46 (2019-02-27)
     + Properly release GDI device and objects.
     + Do not terminate when editor is closed; reappear when new editor is opened.
+  * v1.48 (2019-03-03)
+    + Linux and macOS: Don't dock in piano roll.
 ]]
 
 -- USER AREA
@@ -258,9 +260,9 @@ local playState = 0
 local prevTime = 0
 local prevExtStateSetChannel
 
-local lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, dockedGDI = 0, 0, 200, 410, nil, 0, nil
-local midiview, midiviewDC = nil, nil
-local editor, prevEditor, mustUpdate
+ lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, dockedGDI = 0, 0, 211, 450, nil, 0, nil
+ editor, prevEditor, midiview, midiviewDC = nil, nil, nil, nil
+local mustUpdateGUI, prevGfxW, preGfxH
 
 
 -------------------------
@@ -329,11 +331,15 @@ function initializeGUI()
         local dimensionsExtState  = reaper.GetExtState("MIDI Inspector", "Last dimensions") or ""
         lastWidth, lastHeight = dimensionsExtState:match("([^,]+),([^,]+)")
     end
-    lastWidth = lastWidth and tonumber(lastWidth) or 200
-    lastHeight = lastHeight and tonumber(lastHeight) or 410
+    lastWidth = lastWidth and tonumber(lastWidth) or 211
+    lastHeight = lastHeight and tonumber(lastHeight) or 450
     timeFormat = timeFormat or (lastFormat and tonumber(lastFormat)) or 0 -- Only load timeFormat if script has just started, so timeFormat = nil
     dockedInDocker = dockedInDocker and tonumber(dockedInDocker) or 0
-    if dockedGDI == nil then dockedGDI = (lastDockedGDI == "true") else dockedGDI = (dockedGDI == true) end -- If dockedGDI not yet initialized, use previous state, else keep state
+    if windowsOS then
+        if dockedGDI == nil then dockedGDI = (lastDockedGDI == "true") else dockedGDI = (dockedGDI == true) end -- If dockedGDI not yet initialized, use previous state, else keep state
+    else
+        dockedGDI = false
+    end
     
     if not dockedGDI then
         gfx.init("MIDI Inspector", lastWidth, lastHeight, dockedInDocker, lastX, lastY)
@@ -359,26 +365,29 @@ function saveCurrentState()
             -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
             lastX, lastY, lastWidth, lastHeight = math.floor(xPos+0.5), math.floor(yPos+0.5), math.floor(xWidth+0.5), math.floor(yHeight+0.5) 
     end end
-    saveState  = string.format("%i", lastX) .. "," 
-              .. string.format("%i", lastY) .. ","
-              .. string.format("%i", lastWidth) .. "," 
-              .. string.format("%i", lastHeight) .. ","
-              .. string.format("%i", timeFormat) .. ","
-              .. string.format("%i", dockedInDocker) .. ","
-              .. tostring(dockedGDI)
-    reaper.SetExtState("MIDI Inspector", "Last state", saveState, true)
+    if lastX and lastY and lastWidth and lastHeight and timeFormat and dockedInDocker then
+        saveState  = string.format("%i", lastX) .. "," 
+                  .. string.format("%i", lastY) .. ","
+                  .. string.format("%i", lastWidth) .. "," 
+                  .. string.format("%i", lastHeight) .. ","
+                  .. string.format("%i", timeFormat) .. ","
+                  .. string.format("%i", dockedInDocker) .. ","
+                  .. tostring(dockedGDI)
+        reaper.SetExtState("MIDI Inspector", "Last state", saveState, true)
+    end
 end
 
 
 ---------------
 function exit()
+
     saveCurrentState()
     gfx.quit()
     reaper.DeleteExtState("MIDI Inspector", "Last coordinates", true)
     reaper.DeleteExtState("MIDI Inspector", "Last dimensions", true)
     reaper.DeleteExtState("MIDI Inspector", "Set channel", true)
     
-    if midiview and midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
+    if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 and midiview and midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
     if GDI_Pen then reaper.JS_GDI_DeleteObject(GDI_Pen) end
     if GDI_Brush then reaper.JS_GDI_DeleteObject(GDI_Brush) end
     if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
@@ -545,7 +554,7 @@ function updateGDI()
             local s1, s2, s4, s6, s9, s12, s15 = tTabs[s][1], tTabs[s][2], tTabs[s][3], tTabs[s][4], tTabs[s][5], tTabs[s][6], tTabs[s][7]
             
             if mustUpdateGUI then
-                reaper.JS_GDI_FillRect(midiviewDC, 0, 0, s, GDI_TextHeight*2)
+                reaper.JS_GDI_FillRect(midiviewDC, 0, 0, s, 2+GDI_TextHeight*2)
             end
             reaper.JS_GDI_DrawText(midiviewDC, "NOTES:", 6, 2, 0, s1, 40, "TOP LEFT")
             reaper.JS_GDI_DrawText(midiviewDC, numNotes, #numNotes, s1, 0, s2-4, 40, "TOP LEFT")
@@ -832,22 +841,25 @@ function loopMIDIInspector()
     
     -- CHECK MIDI EDITOR 
     -- Skip everthing if no MIDI editor
+    
     prevEditor = editor
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil then 
         if prevEditor then -- Previously one or more editors were open, so this is first cycle after all editors have been closed.
+            midiview = nil
+            midiviewDC = nil
             saveCurrentState()
             gfx.quit()
         end
     
     else
-        if not prevEditor then -- Previously no editors were open, so this is first cycle after editor has been opened. 
+        if not prevEditor then 
             initializeGUI() 
             mustUpdateGUI = true
-        end
-         
+        end -- Previously no editors were open, so this is first cycle after editor has been opened. 
+        
         if editor ~= prevEditor then
-            if midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
+            if midiviewDC and midiview and prevEditor then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
             midiview = reaper.JS_Window_FindChildByID(editor, 1001) -- The piano roll child window, titled "midiview" in Windows
             midiviewDC = midiview and reaper.JS_GDI_GetWindowDC(midiview)
             if midiviewDC then
@@ -895,24 +907,23 @@ function loopMIDIInspector()
                     elseif menuChoice > 3 then 
                         timeFormat = menuChoice-5
                         mustUpdateGUI = true
-                        prevHash = nil -- Recalculate positions
+                        prevHash = nil -- This just to force GUI to update in next loop    
                     end
                 end
             end
             
-        -- not dockedGDI: 
+        -- not dockedGDI: Quit script if GUI has been closed
         else
             -- Apparently gfx.update must be called in order to update gfx.w, gfx.mouse_x and other gfx variables
             gfx.update()  
-            
-            -- Quit script if GUI has been closed
             if gfx.getchar() < 0 then 
                 return(0)
             end
-                        
-            -- Redraw GUI if size has changed
-            if gfx.w ~= prevW or gfx.h ~= prevH then
+                      
+            -- If the GUI size is being changed, update while changing
+            if gfx.w ~= prevGfxW or gfx.h ~= prevGfxH then
                 mustUpdateGUI = true
+                prevGfxW, prevGfxH = gfx.w, gfx.h
             end
             
             if gfx.mouse_cap == 0 then mouseAlreadyClicked = false end
@@ -955,11 +966,15 @@ function loopMIDIInspector()
                     mustUpdateGUI = true
                 -- Dock / Undock
                 elseif gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w then
-                    saveCurrentState()
-                    gfx.quit()
-                    mouseAlreadyClicked = true
-                    mustUpdateGUI = true
-                    dockedGDI = true
+                    if windowsOS then
+                        saveCurrentState()
+                        gfx.quit()
+                        mouseAlreadyClicked = true
+                        mustUpdateGUI = true
+                        dockedGDI = true
+                    else
+                        reaper.MB("On Linux or macOS, the MIDI Inspector can unfortunately not be docked in the piano roll.", "ERROR", 0)
+                    end
                 end
             end
             
@@ -983,7 +998,6 @@ function loopMIDIInspector()
                 if menuChoice > 1 then 
                     timeFormat = menuChoice-3 
                     mustUpdateGUI = true   
-                    prevHash = nil -- Recalculate positions
                 end
             end
             
@@ -1340,7 +1354,7 @@ function loopMIDIInspector()
             
         -- UPDATE GUI
         -- GUI window is only redrawn every updateTime.
-        -- GDI is updated each cycle, even if paused, to minimize flickering. However, background is only cleared when mustUpdateGUI.
+        -- GDI is update each cycle, even if paused, to minimize flickering.
         if dockedGDI then
             updateGDI()
         elseif mustUpdateGUI then
@@ -1370,9 +1384,9 @@ function loopMIDIInspector()
     
 end -- function loop GetSetChannel
 
---------------------------------------------------------------------
+---------------------------------------------------------------------
 -- Here the code execution starts
---------------------------------------------------------------------
+---------------------------------------------------------------------
 function main()
     
     -- Check whether ReaScriptAPI extension is available
@@ -1399,10 +1413,13 @@ function main()
         reaper.RefreshToolbar2(sectionID, ownCommandID)
     end
     
+    windowsOS = reaper.GetOS():match("Win")
+    
     -- To make script GUI feel more 'native', try to use theme colors.
     -- Strangely, SNM_GetIntConfigVar does not appear to work for theme colors.
     GDI_Font  = reaper.JS_GDI_CreateFont(GDI_TextHeight, GDI_TextWeight, 0, false, false, false, GDI_FontFace)
     GDI_TextHeight = GDI_TextHeight - 1
+    if not windowsOS then textHeight = textHeight - 2 end -- gfx fonts look much larger on macOS and LInux than on Windows, for some reason.
     
     GDI_TextBkColor = 0x000000
     if not GDI_TextColor then
