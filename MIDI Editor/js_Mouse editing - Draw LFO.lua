@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Draw LFO.lua
-Version: 4.03
+Version: 4.10
 Author: juliansader
 Screenshot: https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -145,6 +145,9 @@ About:
     + Fixed: Error if grid very small.
   * v4.03 (2019-03-02)
     + Fixed: If editor is docked, properly restore focus.
+  * v4.10 (2019-03-05)
+    + Compatible with macOS.
+    + Redraw immediately if "Skip redundant CCs" is toggled while script is running.
 ]]
 
 ----------------------------------------
@@ -244,12 +247,10 @@ local sectionID, commandID
 -- NOTE: Getting the MIDI editor scroll and zoom values is slow, since the item chunk has to be parsed.
 --    This script will therefore not update these variables after getting them once.  The user should not scroll and zoom while the script is running.
 local activeTakeChunk
-local ME_l, ME_t, ME_r, ME_b -- screen coordinates of MIDI editor, with frame
 local ME_LeftmostTick, ME_PixelsPerTick, ME_PixelsPerSecond = nil, nil, nil -- horizontal scroll and zoom
 local ME_TopPitch, ME_PixelsPerPitch = nil, nil -- vertical scroll and zoom
-local ME_UsableAreaLeftPixel, ME_UsableAreaRightPixel, ME_UsableAreaTopPixel, ME_UsableAreaBottomPixel = nil, nil, nil, nil
-local ME_CCLaneTopPixel, ME_CCLaneBottomPixel = nil, nil
-local ME_midiviewLeftPixel, ME_midiviewTopPixel, ME_midiviewRightPixel, ME_midiviewBottomPixel = nil, nil, nil, nil
+local ME_midiviewWidth, ME_midiviewHeight = nil, nil -- Mouse screen coordinates will be converted to client, so leftmost and topmost pixels are always 0.
+local ME_TargetTopPixel, ME_TargetBottomPixel
 local ME_TimeBase
 local tME_Lanes = {} -- store the layout of each MIDI editor lane
 --local tVisibleCC7Bit = {} -- CC lanes to use.  (In case of a 14bit CC lane or Bank/Program, this table will contain two entries. If all visible lanes are used, may contain even more entries.)
@@ -273,7 +274,7 @@ local tWM_Messages = {WM_LBUTTONDOWN = false, WM_LBUTTONDBLCLK = false, WM_LBUTT
 -- If mustChase is false, or if no pre-existing CCs are found, these will be the same as mouseOrigCCValue
 local lastChasedValue = nil -- value of closest CC to the left
 local nextChasedValue = nil -- value of closest CC to the right
- LFOtype, mustChase = (reaper.GetExtState("js_Draw LFO", "Last shape") or ""):match("([^,]+),([^,]+)")
+local LFOtype, mustChase = (reaper.GetExtState("js_Draw LFO", "Last shape") or ""):match("([^,]+),([^,]+)")
 LFOtype = tonumber(LFOtype) or 0
 mustChase = (mustChase == "true")
 local lineLeftPPQPos, lineRightPPQPos = nil, nil -- The CCs will be inserted into the MIDI string from left to right
@@ -315,13 +316,6 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- EXTSTATE: Other scripts can communicate with and control the other js_ scripts via ExtStates
     local extState = reaper.GetExtState("js_Mouse actions", "Status") or ""
     if extState == "" or extState == "Must quit" then return(false) end
-  
-    -- MOUSE MOVEMENT:
-    mouseX, mouseY = reaper.GetMousePosition()
-    if mouseX ~= prevMouseX or mouseY ~= prevMouseY then
-        prevMouseX, prevMouseY = mouseX, mouseY
-        mustCalculate = true
-    end
     
     -- MOUSE MODIFIERS / LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
     -- This can detect left clicks even if the mouse is outside the MIDI editor
@@ -331,28 +325,30 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         return false
     end
     
-    -- MOUSE POSITION: (New versions of the script doesn't quit if mouse moves out of CC lane, but will still quit if moves out of original window.)
+    -- MOUSE POSITION: (New versions of the script don't quit if mouse moves out of CC lane, but will still quit if moves too far out of midiview.
+    mouseX, mouseY = reaper.GetMousePosition()
+    if mouseX ~= prevMouseX or mouseY ~= prevMouseY then
+        prevMouseX, prevMouseY = mouseX, mouseY
+        mustCalculate = true
+    end
     if isInline then
         window = reaper.BR_GetMouseCursorContext()
-        if not (window == "midi_editor" or window == "arrange") then --reaper.JS_Window_FromPoint(mouseX, mouseY) ~= windowUnderMouse then -- BR_ functions can calculate PPQ even if mouse is outside inline editor
+        if not (window == "midi_editor" or window == "arrange") then
             return false 
         end
-    else
-        -- MIDI editor closed or moved?
-        if reaper.MIDIEditor_GetMode(editor) ~= 0 then return false end
-        local rOK, l, t, r, b = reaper.JS_Window_GetRect(editor) -- Faster than Window_From Point. Use Rect instead of ClientRect so that mouse can go onto scrollbar
-        if not (rOK and l==ME_l and t==ME_t and r==ME_r and b==ME_b) then
-            return false
-        end
+    else 
+        -- MIDI editor closed or changed mode?  Also, quit if moved too far outside piano roll.
+        if reaper.MIDIEditor_GetMode(editor) ~= 0 then return false end 
         -- Mouse can't go outside MIDI editor, unless left-dragging (to ensure that user remembers that script is running)
-        if mouseState&1 == 0 and (mouseX < l or mouseY < t or mouseX >= r or mouseY >= b) then
-           return false
+        mouseX, mouseY = reaper.JS_Window_ScreenToClient(midiview, mouseX, mouseY)
+        if mouseX < 0 or mouseY < 0 or ME_midiviewWidth <= mouseX or ME_midiviewHeight <= mouseY then 
+            if mouseState&1 == 0 and (mouseX < -150 or mouseY < -150 or ME_midiviewWidth+150 < mouseX or ME_midiviewHeight+150 < mouseY) then
+                return false
+            elseif cursor then
+                reaper.JS_Mouse_SetCursor(cursor)
+            end
         end
-        -- If mouse is outside midiview, WM_SETCURSOR isn't blocked
-        if (mouseX < ME_midiviewLeftPixel or mouseY > ME_midiviewTopPixel or mouseX > ME_midiviewRightPixel or mouseY > ME_midiviewBottomPixel) and cursor then
-            reaper.JS_Mouse_SetCursor(cursor)
-        end
-    end 
+    end
     
     -- MOUSEWHEEL:
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
@@ -380,11 +376,20 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
     if peekOK and time > startTime then return false end
     
-    -- RIGHT CLICK: 
+    -- RIGHT CLICK: (Toggle chase.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
     if peekOK and time > prevMouseTime then
         mustChase = not mustChase
         prevMouseTime = time
+        mustCalculate = true
+    end
+    
+    -- SKIP REDUNDANT CCS?
+    -- In every cycle, check whether redundant events must be skipped, 
+    --    so that can be changed in real time.
+    local prevSkip = skipRedundantCCs
+    skipRedundantCCs = (reaper.GetExtState("js_Mouse actions", "skipRedundantCCs") == "true") -- false by default, so that new users aren't surprised by missing CCs
+    if skipRedundantCCs ~= prevSkip then
         mustCalculate = true
     end
  
@@ -426,16 +431,15 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         else mouseNewCCValue = math.floor(mouseNewCCValue+0.5)
         end
         
-        
         -- MOUSE PPQ (HORIZONTAL) POSITION
         -- (And prevent mouse line from extending beyond item boundaries.)
         if isInline then
             -- A call to BR_GetMouseCursorContext must always precede the other BR_ context calls
             mouseNewPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, reaper.BR_GetMouseCursorContext_Position())
         elseif ME_TimeBase == "beats" then
-            mouseNewPPQPos = ME_LeftmostTick + (mouseX-ME_midiviewLeftPixel)/ME_PixelsPerTick
+            mouseNewPPQPos = ME_LeftmostTick + mouseX/ME_PixelsPerTick
         else -- ME_TimeBase == "time"
-            mouseNewPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + (mouseX-ME_midiviewLeftPixel)/ME_PixelsPerSecond )
+            mouseNewPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + mouseX/ME_PixelsPerSecond )
         end
         -- Adjust mouse PPQ position for looped items
         mouseNewPPQPos = mouseNewPPQPos - loopStartPPQPos
@@ -477,12 +481,6 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         end    
         local PPQrange = lineRightPPQPos - lineLeftPPQPos
         local valueRange = mouseNewCCValue - baseValue
-        
-
-        -- SKIP REDUNDANT CCS?
-        -- In every cycle, check whether redundant events must be skipped, 
-        --    so that can be changed in real time.
-        local skipRedundantCCs = (reaper.GetExtState("js_Mouse actions", "skipRedundantCCs") == "true") -- false by default, so that new users aren't surprised by missing CCs
 
         
         -- Clean previous tableLine.  All the new MIDI events will be stored in this table, 
@@ -625,7 +623,6 @@ function AtExit()
     -- Communicate with the js_Run.. script that this script is exiting
     reaper.DeleteExtState("js_Mouse actions", "Status", true)
     
-    
     -- Save last-used line shape
     reaper.SetExtState("js_Draw LFO", "Last shape", tostring(LFOtype)..","..tostring(mustChase), true)
     
@@ -763,13 +760,16 @@ function SetupTargetLaneForParsing(laneID, target)
     local laneType = tME_Lanes[laneID] and tME_Lanes[laneID].Type
     if laneType then 
         if SetupIndividualLane[laneType] then
+            ME_TargetTopPixel = tME_Lanes[laneID].ME_TopPixel
+            ME_TargetBottomPixel = tME_Lanes[laneID].ME_BottomPixel
             return true, laneType
+        else
+            return false, nil
         end
     else
-        --reaper.MB("The target lane CC lanes are of unknown type, and could not be parsed by this script.", "ERROR", 0)
-        return false
+        laneIsALL = true
+        return true, nil
     end
-    return false, nil
 end
 
 
@@ -861,43 +861,36 @@ function SetupMIDIEditorInfoFromTakeChunk()
         tME_Lanes[laneID] = {VELLANE = vellaneStr, Type = laneType, ME_Height = ME_Height, inlineHeight = inlineHeight}
     end
     
-    
     -- If main editor (not inline) get pixel coordinates of editor structure
     if midiview then
-        ME_rectOK, ME_l, ME_t, ME_r, ME_b = reaper.JS_Window_GetRect(editor)
-        if not ME_rectOK then 
-            reaper.MB("Could not determine the MIDI editor's pixel coordinates.", "ERROR", 0) 
-            return(false) 
-        end
         -- ClientRect places Y pixel 0 at *top*, and right/bottom are *outside* actual area.
         -- Also, exclude the ruler area on top (which is always 62 pixels high).
-        -- Note that on MacOS and Linux, a window may be flipped, so rectLeft may be larger than rectRight, for example.
+        -- Note that on MacOS and Linux, a window may be "flipped". I'm not sure what that means, so always check that width and height are non-negative.
         local clientOK, rectLeft, rectTop, rectRight, rectBottom = reaper.JS_Window_GetClientRect(midiview) --takeChunk:match("CFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+) (%S+) (%S+) (%S+)") 
             if not clientOK then 
                 reaper.MB("Could not determine the MIDI editor's client window pixel coordinates.", "ERROR", 0) 
                 return(false) 
             end
-        ME_midiviewLeftPixel, ME_midiviewTopPixel, ME_midiviewRightPixel, ME_midiviewBottomPixel = math.min(rectLeft, rectRight), math.min(rectTop, rectBottom), math.max(rectLeft, rectRight)-1, math.max(rectTop, rectBottom)-1
-        ME_midiviewWidth  = ME_midiviewRightPixel - ME_midiviewLeftPixel + 1
-        ME_midiviewHeight = ME_midiviewBottomPixel - ME_midiviewTopPixel + 1
+        ME_midiviewWidth  = ((rectRight-rectLeft) >= 0) and (rectRight-rectLeft) or (rectLeft-rectRight)--ME_midiviewRightPixel - ME_midiviewLeftPixel + 1
+        ME_midiviewHeight = ((rectTop-rectBottom) >= 0) and (rectTop-rectBottom) or (rectBottom-rectTop)--ME_midiviewBottomPixel - ME_midiviewTopPixel + 1
         
-        local laneBottomPixel = ME_midiviewBottomPixel
+        local laneBottomPixel = ME_midiviewHeight-1
         for i = #tME_Lanes, 0, -1 do
             tME_Lanes[i].ME_BottomPixel = laneBottomPixel
-            tME_Lanes[i].ME_TopPixel    = laneBottomPixel - tME_Lanes[i].ME_Height + 9
+            tME_Lanes[i].ME_TopPixel    = laneBottomPixel - tME_Lanes[i].ME_Height + 10
             
             laneBottomPixel = laneBottomPixel - tME_Lanes[i].ME_Height
         end
         
         -- Notes area height is remainder after deducting 1) total CC lane height and 2) height (62 pixels) of Ruler/Marker/Region area at top of midiview
         tME_Lanes[-1].ME_BottomPixel = laneBottomPixel
-        tME_Lanes[-1].ME_TopPixel    = ME_midiviewTopPixel + 62
-        tME_Lanes[-1].ME_Height      = laneBottomPixel - (ME_midiviewTopPixel + 62)
+        tME_Lanes[-1].ME_TopPixel    = 62
+        tME_Lanes[-1].ME_Height      = laneBottomPixel-61
+        ME_BottomPitch = ME_TopPitch - math.floor(tME_Lanes[-1].ME_Height / ME_PixelsPerPitch)
     end
  
     -- Finally, get active channel info
     editAllChannels = activeTakeChunk:match("\nEVTFILTER (%S+) %S+ %S+ %S+ %S+ %S+ %S+ ")
-    -- activeChannel = tonumber(activeTakeChunk:match("\nCFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+) ")) -- Alreay got this above
     activeChannel   = tonumber(activeChannel)
     if not (activeChannel and editAllChannels) then
         reaper.MB("Could not determine the MIDI filter and active MIDI channel.", "ERROR", 0)
@@ -914,11 +907,12 @@ end -- function SetupMIDIEditorInfoFromTakeChunk
 
 --#########################################
 -------------------------------------------
+-- x and y are *client* coordinates
 function GetCCLaneIDFromPoint(x, y)
     if isInline then
         -- return nil -- Not yet implemented in this version
     elseif midiview then
-        if x >= ME_midiviewLeftPixel and x <= ME_midiviewRightPixel then
+        if 0 <= x and x < ME_midiviewWidth then
             for i = -1, #tME_Lanes do
                 if y < tME_Lanes[i].ME_TopPixel then
                     return i - 0.5
@@ -1229,12 +1223,12 @@ function Tooltip(text)
     if text then -- New tooltip text
         tooltipTime = reaper.time_precise()
         tooltipText = text
-        if not (mouseX and mouseY) then mouseX, mouseY = reaper.GetMousePosition() end
-        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, true)
+        local x, y = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip(tooltipText, x+10, y+10, true)
         reaper.defer(Tooltip)
     elseif reaper.time_precise() < tooltipTime+0.5 then
-        if not (mouseX and mouseY) then mouseX, mouseY = reaper.GetMousePosition() end
-        reaper.TrackCtl_SetToolTip(tooltipText, mouseX+10, mouseY+10, true)
+        local x, y = reaper.GetMousePosition()
+        reaper.TrackCtl_SetToolTip(tooltipText, x+10, y+10, true)
         reaper.defer(Tooltip)
     else
         reaper.TrackCtl_SetToolTip("", 0, 0, false)
@@ -1257,12 +1251,6 @@ function MAIN()
 
 
     -- Check whether SWS and my own extension are available, as well as the required version of REAPER
-    if (reaper.GetOS() or ""):match("OSX") then
-        reaper.MB("The new \"Mouse editing\" scripts do not work on macOS -- yet."
-               .. "\n\nIn the meantime, please use the older scripts, all of which can still be installed via ReaPack."
-                , "ERROR", 0)
-        return(false) 
-    end
     if not reaper.JS_Window_FindEx then
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
                .. "\n\nThe js_ReaScripAPI extension can be installed via ReaPack, or can be downloaded manually."
@@ -1361,6 +1349,7 @@ function MAIN()
                 editor = parentWindow
                 if windowUnderMouse == reaper.JS_Window_FindChildByID(parentWindow, 1001) then -- The piano roll child window, titled "midiview" in Windows.
                     midiview = windowUnderMouse
+                    mouseOrigX, mouseOrigY = reaper.JS_Window_ScreenToClient(midiview, mouseOrigX, mouseOrigY) -- Always use client coordinates in MIDI editor                
                     
                     activeTake = reaper.MIDIEditor_GetTake(editor)
                     activeTakeOK = activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.TakeIsMIDI(activeTake)
@@ -1370,13 +1359,17 @@ function MAIN()
                         activeItemOK = activeItem and reaper.ValidatePtr(activeItem, "MediaItem*") 
                         if activeItemOK then 
                         
-                            -- Get MIDI editor structure from chunk, and store in tME_Lanes table.
-                            chunkStuffOK = SetupMIDIEditorInfoFromTakeChunk() 
+                            chunkStuffOK = SetupMIDIEditorInfoFromTakeChunk() -- Get MIDI editor structure from chunk, and store in tME_Lanes table.
                             if chunkStuffOK then
                                 
                                 ::loopUntilMouseEntersCCLane::
                                 mouseOrigCCLaneID = GetCCLaneIDFromPoint(mouseOrigX, mouseOrigY) 
-                                if mouseOrigCCLaneID and mouseOrigCCLaneID%1 ~= 0 then mouseStartedOnLaneDivider = true; _, mouseOrigY = reaper.GetMousePosition(); goto loopUntilMouseEntersCCLane end
+                                if mouseOrigCCLaneID and mouseOrigCCLaneID%1 ~= 0 then 
+                                    mouseStartedOnLaneDivider = true; 
+                                    _, mouseOrigY = reaper.GetMousePosition(); 
+                                    _, mouseOrigY = reaper.JS_Window_ScreenToClient(midiview, mouseOrigX, mouseOrigY)
+                                    goto loopUntilMouseEntersCCLane 
+                                end
                                 
                                 if mouseOrigCCLaneID then
                                     
@@ -1449,7 +1442,10 @@ function MAIN()
         return false
     end
     if not (laneIsCC7BIT or laneIsCC14BIT or laneIsCHANPRESS or laneIsPITCH) then
-        reaper.MB("This script will only work in the following MIDI lanes: \n * 7-bit CC, \n * 14-bit CC, \n * Pitch, or\n * Channel Pressure.", "ERROR", 0)
+        reaper.MB("This script will only work in the following MIDI lanes: \n * 7-bit CC, \n * 14-bit CC, \n * Pitch, or\n * Channel Pressure."
+                .. "\n\nTo inform the script which lane must be edited, the mouse must be positioned inside that lane when the script starts."
+                .. "\n\nTo ensure that the ramp starts at the minimum or maximum value, position the mouse over a lane divider and then move the mouse into the target lane."
+                , "ERROR", 0)                  
         return false 
     end
     
@@ -1476,9 +1472,9 @@ function MAIN()
     if isInline then
         mouseOrigPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, reaper.BR_GetMouseCursorContext_Position())
     elseif ME_TimeBase == "beats" then
-        mouseOrigPPQPos = ME_LeftmostTick + (mouseOrigX - ME_midiviewLeftPixel)/ME_PixelsPerTick
+        mouseOrigPPQPos = ME_LeftmostTick + mouseOrigX/ME_PixelsPerTick
     else -- ME_TimeBase == "time"
-        mouseOrigPPQPos  = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + (mouseOrigX-ME_midiviewLeftPixel)/ME_PixelsPerSecond )
+        mouseOrigPPQPos  = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + mouseOrigX/ME_PixelsPerSecond )
     end
     
     
