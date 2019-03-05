@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Arch and Tilt.lua
-Version: 4.10
+Version: 4.11
 Author: juliansader 
 Screenshot: http://stash.reaper.fm/28025/Arch%20events.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -131,7 +131,7 @@ About:
     + Arching curve displayed in MIDI editor.
   * v4.03 (2019-03-02)
     + Fixed: If editor is docked, properly restore focus.
-  * v4.10 (2019-03-05)
+  * v4.11 (2019-03-05)
     + Compatible with macOS.
 ]]
 
