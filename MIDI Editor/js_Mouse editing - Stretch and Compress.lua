@@ -1124,7 +1124,10 @@ function AtExit()
                 reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
             else
                 reaper.JS_WindowMessage_Release(windowUnderMouse, message)    
-    end end end
+            end
+        end
+        if midiview and GDI_DC then reaper.JS_GDI_ReleaseDC(midiview, GDI_DC) end
+    end
     
     -- As when starting the script, restore cursor and toolbar button as soon as possible, in order to seem more responsive.
     -- Was a custom cursur loaded? Restore plain cursor.
