@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Stretch and Compress.lua
-Version: 4.10
+Version: 4.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -158,7 +158,7 @@ About:
     + Fixed: On Linux, crashing if editor closed while script is running.
   * v4.03 (2019-03-02)
     + Fixed: If editor is docked, properly restore focus.
-  * v4.10 (2019-03-05)
+  * v4.11 (2019-03-05)
     + Compatible with macOS.
 ]]
 
