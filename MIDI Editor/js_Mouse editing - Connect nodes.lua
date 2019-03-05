@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Connect nodes.lua
-Version: 4.10
+Version: 4.11
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27617/Insert%20linear%20or%20shaped%20ramps%20between%20selected%20CCs%20or%20pitches%20in%20lane%20under%20mouse%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -178,6 +178,8 @@ About:
     + Fixed: If editor is docked, properly restore focus.
   * v4.10 (2019-03-05)
     + Compatible with macOS.
+  * v4.11 (2019-03-05)
+    + Mention velocity and notes in error message.
 ]]
  
 
@@ -1594,7 +1596,8 @@ function MAIN()
     if not (laneIsCC7BIT or laneIsCC14BIT or laneIsPITCH or laneIsCHANPRESS or laneIsPROGRAM) then
         reaper.MB("This script will only work in the following MIDI lanes: \n* 7-bit CC, \n* 14-bit CC, \n* Pitch, \n* Channel Pressure, or\n* Program select."
                 .. "\n\nTo tell the script which lane must be edited, the mouse must be positioned inside that lane when the script starts."
-                .. "\n\nEvents that do not have values, such as text or sysex, cannot be arched."
+                .. "\n\nEvents that do not have values, such as text or sysex, cannot be connected with ramps."
+                .. "\n\nSimilarly, velocity cannot be changed or ramped after a note-on has already been played."
                 , "ERROR", 0)
         return false
     end
