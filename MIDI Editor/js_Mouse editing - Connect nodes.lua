@@ -16,6 +16,10 @@ About:
   * Useful for converting a set of nodes into an LFO with any desired curve shape.
 
 
+  This script is most often used after "js_Mouse editing - Extract nodes", which reveals nodes in existing CC curves, 
+      or "js_Insert CC or pitch at mouse position, leaving other selected", which inserts new nodes.
+
+
   MODES: WARP and BËZIER:
   
   The script offers two modes (selected by right-clicking the mouse):
