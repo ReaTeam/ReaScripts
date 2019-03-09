@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="04d39c6ecb7a75855c589da3464f907c8dd8e637" name="ReaTeam Scripts">
+<index version="1" commit="3578885a7a8b04c1c32ca4091e1d735228a7734a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3282,6 +3282,11 @@ Fix: Was skipping most items with >1 audio channel]]></changelog>
         <changelog><![CDATA[Complete rewrite of audio processing logic, should fix issues with stereo
 items being skipped.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
+      </version>
+      <version name="1.3" author="Lokasenna" time="2019-03-09T15:40:52Z">
+        <changelog><![CDATA[Adds option to analyze the first item at a given position and process
+subsequent items with the same settings]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3578885a7a8b04c1c32ca4091e1d735228a7734a/Items%20Editing/Lokasenna_Smart%20fill%20gaps%20by%20stretching%20item%20tails.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Trim items to specified length.lua" type="script" desc="Trim items to specified length">
