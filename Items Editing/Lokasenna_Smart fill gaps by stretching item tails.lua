@@ -1,11 +1,11 @@
 --[[
   Description: Smart fill gaps by stretching item tails
-  Version: 1.2
+  Version: 1.3
   Author: Lokasenna
   Donation: https://paypal.me/Lokasenna
   Changelog:
-    Complete rewrite of audio processing logic, should fix issues with stereo
-    items being skipped.
+    Adds option to analyze the first item at a given position and process
+    subsequent items with the same settings
   Links:
     Forum Thread https://forum.cockos.com/showthread.php?p=2046085
     Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -402,6 +402,7 @@ end
 function Item:doSplit()
 
     local split, err
+    dMsg(self.splitpos)
     if self.splitpos then
         split = self.splitpos
     else
@@ -794,19 +795,24 @@ local function processItems(items_by_pos)
     -- the remaining items rather than scanning them too.
     for pos, items in GUI.kpairs(items_by_pos) do
 
-        dMsg("\nItem begins...")
+        dMsg("\nPosition " .. pos .. " has " .. #items .. " items\n")
 
+        dMsg("Item 1")
         local first = Item.new(items[1])
         first:doWorkflow()
 
         local cur
         for i = 2, #items do
+            dMsg("\nItem " .. i)
             cur = Item.new(items[i])
-            cur.splitpos = first.splitpos
+
+            if settings.use_first then
+              if not first.splitpos then break end
+              cur.splitpos = first.splitpos
+            end
+
             cur:doWorkflow()
         end
-
-        dMsg("Item ends...")
 
     end
 
@@ -893,11 +899,12 @@ local function settingsFromGUI()
 
         if name == "S_markers" then
             settings.add_split_markers,
-                settings.add_skip_markers = table.unpack(elm:val())
+            settings.add_skip_markers = table.unpack(elm:val())
 
         elseif name == "S_opts" then
             settings.trim_items,
-                settings.step_markers = table.unpack(elm:val())
+            settings.step_markers,
+            settings.use_first = table.unpack(elm:val())
         else
             settings[name:match("S_(.+)")] = elm:val()
         end
@@ -981,8 +988,8 @@ local function settingsToGUI()
     GUI.Val("S_markers", {settings.add_split_markers, settings.add_skip_markers})
     settings.add_split_markers, settings.add_skip_markers = nil, nil,
 
-    GUI.Val("S_opts", {settings.trim_items, settings.step_markers})
-    settings.trim_items, settings.step_markers = nil, nil
+    GUI.Val("S_opts", {settings.trim_items, settings.step_markers, settings.use_first})
+    settings.trim_items, settings.step_markers, settings.use_first = nil, nil, nil
 
     GUI.Val("S_thresh_db", settings.thresh_db + 60)
     settings.thresh_db = nil
@@ -1030,7 +1037,7 @@ end
 
 
 GUI.name = "Split and stretch item tails"
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 560
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 336, 600
 GUI.anchor, GUI.corner = "screen", "C"
 
 
@@ -1223,9 +1230,9 @@ GUI.New("S_opts", "Checklist", {
     x = 48,
     y = 392,
     w = 208,
-    h = 56,
+    h = 84,
     caption = "",
-    optarray = {"Trim ends of overlapping items","Step through markers afterward"},
+    optarray = {"Trim ends of overlapping items","Step through markers afterward","Match the first item at each position"},
     frame = false
 })
 
@@ -1292,7 +1299,7 @@ GUI.New("lbl_unit4", "Label", {
 GUI.New("btn_go", "Button", {
     z = 11,
     x = 144,
-    y = 472,
+    y = 480,
     w = 48,
     h = 24,
     caption = "Go!",
