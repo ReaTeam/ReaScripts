@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ca627969477bcd30fe90e4e671ab567fb65d9583" name="ReaTeam Scripts">
+<index version="1" commit="f61fe035d8243c430f662fd0565a91a5c9794b9f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1842,6 +1842,20 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes/Takes">
+    <reapack name="edgemeal_Toggle selected items take envelopes.lua" type="script" desc="Toggle selected items take envelopes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggle all selected items take envelopes\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-03-10T10:46:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f61fe035d8243c430f662fd0565a91a5c9794b9f/Envelopes/Takes/edgemeal_Toggle%20selected%20items%20take%20envelopes.lua</source>
+      </version>
+    </reapack>
     <reapack name="edgemeal_Toggle selected take envelopes.lua" type="script" desc="Toggle selected take envelopes">
       <metadata>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=215558">Forum Thread</link>
