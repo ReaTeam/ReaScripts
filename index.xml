@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="23ea5424933479fd868d95ef7f6bef3c519dcce2" name="ReaTeam Scripts">
+<index version="1" commit="44aaef9020469b8d7ef2d6651486650edb029146" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2051,7 +2051,7 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
     </reapack>
     <reapack name="edgemeal_Toggle show monitoring FX chain.lua" type="script" desc="Toggle show monitoring FX chain">
       <version name="1.0" author="Edgemeal" time="2019-03-09T21:29:47Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca627969477bcd30fe90e4e671ab567fb65d9583/FX/edgemeal_Toggle%20show%20monitoring%20FX%20chain.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44aaef9020469b8d7ef2d6651486650edb029146/FX/edgemeal_Toggle%20show%20monitoring%20FX%20chain.lua</source>
       </version>
       <version name="1.01" author="Edgemeal" time="2019-03-14T18:59:10Z">
         <changelog><![CDATA[Show monitor if docked but not the selected tab.
