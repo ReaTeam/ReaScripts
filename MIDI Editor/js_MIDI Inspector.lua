@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.48
+Version: 1.49
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -135,6 +135,8 @@ About:
     + Do not terminate when editor is closed; reappear when new editor is opened.
   * v1.48 (2019-03-03)
     + Linux and macOS: Don't dock in piano roll.
+  * v1.49 (2019-03-15)
+    + Fixed: Only capture right-click where docked inspector is visible.
 ]]
 
 -- USER AREA
@@ -840,7 +842,7 @@ function loopMIDIInspector()
     mustUpdateGUI = false
     
     -- CHECK MIDI EDITOR 
-    -- Skip everthing if no MIDI editor
+    -- Skip everything if no MIDI editor
     
     prevEditor = editor
     editor = reaper.MIDIEditor_GetActive()
@@ -852,6 +854,7 @@ function loopMIDIInspector()
             gfx.quit()
         end
     
+    -- MIDI editor exists
     else
         if not prevEditor then 
             initializeGUI() 
@@ -885,32 +888,34 @@ function loopMIDIInspector()
             mouseState = reaper.JS_Mouse_GetState(2)
             if mouseState > prevMouseState then
                 local x, y = reaper.GetMousePosition()
-                local cx, cy = reaper.JS_Window_ScreenToClient(midiview, x, y)
-                if 0 <= cy and cy < 24 then
-                    local menuString = paused and "!Pause|Undock||#Display position as:|" or "Pause|Undock||#Display position as:|"
-                    -- Time format ranges from -1 (default) to 5
-                    for i = -1, #tableTimeFormats do
-                        if i == timeFormat then menuString = menuString .. "!" end
-                        menuString = menuString .. tableTimeFormats[i] .. "|"
-                    end
-                    gfx.init("", 0, 0, 0, x+20, y+30)
-                    gfx.x = -20
-                    gfx.y = -50
-                    local menuChoice = gfx.showmenu(menuString)
-                    gfx.quit()
-                    if menuChoice == 1 then
-                        paused = not paused
-                    elseif menuChoice == 2 then
-                        dockedGDI = false
-                        mustUpdateGUI = true
-                        initializeGUI()
-                    elseif menuChoice > 3 then 
-                        timeFormat = menuChoice-5
-                        mustUpdateGUI = true
-                        prevHash = nil -- This just to force GUI to update in next loop    
-                    end
-                end
-            end
+                if reaper.JS_Window_FromPoint(x, y) == midiview then
+                    local cx, cy = reaper.JS_Window_ScreenToClient(midiview, x, y)
+                    if 0 <= cy and cy < 24 then
+                        local menuString = paused and "!Pause|Undock||#Display position as:|" or "Pause|Undock||#Display position as:|"
+                        -- Time format ranges from -1 (default) to 5
+                        for i = -1, #tableTimeFormats do
+                            if i == timeFormat then menuString = menuString .. "!" end
+                            menuString = menuString .. tableTimeFormats[i] .. "|"
+                        end
+                        gfx.init("", 0, 0, 0, x+20, y+30)
+                        gfx.x = -20
+                        gfx.y = -50
+                        local menuChoice = gfx.showmenu(menuString)
+                        gfx.quit()
+                        if menuChoice == 1 then
+                            paused = not paused
+                        elseif menuChoice == 2 then
+                            dockedGDI = false
+                            mustUpdateGUI = true
+                            initializeGUI()
+                        elseif menuChoice > 3 then 
+                            timeFormat = menuChoice-5
+                            mustUpdateGUI = true
+                            prevHash = nil -- This just to force GUI to update in next loop    
+                        end
+                    end -- if 0 <= cy and cy < 24
+                end -- if reaper.JS_Window_FromPoint(x, y) == midiview
+            end -- if mouseState > prevMouseState
             
         -- not dockedGDI: Quit script if GUI has been closed
         else
