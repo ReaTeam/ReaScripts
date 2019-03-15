@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="816abc8f238ff74749819a3cae8659d184d68dcb" name="ReaTeam Scripts">
+<index version="1" commit="6566c696a175e4b7545cd910328a8ad97c73e0c9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2047,11 +2047,6 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <source main="main" file="cfillion_Toggle monitoring FX 6 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
         <source main="main" file="cfillion_Toggle monitoring FX 7 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
         <source main="main" file="cfillion_Toggle monitoring FX 8 bypass.lua">https://github.com/ReaTeam/ReaScripts/raw/d2efeb58b3a5a108c5a46717d09c807e5f0a3e7d/FX/cfillion_Toggle%20monitoring%20FX%20bypass.lua</source>
-      </version>
-    </reapack>
-    <reapack name="edgemeal_Toggle show monitoring FX chain.lua" type="script" desc="Toggle show monitoring FX chain">
-      <version name="1.0" author="Edgemeal" time="2019-03-09T21:29:47Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44aaef9020469b8d7ef2d6651486650edb029146/FX/edgemeal_Toggle%20show%20monitoring%20FX%20chain.lua</source>
       </version>
     </reapack>
     <reapack name="kawa_TrackFXs_Routing_Matrix_DS_KW.lua" type="script" desc="TrackFXs Routing Matrix (Kawa mod)">
