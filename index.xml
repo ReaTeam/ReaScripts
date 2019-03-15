@@ -2053,11 +2053,6 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       <version name="1.0" author="Edgemeal" time="2019-03-09T21:29:47Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44aaef9020469b8d7ef2d6651486650edb029146/FX/edgemeal_Toggle%20show%20monitoring%20FX%20chain.lua</source>
       </version>
-      <version name="1.01" author="Edgemeal" time="2019-03-14T18:59:10Z">
-        <changelog><![CDATA[Show monitor if docked but not the selected tab.
-Additional checking to identify target window.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/23ea5424933479fd868d95ef7f6bef3c519dcce2/FX/edgemeal_Toggle%20show%20monitoring%20FX%20chain.lua</source>
-      </version>
     </reapack>
     <reapack name="kawa_TrackFXs_Routing_Matrix_DS_KW.lua" type="script" desc="TrackFXs Routing Matrix (Kawa mod)">
       <metadata>
