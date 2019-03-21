@@ -9,7 +9,7 @@ Provides: [main=midi_editor,midi_inlineeditor] .
 About:
   # DESCRIPTION
   
-  Draw linear or curved ramps of CC and pitchwheel events in real time (without chasing start values).
+  Draw linear or curved ramps of CC and pitchwheel events in real time.
   
   Works in inline MIDI editors as well as full MIDI editors.
                
