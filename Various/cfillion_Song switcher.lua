@@ -1,26 +1,18 @@
 -- @description Song switcher
--- @version 1.4.2
--- @changelog
---   add help button in windowed mode and in the context menu
---   add onswitch mode toggles to the context menu and allow stop-only mode
---   rename installed scripts to use sentence case
---   use sentence case for the "No song selected" message
---
---   Web interface changes:
---   fix spelling of "oops" in the noscript error message
---   improve host connection error messages
---   multiply the refresh rate by 10
---   use sentence case for all buttons
 -- @author cfillion
+-- @version 1.4.3
+-- @changelog add the song list to the context menu
 -- @provides
---   [main] cfillion_Song switcher/*.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher (next).lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher (previous).lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher (reset).lua
 --   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=181159
--- @donation https://www.paypal.me/cfillion
 -- @screenshot
 --   Docked Mode https://i.imgur.com/4xPMV9J.gif
 --   Windowed Mode https://i.imgur.com/KOP2yK3.png
 --   Web Interface https://i.imgur.com/DPcRCGh.png
+-- @donation https://www.paypal.me/cfillion
 -- @about
 --   # Song switcher
 --
@@ -56,69 +48,69 @@
 --   This means that even if a song starts at 7:45 in the project and ends at 9:12,
 --   it's displayed as 00:00 to 01:26 on the web interface for convenience.
 
-WINDOW_TITLE = 'Song switcher'
+local WINDOW_TITLE = 'Song switcher'
 
-FONT_DEFAULT = 0
-FONT_LARGE = 1
-FONT_SMALL = 2
-FONT_HUGE = 3
+local FONT_DEFAULT = 0
+local FONT_LARGE = 1
+local FONT_SMALL = 2
+local FONT_HUGE = 3
 
-COLOR_WHITE = {255, 255, 255}
-COLOR_GRAY = {190, 190, 190}
-COLOR_BLACK = {0, 0, 0}
-COLOR_RED = {255, 0, 0}
+local COLOR_WHITE = {255, 255, 255}
+local COLOR_GRAY = {190, 190, 190}
+local COLOR_BLACK = {0, 0, 0}
+local COLOR_RED = {255, 0, 0}
 
-COLOR_NAME = COLOR_WHITE
-COLOR_FILTER = COLOR_WHITE
-COLOR_BORDER = COLOR_GRAY
-COLOR_BUTTON = COLOR_GRAY
-COLOR_HOVERBG = {30, 30, 30}
-COLOR_HOVERFG = COLOR_WHITE
-COLOR_ACTIVEBG = {124, 165, 215}
-COLOR_ACTIVEFG = COLOR_BLACK
-COLOR_DANGERBG = COLOR_RED
-COLOR_DANGERFG = COLOR_BLACK
-COLOR_HIGHLIGHTBG = {60, 90, 100}
-COLOR_HIGHLIGHTFG = COLOR_WHITE
+local COLOR_NAME = COLOR_WHITE
+local COLOR_FILTER = COLOR_WHITE
+local COLOR_BORDER = COLOR_GRAY
+local COLOR_BUTTON = COLOR_GRAY
+local COLOR_HOVERBG = {30, 30, 30}
+local COLOR_HOVERFG = COLOR_WHITE
+local COLOR_ACTIVEBG = {124, 165, 215}
+local COLOR_ACTIVEFG = COLOR_BLACK
+local COLOR_DANGERBG = COLOR_RED
+local COLOR_DANGERFG = COLOR_BLACK
+local COLOR_HIGHLIGHTBG = {60, 90, 100}
+local COLOR_HIGHLIGHTFG = COLOR_WHITE
 
-KEY_ESCAPE = 27
-KEY_SPACE = 32
-KEY_UP = 30064
-KEY_DOWN = 1685026670
-KEY_RIGHT = 1919379572
-KEY_LEFT = 1818584692
-KEY_INPUTRANGE_FIRST = 32
-KEY_INPUTRANGE_LAST = 125
-KEY_ENTER = 13
-KEY_BACKSPACE = 8
-KEY_CTRLU = 21
-KEY_CLEAR = 144
-KEY_PGUP = 1885828464
-KEY_PGDOWN = 1885824110
-KEY_MINUS = 45
-KEY_PLUS = 43
-KEY_STAR = 42
-KEY_F3 = 26163
+local KEY_ESCAPE = 27
+local KEY_SPACE = 32
+local KEY_UP = 30064
+local KEY_DOWN = 1685026670
+local KEY_RIGHT = 1919379572
+local KEY_LEFT = 1818584692
+local KEY_INPUTRANGE_FIRST = 32
+local KEY_INPUTRANGE_LAST = 125
+local KEY_ENTER = 13
+local KEY_BACKSPACE = 8
+local KEY_CTRLU = 21
+local KEY_CLEAR = 144
+local KEY_PGUP = 1885828464
+local KEY_PGDOWN = 1885824110
+local KEY_MINUS = 45
+local KEY_PLUS = 43
+local KEY_STAR = 42
+local KEY_F3 = 26163
 
-MOUSE_LEFT_BTN = 1
+local MOUSE_LEFT_BTN = 1
 
-PADDING = 3
-MARGIN = 10
-HALF_MARGIN = 5
-LIST_START = 50
+local PADDING = 3
+local MARGIN = 10
+local HALF_MARGIN = 5
+local LIST_START = 50
 
-EXT_SECTION = 'cfillion_song_switcher'
-EXT_SWITCH_MODE = 'onswitch'
-EXT_WINDOW_STATE = 'window_state'
-EXT_LAST_DOCK = 'last_dock'
-EXT_REL_MOVE = 'relative_move'
-EXT_RESET = 'reset'
-EXT_STATE = 'state'
-EXT_FILTER = 'filter'
+local EXT_SECTION = 'cfillion_song_switcher'
+local EXT_SWITCH_MODE = 'onswitch'
+local EXT_WINDOW_STATE = 'window_state'
+local EXT_LAST_DOCK = 'last_dock'
+local EXT_REL_MOVE = 'relative_move'
+local EXT_RESET = 'reset'
+local EXT_STATE = 'state'
+local EXT_FILTER = 'filter'
 
-SWITCH_SEEK = 1
-SWITCH_STOP = 2
-SWITCH_ALL  = SWITCH_SEEK | SWITCH_STOP
+local SWITCH_SEEK = 1
+local SWITCH_STOP = 2
+local SWITCH_ALL  = SWITCH_SEEK | SWITCH_STOP
 
 function loadTracks()
   local songs = {}
@@ -895,23 +887,36 @@ function contextMenu()
   local dockState = gfx.dock(-1)
   local mode = getSwitchMode()
 
-  local menu = string.format(
-    '%sDock window|Reset data|>onswitch|%sStop|<%sSeek||Help',
-    checkbox(dockState > 0), checkbox(mode & SWITCH_STOP ~= 0),
-    checkbox(mode & SWITCH_SEEK ~= 0),
-    about
-  )
+  local separator = ''
+
+  local menu = {
+    string.format('%sDock window', checkbox(dockState > 0)),
+    'Reset data',
+    '>onswitch',
+      string.format('%sStop', checkbox(mode & SWITCH_STOP ~= 0)),
+      string.format('<%sSeek', checkbox(mode & SWITCH_SEEK ~= 0)),
+    separator,
+  }
 
   local actions = {
     function() toggleDock(dockState) end,
     reset,
     function() setSwitchMode(mode ~ SWITCH_STOP) end,
     function() setSwitchMode(mode ~ SWITCH_SEEK) end,
-    about,
   }
 
+  for index, song in ipairs(songs) do
+    table.insert(menu, string.format('%s%s',
+      checkbox(index == currentIndex), song.name))
+    table.insert(actions, function() setCurrentIndex(index) end)
+  end
+
+  if #songs > 0 then table.insert(menu, separator) end
+  table.insert(menu, 'Help')
+  table.insert(actions, about)
+
   gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
-  local index = gfx.showmenu(menu)
+  local index = gfx.showmenu(table.concat(menu, '|'))
   if actions[index] then actions[index]() end
 end
 
