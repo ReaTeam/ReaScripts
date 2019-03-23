@@ -1,4 +1,3 @@
--- This script is part of cfillion_Song Switcher.lua
 -- @noindex
 
 reaper.defer(function() -- no undo point
