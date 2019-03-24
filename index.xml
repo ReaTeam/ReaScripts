@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ebabe9e26f9b8b6c7beaab0e210932ed0a97f746" name="ReaTeam Scripts">
+<index version="1" commit="6663f27be58556e0ec15454604fd999b3a4f1865" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2692,9 +2692,18 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_Trim%20to%20source%20media%20lengths%20(limit%20items%20lengths).lua</source>
       </version>
     </reapack>
-    <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="spk77_GlueTools">
+    <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="Glue Tools">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=160061</link>
+      </metadata>
       <version name="1.0" author="Breeder" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
+      </version>
+      <version name="1.01" author="Breeder, spk77" time="2019-03-24T16:23:46Z">
+        <changelog><![CDATA[:
++ Save XY position (saved after click anywhere in the script)
++ Save checkbox states (http://github.com/ReaTeam/ReaScripts/issues/125)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6663f27be58556e0ec15454604fd999b3a4f1865/Items%20Editing/Breeder_spk77_GlueTools.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Move selected items to a FIPM lane.lua" type="script" desc="Move selected items to a FIPM lane">
