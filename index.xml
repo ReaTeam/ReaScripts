@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="11142bee6b070fc8cba50317dc09fd9980d932a3" name="ReaTeam Scripts">
+<index version="1" commit="3a9e6e276adc9788a8ddab0d84de6a4f1d2a2eff" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9608,7 +9608,7 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/Airon_Colour%20Swatch.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="amagalma_Create Impulse Response (IR) of the FX chain of the selected track">
+    <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -9625,6 +9625,11 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2019-04-07T18:51:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11142bee6b070fc8cba50317dc09fd9980d932a3/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="1.05" author="amagalma" time="2019-04-08T00:24:36Z">
+        <changelog><![CDATA[# Fix possible crash if Hard Disk too slow, or IR too long
+# Ending silence trimming for stereo files still broken]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a9e6e276adc9788a8ddab0d84de6a4f1d2a2eff/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
