@@ -1,6 +1,6 @@
--- @description amagalma_Create Impulse Response (IR) of the FX chain of the selected track
+-- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.0
+-- @version 1.05
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  # You can define:
@@ -8,14 +8,17 @@
 --  # the threshold below which audio in the end of the IR will be discarded,
 --  # the channels of the IR (mono or stereo),
 --  # the maximum IR length (if sampling reverbs better to set it to a high value like 10)
+-- @changelog
+--  # Fix possible crash if Hard Disk too slow, or IR too long
+--  # Ending silence trimming for stereo files still broken
 
--- Thanks to EUGEN27771, Adam Lovatt, Lokasenna, Edgemeal, X-Raym
+-- Thanks to EUGEN27771, Lokasenna, Edgemeal, X-Raym
 
 --------------------------------------------------------------------------------------------
-
+function msg(str) reaper.ShowConsoleMsg(tostring(str) .. "\n") end
 -- locals for better performance
 local reaper = reaper
-local huge, min, floor = math.huge, math.min, math.floor
+local huge, min, floor, abs, log = math.huge, math.min, math.floor, math.abs, math.log
 local GetSamples = reaper.GetAudioAccessorSamples
 
 -- Get project samplerate and path
@@ -24,30 +27,6 @@ local proj_path = reaper.GetProjectPath("") .. "\\"
 
 -- Needed functions
 local function ValFromdB(dB_val) return 10^(dB_val/20) end -- X-Raym
-local function dBFromVal(val) return 20*math.log(val, 10) end -- X-Raym
-
-local function rename_item_file(item, newname)
-  local take = reaper.GetActiveTake( item )
-  if not take or reaper.TakeIsMIDI(take) then return end
-  local PCM_source = reaper.GetMediaItemTake_Source( take )
-  local filename = reaper.GetMediaSourceFileName( PCM_source, "" )
-  reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
-  for i = 1, huge do
-    if reaper.file_exists( filename ) then
-      os.rename(filename, newname)
-      break
-    end
-  end
-  for i = 1, huge do
-    if reaper.file_exists( newname ) then
-      reaper.BR_SetTakeSourceFromFile( take, newname, false )
-      break
-    end
-  end
-  reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
-  reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
-  reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
-end
 
 local function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wave Generator
   local numSamples = samplerate * item_len * channels
@@ -116,8 +95,13 @@ local function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771
   -- Write Data to file
   file:write(RIFF_Chunk,fmt_Chunk,data_Chunk, table.concat(Data_buf) )
   file:close()
-  reaper.InsertMedia( FilePath, 0 )
- return true
+  for i = 1, huge do
+    if reaper.file_exists( FilePath ) then
+      reaper.InsertMedia( FilePath, 0 )
+      break
+    end
+  end
+  return true
 end
 
 ----------------------------------------------------------------------------------------
@@ -135,8 +119,8 @@ local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", fals
 if tr_name ~= "" then tr_name = tr_name .. " IR" end
 
 -- Get values
-local ok, retvals = reaper.GetUserInputs( "Impulse Response creation", 5, "IR Name: ,Maximum IR Length (sec): ,Mono or Stereo (m or s): ,Normalize peak (dBFS): ,Trim silence threshold (dB): ,extrawidth=70", tr_name .. ",2,m,-0.3,-120" )
-local IR_name, IR_len, channels, peak_normalize, trim = string.match(retvals, "(.+),(.+),(.+),(.+),(.+)")
+local ok, retvals = reaper.GetUserInputs( "Impulse Response creation", 5, "IR Name: ,Maximum IR Length (sec): ,Mono or Stereo (m or s): ,Trim silence threshold (dB): ,Normalize peak (dBFS): ,extrawidth=70", tr_name .. ",2,m,-120,-0.3" )
+local IR_name, IR_len, channels, trim, peak_normalize = string.match(retvals, "(.+),(.+),(.+),(.+),(.+)")
 
 IR_len, peak_normalize, trim = tonumber(IR_len), tonumber(peak_normalize), tonumber(trim)
 if channels == "m" then
@@ -158,7 +142,7 @@ reaper.Undo_BeginBlock()
 -- Create IR
 ----------------------------------------------------------------------------------------
 reaper.SelectAllMediaItems( 0, false )
-local dirac_path = proj_path .. IR_name .. ".wav"
+local dirac_path = proj_path .. "dirac" .. samplerate .. (channels == 1 and "mono" or "stereo") .. ".wav"
 ok = Create_Dirac(dirac_path, channels, IR_len)
 if not ok then return end
 local item = reaper.GetSelectedMediaItem(0,0)
@@ -167,20 +151,17 @@ if channels == 1 then
 else
   reaper.Main_OnCommand(40209, 0) -- Item: Apply track/take FX to items
 end
-reaper.Main_OnCommand(40131, 0) -- Take: Crop to active take in items
 reaper.Main_OnCommand(40612, 0) -- Item: Set item end to source media end
--- Delete original dirac
-os.remove (dirac_path)
--- Rename rendered file
-rename_item_file(item, dirac_path)
+reaper.Main_OnCommand(40131, 0) -- Take: Crop to active take in items
+local take = reaper.GetActiveTake( item )
+local PCM_source = reaper.GetMediaItemTake_Source( take )
+local render_path = reaper.GetMediaSourceFileName( PCM_source, "" )
 
 ----------------------------------------------------------------------------------------
 -- Optimize length of IR (trim trailing silence)
 ----------------------------------------------------------------------------------------
 reaper.Main_OnCommand(40108, 0) -- Item properties: Normalize items
-item = reaper.GetSelectedMediaItem(0,0)
-local t = {} -- table to store samples
-local function iterateSamples(item, reverse) -- Adam Lovatt & Lokasenna
+local function OptimizeLength(item) -- based on function by Lokasenna
   local item_len = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
   local take = reaper.GetActiveTake( item )
   local take_vol = reaper.GetMediaItemTakeInfo_Value( take, "D_VOL" )
@@ -193,53 +174,67 @@ local function iterateSamples(item, reverse) -- Adam Lovatt & Lokasenna
   local samplebuffer = reaper.new_array(block_size * channels)
   local audio = reaper.CreateTakeAudioAccessor(take)
   -- Loop through the audio, one block at a time
-  local time_start = reverse and item_len or 0
-  local time_offset = ((block_size * channels) / samplerate) * (reverse and -1 or 1)
-  local index = 0 
+  local time_start = item_len
+  local time_offset = ((block_size * channels) / samplerate) * (-1)
+  trim = ValFromdB(trim)
+  local sample = 0
   for cur_block = 0, n_blocks do
     -- The last iteration will almost never be a full block
     local block_size = (cur_block == n_blocks) and extra_spls or block_size
     samplebuffer.clear()
     -- Loads 'samplebuffer' with the next block
-    GetSamples(audio, samplerate, channels, (reverse and (time_start - (block_size / samplerate)) or time_start), block_size, samplebuffer)
-    local spl_start, spl_end, step
-    if reverse then
-      spl_start, spl_end = block_size * channels, 1
-      step = -1
-    else
-      spl_start, spl_end = 1, block_size * channels
-      step = 1
-    end
+    GetSamples(audio, samplerate, channels, time_start - (block_size / samplerate), block_size, samplebuffer)
+    local spl_start, spl_end, step = block_size * channels, 1, -1
     for i = spl_start, spl_end, step do
-      index = index + 1
-      t[index] = samplebuffer[i]*take_vol
+      sample = sample + 1
+      local val = samplebuffer[i]*take_vol
+      if abs(val) >= trim then
+        goto END
+        break
+      end
     end
     time_start = time_start + time_offset
   end
+  ::END::
   reaper.DestroyAudioAccessor(audio)
+  return (range_len_spls-sample+channels)/(samplerate),sample,range_len_spls
 end
 
 local item_pos = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
-iterateSamples(item, true)
-for i = 1, #t do
-  local sample_dB = dBFromVal(t[i])
-  if not (sample_dB ~= sample_dB) and sample_dB ~= -huge and sample_dB >= trim then
-    reaper.SetEditCurPos( (#t-i+1)/samplerate + item_pos, false, false )
-    reaper.Main_OnCommand(41311, 0) -- Item edit: Trim right edge of item to edit cursor
-    reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
-    reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
-    os.remove (dirac_path)
-    local item = reaper.GetSelectedMediaItem(0,0)
-    rename_item_file(item, dirac_path)
-    reaper.Main_OnCommand(40612, 0) -- Item: Set item end to source media end
-    -- Edgemeal code for open explorer with file selected
-    if string.match( reaper.GetOS(), "Win") then
-      reaper.ExecProcess('explorer.exe /e,/select,' .. '"' .. dirac_path .. '"', -1)
-    else
-      os.execute('open "" "' .. string.match(dirac_path, ".+/"))
-    end
+ position, sample_pos, total_samples = OptimizeLength(item)
+reaper.SetEditCurPos( position + item_pos, false, false )
+reaper.Main_OnCommand(41311, 0) -- Item edit: Trim right edge of item to edit cursor
+reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
+reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
+local filename = string.gsub(render_path, ".wav$", "-glued.wav")
+-- Rename resulting IR
+local IR_Path = proj_path .. IR_name .. ".wav"
+for i = 1, huge do
+  if reaper.file_exists( filename ) then
+    reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
+    os.rename(filename, IR_Path )
     break
   end
+end
+for i = 1, huge do
+  if reaper.file_exists( IR_Path ) then
+    local take = reaper.GetActiveTake( item )
+    reaper.BR_SetTakeSourceFromFile( take, IR_Path, false )
+    break
+  end
+end
+reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
+reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
+reaper.Main_OnCommand(40612, 0) -- Item: Set item end to source media end
+reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
+-- delete other files
+os.remove(dirac_path)
+os.remove(render_path)
+-- Edgemeal code for open explorer with file selected
+if string.match( reaper.GetOS(), "Win") then
+  reaper.ExecProcess('explorer.exe /e,/select,' .. '"' .. IR_Path .. '"', -1)
+else
+  os.execute('open "" "' .. string.match(dirac_path, ".+/"))
 end
 
 reaper.Undo_EndBlock( "Create IR of FX in selected track", 4 )
