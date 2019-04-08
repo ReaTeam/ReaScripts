@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3a9e6e276adc9788a8ddab0d84de6a4f1d2a2eff" name="ReaTeam Scripts">
+<index version="1" commit="b415a837980dd40f8dcd5d9f6a5eb64f04b1f038" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -226,15 +226,15 @@
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Returns the action/script name of the given ID\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script gets information from ActionList.txt created by SWS/S&M: Dump action list (all but custom actions)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The script calls this action to create the said file.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can run this script as many times as you want without the need to create ActionList.txt for two hours.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If ActionList.txt is older than two hours then you are prompted to update it\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-10-27T20:49:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e7cbe0c66458db56fd582e124d40528aad624931/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
+      </version>
+      <version name="2.0" author="amagalma" time="2019-04-08T01:09:10Z">
+        <changelog><![CDATA[# Uses new CF_GetCommandText function. No need to write action list into txt file any more.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b415a837980dd40f8dcd5d9f6a5eb64f04b1f038/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_GFX Input Inspector.lua" type="script" desc="GFX Input Inspector">
