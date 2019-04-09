@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="07f0a85c96862cb57ca97de5a9f4079fda3fb959" name="ReaTeam Scripts">
+<index version="1" commit="90df8aa7f984473ef3c114b27cec7c49145ada21" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3912,6 +3912,11 @@ Renumber markers and regions when pasting]]></changelog>
       <version name="1.1" author="cfillion" time="2017-07-20T21:35:07Z">
         <changelog><![CDATA[Fixed preview toggling when reopening the midi editor]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/86c4db661ab152d6615d6ee056fcbcf16ffc9082/MIDI%20Editor/cfillion_Toggle%20MIDI%20preview%20on%20transport%20change.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Close all floating MIDI windows.lua" type="script" desc="Close all floating MIDI windows">
+      <version name="1.0" author="Edgemeal" time="2019-04-09T22:51:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/90df8aa7f984473ef3c114b27cec7c49145ada21/MIDI%20Editor/edgemeal_Close%20all%20floating%20MIDI%20windows.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions.lua" type="script" desc="Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions">
