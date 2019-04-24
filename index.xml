@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="90df8aa7f984473ef3c114b27cec7c49145ada21" name="ReaTeam Scripts">
+<index version="1" commit="28cb02d196e43c8b99a2ec8005a2465c9a79de56" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2690,6 +2690,22 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.0" author="bfut" time="2018-01-31T22:48:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_Trim%20to%20source%20media%20lengths%20(limit%20items%20lengths).lua</source>
+      </version>
+    </reapack>
+    <reapack name="boringcactus_BeatPermute.lua" type="script" desc="Beat Permute (swap/delete/duplicate)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Beat Permute\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You know those YouTube videos that are like "<this song> except beats 2 and 4 are swapped" or "<this song> but every other beat is missing" or whatever? This script lets you make those really easily once you've got a song imported and correctly aligned to your project's BPM. If you can turn on the metronome and have it line up {\i perfectly} with the song, then you should be good.\par}
+}
+]]></description>
+        <link rel="website" href="https://youtu.be/qEfYe5BUm6w">Tutorial video</link>
+      </metadata>
+      <version name="1.0" author="Melody Horn" time="2019-04-24T12:15:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/28cb02d196e43c8b99a2ec8005a2465c9a79de56/Items%20Editing/boringcactus_BeatPermute.lua</source>
       </version>
     </reapack>
     <reapack name="Breeder_spk77_GlueTools.lua" type="script" desc="Glue Tools">
