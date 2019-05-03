@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2ad9aeb7731b2f97889a616adc3ac03d55b95149" name="ReaTeam Scripts">
+<index version="1" commit="cb87a3bd367e26d1fa10fba43f3f5c88d94a9c4d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7471,6 +7471,42 @@ enter or a = Exit and apply changes\par}
       <version name="0.1" author="Hector Corcin (HeDa)" time="2016-08-19T22:41:58Z">
         <changelog><![CDATA[+ init beta release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b86db8f792ee8d5e7099ec3567468faadd9f65e8/Regions/HeDa_RegionMatrixAutoTrack.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Create single region from selected items (get name and color from folder track).lua" type="script" desc="Create single region from selected items (get name and color from folder track)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Create single region from selected items (get name and color from folder track)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See screenshot.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script works well with "Set render matrix by comparing track names and region names.lua".\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://i.imgur.com/xUg7bSU.gif">Creating regions from items</link>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2019-05-03T18:02:11Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df647116ad677910f5ec87bfc1bf42e4367a321a/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track).lua</source>
+      </version>
+    </reapack>
+    <reapack name="Mordi_Set render matrix by comparing track names and region names.lua" type="script" desc="Set render matrix by comparing track names and region names">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Set render matrix by comparing track names and region names\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script will compare all region names to track names. When it finds a match, it will edit the region render matrix to render that region through that track. Originally meant to make it simpler to export sound effects.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See screenshot for demonstration.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Works well with "Create single region from selected items (get name and color from folder track).lua".\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://i.imgur.com/AHBjNrn.gif">Set render matrix</link>
+      </metadata>
+      <version name="1.0" author="Mordi" time="2019-05-03T18:02:21Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb87a3bd367e26d1fa10fba43f3f5c88d94a9c4d/Regions/Mordi_Set%20render%20matrix%20by%20comparing%20track%20names%20and%20region%20names.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Create regions (with tail) from selected items.lua" type="script" desc="Create regions (with tail) from selected items">
