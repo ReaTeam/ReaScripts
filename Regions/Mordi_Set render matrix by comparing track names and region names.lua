@@ -1,7 +1,7 @@
 -- @description Set render matrix by comparing track names and region names
 -- @author Mordi
 -- @version 1.1
--- @changelog 1.1: Fixed a bug where markers would offset the region index.
+-- @changelog Fixed a bug where markers would offset the region index.
 -- @screenshot Set render matrix https://i.imgur.com/AHBjNrn.gif
 -- @about
 --   #Set render matrix by comparing track names and region names
