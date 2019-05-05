@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af241d05f01be02d07d9f55e576556e38cb16dcd" name="ReaTeam Scripts">
+<index version="1" commit="999ddbea3c665f305afe45dbcae7030dc9c90360" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7507,6 +7507,10 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.0" author="Mordi" time="2019-05-03T18:02:21Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb87a3bd367e26d1fa10fba43f3f5c88d94a9c4d/Regions/Mordi_Set%20render%20matrix%20by%20comparing%20track%20names%20and%20region%20names.lua</source>
+      </version>
+      <version name="1.1" author="Mordi" time="2019-05-05T14:26:48Z">
+        <changelog><![CDATA[Fixed a bug where markers would offset the region index.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/999ddbea3c665f305afe45dbcae7030dc9c90360/Regions/Mordi_Set%20render%20matrix%20by%20comparing%20track%20names%20and%20region%20names.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Create regions (with tail) from selected items.lua" type="script" desc="Create regions (with tail) from selected items">
