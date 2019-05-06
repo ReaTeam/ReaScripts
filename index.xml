@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="999ddbea3c665f305afe45dbcae7030dc9c90360" name="ReaTeam Scripts">
+<index version="1" commit="c535ffc3cafec14e52d6d16a4cbfd9be7debdab7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9698,6 +9698,17 @@ improve sorting of songs sharing the same number]]></changelog>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/2ad9aeb7731b2f97889a616adc3ac03d55b95149/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/2ad9aeb7731b2f97889a616adc3ac03d55b95149/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/2ad9aeb7731b2f97889a616adc3ac03d55b95149/Various/cfillion_Song%20switcher/song_switcher.html</source>
+      </version>
+      <version name="1.4.5" author="cfillion" time="2019-05-06T15:17:41Z">
+        <changelog><![CDATA[add option to scroll arrange view on song switch
+fix crash when moving a deleted song
+
+Web Interface: use custom marker colors]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (next).lua">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(next).lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(previous).lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(reset).lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/song_switcher.html</source>
       </version>
     </reapack>
     <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
