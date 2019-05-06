@@ -1,10 +1,11 @@
 -- @description Song switcher
 -- @author cfillion
--- @version 1.4.4
+-- @version 1.4.5
 -- @changelog
---   allow any separation characters between the song number and its name (previously had to be a dot)
---   implement drag and drop in the song list to reorder songs [p=2125703]
---   improve sorting of songs sharing the same number
+--   add option to scroll arrange view on song switch
+--   fix crash when moving a deleted song
+--
+--   Web Interface: use custom marker colors
 -- @provides
 --   [main] cfillion_Song switcher/cfillion_Song switcher (next).lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher (previous).lua
@@ -111,9 +112,10 @@ local EXT_RESET = 'reset'
 local EXT_STATE = 'state'
 local EXT_FILTER = 'filter'
 
-local SWITCH_SEEK = 1
-local SWITCH_STOP = 2
-local SWITCH_ALL  = SWITCH_SEEK | SWITCH_STOP
+local SWITCH_SEEK   = 1<<0
+local SWITCH_STOP   = 1<<1
+local SWITCH_SCROLL = 1<<2
+local SWITCH_ALL    = SWITCH_SEEK | SWITCH_STOP | SWITCH_SCROLL
 
 local UNDO_STATE_TRACKCFG = 1
 
@@ -245,6 +247,10 @@ function setCurrentIndex(index)
     if mode & SWITCH_SEEK ~= 0 then
       reaper.SetEditCurPos(song.startTime, true, true)
     end
+
+    if mode & SWITCH_SCROLL ~= 0 then
+      reaper.GetSet_ArrangeView2(0, true, 0, 0, song.startTime, song.endTime + 5)
+    end
   end
 
   reaper.PreventUIRefresh(-1)
@@ -299,7 +305,10 @@ function moveSong(from, to)
     local newName = string.format('%0' .. maxNumLength .. 'd%s%s',
       index, nameParts.separator, nameParts.name)
     song.name = newName
-    reaper.GetSetMediaTrackInfo_String(song.folder, 'P_NAME', newName, true)
+
+    if reaper.ValidatePtr(song.folder, 'MediaTrack*') then
+      reaper.GetSetMediaTrackInfo_String(song.folder, 'P_NAME', newName, true)
+    end
   end
   reaper.Undo_EndBlock("Song switcher: Change song order", UNDO_STATE_TRACKCFG)
 end
@@ -493,6 +502,9 @@ function switchModeButton()
   if mode & SWITCH_SEEK ~= 0 then
     table.insert(actions, 'seek')
   end
+  if mode & SWITCH_SCROLL ~= 0 then
+      table.insert(actions, 'scroll')
+    end
   if #actions < 1 then
     table.insert(actions, 'onswitch')
   end
@@ -952,8 +964,9 @@ function contextMenu()
     string.format('%sDock window', checkbox(dockState > 0)),
     'Reset data',
     '>onswitch',
-      string.format('%sStop', checkbox(mode & SWITCH_STOP ~= 0)),
-      string.format('<%sSeek', checkbox(mode & SWITCH_SEEK ~= 0)),
+      string.format('%sStop',    checkbox(mode & SWITCH_STOP   ~= 0)),
+      string.format('%sSeek',    checkbox(mode & SWITCH_SEEK   ~= 0)),
+      string.format('<%sScroll', checkbox(mode & SWITCH_SCROLL ~= 0)),
     separator,
   }
 
@@ -962,6 +975,7 @@ function contextMenu()
     reset,
     function() setSwitchMode(mode ~ SWITCH_STOP) end,
     function() setSwitchMode(mode ~ SWITCH_SEEK) end,
+    function() setSwitchMode(mode ~ SWITCH_SCROLL) end,
   }
 
   for index, song in ipairs(songs) do
