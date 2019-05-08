@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Envelope LFO generator and shaper.lua
-Version: 2.04
+Version: 2.10
 Author: juliansader / Xenakios
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/27661/LFO%20shaper.gif
@@ -114,6 +114,8 @@ About:
     + Fix bug with pooled AIs.
   * v2.04 (2018-12-28)
     + Fix bug when right-clicking on node to set value.
+  * v2.10 (2019-05-02)
+    + If REAPER v5.976 or later is installed, Automation Item LFOs will be recalled even after copying without pooling.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -985,12 +987,22 @@ function MAIN_CalculateAndInsertPoints()
     --------------------------------------------------
     -- AUTOMATION ITEM?  TRY TO LOAD SAVED CURVE
     -- If newly selected AI, check if any saved curves
-    if isNewSelection and selectedAutoItem ~= -1 and selectedAutoItemID then
-        local OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", selectedAutoItemID)
-        if OK and type(savedCurve) == "string" and #savedCurve > 50 then
-            LoadCurveFromString(savedCurve)
-            DrawGUI()
+    if isNewSelection and selectedAutoItem ~= -1 then
+        local OK, savedCurve = reaper.GetSetAutomationItemInfo_String(env, selectedAutoItem, "P_POOL_EXT:js_LFO Generator", "", false)
+        if OK and type(savedCurve) == "string" and #savedCurve > 50 then goto gotSavedCurve end
+        
+        if selectedAutoItemID then 
+            OK, savedCurve = reaper.GetProjExtState(0, "LFO Generator", selectedAutoItemID)
+            if OK and type(savedCurve) == "string" and #savedCurve > 50 then goto gotSavedCurve end
         end
+        
+        goto noSavedCurve
+        
+        ::gotSavedCurve::
+        LoadCurveFromString(savedCurve)
+        DrawGUI()
+        
+        ::noSavedCurve::
     end
             
         
@@ -1438,8 +1450,8 @@ function MAIN_CalculateAndInsertPoints()
 
     -- SAVE CURVE
     -- After each update, save AI curve
-    if selectedAutoItem ~= -1 and selectedAutoItemID then
-        reaper.SetProjExtState(0, "LFO Generator", selectedAutoItemID, SaveCurveToString(selectedAutoItemID))
+    if selectedAutoItem ~= -1 then --selectedAutoItemID then
+        reaper.GetSetAutomationItemInfo_String(env, selectedAutoItem, "P_POOL_EXT:js_LFO Generator", SaveCurveToString(selectedAutoItem), true)
     end
     --
 end -- MAIN_CalculateAndInsertPoints
@@ -2181,7 +2193,7 @@ end -- function getSavedCurvesAndNames()
 -----------------------------------
 
 function SaveCurveToString(curveName)
-    local saveString = curveName
+    local saveString = tostring(curveName)
     for i = 1, #egsliders do
         if type(egsliders[i]) ~= "table" then -- skip
         --elseif egsliders[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(egsliders[i].value)
