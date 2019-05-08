@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - 1-sided Warp.lua
-Version: 4.10
+Version: 4.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -40,8 +40,7 @@ About:
       * Mouse middle click: Toggle the warp curve shape.
       * Mouse right click: While right button is down, temporarily warp in both directions.
       * Mousewheel: -- (not used by this script)
-      * Keyboard modifier key: Terminates the script.
-      * Keyboard shortcut: Starts/Terminates the script.
+      * Any keystroke:  Terminates the script.
   
   
   MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS
@@ -61,7 +60,9 @@ About:
   Starting a script:
   
       * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.
-        (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) 
+        To start and stop the script using a shortcut, you have two options: 
+            1) Two keystrokes: To start, press the shortcut key once *without holding the key down* and then press the same or any other key to stop;
+            2) Press and hold: Press the shortcut key and hold it down for as long as the script should run. If the key is held down for more than one second, the script will terminate when the key is released.
         
       * Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  
         (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, 
@@ -71,15 +72,13 @@ About:
   
   Stopping a script:
   
-     * Mouse: Left clicking
+     * Mouse: Left clicking while the script is running.
   
-     * Mouse: Left-dragging and lifting the left button.
+     * Mouse: Left-dragging and lifting the left button after holding the button down for more than one second.
   
-     * Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).
-  
-     * Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off.
-       (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box 
-              asking whether to terminate or restart the script.  Select "Terminate" and "Remember my answer for this script".)  
+     * Keyboard: Pressing any key (Ctrl/Cmnd, Alt, Shift or Win) while theh script is running.
+     
+     * Keyboard: Releasing the shortcut key after holding it down for more than one second.
          
   
   RUNNING THE SCRIPT FROM THE TOOLBAR:
@@ -143,6 +142,9 @@ About:
     + Fixed: If editor is docked, properly restore focus.
   * v4.10 (2019-03-05)
     + Compatible with macOS.
+  * v4.20 (2019-04-25)
+    + Clicking armed toolbar button disarms script.
+    + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
 ]]
 
 -- USER AREA 
@@ -167,17 +169,17 @@ local tableEditedMIDI = {} -- Each edited event will be stored in this table, re
 -- The order of events in the tables will reflect the order of events in the original MIDI, except note-offs, 
 --    which will be replaced by note lengths, and notation text events, which will also be stored in a separate table
 --    at the same indices as the corresponding notes.
-local tableMsg = {}
-local tableMsgLSB = {}
-local tableMsgNoteOffs = {}
-local tableValues = {} -- CC values, 14bit CC combined values, note velocities
-local tablePPQs = {}
-local tableChannels = {}
-local tableFlags = {}
-local tableFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
-local tablePitches = {} -- This table will only be filled if laneIsVELOCITY or laneIsPIANOROLL
-local tableNoteLengths = {}
-local tableNotation = {} -- Will only contain entries at those indices where the notes have notation
+local tMsg = {}
+local tMsgLSB = {}
+local tMsgNoteOffs = {}
+local tValues = {} -- CC values, 14bit CC combined values, note velocities
+local tTicks = {}
+local tChannels = {}
+local tFlags = {}
+local tFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
+local tPitches = {} -- This table will only be filled if laneIsVELOCITY or laneIsPIANOROLL
+local tNoteLengths = {}
+local tNotation = {} -- Will only contain entries at those indices where the notes have notation
 local tV, tP = {}, {} -- When warping in both directions, store values and positions temporarily for next step.
 
 -- Starting values and position of mouse 
@@ -210,6 +212,13 @@ local snappedNewPPQPos
 local mouseState
 local mousewheel = 1 -- Track mousewheel movement.  ***** This default value may change, depending on the script and formulae used. *****
 local prevMouseTime = 0
+
+-- The script will intercept keystrokes, to allow control of script via keyboard, 
+--    and to prevent inadvertently running other actions such as closing MIDI editor by pressing ESC
+local VKLow, VKHi = 8, 0xFE --0xA5 -- Range of virtual key codes to check for key presses
+local VKState0 = string.rep("\0", VKHi-VKLow+1)
+local dragTime = 0.5 -- How long must the shortcut key be held down before left-drag is activated?
+local dragTimeStarted = false
 
 -- REAPER preferences and settings that will affect the drawing/selecting of new events in take
 local isSnapEnabled = false -- Will be changed to true if snap-to-grid is enabled in the editor
@@ -308,9 +317,30 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- MIDI stuff might be changed if the mouse has moved, mousebutton has been clicked, or mousewheel has scrolled, so need to re-calculate.
     -- Otherwise, mustCalculate remains nil, and can skip to end of function.
     local mustCalculate = false
-    
-    -- TAKE STILL VALID:
-    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
+    local prevCycleTime = thisCycleTime or startTime
+    thisCycleTime = reaper.time_precise()
+    dragTimeStarted = dragTimeStarted or (reaper.time_precise() > startTime + dragTime)  -- No need to call time_precise if dragTimeStarted already true
+
+    -- KEYBOARD: Script can be terminated by pressing key twice to start/stop, or by holding key and releasing after dragTime
+    local prevKeyState = keyState
+    keyState = reaper.JS_VKeys_GetState(startTime-0.5):sub(VKLow, VKHi)
+    if dragTimeStarted and keyState ~= prevKeyState and keyState == VKState0 then -- Only lift after every key has been lifted, to avoid immediately trigger action again. NOTE: modifier keys don't always send repeat KEYDOWN if held together with another key.
+        return false
+    end
+    local keyDown = reaper.JS_VKeys_GetDown(prevCycleTime):sub(VKLow, VKHi)
+    if keyDown ~= prevKeyState and keyDown ~= VKState0 then
+        local p = 0
+        ::checkNextKeyDown:: do
+            p = keyDown:find("\1", p+1)
+            if p then 
+                if prevKeyState:byte(p) == 0 then 
+                    return false 
+                else 
+                    goto checkNextKeyDown 
+                end
+            end
+        end
+    end
     
     -- EXTSTATE: Other scripts can communicate with and control the other js_ scripts via ExtStates
     local extState = reaper.GetExtState("js_Mouse actions", "Status") or ""
@@ -320,7 +350,8 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- This can detect left clicks even if the mouse is outside the MIDI editor
     local prevMouseState = mouseState or 0xFF
     mouseState = reaper.JS_Mouse_GetState(0xFF)
-    if (mouseState&61) > (prevMouseState&61) then -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+    if (mouseState&61) > (prevMouseState&61) -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+    or (dragTimeStarted and (mouseState&1) < (prevMouseState&1)) then
         return false
     end
     
@@ -349,22 +380,14 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         end
     end  
 
-    -- MOUSEWHEEL: This script is not controlled by the mousewheel, but mousewheel+modifier should still terminate
+    --[[ MOUSEWHEEL: This script is not controlled by the mousewheel, but mousewheel+modifier should still terminate
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
     if not (peekOK and time > prevMouseTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
     if peekOK and time > prevMouseTime + 0.25 and keys&12 ~= 0 then -- Quit if wheel + modifier key
         return false
-    end
-    
-    -- LEFT DRAG: (If the left button was kept pressed for 1 second or longer, or after moving the mouse 20 pixels, assume left-drag, so quit when lifting.)
-    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONUP")
-    if peekOK and (time > startTime + 1.5) 
-              --or  (time > startTime and (mouseX < mouseOrigX - 20 or mouseX > mouseOrigX + 20 or mouseY < mouseOrigY - 20 or mouseY > mouseOrigY + 20))) 
-              then
-        return false
-    end
+    end]]
     
     -- LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
@@ -384,7 +407,10 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     else
         warpBOTH = false
     end
-            
+    
+    -- TAKE STILL VALID:
+    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
+    
     
     -- CALCULATE MIDI STUFF!
     
@@ -471,13 +497,13 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
                 power = math.log(0.5 - mouseRelativeMovement, 0.5)
             end
                         
-            for i = 1, #tableValues do                             
+            for i = 1, #tValues do                             
                 if mouseMovement == 0 then
-                    newValue = tableValues[i]
+                    newValue = tValues[i]
                 elseif curveType then 
-                    newValue = origValueMin + (((tableValues[i] - origValueMin)/origValueRange)^power)*origValueRange          
+                    newValue = origValueMin + (((tValues[i] - origValueMin)/origValueRange)^power)*origValueRange          
                 else -- mouseMovement > 0
-                    newValue = origValueMax - (((origValueMax - tableValues[i])/origValueRange)^power)*origValueRange           
+                    newValue = origValueMax - (((origValueMax - tValues[i])/origValueRange)^power)*origValueRange           
                 end
                 if newValue > laneMaxValue then newValue = laneMaxValue
                 elseif newValue < laneMinValue then newValue = laneMinValue
@@ -498,13 +524,13 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
                 power = math.log(0.5 - mouseRelativeMovement, 0.5)
             end
     
-            for i = 1, #tablePPQs do
+            for i = 1, #tTicks do
                 if mouseMovement == 0 then
-                    tP[i] = tablePPQs[i]
+                    tP[i] = tTicks[i]
                 elseif curveType then --mouseMovement < 0 then
-                    tP[i] = m_floor(origPPQLeftmost + (((tablePPQs[i] - origPPQLeftmost)/origPPQRange)^power)*origPPQRange + 0.5)
+                    tP[i] = m_floor(origPPQLeftmost + (((tTicks[i] - origPPQLeftmost)/origPPQRange)^power)*origPPQRange + 0.5)
                 else -- mouseMovement > 0
-                    tP[i] = m_floor(origPPQRightmost - (((origPPQRightmost - tablePPQs[i])/origPPQRange)^power)*origPPQRange + 0.5)
+                    tP[i] = m_floor(origPPQRightmost - (((origPPQRightmost - tTicks[i])/origPPQRange)^power)*origPPQRange + 0.5)
                 end 
             end
         end
@@ -515,16 +541,16 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         local offset, newPPQPos, noteOffPPQPos, newNoteOffPPQPos
         lastPPQPos = 0
         
-        for i = 1, #tablePPQs do
+        for i = 1, #tTicks do
 
             offset = tP[i] - lastPPQPos
             lastPPQPos = tP[i] 
                 
             if not canWarpBothDirections then
             
-                if tableNoteLengths[i] then -- note event (if laneIsALL, not all i's may refer to note events)
+                if tNoteLengths[i] then -- note event (if laneIsALL, not all i's may refer to note events)
                 
-                    noteOffPPQPos = tablePPQs[i] + tableNoteLengths[i]
+                    noteOffPPQPos = tTicks[i] + tNoteLengths[i]
                     
                     if mouseMovement == 0 then
                         newNoteOffPPQPos = noteOffPPQPos
@@ -537,24 +563,24 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
                     
                     -- Insert note-on 
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])    
+                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i])    
                     -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
-                    if tableNotation[i] then
+                    if tNotation[i] then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tableFlags[i]&0xFE, tableNotation[i])
+                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tNotation[i])
                     end    
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", newNoteOffPPQPos - tP[i], tableFlags[i], tableMsgNoteOffs[i]) --tableEditedMIDI[c] = s_pack("i4BI4BBB", newNoteOffPPQPos - newPPQPos, tableFlags[i], 3, 0x80 | (tableMsg[i]:byte(1) & 0x0F), tableMsg[i]:byte(2), 0)           
+                    tableEditedMIDI[c] = s_pack("i4Bs4", newNoteOffPPQPos - tP[i], tFlags[i], tMsgNoteOffs[i]) --tableEditedMIDI[c] = s_pack("i4BI4BBB", newNoteOffPPQPos - newPPQPos, tFlags[i], 3, 0x80 | (tMsg[i]:byte(1) & 0x0F), tMsg[i]:byte(2), 0)           
                      
                 else -- All other lane types
                 
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i])
+                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i])
                     
-                    if tableMsgLSB[i] then -- Only if laneIs14BIT then tableMsgLSB will contain entries 
+                    if tMsgLSB[i] then -- Only if laneIs14BIT then tMsgLSB will contain entries 
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4Bs4", 0, tableFlagsLSB[i], tableMsgLSB[i])
+                        tableEditedMIDI[c] = s_pack("i4Bs4", 0, tFlagsLSB[i], tMsgLSB[i])
                     end
                 end
 
@@ -563,51 +589,51 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
             
                 if laneIsCC7BIT then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane, tV[i])
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane, tV[i]) .. tMsg[i]:sub(4, nil)
                 elseif laneIsPITCH then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xE0 | tableChannels[i], tV[i]&127, tV[i]>>7)
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xE0 | tChannels[i], tV[i]&127, tV[i]>>7) .. tMsg[i]:sub(4, nil)
                 elseif laneIsCC14BIT then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-256, tV[i]>>7)
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane-256, tV[i]>>7) .. tMsg[i]:sub(4, nil)
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", 0  , tableFlagsLSB[i], 3, 0xB0 | tableChannels[i], mouseOrigCCLane-224, tV[i]&127)
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", 0  , tFlagsLSB[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane-224, tV[i]&127) .. tMsgLSB[i]:sub(4, nil)
                 elseif laneIsVELOCITY then
                     -- Insert note-on
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tableFlags[i], 3, 0x90 | tableChannels[i], tablePitches[i], tV[i]) 
+                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0x90 | tChannels[i], tPitches[i], tV[i]) .. tMsg[i]:sub(4, nil)
                     -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
-                    if tableNotation[i] then
+                    if tNotation[i] then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tableFlags[i]&0xFE, tableNotation[i])
+                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tNotation[i])
                     end
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", tableNoteLengths[i], tableFlags[i], tableMsgNoteOffs[i])
-                    lastPPQPos = lastPPQPos + tableNoteLengths[i]
+                    tableEditedMIDI[c] = s_pack("i4Bs4", tNoteLengths[i], tFlags[i], tMsgNoteOffs[i])
+                    lastPPQPos = lastPPQPos + tNoteLengths[i]
                 elseif laneIsOFFVEL then
                     -- Insert note-on
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tableFlags[i], tableMsg[i]) 
+                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i]) 
                     -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
-                    if tableNotation[i] then
+                    if tNotation[i] then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tableFlags[i]&0xFE, tableNotation[i])
+                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tNotation[i])
                     end
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bi4BBB", tableNoteLengths[i], tableFlags[i], 3, 0x80 | tableChannels[i], tablePitches[i], tV[i])
-                    lastPPQPos = lastPPQPos + tableNoteLengths[i]
+                    tableEditedMIDI[c] = s_pack("i4Bi4BBB", tNoteLengths[i], tFlags[i], 3, 0x80 | tChannels[i], tPitches[i], tV[i]) .. tMsgNoteOffs[i]:sub(4, nil)
+                    lastPPQPos = lastPPQPos + tNoteLengths[i]
                 elseif laneIsCHANPRESS then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xD0 | tableChannels[i], tV[i]) -- NB Channel Pressure uses only 2 bytes!
+                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xD0 | tChannels[i], tV[i]) .. tMsg[i]:sub(3, nil) -- NB Channel Pressure uses only 2 bytes!
                 elseif laneIsPROGRAM then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tableFlags[i], 2, 0xC0 | tableChannels[i], tV[i]) -- NB Channel Pressure uses only 2 bytes!
+                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xC0 | tChannels[i], tV[i]) .. tMsg[i]:sub(3, nil) -- NB Channel Pressure uses only 2 bytes!
                 end 
             end 
             
-        end -- for i = 1, #tableValues
+        end -- for i = 1, #tValues
                      
     
         -- DRUMROLL... write the edited events into the MIDI chunk!
@@ -640,15 +666,23 @@ end
 ----------------------------------------------------------------------------
 function AtExit()    
 
-    -- Remove intercepts, restore original intercepts
-    -- WARNING! v0.963 of ReaScriptAPI may crash on Linux if all intercepts are released from a window that doesn't exist any more.
-    if pcallInterceptOK and pcallInterceptRetval and (isInline or (editor and reaper.MIDIEditor_GetMode(editor) ~= -1)) then
-        for message, passthrough in pairs(tWM_Messages) do
-            if passthrough then 
-                reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
-            else
-                reaper.JS_WindowMessage_Release(windowUnderMouse, message)    
-    end end end
+    -- Remove intercepts, restore original intercepts.  Do this first, because these are most important to restore, in case anything else goes wrong during AtExit.
+    if interceptKeysOK ~= nil then pcall(function() reaper.JS_VKeys_Intercept(-1, -1) end) end
+    if bitmap then reaper.JS_LICE_DestroyBitmap(bitmap) end -- The ReaScriptAPI extension will automatically un-composite the bitmap
+    if pcallInterceptWM_OK ~= nil then -- If these are nil, that part of MAIN wasn't reached
+        if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then -- Either an exception or some other error
+            reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) 
+            reaper.MB("Intercepting window messages failed.\n\nAll intercepts for the window under the mouse will be released. (This may affect other scripts that are currently monitoring this window.)", "ERROR", 0) 
+        elseif windowUnderMouse and reaper.ValidatePtr(windowUnderMouse, "HWND") then --(isInline or (editor and reaper.MIDIEditor_GetMode(editor) ~= -1)) then
+            for message, passthrough in pairs(tWM_Messages) do
+                if passthrough then 
+                    reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
+                else
+                    reaper.JS_WindowMessage_Release(windowUnderMouse, message)    
+                end
+            end
+        end
+    end
     
     -- As when starting the script, restore cursor and toolbar button as soon as possible, in order to seem more responsive.
     -- Was a custom cursur loaded? Restore plain cursor.
@@ -665,7 +699,14 @@ function AtExit()
     
     -- Communicate with the js_Run.. script that this script is exiting
     reaper.DeleteExtState("js_Mouse actions", "Status", true)    
-  
+    
+    -- Before getting to errors in MAIN, clean up stuff that could have been changed in MAIN
+    if not mainOK then
+        reaper.MB("The script encountered an error during startup:\n\n"
+                .. tostring(mainRetval)
+                .."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
+                , "ERROR", 0)
+    end
     
     -- Was an active take found, and does it still exist?  If not, don't need to do anything to the MIDI.
     if reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.TakeIsMIDI(activeTake) then
@@ -700,7 +741,7 @@ function AtExit()
     end -- if reaper.ValidatePtr2(0, "MediaItem_Take*", activeTake) and reaper.TakeIsMIDI(activeTake)
  
     -- if script reached DEFERLOOP_pcall (or the WindowMessage section), pcallOK ~= nil, and must create undo point:
-    if pcallOK ~= nil then        
+    --if pcallOK ~= nil then        
                   
         -- Write nice, informative Undo strings
         if warpLEFTRIGHT then 
@@ -749,23 +790,23 @@ function AtExit()
         
         -- Undo_OnStateChange_Item is expected to be the fastest undo function, since it limits the info stored 
         --    in the undo point to changes in this specific item.
-        if reaper.ValidatePtr2(0, activeItem, "MediaItem*") then    
+        if activeItem and reaper.ValidatePtr2(0, activeItem, "MediaItem*") then    
             if isInline then reaper.UpdateItemInProject(activeItem) end
             reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
         else
             reaper.Undo_OnStateChange2(0, undoString)
         end
-    end    
+    --end    
     
     
     -- At the very end, no more notification windows will be opened, 
     --    so restore original focus - except if "Terminate script" dialog box is waiting for user
-    if editor and midiview and reaper.MIDIEditor_GetMode(editor) ~= -1 then
+    if editor and reaper.MIDIEditor_GetMode(editor) == 0 then
         curForegroundWindow = reaper.JS_Window_GetForeground()
         if not (curForegroundWindow and reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common")) then
-            reaper.JS_Window_SetForeground(midiview)
-            reaper.JS_Window_SetFocus(midiview)
-    end end
+            reaper.JS_Window_SetForeground(editor)
+            if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_SetFocus(midiview) end
+    end end 
   
 end -- function AtExit   
 
@@ -1015,7 +1056,7 @@ function GetAndParseMIDIString()
             for pitch = 0, 127 do
                 tableNoteOns[chan][pitch] = {}
                 tableTempNotation[chan][pitch] = {} -- tableTempNotation[channel][pitch][PPQPos] = notation text message
-                for flags = 0, 3 do
+                for flags = 0, 32 do
                     tableNoteOns[chan][pitch][flags] = {} -- = {PPQPos, velocity} (note-off must match channel, pitch and flags)
                 end
             end
@@ -1024,7 +1065,7 @@ function GetAndParseMIDIString()
         for chan = 0, 15 do
             tableCCMSB[chan] = {} 
             tableCCLSB[chan] = {} 
-            for flags = 1, 3, 2 do
+            for flags = 1, 32 do
                 tableCCMSB[chan][flags] = {} -- tableCCMSB[channel][flags][PPQPos] = MSBvalue
                 tableCCLSB[chan][flags] = {} -- tableCCLSB[channel][flags][PPQPos] = LSBvalue
             end
@@ -1032,19 +1073,19 @@ function GetAndParseMIDIString()
     end
     
     -- The abstracted info of targeted MIDI events (that will be edited) will be will be stored in
-    --    several new tables such as tablePPQs and tableValues.
+    --    several new tables such as tTicks and tValues.
     -- Clean up these tables in case starting again after sorting.
-    tableMsg = {}
-    tableMsgLSB = {}
-    tableMsgNoteOffs = {}
-    tableValues = {} -- CC values, 14bit CC combined values, note velocities
-    tablePPQs = {}
-    tableChannels = {}
-    tableFlags = {}
-    tableFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
-    tablePitches = {} -- This table will only be filled if laneIsVELOCITY / laneIsPIANOROLL / laneIsOFFVEL / laneIsNOTES
-    tableNoteLengths = {}
-    tableNotation = {} -- Will only contain entries at those indices where the notes have notation
+    tMsg = {}
+    tMsgLSB = {}
+    tMsgNoteOffs = {}
+    tValues = {} -- CC values, 14bit CC combined values, note velocities
+    tTicks = {}
+    tChannels = {}
+    tFlags = {}
+    tFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
+    tPitches = {} -- This table will only be filled if laneIsVELOCITY / laneIsPIANOROLL / laneIsOFFVEL / laneIsNOTES
+    tNoteLengths = {}
+    tNotation = {} -- Will only contain entries at those indices where the notes have notation
     
     -- The MIDI strings of non-targeted events will temnporarily be stored in a table, tableRemainingEvents[],
     --    and once all MIDI data have been parsed, this table (which excludes the strings of targeted events)
@@ -1136,7 +1177,8 @@ function GetAndParseMIDIString()
         end
               
     else ]]
-    if laneIsALL then
+    lastTargetStrPos = MIDIlen-12
+    --[[if laneIsALL then
         lastTargetStrPos = MIDIlen-12
     else
         if laneIsCC7BIT then
@@ -1187,7 +1229,7 @@ function GetAndParseMIDIString()
         else -- Found no targeted events
             lastTargetStrPos = 0
         end   
-    end 
+    end ]]
     
     ---------------------------------------------------------------------------------------------
     -- OK, got an upper limit.  Not iterate through MIDIString, until the upper limit is reached.
@@ -1227,8 +1269,8 @@ function GetAndParseMIDIString()
 
             -- When stretching ALL events, note events (note-ons, note-offs and notation) must be separated from CCs,
             --    since these may have to be reversed.
-            -- Note that notes and CCs will use the same tablePPQs, tableMsg and tableFlags, but only notes will use tableNotesLengths, tableNotations etc.
-            -- The note tables will therefore only contain entries at certain keys, not every key from 1 to #tablePPQs
+            -- Note that notes and CCs will use the same tTicks, tMsg and tFlags, but only notes will use tableNotesLengths, tNotations etc.
+            -- The note tables will therefore only contain entries at certain keys, not every key from 1 to #tTicks
             if laneIsALL 
             then
                 -- Note-offs
@@ -1247,8 +1289,8 @@ function GetAndParseMIDIString()
                         return false
                     else
                         mustExtract = true
-                        tableNoteLengths[tableNoteOns[channel][msg2][flags].index] = runningPPQPos - tableNoteOns[channel][msg2][flags].PPQ
-                        tableMsgNoteOffs[tableNoteOns[channel][msg2][flags].index] = msg
+                        tNoteLengths[tableNoteOns[channel][msg2][flags].index] = runningPPQPos - tableNoteOns[channel][msg2][flags].PPQ
+                        tMsgNoteOffs[tableNoteOns[channel][msg2][flags].index] = msg
                         tableNoteOns[channel][msg2][flags] = {} -- Reset this channel and pitch
                     end
                                                                 
@@ -1267,11 +1309,11 @@ function GetAndParseMIDIString()
                     else
                         mustExtract = true
                         c = c + 1
-                        tableMsg[c] = msg
-                        tablePPQs[c] = runningPPQPos
-                        tableFlags[c] = flags
+                        tMsg[c] = msg
+                        tTicks[c] = runningPPQPos
+                        tFlags[c] = flags
                         -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
-                        tableNotation[c] = tableTempNotation[channel][msg2][runningPPQPos]
+                        tNotation[c] = tableTempNotation[channel][msg2][runningPPQPos]
                         -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
                         tableNoteOns[channel][msg2][flags] = {PPQ = runningPPQPos, index = c}
                     end  
@@ -1280,31 +1322,31 @@ function GetAndParseMIDIString()
                 else
                     mustExtract = true
                     c = c + 1
-                    tableMsg[c] = msg
-                    tablePPQs[c] = runningPPQPos
-                    tableFlags[c] = flags
+                    tMsg[c] = msg
+                    tTicks[c] = runningPPQPos
+                    tFlags[c] = flags
                 end
                                       
             elseif laneIsCC7BIT then if msg:byte(2) == mouseOrigCCLane and (msg:byte(1))>>4 == 11
             then
                 mustExtract = true
                 c = c + 1 
-                tableValues[c] = msg:byte(3)
-                tablePPQs[c] = runningPPQPos
-                tableChannels[c] = msg:byte(1)&0x0F
-                tableFlags[c] = flags
-                tableMsg[c] = msg
+                tValues[c] = msg:byte(3)
+                tTicks[c] = runningPPQPos
+                tChannels[c] = msg:byte(1)&0x0F
+                tFlags[c] = flags
+                tMsg[c] = msg
                 end 
                                 
             elseif laneIsPITCH then if (msg:byte(1))>>4 == 14
             then
                 mustExtract = true 
                 c = c + 1
-                tableValues[c] = (msg:byte(3)<<7) + msg:byte(2)
-                tablePPQs[c] = runningPPQPos
-                tableChannels[c] = msg:byte(1)&0x0F
-                tableFlags[c] = flags 
-                tableMsg[c] = msg        
+                tValues[c] = (msg:byte(3)<<7) + msg:byte(2)
+                tTicks[c] = runningPPQPos
+                tChannels[c] = msg:byte(1)&0x0F
+                tFlags[c] = flags 
+                tMsg[c] = msg        
                 end                           
                                     
             elseif laneIsCC14BIT then 
@@ -1312,14 +1354,14 @@ function GetAndParseMIDIString()
                 then
                     mustExtract = true
                     local channel = msg:byte(1)&0x0F
-                    -- Has a corresponding MSB value already been saved?  If so, combine and save in tableValues.
+                    -- Has a corresponding MSB value already been saved?  If so, combine and save in tValues.
                     --[[ Has another LSB already been found at this
                     local p = tableCCLSB[channel][flags][runningPPQPos] 
                     if p then
                         local i = p.index
                         if i then 
-                            tableValues[i] = (tableValues[i]&0x80) | msg:byte(3)
-                            tableMsgLSB[i] = msg
+                            tValues[i] = (tValues[i]&0x80) | msg:byte(3)
+                            tMsgLSB[i] = msg
                             tableCCLSB[channel][flags][runningPPQPos] = {message = msg, flags = flags, index = i}
                         else
                             tableCCLSB[channel][flags][runningPPQPos] = {message = msg, flags = flags}
@@ -1330,13 +1372,13 @@ function GetAndParseMIDIString()
                     local e = tableCCMSB[channel][flags][runningPPQPos]
                     if e then
                         c = c + 1
-                        tableValues[c] = ((e.message):byte(3)<<7) + msg:byte(3)
-                        tablePPQs[c] = runningPPQPos
-                        tableFlags[c] = e.flags -- The MSB determines muting
-                        tableFlagsLSB[c] = flags
-                        tableChannels[c] = channel
-                        tableMsg[c] = e.message
-                        tableMsgLSB[c] = msg
+                        tValues[c] = ((e.message):byte(3)<<7) + msg:byte(3)
+                        tTicks[c] = runningPPQPos
+                        tFlags[c] = e.flags -- The MSB determines muting
+                        tFlagsLSB[c] = flags
+                        tChannels[c] = channel
+                        tMsg[c] = e.message
+                        tMsgLSB[c] = msg
                         tableCCMSB[channel][flags][runningPPQPos] = nil
                         tableCCLSB[channel][flags][runningPPQPos] = nil
                     else
@@ -1347,17 +1389,17 @@ function GetAndParseMIDIString()
                 then
                     mustExtract = true
                     local channel = msg:byte(1)&0x0F
-                    -- Has a corresponding LSB value already been saved?  If so, combine and save in tableValues.
+                    -- Has a corresponding LSB value already been saved?  If so, combine and save in tValues.
                     local e = tableCCLSB[channel][flags][runningPPQPos]
                     if e then
                         c = c + 1
-                        tableValues[c] = (msg:byte(3)<<7) + (e.message):byte(3)
-                        tablePPQs[c] = runningPPQPos
-                        tableFlags[c] = flags
-                        tableChannels[c] = channel
-                        tableFlagsLSB[c] = e.flags
-                        tableMsg[c] = msg
-                        tableMsgLSB[c] = e.message
+                        tValues[c] = (msg:byte(3)<<7) + (e.message):byte(3)
+                        tTicks[c] = runningPPQPos
+                        tFlags[c] = flags
+                        tChannels[c] = channel
+                        tFlagsLSB[c] = e.flags
+                        tMsg[c] = msg
+                        tMsgLSB[c] = e.message
                         tableCCLSB[channel][flags][runningPPQPos] = nil -- delete record
                         tableCCMSB[channel][flags][runningPPQPos] = nil
                     else
@@ -1383,9 +1425,9 @@ function GetAndParseMIDIString()
                     else
                         mustExtract = true
                         local n = tableNoteOns[channel][pitch][flags]
-                        tableNoteLengths[n.index] = runningPPQPos - n.PPQ
-                        tableMsgNoteOffs[n.index] = s_pack("BBB", 0x80 | channel, pitch, msg:byte(3)) -- Replace possible note-on with vel=0 msg with proper note-off
-                        if laneIsOFFVEL then tableValues[n.index] = msg:byte(3) end
+                        tNoteLengths[n.index] = runningPPQPos - n.PPQ
+                        tMsgNoteOffs[n.index] = s_pack("BBB", 0x80 | channel, pitch, msg:byte(3)) -- Replace possible note-on with vel=0 msg with proper note-off
+                        if laneIsOFFVEL then tValues[n.index] = msg:byte(3) end
                         tableNoteOns[channel][pitch][flags] = {} -- Reset this channel and pitch
                     end
                                                                 
@@ -1404,14 +1446,14 @@ function GetAndParseMIDIString()
                     else
                         mustExtract = true
                         c = c + 1
-                        tableMsg[c] = msg
-                        tableValues[c] = msg:byte(3)
-                        tablePPQs[c] = runningPPQPos
-                        tablePitches[c] = pitch
-                        tableChannels[c] = channel
-                        tableFlags[c] = flags
+                        tMsg[c] = msg
+                        tValues[c] = msg:byte(3)
+                        tTicks[c] = runningPPQPos
+                        tPitches[c] = pitch
+                        tChannels[c] = channel
+                        tFlags[c] = flags
                         -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
-                        tableNotation[c] = tableTempNotation[channel][pitch][runningPPQPos]
+                        tNotation[c] = tableTempNotation[channel][pitch][runningPPQPos]
                         -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
                         tableNoteOns[channel][pitch][flags] = {PPQ = runningPPQPos, index = c}
                     end  
@@ -1422,49 +1464,49 @@ function GetAndParseMIDIString()
             then
                 mustExtract = true
                 c = c + 1
-                tableValues[c] = msg:byte(2)
-                tablePPQs[c] = runningPPQPos
-                tableChannels[c] = msg:byte(1)&0x0F
-                tableFlags[c] = flags
-                tableMsg[c] = msg
+                tValues[c] = msg:byte(2)
+                tTicks[c] = runningPPQPos
+                tChannels[c] = msg:byte(1)&0x0F
+                tFlags[c] = flags
+                tMsg[c] = msg
                 end
                 
             elseif laneIsCHANPRESS then if (msg:byte(1))>>4 == 13
             then
                 mustExtract = true
                 c = c + 1
-                tableValues[c] = msg:byte(2)
-                tablePPQs[c] = runningPPQPos
-                tableChannels[c] = msg:byte(1)&0x0F
-                tableFlags[c] = flags
-                tableMsg[c] = msg
+                tValues[c] = msg:byte(2)
+                tTicks[c] = runningPPQPos
+                tChannels[c] = msg:byte(1)&0x0F
+                tFlags[c] = flags
+                tMsg[c] = msg
                 end
                 
             elseif laneIsBANKPROG then if ((msg:byte(1))>>4 == 12 or ((msg:byte(1))>>4 == 11 and (msg:byte(2) == 0 or msg:byte(2) == 32)))
             then
                 mustExtract = true
                 c = c + 1
-                tablePPQs[c] = runningPPQPos
-                tableChannels[c] = msg:byte(1)&0x0F
-                tableFlags[c] = flags
-                tableMsg[c] = msg
+                tTicks[c] = runningPPQPos
+                tChannels[c] = msg:byte(1)&0x0F
+                tFlags[c] = flags
+                tMsg[c] = msg
                 end
                          
             elseif laneIsTEXT then if msg:byte(1) == 0xFF --and not (msg2 == 0x0F) -- text event (0xFF), excluding notation type (0x0F)
             then
                 mustExtract = true
                 c = c + 1
-                tablePPQs[c] = runningPPQPos
-                tableFlags[c] = flags
-                tableMsg[c] = msg
+                tTicks[c] = runningPPQPos
+                tFlags[c] = flags
+                tMsg[c] = msg
                 end
                                     
             elseif laneIsSYSEX then if (msg:byte(1))>>4 == 0xF and not (msg:byte(1) == 0xFF) then -- Selected sysex event (text events with 0xFF as first byte have already been excluded)
                 mustExtract = true
                 c = c + 1
-                tablePPQs[c] = runningPPQPos
-                tableFlags[c] = flags
-                tableMsg[c] = msg
+                tTicks[c] = runningPPQPos
+                tFlags[c] = flags
+                tMsg[c] = msg
                 end
             end  
             
@@ -1481,14 +1523,14 @@ function GetAndParseMIDIString()
                 notationChannel = tonumber(notationChannel)
                 notationPitch   = tonumber(notationPitch)
                 -- First, backwards through notes that have already been parsed.
-                for i = #tablePPQs, 1, -1 do
-                    if tablePPQs[i] ~= runningPPQPos then 
+                for i = #tTicks, 1, -1 do
+                    if tTicks[i] ~= runningPPQPos then 
                         break -- Go on to forward search
                     else
-                        if tableMsg[i]:byte(1) == 0x90 | notationChannel
-                        and tableMsg[i]:byte(2) == notationPitch
+                        if tMsg[i]:byte(1) == 0x90 | notationChannel
+                        and tMsg[i]:byte(2) == notationPitch
                         then
-                            tableNotation[i] = msg
+                            tNotation[i] = msg
                             mustExtract = true
                             goto completedNotationSearch
                         end
@@ -1564,7 +1606,7 @@ function GetAndParseMIDIString()
         return false
     end ]]          
     
-    if #tablePPQs == 0 then -- Nothing to extract, so don't need to concatenate tableRemainingEvents
+    if #tTicks == 0 then -- Nothing to extract, so don't need to concatenate tableRemainingEvents
         remainOffset = s_unpack("i4", MIDIString, 1)
         remainMIDIString = MIDIString
         return true 
@@ -1590,7 +1632,7 @@ function GetAndParseMIDIString()
     end    
         
     -- Check that every note-on had a corresponding note-off
-    if (laneIsNOTES) and #tableNoteLengths ~= #tableValues then
+    if (laneIsNOTES) and #tNoteLengths ~= #tValues then
         reaper.ShowMessageBox("There appears to be an imbalanced number of note-ons and note-offs.", "ERROR", 0)
         return false 
     end
@@ -1598,19 +1640,19 @@ function GetAndParseMIDIString()
     -- Calculate original PPQ ranges and extremes
     -- * THIS ASSUMES THAT THE MIDI DATA IS SORTED *
     if includeNoteOffsInPPQrange and (laneIsNOTES or laneIsALL) then
-        origPPQLeftmost  = tablePPQs[1]
-        origPPQRightmost = tablePPQs[#tablePPQs] -- temporary
+        origPPQLeftmost  = tTicks[1]
+        origPPQRightmost = tTicks[#tTicks] -- temporary
         local noteEndPPQ
-        for i = 1, #tablePPQs do
-            if tableNoteLengths[i] then -- laneIsALL event is a note
-                noteEndPPQ = tablePPQs[i] + tableNoteLengths[i]
+        for i = 1, #tTicks do
+            if tNoteLengths[i] then -- laneIsALL event is a note
+                noteEndPPQ = tTicks[i] + tNoteLengths[i]
                 if noteEndPPQ > origPPQRightmost then origPPQRightmost = noteEndPPQ end
             end
         end
         origPPQRange = origPPQRightmost - origPPQLeftmost
     else
-        origPPQLeftmost  = tablePPQs[1]
-        origPPQRightmost = tablePPQs[#tablePPQs]
+        origPPQLeftmost  = tTicks[1]
+        origPPQRightmost = tTicks[#tTicks]
         origPPQRange     = origPPQRightmost - origPPQLeftmost
     end
     
@@ -1620,13 +1662,13 @@ function GetAndParseMIDIString()
     else
         origValueMin = math.huge
         origValueMax = -math.huge
-        for i = 1, #tableValues do
-            if tableValues[i] < origValueMin then origValueMin = tableValues[i] end
-            if tableValues[i] > origValueMax then origValueMax = tableValues[i] end
+        for i = 1, #tValues do
+            if tValues[i] < origValueMin then origValueMin = tValues[i] end
+            if tValues[i] > origValueMax then origValueMax = tValues[i] end
         end
         origValueRange     = origValueMax - origValueMin
-        origValueLeftmost  = tableValues[1]
-        origValueRightmost = tableValues[#tableValues]
+        origValueLeftmost  = tValues[1]
+        origValueRightmost = tValues[#tValues]
     end
                 
     
@@ -1647,24 +1689,22 @@ end
 --    "js_Mouse editing - Run script that is armed in toolbar" script
 function ArmToolbarButton()
     
-    -- In this version of the Mouse editing scripts, the toolbar button is activated in the MAIN function,
-    --    so no need to do it here too.
-    -- Must notify the AtExit function that button should not be deactivated when exiting.
-    --[[if not (sectionID and commandID) then
+    if not (sectionID and commandID) then
         _, _, sectionID, commandID = reaper.get_action_context()
         if sectionID == nil or commandID == nil or sectionID == -1 or commandID == -1 then
-            return(false)
+            reaper.MB("Could not determine the action context of the script.", "ERROR", 0)
+            return false
         end  
-    end]]
-    
+    end
+
+    -- Make doubly sure all previous scripts were properly deactivated (set to NO state, not merely OFF, otherwise right-click arming won't work)
     prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs") or ""
-    
     for prevCommandID in prevCommandIDs:gmatch("%d+") do
         prevCommandID = tonumber(prevCommandID)
         if prevCommandID == commandID then
             alreadyGotOwnCommand = true
         else
-            reaper.SetToggleCommandState(sectionID, prevCommandID, 0)
+            reaper.SetToggleCommandState(sectionID, prevCommandID, -1)
             reaper.RefreshToolbar2(sectionID, prevCommandID)
         end
     end
@@ -1673,12 +1713,22 @@ function ArmToolbarButton()
         reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
     end
     
-    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(commandID), false)
-    --reaper.SetToggleCommandState(sectionID, commandID, 1)
-    --reaper.RefreshToolbar2(sectionID, commandID)
-    
-    Tooltip("Armed: 1-sided Warp")
+    -- Toggle arming
+    armedCommand = tonumber(reaper.GetExtState("js_Mouse actions", "Armed commandID") or "")
+    if armedCommand == commandID then -- already armed, so disarm
+        reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
+        reaper.SetToggleCommandState(sectionID, commandID, -1)
+        reaper.RefreshToolbar2(sectionID, commandID)
+        Tooltip("All scripts disarmed")
+    else
+        -- In this version of the Mouse editing scripts, the toolbar button is activated in the MAIN function, so no need to do it here too.
+        reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(commandID), false)
+        --reaper.SetToggleCommandState(sectionID, commandID, 1)
+        --reaper.RefreshToolbar2(sectionID, commandID)
+        Tooltip("Armed:1-sided Warp")
+    end
 
+    -- Must notify the AtExit function that button should not be deactivated when exiting.
     leaveToolbarButtonArmed = true
     
 end -- ArmToolbarButton()
@@ -1710,19 +1760,20 @@ end
 -------------------------------------------------------------------------------------------------------
 -- Here execution starts!
 function MAIN()
-
-    startTime = reaper.time_precise()
-    
+ 
     -- Before doing anything that may terminate the script, use this trick to avoid automatically 
     --    creating undo states if nothing actually happened.
     -- Undo_OnStateChange will only be used if reaper.atexit(exit) has been executed
-    reaper.defer(function() end)     
+    --reaper.defer(function() end)     
     
     
     -- Check whether SWS and my own extension are available, as well as the required version of REAPER
-    if not reaper.JS_Window_FindEx then -- FindEx was added in v0.963
+    if not reaper.MIDI_DisableSort then
+        reaper.MB("This script requires REAPER v5.974 or higher.", "ERROR", 0)
+        return(false) 
+    elseif not reaper.JS_VKeys_GetDown then
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
-               .. "\n\nThe js_ReaScriptAPI extension can be installed via ReaPack, or can be downloaded manually."
+               .. "\n\nThe js_ReaScripAPI extension can be installed via ReaPack, or can be downloaded manually."
                .. "\n\nTo install via ReaPack, ensure that the ReaTeam/Extensions repository is enabled. "
                .. "This repository should be enabled by default in recent versions of ReaPack, but if not, "
                .. "the repository can be added using the URL that the script will copy to REAPER's Console."
@@ -1733,7 +1784,6 @@ function MAIN()
         reaper.ShowConsoleMsg("\n\nURL to add ReaPack repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
         reaper.ShowConsoleMsg("\n\nURL for direct download:\nhttps://github.com/juliansader/ReaExtensions")
         return(false)
-    -- The js_ReaScriptAPI extension already requires REAPER v5.95 or higher, so don't need to check.
     -- Older versions of SWS had bugs in BR_GetMouseCursorContext
     elseif not reaper.SN_FocusMIDIEditor then 
         reaper.MB("This script requires an up-to-date versions of the SWS/S&M extension."
@@ -1749,11 +1799,16 @@ function MAIN()
     reaper.atexit(AtExit)
     
     
-    -- GET MOUSE STARTING STATE:
+    -- GET MOUSE AND KEYBOARD STARTING STATE:
     -- as soon as possible.  Hopefully, if script is started with mouse click, mouse button will still be down.
+    -- VKeys_Intercept is also urgent, because must prevent multiple WM_KEYDOWN message from being sent, which may trigger script termination.
+    interceptKeysOK = (reaper.JS_VKeys_Intercept(-1, 1) > 0)
+        if not interceptKeysOK then reaper.MB("Could not intercept keyboard input.", "ERROR", 0) return false end
+    mouseState = reaper.JS_Mouse_GetState(0xFF)    
     mouseOrigX, mouseOrigY = reaper.GetMousePosition()
+    startTime = reaper.time_precise()
     prevMouseTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
-    mouseState = reaper.JS_Mouse_GetState(0xFF)
+    keyState = reaper.JS_VKeys_GetState(-2):sub(VKLow, VKHi)
  
     
     -- CONFLICTING SCRIPTS:
@@ -1936,7 +1991,7 @@ function MAIN()
     --    MIDI_InsertCC, since these functions are far too slow when dealing with thousands of events.
     if not GetAndParseMIDIString() then return false end
     -- !!!!!!!!!! Uniue to this script:
-    if #tablePPQs < 2 or (#tablePPQs < 3 and not laneIsNOTES) then -- Two notes can be warped, but not two CCs
+    if #tTicks < 2 or (#tTicks < 3 and not laneIsNOTES) then -- Two notes can be warped, but not two CCs
         reaper.MB("Could not find a sufficient number of selected events in the target lane(s)."
                 .. "\n\nTIPS:"
                 .. "\n\nIf the MIDI editor's filter is set to \"Edit only the active channel\", the script will only detect and edit events in the active MIDI channel."
@@ -1980,8 +2035,8 @@ function MAIN()
         cursor = reaper.JS_Mouse_LoadCursor(502) -- REAPER's own arpeggiate left/right cursor
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
     end
-    tV = tableValues -- temporary values
-    tP = tablePPQs -- temporary PPQ positions
+    tV = tValues -- temporary values
+    tP = tTicks -- temporary PPQ positions
       
     
     -- INTERCEPT WINDOW MESSAGES:
@@ -1989,46 +2044,43 @@ function MAIN()
     -- The code assumes that all the message types will be blocked.  (Scripts that pass some messages through, must use other code.)
     -- tWM_Messages entries that are currently being intercepted but passed through, will temporarily be blocked and then restored when the script terminates.
     -- tWM_Messages entries that are already being intercepted and blocked, do not need to be changed or restored, so will be deleted from the table.
-    pcallInterceptOK, pcallInterceptRetval = pcall( 
-        function()
-            for message in pairs(tWM_Messages) do            
-                local interceptOK = reaper.JS_WindowMessage_Intercept(windowUnderMouse, message, false)
-                -- Is message type already being intercepted by another script?
-                if interceptOK == 0 then 
-                    local prevIntercepted, prevPassthrough = reaper.JS_WindowMessage_Peek(windowUnderMouse, message)
-                    if prevIntercepted then
-                        if prevPassthrough == false then
-                            interceptOK = 1 
-                            tWM_Messages[message] = nil -- No need to change or restore this message type
-                        else
-                            interceptOK = reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, false)
-                            tWM_Messages[message] = true
-                        end
+    pcallInterceptWM_OK, pcallInterceptWM_Retval = pcall(function()
+        for message in pairs(tWM_Messages) do 
+            local interceptWM_OK = -1  
+            interceptWM_OK = reaper.JS_WindowMessage_Intercept(windowUnderMouse, message, false)
+            -- Is message type already being intercepted by another script?
+            if interceptWM_OK == 0 then 
+                local prevIntercepted, prevPassthrough = reaper.JS_WindowMessage_Peek(windowUnderMouse, message)
+                if prevIntercepted then
+                    if prevPassthrough == false then
+                        interceptWM_OK = 1 
+                        tWM_Messages[message] = nil -- No need to change or restore this message type
+                    else
+                        interceptWM_OK = reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, false)
+                        tWM_Messages[message] = true
                     end
                 end
-                -- Intercept OK?
-                if interceptOK ~= 1 then 
-                    return false
-                end
             end
-            return true
-        end)
-    if not (pcallInterceptOK and pcallInterceptRetval) then 
-        reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) 
-        tWM_Messages = {}
-        reaper.MB("Intercepting window messages failed.\n\nAll intercepts for the window under the mouse will be released. (This may affect other scripts that are currently monitoring this window.)", "ERROR", 0) 
-        return false 
-    end
+            -- Intercept OK?
+            if interceptWM_OK ~= 1 then 
+                return false
+            end
+        end
+        return true
+    end)
+    if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then return false end
+    
        
-       
-    -- Start the loop!
-    DEFERLOOP_pcall()
+    ------------------------------------------------------------
+    -- Finally, startup completed OK, so can continue with loop!
+    return true 
     
 end -- function Main()
 
 
 --################################################
 --------------------------------------------------
-MAIN()
+mainOK, mainRetval = pcall(MAIN)
+if mainOK and mainRetval then DEFERLOOP_pcall() end -- START LOOPING!
 
 

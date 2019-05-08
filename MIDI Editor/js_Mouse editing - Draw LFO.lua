@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Draw LFO.lua
-Version: 4.10
+Version: 4.20
 Author: juliansader
 Screenshot: https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -33,10 +33,7 @@ About:
       * Middle click: -- (Usually switces between a sine and linear/power curve, but not used by this script)
       * Right click: Toggles between chasing start values and using the mouse original position as start value.
       * Mousewheel: Scrolls through the available LFO curves.
-      
-  The keyboard can terminate the script:
-      * Any mouse modifier key: Terminates the script.
-      * Keyboard shortcut (assigned in Actions list): Starts and terminates the script (do NOT hold shortcut key down while script is running)
+      * Any keystroke: Terminates the script.
     
   
   MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS
@@ -56,7 +53,9 @@ About:
   Starting a script:
   
       * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.
-        (NOTE: To run the script, press the shortcut key *once* and do not hold the key.) 
+        To start and stop the script using a shortcut, you have two options: 
+            1) Two keystrokes: To start, press the shortcut key once *without holding the key down* and then press the same or any other key to stop;
+            2) Press and hold: Press the shortcut key and hold it down for as long as the script should run. If the key is held down for more than one second, the script will terminate when the key is released.
         
       * Similar to mouse modifier actions, assign the script to a left-click or double-click mouse modifier in Preferences -> Mouse modifiers.  
         (NOTE: In current versions of REAPER, actions can not be assigned to left-drag mouse modifiers, 
@@ -66,15 +65,13 @@ About:
   
   Stopping a script:
   
-     * Mouse: Left clicking
+     * Mouse: Left clicking while the script is running.
   
-     * Mouse: Left-dragging and lifting the left button.
+     * Mouse: Left-dragging and lifting the left button after holding the button down for more than one second.
   
-     * Keyboard: Pressing any mouse modifier key (Ctrl/Cmnd, Alt, Shift or Win).
-  
-     * Keyboard: If a shortcut has been assigned to the script, that same shortcut will toggle the script on/off.
-       (NOTE: The first time that the script is stopped by its shortcut, REAPER will pop up a dialog box 
-              asking whether to terminate or restart the script.  Select "Terminate" and "Remember my answer for this script".)  
+     * Keyboard: Pressing any key while the script is running.
+     
+     * Keyboard: Releasing the shortcut key after holding it down for more than one second.
          
   
   RUNNING THE SCRIPT FROM THE TOOLBAR:
@@ -148,6 +145,9 @@ About:
   * v4.10 (2019-03-05)
     + Compatible with macOS.
     + Redraw immediately if "Skip redundant CCs" is toggled while script is running.
+  * v4.20 (2019-04-25)
+    + Clicking armed toolbar button disarms script.
+    + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
 ]]
 
 ----------------------------------------
@@ -215,6 +215,13 @@ local snappedNewPPQPos = nil
 local mouseState
 local prevMouseTime = 0
 --local mousewheel = 1
+
+-- The script will intercept keystrokes, to allow control of script via keyboard, 
+--    and to prevent inadvertently running other actions such as closing MIDI editor by pressing ESC
+local VKLow, VKHi = 8, 0xFE --0xA5 -- Range of virtual key codes to check for key presses
+local VKState0 = string.rep("\0", VKHi-VKLow+1)
+local dragTime = 0.5 -- How long must the shortcut key be held down before left-drag is activated?
+local dragTimeStarted = false
 
 -- REAPER preferences and settings that will affect the drawing/selecting of new events in take
 local isSnapEnabled = false -- Will be changed to true if snap-to-grid is enabled in the editor
@@ -309,19 +316,41 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- MIDI stuff might be changed if the mouse has moved, mousebutton has been clicked, or mousewheel has scrolled, so need to re-calculate.
     -- Otherwise, mustCalculate remains nil, and can skip to end of function.
     local mustCalculate = false
-    
-    -- TAKE STILL VALID?
-    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
-   
+    local prevCycleTime = thisCycleTime or startTime
+    thisCycleTime = reaper.time_precise()
+    dragTimeStarted = dragTimeStarted or (thisCycleTime > startTime + dragTime)  -- No need to call time_precise if dragTimeStarted already true    
+ 
+    -- KEYBOARD: Script can be terminated by pressing key twice to start/stop, or by holding key and releasing after dragTime
+    local prevKeyState = keyState
+    keyState = reaper.JS_VKeys_GetState(startTime-0.5):sub(VKLow, VKHi)
+    if dragTimeStarted and keyState ~= prevKeyState and keyState == VKState0 then -- Only lift after every key has been lifted, to avoid immediately trigger action again. NOTE: modifier keys don't always send repeat KEYDOWN if held together with another key.
+        return false
+    end
+    local keyDown = reaper.JS_VKeys_GetDown(prevCycleTime):sub(VKLow, VKHi)
+    if keyDown ~= prevKeyState and keyDown ~= VKState0 then
+        local p = 0
+        ::checkNextKeyDown:: do
+            p = keyDown:find("\1", p+1)
+            if p then 
+                if prevKeyState:byte(p) == 0 then 
+                    return false 
+                else 
+                    goto checkNextKeyDown 
+                end
+            end
+        end
+    end
+
     -- EXTSTATE: Other scripts can communicate with and control the other js_ scripts via ExtStates
     local extState = reaper.GetExtState("js_Mouse actions", "Status") or ""
     if extState == "" or extState == "Must quit" then return(false) end
     
-    -- MOUSE MODIFIERS / LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
+    -- MOUSE MODIFIERS / LEFT CLICK / LEFT DRAG: Script can be terminated by left-clicking twice to start/stop, or by holding left button and releasing after dragTime
     -- This can detect left clicks even if the mouse is outside the MIDI editor
     local prevMouseState = mouseState or 0xFF
     mouseState = reaper.JS_Mouse_GetState(0xFF)
-    if (mouseState&61) > (prevMouseState&61) then -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+    if ((mouseState&61) > (prevMouseState&61)) -- 61 = 0b00111101 = Ctrl | Shift | Alt | Win | Left button
+    or (dragTimeStarted and (mouseState&1) < (prevMouseState&1)) then
         return false
     end
     
@@ -356,7 +385,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
     if peekOK and time > prevMouseTime + 0.25 then
-        if keys&12 ~= 0 then return false end
+        --if keys&12 ~= 0 then return false end
         if delta > 0 then LFOtype = (LFOtype + 1) % 8
         elseif delta < 0 then LFOtype = (LFOtype - 1) % 8
         end
@@ -364,7 +393,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         mustCalculate = true
     end
     
-    -- LEFT DRAG: (If the left button was kept pressed for 1 second or longer, or after moving the mouse 20 pixels, assume left-drag, so quit when lifting.)
+    --[[ LEFT DRAG: (If the left button was kept pressed for 1 second or longer, or after moving the mouse 20 pixels, assume left-drag, so quit when lifting.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONUP")
     if peekOK and (time > startTime + 1.5)
               --or  (time > startTime and (mouseX < mouseOrigX - 20 or mouseX > mouseOrigX + 20 or mouseY < mouseOrigY - 20 or mouseY > mouseOrigY + 20))) 
@@ -375,6 +404,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     -- LEFT CLICK: (If the left mouse button or any modifier key is pressed, after first releasing them, quit.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
     if peekOK and time > startTime then return false end
+    ]]
     
     -- RIGHT CLICK: (Toggle chase.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
@@ -392,7 +422,10 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     if skipRedundantCCs ~= prevSkip then
         mustCalculate = true
     end
- 
+    
+    -- TAKE STILL VALID?
+    if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
+    
         
     ---------------------
     -- DO THE MIDI STUFF!
@@ -597,15 +630,23 @@ end
 ----------------------------------------------------------------------------
 function AtExit()
    
-    -- Remove intercepts, restore original intercepts
-    -- WARNING! v0.963 of ReaScriptAPI may crash on Linux if all intercepts are released from a window that doesn't exist any more.
-    if pcallInterceptOK and pcallInterceptRetval and (isInline or (editor and reaper.MIDIEditor_GetMode(editor) ~= -1)) then
-        for message, passthrough in pairs(tWM_Messages) do
-            if passthrough then 
-                reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
-            else
-                reaper.JS_WindowMessage_Release(windowUnderMouse, message)    
-    end end end
+    -- Remove intercepts, restore original intercepts.  Do this first, because these are most important to restore, in case anything else goes wrong during AtExit.
+    if interceptKeysOK ~= nil then pcall(function() reaper.JS_VKeys_Intercept(-1, -1) end) end
+    if bitmap then reaper.JS_LICE_DestroyBitmap(bitmap) end -- The extension will automatically un-composite the bitmap
+    if pcallInterceptWM_OK ~= nil then -- If these are nil, that part of MAIN wasn't reached
+        if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then -- Either an exception or some other error
+            reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) 
+            reaper.MB("Intercepting window messages failed.\n\nAll intercepts for the window under the mouse will be released. (This may affect other scripts that are currently monitoring this window.)", "ERROR", 0) 
+        elseif windowUnderMouse and reaper.ValidatePtr(windowUnderMouse, "HWND") then --(isInline or (editor and reaper.MIDIEditor_GetMode(editor) ~= -1)) then
+            for message, passthrough in pairs(tWM_Messages) do
+                if passthrough then 
+                    reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, true)
+                else
+                    reaper.JS_WindowMessage_Release(windowUnderMouse, message)    
+                end
+            end
+        end
+    end
     
     -- As when starting the script, restore cursor and toolbar button as soon as possible, in order to seem more responsive.
     -- Was a custom cursur loaded? Restore plain cursor.
@@ -622,6 +663,14 @@ function AtExit()
     
     -- Communicate with the js_Run.. script that this script is exiting
     reaper.DeleteExtState("js_Mouse actions", "Status", true)
+    
+    -- Before getting to errors in MAIN, clean up stuff that could have been changed in MAIN
+    if not mainOK then
+        reaper.MB("The script encountered an error during startup:\n\n"
+                .. tostring(mainRetval)
+                .."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
+                , "ERROR", 0)
+    end
     
     -- Save last-used line shape
     reaper.SetExtState("js_Draw LFO", "Last shape", tostring(LFOtype)..","..tostring(mustChase), true)
@@ -667,7 +716,7 @@ function AtExit()
  
  
     -- if script reached DEFERLOOP_pcall (or the WindowMessage section), pcallOK ~= nil, and must create undo point:
-    if pcallOK ~= nil then
+    --if pcallOK ~= nil then
                   
         -- Write nice, informative Undo strings
         if laneIsCC7BIT then 
@@ -685,23 +734,23 @@ function AtExit()
         
         -- Undo_OnStateChange_Item is expected to be the fastest undo function, since it limits the info stored 
         --    in the undo point to changes in this specific item.
-        if reaper.ValidatePtr2(0, activeItem, "MediaItem*") then    
+        if activeItem and reaper.ValidatePtr2(0, activeItem, "MediaItem*") then    
             if isInline then reaper.UpdateItemInProject(activeItem) end
             reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
         else
             reaper.Undo_OnStateChange2(0, undoString)
         end
-    end
+    --end
 
     
     -- At the very end, no more notification windows will be opened, 
     --    so restore original focus - except if "Terminate script" dialog box is waiting for user
-    if editor and midiview and reaper.MIDIEditor_GetMode(editor) ~= -1 then
+    if editor and reaper.MIDIEditor_GetMode(editor) == 0 then
         curForegroundWindow = reaper.JS_Window_GetForeground()
         if not (curForegroundWindow and reaper.JS_Window_GetTitle(curForegroundWindow) == reaper.JS_Localize("ReaScript task control", "common")) then
-            reaper.JS_Window_SetForeground(midiview)
-            reaper.JS_Window_SetFocus(midiview)
-    end end            
+            reaper.JS_Window_SetForeground(editor)
+            if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_SetFocus(midiview) end
+    end end             
     
 end -- function AtExit
 
@@ -1178,24 +1227,22 @@ end -- function deleteExistingCCsInRange
 --    "js_Mouse editing - Run script that is armed in toolbar" script
 function ArmToolbarButton()
     
-    -- In this version of the Mouse editing scripts, the toolbar button is activated in the MAIN function,
-    --    so no need to do it here too.
-    -- Must notify the AtExit function that button should not be deactivated when exiting.
     if not (sectionID and commandID) then
         _, _, sectionID, commandID = reaper.get_action_context()
         if sectionID == nil or commandID == nil or sectionID == -1 or commandID == -1 then
-            return(false)
+            reaper.MB("Could not determine the action context of the script.", "ERROR", 0)
+            return false
         end  
     end
-    
+
+    -- Make doubly sure all previous scripts were properly deactivated (set to NO state, not merely OFF, otherwise right-click arming won't work)
     prevCommandIDs = reaper.GetExtState("js_Mouse actions", "Previous commandIDs") or ""
-    
     for prevCommandID in prevCommandIDs:gmatch("%d+") do
         prevCommandID = tonumber(prevCommandID)
         if prevCommandID == commandID then
             alreadyGotOwnCommand = true
         else
-            reaper.SetToggleCommandState(sectionID, prevCommandID, 0)
+            reaper.SetToggleCommandState(sectionID, prevCommandID, -1)
             reaper.RefreshToolbar2(sectionID, prevCommandID)
         end
     end
@@ -1204,12 +1251,22 @@ function ArmToolbarButton()
         reaper.SetExtState("js_Mouse actions", "Previous commandIDs", prevCommandIDs, false)
     end
     
-    reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(commandID), false)
-    --reaper.SetToggleCommandState(sectionID, commandID, 1)
-    --reaper.RefreshToolbar2(sectionID, commandID)
-    
-    Tooltip("Armed: Draw LFO")
+    -- Toggle arming
+    armedCommand = tonumber(reaper.GetExtState("js_Mouse actions", "Armed commandID") or "")
+    if armedCommand == commandID then -- already armed, so disarm
+        reaper.DeleteExtState("js_Mouse actions", "Armed commandID", true)
+        reaper.SetToggleCommandState(sectionID, commandID, -1)
+        reaper.RefreshToolbar2(sectionID, commandID)
+        Tooltip("All scripts disarmed")
+    else
+        -- In this version of the Mouse editing scripts, the toolbar button is activated in the MAIN function, so no need to do it here too.
+        reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(commandID), false)
+        --reaper.SetToggleCommandState(sectionID, commandID, 1)
+        --reaper.RefreshToolbar2(sectionID, commandID)
+        Tooltip("Armed: Draw LFO")
+    end
 
+    -- Must notify the AtExit function that button should not be deactivated when exiting.
     leaveToolbarButtonArmed = true
     
 end -- ArmToolbarButton()
@@ -1241,17 +1298,18 @@ end
 -------------------------------------------------------------------------------------------------------
 -- Here execution starts!
 function MAIN()
-
-    local startTime = reaper.time_precise()
     
     -- Before doing anything that may terminate the script, use this trick to avoid automatically 
     --    creating undo states if nothing actually happened.
     -- Undo_OnStateChange will only be used if reaper.atexit(exit) has been executed
-    reaper.defer(function() end)      
+    --reaper.defer(function() end)      
 
 
     -- Check whether SWS and my own extension are available, as well as the required version of REAPER
-    if not reaper.JS_Window_FindEx then
+    if not reaper.MIDI_DisableSort then
+        reaper.MB("This script requires REAPER v5.974 or higher.", "ERROR", 0)
+        return(false) 
+    elseif not reaper.JS_VKeys_GetDown then
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
                .. "\n\nThe js_ReaScripAPI extension can be installed via ReaPack, or can be downloaded manually."
                .. "\n\nTo install via ReaPack, ensure that the ReaTeam/Extensions repository is enabled. "
@@ -1264,7 +1322,6 @@ function MAIN()
         reaper.ShowConsoleMsg("\n\nURL to add ReaPack repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
         reaper.ShowConsoleMsg("\n\nURL for direct download:\nhttps://github.com/juliansader/ReaExtensions")
         return(false)
-    -- The js_ReaScriptAPI extension already requires REAPER v5.95 or higher, so don't need to check.
     -- Older versions of SWS had bugs in BR_GetMouseCursorContext
     elseif not reaper.SN_FocusMIDIEditor then 
         reaper.MB("This script requires an up-to-date versions of the SWS/S&M extension."
@@ -1280,11 +1337,16 @@ function MAIN()
     reaper.atexit(AtExit)
      
      
-    -- GET MOUSE STARTING STATE:
+    -- GET MOUSE AND KEYBOARD STARTING STATE:
     -- as soon as possible.  Hopefully, if script is started with mouse click, mouse button will still be down.
+    -- VKeys_Intercept is also urgent, because must prevent multiple WM_KEYDOWN message from being sent, which may trigger script termination.
+    interceptKeysOK = (reaper.JS_VKeys_Intercept(-1, 1) > 0)
+        if not interceptKeysOK then reaper.MB("Could not intercept keyboard input.", "ERROR", 0) return false end
+    mouseState = reaper.JS_Mouse_GetState(0xFF)    
     mouseOrigX, mouseOrigY = reaper.GetMousePosition()
+    startTime = reaper.time_precise()
     prevMouseTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
-    mouseState = reaper.JS_Mouse_GetState(0xFF)
+    keyState = reaper.JS_VKeys_GetState(-2):sub(VKLow, VKHi)
 
     
     -- CONFLICTING SCRIPTS:
@@ -1560,47 +1622,44 @@ function MAIN()
     -- The code assumes that all the message types will be blocked.  (Scripts that pass some messages through, must use other code.)
     -- tWM_Messages entries that are currently being intercepted but passed through, will temporarily be blocked and then restored when the script terminates.
     -- tWM_Messages entries that are already being intercepted and blocked, do not need to be changed or restored, so will be deleted from the table.
-    pcallInterceptOK, pcallInterceptRetval = pcall( 
-        function()
-            for message in pairs(tWM_Messages) do            
-                local interceptOK = reaper.JS_WindowMessage_Intercept(windowUnderMouse, message, false)
-                -- Is message type already being intercepted by another script?
-                if interceptOK == 0 then 
-                    local prevIntercepted, prevPassthrough = reaper.JS_WindowMessage_Peek(windowUnderMouse, message)
-                    if prevIntercepted then
-                        if prevPassthrough == false then
-                            interceptOK = 1 
-                            tWM_Messages[message] = nil -- No need to change or restore this message type
-                        else
-                            interceptOK = reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, false)
-                            tWM_Messages[message] = true
-                        end
+    pcallInterceptWM_OK, pcallInterceptWM_Retval = pcall(function()
+        for message in pairs(tWM_Messages) do 
+            local interceptWM_OK = -1  
+            interceptWM_OK = reaper.JS_WindowMessage_Intercept(windowUnderMouse, message, false)
+            -- Is message type already being intercepted by another script?
+            if interceptWM_OK == 0 then 
+                local prevIntercepted, prevPassthrough = reaper.JS_WindowMessage_Peek(windowUnderMouse, message)
+                if prevIntercepted then
+                    if prevPassthrough == false then
+                        interceptWM_OK = 1 
+                        tWM_Messages[message] = nil -- No need to change or restore this message type
+                    else
+                        interceptWM_OK = reaper.JS_WindowMessage_PassThrough(windowUnderMouse, message, false)
+                        tWM_Messages[message] = true
                     end
                 end
-                -- Intercept OK?
-                if interceptOK ~= 1 then 
-                    return false
-                end
             end
-            return true
-        end)
-    if not (pcallInterceptOK and pcallInterceptRetval) then 
-        reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) 
-        tWM_Messages = {}
-        reaper.MB("Intercepting window messages failed.\n\nAll intercepts for the window under the mouse will be released. (This may affect other scripts that are currently monitoring this window.)", "ERROR", 0) 
-        return false 
-    end
+            -- Intercept OK?
+            if interceptWM_OK ~= 1 then 
+                return false
+            end
+        end
+        return true
+    end)
+    if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then return false end
     
     
-    -- START LOOPING!
-    DEFERLOOP_pcall()
+    ------------------------------------------------------------
+    -- Finally, startup completed OK, so can continue with loop!
+    return true 
     
-end -- function MAIN()
+end -- function Main()
 
 
 --################################################
 --------------------------------------------------
-MAIN()
+mainOK, mainRetval = pcall(MAIN)
+if mainOK and mainRetval then DEFERLOOP_pcall() end -- START LOOPING!
 
 
 --[[

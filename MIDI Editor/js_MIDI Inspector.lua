@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.49
+Version: 1.50
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -41,12 +41,7 @@ About:
   To terminate the script, the user must explicitly close the GUI window, or click the toolbar button again 
       (or equivalently, run the script action again).  The first time that the script is closed by clicking
       the toolbar button, REAPER will ask whether to terminate the script.
-  
-  
-  # LINUX and MACOS:
-  
-  Docking in the marker/region lanes is unfortunately not (yet) available on Linux and macOS.
-  
+      
   
   # INSTRUCTIONS
   
@@ -137,6 +132,9 @@ About:
     + Linux and macOS: Don't dock in piano roll.
   * v1.49 (2019-03-15)
     + Fixed: Only capture right-click where docked inspector is visible.
+  * v1.50 (2019-04-08)
+    + Linux, macOS: Enable docking in piano roll.
+    + WindowsOS: Less flickering and "fake" antialias when docked in piano roll.
 ]]
 
 -- USER AREA
@@ -153,13 +151,14 @@ highlightColor = {1,1,0,1}
 backgroundColor = {0.18, 0.18, 0.18, 1}
 shadowColor = {0,0,0,1}
 
--- Parameters for docked in ruler:
-GDI_FontFace = "Arial"
-GDI_TextHeight = 12
-GDI_TextWeight = 700 -- Integer between 0 and 1000
-GDI_TextColor = nil -- 0xB00000 -- Color in RRGGBB format. If nil, script will try to find theme color.
+-- Parameters for docked in MIDI editor ruler:
+ME_TextHeight = 13 
+ME_TextWeight = 100 -- Integer between 0 and 1000
+ME_TextColor = nil -- 0xFF0000 -- Color in RRGGBB format. If nil, script will try to find theme color.
+ME_TryAntiAlias = true -- On Windows, small LICE text is not properly antialiased.  This setting tries to achieve a similar effect by slightly blurring the text.
+local s1, s2, s4, s6, s9, s12, s15 = 46, 110, 220, 330, 450, 600, 750 -- Spacing (tabs, in pixels) when drawing info in MIDI editor
 
--- End of USER AREA
+-- End of USER AREA 
 
 -----------------------------------------------------------------
 -----------------------------------------------------------------
@@ -262,9 +261,9 @@ local playState = 0
 local prevTime = 0
 local prevExtStateSetChannel
 
- lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, dockedGDI = 0, 0, 211, 450, nil, 0, nil
- editor, prevEditor, midiview, midiviewDC = nil, nil, nil, nil
-local mustUpdateGUI, prevGfxW, preGfxH
+local lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, dockedMidiview = 0, 0, 211, 450, nil, 0, nil
+local editor, prevEditor, midiview = nil, nil, nil
+local mustUpdateGUI, prevGfxW, preGfxH = true, nil, nil
 
 
 -------------------------
@@ -322,7 +321,7 @@ function initializeGUI()
     -- The GUI window will be opened at the last-used coordinates
     local mouseX, mouseY = reaper.GetMousePosition()
     lastExtState = reaper.GetExtState("MIDI Inspector", "Last state") or ""
-    lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, lastDockedGDI = lastExtState:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
+    lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, lastdockedMidiview = lastExtState:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
     if not (lastX and lastY) then
         local coordinatesExtState = reaper.GetExtState("MIDI Inspector", "Last coordinates") or ""
         lastX, lastY = coordinatesExtState:match("([^,]+),([^,]+)")
@@ -337,13 +336,9 @@ function initializeGUI()
     lastHeight = lastHeight and tonumber(lastHeight) or 450
     timeFormat = timeFormat or (lastFormat and tonumber(lastFormat)) or 0 -- Only load timeFormat if script has just started, so timeFormat = nil
     dockedInDocker = dockedInDocker and tonumber(dockedInDocker) or 0
-    if windowsOS then
-        if dockedGDI == nil then dockedGDI = (lastDockedGDI == "true") else dockedGDI = (dockedGDI == true) end -- If dockedGDI not yet initialized, use previous state, else keep state
-    else
-        dockedGDI = false
-    end
+    if dockedMidiview == nil then dockedMidiview = (lastdockedMidiview == "true") else dockedMidiview = (dockedMidiview == true) end -- If dockedMidiview not yet initialized, use previous state, else keep state
     
-    if not dockedGDI then
+    if not dockedMidiview then
         gfx.init("MIDI Inspector", lastWidth, lastHeight, dockedInDocker, lastX, lastY)
         gfx.setfont(1, fontFace, textHeight, 'b')
         measureStrings()
@@ -361,7 +356,7 @@ end
 ---------------------------
 function saveCurrentState()
     -- Find and store the last-used coordinates of the GUI window, so that it can be re-opened at the same position
-    if not dockedGDI then
+    if not dockedMidiview then
         dockedInDocker, xPos, yPos, xWidth, yHeight = gfx.dock(-1, 0, 0, 0, 0)
         if dockedInDocker == 0 then 
             -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
@@ -374,7 +369,7 @@ function saveCurrentState()
                   .. string.format("%i", lastHeight) .. ","
                   .. string.format("%i", timeFormat) .. ","
                   .. string.format("%i", dockedInDocker) .. ","
-                  .. tostring(dockedGDI)
+                  .. tostring(dockedMidiview)
         reaper.SetExtState("MIDI Inspector", "Last state", saveState, true)
     end
 end
@@ -389,10 +384,16 @@ function exit()
     reaper.DeleteExtState("MIDI Inspector", "Last dimensions", true)
     reaper.DeleteExtState("MIDI Inspector", "Set channel", true)
     
-    if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 and midiview and midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
-    if GDI_Pen then reaper.JS_GDI_DeleteObject(GDI_Pen) end
-    if GDI_Brush then reaper.JS_GDI_DeleteObject(GDI_Brush) end
+    --if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 and midiview and midiviewDC then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
     if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
+    --[[for _, midiview in pairs(tEditorMidiview) do
+        reaper.JS_Composite_Unlink(midiview, LICE_Bitmap)
+    end]]
+    
+    if LICE_Bitmap then 
+        if midiview then reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
+        reaper.JS_LICE_DestroyBitmap(LICE_Bitmap)
+    end
     
     -- Deactivate toolbar button
     _, _, sectionID, ownCommandID, _, _, _ = reaper.get_action_context()
@@ -416,17 +417,6 @@ local function setColor(colorTable)
     gfx.b = colorTable[3]
     gfx.a = colorTable[4]
 end -- function setColor
-
-
--------------------------------
-local function drawWhiteBlock()
-    local r = gfx.r; g = gfx.g; b = gfx.b; a = gfx.a
-    setColor(blockColor) --{1,1,1,1})
-    --gfx.x = gfx.x - 2
-    --gfx.y = gfx.y - 2
-    gfx.rect(gfx.x-2, gfx.y-2, blockWidth, strHeight+4, true)
-    setColor({r,g,b,a})
-end -- function drawWhiteBlock
 
 
 ---------------------------------
@@ -535,17 +525,21 @@ local function timeStr(take, ppq, format)
 end
 
 
-local tTabs = {}
+-- local tTabs = {}
 --------------------
-function updateGDI()
-    if midiviewDC then
+function updateLICE()
+    
+    --[[if midiview then
         local rectOK, l, t, r, b = reaper.JS_Window_GetClientRect(midiview)
         if rectOK then
-            local s = (r-l)
+            local s = math.min(1200, math.max(600, (r-l)))
             if not tTabs[s] then
                 local tab = math.max(30, math.min(90, s//21))
-                tTabs[s] = {math.floor(46*GDI_TextHeight/12), tab<<1, tab<<2, tab*6, tab*9, tab*12, tab*15}
+                tTabs[s] = {math.floor(46*ME_TextHeight/12), tab<<1, tab<<2, tab*6, tab*9, tab*12, tab*15}
             end
+            local s1, s2, s4, s6, s9, s12, s15 = tTabs[s][1], tTabs[s][2], tTabs[s][3], tTabs[s][4], tTabs[s][5], tTabs[s][6], tTabs[s][7]
+            ]]
+            
             local numNotes = tostring(numNotes)
             local numCCs   = tostring(numCCs)
             local countSelCCs = tostring(countSelCCs)
@@ -553,31 +547,29 @@ function updateGDI()
             local notePositionString = notePositionString:gsub("\n", "  --  ")
             local ccPositionString = ccPositionString:gsub("\n", "  --  ")
             local positionString = "Position " .. tableTimeFormatsShort[timeFormat] .. ": "
-            local s1, s2, s4, s6, s9, s12, s15 = tTabs[s][1], tTabs[s][2], tTabs[s][3], tTabs[s][4], tTabs[s][5], tTabs[s][6], tTabs[s][7]
             
-            if mustUpdateGUI then
-                reaper.JS_GDI_FillRect(midiviewDC, 0, 0, s, 2+GDI_TextHeight*2)
-            end
-            reaper.JS_GDI_DrawText(midiviewDC, "NOTES:", 6, 2, 0, s1, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, numNotes, #numNotes, s1, 0, s2-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Selected: "..countSelNotes, 10+#countSelNotes, s2, 0, s4-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Channel: "..noteChannelString, 9+#noteChannelString, s4, 0, s6-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Pitch: "..notePitchString, 7+#notePitchString, s6, 0, s9-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Length: "..noteLengthString, 9+#noteLengthString, s9, 0, s12-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Velocity: "..noteVelocityString, 10+#noteVelocityString, s12, 0, s15-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, string.rep(" ", #positionString+#notePositionString), #positionString+#notePositionString, s15, 0, 2000, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, positionString..notePositionString, #positionString+#notePositionString, s15, 0, 2000, 40, "TOP LEFT")
+            reaper.JS_LICE_Clear(LICE_Bitmap, 0)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "NOTES:", 6, 2, 0, s1, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, numNotes, #numNotes, s1, 0, s2-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Selected: "..countSelNotes, 10+#countSelNotes, s2, 0, s4-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Channel: "..noteChannelString, 9+#noteChannelString, s4, 0, s6-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Pitch: "..notePitchString, 7+#notePitchString, s6, 0, s9-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Length: "..noteLengthString, 9+#noteLengthString, s9, 0, s12-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Velocity: "..noteVelocityString, 10+#noteVelocityString, s12, 0, s15-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, string.rep(" ", #positionString+#notePositionString), #positionString+#notePositionString, s15, 0, 2000, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, positionString..notePositionString, #positionString+#notePositionString, s15, 0, 2000, 40)
             
-            reaper.JS_GDI_DrawText(midiviewDC, "CCs:", 4, 2, GDI_TextHeight, s1, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, numCCs, #numCCs, s1, GDI_TextHeight, s2-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Selected: "..countSelCCs, 10+#countSelCCs, s2, GDI_TextHeight, s4-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Channel: "..ccChannelString, 9+#ccChannelString, s4, GDI_TextHeight, s6-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Type:  "..ccTypeString, 7+#ccTypeString, s6, GDI_TextHeight, s9-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "CC #:    "..ccLaneString, 9+#ccLaneString, s9, GDI_TextHeight, s12-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, "Value:     "..ccValueString, 11+#ccValueString, s12, GDI_TextHeight, s15-4, 40, "TOP LEFT")
-            reaper.JS_GDI_DrawText(midiviewDC, positionString..ccPositionString, #positionString+#ccPositionString, s15, GDI_TextHeight, 2000, 40, "TOP LEFT")
-        end
-    end
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "CCs:", 4, 2, 11, s1, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, numCCs, #numCCs, s1, 11, s2-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Selected: "..countSelCCs, 10+#countSelCCs, s2, 11, s4-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Channel: "..ccChannelString, 9+#ccChannelString, s4, 11, s6-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Type:  "..ccTypeString, 7+#ccTypeString, s6, 11, s9-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "CC #:    "..ccLaneString, 9+#ccLaneString, s9, 11, s12-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Value:     "..ccValueString, 11+#ccValueString, s12, 11, s15-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, positionString..ccPositionString, #positionString+#ccPositionString, s15, 11, 2000, 40)
+            reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false)
+        --end
+    --end
 end
 
 
@@ -836,44 +828,51 @@ function updateGUI()
     
 end -- function updateGUI
 
+tMidiview = {}
+local prevTime = 0
+
 ----------------------------
-function loopMIDIInspector()   
-         
-    mustUpdateGUI = false
-    
+function loopMIDIInspector() 
+        
     -- CHECK MIDI EDITOR 
     -- Skip everything if no MIDI editor
-    
+            
     prevEditor = editor
     editor = reaper.MIDIEditor_GetActive()
     if editor == nil then 
         if prevEditor then -- Previously one or more editors were open, so this is first cycle after all editors have been closed.
+            if midiview then 
+                reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) 
+                if reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
+            end
             midiview = nil
-            midiviewDC = nil
             saveCurrentState()
             gfx.quit()
         end
     
     -- MIDI editor exists
     else
+        mustUpdateGUI = false
+    
         if not prevEditor then 
             initializeGUI() 
-            mustUpdateGUI = true
         end -- Previously no editors were open, so this is first cycle after editor has been opened. 
         
         if editor ~= prevEditor then
-            if midiviewDC and midiview and prevEditor then reaper.JS_GDI_ReleaseDC(midiview, midiviewDC) end
-            midiview = reaper.JS_Window_FindChildByID(editor, 1001) -- The piano roll child window, titled "midiview" in Windows
-            midiviewDC = midiview and reaper.JS_GDI_GetWindowDC(midiview)
-            if midiviewDC then
-                reaper.JS_GDI_SelectObject(midiviewDC, GDI_Brush)
-                reaper.JS_GDI_SelectObject(midiviewDC, GDI_Pen)
-                reaper.JS_GDI_SelectObject(midiviewDC, GDI_Font)
-                reaper.JS_GDI_SetTextBkColor(midiviewDC, GDI_TextBkColor)
-                reaper.JS_GDI_SetTextBkMode(midiviewDC, 0) -- Transparent background, so that markers and regions are still visible underneath
-                reaper.JS_GDI_SetTextColor(midiviewDC, GDI_TextColor)
+            mustUpdateGUI = true
+            -- Unlink previous editor's midiview
+            if midiview then                 
+                reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) 
+                if reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
+            end
+            -- Composite new editor's midiview
+            midiview = reaper.JS_Window_FindChildByID(editor, 1001)
+            if midiview and reaper.ValidatePtr(midiview, "HWND") then 
+                if dockedMidiview then
+                    reaper.JS_Composite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26)
+                end
             else
-                reaper.MB("Could not determine the GDI device context for the active MIDI editor.", "ERROR", 0)
+                reaper.MB("Could not determine the midiview child window of the active MIDI editor.", "ERROR", 0)
                 return false
             end
         end                
@@ -881,7 +880,7 @@ function loopMIDIInspector()
         -- CHECK MOUSE INTERACTION (before updating GUIs)
         -- This is done continuously and in each cycle, even if paused.
         
-        if dockedGDI and midiviewDC then
+        if dockedMidiview then 
         
             -- Intercept right-click on docked inspector, and give own context menu.
             local prevMouseState = mouseState or 0
@@ -890,7 +889,7 @@ function loopMIDIInspector()
                 local x, y = reaper.GetMousePosition()
                 if reaper.JS_Window_FromPoint(x, y) == midiview then
                     local cx, cy = reaper.JS_Window_ScreenToClient(midiview, x, y)
-                    if 0 <= cy and cy < 24 then
+                    if 0 <= cy and cy < 25 then
                         local menuString = paused and "!Pause|Undock||#Display position as:|" or "Pause|Undock||#Display position as:|"
                         -- Time format ranges from -1 (default) to 5
                         for i = -1, #tableTimeFormats do
@@ -905,7 +904,8 @@ function loopMIDIInspector()
                         if menuChoice == 1 then
                             paused = not paused
                         elseif menuChoice == 2 then
-                            dockedGDI = false
+                            dockedMidiview = false
+                            if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
                             mustUpdateGUI = true
                             initializeGUI()
                         elseif menuChoice > 3 then 
@@ -917,7 +917,7 @@ function loopMIDIInspector()
                 end -- if reaper.JS_Window_FromPoint(x, y) == midiview
             end -- if mouseState > prevMouseState
             
-        -- not dockedGDI: Quit script if GUI has been closed
+        -- not dockedMidiview: Quit script if GUI has been closed
         else
             -- Apparently gfx.update must be called in order to update gfx.w, gfx.mouse_x and other gfx variables
             gfx.update()  
@@ -971,15 +971,12 @@ function loopMIDIInspector()
                     mustUpdateGUI = true
                 -- Dock / Undock
                 elseif gfx.mouse_x > gfx.w/2 and gfx.mouse_x < gfx.w then
-                    if windowsOS then
-                        saveCurrentState()
-                        gfx.quit()
-                        mouseAlreadyClicked = true
-                        mustUpdateGUI = true
-                        dockedGDI = true
-                    else
-                        reaper.MB("On Linux or macOS, the MIDI Inspector can unfortunately not be docked in the piano roll.", "ERROR", 0)
-                    end
+                    saveCurrentState()
+                    gfx.quit()
+                    mouseAlreadyClicked = true
+                    mustUpdateGUI = true
+                    dockedMidiview = true
+                    if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Composite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
                 end
             end
             
@@ -1350,7 +1347,7 @@ function loopMIDIInspector()
                         end -- if gotAllOK
                     end -- if takeHash ~= prevHash: get new note and CC info           
                 end -- if take ~= nil: get new default channel and velocity
-            end -- if curPaused == false               
+            end -- if curPaused == false       
             
             prevTime = reaper.time_precise()
             
@@ -1358,12 +1355,12 @@ function loopMIDIInspector()
             
             
         -- UPDATE GUI
-        -- GUI window is only redrawn every updateTime.
-        -- GDI is update each cycle, even if paused, to minimize flickering.
-        if dockedGDI then
-            updateGDI()
-        elseif mustUpdateGUI then
-            updateGUI()
+        if mustUpdateGUI then
+            if dockedMidiview then
+                updateLICE()
+            else
+                updateGUI()
+            end
         end
          
         
@@ -1395,7 +1392,10 @@ end -- function loop GetSetChannel
 function main()
     
     -- Check whether ReaScriptAPI extension is available
-    if not reaper.JS_Window_FindEx then -- FindEx was added in v0.963
+    if not reaper.MIDI_DisableSort then
+        reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0)
+        return(false)
+    elseif not reaper.JS_LICE_WritePNG then
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
                .. "\n\nThe js_ReaScriptAPI extension can be installed via ReaPack, or can be downloaded manually."
                .. "\n\nTo install via ReaPack, ensure that the ReaTeam/Extensions repository is enabled. "
@@ -1408,6 +1408,8 @@ function main()
         reaper.ShowConsoleMsg("\n\nURL to add ReaPack repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
         reaper.ShowConsoleMsg("\n\nURL for direct download:\nhttps://github.com/juliansader/ReaExtensions")
         return(false)
+    elseif not reaper.SNM_GetIntConfigVar then reaper.MB("This script required the SWS/S&M extension, which can be downloaded from\n\nwww.sws-extension.com.", "ERROR", 0) 
+        return(false)
     end
     
     reaper.atexit(exit)
@@ -1419,29 +1421,44 @@ function main()
     end
     
     windowsOS = reaper.GetOS():match("Win")
+    if not windowsOS then 
+        textHeight = textHeight - 2 -- gfx fonts look much larger on macOS and Linux than on Windows, for some reason.
+        ME_TextHeight = ME_TextHeight - 2
+    end
+    
+    -- SETUP LICE STUFF
+    LICE_Bitmap = reaper.JS_LICE_CreateBitmap(true, 1200, 26)
+    if not LICE_Bitmap then reaper.MB("Could not create a LICE bitmap.", "ERROR", 0) return(false) end
     
     -- To make script GUI feel more 'native', try to use theme colors.
     -- Strangely, SNM_GetIntConfigVar does not appear to work for theme colors.
-    GDI_Font  = reaper.JS_GDI_CreateFont(GDI_TextHeight, GDI_TextWeight, 0, false, false, false, GDI_FontFace)
-    GDI_TextHeight = GDI_TextHeight - 1
-    if not windowsOS then textHeight = textHeight - 2 end -- gfx fonts look much larger on macOS and LInux than on Windows, for some reason.
-    
-    GDI_TextBkColor = 0x000000
-    if not GDI_TextColor then
+    ME_TextColor = tonumber(ME_TextColor)
+    if not ME_TextColor then
         local f = reaper.get_ini_file()
         if f then
             local f = io.open(f, "r")
             if f then
                 local fs = f:read("*all")
                 if fs then
-                    GDI_TextBkColor = tonumber(fs:match("midi_rulerbg=(%d+)")) or 0x000000
-                    GDI_TextColor   = tonumber(fs:match("midi_rulerfg=(%d+)")) or 0x0000FF
-                    GDI_TextBkColor = ((GDI_TextBkColor&0xFF0000)>>16) + (GDI_TextBkColor&0x00FF00) + ((GDI_TextBkColor&0x0000FF)<<16) -- REAPER.ini stores colors as BBGGRR, while the js_GDI functions require RRGGBB.
-                    GDI_TextColor = ((GDI_TextColor&0xFF0000)>>16) + (GDI_TextColor&0x00FF00) + ((GDI_TextColor&0x0000FF)<<16)
+                    ME_TextColor = tonumber(fs:match("midi_rulerfg=(%d+)")) or 0x0000FF -- REAPER's ini file uses BBGGRR format
+                    ME_TextColor = 0xFF000000 | ((ME_TextColor&0xFF0000)>>16) | (ME_TextColor&0x00FF00) | ((ME_TextColor&0x0000FF)<<16) -- LICE uses AARRGGBB
                     f:close()
     end end end end
-    GDI_Pen = reaper.JS_GDI_CreatePen(0, GDI_TextBkColor)
-    GDI_Brush = reaper.JS_GDI_CreateFillBrush(GDI_TextBkColor)
+    LICE_Font = reaper.JS_LICE_CreateFont()
+    if not LICE_Font then reaper.MB("Could not create a LICE font.", "ERROR", 0) return(false) end
+    ::setFontSize:: do
+        GDI_Font  = reaper.JS_GDI_CreateFont(ME_TextHeight, ME_TextWeight, 0, false, false, false, fontFace)
+        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
+        local options = (windowsOS and ME_TryAntiAlias) and "BLUR" or ""
+        reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, options)
+        --[[if reaper.JS_LICE_MeasureText() > 13 then
+            reaper.JS_GDI_DeleteObject(GDI_Font)
+            ME_TextHeight = ME_TextHeight - 1
+            goto setFontSize
+        end]]
+    end
+    reaper.JS_LICE_SetFontBkColor(LICE_Font, 0) -- Transparent
+    reaper.JS_LICE_SetFontColor(LICE_Font, ME_TextColor)
     
     -- Strangely, MIDI octave offet is stored in ini file with value 1 higher than that shown in Preferences.
     octaveOffset = reaper.SNM_GetIntConfigVar("midioctoffs", 0) - 1    
