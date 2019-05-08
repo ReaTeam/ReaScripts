@@ -7,7 +7,7 @@ Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
 Provides: 
   [main=midi_editor,midi_inlineeditor] .
-  js_Mouse editing - Arch and tilt.cur
+  js_Mouse editing - Arch and Tilt.cur
 About:
   # DESCRIPTION
   
