@@ -31,6 +31,8 @@ About:
   # GUI FONTS AND COLORS
   
   In the script's USER AREA the user can change fonts and colors.  
+
+  (On Windows, the script uses blurring to "fake" antialiasing. This can also be switched on or off in the USER AREA.)
   
   
   # TERMINATION
@@ -134,7 +136,7 @@ About:
     + Fixed: Only capture right-click where docked inspector is visible.
   * v1.50 (2019-04-08)
     + Linux, macOS: Enable docking in piano roll.
-    + WindowsOS: Less flickering and "fake" antialias when docked in piano roll.
+    + WindowsOS: Less flickering and "fake" antialiasing when docked in piano roll.
 ]]
 
 -- USER AREA
@@ -155,7 +157,7 @@ shadowColor = {0,0,0,1}
 ME_TextHeight = 13 
 ME_TextWeight = 100 -- Integer between 0 and 1000
 ME_TextColor = nil -- 0xFF0000 -- Color in RRGGBB format. If nil, script will try to find theme color.
-ME_TryAntiAlias = true -- On Windows, small LICE text is not properly antialiased.  This setting tries to achieve a similar effect by slightly blurring the text.
+ME_TryAntiAlias = false -- On Windows, small LICE text is not properly antialiased.  This setting tries to achieve a similar effect by slightly blurring the text.
 local s1, s2, s4, s6, s9, s12, s15 = 46, 110, 220, 330, 450, 600, 750 -- Spacing (tabs, in pixels) when drawing info in MIDI editor
 
 -- End of USER AREA 
