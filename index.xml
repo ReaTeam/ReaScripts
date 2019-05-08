@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="72fbb3604a253965646b4bc71ca36da7704747d1" name="ReaTeam Scripts">
+<index version="1" commit="efe1a846664f6b94c2f2b8907eaee8e83c4c5071" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1556,6 +1556,10 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="2.04" author="juliansader / Xenakios" time="2018-12-28T09:24:10Z">
         <changelog><![CDATA[+ Fix bug when right-clicking on node to set value.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
+      </version>
+      <version name="2.10" author="juliansader / Xenakios" time="2019-05-08T17:34:19Z">
+        <changelog><![CDATA[+ If REAPER v5.976 or later is installed, Automation Item LFOs will be recalled even after copying without pooling.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/efe1a846664f6b94c2f2b8907eaee8e83c4c5071/Envelopes/js_Envelope%20LFO%20generator%20and%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Switch to next track envelope in selected tracks.lua" type="script" desc="Switch to next track envelope in selected tracks">
