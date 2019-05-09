@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="efe1a846664f6b94c2f2b8907eaee8e83c4c5071" name="ReaTeam Scripts">
+<index version="1" commit="fb43938da22efa2e276f1b43397fd95fd7168c33" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5824,9 +5824,9 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ macOS and Linux: In Compress mode, draw guidelines on screen (as on WindowsOS)
 + Clicking armed toolbar button disarms script.
 + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.]]></changelog>
-        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/77370f337f2ad26658f960e77bcb1cc6a18f1606/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
-        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/77370f337f2ad26658f960e77bcb1cc6a18f1606/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
-        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/77370f337f2ad26658f960e77bcb1cc6a18f1606/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fb43938da22efa2e276f1b43397fd95fd7168c33/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
+        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/fb43938da22efa2e276f1b43397fd95fd7168c33/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
+        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/fb43938da22efa2e276f1b43397fd95fd7168c33/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Swipe select.lua" type="script" desc="js_Mouse editing - Swipe select.lua">
