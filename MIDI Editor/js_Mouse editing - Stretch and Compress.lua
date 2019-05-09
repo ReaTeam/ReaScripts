@@ -2599,7 +2599,7 @@ function MAIN()
     if not reaper.MIDI_DisableSort then
         reaper.MB("This script requires REAPER v5.974 or higher.", "ERROR", 0)
         return(false) 
-    elseif not reaper.JS_LICE_WritePNG then
+    elseif not reaper.JS_VKeys_GetDown then
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
                .. "\n\nThe js_ReaScripAPI extension can be installed via ReaPack, or can be downloaded manually."
                .. "\n\nTo install via ReaPack, ensure that the ReaTeam/Extensions repository is enabled. "
