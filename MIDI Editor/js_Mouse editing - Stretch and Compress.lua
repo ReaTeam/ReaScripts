@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Stretch and Compress.lua
-Version: 4.20
+Version: 4.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -164,6 +164,8 @@ About:
     + macOS and Linux: In Compress mode, draw guidelines on screen (as on WindowsOS)
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
+  * v4.21 (2019-05-11)
+    + Fix spike in bottom guideline.
 ]]
 
 -- USER AREA 
@@ -1143,13 +1145,13 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
                             b1 = ME_TargetBottomPixel+1
                         end
                     else
-                        reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, mouseY, Guides_COLOR_TOP, 1, "COPY", true)
+                        reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, mouseY, Guides_COLOR_BOTTOM, 1, "COPY", true)
                         b1 = mouseY
                         if compressSYMMETRIC then
-                            reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, ME_TargetTopPixel - (mouseY-ME_TargetBottomPixel), Guides_COLOR_BOTTOM, 1, "COPY", true)
+                            reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, ME_TargetTopPixel - (mouseY-ME_TargetBottomPixel), Guides_COLOR_TOP, 1, "COPY", true)
                             t1 = ME_TargetTopPixel - (mouseY-ME_TargetBottomPixel)
                         else
-                            reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, ME_TargetBottomPixel+1, Guides_COLOR_BOTTOM, 1, "COPY", true)
+                            reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, ME_TargetTopPixel, Guides_COLOR_TOP, 1, "COPY", true)
                             t1 = ME_TargetTopPixel
                         end
                     end
