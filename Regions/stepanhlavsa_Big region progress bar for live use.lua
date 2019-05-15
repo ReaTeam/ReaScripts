@@ -1,7 +1,6 @@
--- @description Window for live use with 6 big customizable buttons and showing region names, colors and progress bar
+-- @description Big region progress bar for live use
 -- @author Stepan Hlavsa
 -- @version 1.0
--- @provides [windows] .
 -- @screenshot Main window http://stepan.ac-usti.cz/regionnames.png
 -- @about
 --   Window for live use with 6 big customizable buttons showing region names, colors and progress bar
