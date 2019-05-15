@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d96d24be84cc5cf89609ff4c4ae4a3ad75a68ea" name="ReaTeam Scripts">
+<index version="1" commit="96e520395ca8ed3072ca621289d7f62c421aebbc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7593,6 +7593,28 @@ enter or a = Exit and apply changes\par}
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Regions/spk77_Create%20regions%20(with%20tail)%20from%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="stepanhlavsa_Big region progress bar for live use.lua" type="script" desc="Big region progress bar for live use">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Window for live use with 6 big customizable buttons showing region names, colors and progress bar\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Created for live use with backing tracks\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Simple operation even with touch screen devices (like tablets running remote desktop of main computer)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 6 big clickable areas with any assignable Reaper actions\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Showing region names and next region during playback\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Showing main window with color of current region and progress bar with color of next region (easy visual clues for song parts like chorus or bridge)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab All elements are bright and super big, even on small mobile displays.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab User can change at the begining of the script following parameters: window starting size, font size, size of play/stop sign, height of progress bar, names and IDs of 6 actions.\sa180\par}
+}
+]]></description>
+        <link rel="screenshot" href="http://stepan.ac-usti.cz/regionnames.png">Main window</link>
+      </metadata>
+      <version name="1.0" author="Stepan Hlavsa" time="2019-05-15T17:58:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/96e520395ca8ed3072ca621289d7f62c421aebbc/Regions/stepanhlavsa_Big%20region%20progress%20bar%20for%20live%20use.lua</source>
       </version>
     </reapack>
     <reapack name="Thonex_Set region at edit cursor to time selection.lua" type="script" desc="Set region at edit cursor to time selection">
