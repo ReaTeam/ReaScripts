@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.50
+Version: 1.55
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -31,8 +31,11 @@ About:
   # GUI FONTS AND COLORS
   
   In the script's USER AREA the user can change fonts and colors.  
-
-  (On Windows, the script uses blurring to "fake" antialiasing. This can also be switched on or off in the USER AREA.)
+  
+  The piano roll font settings can also be accessed through the right-click context menu.  
+  Font options are BLUR, SHADOW, INVERT, NATIVE, BOTTOMUP, MONO, VERTICAL and OUTLINE.
+  NOTE: On Windows, small LICE text is not properly antialiased.  The "BLUR" option may achieve a similar effect by slightly blurring the text.
+  
   
   
   # TERMINATION
@@ -136,7 +139,9 @@ About:
     + Fixed: Only capture right-click where docked inspector is visible.
   * v1.50 (2019-04-08)
     + Linux, macOS: Enable docking in piano roll.
-    + WindowsOS: Less flickering and "fake" antialiasing when docked in piano roll.
+    + WindowsOS: Less flickering and "fake" antialias when docked in piano roll.
+  * v1.55 (2019-05-15)
+    + Edit piano roll font settings through right-click menu.
 ]]
 
 -- USER AREA
@@ -154,11 +159,12 @@ backgroundColor = {0.18, 0.18, 0.18, 1}
 shadowColor = {0,0,0,1}
 
 -- Parameters for docked in MIDI editor ruler:
+ME_FontFace = "Arial"
 ME_TextHeight = 13 
 ME_TextWeight = 100 -- Integer between 0 and 1000
-ME_TextColor = nil -- 0xFF0000 -- Color in RRGGBB format. If nil, script will try to find theme color.
-ME_TryAntiAlias = false -- On Windows, small LICE text is not properly antialiased.  This setting tries to achieve a similar effect by slightly blurring the text.
-local s1, s2, s4, s6, s9, s12, s15 = 46, 110, 220, 330, 450, 600, 750 -- Spacing (tabs, in pixels) when drawing info in MIDI editor
+ME_TextColor = nil -- Color in RRGGBB format. If nil, script will try to find theme color.
+ME_TextOptions = "" -- On Windows, small LICE text is not properly antialiased.  The "BLUR" option may achieve a similar effect by slightly blurring the text.
+local s1, s2, s4, s6, s9, s12, s15 = 46, 110, 215, 320, 450, 600, 750 -- Spacing (tabs, in pixels) when drawing info in MIDI editor
 
 -- End of USER AREA 
 
@@ -565,9 +571,9 @@ function updateLICE()
             reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, numCCs, #numCCs, s1, 11, s2-4, 40)
             reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Selected: "..countSelCCs, 10+#countSelCCs, s2, 11, s4-4, 40)
             reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Channel: "..ccChannelString, 9+#ccChannelString, s4, 11, s6-4, 40)
-            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Type:  "..ccTypeString, 7+#ccTypeString, s6, 11, s9-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Type: "..ccTypeString, 6+#ccTypeString, s6, 11, s9-4, 40)
             reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "CC #:    "..ccLaneString, 9+#ccLaneString, s9, 11, s12-4, 40)
-            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Value:     "..ccValueString, 11+#ccValueString, s12, 11, s15-4, 40)
+            reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, "Value:    "..ccValueString, 10+#ccValueString, s12, 11, s15-4, 40)
             reaper.JS_LICE_DrawText(LICE_Bitmap, LICE_Font, positionString..ccPositionString, #positionString+#ccPositionString, s15, 11, 2000, 40)
             reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false)
         --end
@@ -830,9 +836,42 @@ function updateGUI()
     
 end -- function updateGUI
 
+
+------------------------------
+function getUserFontSettings()
+    local inputsOK, inputs
+    repeat
+        inputsOK, inputs = reaper.GetUserInputs("Font settings", 5, 
+                                                     "Font name,Height (7 - 16 pixels),Weight (0 - 1000),Color (0xAARRGGBB or 'theme'),Options (BLUR SHADOW etc),extrawidth=50", 
+                                                     (tostring(ME_FontFace or ""))
+                                                     ..","..(tostring(ME_TextHeight or ""))
+                                                     ..","..(tostring(ME_TextWeight or ""))
+                                                     ..","..(string.format("0x%08X", (tonumber(ME_TextColor)) or themeTextColor))
+                                                     ..","..(tostring(ME_TextOptions or "")))
+        if not inputsOK then return false end
+        ME_FontFace, ME_TextHeight, ME_TextWeight, ME_TextColor, ME_TextOptions = inputs:match("([^,]*),([^,]*),([^,]*),([^,]*),(.*)")
+        ME_TextHeight = tonumber(ME_TextHeight)
+        ME_TextWeight = tonumber(ME_TextWeight)
+        ME_TextColor  = tonumber(ME_TextColor) or themeTextColor
+        ME_TextOptions = ME_TextOptions or ""
+    until (ME_FontFace
+        and ME_TextHeight and 7 <= ME_TextHeight and ME_TextHeight <= 16 
+        and ME_TextWeight and 0 <= ME_TextWeight and ME_TextWeight <= 1000
+        and ME_TextColor  and 0 <= ME_TextColor  and ME_TextColor  <= 0xFFFFFFFF)
+       
+       reaper.SetExtState("MIDI Inspector", "Appearance", inputs, true)
+       
+       if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
+       GDI_Font  = reaper.JS_GDI_CreateFont(ME_TextHeight, ME_TextWeight, 0, false, false, false, ME_FontFace)
+       if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
+       reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
+       reaper.JS_LICE_SetFontColor(LICE_Font, ME_TextColor)
+       return true
+end 
+
+
 tMidiview = {}
 local prevTime = 0
-
 ----------------------------
 function loopMIDIInspector() 
         
@@ -898,6 +937,7 @@ function loopMIDIInspector()
                             if i == timeFormat then menuString = menuString .. "!" end
                             menuString = menuString .. tableTimeFormats[i] .. "|"
                         end
+                        menuString = menuString .. "|Font settings"
                         gfx.init("", 0, 0, 0, x+20, y+30)
                         gfx.x = -20
                         gfx.y = -50
@@ -910,6 +950,9 @@ function loopMIDIInspector()
                             if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Composite_Unlink(midiview, LICE_Bitmap) reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false) end
                             mustUpdateGUI = true
                             initializeGUI()
+                        elseif menuChoice == 6 + #tableTimeFormats then
+                            getUserFontSettings()
+                            mustUpdateGUI = true
                         elseif menuChoice > 3 then 
                             timeFormat = menuChoice-5
                             mustUpdateGUI = true
@@ -1428,43 +1471,59 @@ function main()
         ME_TextHeight = ME_TextHeight - 2
     end
     
+    -- Strangely, MIDI octave offet is stored in ini file with value 1 higher than that shown in Preferences.
+    octaveOffset = reaper.SNM_GetIntConfigVar("midioctoffs", 0) - 1   
+    
     -- SETUP LICE STUFF
     LICE_Bitmap = reaper.JS_LICE_CreateBitmap(true, 1200, 26)
     if not LICE_Bitmap then reaper.MB("Could not create a LICE bitmap.", "ERROR", 0) return(false) end
     
     -- To make script GUI feel more 'native', try to use theme colors.
     -- Strangely, SNM_GetIntConfigVar does not appear to work for theme colors.
-    ME_TextColor = tonumber(ME_TextColor)
-    if not ME_TextColor then
+    if not themeTextColor then
         local f = reaper.get_ini_file()
         if f then
             local f = io.open(f, "r")
             if f then
                 local fs = f:read("*all")
                 if fs then
-                    ME_TextColor = tonumber(fs:match("midi_rulerfg=(%d+)")) or 0x0000FF -- REAPER's ini file uses BBGGRR format
-                    ME_TextColor = 0xFF000000 | ((ME_TextColor&0xFF0000)>>16) | (ME_TextColor&0x00FF00) | ((ME_TextColor&0x0000FF)<<16) -- LICE uses AARRGGBB
+                    themeTextColor = tonumber(fs:match("midi_rulerfg=(%d+)")) -- REAPER's ini file uses BBGGRR format
+                    if themeTextColor then
+                        themeTextColor = 0xFF000000 | math.min(0xFF0000, 2*(themeTextColor&0xFF0000)) | math.min(0x00FF00, 2*(themeTextColor&0x00FF00)) | math.min(0x0000FF, 2*(themeTextColor&0x0000FF)) -- LICE uses AARRGGBB
+                    end
                     f:close()
     end end end end
+    if not themeTextColor then themeTextColor = 0xFFFF0000 end
+    
     LICE_Font = reaper.JS_LICE_CreateFont()
     if not LICE_Font then reaper.MB("Could not create a LICE font.", "ERROR", 0) return(false) end
-    ::setFontSize:: do
-        GDI_Font  = reaper.JS_GDI_CreateFont(ME_TextHeight, ME_TextWeight, 0, false, false, false, fontFace)
-        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
-        local options = (windowsOS and ME_TryAntiAlias) and "BLUR" or ""
-        reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, options)
-        --[[if reaper.JS_LICE_MeasureText() > 13 then
-            reaper.JS_GDI_DeleteObject(GDI_Font)
-            ME_TextHeight = ME_TextHeight - 1
-            goto setFontSize
-        end]]
-    end
     reaper.JS_LICE_SetFontBkColor(LICE_Font, 0) -- Transparent
-    reaper.JS_LICE_SetFontColor(LICE_Font, ME_TextColor)
     
-    -- Strangely, MIDI octave offet is stored in ini file with value 1 higher than that shown in Preferences.
-    octaveOffset = reaper.SNM_GetIntConfigVar("midioctoffs", 0) - 1    
+    appearanceExtState = reaper.GetExtState("MIDI Inspector", "Appearance") or ""
+    local init_FontFace, init_TextHeight, init_TextWeight, init_TextColor, init_TextOptions = appearanceExtState:match("([^,]*),([^,]*),([^,]*),([^,]*),(.*)")
+    init_TextHeight = tonumber(init_TextHeight)
+    init_TextWeight = tonumber(init_TextWeight)
+    init_TextColor  = tonumber(init_TextColor) or themeTextColor
+    init_TextOptions = init_TextOptions or ""
     
+    if not (init_FontFace 
+        and init_TextHeight and 7 <= init_TextHeight and init_TextHeight <= 16 
+        and init_TextWeight and 0 <= init_TextWeight and init_TextWeight <= 1000
+        and init_TextColor  and 0 <= init_TextColor  and init_TextColor  <= 0xFFFFFFFF)
+        then
+        if not getUserFontSettings() then return end
+    else
+        ME_FontFace   = init_FontFace
+        ME_TextHeight = init_TextHeight
+        ME_TextWeight = init_TextWeight
+        ME_TextColor  = init_TextColor
+        ME_TextOptions  = init_TextOptions
+        GDI_Font  = reaper.JS_GDI_CreateFont(ME_TextHeight, ME_TextWeight, 0, false, false, false, ME_FontFace)
+        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
+        reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
+        reaper.JS_LICE_SetFontColor(LICE_Font, ME_TextColor)
+    end    
+ 
     loopMIDIInspector()
 end
 
