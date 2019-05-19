@@ -11,8 +11,8 @@
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
 --   [main] cfillion_Song switcher/cfillion_Song switcher - Reset data.lua
 --   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
---   cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua
---   cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=181159
 -- @screenshot
 --   Docked Mode https://i.imgur.com/4xPMV9J.gif
