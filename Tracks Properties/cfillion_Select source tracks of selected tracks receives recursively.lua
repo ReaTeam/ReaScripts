@@ -1,10 +1,7 @@
 -- @description Select source tracks of selected tracks receives recursively
--- @version 1.2
+-- @version 1.2.1
 -- @author cfillion
--- @changelog
---   Fix a bug causing some tracks to not be selected in a single shot
---   Ignore muted receives
---   Select tracks down the folder hierarchy (obeying parent send)
+-- @changelog Fix crash when encountering feedback routings
 -- @donation https://www.paypal.me/cfillion
 -- @metapackage
 -- @provides
