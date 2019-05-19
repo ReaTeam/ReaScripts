@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e13ad02c8b420038231a0b7d1f760fe3e96fbee1" name="ReaTeam Scripts">
+<index version="1" commit="ea5bb103f06865f3042183bf280668cc2cf2b398" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8132,6 +8132,10 @@ Select tracks up the folder hierarchy (obeying parent send)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
         <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
+      <version name="1.2.1" author="cfillion" time="2019-05-19T19:54:14Z">
+        <changelog><![CDATA[Fix crash when encountering feedback routings]]></changelog>
+        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/4305c7510c7d34822b9ac187e3b4db39b8bd099d/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
     </reapack>
     <reapack name="cfillion_Select source tracks of selected tracks receives recursively.lua" type="script" desc="Select source tracks of selected tracks receives recursively">
       <metadata>
@@ -8159,6 +8163,11 @@ Ignore muted receives
 Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
+      <version name="1.2.1" author="cfillion" time="2019-05-19T19:55:10Z">
+        <changelog><![CDATA[Fix crash when encountering feedback routings]]></changelog>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/ea5bb103f06865f3042183bf280668cc2cf2b398/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/ea5bb103f06865f3042183bf280668cc2cf2b398/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle track FX bypass by name.lua" type="script" desc="Toggle track FX bypass by name">
@@ -9672,7 +9681,7 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df24169a2943824f7605653ad3c987e104edc20c/Various/cfillion_Project%20underrun%20monitor%20(xrun).lua</source>
       </version>
     </reapack>
-    <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher">
+    <reapack name="cfillion_Song switcher.lua" type="script" desc="Song switcher (for live use)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -9684,12 +9693,13 @@ Fix mouse cursor click hit detection in small windows]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Each song must be in a top-level folder track named "#. Song Name" ("#" being any number).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 After selecting a song, Song switcher mutes and hides all songs in the project except for the current one. Other tracks/folders that are not part of a song's top-level folder are left untouched.\line Song switcher can also optionally stop playback and/or seek to the first item in the song when switching.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works best with REAPER settings "{\b Do not process muted tracks}" and "{\b Track mute fade}" enabled.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The following actions are included:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher.lua}: This is the main script. It must be open to use the others.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (previous).lua}: Goes to the previous song\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (next).lua}: Goes to the next song\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cfillion_Song switcher (reset).lua}: Rebuilds the song list\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+). Note that the timecode displayed in the web interface always starts at 00:00. This means that even if a song starts at 7:45 in the project and ends at 9:12, it's displayed as 00:00 to 01:26 on the web interface for convenience.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The following additional actions are included for communicating to the main script:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Switch to previous song.lua\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Switch to next song.lua\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Switch song by MIDI CC.lua\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Switch to queued song.lua\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab cfillion_Song switcher - Reset data.lua\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A web browser interface is also installed as {\b song_switcher.html} for remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+). Note that the timecode displayed in the web interface always starts at 00:00 for convenience. This means that a song spanning from 7:45 to 9:12 in the project is displayed as 00:00 to 01:26 on the web interface.\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=181159">Forum Thread</link>
@@ -9809,6 +9819,19 @@ Web Interface: use custom marker colors]]></changelog>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (previous).lua">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(previous).lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher (reset).lua">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20(reset).lua</source>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/c535ffc3cafec14e52d6d16a4cbfd9be7debdab7/Various/cfillion_Song%20switcher/song_switcher.html</source>
+      </version>
+      <version name="1.5" author="cfillion" time="2019-05-19T19:50:40Z">
+        <changelog><![CDATA[add action for switching songs using a MIDI controller [p=2131262]
+add action for switching to the queued song [p=2133615]
+
+Web Interface: restore the previous locked state on load]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20next%20song.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20previous%20song.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Reset data.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Reset%20data.lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/song_switcher.html</source>
+        <source file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20queued%20song.lua</source>
+        <source file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20song%20by%20MIDI%20CC.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
