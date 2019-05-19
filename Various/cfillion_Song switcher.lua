@@ -1,16 +1,18 @@
--- @description Song switcher
+-- @description Song switcher (for live use)
 -- @author cfillion
--- @version 1.4.5
+-- @version 1.5
 -- @changelog
---   add option to scroll arrange view on song switch
---   fix crash when moving a deleted song
+--   add action for switching songs using a MIDI controller [p=2131262]
+--   add action for switching to the queued song [p=2133615]
 --
---   Web Interface: use custom marker colors
+--   Web Interface: restore the previous locked state on load
 -- @provides
---   [main] cfillion_Song switcher/cfillion_Song switcher (next).lua
---   [main] cfillion_Song switcher/cfillion_Song switcher (previous).lua
---   [main] cfillion_Song switcher/cfillion_Song switcher (reset).lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Reset data.lua
 --   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
+--   cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua
+--   cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=181159
 -- @screenshot
 --   Docked Mode https://i.imgur.com/4xPMV9J.gif
@@ -38,19 +40,17 @@
 --   This script works best with REAPER settings "**Do not process muted tracks**"
 --   and "**Track mute fade**" enabled.
 --
---   The following actions are included:
---
---   - **cfillion_Song switcher.lua**:
---     This is the main script. It must be open to use the others.
---   - **cfillion_Song switcher (previous).lua**: Goes to the previous song
---   - **cfillion_Song switcher (next).lua**: Goes to the next song
---   - **cfillion_Song switcher (reset).lua**: Rebuilds the song list
+--   The following additional actions are included for communicating to the main script:
+--   - cfillion_Song switcher - Switch to previous song.lua
+--   - cfillion_Song switcher - Switch to next song.lua
+--   - cfillion_Song switcher - Switch song by MIDI CC.lua
+--   - cfillion_Song switcher - Switch to queued song.lua
+--   - cfillion_Song switcher - Reset data.lua
 --
 --   A web browser interface is also installed as **song_switcher.html** for
 --   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
---   Note that the timecode displayed in the web interface always starts at 00:00.
---   This means that even if a song starts at 7:45 in the project and ends at 9:12,
---   it's displayed as 00:00 to 01:26 on the web interface for convenience.
+--   Note that the timecode displayed in the web interface always starts at 00:00 for convenience.
+--   This means that a song spanning from 7:45 to 9:12 in the project is displayed as 00:00 to 01:26 on the web interface.
 
 local WINDOW_TITLE = 'Song switcher'
 
@@ -107,10 +107,7 @@ local EXT_SECTION = 'cfillion_song_switcher'
 local EXT_SWITCH_MODE = 'onswitch'
 local EXT_WINDOW_STATE = 'window_state'
 local EXT_LAST_DOCK = 'last_dock'
-local EXT_REL_MOVE = 'relative_move'
-local EXT_RESET = 'reset'
 local EXT_STATE = 'state'
-local EXT_FILTER = 'filter'
 
 local SWITCH_SEEK   = 1<<0
 local SWITCH_STOP   = 1<<1
@@ -118,6 +115,32 @@ local SWITCH_SCROLL = 1<<2
 local SWITCH_ALL    = SWITCH_SEEK | SWITCH_STOP | SWITCH_SCROLL
 
 local UNDO_STATE_TRACKCFG = 1
+
+local SIGNALS = {
+  relative_move=function(move)
+    move = tonumber(move)
+
+    if move then
+      trySetCurrentIndex(currentIndex + move)
+    end
+  end,
+  absolute_move=function(index)
+    trySetCurrentIndex(tonumber(index))
+  end,
+  activate_queued=function()
+    if currentIndex ~= nextIndex then
+      setCurrentIndex(nextIndex)
+    end
+  end,
+  filter=function(filter)
+    local index = findSong(filter)
+
+    if index then
+      setCurrentIndex(index)
+    end
+  end,
+  reset=function() reset() end,
+}
 
 function loadTracks()
   local songs = {}
@@ -816,28 +839,11 @@ function loop()
 end
 
 function execRemoteActions()
-  if reaper.HasExtState(EXT_SECTION, EXT_REL_MOVE) then
-    local move = tonumber(reaper.GetExtState(EXT_SECTION, EXT_REL_MOVE))
-    reaper.DeleteExtState(EXT_SECTION, EXT_REL_MOVE, false);
-
-    if move then
-      trySetCurrentIndex(currentIndex + move)
-    end
-  end
-
-  if reaper.HasExtState(EXT_SECTION, EXT_RESET) then
-    reaper.DeleteExtState(EXT_SECTION, EXT_RESET, false);
-    reset()
-  end
-
-  if reaper.HasExtState(EXT_SECTION, EXT_FILTER) then
-    local filter = reaper.GetExtState(EXT_SECTION, EXT_FILTER)
-    reaper.DeleteExtState(EXT_SECTION, EXT_FILTER, false);
-
-    local index, _ = findSong(filter)
-
-    if index then
-      setCurrentIndex(index)
+  for signal, handler in pairs(SIGNALS) do
+    if reaper.HasExtState(EXT_SECTION, signal) then
+      local value = reaper.GetExtState(EXT_SECTION, signal)
+      reaper.DeleteExtState(EXT_SECTION, signal, false);
+      handler(value)
     end
   end
 end
@@ -879,9 +885,9 @@ function reset()
   filterBuffer = ''
 
   -- clear previous pending external commands
-  reaper.DeleteExtState(EXT_SECTION, EXT_REL_MOVE, false)
-  reaper.DeleteExtState(EXT_SECTION, EXT_RESET, false)
-  reaper.DeleteExtState(EXT_SECTION, EXT_FILTER, false)
+  for signal, _ in pairs(SIGNALS) do
+    reaper.DeleteExtState(EXT_SECTION, signal, false)
+  end
 
   if activeCount == 1 then
     if visibleCount == 0 then
