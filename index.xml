@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ea5bb103f06865f3042183bf280668cc2cf2b398" name="ReaTeam Scripts">
+<index version="1" commit="7c852f9c73cf5537e2c8e3a12011db7e1c53fce0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9825,13 +9825,13 @@ Web Interface: use custom marker colors]]></changelog>
 add action for switching to the queued song [p=2133615]
 
 Web Interface: restore the previous locked state on load]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher.lua</source>
-        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20next%20song.lua</source>
-        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20previous%20song.lua</source>
-        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Reset data.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Reset%20data.lua</source>
-        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/song_switcher.html</source>
-        <source file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20queued%20song.lua</source>
-        <source file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/497b1775f9d846478a62817806714816414ddcd4/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20song%20by%20MIDI%20CC.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20next%20song.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20previous%20song.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Reset data.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Reset%20data.lua</source>
+        <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/song_switcher.html</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20queued%20song.lua</source>
+        <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20song%20by%20MIDI%20CC.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
