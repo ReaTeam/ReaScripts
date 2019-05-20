@@ -1,9 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.3
+Version: 2.16.4
 Changelog:
-    Fix: Scripts created with GUI Builder weren't populating their menuboxes
-    with options
+    Fix: Selection with Shift+Arrows in TextBox was broken
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
