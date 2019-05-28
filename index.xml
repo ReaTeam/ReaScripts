@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7df08ad58eb5aedc8d9431a87d28a1fc4b95fc8e" name="ReaTeam Scripts">
+<index version="1" commit="840b236f8867144c8b9b30017d62ebfaa0044437" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8667,6 +8667,51 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="1.0" author="SPK77, SeXan" time="2016-04-27T18:53:05Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf20af427620f6362c8ed47276cf7a2e73c8ffb7/Tracks%20Properties/spk77_Sexan_Folder%20Record%20and%20Monitor%20Arm%20To%20Children.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tm_Set hardware outputs of selected tracks to post-fader.lua" type="script" desc="Set hardware outputs of selected tracks to post-fader">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 All credits go to cfillion for his original script and to nofish for helping me editing it.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="TM" time="2019-05-28T00:52:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8c0b2f48ce8218025739e7a27cac295169c71269/Tracks%20Properties/tm_Set%20hardware%20outputs%20of%20selected%20tracks%20to%20post-fader.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tm_Set hardware outputs of selected tracks to pre-fader (post-fx).lua" type="script" desc="Set hardware outputs of selected tracks to pre-fader (post-fx)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 All credits go to cfillion for his original script and to nofish for helping me editing it.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="TM" time="2019-05-28T00:52:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/840b236f8867144c8b9b30017d62ebfaa0044437/Tracks%20Properties/tm_Set%20hardware%20outputs%20of%20selected%20tracks%20to%20pre-fader%20(post-fx).lua</source>
+      </version>
+    </reapack>
+    <reapack name="tm_Set hardware outputs of selected tracks to pre-fader (pre-fx).lua" type="script" desc="Set hardware outputs of selected tracks to pre-fader (pre-fx)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 All credits go to cfillion for his original script and to nofish for helping me editing it.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="TM" time="2019-05-28T00:52:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f6f426669d103cd5f412e44493dc8d45d8428def/Tracks%20Properties/tm_Set%20hardware%20outputs%20of%20selected%20tracks%20to%20pre-fader%20(pre-fx).lua</source>
       </version>
     </reapack>
   </category>
