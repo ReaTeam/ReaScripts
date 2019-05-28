@@ -1,5 +1,5 @@
 -- @description Create tempo-map from markers (and remove markers)
--- @version 1.0
+-- @version 1.1
 -- @author Mordi
 -- @about
 --  This script will take all of your markers and
@@ -8,6 +8,8 @@
 --
 --  Made by Mordi, Nov 2017
 --  Thanks to X-Raym for some snippets
+
+reaper.PreventUIRefresh(1)
 
 -- Begin undo-block
 reaper.Undo_BeginBlock()
@@ -60,3 +62,7 @@ reaper.GetSet_LoopTimeRange(1, 1, init_start_loop, init_end_loop, 0)
 
 -- End undo-block
 reaper.Undo_EndBlock("Create tempo-map from markers", 0)
+
+reaper.UpdateArrange()
+
+reaper.PreventUIRefresh(-1)
