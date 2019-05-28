@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="840b236f8867144c8b9b30017d62ebfaa0044437" name="ReaTeam Scripts">
+<index version="1" commit="a0dd9ddc005ebddedab4fcc6ce846ec8b2de50af" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3892,6 +3892,9 @@ Renumber markers and regions when pasting]]></changelog>
       </metadata>
       <version name="1.0" author="Mordi" time="2017-12-01T03:58:51Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5875a3d107187ba16e084f1e2c0a2626d8632ea8/Markers/Mordi_Create%20tempo-map%20from%20markers.lua</source>
+      </version>
+      <version name="1.1" author="Mordi" time="2019-05-28T12:12:55Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a0dd9ddc005ebddedab4fcc6ce846ec8b2de50af/Markers/Mordi_Create%20tempo-map%20from%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Duplicate previous marker.lua" type="script" desc="Duplicate previous marker">
