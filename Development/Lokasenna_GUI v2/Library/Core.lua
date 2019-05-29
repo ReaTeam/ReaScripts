@@ -53,9 +53,10 @@ GUI.version = GUI.get_version()
 
 -- ReaPack version info
 GUI.get_script_version = function()
+  if not reaper.ReaPack_GetOwner then return "2.x" end
 
   local package, err = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
-  if not package then return "(version error)" end
+  if not package then return "2.x" end
 
   --ret, repo, cat, pkg, desc, type, ver, author, pinned, fileCount = reaper.ReaPack_GetEntryInfo( entry )
   local package_info = {reaper.ReaPack_GetEntryInfo(package)}
