@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.5
+Version: 2.16.6
 Changelog:
-    Fix: Crash when trying to run the GUI without ReaPack
+    Fix: Crash when GUI.version has been set to nil
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
