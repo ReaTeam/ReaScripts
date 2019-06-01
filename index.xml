@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="81951ca3a88cdff4d9f58c36c2cad66197900abe" name="ReaTeam Scripts">
+<index version="1" commit="2a82409495e7e50bc92124134c209301c3b8edb8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6716,6 +6716,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li0 \fi0 Requires the SWS extension.\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2141684">Forum Thread</link>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://www.paypal.me/Lokasenna</link>
       </metadata>
@@ -6764,6 +6765,52 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source file="Lokasenna_CC Ryder/save_8.png">https://github.com/ReaTeam/ReaScripts/raw/81951ca3a88cdff4d9f58c36c2cad66197900abe/MIDI%20Editor/Lokasenna_CC%20Ryder/save_8.png</source>
         <source file="Lokasenna_CC Ryder/save_9.png">https://github.com/ReaTeam/ReaScripts/raw/81951ca3a88cdff4d9f58c36c2cad66197900abe/MIDI%20Editor/Lokasenna_CC%20Ryder/save_9.png</source>
         <source file="Lokasenna_CC Ryder/save_label.png">https://github.com/ReaTeam/ReaScripts/raw/81951ca3a88cdff4d9f58c36c2cad66197900abe/MIDI%20Editor/Lokasenna_CC%20Ryder/save_label.png</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2019-06-01T20:14:49Z">
+        <changelog><![CDATA[Add: Link to forum thread]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder.lua</source>
+        <source file="Lokasenna_CC Ryder/restore_1.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_1.png</source>
+        <source file="Lokasenna_CC Ryder/restore_10.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_10.png</source>
+        <source file="Lokasenna_CC Ryder/restore_11.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_11.png</source>
+        <source file="Lokasenna_CC Ryder/restore_12.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_12.png</source>
+        <source file="Lokasenna_CC Ryder/restore_13.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_13.png</source>
+        <source file="Lokasenna_CC Ryder/restore_14.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_14.png</source>
+        <source file="Lokasenna_CC Ryder/restore_15.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_15.png</source>
+        <source file="Lokasenna_CC Ryder/restore_16.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_16.png</source>
+        <source file="Lokasenna_CC Ryder/restore_17.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_17.png</source>
+        <source file="Lokasenna_CC Ryder/restore_18.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_18.png</source>
+        <source file="Lokasenna_CC Ryder/restore_19.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_19.png</source>
+        <source file="Lokasenna_CC Ryder/restore_2.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_2.png</source>
+        <source file="Lokasenna_CC Ryder/restore_20.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_20.png</source>
+        <source file="Lokasenna_CC Ryder/restore_3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_3.png</source>
+        <source file="Lokasenna_CC Ryder/restore_4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_4.png</source>
+        <source file="Lokasenna_CC Ryder/restore_5.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_5.png</source>
+        <source file="Lokasenna_CC Ryder/restore_6.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_6.png</source>
+        <source file="Lokasenna_CC Ryder/restore_7.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_7.png</source>
+        <source file="Lokasenna_CC Ryder/restore_8.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_8.png</source>
+        <source file="Lokasenna_CC Ryder/restore_9.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_9.png</source>
+        <source file="Lokasenna_CC Ryder/restore_label.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/restore_label.png</source>
+        <source file="Lokasenna_CC Ryder/save_1.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_1.png</source>
+        <source file="Lokasenna_CC Ryder/save_10.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_10.png</source>
+        <source file="Lokasenna_CC Ryder/save_11.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_11.png</source>
+        <source file="Lokasenna_CC Ryder/save_12.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_12.png</source>
+        <source file="Lokasenna_CC Ryder/save_13.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_13.png</source>
+        <source file="Lokasenna_CC Ryder/save_14.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_14.png</source>
+        <source file="Lokasenna_CC Ryder/save_15.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_15.png</source>
+        <source file="Lokasenna_CC Ryder/save_16.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_16.png</source>
+        <source file="Lokasenna_CC Ryder/save_17.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_17.png</source>
+        <source file="Lokasenna_CC Ryder/save_18.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_18.png</source>
+        <source file="Lokasenna_CC Ryder/save_19.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_19.png</source>
+        <source file="Lokasenna_CC Ryder/save_2.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_2.png</source>
+        <source file="Lokasenna_CC Ryder/save_20.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_20.png</source>
+        <source file="Lokasenna_CC Ryder/save_3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_3.png</source>
+        <source file="Lokasenna_CC Ryder/save_4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_4.png</source>
+        <source file="Lokasenna_CC Ryder/save_5.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_5.png</source>
+        <source file="Lokasenna_CC Ryder/save_6.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_6.png</source>
+        <source file="Lokasenna_CC Ryder/save_7.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_7.png</source>
+        <source file="Lokasenna_CC Ryder/save_8.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_8.png</source>
+        <source file="Lokasenna_CC Ryder/save_9.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_9.png</source>
+        <source file="Lokasenna_CC Ryder/save_label.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_CC%20Ryder/save_label.png</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Convert current scale to ix_scale.lua" type="script" desc="Convert current scale to ix_scale">
@@ -7047,7 +7094,7 @@ Removed "End Position", replaced with "Length"    ]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5f4c65866be4cc4df2b66edfc43f1c63554ae8c4/MIDI%20Editor/Lokasenna_Mute%20selected%20notes%20outside%20the%20current%20scale.lua</source>
       </version>
     </reapack>
-    <reapack name="Lokasenna_Pedal Steel.lua" type="script" desc="CC Ryder">
+    <reapack name="Lokasenna_Pedal Steel.lua" type="script" desc="Pedal Steel">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -7056,6 +7103,7 @@ Removed "End Position", replaced with "Length"    ]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides a small toolbar for inserting MIDI keyswitches and setting velocities, intended for use with Tod's Pedal Steel library for Kontakt.\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2141684">Forum Thread</link>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://www.paypal.me/Lokasenna</link>
       </metadata>
@@ -7127,6 +7175,144 @@ Removed "End Position", replaced with "Length"    ]]></changelog>
         <source file="Lokasenna_Pedal Steel/top_CC3.png">https://github.com/ReaTeam/ReaScripts/raw/81951ca3a88cdff4d9f58c36c2cad66197900abe/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC3.png</source>
         <source file="Lokasenna_Pedal Steel/top_CC4.png">https://github.com/ReaTeam/ReaScripts/raw/81951ca3a88cdff4d9f58c36c2cad66197900abe/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC4.png</source>
         <source file="Lokasenna_Pedal Steel/top_Main.png">https://github.com/ReaTeam/ReaScripts/raw/81951ca3a88cdff4d9f58c36c2cad66197900abe/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_Main.png</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2019-06-01T20:12:16Z">
+        <changelog><![CDATA[Fix: Script name]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel.lua</source>
+        <source file="Lokasenna_Pedal Steel/grid_1.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_1.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_10.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_10.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_100.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_100.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_104.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_104.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_108.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_108.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_112.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_112.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_116.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_116.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_12.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_12.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_120.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_120.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_14.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_14.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_16.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_16.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_18.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_18.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_2.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_2.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_20.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_20.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_22.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_22.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_24.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_24.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_28.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_28.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_3.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_3.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_32.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_32.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_36.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_36.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_4.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_40.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_40.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_44.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_44.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_48.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_48.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_5.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_5.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_52.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_52.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_56.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_56.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_6.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_6.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_60.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_60.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_64.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_64.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_68.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_68.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_7.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_7.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_72.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_72.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_76.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_76.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_8.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_8.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_80.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_80.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_84.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_84.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_88.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_88.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_92.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_92.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_96.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_96.png</source>
+        <source file="Lokasenna_Pedal Steel/left_+1.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_+1.png</source>
+        <source file="Lokasenna_Pedal Steel/left_-1.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_-1.png</source>
+        <source file="Lokasenna_Pedal Steel/left_10.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_10.png</source>
+        <source file="Lokasenna_Pedal Steel/left_20.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_20.png</source>
+        <source file="Lokasenna_Pedal Steel/left_30.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_30.png</source>
+        <source file="Lokasenna_Pedal Steel/left_40.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_40.png</source>
+        <source file="Lokasenna_Pedal Steel/left_50.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_50.png</source>
+        <source file="Lokasenna_Pedal Steel/left_60.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_60.png</source>
+        <source file="Lokasenna_Pedal Steel/left_70.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_70.png</source>
+        <source file="Lokasenna_Pedal Steel/left_80.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_80.png</source>
+        <source file="Lokasenna_Pedal Steel/range_B1-A#2.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_B1-A#2.png</source>
+        <source file="Lokasenna_Pedal Steel/range_B2-E4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_B2-E4.png</source>
+        <source file="Lokasenna_Pedal Steel/range_D#3-G#4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_D#3-G%234.png</source>
+        <source file="Lokasenna_Pedal Steel/range_D2-C#3.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_D2-C#3.png</source>
+        <source file="Lokasenna_Pedal Steel/range_E2-D#3.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_E2-D#3.png</source>
+        <source file="Lokasenna_Pedal Steel/range_E3-A4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_E3-A4.png</source>
+        <source file="Lokasenna_Pedal Steel/range_F#2-F3.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_F#2-F3.png</source>
+        <source file="Lokasenna_Pedal Steel/range_F#3-B4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_F#3-B4.png</source>
+        <source file="Lokasenna_Pedal Steel/range_G#2-C#4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_G#2-C%234.png</source>
+        <source file="Lokasenna_Pedal Steel/range_G#3-C#5.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_G#3-C%235.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC1.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC1.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC2.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC2.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC3.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC3.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC4.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC4.png</source>
+        <source file="Lokasenna_Pedal Steel/top_Main.png">https://github.com/ReaTeam/ReaScripts/raw/30ade072c2b737e08ed58048b932c606c978fe20/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_Main.png</source>
+      </version>
+      <version name="1.0.2" author="Lokasenna" time="2019-06-01T20:14:49Z">
+        <changelog><![CDATA[Add: Link to forum thread]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel.lua</source>
+        <source file="Lokasenna_Pedal Steel/grid_1.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_1.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_10.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_10.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_100.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_100.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_104.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_104.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_108.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_108.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_112.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_112.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_116.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_116.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_12.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_12.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_120.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_120.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_14.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_14.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_16.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_16.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_18.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_18.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_2.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_2.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_20.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_20.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_22.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_22.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_24.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_24.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_28.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_28.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_3.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_32.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_32.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_36.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_36.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_4.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_40.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_40.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_44.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_44.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_48.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_48.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_5.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_5.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_52.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_52.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_56.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_56.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_6.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_6.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_60.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_60.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_64.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_64.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_68.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_68.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_7.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_7.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_72.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_72.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_76.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_76.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_8.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_8.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_80.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_80.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_84.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_84.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_88.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_88.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_92.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_92.png</source>
+        <source file="Lokasenna_Pedal Steel/grid_96.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/grid_96.png</source>
+        <source file="Lokasenna_Pedal Steel/left_+1.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_+1.png</source>
+        <source file="Lokasenna_Pedal Steel/left_-1.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_-1.png</source>
+        <source file="Lokasenna_Pedal Steel/left_10.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_10.png</source>
+        <source file="Lokasenna_Pedal Steel/left_20.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_20.png</source>
+        <source file="Lokasenna_Pedal Steel/left_30.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_30.png</source>
+        <source file="Lokasenna_Pedal Steel/left_40.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_40.png</source>
+        <source file="Lokasenna_Pedal Steel/left_50.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_50.png</source>
+        <source file="Lokasenna_Pedal Steel/left_60.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_60.png</source>
+        <source file="Lokasenna_Pedal Steel/left_70.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_70.png</source>
+        <source file="Lokasenna_Pedal Steel/left_80.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/left_80.png</source>
+        <source file="Lokasenna_Pedal Steel/range_B1-A#2.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_B1-A#2.png</source>
+        <source file="Lokasenna_Pedal Steel/range_B2-E4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_B2-E4.png</source>
+        <source file="Lokasenna_Pedal Steel/range_D#3-G#4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_D#3-G%234.png</source>
+        <source file="Lokasenna_Pedal Steel/range_D2-C#3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_D2-C#3.png</source>
+        <source file="Lokasenna_Pedal Steel/range_E2-D#3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_E2-D#3.png</source>
+        <source file="Lokasenna_Pedal Steel/range_E3-A4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_E3-A4.png</source>
+        <source file="Lokasenna_Pedal Steel/range_F#2-F3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_F#2-F3.png</source>
+        <source file="Lokasenna_Pedal Steel/range_F#3-B4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_F#3-B4.png</source>
+        <source file="Lokasenna_Pedal Steel/range_G#2-C#4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_G#2-C%234.png</source>
+        <source file="Lokasenna_Pedal Steel/range_G#3-C#5.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/range_G#3-C%235.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC1.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC1.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC2.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC2.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC3.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC3.png</source>
+        <source file="Lokasenna_Pedal Steel/top_CC4.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_CC4.png</source>
+        <source file="Lokasenna_Pedal Steel/top_Main.png">https://github.com/ReaTeam/ReaScripts/raw/2a82409495e7e50bc92124134c209301c3b8edb8/MIDI%20Editor/Lokasenna_Pedal%20Steel/top_Main.png</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select note and note row under mouse cursor.lua" type="script" desc="Select note and note row under mouse cursor">
