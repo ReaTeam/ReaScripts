@@ -1,11 +1,12 @@
 --[[
     Description: CC Ryder
-    Version: 1.0.0
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Initial Release
+        Add: Link to forum thread
     Links:
+        Forum Thread https://forum.cockos.com/showthread.php?p=2141684
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         Provides a graphical interface for accessing the "SWS/S&M: Save/Restore

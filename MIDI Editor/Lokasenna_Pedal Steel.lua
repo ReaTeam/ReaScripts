@@ -1,11 +1,12 @@
 --[[
     Description: Pedal Steel
-    Version: 1.0.1
+    Version: 1.0.2
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: Script name
+        Add: Link to forum thread
     Links:
+        Forum Thread https://forum.cockos.com/showthread.php?p=2141684    
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         Provides a small toolbar for inserting MIDI keyswitches and setting
