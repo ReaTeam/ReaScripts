@@ -1,10 +1,10 @@
 --[[
-    Description: CC Ryder
-    Version: 1.0.0
+    Description: Pedal Steel
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Initial Release
+        Fix: Script name
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
