@@ -1,10 +1,10 @@
 --[[
     Description: CC Ryder
-    Version: 1.0.1
+    Version: 1.0.2
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Add: Link to forum thread
+        Fix: Detecting the number of slots was using the wrong .ini key
     Links:
         Forum Thread https://forum.cockos.com/showthread.php?p=2141684
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -123,8 +123,8 @@ IButton.ondoubleclick = GUI.Button.ondoubleclick
 local saveMode = false
 local numSlots = (function()
   local path = reaper.GetResourcePath() .. "/S&M.ini"
-  local _, slotsA = reaper.BR_Win32_GetPrivateProfileString("NbOfActions", "S&M_MESAVECCLANES", "", path)
-  local _, slotsB = reaper.BR_Win32_GetPrivateProfileString("NbOfActions", "S&M_MESETCCLANES", "", path)
+  local _, slotsA = reaper.BR_Win32_GetPrivateProfileString("NbOfActions", "S&M_SAVECCLANES_ME", "", path)
+  local _, slotsB = reaper.BR_Win32_GetPrivateProfileString("NbOfActions", "S&M_SETCCLANES_ME", "", path)
 
   slotsA = tonumber(slotsA:match("^(%d+)")) or 8
   slotsB = tonumber(slotsB:match("^(%d+)")) or 8
