@@ -16,13 +16,13 @@ About:
   Depending on mouse position when the script starts, the script can:
       * stretch event positions (horizontally) to the mouse position, or
       * stretch event values (vertically) to the mouse position, or
-      * compress/expand the lane boundaries with various types of curves.
+      * compress/expand the lane boundaries with various types of curves.  
   
   
   STRETCH EVENTS: 
   
   If the mouse is positioned *inside* a CC lane or the notes area when the script starts, it will only affect events in that individual lane.
-      (After the script starts, the mouse may move out of the lane.)
+      (After the script starts, the mouse may move out of the lane.)      
   
   If the mouse is positioned *outside* a CC lane when the script starts, i.e. over a lane divider or over the ruler area, 
       and the mouse is moved left or right, the script will stretch selected events on *all* lanes together.
@@ -34,12 +34,17 @@ About:
   If the mouse is positioned closer to the middle of the time range, and to the top [or bottom] of the CC's value range, 
       it will stretch the top [or bottom] values up or down to the mouse position.  
       (MIDI notes, as well as events that do not have CC values, such as Text or Sysex, can only be stretched left/right, not up/down.)
+      
+  When stretching top or bottom, right-click to toggle between one-sided stretching and symmetric stretching around the relative center of the selected events' value range.
 
       
   COMPRESS LANE:
   
   If the mouse is positioned over a lane divider when the script starts, and then moved up or down into the CC lane,
       the script will compress or expand the lane range.  (Think of the movement as "dragging" the lane boudary up or down.)
+      
+  In this mode, event values are either scaled relative to the opposite lane boundary, or symmetrically relative to the absolute center and the lane. 
+      Right-click to switch between one-sided and symmetric compression.
       
   The script will draw the compression curve on the screen.
   
@@ -164,8 +169,8 @@ About:
     + macOS and Linux: In Compress mode, draw guidelines on screen (as on WindowsOS)
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
-  * v4.21 (2019-05-11)
-    + Fix spike in bottom guideline.
+  * v4.21 (2019-06-03)
+    + In Stretch top/bottom mode, guidelines are displayed, and right-click to toggle stretch around relative center.
 ]]
 
 -- USER AREA 
@@ -472,6 +477,16 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
         return false 
     end]]
     
+    -- RIGHT CLICK: Right click changes script mode
+    --    * If script is terminated by right button, disarm toolbar.
+    --    * REAPER shows context menu when right button is *lifted*, so must continue intercepting mouse messages until right button is lifted.
+    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
+    if peekOK and time > prevMouseTime then
+        compressSYMMETRIC = not compressSYMMETRIC
+        prevMouseTime = time
+        mustCalculate = true
+    end
+    
     -- TAKE STILL VALID?
     if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then return false end
  
@@ -517,10 +532,6 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
                 end
             end
             -- In some scripts, the mouse CC value may go beyond lane limits
-            if mouseNewCCValue      > laneMaxValue  then mouseNewCCValue = laneMaxValue
-            elseif mouseNewCCValue  < laneMinValue  then mouseNewCCValue = laneMinValue
-            else mouseNewCCValue = math.floor(mouseNewCCValue+0.5)
-            end
             
         else -- stretchLEFT or stretchRIGHT
         
@@ -676,15 +687,33 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
             end
         
         elseif stretchTOP then
-        
-            local stretchFactor = (mouseNewCCValue - origValueMin)/origValueRange
+                   
+             newRangeMax  = mouseNewCCValue
+            if     mouseNewCCValue  > laneMaxValue  then newRangeMax = laneMaxValue
+            elseif mouseNewCCValue  < laneMinValue  then newRangeMax = laneMinValue
+            else   newRangeMax      = math.floor(mouseNewCCValue+0.5)
+            end
+            
+             newRangeMin = origValueMin
+            if compressSYMMETRIC then
+                newRangeMin = origValueMin-(newRangeMax-origValueMax)
+                if newRangeMin < laneMinValue then
+                    newRangeMax = newRangeMax - (laneMinValue-newRangeMin)
+                    newRangeMin = laneMinValue
+                elseif newRangeMin > laneMaxValue then
+                    newRangeMax = newRangeMax + (newRangeMin-laneMaxValue)
+                    newRangeMin = laneMaxValue
+                end
+            end
+            
+            local stretchFactor = (newRangeMax - newRangeMin)/origValueRange
             local newValue
                 
             for i = 1, #tTicks do
             
                 local flippedValue = flipped and (origValueMin + origValueMax - tValues[i]) or tValues[i]
-                newValue = m_floor(origValueMin + stretchFactor*(flippedValue - origValueMin) + 0.5)
-                if newValue > laneMaxValue then newValue = laneMaxValue elseif newValue < laneMinValue then laneValue = laneMinValue end
+                newValue = newRangeMin + stretchFactor*(flippedValue - origValueMin)
+                if newValue > laneMaxValue then newValue = laneMaxValue elseif newValue < laneMinValue then laneValue = laneMinValue else newValue = math.floor(newValue+0.5) end
                 
                 offset = tTicks[i] - lastPPQPos
                 
@@ -735,16 +764,41 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
                     tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], #tMsg[i], 0xC0 | tChannels[i], newValue) .. tMsg[i]:sub(3,nil) -- NB Program Select uses only 2 bytes!
                 end 
             end
+            
+            -- Draw LICE line
+            local bottomLineY = ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(newRangeMin-laneMinValue)/(laneMaxValue-laneMinValue)
+            local topLineY = ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(newRangeMax-laneMinValue)/(laneMaxValue-laneMinValue)
+            reaper.JS_LICE_Clear(bitmap, 0)
+            reaper.JS_LICE_Line(bitmap, Guides_LeftPixel, topLineY, Guides_RightPixel, topLineY, Guideline_Color_Top, 1, "COPY", true)
+            reaper.JS_LICE_Line(bitmap, Guides_LeftPixel, bottomLineY, Guides_RightPixel, bottomLineY, Guideline_Color_Bottom, 1, "COPY", true)
         
         elseif stretchBOTTOM then
         
-            local stretchFactor = (origValueMax - mouseNewCCValue)/origValueRange
+            local newRangeMin
+            if     mouseNewCCValue > laneMaxValue  then newRangeMin = laneMaxValue
+            elseif mouseNewCCValue < laneMinValue  then newRangeMin = laneMinValue
+            else                                        newRangeMin = math.floor(mouseNewCCValue+0.5)
+            end
+            
+            local newRangeMax = origValueMax
+            if compressSYMMETRIC then
+                newRangeMax = origValueMax-(newRangeMin-origValueMin)
+                if newRangeMax < laneMinValue then
+                    newRangeMin = newRangeMin - (laneMinValue-newRangeMax)
+                    newRangeMax = laneMinValue
+                elseif newRangeMax > laneMaxValue then
+                    newRangeMin = newRangeMin + (newRangeMax-laneMaxValue)
+                    newRangeMax = laneMaxValue
+                end
+            end
+            
+            local stretchFactor = (newRangeMax - newRangeMin)/origValueRange
             local newValue
                 
             for i = 1, #tTicks do
                 
                 local flippedValue = flipped and (origValueMin + origValueMax - tValues[i]) or tValues[i]
-                newValue = m_floor(origValueMax - stretchFactor*(origValueMax - flippedValue) + 0.5)
+                newValue = m_floor(newRangeMax - stretchFactor*(origValueMax - flippedValue) + 0.5)
                 if newValue > laneMaxValue then newValue = laneMaxValue elseif newValue < laneMinValue then laneValue = laneMinValue end
                 
                 offset = tTicks[i] - lastPPQPos
@@ -796,6 +850,14 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH()
                     tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xC0 | tChannels[i], newValue) .. tMsg[i]:sub(3,nil) -- NB Program Select uses only 2 bytes!
                 end 
             end
+            
+            -- Draw LICE line
+            local bottomLineY = ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(newRangeMin-laneMinValue)/(laneMaxValue-laneMinValue)
+            local topLineY = ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(newRangeMax-laneMinValue)/(laneMaxValue-laneMinValue)
+            reaper.JS_LICE_Clear(bitmap, 0)
+            reaper.JS_LICE_Line(bitmap, Guides_LeftPixel, topLineY, Guides_RightPixel, topLineY, Guideline_Color_Top, 1, "COPY", true)
+            reaper.JS_LICE_Line(bitmap, Guides_LeftPixel, bottomLineY, Guides_RightPixel, bottomLineY, Guideline_Color_Bottom, 1, "COPY", true)
+            
         end
     
                     
@@ -1092,6 +1154,7 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
         if compositeOK then
             local tTopY = {}
             local tBottomY = {}
+            local y
             
             for i, ticks in ipairs(tGuides_Ticks) do
                 if mousewheel == 0 then --or (mouseNewPPQPos-5 < ticks and ticks < mouseNewPPQPos+5) then 
@@ -1114,53 +1177,46 @@ function DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS()
                 if baseShape == "sine" then fraction = 0.5*(1-m_cos(m_pi*fraction)) end
             
                 if compressTOP then
-                    tTopY[i] = ME_TargetTopPixel + fraction*(mouseY-ME_TargetTopPixel)
-                    if compressSYMMETRIC then
-                        tBottomY[i] = ME_TargetBottomPixel + 1 - fraction*(mouseY-ME_TargetTopPixel)
-                    else
-                        tBottomY[i] = ME_TargetBottomPixel + 1
-                    end
+                    y = fraction*(mouseY-ME_TargetTopPixel)
+                    tTopY[i] = ME_TargetTopPixel + y
+                    if compressSYMMETRIC then tBottomY[i] = ME_TargetBottomPixel + 1 - y end
                 else
-                    tBottomY[i] = ME_TargetBottomPixel + 1 - fraction*(ME_TargetBottomPixel-mouseY)
-                    if compressSYMMETRIC then
-                        tTopY[i] = ME_TargetTopPixel + fraction*(ME_TargetBottomPixel-mouseY)
-                    else
-                        tTopY[i] = ME_TargetTopPixel
-                    end
+                    y = fraction*(ME_TargetBottomPixel-mouseY)
+                    tBottomY[i] = ME_TargetBottomPixel + 1 - y
+                    if compressSYMMETRIC then tTopY[i] = ME_TargetTopPixel + y end
                 end
             end
             
             reaper.JS_LICE_Clear(bitmap, 0)
+            
             local x1, t1, b1 = tGuides_X[1], tTopY[1], tBottomY[1] -- Coordinates of left pixel of each line segment
             for i = 2, #tGuides_X do
-                if x1 < mouseX and mouseX < tGuides_X[i] then -- To make sure than pointy curve is correctly drawn, even is point falls between 10-pixel segements, insert extra line
+                -- To make sure than pointy curve is correctly drawn, even is point falls between 10-pixel segements, insert extra line to precise position of mouse
+                if x1 < mouseX and mouseX < tGuides_X[i] then 
                     if compressTOP then
                         reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, mouseY, Guides_COLOR_TOP, 1, "COPY", true)
                         t1 = mouseY
                         if compressSYMMETRIC then
                             reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, (ME_TargetBottomPixel+1) - (mouseY-ME_TargetTopPixel), Guides_COLOR_BOTTOM, 1, "COPY", true)
                             b1 = (ME_TargetBottomPixel+1) - (mouseY-ME_TargetTopPixel)
-                        else
-                            reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, ME_TargetBottomPixel+1, Guides_COLOR_BOTTOM, 1, "COPY", true)
-                            b1 = ME_TargetBottomPixel+1
                         end
-                    else
+                    else -- compressSYMMETRIC then
                         reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, mouseY, Guides_COLOR_BOTTOM, 1, "COPY", true)
                         b1 = mouseY
                         if compressSYMMETRIC then
                             reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, ME_TargetTopPixel - (mouseY-ME_TargetBottomPixel), Guides_COLOR_TOP, 1, "COPY", true)
                             t1 = ME_TargetTopPixel - (mouseY-ME_TargetBottomPixel)
-                        else
-                            reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, ME_TargetTopPixel, Guides_COLOR_TOP, 1, "COPY", true)
-                            t1 = ME_TargetTopPixel
                         end
                     end
                 end
                 x2, t2, b2 = tGuides_X[i], tTopY[i], tBottomY[i]
-                reaper.JS_LICE_Line(bitmap, x1, t1, x2, t2, Guides_COLOR_TOP, 1, "COPY", true)
-                reaper.JS_LICE_Line(bitmap, x1, b1, x2, b2, Guides_COLOR_BOTTOM, 1, "COPY", true)
+                if compressTOP or compressSYMMETRIC then reaper.JS_LICE_Line(bitmap, x1, t1, x2, t2, Guides_COLOR_TOP, 1, "COPY", true) end
+                if compressBOTTOM or compressSYMMETRIC then reaper.JS_LICE_Line(bitmap, x1, b1, x2, b2, Guides_COLOR_BOTTOM, 1, "COPY", true) end
                 x1, t1, b1 = x2, t2, b2
             end
+            
+            if compressTOP and not compressSYMMETRIC then reaper.JS_LICE_Line(bitmap, tGuides_X[1], ME_TargetBottomPixel+1, tGuides_X[#tGuides_X], ME_TargetBottomPixel+1, Guides_COLOR_BOTTOM, 1, "COPY", true) end
+            if compressBOTTOM and not compressSYMMETRIC then reaper.JS_LICE_Line(bitmap, tGuides_X[1], ME_TargetTopPixel, tGuides_X[#tGuides_X], ME_TargetTopPixel, Guides_COLOR_TOP, 1, "COPY", true) end
 
         end -- if compositeOK
         
@@ -1179,11 +1235,11 @@ end -- DEFERLOOP_TrackMouseAndUpdateMIDI()
 --    If the script encounters an error, all intercepts must first be released, before the script quits.
 function DEFERLOOP_pcall()
     if modeIsSTRETCH then
-        pcallOK, pcallMustContinue = pcall(DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH)
+        pcallOK, pcallRetval = pcall(DEFERLOOP_TrackMouseAndUpdateMIDI_STRETCH)
     else
-        pcallOK, pcallMustContinue = pcall(DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS)
+        pcallOK, pcallRetval = pcall(DEFERLOOP_TrackMouseAndUpdateMIDI_COMPRESS)
     end
-    if pcallOK and pcallMustContinue then
+    if pcallOK and pcallRetval then
         reaper.defer(DEFERLOOP_pcall)
     end
 end
@@ -2601,7 +2657,7 @@ function MAIN()
     if not reaper.MIDI_DisableSort then
         reaper.MB("This script requires REAPER v5.974 or higher.", "ERROR", 0)
         return(false) 
-    elseif not reaper.JS_VKeys_GetDown then
+    elseif not reaper.JS_LICE_WritePNG then
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
                .. "\n\nThe js_ReaScripAPI extension can be installed via ReaPack, or can be downloaded manually."
                .. "\n\nTo install via ReaPack, ensure that the ReaTeam/Extensions repository is enabled. "
@@ -2896,6 +2952,8 @@ function MAIN()
     -- UNIQUE TO THIS SCRIPT:
     if modeIsSTRETCH then
     
+        compressSYMMETRIC = false
+    
         -- Determine in which direction events will be stretched
         edgeSize = math.max(0, math.min(0.5, edgeSize))
         -- these can only be stretch horizontally    
@@ -2936,9 +2994,33 @@ function MAIN()
             cursor = reaper.JS_Mouse_LoadCursorFromFile(filename) or cursor -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
             if cursor then reaper.JS_Mouse_SetCursor(cursor) end
         end 
-    
+        
+        if stretchTOP or stretchBOTTOM then
+            bitmap = reaper.JS_LICE_CreateBitmap(true, ME_midiviewWidth, ME_midiviewHeight)
+            if not bitmap then 
+                reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false
+            else 
+               if ME_TimeBase == "beats" then
+                    Guides_LeftPixel = (tTicks[1] + loopStartPPQPos - ME_LeftmostTick) * ME_PixelsPerTick
+                    Guides_RightPixel = (tTicks[#tTicks] + loopStartPPQPos - ME_LeftmostTick)*ME_PixelsPerTick
+                else -- ME_TimeBase == "time"
+                    local firstTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, tTicks[1] + loopStartPPQPos)
+                    local lastTime  = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, tTicks[#tTicks] + loopStartPPQPos)
+                    Guides_LeftPixel  = (firstTime-ME_LeftmostTime)*ME_PixelsPerSecond
+                    Guides_RightPixel = (lastTime -ME_LeftmostTime)*ME_PixelsPerSecond
+                end
+                Guides_LeftPixel  = math.ceil(math.max(Guides_LeftPixel, 0)) 
+                Guides_RightPixel = math.floor(math.min(Guides_RightPixel, ME_midiviewWidth-1)) -- Plus 5 because CC bars are approx 5v pixels wide
+            
+                compositeOK = reaper.JS_Composite(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, bitmap, 0, 0, ME_midiviewWidth, ME_midiviewHeight)
+                if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
+            end
+        end 
+      
     else -- modeIsCOMPRESS
     
+        compressSYMMETRIC = true
+        
         --filename = filename .. "js_Mouse editing - Compress.cur"
         --cursor = reaper.JS_Mouse_LoadCursorFromFile(filename) -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
         --if not cursor then cursor = reaper.JS_Mouse_LoadCursor(533) or cursor end -- If .cur file unavailable, load one of REAPER's own cursors]]
@@ -2948,7 +3030,9 @@ function MAIN()
         -- Prepare GDI stuff
         if midiview then
             bitmap = reaper.JS_LICE_CreateBitmap(true, ME_midiviewWidth, ME_midiviewHeight)
-            if bitmap then
+            if not bitmap then 
+                reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false
+            else 
                if ME_TimeBase == "beats" then
                     Guides_LeftPixel = (tTargets[1].ticks + loopStartPPQPos - ME_LeftmostTick) * ME_PixelsPerTick
                     Guides_RightPixel = (tTargets[#tTargets].ticks + loopStartPPQPos - ME_LeftmostTick)*ME_PixelsPerTick
@@ -2984,7 +3068,7 @@ function MAIN()
                 
                 if #tGuides_X > 1 then
                     compositeOK = reaper.JS_Composite(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, bitmap, 0, 0, ME_midiviewWidth, ME_midiviewHeight)
-                    if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) end
+                    if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
                 end            
             end
         end    
