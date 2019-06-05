@@ -1,7 +1,7 @@
--- @description obliques
+-- @description tompad_obliques - randomly shows text from Oblique Strategies
 -- @author tompad
 -- @version 1.0
--- @provides tompad_obliques/obliques.lua
+-- @provides tompad_obliques/obliques
 -- @about
 --   # tompad_obliques
 --
@@ -12,21 +12,6 @@
 --
 --   Credits
 --   Oblique Strategies by Brian Eno and Peter Schmidt
-
--- @description tompad_obliques - randomly shows text from Oblique Strategies
--- @version 1.0
--- @author Thomas Dahl
--- @about
---   # tompad_obliques
---   tompad_obliques is a reascript that randomly shows text
---   from Oblique Strategies by Brian Eno and Peter Schmidt.
---
---   Any comments on coding, requests, bugs etc is welcome!
---   PM me (tompad) on Reaper Forum (https://forum.cockos.com/member.php?u=19103).
---
---   Credits
---   Oblique Strategies by Brian Eno and Peter Schmidt
---
 -- @changelog
 --   Published on BitBucket and ReaPack
 
@@ -124,7 +109,8 @@ end
 path_to_script = get_script_path()
 
 -- file path
-local file = path_to_script .. "obliques.lua"
+--local file = path_to_script .. "obliques.lua"
+local file = path_to_script .. "tompad_obliques/obliques"
   --reaper.ShowConsoleMsg(file)
 
 local lines = lines_from(file)
