@@ -1,4 +1,4 @@
--- @description tompad_obliques - randomly shows text from Oblique Strategies
+-- @description obliques - randomly shows text from Oblique Strategies
 -- @author tompad
 -- @version 1.0
 -- @provides tompad_obliques/obliques
