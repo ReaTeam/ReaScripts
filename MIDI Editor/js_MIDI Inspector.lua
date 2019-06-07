@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.55
+Version: 1.56
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -142,6 +142,8 @@ About:
     + WindowsOS: Less flickering and "fake" antialias when docked in piano roll.
   * v1.55 (2019-05-15)
     + Edit piano roll font settings through right-click menu.
+  * v1.56 (2019-06-07)
+    + On WindowOS, automatic alpha-premultiplication of font color when docked in MIDI editor.
 ]]
 
 -- USER AREA
@@ -159,11 +161,8 @@ backgroundColor = {0.18, 0.18, 0.18, 1}
 shadowColor = {0,0,0,1}
 
 -- Parameters for docked in MIDI editor ruler:
-ME_FontFace = "Arial"
-ME_TextHeight = 13 
-ME_TextWeight = 100 -- Integer between 0 and 1000
-ME_TextColor = nil -- Color in RRGGBB format. If nil, script will try to find theme color.
-ME_TextOptions = "" -- On Windows, small LICE text is not properly antialiased.  The "BLUR" option may achieve a similar effect by slightly blurring the text.
+-- In recent versions, these parameters can be edited through the right-click context menu when the Inspector is docked in the MIDI editor.
+
 local s1, s2, s4, s6, s9, s12, s15 = 46, 110, 215, 320, 450, 600, 750 -- Spacing (tabs, in pixels) when drawing info in MIDI editor
 
 -- End of USER AREA 
@@ -273,6 +272,8 @@ local lastX, lastY, lastWidth, lastHeight, lastFormat, dockedInDocker, dockedMid
 local editor, prevEditor, midiview = nil, nil, nil
 local mustUpdateGUI, prevGfxW, preGfxH = true, nil, nil
 
+local LICE_Bitmap, LICE_Font
+
 
 -------------------------
 function measureStrings()
@@ -379,6 +380,22 @@ function saveCurrentState()
                   .. string.format("%i", dockedInDocker) .. ","
                   .. tostring(dockedMidiview)
         reaper.SetExtState("MIDI Inspector", "Last state", saveState, true)
+    end
+end
+
+
+----------------------------
+function alphaMultiply(color)
+    local a = (color&0xff000000)>>24
+    if a == 0xFF then 
+        return color
+    elseif a == 0 then 
+        return 0
+    else
+      local r = (((color&0x00ff0000)*a)>>8)&0x00ff0000
+      local g = (((color&0x0000ff00)*a)>>8)&0x0000ff00
+      local b = (((color&0x000000ff)*a)>>8)
+      return (color&0xff000000) | r | g | b
     end
 end
 
@@ -865,7 +882,7 @@ function getUserFontSettings()
        GDI_Font  = reaper.JS_GDI_CreateFont(ME_TextHeight, ME_TextWeight, 0, false, false, false, ME_FontFace)
        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
        reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
-       reaper.JS_LICE_SetFontColor(LICE_Font, ME_TextColor)
+       reaper.JS_LICE_SetFontColor(LICE_Font, windowsOS and alphaMultiply(ME_TextColor) or ME_TextColor)
        return true
 end 
 
@@ -1521,7 +1538,7 @@ function main()
         GDI_Font  = reaper.JS_GDI_CreateFont(ME_TextHeight, ME_TextWeight, 0, false, false, false, ME_FontFace)
         if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return(false) end
         reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, ME_TextOptions)
-        reaper.JS_LICE_SetFontColor(LICE_Font, ME_TextColor)
+        reaper.JS_LICE_SetFontColor(LICE_Font, windowsOS and alphaMultiply(ME_TextColor) or ME_TextColor)
     end    
  
     loopMIDIInspector()
