@@ -273,6 +273,11 @@ local editor, prevEditor, midiview = nil, nil, nil
 local mustUpdateGUI, prevGfxW, preGfxH = true, nil, nil
 
 local LICE_Bitmap, LICE_Font
+local ME_FontFace    = "Arial" -- Some reasonable default values
+local ME_TextHeight  = 13
+local ME_TextWeight  = 100
+local ME_TextColor   = 0xAA00FF00
+local ME_TextOptions = ""
 
 
 -------------------------
