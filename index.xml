@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="61a3993462e049e41cafa9f2214e6d32dd7aab21" name="ReaTeam Scripts">
+<index version="1" commit="84416c6967a5aea3dd099856e12f414b1961b131" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12355,6 +12355,25 @@ here
 Added tooltip "Click to copy to clipboard"
 Added flashing green when clicking on ms or Hz label]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/tompad_MusicMath.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tompad_obliques.lua" type="script" desc="tompad_obliques - randomly shows text from Oblique Strategies">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 tompad_obliques\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 tompad_obliques is a reascript that randomly shows text from Oblique Strategies by Brian Eno and Peter Schmidt.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Any comments on coding, requests, bugs etc is welcome! PM me (tompad) on Reaper Forum (https://forum.cockos.com/member.php?u=19103).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Credits Oblique Strategies by Brian Eno and Peter Schmidt\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="tompad" time="2019-06-07T00:59:49Z">
+        <changelog><![CDATA[Published on BitBucket and ReaPack]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/84416c6967a5aea3dd099856e12f414b1961b131/Various/tompad_obliques.lua</source>
+        <source file="tompad_obliques/obliques">https://github.com/ReaTeam/ReaScripts/raw/84416c6967a5aea3dd099856e12f414b1961b131/Various/tompad_obliques/obliques</source>
       </version>
     </reapack>
   </category>
