@@ -1,9 +1,7 @@
 -- @description obliques - randomly shows text from Oblique Strategies
 -- @author tompad
 -- @version 1.0.1
--- @changelog
---   Published on BitBucket and ReaPack
---   Added math.randomseed(os.time())
+-- @changelog Added math.randomseed(os.time())
 -- @provides tompad_obliques/obliques
 -- @about
 --   # tompad_obliques
