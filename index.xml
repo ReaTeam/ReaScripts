@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="92c77d2fa855b34fbb5bf6c7ce37fe023c7f21c7" name="ReaTeam Scripts">
+<index version="1" commit="2ba6c46f8b742c3b6124965562fe2a75b32fe1bc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12378,6 +12378,11 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
         <changelog><![CDATA[Published on BitBucket and ReaPack]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d198953e4e1d2988eed78de641bf866c933015a9/Various/tompad_obliques.lua</source>
         <source file="tompad_obliques/obliques">https://github.com/ReaTeam/ReaScripts/raw/d198953e4e1d2988eed78de641bf866c933015a9/Various/tompad_obliques/obliques</source>
+      </version>
+      <version name="1.0.1" author="tompad" time="2019-06-12T03:08:40Z">
+        <changelog><![CDATA[Added math.randomseed(os.time())]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ba6c46f8b742c3b6124965562fe2a75b32fe1bc/Various/tompad_obliques.lua</source>
+        <source file="tompad_obliques/obliques">https://github.com/ReaTeam/ReaScripts/raw/2ba6c46f8b742c3b6124965562fe2a75b32fe1bc/Various/tompad_obliques/obliques</source>
       </version>
     </reapack>
   </category>
