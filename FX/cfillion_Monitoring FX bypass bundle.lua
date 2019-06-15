@@ -1,6 +1,6 @@
 -- @description Monitoring FX bypass bundle (bypass, unbypass or toggle)
 -- @author cfillion
--- @version 1.1
+-- @version 1.1.1
 -- @changelog add actions to set bypass on or off [p=2145580]
 -- @metapackage
 -- @provides
@@ -46,7 +46,7 @@ reaper.Undo_BeginBlock()
 
 local master = reaper.GetMasterTrack()
 
-if not mode then -- toggle
+if mode == nil then -- toggle
   mode = not reaper.TrackFX_GetEnabled(master, fxIndex)
 end
 
