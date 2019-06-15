@@ -1,7 +1,7 @@
 -- @description Monitoring FX bypass bundle (bypass, unbypass or toggle)
 -- @author cfillion
 -- @version 1.1
--- @changelog add actions to set bypass on or off [p=]
+-- @changelog add actions to set bypass on or off [p=2145580]
 -- @metapackage
 -- @provides
 --   [main] . > cfillion_Toggle monitoring FX 1 bypass.lua
