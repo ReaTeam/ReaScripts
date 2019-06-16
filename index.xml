@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="932a471af4bf01d077bfa2ef2fce7b51e942bfd7" name="ReaTeam Scripts">
+<index version="1" commit="95aea53a19ac1df3eb371898571af8fc8b32ed89" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3314,6 +3314,16 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       </metadata>
       <version name="1.0" author="Lokasenna" time="2016-12-28T02:37:27Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95c2c33c0f2a1b9ecfc9a08a8dd04fa1447d2a77/Items%20Editing/Lokasenna_Insert%20empty%20item%20for%20each%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Pad item start and end with 15 frames of silence.lua" type="script" desc="Pad item start and end with 15 frames of silence">
+      <metadata>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2019-06-16T14:34:04Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95aea53a19ac1df3eb371898571af8fc8b32ed89/Items%20Editing/Lokasenna_Pad%20item%20start%20and%20end%20with%2015%20frames%20of%20silence.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Select all MIDI notes in selected items.lua" type="script" desc="Select all MIDI notes in selected items">
