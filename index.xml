@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="95aea53a19ac1df3eb371898571af8fc8b32ed89" name="ReaTeam Scripts">
+<index version="1" commit="2e7d8f80b43d93a5668a2fb798e143a99149fecb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12193,6 +12193,56 @@ here
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun scale note 7.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20scale%20note%207.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun stop all notes from playing.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20stop%20all%20notes%20from%20playing.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
+      </version>
+    </reapack>
+    <reapack name="patrickmartin_Split at transients and create regions named from pitches.lua" type="script" desc="Split at transients and create regions named from pitches">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Split at transients and create regions named from pitches\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Overview\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 I created this script to assist me in chopping and exporting samples of pitched instruments for importing into Kontakt or hardware sampler synths.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In a nutshell, you can record a bunch of notes from your source into one, long audio file and this script will split the recording at the transients.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Next, it will shorten each part by the amount you specify, and apply a logarithmic fade-out to each part of the duration you specify.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 But wait, there's more: it will then bounce each audio part to a MIDI take at high-speed and "de-noise" the resulting MIDI part by deleting any notes that are shorter than the duration you specify. This prepares the groundwork for the next processing phase...\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ...wherein a region is created for each note part, with the region name consisting of the note name and an ordinal number. For example, if you recorded three C#'s in the 2nd octave and an F# in the 3rd octave, the regions would be named {\b C#2_1}, {\b C#2_2}, {\b C#2_3} and {\b F#3_1}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Finally, it will automatically enable these regions in the Render Matrix for the parent track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All of these actions are encapsulated in a single undo point so that you can easily try different settings until you achieve the desired results.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 At this point, you can go into the Region Render Matrix and render out your individual sample files, all named according to pitch.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Dependencies\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "http://sws-extension.org/"}}{\fldrslt{\ul
+SWS Extension
+}}}
+ (used for splitting at transients)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Setup\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\b Required:} Ensure you have a saved ReaTune preset with the {\b Send MIDI events when pitch changes} box checked. Leave all the other options in ReaTune at their default values. (This step will be required until such time as the API allows ReaTune parameters to be set at run-time).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab {\b Recommended}: Create a Render Matrix preset to name your rendered files using wild cards, for example: $project\\$track\\$region\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Configuration\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You can change the values of the following constants in the USER CONFIG AREA section of the script to achieve optimum results:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 uc_reatune_midi_out_preset_name = "NoCorrection_OutputPitchMIDI"\line
+uc_autofade_seconds = 1\line
+uc_trim_end_seconds = 1\line
+uc_note_min_seconds = 1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Instructions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Ensure {\b Setup} is complete\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Drag your audio file into Arrange Window to create a track\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Select the audio item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Run the script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Go to {\b View/Region Render Matrix}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab Click {\b Render}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 7.\tx360\tab Select your render preset or enter desired settings\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 8.\tx360\tab Click {\b Render xx files..} button\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2149215">Forum thread</link>
+        <link rel="screenshot" href="https://i.imgur.com/YDCV27K.png">Before</link>
+        <link rel="screenshot" href="https://i.imgur.com/t60lGmm.png">After</link>
+      </metadata>
+      <version name="1.0beta" author="Patrick Martin" time="2019-06-21T13:16:35Z">
+        <changelog><![CDATA[Initial]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2e7d8f80b43d93a5668a2fb798e143a99149fecb/Various/patrickmartin_Split%20at%20transients%20and%20create%20regions%20named%20from%20pitches.lua</source>
       </version>
     </reapack>
     <reapack name="PL9-amagalma_Source Time Position Tool v2.lua" type="script" desc="PL9-amagalma_Source Time Position Tool v2">
