@@ -1,5 +1,5 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2.6
+-- @version 0.2.7
 -- @author spk77
 -- @changelog
 --   - Load project specific script state when project changes (or when switching to another project tab)
@@ -661,6 +661,7 @@ function create_button()
                     local m = button_menu
                     m.str = "Rename tag|"
                     m.str = m.str .. "Remove tag|"
+                    m.str = m.str .. "Update tag|"
                     --[[
                     m.str = m.str .. ">Options|"
                     if button_menu.show_in_tcp then
@@ -688,6 +689,19 @@ function create_button()
                     elseif ret == 2 then
                       GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = buttonindex
                       --msg(buttonindex)
+                    elseif ret == 3 then
+                      -- X-Raym mod
+                      btn.type = "selection"
+                      btn.tracks = {}
+                      btn.track_guids = {}
+                      local sel_tr_count = reaper.CountSelectedTracks(0)
+                      for i=1, sel_tr_count do
+                        local tr = reaper.GetSelectedTrack(0, i-1)
+                        local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
+                        btn.tracks[#btn.tracks+1] = tr
+                        btn.track_guids[#btn.track_guids+1] = reaper.GetTrackGUID(tr) -- from version 0.2.6 ->
+                        btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
+                      end
                     end
                   end
   
@@ -968,7 +982,7 @@ function exit()
   GUI.dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
   local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "GUI_dock_state", GUI.dock)
   gfx.quit()
-  set_all_tracks_visible(1)
+  --set_all_tracks_visible(1)
 end
 
 -------------------------------------------------
@@ -1030,7 +1044,7 @@ function restore(proj_id)
   end
   sort_buttons_by_tag_name()
   update_button_positions()
-  update_visibility()
+  -- update_visibility()
 end
 
 -------------------------------------------------
