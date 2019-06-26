@@ -1,9 +1,7 @@
 -- @description Setup Multi-Out VST
 -- @author PatrickMartin
 -- @version 1.0beta
--- @changelog
---   06/25/2019
---   Initial
+-- @changelog Initial
 -- @link Forum thread https://forum.cockos.com/showthread.php?p=2151021
 -- @screenshot After https://imgur.com/a/DrX33aS
 -- @about
