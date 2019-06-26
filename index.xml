@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8c4be13cdd3a45ddddfbeb979f982d659e09f386" name="ReaTeam Scripts">
+<index version="1" commit="b4c38b19909beb57c2b6ec19891819d032556852" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9014,6 +9014,53 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       </metadata>
       <version name="1.0" author="Mordi" time="2019-05-03T18:10:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af241d05f01be02d07d9f55e576556e38cb16dcd/Tracks%20Properties/Mordi_Insert%20new%20track%20(inherit%20color%20from%20parent).lua</source>
+      </version>
+    </reapack>
+    <reapack name="patrickmartin_Setup Multi-Out VST.lua" type="script" desc="Setup Multi-Out VST">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Setup Multi-Out VST\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Overview\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script adds a VST on a new track and then: [list] [{\i ]Creates # of MIDI tracks you specify. Each track input is set to the MIDI device you specify, with each track configured to send data to the VST on a separate MIDI channel (1-16 and 16 for all tracks beyond #16) [}]Creates same # of audio tracks, each configured to receive audio from the VST track on one of its stereo outputs (1/2, 3/4, 5/6, etc) [{\i ]Names the tracks according to abbreviations you specify, or using the full VST name if no abbreviations are specified [}]Creates folder tracks for the MIDI and audio channels [*]Colors the MIDI and audio tracks to RGB values you specify [/list]\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Dependencies\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 None\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Configuration\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 --name of the VST\line
+--(use name only, i.e. "Omnisphere" not "VSTi: Omnisphere (Spectrasonics) (8 out)"\line
+uc_vst_name = "Omnisphere"\line
+\line
+--# of stereo outs on the VST\line
+--This # of audio/MIDI track pairs will be created.\line
+--  * each MIDI track will receive on all channels but send on only 1\line
+--  * tracks above #16 will send on channel 16\line
+--2X this # of channels will be created on the instrument track\line
+uc_vst_stereo_outs = 8\line
+\line
+--name of MIDI input device or nil to use all inputs\line
+uc_MIDI_input_device_name = "masterkey 49"\line
+\line
+--Optional: Color for MIDI tracks \{R, G, B\} or \{\}\line
+uc_track_color_MIDI = \{255, 204, 204\}\line
+\line
+--Optional: Color for audio tracks \{R, G, B\} or \{\}\line
+uc_track_color_audio = \{229, 255, 204\}\line
+\line
+--Optional: Track name abbreviations \{audio, MIDI\}\line
+--Example: \{"0S-Out", "OS_MID"\} would name tracks as follows:\line
+--  'OS-MID' for folder, 'OS-MID1', 'OS-MID2' ..., 'OS-Out1', 'OS-Out2', ... for child tracks\line
+--Set to \{\} to use VST name\line
+uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2151021">Forum thread</link>
+        <link rel="screenshot" href="https://imgur.com/a/DrX33aS">After</link>
+      </metadata>
+      <version name="1.0beta" author="PatrickMartin" time="2019-06-26T06:18:25Z">
+        <changelog><![CDATA[Initial]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4c38b19909beb57c2b6ec19891819d032556852/Tracks%20Properties/patrickmartin_Setup%20Multi-Out%20VST.lua</source>
       </version>
     </reapack>
     <reapack name="reaperblog_+3dB trim send levels on selected track.eel" type="script" desc="+3dB trim send levels on selected track">
