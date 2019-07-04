@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ca9f4767aa2d83ecb48797af2702af28787264ff" name="ReaTeam Scripts">
+<index version="1" commit="e88b80d5d52eac13f096c59e06bbbaa3fe5808bb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -167,6 +167,10 @@
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/25714f25dfaa7a2ce2d9ecb4de63b41f7ea54eac/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20project.lua</source>
       </version>
+      <version name="1.0.1" author="Lokasenna" time="2019-07-04T13:23:32Z">
+        <changelog><![CDATA[Fix: Crash if no items in the project]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e88b80d5d52eac13f096c59e06bbbaa3fe5808bb/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20project.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Move edit cursor to start of first item in selected tracks.lua" type="script" desc="Move edit cursor to start of first item in selected tracks">
       <metadata>
@@ -176,6 +180,10 @@
       <version name="1.0" author="Lokasenna" time="2017-03-31T12:35:21Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dbfb8ce09c396bcf78cc688c3c0c71ef1bbb763c/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2019-07-04T13:23:32Z">
+        <changelog><![CDATA[Fix: Crash if no items in the selected tracks]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e88b80d5d52eac13f096c59e06bbbaa3fe5808bb/Cursor/Lokasenna_Move%20edit%20cursor%20to%20start%20of%20first%20item%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Place play cursor into view (when playing) or Center edit cursor (when stopped).eel" type="script" desc="amagalma_Place play cursor into view (when playing) or Center edit cursor (when stopped)">
