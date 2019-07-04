@@ -1,7 +1,7 @@
 -- @description Setup Multi-Out VST
 -- @author PatrickMartin
--- @version 1.0beta
--- @changelog Initial
+-- @version 1.1beta
+-- @changelog Corrected channel numbering of MIDI sends (CalcMIDIChannel)
 -- @link Forum thread https://forum.cockos.com/showthread.php?p=2151021
 -- @screenshot After https://imgur.com/a/DrX33aS
 -- @about
@@ -104,7 +104,7 @@ gv_MIDI_inputs = {}
 
 console = false -- true/false: display debug messages in the console
 
---name of the VST 
+--name of the VST
 --(use name only, i.e. "Omnisphere" not "VSTi: Omnisphere (Spectrasonics) (8 out)"
 uc_vst_name = "Omnisphere"
 
@@ -127,7 +127,7 @@ uc_track_color_audio = {229, 255, 204}
 --Optional: Track name abbreviations {audio, MIDI}
 --Example: {"0S-Out", "OS_MID"} would name tracks as follows:
 --  OS-MID1, OS-MID2 ... OS-Out1, OS-Out2, ...
---Set to {} to use VST name 
+--Set to {} to use VST name
 uc_track_name_abbreviations = {"O-Out", "O-MID"}
 ----------------------------------------------------- END OF USER CONFIG AREA
 
@@ -163,32 +163,32 @@ function AddVST(vst_name, track, input_device, outputs)
   if not track then
     --create a new track for it
     track = CreateTrackAtEnd(vst_name)
-  end  
-  
+  end
+
   --Add VST
   local fxid = reaper.TrackFX_AddByName(track, vst_name, false, c_fx_instantiate_if_none)
-  
+
   --Enable FX on the track
   reaper.TrackFX_SetEnabled(track, fxid, 1)
-  
+
   --Set number of channels
   reaper.SetMediaTrackInfo_Value(track, "I_NCHAN", outputs * 2)
-  
+
   --Set input to none
   reaper.SetMediaTrackInfo_Value(track, "I_RECINPUT", c_track_recinput_none)
-  
+
   --Set rec mode for midi input
   reaper.SetMediaTrackInfo_Value(track, "I_RECMODE", c_track_recmode_midi)
-  
+
   --Arm track
   --reaper.SetMediaTrackInfo_Value(track, "I_RECARM", c_track_armed)
-  
+
   --Turn off master send
   reaper.SetMediaTrackInfo_Value(track, "B_MAINSEND", 0)
-  
+
   --Turn on record monitoring
   reaper.SetMediaTrackInfo_Value(track, "I_RECMON", c_track_recmon_normal)
- 
+
   return track, fxid
 end
 
@@ -218,7 +218,7 @@ function SetTrackMIDIInput(track, input_name, channel)
   if input_name then
     --Try to get the input index from the name
     input_idx = GetMIDIInputByName(input_name)
-    if input_idx == -1 then    
+    if input_idx == -1 then
       --default to input all inputs
       input_idx = ALL_INPUTS
     end
@@ -230,16 +230,16 @@ end
 function ConfigMIDISendTrack(send_track, rcv_track, rcv_channel, dest_channel, input_device)
   --Set MIDI input device for instrument track
   SetTrackMIDIInput(send_track, input_device, ALL_CHANNELS)
-  
+
   --Set rec mode for midi input
   reaper.SetMediaTrackInfo_Value(send_track, "I_RECMODE", c_track_recmode_midi)
-  
+
   --Turn on record monitoring
   reaper.SetMediaTrackInfo_Value(send_track, "I_RECMON", c_track_recmon_normal)
-  
+
   --Add a send to the instrument track
   local send_idx = reaper.CreateTrackSend(send_track, rcv_track)
-  
+
   --Set send and receive channels for the send
   local midi_flags = (dest_channel << 5) | rcv_channel;
   reaper.SetTrackSendInfo_Value(send_track, c_send_category_send, send_idx, "I_MIDIFLAGS", midi_flags)
@@ -272,22 +272,22 @@ function CreateFolderTrack(name)
 end
 
 function CalcMIDIChannel(index)
-  if (index + 1) > 16 then
+  if index > 16 then
     return 16
   else
-    return (index + 1)
+    return index
   end
 end
 
 function InsertTracks(vst_track, qty, create_folder, for_midi)
   local folder = nil
-  
+
   --Set track color, if specified
   local track_color = nil
   if #uc_track_color_MIDI > 0 then
     track_color = for_midi and uc_track_color_MIDI or uc_track_color_audio
   end
-  
+
   --Use track name abbrevations if provided, otherwise use name of VST
   local name = ""
   if #uc_track_name_abbreviations > 0 then
@@ -295,33 +295,33 @@ function InsertTracks(vst_track, qty, create_folder, for_midi)
   else
     name = for_midi and uc_vst_name .. " MIDI" or uc_vst_name .. " Out"
   end
-  
+
   if create_folder then
     folder = CreateFolderTrack(name)
     if track_color then
       SetTrackColor(folder, track_color)
     end
   end
-  
+
   --Create tracks
   local next_idx = reaper.GetNumTracks()
   local next_stereo_out_idx = 0
   for i = 1, qty, 1 do
     --Insert track
     reaper.InsertTrackAtIndex(next_idx, true)
-    
+
     --Get a reference to it
     local track = reaper.GetTrack(0, next_idx)
-    
+
     --Set the track name
     local track_name = name .. "" .. i
     reaper.GetSetMediaTrackInfo_String(track, "P_NAME", track_name , true)    
-    
+
     --Set track color, if specified
     if track_color then
       SetTrackColor(track, track_color)
     end
-    
+
     --Configure for MIDI or audio
     if for_midi then
       --limit channel values to 1-16. if index > 16, we start over at 1
@@ -330,14 +330,14 @@ function InsertTracks(vst_track, qty, create_folder, for_midi)
     else
       --VST outs are stereo pairs, 0 = 1/2, 2=3/4, etc
       ConfigAudioReceiveTrack(vst_track, track, next_stereo_out_idx)
-    end 
-    
+    end
+
     --If we've created a folder and this is the last track
     if (create_folder and i == qty) then
       --Make it last in the folder
       reaper.SetMediaTrackInfo_Value(track, "I_FOLDERDEPTH", c_folder_depth_last_innermost)
     end
-    
+
     --Set next insert index
     next_idx = reaper.GetNumTracks()
     --Set next stereo out index
@@ -372,20 +372,20 @@ end
 function main()
   --Build global table of MIDI inputs
   gv_MIDI_Inputs = GetMIDIInputs()
-  
+
   --if MIDI input device specified, validate it
   ValidateMIDIInput(uc_MIDI_input_device_name)
-  
+
   --Add VST on a new track
   vst_track, fxid = AddVST(uc_vst_name, nil, uc_MIDI_input_device_name, uc_vst_stereo_outs)
-  
+
   if vst_track and fxid > -1 then
     --Insert MIDI tracks
     midi_folder = InsertTracks(vst_track, uc_vst_stereo_outs, true, true)
-    
+
     --Insert stereo tracks
     audio_folder = InsertTracks(vst_track, uc_vst_stereo_outs, true, false)
-    
+
     --Compact the folders
     if midi_folder then
       SetFolderCompact(midi_folder, c_folder_compact_tiny)
