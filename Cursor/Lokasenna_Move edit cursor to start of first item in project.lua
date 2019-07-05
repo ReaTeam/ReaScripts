@@ -1,6 +1,6 @@
 --[[
 Description: Move edit cursor to start of first item in project
-Version: 1.0.1
+Version: 1.0.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
@@ -29,7 +29,7 @@ for i = 0, num_tracks - 1 do
 
 end
 
-if not #times then return end
+if #times == 0 then return end
 table.sort(times)
 
 reaper.ApplyNudge( 0, 1, 6, 1, times[1], false, 0 )
