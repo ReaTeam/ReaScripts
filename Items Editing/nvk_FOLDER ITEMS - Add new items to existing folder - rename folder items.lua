@@ -19,8 +19,6 @@
  * Version: 0.9beta
 --]]
 
-
-
 -----------------------Item Selection-----------------------------
 
 
@@ -279,8 +277,12 @@ function GetSelectedMediaItemsAndTracks()
     all_muted = true
     in_place_bad = false
     all_folder = true
-    no_folder = true
+    --no_folder = true
     first_child_item = true
+    item_count = reaper.CountSelectedMediaItems()
+    local first_item = reaper.GetSelectedMediaItem(0,0)
+    local first_track = reaper.GetMediaItemTrack(first_item)
+    local first_depth = reaper.GetTrackDepth(first_track)
     for i = 0, item_count - 1 do
         local item = reaper.GetSelectedMediaItem(0, i)
         local s, e = GetItemPosition(item)
@@ -292,7 +294,7 @@ function GetSelectedMediaItemsAndTracks()
         end
         
 
-        if reaper.GetMediaTrackInfo_Value(track,"I_FOLDERDEPTH") ~= 1 then --if not parent track
+        if reaper.GetTrackDepth(track) > first_depth or reaper.GetMediaTrackInfo_Value(track,"I_FOLDERDEPTH") ~= 1 then --if depth greater than first item
           all_folder = false
           
           if first_child_item then
@@ -303,11 +305,8 @@ function GetSelectedMediaItemsAndTracks()
           local p_track = tostring(reaper.GetParentTrack(track))
           InsertIntoTable(parent_tk_check, p_track)
           InsertTrackIntoTable(media_tracks, track)
-
-        end
-
-        if reaper.GetMediaTrackInfo_Value(track,"I_FOLDERDEPTH") == 1 then
-          no_folder = false
+          else
+          --no_folder = false
           item_count = item_count-1
         end
 
