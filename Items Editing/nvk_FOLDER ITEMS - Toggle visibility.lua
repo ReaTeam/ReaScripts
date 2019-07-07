@@ -18,7 +18,6 @@
  * REAPER: 5.979
  * Extensions: SWS/S&M 2.10.0
  * Version: 0.9beta
- * Known Issues: Behavior with nested folder items isn't perfect
 --]]
 
 select_children = reaper.NamedCommandLookup("_SWS_SELCHILDREN2")  --select children of selected tracks
@@ -208,7 +207,7 @@ end
 
 ----------------------TOGGLE MAIN (Recursive)----------------
 
-function ToggleMain(track)
+function ToggleMain(track, repeat_bool)
   if track ~= nil and reaper.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == 1 then -- if selected track is folder and not nil
     reaper.SetOnlyTrackSelected(track)
     local depth = reaper.GetTrackDepth(track)
@@ -226,14 +225,15 @@ function ToggleMain(track)
       SaveSelectedTracks(sel_tracks)
       for i, track in ipairs(sel_tracks) do
         local child_depth = reaper.GetTrackDepth(track)
-        if reaper.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == 1 --[[and child_depth > depth]] then
-          ToggleMain(track) --hides folders inside folder
+        if reaper.GetMediaTrackInfo_Value(track, 'I_FOLDERDEPTH') == 1 and child_depth == depth+1 then
+          if repeat_bool then
+            ToggleMain(track, false)
+          end--hides folders inside folder
         end
       end
     end
   end
 end
-
 
 -------------------------------MAIN---------------------------------------------
 
@@ -299,7 +299,7 @@ end
 
 
 
-ToggleMain(track)
+ToggleMain(track, true)
 
 reaper.SetOnlyTrackSelected(track)
 set_direct_children_tracks_to_same_color_as_parent(track)
@@ -309,3 +309,4 @@ reaper.UpdateArrange()
 reaper.PreventUIRefresh(-1)
 
 reaper.Undo_EndBlock("nvk_FOLDER ITEMS - Toggle visibility", -1)
+
