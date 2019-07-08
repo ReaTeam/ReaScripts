@@ -23,7 +23,7 @@
 
 FolderFXName = "VST3:Fabfilter Pro-L 2" --This fx will be added to the top level folder track of the subproject (recommend adding a limiter of some sort)
 
-TrackTemplateSlot = 1 --add sws track template slot (1-4) at end of tracks (0 does nothing, "p" opens prompt)
+TrackTemplateSlot = 0 --add sws track template slot (1-4) at end of tracks (0 does nothing, "p" opens prompt)
 
 
 ----------------------SAVE SELECTED ITEMS/TRACKS--------------------
