@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fe4eae9526f63fee343519e96be858cddce3a5e3" name="ReaTeam Scripts">
+<index version="1" commit="c362184468b09496fac10733d1fa1f95277e3386" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8835,6 +8835,23 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.02" author="juliansader" time="2016-07-22T11:02:03Z">
         <changelog><![CDATA[+ Prevent sysex events from confusing channel detector.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d2dac1e58556e9e562b26de1551dcaf4ebd4a550/Tracks%20Properties/js_Set%20MIDI%20send%20channel%20of%20selected%20tracks%20to%20channel%20of%20existing%20MIDI%20events%20in%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Append selected track names with their first send destination.lua" type="script" desc="Lokasenna_Append selected track names with their first send destination">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 For each selected track, gets the name of its {\i first} send destination and appends it to the track's name. i.e: if "Guitar L" sends to "Guitar Bus", it will be renamed to "Guitar L (Guitar Bus)"\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2019-07-15T14:07:40Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c362184468b09496fac10733d1fa1f95277e3386/Tracks%20Properties/Lokasenna_Append%20selected%20track%20names%20with%20their%20first%20send%20destination.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create bus after selected tracks and reroute them.lua" type="script" desc="Create bus after selected tracks and reroute them">
