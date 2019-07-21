@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d48ccbbf18fc7b14fbdd94ea5d98081198a90fa5" name="ReaTeam Scripts">
+<index version="1" commit="8ea20315caa8db53e84c0ed731f71850bcf0cd6d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8506,6 +8506,34 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       </metadata>
       <version name="1.0" author="Lokasenna" time="2017-04-28T04:55:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbdb6647ae909e72fb5c192f4c2accfa03a91978/Time%20Selection/Lokasenna_Set%20time%20selection%20from%20edit%20cursor%20to%20play%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Snap time selection or loop points to grid.lua" type="script" desc="Snap time selection or loop points to grid">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Provides actions for snapping the time selection or loop points to the grid. Requires the SWS extension.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2019-07-21T21:37:36Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main" file="Lokasenna_Snap time selection to grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap time selection start to grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap time selection end to grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap loop points to grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap loop point start to grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap loop point end to grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap time selection to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap time selection start to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap time selection end to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap loop points to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap loop point start to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+        <source main="main" file="Lokasenna_Snap loop point end to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set time selection from edit cursor to end of items.eel" type="script" desc="Set time selection from edit cursor to end of items">
