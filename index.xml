@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c362184468b09496fac10733d1fa1f95277e3386" name="ReaTeam Scripts">
+<index version="1" commit="d48ccbbf18fc7b14fbdd94ea5d98081198a90fa5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8454,6 +8454,23 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.14" author="Lokasenna" time="2018-06-24T20:38:33Z">
         <changelog><![CDATA[Increased width to work with larger textbox font]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c7c7351ceb956c77de96292ef144e5150fd78392/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20edit%20cursor...%20.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Create time selection at play cursor... .lua" type="script" desc="Create time selection at play cursor...">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Provides a variety of options for creating time selections at the play cursor, and can export specific settings as a separate action.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=1993961">Forum thread</link>
+        <link rel="donation">https://paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.14" author="Lokasenna" time="2019-07-21T18:15:57Z">
+        <changelog><![CDATA[Initial release (v1.14 for consistency with edit cursor script)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d48ccbbf18fc7b14fbdd94ea5d98081198a90fa5/Time%20Selection/Lokasenna_Create%20time%20selection%20at%20play%20cursor...%20.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Move time selection left by time selection length.lua" type="script" desc="Move time selection left by time selection length">
