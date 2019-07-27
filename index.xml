@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8ea20315caa8db53e84c0ed731f71850bcf0cd6d" name="ReaTeam Scripts">
+<index version="1" commit="0c4fc596be8f27e34cae9865c06aa8cb0b80e9d1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8991,6 +8991,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bbaa88e6ae080b0ba3342e0f7bf877ede608d83f/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
       </version>
+      <version name="1.0.1" author="Lokasenna" time="2019-07-27T17:09:37Z">
+        <changelog><![CDATA[Fix: Script window had the wrong title]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89c43aff1f16440e2eb3a4063e324ad895b5618a/Tracks%20Properties/Lokasenna_Select%20tracks%20by%20name.lua</source>
+      </version>
     </reapack>
     <reapack name="Lokasenna_Select tracks in selection with items.lua" type="script" desc="Select tracks in selection with items">
       <metadata>
@@ -9077,6 +9081,12 @@ FIx: Tracks disappearing with both children + siblings checked.]]></changelog>
       <version name="1.4.2" author="Lokasenna" time="2018-10-13T20:21:19Z">
         <changelog><![CDATA[Fix: Crash referring to "merge_tables" being nil]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/576562eca8e8add14c7a8286ef95433af35f5ed6/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
+      </version>
+      <version name="1.5.0" author="Lokasenna" time="2019-07-27T18:30:54Z">
+        <changelog><![CDATA[New: After updating visibility in the mixer, selects the first visible
+track in the mixer.
+Fix: More descriptive error message if valid settings aren't found]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c4fc596be8f27e34cae9865c06aa8cb0b80e9d1/Tracks%20Properties/Lokasenna_Show%20only%20specified%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Insert new track (inherit color from parent).lua" type="script" desc="Insert new track (inherit color from parent)">
