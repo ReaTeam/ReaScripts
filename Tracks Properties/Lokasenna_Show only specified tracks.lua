@@ -1,10 +1,12 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.4.2
+    Version: 1.5.0
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Fix: Crash referring to "merge_tables" being nil
+        New: After updating visibility in the mixer, selects the first visible
+        track in the mixer.
+        Fix: More descriptive error message if valid settings aren't found
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -126,8 +128,8 @@ local function get_parents(tracks)
     for idx in pairs(tracks) do
 
         local tr = reaper.GetTrack(0, idx - 1)
-        for tr in pairs( recursive_parents(tr)) do
-            parents[ math.floor( reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER") ) ] = true
+        for nextParent in pairs( recursive_parents(tr)) do
+            parents[ math.floor( reaper.GetMediaTrackInfo_Value(nextParent, "IP_TRACKNUMBER") ) ] = true
         end
 
     end
@@ -235,6 +237,15 @@ local function get_tracks_to_show(settings)
 
 end
 
+local function select_first_visible_MCP()
+  for i = 1, reaper.CountTracks(0) do
+    local tr = reaper.GetTrack(0, i - 1)
+    if reaper.IsTrackVisible(tr, true) then
+      reaper.SetOnlyTrackSelected(tr)
+      break
+    end
+  end
+end
 
 local function set_visibility(tracks, settings)
 
@@ -256,6 +267,10 @@ local function set_visibility(tracks, settings)
 
     end
 
+    if settings.mcp then
+      select_first_visible_MCP()
+    end
+
     reaper.PreventUIRefresh(-1)
     reaper.Undo_EndBlock("Show only specified tracks", -1)
 
@@ -274,11 +289,12 @@ end
 
 if script_filename ~= "Lokasenna_Show only specified tracks.lua" then
 
-    local tracks = get_tracks_to_show(settings)
+    local tracks = settings and get_tracks_to_show(settings)
     if tracks then
         set_visibility( tracks, settings )
     else
-        reaper.MB("Error reading the script's settings. Make sure you haven't edited the script at all.", "Whoops!", 0)
+        reaper.MB(
+          "Error reading the script's settings. Make sure you haven't edited the script or changed its filename.", "Whoops!", 0)
     end
 
     return
