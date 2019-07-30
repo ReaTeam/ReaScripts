@@ -1219,6 +1219,7 @@ local function Filter_RecentProject_Apply()
 
   UpdateListFilter_RecentProjects()
   GUI.Val("tab_recentProjects_listbox",{})
+  ScrollToTop(1)
   Global_HidePaths()
 end
 
@@ -1248,6 +1249,7 @@ local function Filter_ProjectTemplate_Apply()
 
   UpdateListFilter_ProjectTemplates()
   GUI.Val("tab_projectTemplates_listbox",{})
+  ScrollToTop(2)
   Global_HidePaths()
 end
 
@@ -1278,6 +1280,7 @@ local function Filter_TrackTemplate_Apply()
   
   UpdateListFilter_TrackTemplates()
   GUI.Val("tab_trackTemplates_listbox",{})
+  ScrollToTop(3)
   Global_HidePaths()
 end
 
@@ -1308,6 +1311,7 @@ local function Filter_CustomProjects_Apply()
 
   UpdateListFilter_CustomProjects()
   GUI.Val("tab_customProjects_listbox",{})
+  ScrollToTop(4)
   Global_HidePaths()
 end
 
@@ -1339,6 +1343,7 @@ local function Filter_ProjectLists_Apply()
 
   UpdateListFilter_ProjectLists()
   GUI.Val("tab_projectLists_listboxProjects",{})
+  ScrollToTop(5)
   Global_HidePaths()
 end
 
@@ -1369,6 +1374,7 @@ local function Filter_Backups_Apply()
   
   UpdateListFilter_Backups()
   GUI.Val("tab_backups_listbox",{})
+  ScrollToTop(6)
   Global_HidePaths()
 end
 
@@ -3104,6 +3110,12 @@ function ScrollParentListBox(direction)
 	element:redraw()
 end
 
+function ScrollToTop(tabIndex)
+  local element = ListboxElements[tabIndex]
+  element.wnd_y = GUI.clamp(1, element.wnd_y - element.wnd_h, math.max(#element.list - element.wnd_h + 1, 1))
+  element:redraw()
+end
+
 function ScrollListBox(tabIndex, direction)
   local element = ListboxElements[tabIndex]
   element.wnd_y = GUI.clamp(1, element.wnd_y + direction, math.max(#element.list - element.wnd_h + 1, 1))
@@ -3128,7 +3140,9 @@ function SelectPreviousParentIndex(tabIndex, listIndex)
 end
 
 function RL_Keys_ListboxSelectPreviousParent(currentTab)
-  SelectPreviousParentIndex(currentTab, SelectionIndex.ProjectListsRPL)
+  if currentTab == 5 then
+    SelectPreviousParentIndex(currentTab, SelectionIndex.ProjectListsRPL)
+  end
 end
 
 -- next parent
@@ -3143,7 +3157,9 @@ function SelectNextParentIndex(tabIndex, listIndex)
 end
 
 function RL_Keys_ListboxSelectNextParent(currentTab)
+  if currentTab == 5 then
     SelectNextParentIndex(currentTab, SelectionIndex.ProjectListsRPL)
+  end
 end
 
 ------------------
