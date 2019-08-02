@@ -1831,7 +1831,7 @@ function RL_Draw_Main()
   GUI.New("main_tabs", "Tabs", LayerIndex.Main, 0, 0, 100, 20, MainTabs, 16)
   GUI.elms.main_tabs.col_tab_b = "elm_bg"
   GUI.New("main_appversion", "Label", LayerIndex.Main, pad_left, GUI.h - 18, "ReaLauncher " .. appversion, false, 4)
-  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 90, GUI.h - 18, "", false, 4)
+  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 95, GUI.h - 18, "", false, 4)
 
   -- Tab | Layers
    GUI.elms.main_tabs:update_sets(
