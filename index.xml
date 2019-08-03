@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67a13a74c364e862f17abcee4910e5823cc8e99a" name="ReaTeam Scripts">
+<index version="1" commit="a6e5019b306f611482bf5d65c3a1761fa5b4db05" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3155,6 +3155,27 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       <version name="0.90" author="juliansader" time="2017-07-01T14:11:10Z">
         <changelog><![CDATA[+ Initial beta release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e1d3dbfdc9bb9f5dcdcf996bf937db4690b7687f/Items%20Editing/js_Area%20selection%20-%20Duplicate%20items%20and%20automation%20in%20time%20selection%20of%20selected%20tracks%20to%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Comp items - Unmute item under mouse and mute overlapping items.lua" type="script" desc="js_Comp items - Unmute item under mouse and mute overlapping items.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script allows easy comping of items that were recorded in free item positioning mode.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It activates (unmutes) the item under mouse and mutes overlapping items on the same track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Items that only overlap slightly, due to crossfades, will not be muted. (The maximum allowed overlap can be edited in the script.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can be linked to a left-click mouse modifier in the "Media item" or "Media item bottom half" contexts.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=193258</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2019-08-03T23:43:28Z">
+        <changelog><![CDATA[+ Initial release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a6e5019b306f611482bf5d65c3a1761fa5b4db05/Items%20Editing/js_Comp%20items%20-%20Unmute%20item%20under%20mouse%20and%20mute%20overlapping%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua" type="script" desc="js_Edit - Insert chased CCs at edit cursor in selected MIDI items.lua">
