@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.6
+Version: 2.16.7
 Changelog:
-    Fix: Crash when GUI.version has been set to nil
+    Fix: Middle mouse dragging wasn't being tracked
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

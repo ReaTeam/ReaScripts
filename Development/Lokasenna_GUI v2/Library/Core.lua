@@ -442,6 +442,7 @@ GUI.Main_Update_Elms = function ()
     -- Just in case any user functions want to know...
     GUI.mouse.last_down = GUI.mouse.down
     GUI.mouse.last_r_down = GUI.mouse.r_down
+    GUI.mouse.last_m_down = GUI.mouse.m_down
 
 end
 
