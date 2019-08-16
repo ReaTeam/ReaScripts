@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b20fb4117361542e8e8b025b6225a72887dc075d" name="ReaTeam Scripts">
+<index version="1" commit="c598ffbcbf403c55dabdbae761892e0c80d68e60" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8056,6 +8056,10 @@ enter or a = Exit and apply changes\par}
 + macOS / Linux: fix for file paths containing empty spaces
 + General code optimization and bugfixing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67a13a74c364e862f17abcee4910e5823cc8e99a/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.5.1" author="solger" time="2019-08-16T10:29:28Z">
+        <changelog><![CDATA[+ Bugfix: New Project button not working]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c598ffbcbf403c55dabdbae761892e0c80d68e60/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
