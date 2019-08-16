@@ -1,16 +1,8 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.5
+-- @version 1.5.1
 -- @changelog
---   + Added support for key inputs
---   + Added preview option for attached audio demo files of projects and templates (requires js_ReaScriptAPI)
---   + [Recent projects]: Multiple selected entries can now be removed at once (prior it was only one entry at a time)
---   + [Project Lists]: Skip empty entries when reading .rpl files
---   + [Backups] tab added for .rpp-bak files
---   + [Options]: Added checkbox for 'Prompt to save on new project' (requires SWS Extensions)
---   + [Help] tab added
---   + macOS / Linux: fix for file paths containing empty spaces
---   + General code optimization and bugfixing
+--   + Bugfix: New Project button not working
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -68,7 +60,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.5"
+appversion = "1.5.1"
 appname = "solger_ReaLauncher"
 
 osversion =  reaper.GetOS()
@@ -1839,7 +1831,7 @@ function RL_Draw_Main()
   GUI.New("main_tabs", "Tabs", LayerIndex.Main, 0, 0, 100, 20, MainTabs, 16)
   GUI.elms.main_tabs.col_tab_b = "elm_bg"
   GUI.New("main_appversion", "Label", LayerIndex.Main, pad_left, GUI.h - 18, "ReaLauncher " .. appversion, false, 4)
-  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 90, GUI.h - 18, "", false, 4)
+  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 95, GUI.h - 18, "", false, 4)
 
   -- Tab | Layers
    GUI.elms.main_tabs:update_sets(
@@ -1861,7 +1853,7 @@ function RL_Draw_Main()
   GUI.New("main_btnOpenInExplorer", "Button", LayerIndex.Global, btn_pad_left, 64, btn_w, btn_h, "Show in Explorer/Finder", Global_OpenInExplorer)
   GUI.New("main_button_openProject", "Button", LayerIndex.Global, btn_pad_left, 98, btn_w, btn_h, "Open Project", Global_ShowProjectOpenDialog) 
 
-  GUI.New("main_btnNewProject", "Button", LayerIndex.Global, btn_pad_left, btn_pad_top, btn_w, btn_h, "New Project", Global_New) 
+  GUI.New("main_btnNewProject", "Button", LayerIndex.Global, btn_pad_left, btn_pad_top, btn_w, btn_h, "New Project", Global_NewProject) 
   GUI.New("main_btnNewProjectTab", "Button", LayerIndex.Global, btn_pad_left, btn_pad_top + btn_pad_add, btn_w, btn_h, "New Tab", Global_NewTab) 
   GUI.New("main_btnNewTabIgnoreTemplate", "Button", LayerIndex.Global, btn_pad_left, btn_pad_top + 2 * btn_pad_add, btn_w, btn_h, "New Tab Ignore Template", Global_NewTabIgnoreTemplate)
   
