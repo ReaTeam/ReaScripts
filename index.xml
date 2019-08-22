@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a8452ad9110169fd7171937ec23c4fe69248f804" name="ReaTeam Scripts">
+<index version="1" commit="fc90949652742901f11d5f9fbe4dc21bdad843ab" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10391,6 +10391,21 @@ Try harder to fit the button in very small windows]]></changelog>
         <changelog><![CDATA[Show the button even if the window cannot fit the text
 Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Enable or disable external timecode synchronization.lua" type="script" desc="Enable or disable external timecode synchronization">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides two actions for enabling or disabling REAPER's external timecode synchronization.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-08-22T16:36:08Z">
+        <source main="main" file="cfillion_Enable external timecode synchronization.lua">https://github.com/ReaTeam/ReaScripts/raw/fc90949652742901f11d5f9fbe4dc21bdad843ab/Various/cfillion_Enable%20or%20disable%20external%20timecode%20synchronization.lua</source>
+        <source main="main" file="cfillion_Disable external timecode synchronization.lua">https://github.com/ReaTeam/ReaScripts/raw/fc90949652742901f11d5f9fbe4dc21bdad843ab/Various/cfillion_Enable%20or%20disable%20external%20timecode%20synchronization.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Find shortcut in the Action List.lua" type="script" desc="Find shortcut in the Action List">
