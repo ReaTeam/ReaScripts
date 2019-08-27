@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fc90949652742901f11d5f9fbe4dc21bdad843ab" name="ReaTeam Scripts">
+<index version="1" commit="cdda3984c85d4f200c4fa9d0e76037b8efe755a8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8190,6 +8190,35 @@ enter or a = Exit and apply changes\par}
       <version name="1.0.0" author="Thonex" time="2018-07-26T16:56:32Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ae5febb5c0c810b831cf760c4c02bc5e9d527b6/Regions/Thonex_Set%20time%20selection%20to%20region%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Rendering">
+    <reapack name="cfillion_Apply render preset.lua" type="script" desc="Apply render preset">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Apply render preset\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides two scripts for applying render presets from outside of the render dialog.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The primary action, {\i cfillion_Apply render preset.lua}, shows a list of all available presets and applies the selected one.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The second action, {\i cfillion_Apply render preset (create action)}.lua, dynamically creates a new action script for applying the chosen preset. This new action can be used for applying the chosen preset without any user interaction (eg. as part of a custom action).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The main script and generated scripts can be combined with the REAPER action "File: Render project, using the most recent render settings" (or similar) as part of a custom action.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Caveats\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The following restrictions apply due to current limitations in REAPER's scripting API.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These settings are applied but not visible immediately in the render dialog (if opened):\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Render speed\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Resample mode\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These settings are NOT applied:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use project sample rate for mixing and FX/synth processing\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="donation" href="https://paypal.me/cfillion">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-08-27T01:39:07Z">
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/cdda3984c85d4f200c4fa9d0e76037b8efe755a8/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
   </category>
