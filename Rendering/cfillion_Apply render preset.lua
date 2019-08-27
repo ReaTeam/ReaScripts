@@ -1,4 +1,4 @@
--- @description Apply render prefix
+-- @description Apply render preset
 -- @author cfillion
 -- @version 1.0
 -- @provides [main] . > cfillion_Apply render preset (create action).lua
