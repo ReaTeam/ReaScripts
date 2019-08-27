@@ -1,9 +1,15 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0
--- @provides [main] . > cfillion_Apply render preset (create action).lua
--- @link cfillion.ca https://cfillion.ca
--- @donation Donate via PayPal https://paypal.me/cfillion
+-- @version 1.0.1
+-- @changelog
+--   Fix packaging of the primary action
+--   Fix creation of render preset actions
+-- @provides
+--   [main] .
+--   [main] . > cfillion_Apply render preset (create action).lua
+-- @link https://cfillion.ca
+-- @screenshot https://i.imgur.com/Xy44ZlR.gif
+-- @donation https://paypal.me/cfillion
 -- @about
 --   # Apply render preset
 --
@@ -191,7 +197,7 @@ local function selectRenderPreset(presets)
 end
 
 local function createAction(presetName, scriptInfo)
-  local actionName = string.format('%s "%s"', scriptInfo.name, presetName)
+  local actionName = string.format('Apply render preset "%s"', presetName)
   local outputFn = string.format('%s/Scripts/%s.lua',
     reaper.GetResourcePath(), actionName)
   local baseName = scriptInfo.path:match('([^/\\]+)$')
