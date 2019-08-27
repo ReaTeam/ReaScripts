@@ -1,9 +1,8 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.1
+-- @version 1.0.2
 -- @changelog
---   Fix packaging of the primary action
---   Fix creation of render preset actions
+--   Workaround a REAPER bug causing randomly incorrect audio/video codecs to be applied (see t=224539)
 -- @provides
 --   [main] .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -164,7 +163,16 @@ local function getRenderPresets()
 end
 
 local function applyRenderPreset(project, preset)
-  for key, value in pairs(preset) do
+  -- HACK: using reaper.defer to delay calls to GetSetProjectInfo[_String]
+  -- by two timer cycles as a workaround for this REAPER bug:
+  -- https://forum.cockos.com/showthread.php?t=224539
+
+  local key, value
+
+  local function applyNext()
+    key, value = next(preset, key)
+    if not key then return end
+
     if key:match('^_') then -- unsupported setting
     elseif type(value) == 'string' then
       reaper.GetSetProjectInfo_String(project, key, value, true)
@@ -173,7 +181,11 @@ local function applyRenderPreset(project, preset)
     else
       reaper.GetSetProjectInfo(project, key, value, true)
     end
+
+    reaper.defer(function() reaper.defer(applyNext) end)
   end
+
+  applyNext()
 end
 
 local function selectRenderPreset(presets)
