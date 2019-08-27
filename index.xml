@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cdda3984c85d4f200c4fa9d0e76037b8efe755a8" name="ReaTeam Scripts">
+<index version="1" commit="ca2fc84740e5d29985b7931c77d09b2fa7ace78f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8214,11 +8214,18 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use project sample rate for mixing and FX/synth processing\sa180\par}
 }
 ]]></description>
-        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
-        <link rel="donation" href="https://paypal.me/cfillion">Donate via PayPal</link>
+        <link rel="website">https://cfillion.ca</link>
+        <link rel="screenshot">https://i.imgur.com/Xy44ZlR.gif</link>
+        <link rel="donation">https://paypal.me/cfillion</link>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-08-27T01:39:07Z">
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/cdda3984c85d4f200c4fa9d0e76037b8efe755a8/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2019-08-27T18:28:41Z">
+        <changelog><![CDATA[Fix packaging of the primary action
+Fix creation of render preset actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca2fc84740e5d29985b7931c77d09b2fa7ace78f/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/ca2fc84740e5d29985b7931c77d09b2fa7ace78f/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
   </category>
