@@ -163,17 +163,8 @@ local function getRenderPresets()
 end
 
 local function applyRenderPreset(project, preset)
-  -- HACK: using reaper.defer to delay calls to GetSetProjectInfo[_String]
-  -- by two timer cycles as a workaround for this REAPER bug:
-  -- https://forum.cockos.com/showthread.php?t=224539
-
-  local key, value
-
-  local function applyNext()
-    key, value = next(preset, key)
-    if not key then return end
-
-    if key:match('^_') then -- unsupported setting
+  for key, value in pairs(preset) do
+    if key:match('^_') or key == 'RENDER_FORMAT' then -- unsupported setting
     elseif type(value) == 'string' then
       reaper.GetSetProjectInfo_String(project, key, value, true)
     elseif key:match('^[a-z]') then -- lowercase
@@ -181,11 +172,12 @@ local function applyRenderPreset(project, preset)
     else
       reaper.GetSetProjectInfo(project, key, value, true)
     end
-
-    reaper.defer(function() reaper.defer(applyNext) end)
   end
 
-  applyNext()
+  if preset.RENDER_FORMAT then
+    -- workaround for this REAPER bug: https://forum.cockos.com/showthread.php?t=224539
+    reaper.GetSetProjectInfo_String(project, 'RENDER_FORMAT', preset.RENDER_FORMAT, true)
+  end
 end
 
 local function selectRenderPreset(presets)
