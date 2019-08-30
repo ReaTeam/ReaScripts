@@ -1,10 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.3
--- @changelog
---   Allow loading presets named "create action" from an action
---   Fix context menus not being displayed on Windows
---   Fix loading presets from reaper-render.ini on Windows
+-- @version 1.0.4
+-- @changelog Remove quotes from the generated action's filenames
 -- @provides
 --   [main] .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -203,7 +200,7 @@ local function selectRenderPreset(presets)
 end
 
 local function createAction(presetName, scriptInfo)
-  local actionName = string.format('Apply render preset "%s"', presetName)
+  local actionName = string.format('Apply render preset: %s', presetName)
   local outputFn = string.format('%s/Scripts/%s.lua',
     reaper.GetResourcePath(), actionName)
   local baseName = scriptInfo.path:match('([^/\\]+)$')
@@ -213,7 +210,7 @@ local function createAction(presetName, scriptInfo)
   local code = string.format(
 [[-- This file was created by %s on %s
 
-ApplyPresetByName = ({reaper.get_action_context()})[2]:match('"(.+)"%%.lua$')
+ApplyPresetByName = ({reaper.get_action_context()})[2]:match(': (.+)%%.lua$')
 dofile(string.format(]]..'[[%%s/%s]]'..[[, reaper.GetResourcePath()))
 ]], baseName, os.date('%c'), relPath)
 
@@ -228,7 +225,7 @@ dofile(string.format(]]..'[[%%s/%s]]'..[[, reaper.GetResourcePath()))
   end
 
   reaper.ShowMessageBox(
-    string.format('Action created: %s', actionName), scriptInfo.name, 0)
+    string.format('Created the action "%s".', actionName), scriptInfo.name, 0)
 end
 
 local function gfxdo(callback)
