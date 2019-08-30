@@ -1,8 +1,10 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.2
+-- @version 1.0.3
 -- @changelog
---   Workaround a REAPER bug causing randomly incorrect audio/video codecs to be applied (see t=224539)
+--   Allow loading presets named "create action" from an action
+--   Fix context menus not being displayed on Windows
+--   Fix loading presets from reaper-render.ini on Windows
 -- @provides
 --   [main] .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -78,7 +80,7 @@ local function tokenize(line)
       eat = 1
     end
 
-    if pos < line:len() then
+    if pos <= line:len() then
       table.insert(tokens, line:sub(pos, tail and tail - 1))
     end
 
@@ -229,6 +231,19 @@ dofile(string.format(]]..'[[%%s/%s]]'..[[, reaper.GetResourcePath()))
     string.format('Action created: %s', actionName), scriptInfo.name, 0)
 end
 
+local function gfxdo(callback)
+  local app = reaper.GetAppVersion()
+  if app:match('OSX') or app:match('linux') then
+    return callback()
+  end
+
+  local x, y = reaper.GetMousePosition()
+  gfx.init("", 0, 0, 0, x, y)
+  local value = callback()
+  gfx.quit()
+  return value
+end
+
 local function getScriptInfo()
   local path = ({reaper.get_action_context()})[2]
 
@@ -240,10 +255,12 @@ end
 
 local scriptInfo = getScriptInfo()
 local presets = getRenderPresets()
-local presetName = ApplyPresetByName or selectRenderPreset(presets)
+local presetName = ApplyPresetByName or gfxdo(function()
+  return selectRenderPreset(presets)
+end)
 
 if presetName then
-  if scriptInfo.name:match('create action') then
+  if scriptInfo.name:match('%(create action%)$') then
     createAction(presetName, scriptInfo)
   else
     applyRenderPreset(0, presets[presetName])
