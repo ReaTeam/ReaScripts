@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a9f7be2af1ce1f46dcb964602543e8d79d5d0527" name="ReaTeam Scripts">
+<index version="1" commit="01b98609f1a30dcab3320953938aec4a28ce468a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8238,6 +8238,11 @@ Fix context menus not being displayed on Windows
 Fix loading presets from reaper-render.ini on Windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a9f7be2af1ce1f46dcb964602543e8d79d5d0527/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/a9f7be2af1ce1f46dcb964602543e8d79d5d0527/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.0.4" author="cfillion" time="2019-08-30T13:59:34Z">
+        <changelog><![CDATA[Remove quotes from the generated action's filenames]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/01b98609f1a30dcab3320953938aec4a28ce468a/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/01b98609f1a30dcab3320953938aec4a28ce468a/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
   </category>
