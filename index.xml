@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="01b98609f1a30dcab3320953938aec4a28ce468a" name="ReaTeam Scripts">
+<index version="1" commit="1c0cfd909ed8a342299d88a78ccc38e65f8e165a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7963,15 +7963,16 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, Project Templates, Track Templates, Projects, (.rpl) Project Lists and (.rpp-bak) Backups\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Support for adding custom folder paths\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List filter at the top of each tab (supports multiple search words separated with a 'space' character)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, (.rpp) Project Templates, (.rtracktemplate) Track Templates, (.rpp) Projects, (.rpl) Project Lists and (.rpp-bak) Backups\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to add additional custom folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for Projects, Project Lists and Backups tabs\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List-filter at the top of each tab which supports input of multiple search words separated by a 'space' character\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button for browsing to the folder location of a selected file\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to preview attached 'demo' audio files of project and template files (requires js_ReaScriptAPI)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to switch between different pre-defined Reaper Theme Slots (requires SWS Extensions)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox for managing the window auto-close behavior\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Resizeable window\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\sa180\par}
@@ -8064,6 +8065,15 @@ enter or a = Exit and apply changes\par}
       <version name="1.5.1" author="solger" time="2019-08-16T10:29:28Z">
         <changelog><![CDATA[+ Bugfix: New Project button not working]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c598ffbcbf403c55dabdbae761892e0c80d68e60/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.6" author="solger" time="2019-08-31T12:40:01Z">
+        <changelog><![CDATA[+ [Project Templates]: Code update for using the new 'project template loading' API function prefix introduced with Reaper v5.983
++ Audio Preview: The volume knob now indicates if a preview file is available for the selected list entry by changing its color to silver
++ General: Improved code for reading files from folders - no more command window pop ups :)
++ General: Added first implementation for subfolder listing and selection
++ General: Automatic load and refresh of list entries is now only done for the focused tab (instead of loading the lists for all tabs simultaneously)
++ Key inputs: Adjustment for list scrolling behavior]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1c0cfd909ed8a342299d88a78ccc38e65f8e165a/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
