@@ -1,8 +1,14 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.5.1
+-- @version 1.6
 -- @changelog
---   + Bugfix: New Project button not working
+--   + [Project Templates]: Code update for using the new 'project template loading' API function prefix introduced with Reaper v5.983
+--   + Audio Preview: The volume knob now indicates if a preview file is available for the selected list entry by changing its color to silver
+--   + General: Improved code for reading files from folders - no more command window pop ups :)
+--   + General: Added first implementation for subfolder listing and selection
+--   + General: Automatic load and refresh of list entries is now only done for the focused tab (instead of loading the lists for all tabs simultaneously)
+--   + Key inputs: Adjustment for list scrolling behavior
+--   
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -11,15 +17,16 @@
 --
 --   ## Main features
 --
---   - Separate tabs for Recent Projects, Project Templates, Track Templates, Projects, (.rpl) Project Lists and (.rpp-bak) Backups
---   - Support for adding custom folder paths
---   - List filter at the top of each tab (supports multiple search words separated with a 'space' character)
+--   - Separate tabs for Recent Projects, (.rpp) Project Templates, (.rtracktemplate) Track Templates, (.rpp) Projects, (.rpl) Project Lists and (.rpp-bak) Backups
+--   - Option to add additional custom folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)
+--   - Option to set custom folder paths for Projects, Project Lists and Backups tabs
+--   - List-filter at the top of each tab which supports input of multiple search words separated by a 'space' character
 --   - [Show in Explorer/Finder] button for browsing to the folder location of a selected file
 --   - Global section with [New Tab], [New Project] and [Open Project] buttons
 --   - Option to preview attached 'demo' audio files of project and template files (requires js_ReaScriptAPI)
 --   - Selection and loading of multiple entries (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)
---   - File paths can be shown/hidden
 --   - Option to switch between different pre-defined Reaper Theme Slots (requires SWS Extensions)
+--   - File paths can be shown/hidden
 --   - 'Keep open' checkbox for managing the window auto-close behavior
 --   - Resizeable window
 --
@@ -36,7 +43,7 @@ local debugEnabled = false -- Set to 'true' in order to show debug messages in t
 --------------------------
 local function MsgDebug(str)
     if debugEnabled then
-      reaper.ShowConsoleMsg( tostring(str) .. "\n" )
+      reaper.ShowConsoleMsg(tostring(str) .. "\n" )
     end
 end
 
@@ -48,24 +55,30 @@ local function MsgInfo(str)
   reaper.ShowMessageBox(tostring(str),"Info", 0)
 end
 
-local function MsgStatusBar(message)
-  -- init the default message ...
-  GUI.Val("main_statusbar", "|  ")
+local function MsgStatusBarClear()
+  GUI.Val("main_statusbar", "")
   GUI.elms.main_statusbar:fade(1,1,12)
-  -- ... before showing the new one
+end
+
+local function MsgStatusBarStatic(message)
   GUI.Val("main_statusbar", "|  " .. message)
+end
+
+local function MsgStatusBar(message)
+  MsgStatusBarStatic(message)
   GUI.elms.main_statusbar:fade(10,1,12)
 end
 
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.5.1"
+appversion = "1.6"
 appname = "solger_ReaLauncher"
 
-osversion =  reaper.GetOS()
-local bitversionFull = reaper.GetAppVersion()
-bitversion = string.sub(bitversionFull, #bitversionFull-2, #bitversionFull)
+osversion = reaper.GetOS()
+local reaperVersionString = reaper.GetAppVersion()
+bitversion = string.sub(reaperVersionString, #reaperVersionString - 2, #reaperVersionString)
+reaperversion = string.sub(reaperVersionString, 1, #reaperVersionString - (reaperVersionString:reverse()):find("%/"))
 
 reaperIniPath = reaper.get_ini_file()
 resourcePath = reaper.GetResourcePath()
@@ -81,10 +94,9 @@ else
   projectTemplatePath = resourcePath .. "/ProjectTemplates"
 end
 
----------------------------------------------------------------------------------------
--- Lokasenna's GUI library v2: 'The Core library must be loaded prior to any classes,  
--- or the classes will throw up errors when they look for functions that aren't there.'
----------------------------------------------------------------------------------------
+-------------------------------------
+-- Loading Lokasenna's GUI library v2 
+-------------------------------------
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
   if not lib_path or lib_path == "" then
     reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
@@ -190,37 +202,97 @@ end
 ---------------------
 -- File I/O functions
 ---------------------
+local FileTypes = {
+  bak = ".rpp-bak",
+  rpp = ".rpp",
+  rpl = ".rpl",
+  tracktemplate = ".rtracktemplate"
+}
+
+local function GetPathSeparator()
+  if osversion:find("Win") then return "\\" 
+  else return "/" end
+end
+
 local function FileExists(fileName)
   local tempFile = io.open(fileName, "r")
   return tempFile ~= nil and io.close(tempFile)
 end
 
--- scan all subdirectories of a given path
--- Found this in the Reaper Forum. Thanks to mpl and Lokasenna :)
-local function ScanPath(path)
-    local tree = {}
-    local subdirindex, fileindex = 0,0
-    local path_child
+----------------------------------------------------------------------------------------
+-- Enumerate all (sub-)directories and files of a given path
+-- Adapted version of a script found in the Reaper forum. Thanks to mpl and Lokasenna :)
+----------------------------------------------------------------------------------------
+local function EnumerateFiles(folder)
+  local files = {}
+  i = 1
+  repeat
+    files[i] = reaper.EnumerateFiles(folder, i - 1)
+    MsgDebug(files[i])
+    i = i + 1
+  until not retval
+  MsgDebug("Enumerate (" .. folder .. ")\n------\n" .. table.concat(files,"\n") .. "\n")
+  return files
+end
 
+function GetSubDirectories(path)
+  local subdirTree = {}
+  local subdirIndex, dirIndex = 0, 0
+  local subDirChild
+  
+  if path ~= nil then 
     repeat
-      path_child = reaper.EnumerateSubdirectories(path, subdirindex)
-        if path_child then
-          local tmpPath = ScanPath(path .. "\\" .. path_child)
+      subDirChild = reaper.EnumerateSubdirectories(path, subdirIndex)
+        if subDirChild then
+          local tmpPath = GetSubDirectories(path .. GetPathSeparator() .. subDirChild)
             for i = 1, #tmpPath do
-               table.insert(tree, tmpPath[i])
+              table.insert(subdirTree, tmpPath[i])
             end
-       end
-    subdirindex = subdirindex + 1
-    until not path_child
+        end
+        subdirIndex = subdirIndex + 1
+    until not subDirChild
 
     repeat
-      local fn = reaper.EnumerateFiles(path, fileindex)
-        if fn then
-         tree[#tree + 1] = path .. "\\" .. fn
+      local fileFound = reaper.EnumerateSubdirectories(path, dirIndex)
+        if fileFound then
+          subdirTree[#subdirTree + 1] = path .. GetPathSeparator() .. fileFound
         end
-      fileindex = fileindex + 1
-    until not fn
-    return tree
+        dirIndex = dirIndex + 1
+    until not fileFound
+  end
+  return subdirTree
+end
+
+local function GetFiles(path)
+  local tree = {}
+  local subdirIndex, fileIndex = 0, 0
+  local pathChild
+
+  if path ~= nil then 
+    repeat
+      pathChild = reaper.EnumerateSubdirectories(path, subdirIndex)
+        if pathChild then
+          local tmpPath = GetFiles(path .. GetPathSeparator() .. pathChild)
+            for i = 1, #tmpPath do
+              table.insert(tree, tmpPath[i])
+            end
+        end
+        subdirIndex = subdirIndex + 1
+    until not pathChild
+
+    repeat
+      local fileFound = reaper.EnumerateFiles(path, fileIndex)
+        if fileFound then
+          tree[#tree + 1] = path .. GetPathSeparator() .. fileFound
+        end
+        fileIndex = fileIndex + 1
+    until not fileFound
+  end
+  return tree
+end
+
+local function GetFileExtension(filename, charLength)
+  return string.lower(string.sub(filename, #filename - charLength, #filename))
 end
 
 ------------------------------------
@@ -256,7 +328,9 @@ local function RemoveExtension_RTrackTemplate(filename)
 end
 
 local function RemoveWhiteSpaces(s)
-  return s:match( "^%s*(.-)%s*$" )
+  if s ~= nil then
+    return s:match( "^%s*(.-)%s*$" )
+  end
 end
 
 local function GetDirectoryPath(filepath)
@@ -264,7 +338,7 @@ local function GetDirectoryPath(filepath)
   if osversion:find("Win") then index = (filepath:reverse()):find("%\\") -- Windows
     else index = (filepath:reverse()):find("%/") -- macOS / Linux
   end
-  return string.sub(filepath, 1, #filepath-index)
+  return string.sub(filepath, 1, #filepath - index)
 end
 
 local function GetFilenameWithoutPath(filepath)
@@ -273,57 +347,6 @@ local function GetFilenameWithoutPath(filepath)
     else filename = filepath:match "([^/]-([^.]+))$" -- macOS / Linux: get (filename.extension) substring
   end
   return filename
-end
-
-local function GetFileExtension(filename, charLength)
-  return string.lower(string.sub(filename, #filename - charLength, #filename))
-end
-
--------------------------------------------------
--- Returns a table of files in the specified path
--- Adapted script from this thread: https://forum.cockos.com/showthread.php?t=206933
-------------------------------------------------------------------------------------
-local FileTypes = {
-  bak = ".rpp-bak",
-  rpp = ".rpp",
-  rpl = ".rpl",
-  tracktemplate = ".rtracktemplate"
-}
-
-local function GetFiles(path)
-  local files = {}
-
-  if osversion:find("Win") then
-    if bitversion == 'x64' then
-      -- Windows (Reaper 64-bit)
-      for file in io.popen([[dir "]] .. path .. [[" /a:-d /s /b | sort]]):lines() do
-        files[#files + 1] = file
-      end
-    else
-      -- Windows (Reaper 32-bit)
-      files = ScanPath(path)
-    end
-    MsgDebug("Get Files (" .. path .. ")\n------\n" .. table.concat(files,"\n").."\n")
-  else -- macOS / Linux
-    for file in io.popen([[find ]] .. "'" .. path .. "'" .. [[ -maxdepth 3 -type f -not -name '.*' -not -name '*.reapeaks' -not -name '*.wav']]):lines() do
-      files[#files + 1] = file
-    end
-  end
-  return files
-end
-
-----------------------------------------------------
--- Return files of a specific type from a given path
-----------------------------------------------------
-local function GetFilesFromDir(path, type)
-  local files = {}
-  local fileTypeLength = #type -1
-  for file in io.popen([[dir "]] .. path .. [[" /a:-d /s /b | sort]]):lines() do
-    local fileExtension = GetFileExtension(file, fileTypeLength)
-    if fileExtension == type then files[#files + 1] = file end
-  end
-  MsgDebug("Get " .. type .. " Files (" .. path .. ")\n------\n" .. table.concat(files,"\n").."\n")
-  return files
 end
 
 ------------------------------------------
@@ -339,7 +362,6 @@ end
 ---------------------------------------------
 -- Show in Explorer/Finder - Helper functions
 ---------------------------------------------
--- recent projects
 function ShowLocation_RecentProject()
   if noRecentProjects == false then
   local selectedProject
@@ -356,7 +378,6 @@ function ShowLocation_RecentProject()
   end
 end
 
--- project templates
 function ShowLocation_ProjectTemplates()
   if noProjectTemplates == false then
     local selectedProjectTemplate
@@ -375,7 +396,6 @@ function ShowLocation_ProjectTemplates()
   end
 end
 
--- track templates
 function ShowLocation_TrackTemplates()
   if noTrackTemplates == false then
     local selectedTrackTemplate
@@ -394,7 +414,6 @@ function ShowLocation_TrackTemplates()
   end
 end
 
--- custom projects
 function ShowLocation_CustomProject()
   if noCustomProjects == false then
     local vals = GetSelectionTable(GUI.Val("tab_customProjects_listbox"))
@@ -413,7 +432,6 @@ function ShowLocation_CustomProject()
   end
 end
 
--- project lists
 function ShowLocation_ProjectList()
   if noProjectLists == false then
     local vals = GetSelectionTable(GUI.Val("tab_projectLists_listboxProjects"))
@@ -432,7 +450,6 @@ function ShowLocation_ProjectList()
   end
 end
 
--- backups
 function ShowLocation_Backups()
   if noBackups == false then
     local vals = GetSelectionTable(GUI.Val("tab_backups_listbox"))
@@ -484,6 +501,7 @@ local function GetReaperIniKeyValue(key)
    end
   reaperiniFile:close() 
 end
+
 ---------------------
 -- Path Display relay
 ---------------------
@@ -582,9 +600,7 @@ function GetRecentProjectEntryCount()
   return p
 end
 
--- recent project listbox
 function FillRecentProjectsListbox()
-  MsgDebug("Get Recent Files: \n------")
   RecentProjects.names = {}
   RecentProjects.items = {}
   RecentProjects.paths = {}
@@ -614,8 +630,6 @@ function FillRecentProjectsListbox()
         RecentProjects.paths[e] = fullPath
         RecentProjects.names[e] = RemoveExtension_RPP(filename)  
       end
-      
-      MsgDebug(fullPath)
     end
   until (found == true)
 
@@ -626,7 +640,9 @@ function FillRecentProjectsListbox()
       RecentProjects.items[RecentProjects.names[i]] = RecentProjects.paths[i]
     end
   end
-  MsgDebug("\n")
+
+  Global_UpdatePathDisplayMode()
+  GUI.elms.tab_recentProjects_listbox:redraw()
 end
 
 ---------------------------
@@ -640,35 +656,54 @@ ProjectTemplates = {
   filteredPaths ={}
 }
 
-local function FillProjectTemplateListbox()
+SubDirProjectTemplates = {
+  names = {},
+  paths = {}
+}
+
+local function FillProjectTemplateSubDirList()
+  local subDirList = {'< All Templates >'}
+  table.insert(subDirList, projectTemplatePath)
+  JoinTables(subDirList, GetSubDirectories(projectTemplatePath))
+  table.insert(subDirList, custompathProjectTemplates)
+  JoinTables(subDirList, GetSubDirectories(custompathProjectTemplates))
+  
+  GUI.elms.tab_projectTemplates_subfolders.list = subDirList
+  GUI.Val("tab_projectTemplates_subfolders", {1})
+end
+
+local function FillProjectTemplateListBoxBase(tempTemplates)
   ProjectTemplates.items = {}
   ProjectTemplates.names = {}
   ProjectTemplates.paths = {}
-  local tempTemplates = {}
+  noProjectTemplates = false
   local pos = 1
 
+  for i = 1, #tempTemplates do
+    local filename = GetFilenameWithoutPath(tempTemplates[i])
+    local fileExtension = GetFileExtension(filename, 3)
+    
+    if string.find(fileExtension, ".rpp") then
+      ProjectTemplates.names[pos] = RemoveExtension_RPP(filename)
+      ProjectTemplates.items[ProjectTemplates.names[pos]] = tempTemplates[i]
+      ProjectTemplates.paths[pos] = tempTemplates[i]
+      pos = pos + 1
+    end
+  end
+
+  Global_UpdatePathDisplayMode()
+  GUI.elms.tab_projectTemplates_listbox:redraw()
+end
+
+local function FillProjectTemplateListbox()
   -- default project template folder
-  tempTemplates = GetFiles(projectTemplatePath)
+  local tempTemplates = GetFiles(projectTemplatePath)
   -- custom project template folder
-  local tempPath = reaper.GetExtState(appname, "custompath_projecttemplates")
+  local tempPath = custompathProjectTemplates
   if #tempPath > 1 then JoinTables(tempTemplates, GetFiles(tempPath)) end
 
   if #tempTemplates == 0 then noProjectTemplates = true
-  else
-    noProjectTemplates = false  
-
-    for i = 1, #tempTemplates do
-      local filename = GetFilenameWithoutPath(tempTemplates[i])
-      local fileExtension = GetFileExtension(filename, 3)
-      
-      if string.find(fileExtension, ".rpp") then
-        ProjectTemplates.names[pos] = RemoveExtension_RPP(filename)
-        ProjectTemplates.items[ProjectTemplates.names[pos]] = tempTemplates[i]
-        ProjectTemplates.paths[pos] = tempTemplates[i]
-        pos = pos + 1
-      end
-    end
-  end
+  else FillProjectTemplateListBoxBase(tempTemplates) end
 end
 
 -------------------------
@@ -682,35 +717,49 @@ TrackTemplates = {
   filteredPaths = {}
 }
 
-local function FillTrackTemplateListbox()
+local function FillTrackTemplateSubDirList()
+  local subDirList = {'< All Templates >'}
+  table.insert(subDirList, trackTemplatePath)
+  JoinTables(subDirList, GetSubDirectories(trackTemplatePath))
+  table.insert(subDirList, customPathTrackTemplates)
+  JoinTables(subDirList,  GetSubDirectories(customPathTrackTemplates))
+
+  GUI.elms.tab_trackTemplates_subfolders.list = subDirList
+  GUI.Val("tab_trackTemplates_subfolders", {1})
+end
+
+local function FillTrackTemplateListboxBase(tempTemplates)
   TrackTemplates.items = {}
   TrackTemplates.names = {}
   TrackTemplates.paths = {}
-  local tempTemplates = {}
-  local pos = 1
+  noTrackTemplates = false  
+  local pos = 1  
 
-  -- default track template folder
-  tempTemplates = GetFiles(trackTemplatePath)
-  -- custom track template folder
-  local tempPath = reaper.GetExtState(appname, "custompath_tracktemplates")
-  if #tempPath > 1 then JoinTables(TrackTemplates.paths, GetFiles(tempPath)) end
-  
-  if #tempTemplates == 0 then noTrackTemplates = true
-  else
-    noTrackTemplates = false  
-  
-    for i = 1 , #tempTemplates do
-      local filename = GetFilenameWithoutPath(tempTemplates[i])
-      local fileExtension = GetFileExtension(filename, 14)
+  for i = 1 , #tempTemplates do
+    local filename = GetFilenameWithoutPath(tempTemplates[i])
+    local fileExtension = GetFileExtension(filename, 14)
 
-      if fileExtension == FileTypes.tracktemplate then
-        TrackTemplates.names[pos] = RemoveExtension_RTrackTemplate(filename)
-        TrackTemplates.items[TrackTemplates.names[pos]] = tempTemplates[i]
-        TrackTemplates.paths[pos] = tempTemplates[i]
-        pos = pos + 1
-      end
+    if fileExtension == FileTypes.tracktemplate then
+      TrackTemplates.names[pos] = RemoveExtension_RTrackTemplate(filename)
+      TrackTemplates.items[TrackTemplates.names[pos]] = tempTemplates[i]
+      TrackTemplates.paths[pos] = tempTemplates[i]
+      pos = pos + 1
     end
   end
+
+  Global_UpdatePathDisplayMode()
+  GUI.elms.tab_trackTemplates_listbox:redraw()
+end
+
+local function FillTrackTemplateListbox()
+  -- default track template folder
+  local tempTemplates = GetFiles(trackTemplatePath)
+  -- custom track template folder
+  local tempPath = customPathTrackTemplates
+  if #tempPath > 1 then JoinTables(tempTemplates, GetFiles(tempPath)) end
+
+  if #tempTemplates == 0 then noTrackTemplates = true
+  else FillTrackTemplateListboxBase(tempTemplates) end
 end
 
 -------------------------
@@ -724,28 +773,41 @@ CustomProjects = {
   filteredPaths = {}
 }
 
-local function FillCustomProjectsListbox()
+local function FillCustomProjectsSubDirList()
+  if #custompathProjects > 1 then 
+    local subDirList = {}
+    table.insert(subDirList, custompathProjects)
+    JoinTables(subDirList, GetSubDirectories(custompathProjects))
+    GUI.elms.tab_customProjects_subfolders.list = subDirList
+    GUI.Val("tab_customProjects_subfolders", {1})
+  end
+end
+
+local function FillCustomProjectsListboxBase(dirFiles)
   CustomProjects.items = {}
   CustomProjects.names = {}
   CustomProjects.paths = {}
-  local dirFiles
   local pos = 1
-  
-  if #custom_path_projects > 1 then
-    if osversion:find("Win") and bitversion == "x64" then dirFiles = GetFilesFromDir(custom_path_projects, FileTypes.rpp)
-    else dirFiles = GetFiles(custom_path_projects) end
-  
-     for i = 1, #dirFiles do
-        local filename = GetFilenameWithoutPath(dirFiles[i])
-        local fileExtension = string.lower(string.sub(filename, #filename - 3, #filename))
-        if fileExtension == FileTypes.rpp then
-          CustomProjects.names[pos] = RemoveExtension_RPP(filename)
-          CustomProjects.items[CustomProjects.names[pos]] = dirFiles[i]
-          CustomProjects.paths[pos] = dirFiles[i]
-          pos = pos + 1
-        end
-     end
-     if pos > 1 then noCustomProjects = false else noCustomProjects = true end
+
+  for i = 1, #dirFiles do
+    local filename = GetFilenameWithoutPath(dirFiles[i])
+    local fileExtension = GetFileExtension(filename, 3)
+    if fileExtension == FileTypes.rpp then
+      CustomProjects.names[pos] = RemoveExtension_RPP(filename)
+      CustomProjects.items[CustomProjects.names[pos]] = dirFiles[i]
+      CustomProjects.paths[pos] = dirFiles[i]
+      pos = pos + 1
+    end
+  end
+   if pos > 1 then noCustomProjects = false else noCustomProjects = true end
+
+  Global_UpdatePathDisplayMode()
+  GUI.elms.tab_customProjects_listbox:redraw()
+end
+
+local function FillCustomProjectsListbox()
+  if #custompathProjects > 1 then
+    FillCustomProjectsListboxBase(GetFiles(custompathProjects))
   end
 end
 
@@ -766,13 +828,12 @@ function FillProjectListSelector()
   ProjectLists.projectNames = {}
   ProjectLists.projectItems = {}
   ProjectLists.rplFiles = {}
-  rplfolder = reaper.GetExtState(appname, "custompath_projectlists")
+  rplfolder = custompathProjectLists
   local projectListFiles
   local pos = 1
 
-  if #custom_path_projectlists > 1 then
-    if osversion:find("Win") and bitversion == "x64" then projectListFiles = GetFilesFromDir(rplfolder, FileTypes.rpl)
-    else projectListFiles = GetFiles(rplfolder) end
+  if #custompathProjectLists > 1 then
+    projectListFiles = GetFiles(rplfolder)
    
     for i = 1, #projectListFiles do
       local filename = GetFilenameWithoutPath(projectListFiles[i])
@@ -784,6 +845,9 @@ function FillProjectListSelector()
     end
     if pos > 1 then noProjectLists = false else noProjectLists = true end
   end
+  
+  GUI.elms.tab_projectLists_listboxRPL.list = ProjectLists.rplFiles
+  Global_UpdatePathDisplayMode()
 end
 
 function ParseRPLFile(selected)
@@ -815,7 +879,11 @@ end
 
 function FillProjectListBox()
   local vals = GetSelectionTable(GUI.Val("tab_projectLists_listboxRPL"))
-  if #GUI.elms.tab_projectLists_listboxRPL.list > 0 then ParseRPLFile(vals) end
+  if #GUI.elms.tab_projectLists_listboxRPL.list > 0 then
+    ParseRPLFile(vals)
+    TabSelectionIndex[5] = 1
+    GUI.Val("tab_projectLists_listboxProjects", {1})
+  end
   Global_UpdatePathDisplayMode()
 end
 
@@ -830,28 +898,39 @@ Backups = {
   filteredPaths = {}
 }
 
-local function FillBackupsListbox()
+local function FillBackupsSubDirList()
+  local subDirList = {}
+  table.insert(subDirList, custompathBackups)
+  JoinTables(subDirList, GetSubDirectories(custompathBackups))
+  GUI.elms.tab_backups_subfolders.list = subDirList
+  GUI.Val("tab_backups_subfolders", {1})
+end
+
+local function FillBackupsListboxBase(dirFiles)
   Backups.items = {}
   Backups.names = {}
   Backups.paths = {}
-  local dirFiles
   local pos = 1
 
-  if #custom_path_backups > 1 then
-    if osversion:find("Win") and bitversion == "x64" then dirFiles = GetFilesFromDir(custom_path_backups, FileTypes.bak)
-    else dirFiles = GetFiles(custom_path_backups) end
-  
-    for i = 1, #dirFiles do
-        local filename = GetFilenameWithoutPath(dirFiles[i])
-        local bakExtension = GetFileExtension(filename, 7)
-        if bakExtension == FileTypes.bak then
-          Backups.names[pos] = RemoveExtension_RPP_BAK(filename)
-          Backups.items[Backups.names[pos]] = dirFiles[i]
-          Backups.paths[pos] = dirFiles[i]
-          pos = pos + 1
-        end
-     end
-     if pos > 1 then noBackups = false else noBackups = true end
+  for i = 1, #dirFiles do
+    local filename = GetFilenameWithoutPath(dirFiles[i])
+    local bakExtension = GetFileExtension(filename, 7)
+    if bakExtension == FileTypes.bak then
+      Backups.names[pos] = RemoveExtension_RPP_BAK(filename)
+      Backups.items[Backups.names[pos]] = dirFiles[i]
+      Backups.paths[pos] = dirFiles[i]
+      pos = pos + 1
+    end
+  end
+
+  if pos > 1 then noBackups = false else noBackups = true end
+  GUI.elms.tab_backups_listbox.list = Backups.names
+  Global_UpdatePathDisplayMode()
+end
+
+local function FillBackupsListbox()
+  if #custompathBackups > 1 then
+    FillBackupsListboxBase(GetFiles(custompathBackups))
   end
 end
 
@@ -859,18 +938,14 @@ end
 -- Fill the listboxes with entries
 ----------------------------------
 function LoadCustomFolderPaths()
-  custom_path_projects = reaper.GetExtState(appname, "custompath_projects")
-  custom_path_projectlists = reaper.GetExtState(appname, "custompath_projectlists")
-  custom_path_backups = reaper.GetExtState(appname, "custompath_backups")
+  custompathProjectTemplates = reaper.GetExtState(appname, "custompath_projecttemplates") 
+  customPathTrackTemplates = reaper.GetExtState(appname, "custompath_tracktemplates")
+  custompathProjects = reaper.GetExtState(appname, "custompath_projects")
+  custompathProjectLists = reaper.GetExtState(appname, "custompath_projectlists")
+  custompathBackups = reaper.GetExtState(appname, "custompath_backups")
 end
 
 LoadCustomFolderPaths()
-
-FillRecentProjectsListbox()
-FillProjectTemplateListbox()
-FillTrackTemplateListbox()
-FillCustomProjectsListbox()
-FillBackupsListbox()
 
 -----------------------------------
 -- New project/tab button functions
@@ -918,15 +993,19 @@ local function Global_ShowProjectOpenDialog()
 end
 
 local function Global_ProjectLoad(project, projectCount)
-  if projectCount > 1 then reaper.Main_OnCommand(40859, 0) end -- load in tab
-  reaper.Main_openProject(project) 
-  RL_CleanupAtExit()
+  if project ~= nil then 
+    if projectCount > 1 then reaper.Main_OnCommand(40859, 0) end -- load in tab
+    reaper.Main_openProject(project) 
+    RL_CleanupAtExit()
+  end
 end
 
 local function Global_ProjectLoadInTab(project)
-  reaper.Main_OnCommand(40859, 0)
-  reaper.Main_openProject(project) 
-  RL_CleanupAtExit()
+  if project ~= nil then 
+    reaper.Main_OnCommand(40859, 0)
+    reaper.Main_openProject(project) 
+    RL_CleanupAtExit()
+  end
 end
 
 local function Global_Load(tabmode, selectedFile, fileCount)
@@ -934,23 +1013,38 @@ local function Global_Load(tabmode, selectedFile, fileCount)
   else Global_ProjectLoad(selectedFile, fileCount) end
 end
 
-local function ProjectTemplate_LoadAndSaveAs()
+local function ProjectTemplate_ShowSaveAsDialog()
   if projectTemplateLoadMode == 1 then 
     reaper.Main_OnCommand(40022,0) -- Save project as dialog
   end
-  RL_CleanupAtExit()
+end
+
+local function Global_ProjectTemplateLoadBase(template)
+  if template ~= nil then
+    if reaperversion ~= nil and #reaperversion > 1 and tonumber(string.sub(reaperversion, 1, 5)) > 5.982 then
+      -- logic for Reaper versions 5.983 or  higher
+      if projectTemplateLoadMode == 1 then 
+        reaper.Main_openProject("template:" .. template)   
+      else
+        reaper.Main_openProject(template)
+      end
+    else
+      -- logic for Reaper versions older than 5.983
+      reaper.Main_openProject(template) 
+      ProjectTemplate_ShowSaveAsDialog()
+    end
+    RL_CleanupAtExit()
+  end
 end
 
 local function Global_ProjectTemplateLoad(template, templateCount)
   if templateCount > 1 then reaper.Main_OnCommand(40859, 0) end -- load in tab
-  reaper.Main_openProject(selectedProjectTemplate) 
-  ProjectTemplate_LoadAndSaveAs()
+  Global_ProjectTemplateLoadBase(template)
 end
 
 local function Global_ProjectProjectTemplateLoadInTab(template)
   reaper.Main_OnCommand(40859, 0)
-  reaper.Main_openProject(selectedProjectTemplate) 
-  ProjectTemplate_LoadAndSaveAs()
+  Global_ProjectTemplateLoadBase(template)
 end
 
 ----------------------------------
@@ -967,7 +1061,6 @@ local function Load_RecentProject_Base(tabmode)
 
     GUI.Val("tab_recentProjects_listbox",{})
     Global_CheckWindowPinState()
-    RL_CleanupAtExit()
   end
 end
 
@@ -993,7 +1086,6 @@ local function Load_CustomProject_Base(tabmode)
     
     GUI.Val("tab_customProjects_listbox",{})
     Global_CheckWindowPinState()
-    RL_CleanupAtExit()
   end
 end
 
@@ -1021,7 +1113,6 @@ local function Load_ProjectTemplate_Base(tabmode)
   
     GUI.Val("tab_projectTemplates_listbox",{})
     Global_CheckWindowPinState()
-    RL_CleanupAtExit()
   end
 end
 
@@ -1038,11 +1129,14 @@ end
 ----------------------------------
  local function Load_TrackTemplate()
   if noTrackTemplates == false then
+    local selectedTrackTemplate
     local vals = GetSelectionTable(GUI.Val("tab_trackTemplates_listbox"))
     for p = 1, #vals do
       if FilterActive.TrackTemplates == true then selectedTrackTemplate = TrackTemplates.items[TrackTemplates.filteredNames[vals[p]]]
       else selectedTrackTemplate = TrackTemplates.items[TrackTemplates.names[vals[p]]] end
-      reaper.Main_openProject(selectedTrackTemplate) 
+      if selectedTrackTemplate ~= nil then 
+        reaper.Main_openProject(selectedTrackTemplate) 
+      end
     end 
     Global_CheckWindowPinState()
   end
@@ -1062,7 +1156,6 @@ local function Load_ProjectListProject_Base(tabmode)
     
     GUI.Val("tab_projectLists_listboxProjects",{})
     Global_CheckWindowPinState()
-    RL_CleanupAtExit()
   end
 end
 
@@ -1088,7 +1181,6 @@ local function Load_BackupFile_Base(tabmode)
     
     GUI.Val("tab_backups_listbox",{})
     Global_CheckWindowPinState()
-    RL_CleanupAtExit()
   end
 end
 
@@ -1150,6 +1242,7 @@ local function UpdateListFilter_Backups()
     GUI.elms.tab_backups_listbox.list = Backups.names
   end
 end
+
 
 local function UpdateListFilter_All()
   UpdateListFilter_RecentProjects()
@@ -1373,40 +1466,38 @@ end
 ----------------------------
 -- Refresh Listbox functions
 ----------------------------
-local function Refresh_RecentProjects()
+local function RefreshRecentProjects()
+  MsgDebug("Refresh Recent Projects")
   FillRecentProjectsListbox()
-  Global_UpdatePathDisplayMode()
-  GUI.elms.tab_recentProjects_listbox:redraw()
 end
 
-local function Refresh_ProjectTemplates()
+local function RefreshProjectTemplates()
+  MsgDebug("Refresh Project Templates")
+  FillProjectTemplateSubDirList()
   FillProjectTemplateListbox()
-  Global_UpdatePathDisplayMode()
-  GUI.elms.tab_projectTemplates_listbox:redraw()
 end
 
-local function Refresh_TrackTemplates()
+local function RefreshTrackTemplates()
+  MsgDebug("Refresh Track Templates")
+  FillTrackTemplateSubDirList()
   FillTrackTemplateListbox()
-  Global_UpdatePathDisplayMode()
-  GUI.elms.tab_trackTemplates_listbox:redraw()
 end
 
-local function Refresh_CustomProjects()
+local function RefreshCustomProjects()
+  MsgDebug("Refresh Custom Projects")
+  FillCustomProjectsSubDirList()
   FillCustomProjectsListbox()
-  Global_UpdatePathDisplayMode()
-  GUI.elms.tab_customProjects_listbox:redraw()
 end
 
-function Refresh_ProjectList()
+function RefreshProjectList()
+  MsgDebug("Refresh Project Lists")
   FillProjectListSelector()
-  GUI.elms.tab_projectLists_listboxRPL.list = ProjectLists.rplFiles
-  Global_UpdatePathDisplayMode()
 end
 
-function Refresh_Backups()
+function RefreshBackups()
+  MsgDebug("Refresh Backups")
+  FillBackupsSubDirList()
   FillBackupsListbox()
-  GUI.elms.tab_backups_listbox.list = Backups.names
-  Global_UpdatePathDisplayMode()
 end
 
 ---------------------
@@ -1423,7 +1514,7 @@ function Path_Clear_ProjectTemplateFolder()
   GUI.elms.tab_projectTemplates_listbox.list = {}
   
   reaper.DeleteExtState(appname, "custompath_projecttemplates",1)
-  Refresh_ProjectTemplates()
+  RefreshProjectTemplates()
   MsgStatusBar("Additional Project Template folder removed")
 end
 
@@ -1438,12 +1529,12 @@ function Path_Clear_TrackTemplateFolder()
   GUI.elms.tab_trackTemplates_listbox.list = {}
   
   reaper.DeleteExtState(appname, "custompath_tracktemplates",1)
-  Refresh_TrackTemplates()
+  RefreshTrackTemplates()
   MsgStatusBar("Additional Track Template folder removed")
 end
 
 function Path_Clear_CustomProjectFolder()
-  custom_path_projects = {}
+  custompathProjects = {}
   CustomProjects.items = {}
   CustomProjects.names = {}
   CustomProjects.paths = {}
@@ -1455,7 +1546,7 @@ function Path_Clear_CustomProjectFolder()
 
   reaper.DeleteExtState(appname, "custompath_projects",1)
   MsgStatusBar("Custom Projects folder removed")
-  Refresh_CustomProjects()
+  RefreshCustomProjects()
 end
 
 function Path_Clear_ProjectListFolder()
@@ -1471,7 +1562,7 @@ function Path_Clear_ProjectListFolder()
 
   reaper.DeleteExtState(appname, "custompath_projectlists",1)
   MsgStatusBar("Project Lists folder removed")
-  Refresh_ProjectList()
+  RefreshProjectList()
 end
 
 function Path_Clear_BackupsFolder()
@@ -1486,7 +1577,7 @@ function Path_Clear_BackupsFolder()
 
   reaper.DeleteExtState(appname, "custompath_backups", 1)
   MsgStatusBar("Backups folder removed")
-  Refresh_Backups()
+  RefreshBackups()
 end
 
 -------------------
@@ -1498,19 +1589,19 @@ function Path_Set_ProjectTemplateFolder()
     MsgStatusBar("Please enter a custom [ Project Templates ] folder path first!")
   else
     reaper.SetExtState(appname, "custompath_projecttemplates", custompath_projectTemplates, 1)
-    Refresh_ProjectTemplates()
+    RefreshProjectTemplates()
     MsgStatusBar("Additional Project Template folder set to " .. custompath_projectTemplates)
   end
 end
 
 function Path_Set_TrackTemplateFolder()
-  local custom_path_trackTemplates = GUI.Val("options_txtTrackTemplatesPath")
-  if custom_path_trackTemplates == "" then
+  local customPathTrackTemplates = GUI.Val("options_txtTrackTemplatesPath")
+  if customPathTrackTemplates == "" then
     MsgStatusBar("Please enter a custom [ Track Templates ] folder path first!")
   else
-    reaper.SetExtState(appname, "custompath_tracktemplates", custom_path_trackTemplates, 1)
-    Refresh_TrackTemplates()
-    MsgStatusBar("Additional Track Templates folder set to " .. custom_path_trackTemplates)
+    reaper.SetExtState(appname, "custompath_tracktemplates", customPathTrackTemplates, 1)
+    RefreshTrackTemplates()
+    MsgStatusBar("Additional Track Templates folder set to " .. customPathTrackTemplates)
   end
 end
 
@@ -1520,30 +1611,30 @@ function Path_Set_CustomProjectFolder()
     MsgStatusBar("Please enter a custom [ Projects ] folder path first!")
   else
     reaper.SetExtState(appname, "custompath_projects", custompath_customprojects, 1)
-    Refresh_CustomProjects()
+    RefreshCustomProjects()
     MsgStatusBar("Custom Projects folder set to " .. custompath_customprojects)
   end
 end
 
 function Path_Set_ProjectListFolder()
-  local custom_path_projectlists = GUI.Val("options_txtProjectsListsPath")
-  if custom_path_projectlists == "" then
+  local custompathProjectLists = GUI.Val("options_txtProjectsListsPath")
+  if custompathProjectLists == "" then
     MsgStatusBar("Please enter a custom [ Project List ] folder path first!")
   else
-    reaper.SetExtState(appname, "custompath_projectlists", custom_path_projectlists, 1)
-    Refresh_ProjectList()
-    MsgStatusBar("Project Lists folder set to " .. custom_path_projectlists)
+    reaper.SetExtState(appname, "custompath_projectlists", custompathProjectLists, 1)
+    RefreshProjectList()
+    MsgStatusBar("Project Lists folder set to " .. custompathProjectLists)
   end
 end
 
 function Path_Set_BackupsFolder()
-  local custom_path_backups = GUI.Val("options_txtBackupsPath")
-  if custom_path_backups == "" then
+  local custompathBackups = GUI.Val("options_txtBackupsPath")
+  if custompathBackups == "" then
     MsgStatusBar("Please enter a custom [ Backups ] folder path first!")
   else
-    reaper.SetExtState(appname, "custompath_backups", custom_path_backups, 1)
-    Refresh_Backups()
-    MsgStatusBar("Backups folder set to " .. custom_path_backups)
+    reaper.SetExtState(appname, "custompath_backups", custompathBackups, 1)
+    RefreshBackups()
+    MsgStatusBar("Backups folder set to " .. custompathBackups)
   end
 end
 
@@ -1686,6 +1777,7 @@ if GUI.SWS() then
   end
 
 end
+
 -----------------------------
 -- Recent Projects management 
 -----------------------------
@@ -1711,13 +1803,13 @@ function RecentProjects_RemoveEntry()
         if keyValue == selectedProject then
           table.insert(removedEntries, recentpathtag[p])
           reaper.BR_Win32_WritePrivateProfileString("Recent", recentpathtag[p], "removed", reaper.get_ini_file())
-          MsgDebug("removed: " .. recentpathtag[p])
+          MsgDebug("removed entry: " .. recentpathtag[p])
         end
       end
     until (found == true)
   end
   GUI.Val("tab_recentProjects_listbox", {})
-  Refresh_RecentProjects()
+  RefreshRecentProjects()
 end
 
 function RecentProjects_ClearList()
@@ -1727,7 +1819,7 @@ function RecentProjects_ClearList()
       else keyName = "recent" .. tostring(k) end
       reaper.BR_Win32_WritePrivateProfileString("Recent", keyName, "", reaper.get_ini_file())
     end
-  Refresh_RecentProjects()
+    RefreshRecentProjects()
 end
 
 ------------------
@@ -1770,6 +1862,15 @@ SelectionIndex = {
   Backups = 1
 }
 
+ParentSelectionIndex = {
+  RecentProjects = 1,
+  ProjectTemplates = 1,
+  TrackTemplates = 1,
+  CustomProjects = 1,
+  ProjectListsProjects = 1,
+  Backups = 1
+}
+
 --------------------
 -- Main GUI Elements
 --------------------
@@ -1784,7 +1885,14 @@ MainTabs = {
   "Help"
 }
 
-SelectionIndex.ProjectListsRPL = 0
+TabParentSelectionIndex = {
+  ParentSelectionIndex.RecentProjects,
+  ParentSelectionIndex.ProjectTemplates,
+  ParentSelectionIndex.TrackTemplates,
+  ParentSelectionIndex.CustomProjects,
+  ParentSelectionIndex.ProjectListsProjects,
+  ParentSelectionIndex.Backups
+}
 
 TabSelectionIndex = {
   SelectionIndex.RecentProjects,
@@ -1801,6 +1909,7 @@ end
 
 function RL_SetFocusedTab(tabIndex)
   GUI.Val("main_tabs", tabIndex)
+  if RL_GetFocusedTab() < (#MainTabs - 1) then RL_Func_TabRefresh[RL_GetFocusedTab()].call() end
 end
 
 audioPreviewActive = false
@@ -1811,7 +1920,9 @@ function RL_Draw_PreviewSection()
     GUI.elms.main_previewVolKnob.cap_x = 26
     GUI.elms.main_previewVolKnob.cap_y = -26
     GUI.elms.main_previewVolKnob.vals = false
-    GUI.elms.main_previewVolKnob.tooltip = "Audio preview section\n\n- Turn the knob to set the preview volume (0-100%)\n- DOUBLE CLICL the knob to start/stop audio preview"
+    GUI.elms.main_previewVolKnob.tooltip =  "Audio preview section\n\n- Turn the knob to set the preview volume (0-100%)\n" ..
+                                            "- DOUBLE CLICK the knob to start/stop audio preview\n\n" ..
+                                            "Knob color states:\nSILVER: preview available for the selected entry\nGREEN: preview playing"
 
     function GUI.elms.main_previewVolKnob:redraw()
       GUI.Knob.redraw(self)
@@ -1831,7 +1942,7 @@ function RL_Draw_Main()
   GUI.New("main_tabs", "Tabs", LayerIndex.Main, 0, 0, 100, 20, MainTabs, 16)
   GUI.elms.main_tabs.col_tab_b = "elm_bg"
   GUI.New("main_appversion", "Label", LayerIndex.Main, pad_left, GUI.h - 18, "ReaLauncher " .. appversion, false, 4)
-  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 95, GUI.h - 18, "", false, 4)
+  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 90, GUI.h - 18, "", false, 4)
 
   -- Tab | Layers
    GUI.elms.main_tabs:update_sets(
@@ -1845,6 +1956,11 @@ function RL_Draw_Main()
        [8] = {LayerIndex.Help}
      }
    )
+
+  function GUI.elms.main_tabs:onmousedown()
+    GUI.Tabs.onmousedown(self)
+    if RL_GetFocusedTab() < (#MainTabs - 1) then RL_Func_TabRefresh[RL_GetFocusedTab()].call() end
+  end
 
   -- global layer
   GUI.New("main_menuPaths", "Menubox", LayerIndex.Global, 380, pad_top, 60, 20, "Paths", "Hide,Show")
@@ -1888,7 +2004,7 @@ end
 -- Tab - Recent Projects
 ------------------------
 function RL_Draw_TabRecentProjects()
-  GUI.New("tab_recentProjects_btnRefresh", "Button", LayerIndex.RecentProjects, 10, pad_top - 2, 20,  22, "R", Refresh_RecentProjects)
+  GUI.New("tab_recentProjects_btnRefresh", "Button", LayerIndex.RecentProjects, 10, pad_top - 2, 20,  22, "R", RefreshRecentProjects)
   GUI.New("tab_recentProjects_txtFilter", "Textbox", LayerIndex.RecentProjects, 75, pad_top, 260, 20, "Filter", 8)
 
   GUI.New("tab_recentProjects_listbox", "Listbox", LayerIndex.RecentProjects, pad_left, listbox_top, listbox_w, listbox_h,"", true)
@@ -1900,6 +2016,7 @@ function RL_Draw_TabRecentProjects()
 
   function GUI.elms.tab_recentProjects_listbox:onmousedown()
     TabSelectionIndex[1] = self:getitem(GUI.mouse.y)
+    if GUI.JSAPI() then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -1952,10 +2069,12 @@ end
 projectTemplateLoadMode = 1
 
 function RL_Draw_TabProjectTemplates()
-  GUI.New("tab_projectTemplates_btnRefresh", "Button", LayerIndex.ProjectTemplates, 10, pad_top-2, 20,  22,"R", Refresh_ProjectTemplates)
+  GUI.New("tab_projectTemplates_btnRefresh", "Button", LayerIndex.ProjectTemplates, 10, pad_top-2, 20,  22,"R", RefreshProjectTemplates)
   GUI.New("tab_projectTemplates_txtFilter", "Textbox", LayerIndex.ProjectTemplates, 75, pad_top, 260, 20, "Filter", 8)
   
-  GUI.New("tab_projectTemplates_listbox", "Listbox", LayerIndex.ProjectTemplates, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  GUI.New("tab_projectTemplates_subfolders", "Listbox", LayerIndex.ProjectTemplates, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
+
+  GUI.New("tab_projectTemplates_listbox", "Listbox", LayerIndex.ProjectTemplates, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
   GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.names
   GUI.Val("tab_projectTemplates_listbox", {1})
 
@@ -1965,8 +2084,28 @@ function RL_Draw_TabProjectTemplates()
   GUI.New("tab_projectTemplates_lblEditMode", "Label", LayerIndex.ProjectTemplates, GUI.w - 158, 367, "Edit Template Mode", false, 3)
   GUI.New("tab_projectTemplates_checklistEditMode", "Checklist", LayerIndex.ProjectTemplates, GUI.w - 42, 365, 20, 20, "", "", "h", 0)
 
+  function GUI.elms.tab_projectTemplates_subfolders:onmousedown()
+    if GUI.elms.tab_projectTemplates_subfolders then 
+      TabParentSelectionIndex[2] = self:getitem(GUI.mouse.y)
+      GUI.Listbox.onmouseup(self)
+      UpdateProjectTemplateSubDirSelection()
+    end
+  end
+
+  function UpdateProjectTemplateSubDirSelection()
+    if TabParentSelectionIndex[2] == 1 then 
+      RefreshProjectTemplates()
+    else 
+      local selectedList = GUI.elms.tab_projectTemplates_subfolders.list 
+      FillProjectTemplateListBoxBase(GetFiles(selectedList[TabParentSelectionIndex[2]]))
+    end
+    TabSelectionIndex[2] = 1
+    GUI.Val("tab_projectTemplates_listbox", {1})
+  end
+
   function GUI.elms.tab_projectTemplates_listbox:onmousedown()
     TabSelectionIndex[2] = self:getitem(GUI.mouse.y)
+    if GUI.JSAPI() then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -1999,17 +2138,39 @@ end
 -- Tab - Track Templates
 ------------------------
 function RL_Draw_TabTrackTemplates()
-  GUI.New("tab_trackTemplates_btnRefresh", "Button", LayerIndex.TrackTemplates, 10, pad_top-2, 20, 22, "R", Refresh_TrackTemplates)
+  GUI.New("tab_trackTemplates_btnRefresh", "Button", LayerIndex.TrackTemplates, 10, pad_top-2, 20, 22, "R", RefreshTrackTemplates)
   GUI.New("tab_trackTemplates_txtFilter", "Textbox", LayerIndex.TrackTemplates, 75, pad_top, 260, 20, "Filter", 8)
   
-  GUI.New("tab_trackTemplates_listbox", "Listbox", LayerIndex.TrackTemplates, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  GUI.New("tab_trackTemplates_subfolders", "Listbox", LayerIndex.TrackTemplates, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
+
+  GUI.New("tab_trackTemplates_listbox", "Listbox", LayerIndex.TrackTemplates, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
   GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.names
   GUI.Val("tab_trackTemplates_listbox", {1})
 
   GUI.New("tab_trackTemplates_btnInsert", "Button", LayerIndex.TrackTemplates, btn_pad_left, btn_tab_top + 20, btn_w, btn_h, "Insert", Load_TrackTemplate)
   
+  function GUI.elms.tab_trackTemplates_subfolders:onmouseup()
+    if GUI.elms.tab_trackTemplates_subfolders then 
+      TabParentSelectionIndex[3] = self:getitem(GUI.mouse.y)
+      GUI.Listbox.onmouseup(self)
+      UpdateTrackTemplateSubDirSelection()
+    end
+  end
+
+  function UpdateTrackTemplateSubDirSelection()
+    if TabParentSelectionIndex[3] == 1 then 
+      RefreshTrackTemplates()
+    else 
+      local selectedList = GUI.elms.tab_trackTemplates_subfolders.list 
+      FillTrackTemplateListboxBase(GetFiles(selectedList[TabParentSelectionIndex[3]]))
+    end
+    TabSelectionIndex[3] = 1
+    GUI.Val("tab_trackTemplates_listbox", {1})
+  end
+
   function GUI.elms.tab_trackTemplates_listbox:onmousedown()
     TabSelectionIndex[3] = self:getitem(GUI.mouse.y)
+    if GUI.JSAPI() then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2038,18 +2199,40 @@ end
 -- Tab - Custom projects folder
 -------------------------------
 function RL_Draw_TabCustomProjects()
-  GUI.New("tab_customProjects_btnFilter", "Button", LayerIndex.CustomProjects, 10, pad_top-2, 20, 22, "R", Refresh_CustomProjects)
+  GUI.New("tab_customProjects_btnFilter", "Button", LayerIndex.CustomProjects, 10, pad_top-2, 20, 22, "R", RefreshCustomProjects)
   GUI.New("tab_customProjects_txtFilter", "Textbox", LayerIndex.CustomProjects, 75, pad_top, 260, 20, "Filter", 8)
   
-  GUI.New("tab_customProjects_listbox", "Listbox", LayerIndex.CustomProjects, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  GUI.New("tab_customProjects_subfolders", "Listbox", LayerIndex.CustomProjects, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
+
+  GUI.New("tab_customProjects_listbox", "Listbox", LayerIndex.CustomProjects, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
   GUI.elms.tab_customProjects_listbox.list = CustomProjects.names
   GUI.Val("tab_customProjects_listbox", {1})
 
   GUI.New("tab_customProjects_btnLoadInTab", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_CustomProject)
   GUI.New("tab_customProjects_btnLoad", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_CustomProject)
 
+  function GUI.elms.tab_customProjects_subfolders:onmousedown()
+    if GUI.elms.tab_customProjects_subfolders then 
+      TabParentSelectionIndex[4] = self:getitem(GUI.mouse.y)
+      GUI.Listbox.onmouseup(self)
+      UpdateCustomProjectSubDirSelection()
+    end
+  end
+
+  function UpdateCustomProjectSubDirSelection()
+    if TabParentSelectionIndex[4] == 1 then 
+      RefreshCustomProjects()
+    else 
+      local selectedList = GUI.elms.tab_customProjects_subfolders.list 
+      FillCustomProjectsListboxBase(GetFiles(selectedList[TabParentSelectionIndex[4]]))
+    end
+    TabSelectionIndex[4] = 1
+    GUI.Val("tab_customProjects_listbox", {1})
+  end
+
   function GUI.elms.tab_customProjects_listbox:onmousedown()
     TabSelectionIndex[4] = self:getitem(GUI.mouse.y)
+    if GUI.JSAPI() then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2078,7 +2261,7 @@ end
 -- Tab - Project Lists (.rpl)
 -----------------------------
 function RL_Draw_TabProjectLists()
-  GUI.New("tab_projectLists_btnRefresh", "Button", LayerIndex.ProjectLists, 10, pad_top - 2, 20,  22, "R", Refresh_ProjectList)
+  GUI.New("tab_projectLists_btnRefresh", "Button", LayerIndex.ProjectLists, 10, pad_top - 2, 20,  22, "R", RefreshProjectList)
   GUI.New("tab_projectLists_txtFilter", "Textbox", LayerIndex.ProjectLists, 75, pad_top, 260, 20, "Filter", 8)
  
   GUI.New("tab_projectLists_listboxRPL", "Listbox", LayerIndex.ProjectLists, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
@@ -2092,14 +2275,15 @@ function RL_Draw_TabProjectLists()
  
   function GUI.elms.tab_projectLists_listboxRPL:onmouseup()
     if GUI.elms.tab_projectLists_listboxRPL then 
+      TabParentSelectionIndex[5] = self:getitem(GUI.mouse.y)
       GUI.Listbox.onmouseup(self)
       FillProjectListBox()
-      SelectionIndex.ProjectListsRPL = self:getitem(GUI.mouse.y)
     end
   end
 
   function GUI.elms.tab_projectLists_listboxProjects:onmousedown()
     TabSelectionIndex[5] = self:getitem(GUI.mouse.y)
+    if GUI.JSAPI() then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2114,7 +2298,6 @@ function RL_Draw_TabProjectLists()
 
   function GUI.elms.tab_projectLists_txtFilter:lostfocus()
     IsKeyInputCheckActive = true
-    SelectionIndex.ProjectListsRPL = 0
     TabSelectionIndex[5] = 0
     GUI.Textbox.lostfocus(self)
   end
@@ -2129,19 +2312,41 @@ end
 -- Tab - Backups (.rpp-bak)
 ---------------------------
 function RL_Draw_TabBackups()
-  GUI.New("tab_backups_btnRefresh", "Button", LayerIndex.Backups, 10, pad_top-2, 20, 22, "R", Refresh_Backups)
+  GUI.New("tab_backups_btnRefresh", "Button", LayerIndex.Backups, 10, pad_top-2, 20, 22, "R", RefreshBackups)
   GUI.New("tab_backups_txtFilter", "Textbox", LayerIndex.Backups, 75, pad_top, 260, 20, "Filter", 8)
 
-  GUI.New("tab_backups_listbox", "Listbox", LayerIndex.Backups, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  GUI.New("tab_backups_subfolders", "Listbox", LayerIndex.Backups, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
+
+  GUI.New("tab_backups_listbox", "Listbox", LayerIndex.Backups, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
   GUI.elms.tab_backups_listbox.list = Backups.names
   GUI.Val("tab_backups_listbox", {1})
 
   GUI.New("tab_backups_btnLoadInTab", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_BackupFile)
   GUI.New("tab_backups_btnLoad", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_BackupFile)
 
+  function GUI.elms.tab_backups_subfolders:onmousedown()
+    if GUI.elms.tab_backups_subfolders then 
+      TabParentSelectionIndex[6] = self:getitem(GUI.mouse.y)
+      GUI.Listbox.onmouseup(self)
+      UpdateBackupsSubDirSelection()
+    end
+  end
+
+  function UpdateBackupsSubDirSelection()
+    if TabParentSelectionIndex[6] == 1 then 
+      RefreshBackups()
+    else 
+      local selectedList = GUI.elms.tab_backups_subfolders.list 
+      FillBackupsListboxBase(GetFiles(selectedList[TabParentSelectionIndex[6]]))
+    end
+    TabSelectionIndex[6] = 1
+    GUI.Val("tab_backups_listbox", {1})
+  end
+
   function GUI.elms.tab_backups_listbox:onmousedown()
-    GUI.Listbox.onmousedown(self)
     TabSelectionIndex[6] = self:getitem(GUI.mouse.y)
+    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    GUI.Listbox.onmousedown(self)
   end
 
   function GUI.elms.tab_backups_listbox:ondoubleclick()
@@ -2207,19 +2412,19 @@ function RL_Draw_TabOptions()
   -- custom project template folder
   GUI.New("options_btnProjectTemplatesClear", "Button", LayerIndex.Options, 20, options_pad_top + options_yOffset, 55, 20, "Remove", Path_Clear_ProjectTemplateFolder)
   GUI.New("options_btnProjectTemplatesSet", "Button", LayerIndex.Options, GUI.w - 60, options_pad_top + options_yOffset, 40, 20, "Set", Path_Set_ProjectTemplateFolder)
-  GUI.New("options_txtProjectTemplatesPath", "Textbox", LayerIndex.Options, 85, options_pad_top + options_yOffset, GUI.w - 150, 20, "Additional [ Project Templates ] folder", 8)
+  GUI.New("options_txtProjectTemplatesPath", "Textbox", LayerIndex.Options, 85, options_pad_top + options_yOffset, GUI.w - 150, 20, "Additional .RPP [ Project Templates ] folder", 8)
   GUI.elms.options_txtProjectTemplatesPath.cap_pos = "top"
 
   -- custom track template folder
   GUI.New("options_btnTrackTemplatesClear", "Button", LayerIndex.Options, 20, options_pad_top + 2 * options_yOffset, 55, 20, "Remove", Path_Clear_TrackTemplateFolder)
   GUI.New("optioptions_btnTrackTemplatesSet", "Button", LayerIndex.Options, GUI.w - 60, options_pad_top + 2 * options_yOffset, 40, 20, "Set", Path_Set_TrackTemplateFolder)
-  GUI.New("options_txtTrackTemplatesPath", "Textbox", LayerIndex.Options, 85, options_pad_top + 2 * options_yOffset, GUI.w - 150, 20, "Additional [ Track Templates ] folder", 8)
+  GUI.New("options_txtTrackTemplatesPath", "Textbox", LayerIndex.Options, 85, options_pad_top + 2 * options_yOffset, GUI.w - 150, 20, "Additional .RTrackTemplate [ Track Templates ] folder", 8)
   GUI.elms.options_txtTrackTemplatesPath.cap_pos = "top"
 
   -- custom project folder
   GUI.New("options_btnCustomProjectsClear", "Button", LayerIndex.Options, 20, options_pad_top + 3 * options_yOffset, 55, 20, "Remove", Path_Clear_CustomProjectFolder)
   GUI.New("options_btnCustomProjectsSet", "Button", LayerIndex.Options, GUI.w - 60, options_pad_top + 3 * options_yOffset, 40, 20, "Set", Path_Set_CustomProjectFolder)
-  GUI.New("options_txtCustomProjectsPath", "Textbox", LayerIndex.Options, 85, options_pad_top + 3 * options_yOffset, GUI.w - 150, 20, "[ Projects ] folder", 8)
+  GUI.New("options_txtCustomProjectsPath", "Textbox", LayerIndex.Options, 85, options_pad_top + 3 * options_yOffset, GUI.w - 150, 20, ".RPP [ Projects ] folder", 8)
   GUI.elms.options_txtCustomProjectsPath.cap_pos = "top"
 
   -- project list folder
@@ -2356,19 +2561,22 @@ local helpInfo = {
 - - - - - - - - - - - -
 Audio preview
 - - - - - - - - - - - -
-Requires js_ReaScriptAPI installed
+[ Requires js_ReaScriptAPI installed ]
 .
-1) Place an audio file with identical name into the same folder as the project or template file
-Supported file types: WAV, FLAC, MP3, OGG
-.
-Example:
-testproject.RPP --> testproject.WAV
+1) Place a WAV, FLAC, MP3 or OGG audio file with identical name into the same folder as the project or template file. Example:
+- testproject.RPP
+- testproject.WAV
 .
 2) Turn the preview volume knob to adjust the preview volume (0 - 100 %)
 . 
-3) Start & stop a preview of a selected entry:
-- Via DOUBLE CLICK on the preview volume knob
-- Or by using the corresponding key shortcut
+3) Start & Stop a preview of a selected entry:
+- via DOUBLE CLICK on the preview volume knob
+- or by using the assigned KEY SHORTCUT
+.
+.
+Volume knob status colors:
+- SILVER: preview available for selected entry
+- GREEN: preview playing
 ]]
 ,
 [[
@@ -2466,12 +2674,12 @@ function RL_Draw_Tooltips()
   GUI.elms.main_checklist_windowpin.tooltip = tooltip_windowpin
   -- recent projects
   GUI.elms.tab_recentProjects_btnRefresh.tooltip = "Refresh the [Recent Projects] list"
-  GUI.elms.tab_recentProjects_txtFilter.tooltip = "Filter the [Recent Projects] list by typing in words"
+  GUI.elms.tab_recentProjects_txtFilter.tooltip = "Filter the [Recent Projects] list by typing in one or multiple words separated by a 'space' character"
   GUI.elms.tab_recentProjects_btnLoadInTab.tooltip = "Load selected recent project(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab_recentProjects_btnLoad.tooltip = "Load selected recent project(s)\n\n" .. ttLoadFXoffline
   -- project templates
   GUI.elms.tab_projectTemplates_btnRefresh.tooltip = "Refresh [Project Templates] list"
-  GUI.elms.tab_projectTemplates_txtFilter.tooltip = "Filter the [Project Templates] list by typing in words"
+  GUI.elms.tab_projectTemplates_txtFilter.tooltip = "Filter the [Project Templates] list by typing in one or multiple words separated by a 'space' character"
   GUI.elms.tab_projectTemplates_btnLoadInTab.tooltip = "Load selected project template(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab_projectTemplates_btnLoad.tooltip = "Load selected project templates(s)\n\n" .. ttLoadFXoffline
   -- template edit mode
@@ -2480,21 +2688,21 @@ function RL_Draw_Tooltips()
   GUI.elms.tab_projectTemplates_checklistEditMode.tooltip = tooltip_projectTemplatesEditMode
   -- track templates
   GUI.elms.tab_trackTemplates_btnRefresh.tooltip = "Refresh the [Track Templates] list"
-  GUI.elms.tab_trackTemplates_txtFilter.tooltip = "Filter the [Track Templates] list by typing in words"
+  GUI.elms.tab_trackTemplates_txtFilter.tooltip = "Filter the [Track Templates] list by typing in one or multiple words separated by a 'space' character"
   GUI.elms.tab_trackTemplates_btnInsert.tooltip = "Insert selected track template(s)"
   -- projects
   GUI.elms.tab_customProjects_btnFilter.tooltip = "Refresh the [Projects] list"
-  GUI.elms.tab_customProjects_txtFilter.tooltip = "Filter the [Projects] list by typing in words"
+  GUI.elms.tab_customProjects_txtFilter.tooltip = "Filter the [Projects] list by typing in one or multiple words separated by a 'space' character"
   GUI.elms.tab_customProjects_btnLoadInTab.tooltip = "Load the selected project(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab_customProjects_btnLoad.tooltip = "Load the selected project(s)\n\n" .. ttLoadFXoffline
   -- project lists
   GUI.elms.tab_projectLists_btnRefresh.tooltip = "Refresh the [Project Lists] list"
-  GUI.elms.tab_projectLists_txtFilter.tooltip = "Filter the [Project Lists] list by typing in words"
+  GUI.elms.tab_projectLists_txtFilter.tooltip = "Filter the [Project Lists] list by typing in one or multiple words separated by a 'space' character"
   GUI.elms.tab_projectLists_btnLoadInTab.tooltip = "Load the selected project(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab_projectLists_btnLoad.tooltip = "Load the selected project(s)\n\n" .. ttLoadFXoffline
   -- backups
   GUI.elms.tab_backups_btnRefresh.tooltip = "Refresh the [Backups] list"
-  GUI.elms.tab_backups_txtFilter.tooltip = "Filter the [Backups] list by typing in words"
+  GUI.elms.tab_backups_txtFilter.tooltip = "Filter the [Backups] list by typing in one or multiple words separated by a 'space' character"
   GUI.elms.tab_backups_btnLoadInTab.tooltip = "Load the selected backup(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab_backups_btnLoad.tooltip = "Load the selected backup(s)\n\n" .. ttLoadFXoffline
   -- project templates path
@@ -2705,7 +2913,6 @@ function RL_DrawAll()
   RL_Draw_Tabs()
   RL_Draw_Frames()
   RL_Draw_AddOns()
-  Refresh_ProjectList()
 end
 
 RL_DrawAll()
@@ -2737,6 +2944,7 @@ function RL_RedrawAll()
   -- project templates
   GUI.elms.tab_projectTemplates_btnRefresh:ondelete()
   GUI.elms.tab_projectTemplates_txtFilter:ondelete()
+  GUI.elms.tab_projectTemplates_subfolders:ondelete()
   GUI.elms.tab_projectTemplates_listbox:ondelete()
   GUI.elms.tab_projectTemplates_btnLoadInTab:ondelete()
   GUI.elms.tab_projectTemplates_btnLoad:ondelete()
@@ -2745,11 +2953,13 @@ function RL_RedrawAll()
   -- track templates
   GUI.elms.tab_trackTemplates_btnRefresh:ondelete()
   GUI.elms.tab_trackTemplates_txtFilter:ondelete()
+  GUI.elms.tab_trackTemplates_subfolders:ondelete()
   GUI.elms.tab_trackTemplates_listbox:ondelete()
   GUI.elms.tab_trackTemplates_btnInsert:ondelete()
   -- custom projects
   GUI.elms.tab_customProjects_btnFilter:ondelete()
   GUI.elms.tab_customProjects_txtFilter:ondelete()
+  GUI.elms.tab_customProjects_subfolders:ondelete()
   GUI.elms.tab_customProjects_listbox:ondelete()
   GUI.elms.tab_customProjects_btnLoadInTab:ondelete()
   GUI.elms.tab_customProjects_btnLoad:ondelete()
@@ -2763,6 +2973,7 @@ function RL_RedrawAll()
   -- backups
   GUI.elms.tab_backups_btnRefresh:ondelete()
   GUI.elms.tab_backups_txtFilter:ondelete()
+  GUI.elms.tab_backups_subfolders:ondelete()
   GUI.elms.tab_backups_listbox:ondelete()
   GUI.elms.tab_backups_btnLoadInTab:ondelete()
   GUI.elms.tab_backups_btnLoad:ondelete()
@@ -2770,7 +2981,7 @@ function RL_RedrawAll()
   GUI.elms.options_btnProjectTemplatesClear:ondelete()
   GUI.elms.options_btnProjectTemplatesSet:ondelete()
   GUI.elms.options_txtProjectTemplatesPath:ondelete()
--- options - track templates
+  -- options - track templates
   GUI.elms.options_btnTrackTemplatesClear:ondelete()
   GUI.elms.optioptions_btnTrackTemplatesSet:ondelete()
   GUI.elms.options_txtTrackTemplatesPath:ondelete()
@@ -2880,20 +3091,8 @@ end
 if GUI.JSAPI() then
   local AudioPreviewFileTypes = { ".wav", ".flac", ".mp3",".ogg" } -- ordered by priority from left to right
 
-  IsListBoxEmpty = {
-    noRecentProjects,
-    noProjectTemplates,
-    noTrackTemplates,
-    noCustomProjects,
-    noProjectLists,
-    noBackups
-  }
-
-  function AudioPreviewGetFile(currentTab, project, idx, audioExtension)
+  function AudioPreviewGetSourceFile(currentTab, project, idx, audioExtension)
     local selectedItem
-    local pathSeparator = "/"
-    if osversion:find("Win") then pathSeparator = "\\" end
-
     if currentTab == 1 then selectedItem = RecentProjects.names[idx] 
       elseif currentTab == 2 then selectedItem = ProjectTemplates.names[idx]
       elseif currentTab == 3 then selectedItem = TrackTemplates.names[idx] 
@@ -2901,9 +3100,10 @@ if GUI.JSAPI() then
       elseif currentTab == 5 then selectedItem = ProjectLists.projectNames[idx] 
       elseif currentTab == 6 then selectedItem = Backups.names[idx]
     end
+
     if selectedItem == nil then return 'emptyList'
     else
-      return GetDirectoryPath(project) .. pathSeparator .. selectedItem .. audioExtension, audioExtension
+      return GetDirectoryPath(project) .. GetPathSeparator() .. selectedItem .. audioExtension, audioExtension
     end
   end
 
@@ -2918,28 +3118,8 @@ if GUI.JSAPI() then
     GUI.elms.main_previewVolKnob:init();        
     GUI.elms.main_previewVolKnob:redraw(self);  
   end
-
-  function AudioPreviewStartBase(currentTab, selectedProject, index, previewVol)
-    local audioFile, audioExtension
-
-    for t = 1, #AudioPreviewFileTypes do
-      audioFile, audioExtension = AudioPreviewGetFile(currentTab, selectedProject, index, AudioPreviewFileTypes[t])
-      if audioFile ~= 'emptyList' and FileExists(audioFile) then
-        break
-      end
-    end
-
-    if FileExists(audioFile) == false then MsgStatusBar("AUDIO PREVIEW: No attached audio file found")
-    else
-        local audioPreviewSource = reaper.PCM_Source_CreateFromFile(audioFile)
-        reaper.Xen_StartSourcePreview(audioPreviewSource, previewVol, false)    
-        audioPreviewActive = true
-        AudioPreviewChangeVolKnobColor("elm_fill", "elm_frame")
-        return audioExtension
-      end
-  end
-
-  local function IsFilterActive(currentTab)
+  
+  function IsFilterActive(currentTab)
     if currentTab == 1 then return FilterActive.RecentProjects
       elseif currentTab == 2 then return FilterActive.ProjectTemplates
       elseif currentTab == 3 then return FilterActive.TrackTemplates
@@ -2949,43 +3129,73 @@ if GUI.JSAPI() then
     end
   end
 
+  local audioPreviewFile
+  local audioPreviewStatusText = nil
+
+  function AudioPreviewCheckForFile()
+    local currentTab = RL_GetFocusedTab()
+    local selectedIndex = TabSelectionIndex[currentTab]
+    local selectedElement
+
+    if IsFilterActive(currentTab) == false then
+      AudioPreviewElements = {
+        { RecentProjects.items, RecentProjects.names },
+        { ProjectTemplates.items, ProjectTemplates.names },
+        { TrackTemplates.items, TrackTemplates.names },
+        { CustomProjects.items, CustomProjects.names },
+        { ProjectLists.projectItems, ProjectLists.projectNames },
+        { Backups.items, Backups.names }
+      }
+      selectedElement = AudioPreviewElements[currentTab][2][selectedIndex]
+      selectedProject = AudioPreviewElements[currentTab][1][selectedElement]
+    else
+      AudioPreviewElementsFiltered = {
+        { RecentProjects.items, RecentProjects.filteredNames },
+        { ProjectTemplates.items, ProjectTemplates.filteredNames },
+        { TrackTemplates.items, TrackTemplates.filteredNames },
+        { CustomProjects.items, CustomProjects.filteredNames },
+        { ProjectLists.projectItems, ProjectLists.filteredProjectNames },
+        { Backups.items, Backups.filteredNames }
+      }
+      selectedElement = AudioPreviewElementsFiltered[currentTab][2][selectedIndex]
+      selectedProject = AudioPreviewElementsFiltered[currentTab][1][selectedElement] 
+    end
+
+    local previewAudioExtension
+    for t = 1, #AudioPreviewFileTypes do
+      audioPreviewFile, previewAudioExtension = AudioPreviewGetSourceFile(currentTab, selectedProject, selectedIndex, AudioPreviewFileTypes[t])
+      
+      if audioPreviewFile ~= 'emptyList' and FileExists(audioPreviewFile) then
+        break
+      end
+    end
+    
+    if FileExists(audioPreviewFile) then
+      if audioPreviewActive then AudioPreviewChangeVolKnobColor("elm_fill", "elm_frame")
+      else AudioPreviewChangeVolKnobColor("silver", "elm_frame") end
+      audioPreviewStatusText = selectedElement .. previewAudioExtension
+    else
+      AudioPreviewChangeVolKnobColor("elm_frame", "elm_fill")
+    end
+  end
+
   function AudioPreviewStart()
+    if audioPreviewFile ~= nil and FileExists(audioPreviewFile) then
+      AudioPreviewStartPlayback(audioPreviewFile)
+    end
+  end
+
+  function AudioPreviewStartPlayback(audioFile)
     local previewVol = (GUI.Val("main_previewVolKnob") / 100)
     if previewVol == nil or previewVol > 1 then previewVol = 1 end
-    
-    local currentTab = RL_GetFocusedTab()
-    if IsListBoxEmpty[currentTab] == false then
-      local selectedElement
-      local selectedIndex = TabSelectionIndex[currentTab]
 
-      if IsFilterActive(currentTab) == false then
-        AudioPreviewElements = {
-          { RecentProjects.items, RecentProjects.names },
-          { ProjectTemplates.items, ProjectTemplates.names },
-          { TrackTemplates.items, TrackTemplates.names },
-          { CustomProjects.items, CustomProjects.names },
-          { ProjectLists.projectItems, ProjectLists.projectNames },
-          { Backups.items, Backups.names }
-        }
-        selectedElement = AudioPreviewElements[currentTab][2][selectedIndex]
-        selectedProject = AudioPreviewElements[currentTab][1][selectedElement]
-      else
-        AudioPreviewElementsFiltered = {
-          { RecentProjects.items, RecentProjects.filteredNames },
-          { ProjectTemplates.items, ProjectTemplates.filteredNames },
-          { TrackTemplates.items, TrackTemplates.filteredNames },
-          { CustomProjects.items, CustomProjects.filteredNames },
-          { ProjectLists.projectItems, ProjectLists.filteredProjectNames },
-          { Backups.items, Backups.filteredNames }
-        }
-        selectedElement = AudioPreviewElementsFiltered[currentTab][2][selectedIndex]
-        selectedProject = AudioPreviewElementsFiltered[currentTab][1][selectedElement] 
-      end
-      MsgDebug(selectedProject)
-      local foundExtension = AudioPreviewStartBase(currentTab, selectedProject, selectedIndex, previewVol)
-      if foundExtension ~= nil then
-        MsgStatusBar("AUDIO PREVIEW: " .. selectedElement .. foundExtension)
-      end
+    local audioPreviewSource = reaper.PCM_Source_CreateFromFile(audioFile)
+    reaper.Xen_StartSourcePreview(audioPreviewSource, previewVol, false)    
+    audioPreviewActive = true
+    AudioPreviewChangeVolKnobColor("elm_fill", "elm_frame")
+    
+    if audioPreviewStatusText ~= nil then
+      MsgStatusBarStatic("AUDIO PREVIEW: " .. audioPreviewStatusText)
     end
   end
 
@@ -2994,7 +3204,7 @@ if GUI.JSAPI() then
       reaper.Xen_StopSourcePreview(-1)
       audioPreviewActive = false
       AudioPreviewChangeVolKnobColor("elm_frame", "elm_fill")
-      MsgStatusBar("")
+      MsgStatusBarClear();
     end
   end
 end
@@ -3062,8 +3272,13 @@ GUI.modifier = {
 -------------------------------
 -- Key Input - Helper functions
 -------------------------------
-ParentTabListBox = {
-  "tab_projectLists_listboxRPL"
+TabParentListBox = {
+  "",
+  "tab_projectTemplates_subfolders",
+  "tab_trackTemplates_subfolders",
+  "tab_customProjects_subfolders",
+  "tab_projectLists_listboxRPL",
+  "tab_backups_subfolders"
 }
 
 TabListBox = {
@@ -3087,6 +3302,16 @@ local TabFilter = {
 -----------------
 -- Listbox scroll
 -----------------
+ParentListBoxElements = {
+  nil,
+  GUI.elms.tab_projectTemplates_subfolders,
+  GUI.elms.tab_trackTemplates_subfolders,
+  GUI.elms.tab_customProjects_subfolders,
+  GUI.elms.tab_projectLists_listboxRPL,
+  GUI.elms.tab_trackTemplates_subfolders,
+  GUI.elms.tab_backups_subfolders,
+}
+
 ListboxElements = {
   GUI.elms.tab_recentProjects_listbox,
   GUI.elms.tab_projectTemplates_listbox,
@@ -3096,22 +3321,29 @@ ListboxElements = {
   GUI.elms.tab_backups_listbox
 }
 
-function ScrollParentListBox(direction)
-  local element = GUI.elms.tab_projectLists_listboxRPL
-  element.wnd_y = GUI.clamp(1, element.wnd_y + direction, math.max(#element.list - element.wnd_h + 1, 1))
-	element:redraw()
-end
-
 function ScrollToTop(tabIndex)
   local element = ListboxElements[tabIndex]
-  element.wnd_y = GUI.clamp(1, element.wnd_y - element.wnd_h, math.max(#element.list - element.wnd_h + 1, 1))
-  element:redraw()
+  if element.wnd_h ~= nil and element.wnd_y ~= nil then
+    element.wnd_y = GUI.clamp(1, element.wnd_y - element.wnd_h, math.max(#element.list - element.wnd_h + 1, 1))
+    element:redraw()
+  end
 end
 
-function ScrollListBox(tabIndex, direction)
-  local element = ListboxElements[tabIndex]
-  element.wnd_y = GUI.clamp(1, element.wnd_y + direction, math.max(#element.list - element.wnd_h + 1, 1))
-	element:redraw()
+local function ScrollBase(element, listIndex, direction)
+  if element.wnd_h ~= nil and element.wnd_y ~= nil then
+    if listIndex > element.wnd_h then 
+      element.wnd_y = GUI.clamp(1, element.wnd_y + direction, math.max(#element.list - element.wnd_h + 1, 1))
+      element:redraw()
+    end
+  end
+end
+
+function ScrollParentListBox(tabIndex, listIndex, direction)
+  ScrollBase(ParentListBoxElements[tabIndex], listIndex, direction)
+end
+
+function ScrollListBox(tabIndex, listIndex, direction)
+  ScrollBase(ListboxElements[tabIndex], listIndex, direction)
 end
 
 -----------------
@@ -3119,38 +3351,61 @@ end
 -----------------
 -- select parent list element
 function SetParentListBoxIndex(tabIndex, selectedElement)
-  GUI.Val(ParentTabListBox[1], {[selectedElement] = true})
-  SelectionIndex.ProjectListsRPL = selectedElement
-  FillProjectListBox()
+  GUI.Val(TabParentListBox[tabIndex], {[selectedElement] = true})
+  TabParentSelectionIndex[tabIndex] = selectedElement
+
+  local ParentListBoxItems = {
+    nil,
+    GUI.elms.tab_projectTemplates_subfolders.list,
+    GUI.elms.tab_trackTemplates_subfolders.list,
+    GUI.elms.tab_customProjects_subfolders.list,
+    GUI.elms.tab_projectLists_listboxRPL.list,
+    GUI.elms.tab_trackTemplates_subfolders.list,
+    GUI.elms.tab_backups_subfolders.list,
+  }
+
+  local selectedList = ParentListBoxItems[tabIndex]
+  local selectedFiles = GetFiles(selectedList[selectedElement])
+
+  if tabIndex == 2 then UpdateProjectTemplateSubDirSelection(selectedFiles) end
+  if tabIndex == 3 then UpdateTrackTemplateSubDirSelection(selectedFiles) end
+  if tabIndex == 4 then UpdateCustomProjectSubDirSelection(selectedFiles) end
+  if tabIndex == 5 then FillProjectListBox(selectedFiles) end
+  if tabIndex == 6 then UpdateBackupsSubDirSelection(selectedFiles) end
 end
 
 -- previous parent
 function SelectPreviousParentIndex(tabIndex, listIndex)
   if listIndex - 1 > 0 then listIndex = listIndex - 1 end
   SetParentListBoxIndex(tabIndex, listIndex)
-  ScrollParentListBox(-1)
+  ScrollParentListBox(tabIndex, listIndex, -1)
 end
 
 function RL_Keys_ListboxSelectPreviousParent(currentTab)
-  if currentTab == 5 then
-    SelectPreviousParentIndex(currentTab, SelectionIndex.ProjectListsRPL)
+  if TabParentSelectionIndex[currentTab] ~= nil and currentTab > 1 and currentTab < #MainTabs - 1 then
+    SelectPreviousParentIndex(currentTab, TabParentSelectionIndex[currentTab])
   end
 end
 
 -- next parent
 function SelectNextParentIndex(tabIndex, listIndex)
   local ParentListBoxItems = {
-    ProjectLists.projectNames
+    nil,
+    GUI.elms.tab_projectTemplates_subfolders.list,
+    GUI.elms.tab_trackTemplates_subfolders.list,
+    GUI.elms.tab_customProjects_subfolders.list,
+    GUI.elms.tab_projectLists_listboxRPL.list,
+    GUI.elms.tab_backups_subfolders.list,
   }
-  local elementCount = GetTableElementCount(ProjectLists.rplFiles)
-  if listIndex + 1 <= elementCount then listIndex = listIndex + 1 end
+
+  if listIndex + 1 <= #ParentListBoxItems[tabIndex] then listIndex = listIndex + 1 end
   SetParentListBoxIndex(tabIndex, listIndex)
-  ScrollParentListBox(1)
+  ScrollParentListBox(tabIndex, listIndex, 1)
 end
 
 function RL_Keys_ListboxSelectNextParent(currentTab)
-  if currentTab == 5 then
-    SelectNextParentIndex(currentTab, SelectionIndex.ProjectListsRPL)
+  if TabParentSelectionIndex[currentTab] ~= nil and currentTab > 1 and currentTab < #MainTabs - 1 then
+    SelectNextParentIndex(currentTab, TabParentSelectionIndex[currentTab])
   end
 end
 
@@ -3161,39 +3416,40 @@ end
 function SetListBoxIndex(tabIndex, selectedElement)
   GUI.Val(TabListBox[tabIndex], {[selectedElement] = true})
   TabSelectionIndex[tabIndex] = selectedElement
+  if GUI.JSAPI() then AudioPreviewCheckForFile() end
 end
 
 -- previous default
-function SelectPreviousIndex(tabIndex, listIndex, isParent)
+function SelectPreviousIndex(tabIndex, listIndex)
   if listIndex - 1 > 0 then listIndex = listIndex - 1 end
   SetListBoxIndex(tabIndex, listIndex)
-  ScrollListBox(tabIndex, -1)
+  ScrollListBox(tabIndex, listIndex, -1)
 end
 
 function RL_Keys_ListboxSelectPrevious(currentTab)
-    if TabSelectionIndex[currentTab] ~= nil and currentTab < #MainTabs then 
-      SelectPreviousIndex(currentTab, TabSelectionIndex[currentTab])
-    end
+  if TabSelectionIndex[currentTab] ~= nil and currentTab < #MainTabs - 1 then 
+    SelectPreviousIndex(currentTab, TabSelectionIndex[currentTab])
+  end
 end
 
 -- next default
 function SelectNextIndex(tabIndex, listIndex)
   local ListBoxItems = {
-    { RecentProjects.items, RecentProjects.filteredItems},
-    { ProjectTemplates.items, ProjectTemplates.filteredItems},
-    { TrackTemplates.items, TrackTemplates.filteredItems},
-    { CustomProjects.items, CustomProjects.filteredItems},
-    { ProjectLists.projectItems, ProjectLists.filteredProjectNames},
-    { Backups.items, Backups.filteredItems}
+    GUI.elms.tab_recentProjects_listbox.list,
+    GUI.elms.tab_projectTemplates_listbox.list,
+    GUI.elms.tab_trackTemplates_listbox.list,
+    GUI.elms.tab_customProjects_listbox.list,
+    GUI.elms.tab_projectLists_listboxProjects.list,
+    GUI.elms.tab_backups_listbox.list,
   }
-  local elementCount = GetTableElementCount(ListBoxItems[tabIndex][1])
-  if listIndex + 1 <= elementCount then listIndex = listIndex + 1 end
+
+  if listIndex + 1 <= #ListBoxItems[tabIndex] then listIndex = listIndex + 1 end
   SetListBoxIndex(tabIndex, listIndex)
-  ScrollListBox(tabIndex, 1)
+  ScrollListBox(tabIndex, listIndex, 1)
 end
 
 function RL_Keys_ListboxSelectNext(currentTab)
-  if TabSelectionIndex[currentTab] ~= nil and currentTab < #MainTabs then
+  if TabSelectionIndex[currentTab] ~= nil and currentTab < #MainTabs - 1 then
     SelectNextIndex(currentTab, TabSelectionIndex[currentTab])
   end
 end
@@ -3220,12 +3476,12 @@ RL_Func_LoadElementInTab = {
 }
 
 RL_Func_TabRefresh = {
-  [1] = { call = function() Refresh_RecentProjects() end },
-  [2] = { call = function() Refresh_ProjectTemplates() end },
-  [3] = { call = function() Refresh_TrackTemplates() end },
-  [4] = { call = function() Refresh_CustomProjects() end },
-  [5] = { call = function() Refresh_ProjectList() end },
-  [6] = { call = function() Refresh_Backups() end }
+  [1] = { call = function() RefreshRecentProjects() end },
+  [2] = { call = function() RefreshProjectTemplates() end },
+  [3] = { call = function() RefreshTrackTemplates() end },
+  [4] = { call = function() RefreshCustomProjects() end },
+  [5] = { call = function() RefreshProjectList() end },
+  [6] = { call = function() RefreshBackups() end }
 }
 ----------------
 -- Tab Selection
