@@ -1,12 +1,10 @@
 --[[
     Description: Show only specified tracks
-    Version: 1.5.0
+    Version: 1.5.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        New: After updating visibility in the mixer, selects the first visible
-        track in the mixer.
-        Fix: More descriptive error message if valid settings aren't found
+        Fix: Expand error message when the library is missing
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -482,7 +480,7 @@ end
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
     return
 end
 loadfile(lib_path .. "Core.lua")()

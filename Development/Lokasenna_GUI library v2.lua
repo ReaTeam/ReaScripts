@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.7
+Version: 2.16.8
 Changelog:
-    Fix: Middle mouse dragging wasn't being tracked
+    Fix: Expand error message when the library is missing
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
