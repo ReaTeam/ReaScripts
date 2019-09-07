@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Arch and Tilt.lua
-Version: 4.20
+Version: 4.21
 Author: juliansader 
 Screenshot: http://stash.reaper.fm/28025/Arch%20events.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -142,6 +142,8 @@ About:
     + macOS and Linux: Load custom cursor, as on Windows.
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
+  * v4.21 (2019-09-05)
+    + Download custom cursor on macOS.
 ]]
 
 -- USER AREA 

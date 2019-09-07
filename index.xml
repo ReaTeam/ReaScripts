@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a6e5019b306f611482bf5d65c3a1761fa5b4db05" name="ReaTeam Scripts">
+<index version="1" commit="74c442127659cdf7412e279cabfc307e90317722" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1273,6 +1273,25 @@ with options]]></changelog>
         <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/be520918218d39b8707a743363c2977c461599bd/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
         <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/be520918218d39b8707a743363c2977c461599bd/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
         <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/be520918218d39b8707a743363c2977c461599bd/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
+      </version>
+      <version name="2.16.7" author="Lokasenna" time="2019-08-10T15:01:03Z">
+        <changelog><![CDATA[Fix: Middle mouse dragging wasn't being tracked]]></changelog>
+        <source main="main" file="Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Set%20Lokasenna_GUI%20v2%20library%20path.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Button.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Button.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Frame.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Frame.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Knob.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Knob.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Label.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Label.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Listbox.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Listbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubar.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubar.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Menubox.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Menubox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Options.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Options.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Slider.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Slider.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Tabs.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Tabs.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - TextEditor.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20TextEditor.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Textbox.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Textbox.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Classes/Class - Window.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Classes/Class%20-%20Window.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Core.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Core.lua</source>
+        <source file="Lokasenna_GUI v2/Library/Modules/Window - GetUserInputs.lua">https://github.com/ReaTeam/ReaScripts/raw/4da5e24523992a420471f5481860ea452ed6ac93/Development/Lokasenna_GUI%20v2/Library/Modules/Window%20-%20GetUserInputs.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Run last Lua script in debug mode.lua" type="script" desc="Run last Lua script in debug mode">
@@ -3840,6 +3859,10 @@ here
         <changelog><![CDATA[# Supports files with samplerate different to that of the project]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
       </version>
+      <version name="1.02" author="amagalma" time="2019-08-20T14:12:33Z">
+        <changelog><![CDATA[# Supports negative project start times]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a8452ad9110169fd7171937ec23c4fe69248f804/Markers/amagalma_Write%20project%20markers%20as%20media%20cues%20to%20selected%20items%20active%20takes%20source%20files.lua</source>
+      </version>
     </reapack>
     <reapack name="beaunus_Add markers for lyrics in selected items.lua" type="script" desc="Add markers for lyrics in selected items">
       <metadata>
@@ -5388,6 +5411,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/72fbb3604a253965646b4bc71ca36da7704747d1/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
         <source file="js_Mouse editing - Arch and Tilt.cur">https://github.com/ReaTeam/ReaScripts/raw/72fbb3604a253965646b4bc71ca36da7704747d1/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.cur</source>
       </version>
+      <version name="4.21" author="juliansader" time="2019-09-05T18:53:07Z">
+        <changelog><![CDATA[+ Download custom cursor on macOS.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/74c442127659cdf7412e279cabfc307e90317722/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.lua</source>
+        <source file="js_Mouse editing - Arch and Tilt.cur">https://github.com/ReaTeam/ReaScripts/raw/74c442127659cdf7412e279cabfc307e90317722/MIDI%20Editor/js_Mouse%20editing%20-%20Arch%20and%20Tilt.cur</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Connect nodes.lua" type="script" desc="js_Mouse editing - Connect nodes.lua">
       <metadata>
@@ -5976,6 +6004,12 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/61a3993462e049e41cafa9f2214e6d32dd7aab21/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
         <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/61a3993462e049e41cafa9f2214e6d32dd7aab21/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
         <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/61a3993462e049e41cafa9f2214e6d32dd7aab21/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
+      </version>
+      <version name="4.22" author="juliansader" time="2019-08-15T11:46:12Z">
+        <changelog><![CDATA[+ Restore ability to stretch single notes.]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b20fb4117361542e8e8b025b6225a72887dc075d/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20and%20Compress.lua</source>
+        <source file="js_Mouse editing - Stretch bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/b20fb4117361542e8e8b025b6225a72887dc075d/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20bottom.cur</source>
+        <source file="js_Mouse editing - Stretch top.cur">https://github.com/ReaTeam/ReaScripts/raw/b20fb4117361542e8e8b025b6225a72887dc075d/MIDI%20Editor/js_Mouse%20editing%20-%20Stretch%20top.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Swipe select.lua" type="script" desc="js_Mouse editing - Swipe select.lua">
@@ -7934,15 +7968,16 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, Project Templates, Track Templates, Projects, (.rpl) Project Lists and (.rpp-bak) Backups\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Support for adding custom folder paths\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List filter at the top of each tab (supports multiple search words separated with a 'space' character)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, (.rpp) Project Templates, (.rtracktemplate) Track Templates, (.rpp) Projects, (.rpl) Project Lists and (.rpp-bak) Backups\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to add additional custom folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for Projects, Project Lists and Backups tabs\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List-filter at the top of each tab which supports input of multiple search words separated by a 'space' character\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button for browsing to the folder location of a selected file\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to preview attached 'demo' audio files of project and template files (requires js_ReaScriptAPI)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to switch between different pre-defined Reaper Theme Slots (requires SWS Extensions)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox for managing the window auto-close behavior\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Resizeable window\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\sa180\par}
@@ -8031,6 +8066,19 @@ enter or a = Exit and apply changes\par}
 + macOS / Linux: fix for file paths containing empty spaces
 + General code optimization and bugfixing]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67a13a74c364e862f17abcee4910e5823cc8e99a/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.5.1" author="solger" time="2019-08-16T10:29:28Z">
+        <changelog><![CDATA[+ Bugfix: New Project button not working]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c598ffbcbf403c55dabdbae761892e0c80d68e60/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.6" author="solger" time="2019-08-31T12:40:01Z">
+        <changelog><![CDATA[+ [Project Templates]: Code update for using the new 'project template loading' API function prefix introduced with Reaper v5.983
++ Audio Preview: The volume knob now indicates if a preview file is available for the selected list entry by changing its color to silver
++ General: Improved code for reading files from folders - no more command window pop ups :)
++ General: Added first implementation for subfolder listing and selection
++ General: Automatic load and refresh of list entries is now only done for the focused tab (instead of loading the lists for all tabs simultaneously)
++ Key inputs: Adjustment for list scrolling behavior]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1c0cfd909ed8a342299d88a78ccc38e65f8e165a/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
@@ -8157,6 +8205,59 @@ enter or a = Exit and apply changes\par}
       <version name="1.0.0" author="Thonex" time="2018-07-26T16:56:32Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ae5febb5c0c810b831cf760c4c02bc5e9d527b6/Regions/Thonex_Set%20time%20selection%20to%20region%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Rendering">
+    <reapack name="cfillion_Apply render preset.lua" type="script" desc="Apply render preset">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Apply render preset\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides two scripts for applying render presets from outside of the render dialog.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The primary action, {\i cfillion_Apply render preset.lua}, shows a list of all available presets and applies the selected one.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The second action, {\i cfillion_Apply render preset (create action)}.lua, dynamically creates a new action script for applying the chosen preset. This new action can be used for applying the chosen preset without any user interaction (eg. as part of a custom action).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The main script and generated scripts can be combined with the REAPER action "File: Render project, using the most recent render settings" (or similar) as part of a custom action.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Caveats\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The following restrictions apply due to current limitations in REAPER's scripting API.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These settings are applied but not visible immediately in the render dialog (if opened):\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Render speed\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Resample mode\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These settings are NOT applied:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use project sample rate for mixing and FX/synth processing\sa180\par}
+}
+]]></description>
+        <link rel="website">https://cfillion.ca</link>
+        <link rel="screenshot">https://i.imgur.com/Xy44ZlR.gif</link>
+        <link rel="donation">https://paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-08-27T01:39:07Z">
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/cdda3984c85d4f200c4fa9d0e76037b8efe755a8/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2019-08-27T18:28:41Z">
+        <changelog><![CDATA[Fix packaging of the primary action
+Fix creation of render preset actions]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca2fc84740e5d29985b7931c77d09b2fa7ace78f/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/ca2fc84740e5d29985b7931c77d09b2fa7ace78f/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.0.2" author="cfillion" time="2019-08-27T19:37:34Z">
+        <changelog><![CDATA[Workaround a REAPER bug causing randomly incorrect audio/video codecs to be applied (see t=224539)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a4df51f8ad259697ee935645c2bdfc02fd261f5f/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/a4df51f8ad259697ee935645c2bdfc02fd261f5f/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.0.3" author="cfillion" time="2019-08-30T09:40:53Z">
+        <changelog><![CDATA[Allow loading presets named "create action" from an action
+Fix context menus not being displayed on Windows
+Fix loading presets from reaper-render.ini on Windows]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a9f7be2af1ce1f46dcb964602543e8d79d5d0527/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/a9f7be2af1ce1f46dcb964602543e8d79d5d0527/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+      <version name="1.0.4" author="cfillion" time="2019-08-30T13:59:34Z">
+        <changelog><![CDATA[Remove quotes from the generated action's filenames]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/01b98609f1a30dcab3320953938aec4a28ce468a/Rendering/cfillion_Apply%20render%20preset.lua</source>
+        <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/01b98609f1a30dcab3320953938aec4a28ce468a/Rendering/cfillion_Apply%20render%20preset.lua</source>
       </version>
     </reapack>
   </category>
@@ -10358,6 +10459,21 @@ Try harder to fit the button in very small windows]]></changelog>
         <changelog><![CDATA[Show the button even if the window cannot fit the text
 Fix mouse cursor click hit detection in small windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a25eec49940dfd08a0ff44831f97d90884018f39/Various/cfillion_Big%20Repeat%20Button.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Enable or disable external timecode synchronization.lua" type="script" desc="Enable or disable external timecode synchronization">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This package provides two actions for enabling or disabling REAPER's external timecode synchronization.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-08-22T16:36:08Z">
+        <source main="main" file="cfillion_Enable external timecode synchronization.lua">https://github.com/ReaTeam/ReaScripts/raw/fc90949652742901f11d5f9fbe4dc21bdad843ab/Various/cfillion_Enable%20or%20disable%20external%20timecode%20synchronization.lua</source>
+        <source main="main" file="cfillion_Disable external timecode synchronization.lua">https://github.com/ReaTeam/ReaScripts/raw/fc90949652742901f11d5f9fbe4dc21bdad843ab/Various/cfillion_Enable%20or%20disable%20external%20timecode%20synchronization.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Find shortcut in the Action List.lua" type="script" desc="Find shortcut in the Action List">

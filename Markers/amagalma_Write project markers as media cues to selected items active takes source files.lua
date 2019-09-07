@@ -1,25 +1,25 @@
 -- @description amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Writes the project markers that cross the selected items as media cues of the selected items' active takes' source files
 --   - Overwrites the files
 --   - Issues warning if markers are going to appear to other items in the project that share the same source file
 --   - To erase an existing media cue, place an unnamed project marker at the position of the cue
 -- @changelog
---  # Supports files with samplerate different to that of the project
+--  # Supports negative project start times
 
 --------------------------------------------------------------------------------------------------
 
 local reaper = reaper
 local projsrate
+local projoffset = reaper.GetProjectTimeOffset( 0, false )
 if reaper.SNM_GetIntConfigVar( "projsrateuse", 0 ) == 1 then 
   projsrate = reaper.SNM_GetIntConfigVar( "projsrate", 0 )
 else
   _, projsrate = reaper.GetAudioDeviceInfo( "SRATE", "" )
   projsrate = tonumber(projsrate)
 end
-
 local function escape_lua_pattern(s)
   local matches =
   {
@@ -108,8 +108,8 @@ for i = 0, item_cnt-1 do
       -- find which markers are inside the visible source file portion
       local markers_inside = {}
       local marker_cnt = 0
-      local item_start = reaper.GetMediaItemInfo_Value( item, "D_POSITION"  )
-      local item_end = item_start + reaper.GetMediaItemInfo_Value( item, "D_LENGTH"  )
+      local item_start = reaper.GetMediaItemInfo_Value( item, "D_POSITION" ) + projoffset
+      local item_end = item_start + reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
       local take_offset = reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" )
       local source_start = item_start - take_offset
       local source_end = source_start + reaper.GetMediaSourceLength( source )
@@ -226,8 +226,9 @@ for i = 0, item_cnt-1 do
       local new_item_markers = 0
       for m = 0, num_markers-1 do
         local _, _, marker_pos, _, marker_name = reaper.EnumProjectMarkers( m )
+        marker_pos = marker_pos + projoffset
         if marker_pos >= vis_source_start and marker_pos <= vis_source_end then
-          local pos = sample_pos((marker_pos-source_start)*(samplerate/projsrate)) -- position in samples
+          local pos = sample_pos((marker_pos-source_start)*(samplerate/projsrate)) - projoffset*projsrate-- position in samples
           -- it's inside, check if it is new
           if not markers_inside[pos] then
             -- new marker, add

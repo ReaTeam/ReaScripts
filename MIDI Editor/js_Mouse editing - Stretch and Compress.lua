@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Stretch and Compress.lua
-Version: 4.21
+Version: 4.22
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -171,6 +171,8 @@ About:
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
   * v4.21 (2019-06-03)
     + In Stretch top/bottom mode, guidelines are displayed, and right-click to toggle stretch around relative center.
+  * v4.22 (2019-08-15)
+    + Restore ability to stretch single notes.
 ]]
 
 -- USER AREA 
@@ -2929,7 +2931,7 @@ function MAIN()
     --    MIDI_InsertCC, since these functions are far too slow when dealing with thousands of events.
     if modeIsSTRETCH then
         if not GetAndParseMIDIString_STRETCH() then return false end
-        if #tTicks < 2 or (#tTicks < 3 and not laneIsNOTES) then -- Two notes can be stretched, but not two CCs
+        if #tTicks == 0 then -- A single note can be stretched, but not a single CC. Single CCs will be detected below, while finding tick and value ranges.
             reaper.MB("Could not find a sufficient number of selected events in the target lane(s)."
                     .. "\n\nNB: If the MIDI editor's filter is set to \"Edit active channel only\", the script will only edit events in the active channel."
                     , "ERROR", 0)
@@ -2937,7 +2939,7 @@ function MAIN()
         end
     else -- modeIsCOMPRESS
         if not GetAndParseMIDIString_COMPRESS() then return false end
-        if #tMIDI <= 2 then
+        if #tMIDI <= 2 then -- Note: unlike tTicks, tMIDI contains target as well as non-target MIDI, separated into table entries. If #tMIDI == 1, no targets could be separated. Also: single CCs can be compressed, because relative to lane max and min values.
             reaper.MB("Could not find a sufficient number of selected events in the target lane(s)."
                     .. "\n\nNB: If the MIDI editor's filter is set to \"Edit active channel only\", the script will only edit events in the active channel."
                     , "ERROR", 0)
@@ -2973,7 +2975,7 @@ function MAIN()
             else stretchBOTTOM = true
             end
         else
-            reaper.MB("Could not find a sufficient number of selected events with different values and/or PPQ positions in the target lane."
+            reaper.MB("Could not find a sufficient number of selected events with different values and/or PPQ positions in the target lane(s)."
                     .. "\n\nNB: If the MIDI editor's filter is set to \"Edit active channel only\", the script will only edit events in the active channel."
                     , "ERROR", 0)
             return(false)
