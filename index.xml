@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8c0c86cf0127d6c08887c31058147ba8b5c22516" name="ReaTeam Scripts">
+<index version="1" commit="11879c82788e0b70dd4415c353dda6ef17e3e790" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12836,7 +12836,7 @@ uc_note_min_seconds = 1\par}
         <changelog><![CDATA[Added coverter pitch to Hz
 Added tooltip "Click to copy to clipboard"
 Added flashing green when clicking on ms or Hz label]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/tompad_MusicMath.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c81c25217f291ed117450b02b94b0773768c15f/Various/tompad_MusicMath.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_obliques.lua" type="script" desc="obliques - randomly shows text from Oblique Strategies">
@@ -12859,8 +12859,8 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
       </version>
       <version name="1.0.1" author="tompad" time="2019-06-12T03:08:40Z">
         <changelog><![CDATA[Added math.randomseed(os.time())]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2ba6c46f8b742c3b6124965562fe2a75b32fe1bc/Various/tompad_obliques.lua</source>
-        <source file="tompad_obliques/obliques">https://github.com/ReaTeam/ReaScripts/raw/2ba6c46f8b742c3b6124965562fe2a75b32fe1bc/Various/tompad_obliques/obliques</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11879c82788e0b70dd4415c353dda6ef17e3e790/Various/tompad_obliques.lua</source>
+        <source file="tompad_obliques/obliques">https://github.com/ReaTeam/ReaScripts/raw/11879c82788e0b70dd4415c353dda6ef17e3e790/Various/tompad_obliques/obliques</source>
       </version>
     </reapack>
   </category>
