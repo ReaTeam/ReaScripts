@@ -1,7 +1,8 @@
 -- @description ReaLauncher
 -- @author solger
 -- @version 1.6.2
--- @changelog + Bugfix for handling nil values when saving the output channel the first time to Extstate (saving the first output by default)
+-- @changelog
+--   + Bugfix for handling nil values when saving the output channel the first time to Extstate (saving the first output by default)
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
