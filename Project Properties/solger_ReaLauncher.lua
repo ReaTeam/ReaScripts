@@ -1,10 +1,7 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.6.1
--- @changelog
---   + Audio Preview: Output channel selection box added to [Options] tab (support was introduced with js_ReaScriptAPI 0.991)
---   + General: Minor code update for the [Show in Explorer/Finder] and [Forum thread] button functions (using reaper.CF_ShellExecute of the SWS Extensions if those are installed)
---   + General: Error message for missing Lokasenna GUI library adjusted to the one updated in Lokasenna GUI Library v2.16.8
+-- @version 1.6.2
+-- @changelog + Bugfix for handling nil values when saving the output channel the first time to Extstate (saving the first output by default)
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -68,7 +65,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.6.1"
+appversion = "1.6.2"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -3113,6 +3110,7 @@ local function RL_ExtStates_Save()
   
   if GUI.JSAPI() then 
     reaper.SetExtState(appname, "preview_vol", tostring(GUI.Val("main_previewVolKnob")), 1) -- preview section volume
+    if audioPreviewChannel == nil then audioPreviewChannel = 0 end
     reaper.SetExtState(appname, "preview_channel", audioPreviewChannel, 1) -- preview section first output channel index
     reaper.SetExtState(appname, "preview_channelmenuitem", tostring(GUI.Val("main_previewChannels")), 1) -- preview section channel menu item
   end
