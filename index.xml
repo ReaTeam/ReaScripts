@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="30ebc4fafec5d7809dac31bb46d7705a90f4b5b2" name="ReaTeam Scripts">
+<index version="1" commit="310b68c8b5bb13b68bccc631d38b298d63dc4d9e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8117,6 +8117,10 @@ enter or a = Exit and apply changes\par}
 + General: Minor code update for the [Show in Explorer/Finder] and [Forum thread] button functions (using reaper.CF_ShellExecute of the SWS Extensions if those are installed)
 + General: Error message for missing Lokasenna GUI library adjusted to the one updated in Lokasenna GUI Library v2.16.8]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/30ebc4fafec5d7809dac31bb46d7705a90f4b5b2/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.6.2" author="solger" time="2019-09-10T21:01:53Z">
+        <changelog><![CDATA[+ Bugfix for handling nil values when saving the output channel the first time to Extstate (saving the first output by default)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/310b68c8b5bb13b68bccc631d38b298d63dc4d9e/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
