@@ -1,14 +1,10 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.6
+-- @version 1.6.1
 -- @changelog
---   + [Project Templates]: Code update for using the new 'project template loading' API function prefix introduced with Reaper v5.983
---   + Audio Preview: The volume knob now indicates if a preview file is available for the selected list entry by changing its color to silver
---   + General: Improved code for reading files from folders - no more command window pop ups :)
---   + General: Added first implementation for subfolder listing and selection
---   + General: Automatic load and refresh of list entries is now only done for the focused tab (instead of loading the lists for all tabs simultaneously)
---   + Key inputs: Adjustment for list scrolling behavior
---   
+--   + Audio Preview: Output channel selection box added to [Options] tab (support was introduced with js_ReaScriptAPI 0.991)
+--   + General: Minor code update for the [Show in Explorer/Finder] and [Forum thread] button functions (using reaper.CF_ShellExecute of the SWS Extensions if those are installed)
+--   + General: Error message for missing Lokasenna GUI library adjusted to the one updated in Lokasenna GUI Library v2.16.8
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -72,7 +68,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.6"
+appversion = "1.6.1"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -99,7 +95,7 @@ end
 -------------------------------------
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
   if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
   return
 end
 
@@ -353,9 +349,12 @@ end
 -- Open the folder path in Explorer/Finder
 ------------------------------------------
 function ShowLocationInExplorer(path)
-  if osversion:find("OSX") then os.execute('open "" "' .. path .. '"') -- macOS
-  elseif osversion:find("Win") then os.execute('start "" "' .. path .. '"') -- Windows
-  else os.execute('xdg-open \"' .. path .. '\"') -- Linux
+  if GUI.SWS() then reaper.CF_ShellExecute(path)
+  else
+    if osversion:find("OSX") then os.execute('open "" "' .. path .. '"') -- macOS
+    elseif osversion:find("Win") then os.execute('start "" "' .. path .. '"') -- Windows
+    else os.execute('xdg-open \"' .. path .. '\"') -- Linux
+    end
   end
 end
 
@@ -1742,7 +1741,7 @@ if GUI.SWS() then
       GUI.New("options_themeslot_" .. i, "Textbox", LayerIndex.Options, themeslot_pad_left, themeslot_pad_top + 25 + (20 * (i -1)), 180, 20, i, 8)
     end
 
-    ThemeSlotTextBoxes = {  GUI.elms.options_themeslot_1, GUI.elms.options_themeslot_2,  GUI.elms.options_themeslot_3, GUI.elms.options_themeslot_4, GUI.elms.options_themeslot_5 }
+    ThemeSlotTextBoxes = { GUI.elms.options_themeslot_1, GUI.elms.options_themeslot_2,  GUI.elms.options_themeslot_3, GUI.elms.options_themeslot_4, GUI.elms.options_themeslot_5 }
     ThemeSlot_Indicator()
     
     GUI.New("options_themeslot_Setup", "Button", LayerIndex.Options, themeslot_pad_left, themeslot_pad_top + 130, 100, 20, "Edit Theme Slots", ThemeSlot_Setup)
@@ -1912,7 +1911,8 @@ function RL_SetFocusedTab(tabIndex)
   if RL_GetFocusedTab() < (#MainTabs - 1) then RL_Func_TabRefresh[RL_GetFocusedTab()].call() end
 end
 
-audioPreviewActive = false
+local audioPreviewActive = false
+local audioPreviewChannel = 0
 
 function RL_Draw_PreviewSection()
   if GUI.JSAPI() then
@@ -1920,9 +1920,36 @@ function RL_Draw_PreviewSection()
     GUI.elms.main_previewVolKnob.cap_x = 26
     GUI.elms.main_previewVolKnob.cap_y = -26
     GUI.elms.main_previewVolKnob.vals = false
-    GUI.elms.main_previewVolKnob.tooltip =  "Audio preview section\n\n- Turn the knob to set the preview volume (0-100%)\n" ..
-                                            "- DOUBLE CLICK the knob to start/stop audio preview\n\n" ..
+    GUI.elms.main_previewVolKnob.tooltip =  "Audio preview section\n\n" ..
+                                            "- Output channel can be set in the [Options] Tab\n" ..                                        
+                                            "- Turning the knob sets the preview volume (0-100%)\n" ..
+                                            "- DOUBLE CLICK on the knob starts/stops the preview\n\n" ..
                                             "Knob color states:\nSILVER: preview available for the selected entry\nGREEN: preview playing"
+
+    local pos = 1
+    local stereoChannels = {}
+    for c = 1, reaper.GetNumAudioOutputs(), 2 do
+      stereoChannels[pos] = c .. "/" .. c + 1
+      pos = pos + 1
+    end
+
+    GUI.New("main_previewChannels", "Menubox", LayerIndex.Options, GUI.w - 85, pad_top, 65, 20, "Preview ch", table.concat(stereoChannels, ","))
+    GUI.elms.main_previewChannels.align = "1"
+    GUI.elms.main_previewChannels.tooltip = "Select which channel is used for audio preview"
+
+    local function SetPreviewChannel(channel)
+      audioPreviewChannel = tonumber(string.sub(channel, 1, #channel - channel:find("/"))) - 1
+    end
+
+    function GUI.elms.main_previewChannels:onmousedown()
+      GUI.Menubox.onmouseup(self)
+      SetPreviewChannel(stereoChannels[GUI.Val("main_previewChannels")])
+    end
+      
+    function GUI.elms.main_previewChannels:onwheel()
+      GUI.Menubox.onwheel(self)
+      SetPreviewChannel(stereoChannels[GUI.Val("main_previewChannels")])
+    end
 
     function GUI.elms.main_previewVolKnob:redraw()
       GUI.Knob.redraw(self)
@@ -1942,7 +1969,7 @@ function RL_Draw_Main()
   GUI.New("main_tabs", "Tabs", LayerIndex.Main, 0, 0, 100, 20, MainTabs, 16)
   GUI.elms.main_tabs.col_tab_b = "elm_bg"
   GUI.New("main_appversion", "Label", LayerIndex.Main, pad_left, GUI.h - 18, "ReaLauncher " .. appversion, false, 4)
-  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 90, GUI.h - 18, "", false, 4)
+  GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + 95, GUI.h - 18, "", false, 4)
 
   -- Tab | Layers
    GUI.elms.main_tabs:update_sets(
@@ -2562,18 +2589,17 @@ local helpInfo = {
 Audio preview
 - - - - - - - - - - - -
 [ Requires js_ReaScriptAPI installed ]
-.
-1) Place a WAV, FLAC, MP3 or OGG audio file with identical name into the same folder as the project or template file. Example:
-- testproject.RPP
-- testproject.WAV
-.
-2) Turn the preview volume knob to adjust the preview volume (0 - 100 %)
-. 
-3) Start & Stop a preview of a selected entry:
-- via DOUBLE CLICK on the preview volume knob
-- or by using the assigned KEY SHORTCUT
-.
-.
+- - - - -
+1) Place a WAV, FLAC, MP3 or OGG audio file with identical name into the same folder as the project or template file.
+- - - - -
+Example: testproject.RPP / testproject.WAV
+- - - - -
+2) Select the output channels in the [ Options ]
+- - - - -
+3) Adjust the volume by turning the preview volume knob (0 - 100 %)
+- - - - -
+4) Start & Stop a preview of a selected entry via DOUBLE CLICK on the preview volume knob or by using the assigned KEY SHORTCUT
+- - - - -
 Volume knob status colors:
 - SILVER: preview available for selected entry
 - GREEN: preview playing
@@ -2584,11 +2610,11 @@ Volume knob status colors:
 Listbox multi-select 
 - - - - - - - - - - - - - - -
 Selection of multiple list entries is possible via:
-.
+- - - - -
 - SHIFT + LEFT CLICK: select adjacent entries
 - CTRL/CMD + LEFT CLICK: select non-adjacent entries
-.
-- Loading a single entry directly is possible via DOUBLE CLICK
+- - - - -
+Loading a single entry directly is possible via DOUBLE CLICK
 ]]
 ,
 [[
@@ -2596,10 +2622,10 @@ Selection of multiple list entries is possible via:
 Load projects with FX offline
 - - - - - - - - - - - - - - - - - - - - - - - 
 Either hold the following key combination while loading:
-.
+- - - - -
 - CTRL + SHIFT (Windows & Linux)
 - CMD + SHIFT  (macOS)
-.
+- - - - -
 Or use the 'Open with FX offline' option in the [Open Project] window
 ]]
 ,
@@ -2608,10 +2634,10 @@ Or use the 'Open with FX offline' option in the [Open Project] window
 [ Recent Projects ]
 - - - - - - - - - - - - - - -
 RIGHT CLICK on the Recent Projects listbox opens the context menu for removing selected entries or clearing the entire recent projects list:
-.
+- - - - -
 - Remove entry
 - Clear list
-.
+- - - - -
 The 'Remove entry' menu option is only available for the unfiltered list
 ]]
 }
@@ -2642,7 +2668,8 @@ function RL_Draw_TabHelp()
 
   function GUI.elms.help_btnThread:onmousedown()
     GUI.Button.onmousedown(self)
-    ShowLocationInExplorer(threadUrl)
+    if GUI.SWS() then reaper.CF_ShellExecute(threadUrl)
+    else ShowLocationInExplorer(threadUrl) end
   end
 
   function GUI.elms.help_menu:onmousedown()
@@ -3012,6 +3039,8 @@ function RL_RedrawAll()
     GUI.elms.options_themeslot_Setup:ondelete()
     GUI.elms.options_themeslot_Save:ondelete()
   end
+  -- audio preview channel selector
+  if GUI.JSAPI() then GUI.elms.main_previewChannels:ondelete() end
   RL_Draw_Tabs()
   RL_Draw_AddOns()
   -- confirm dialog
@@ -3063,6 +3092,8 @@ local function RL_ExtStates_Load()
 
   if GUI.JSAPI() then 
     GUI.Val("main_previewVolKnob", tonumber(reaper.GetExtState(appname, "preview_vol"))) -- preview section volume
+    audioPreviewChannel = tonumber(reaper.GetExtState(appname, "preview_channel")) -- preview section first output channel index
+    GUI.Val("main_previewChannels",tonumber(reaper.GetExtState(appname, "preview_channelmenuitem"))) -- preview section channel menu item
   end
 
   RL_ExtStates_Load_FolderPaths()
@@ -3082,6 +3113,8 @@ local function RL_ExtStates_Save()
   
   if GUI.JSAPI() then 
     reaper.SetExtState(appname, "preview_vol", tostring(GUI.Val("main_previewVolKnob")), 1) -- preview section volume
+    reaper.SetExtState(appname, "preview_channel", audioPreviewChannel, 1) -- preview section first output channel index
+    reaper.SetExtState(appname, "preview_channelmenuitem", tostring(GUI.Val("main_previewChannels")), 1) -- preview section channel menu item
   end
 end
 
@@ -3189,14 +3222,14 @@ if GUI.JSAPI() then
     local previewVol = (GUI.Val("main_previewVolKnob") / 100)
     if previewVol == nil or previewVol > 1 then previewVol = 1 end
 
-    local audioPreviewSource = reaper.PCM_Source_CreateFromFile(audioFile)
-    reaper.Xen_StartSourcePreview(audioPreviewSource, previewVol, false)    
+    local startOutputChannel = 0
+    if audioPreviewChannel ~= nil and audioPreviewChannel > 0 then startOutputChannel = audioPreviewChannel end
+    reaper.Xen_StartSourcePreview(reaper.PCM_Source_CreateFromFile(audioFile), previewVol, false, startOutputChannel)    
+    
     audioPreviewActive = true
     AudioPreviewChangeVolKnobColor("elm_fill", "elm_frame")
+    if audioPreviewStatusText ~= nil then MsgStatusBarStatic("AUDIO PREVIEW | " .. audioPreviewStatusText) end
     
-    if audioPreviewStatusText ~= nil then
-      MsgStatusBarStatic("AUDIO PREVIEW: " .. audioPreviewStatusText)
-    end
   end
 
   function AudioPreviewStopAll()
