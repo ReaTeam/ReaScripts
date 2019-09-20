@@ -1,5 +1,5 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2.7
+-- @version 0.2.8
 -- @author spk77
 -- @changelog
 --   - Load project specific script state when project changes (or when switching to another project tab)
@@ -306,6 +306,7 @@ function show_main_menu(x, y)
     m.str = m.str .. "Horizontal|"
     m.str = m.str .. "!<Vertical||"
   end
+  m.str = m.str .. "Dock||"
   m.str =  m.str .. "Quit"
 
   local menu_ret = gfx.showmenu(m.str)
@@ -336,8 +337,9 @@ function show_main_menu(x, y)
   elseif menu_ret == 6 then
     m.button_layout = 3
     update_button_positions()
-    
   elseif menu_ret == 7 then
+    if gfx.dock(-1) == 0 then gfx.dock(1) else gfx.dock(0) end
+  elseif menu_ret == 8 then
     --exit()
     main_menu.quit = true
     --return
