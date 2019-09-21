@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1f6d7e67f6dd0e3b857ef12e4f29163b18a91940" name="ReaTeam Scripts">
+<index version="1" commit="5c12106850b96c2799d336b3ec67b2a8391245a8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3775,6 +3775,10 @@ here
       <version name="1.0.2" author="Lokasenna" time="2017-04-05T11:34:11Z">
         <changelog><![CDATA[Bug fix]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/72263e969f745bb8c8b617b470c2e8b77aa91cdb/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
+      </version>
+      <version name="1.0.3" author="Lokasenna" time="2019-09-21T02:03:32Z">
+        <changelog><![CDATA[Fix: Performance issues in larger projects]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c12106850b96c2799d336b3ec67b2a8391245a8/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="Nantho_item Auto Gain Staging - Peak vs. LUFS.lua" type="script" desc="Item Auto-Gain Staging - Peak vs. LUFS">
