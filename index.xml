@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a45e611b3180a25fd87b483de2363d1daf7dd865" name="ReaTeam Scripts">
+<index version="1" commit="74ee5daefee87075676c57ee97b01eeabec84339" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5664,6 +5664,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/77370f337f2ad26658f960e77bcb1cc6a18f1606/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
       </version>
+      <version name="4.30" author="juliansader" time="2019-09-22T11:03:37Z">
+        <changelog><![CDATA[+ Basic compatability with with CC envelopes. (Visual appearance still needs to be improved.)]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/74ee5daefee87075676c57ee97b01eeabec84339/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20LFO.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Mouse editing - Draw ramp.lua" type="script" desc="js_Mouse editing - Draw ramp.lua">
       <metadata>
@@ -5755,6 +5759,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <changelog><![CDATA[+ Clicking armed toolbar button disarms script.
 + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/77370f337f2ad26658f960e77bcb1cc6a18f1606/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+      </version>
+      <version name="4.30" author="juliansader" time="2019-09-22T11:03:37Z">
+        <changelog><![CDATA[+ Preliminary compatibility with CC envelopes. (Visual appearance still needs to be improved.)]]></changelog>
+        <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/74ee5daefee87075676c57ee97b01eeabec84339/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Extract nodes.lua" type="script" desc="js_Mouse editing - Extract nodes.lua">
