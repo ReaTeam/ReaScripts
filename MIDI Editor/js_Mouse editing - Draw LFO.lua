@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Draw LFO.lua
-Version: 4.20
+Version: 4.30
 Author: juliansader
 Screenshot: https://stash.reaper.fm/33646/js_Mouse%20editing%20-%20Draw%20basic%20LFO%20curves%20in%20real%20time.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -148,6 +148,8 @@ About:
   * v4.20 (2019-04-25)
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
+  * v4.30 (2019-09-18)
+    + Basic compatability with with CC envelopes. (Visual appearance still needs to be improved.)
 ]]
 
 ----------------------------------------
@@ -285,7 +287,7 @@ local LFOtype, mustChase = (reaper.GetExtState("js_Draw LFO", "Last shape") or "
 LFOtype = tonumber(LFOtype) or 0
 mustChase = (mustChase == "true")
 local lineLeftPPQPos, lineRightPPQPos = nil, nil -- The CCs will be inserted into the MIDI string from left to right
-
+local defaultFlagChar = '\1' -- Square shape | selected. Later, toggle states of shape actions will be queried.
 
 
 --#############################################################################################
@@ -526,6 +528,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         
         local function InsertLFOPoint(insertPPQPos)
             local insertValue
+            local flags = ((LFOtype == 6) and 1 or 17) -- CCs within the curve will use linear shape, since this is most versatile, except when square LFO
             local distance = insertPPQPos-basePPQPos
             if distance < 0 then distance = -distance end
             --if distance < 0 then distance = -distance-1 end -- "-1" to ensure that, if snap to grid, LFOs with sudden changes such as square don't start on single CC with different value than the next
@@ -568,21 +571,21 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
             if insertValue ~= lastValue or skipRedundantCCs == false then
                 if laneIsCC7BIT then
                     c = c + 1
-                    tLine[c] = s_pack("i4BI4BBB", insertPPQPos-lastPPQPos, 1, 3, 0xB0 | activeChannel, mouseOrigCCLane, insertValue)
+                    tLine[c] = s_pack("i4BI4BBB", insertPPQPos-lastPPQPos, flags, 3, 0xB0 | activeChannel, mouseOrigCCLane, insertValue)
                 elseif laneIsPITCH then
                     c = c + 1
-                    tLine[c] = s_pack("i4BI4BBB", insertPPQPos-lastPPQPos, 1, 3, 0xE0 | activeChannel, insertValue&127, insertValue>>7)
+                    tLine[c] = s_pack("i4BI4BBB", insertPPQPos-lastPPQPos, flags, 3, 0xE0 | activeChannel, insertValue&127, insertValue>>7)
                 elseif laneIsCHANPRESS then
                     c = c + 1
-                    tLine[c] = s_pack("i4BI4BB",  insertPPQPos-lastPPQPos, 1, 2, 0xD0 | activeChannel, insertValue)
+                    tLine[c] = s_pack("i4BI4BB",  insertPPQPos-lastPPQPos, flags, 2, 0xD0 | activeChannel, insertValue)
                 elseif laneIsPROGRAM then
                     c = c + 1
-                    tLine[c] = s_pack("i4BI4BB",  insertPPQPos-lastPPQPos, 1, 2, 0xC0 | activeChannel, insertValue)
+                    tLine[c] = s_pack("i4BI4BB",  insertPPQPos-lastPPQPos, flags, 2, 0xC0 | activeChannel, insertValue)
                 else -- laneIsCC14BIT
                     c = c + 1
-                    tLine[c] = s_pack("i4BI4BBB", insertPPQPos-lastPPQPos, 1, 3, 0xB0 | activeChannel, mouseOrigCCLane-256, insertValue>>7)
+                    tLine[c] = s_pack("i4BI4BBB", insertPPQPos-lastPPQPos, flags, 3, 0xB0 | activeChannel, mouseOrigCCLane-256, insertValue>>7)
                     c = c + 1
-                    tLine[c] = s_pack("i4BI4BBB", 0                      , 1, 3, 0xB0 | activeChannel, mouseOrigCCLane-224, insertValue&127)
+                    tLine[c] = s_pack("i4BI4BBB", 0,                           1, 3, 0xB0 | activeChannel, mouseOrigCCLane-224, insertValue&127)
                 end
                 lastValue = insertValue
                 lastPPQPos = insertPPQPos
@@ -592,12 +595,20 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         if lineLeftPPQPos <= lineRightPPQPos then
             
             local insertPPQPos
+            -- CCs within the curve will use linear shape, since this is most versatile
             for PPQPos = lineLeftPPQPos, lineRightPPQPos, PPerCC do
                 insertPPQPos = m_floor(PPQPos + 0.5) -- PPerCC is not necessarily an integer
                 if minimumTick <= insertPPQPos and insertPPQPos <= maximumTick then
                     InsertLFOPoint(insertPPQPos)   
                 end       
             end
+            -- Change shape of last CC to default
+            if laneIsCC14BIT then if #tLine>1 then 
+                tLine[#tLine-1] = tLine[#tLine-1]:sub(1,4)..defaultFlagChar..tLine[#tLine-1]:sub(6,nil) 
+                end
+            elseif #tLine>0 then
+                tLine[#tLine] = tLine[#tLine]:sub(1,4)..defaultFlagChar..tLine[#tLine]:sub(6,nil) 
+            end 
         
         end -- if lineLeftPPQPos ~= lineRightPPQPos
 
@@ -1118,7 +1129,7 @@ function DeleteExistingCCsInRange()
     local runningPPQPos = 0 -- The MIDI string only provides the relative offsets of each event, so the actual PPQ positions must be calculated by iterating through all events and adding their offsets
     local lastRemainPPQPos = 0 -- PPQ position of last event that was *not* targeted, and therefore stored in tRemainingEvents.
     local prevPos, nextPos, unchangedPos = 1, 1, 1 -- Keep record of position within MIDIString. unchangedPos is position from which unchanged events van be copied in bulk.
-    local mustUpdateNextOffset -- If an event has bee deleted from the MIDI stream, the offset of the next remaining event must be updated.
+    local mustUpdateNextOffset -- If an event has been deleted from the MIDI stream, the offset of the next remaining event must be updated.
     
     -- Give default values to variables, in case the deferred drawing function has quit before completing a single loop and assigning values to tehse variables
     snappedNewPPQPos = snappedNewPPQPos or snappedOrigPPQPos
@@ -1137,16 +1148,6 @@ function DeleteExistingCCsInRange()
         
         prevPos = nextPos
         offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIString, prevPos)
-        
-        -- A little check if parsing is still OK
-        if flags&252 ~= 0 then -- 252 = binary 11111100.
-            reaper.MB("The MIDI data uses an unknown format that could not be parsed.  No events will be deleted."
-                    .. "\n\nPlease report the problem in the thread http://forum.cockos.com/showthread.php?t=176878:"
-                    .. "\nFlags = " .. string.char(flags)
-                    .. "\nMessage = " .. msg
-                    , "ERROR", 0)
-            return false
-        end
         
         -- runningPPQPos must be updated for all events, even if not selected etc
         runningPPQPos = runningPPQPos + offset
@@ -1185,7 +1186,12 @@ function DeleteExistingCCsInRange()
                 r = r + 1
                 tRemainingEvents[r] = MIDIString:sub(unchangedPos, prevPos-1)
             end
-            unchangedPos = nextPos
+            -- Delete any Bezier tension data that follows
+            if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then
+                unchangedPos = nextPos+21
+            else
+                unchangedPos = nextPos
+            end
             mustUpdateNextOffset = true
         elseif mustDeselect then
             -- The chain of unchanged events is broken, so write to tRemainingEvents, if necessary
@@ -1606,6 +1612,13 @@ function MAIN()
     PPerCC = PPQ/CCDensity -- Not necessarily an integer! 
     firstCCinTakePPQPos = reaper.MIDI_GetPPQPosFromProjQN(activeTake, math.ceil(startQN*CCDensity)/CCDensity)    
 
+
+    -- DEFAULT CC SHAPE:
+    local tShapeActions = {[42086] = 16, [42087] = 0, [42088] = 32, [42089] = 16|32, [42090] = 64, [42091] = 64|16}
+    for shapeActionID, shapeFlag in pairs(tShapeActions) do
+        if reaper.GetToggleCommandStateEx(sectionID, shapeActionID) == 1 then defaultFlagChar = string.char(shapeFlag|1) break end -- 1 for selected
+    end 
+    
 
     -- GET AND PARSE MIDI:
     -- Time to process the MIDI of the take!
