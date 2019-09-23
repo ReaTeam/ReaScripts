@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - 1-sided Warp.lua
-Version: 4.20
+Version: 4.30
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -145,6 +145,8 @@ About:
   * v4.20 (2019-04-25)
     + Clicking armed toolbar button disarms script.
     + Improved starting/stopping: 1) Any keystroke terminates script; 2) Alternatively, hold shortcut for second and release to terminate.
+  * v4.30 (2019-09-20)
+    + Preliminary compatibility with CC envelopes.
 ]]
 
 -- USER AREA 
@@ -161,9 +163,14 @@ About:
 ---------------------------------------------------------------------------------------------------
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
+-- The MIDI that remain after extracting selected events in the target lane(s), will be re-concatenated and divided into two strings: events to the left of the first extracted events, and those to the right. 
+--    The extracted, warped events will be concatenated in-between these. By keeping the events in sequence, negative offsets and reversed envelopes are minimized.
 local MIDIString -- The original raw MIDI data returned by GetAllEvts
-local remainMIDIString -- The MIDI that remained after extracting selected events in the target lane
-local tableEditedMIDI = {} -- Each edited event will be stored in this table, ready to be concatenated
+local remainMIDILeft = ""
+local remainMIDIRight = ""
+local remainTicksLeft = 0
+--local remainMIDIString 
+local tWarpMIDI = {} -- Each edited event will be stored in this table, ready to be concatenated
 
 -- When the info of the targeted events is extracted, the info will be stored in several tables.
 -- The order of events in the tables will reflect the order of events in the original MIDI, except note-offs, 
@@ -179,8 +186,11 @@ local tFlags = {}
 local tFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
 local tPitches = {} -- This table will only be filled if laneIsVELOCITY or laneIsPIANOROLL
 local tNoteLengths = {}
-local tNotation = {} -- Will only contain entries at those indices where the notes have notation
+local tMeta = {} -- Extra non-MIDI data, such as notation in the case of notes, or Besier tension in the case of CCs, that is stored in Meta events directly after the MIDI event.
 local tV, tP = {}, {} -- When warping in both directions, store values and positions temporarily for next step.
+
+-- If the curve is being auditioned in real time, must be sorted, since unsorted events with negative offset may not play back properly.
+local isRealtimeAudition = ((reaper.GetPlayStateEx(0)&5) ~= 0)
 
 -- Starting values and position of mouse 
 -- Not all of these lanes will be used by all scripts.
@@ -418,8 +428,8 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
     --    cannot be auditioned in real-time while events are out of order, since such events are not played.
     -- If the mouse is held still, no editing is done, and instead the take is sorted, thereby temporarily allowing playback.
     -- NO NEED TO CALCULATE:
-    if not mustCalculate then --and not takeIsSorted then
-        if not takeIsSorted then
+    if not mustCalculate then
+        if isRealtimeAudition and not takeIsSorted then
             reaper.MIDI_Sort(activeTake)
             takeIsSorted = true
         end
@@ -476,7 +486,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
         end
                 
 
-        -- CALCULATE NEW MIDI DATA! and write the tableEditedMIDI!
+        -- CALCULATE NEW MIDI DATA! and write the tWarpMIDI!
         -- The warping uses a power function, and the power variable is determined
         --     by calculating to what power 0.5 must be raised to reach the 
         --     mouse's deviation to the left or right from its starting PPQ position. 
@@ -535,11 +545,11 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
             end
         end
                 
-
-        tableEditedMIDI = {} -- Clean previous tableEditedMIDI
-        local c = 0 -- Count index inside tableEditedMIDI - strangely, this is faster than using table.insert or even #tableEditedMIDI+1
+        
+        tWarpMIDI = {} -- Clean previous tWarpMIDI
+        local c = 0 -- Count index inside tWarpMIDI - strangely, this is faster than using table.insert or even #tWarpMIDI+1
         local offset, newPPQPos, noteOffPPQPos, newNoteOffPPQPos
-        lastPPQPos = 0
+        lastPPQPos = remainTicksLeft
         
         for i = 1, #tTicks do
 
@@ -563,24 +573,24 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
                     
                     -- Insert note-on 
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i])    
-                    -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
-                    if tNotation[i] then
+                    tWarpMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i]) .. (tMeta[i] or "")
+                    --[[Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
+                    if tMeta[i] then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tNotation[i])
-                    end    
+                        tWarpMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tMeta[i])
+                    end ]]   
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", newNoteOffPPQPos - tP[i], tFlags[i], tMsgNoteOffs[i]) --tableEditedMIDI[c] = s_pack("i4BI4BBB", newNoteOffPPQPos - newPPQPos, tFlags[i], 3, 0x80 | (tMsg[i]:byte(1) & 0x0F), tMsg[i]:byte(2), 0)           
+                    tWarpMIDI[c] = s_pack("i4Bs4", newNoteOffPPQPos - tP[i], tFlags[i], tMsgNoteOffs[i]) --tWarpMIDI[c] = s_pack("i4BI4BBB", newNoteOffPPQPos - newPPQPos, tFlags[i], 3, 0x80 | (tMsg[i]:byte(1) & 0x0F), tMsg[i]:byte(2), 0)           
                      
                 else -- All other lane types
                 
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i])
+                    tWarpMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i]) .. (tMeta[i] or "")
                     
                     if tMsgLSB[i] then -- Only if laneIs14BIT then tMsgLSB will contain entries 
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("i4Bs4", 0, tFlagsLSB[i], tMsgLSB[i])
+                        tWarpMIDI[c] = s_pack("i4Bs4", 0, tFlagsLSB[i], tMsgLSB[i])
                     end
                 end
 
@@ -589,47 +599,47 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
             
                 if laneIsCC7BIT then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane, tV[i]) .. tMsg[i]:sub(4, nil)
+                    tWarpMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane, tV[i]) .. (tMeta[i] or "")
                 elseif laneIsPITCH then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xE0 | tChannels[i], tV[i]&127, tV[i]>>7) .. tMsg[i]:sub(4, nil)
+                    tWarpMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xE0 | tChannels[i], tV[i]&127, tV[i]>>7) .. (tMeta[i] or "")
                 elseif laneIsCC14BIT then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane-256, tV[i]>>7) .. tMsg[i]:sub(4, nil)
+                    tWarpMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane-256, tV[i]>>7) .. (tMeta[i] or "")
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", 0  , tFlagsLSB[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane-224, tV[i]&127) .. tMsgLSB[i]:sub(4, nil)
+                    tWarpMIDI[c] = s_pack("i4BI4BBB", 0  , tFlagsLSB[i], 3, 0xB0 | tChannels[i], mouseOrigCCLane-224, tV[i]&127) -- LSB lanes do not use CC envelopes and meta events
                 elseif laneIsVELOCITY then
                     -- Insert note-on
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0x90 | tChannels[i], tPitches[i], tV[i]) .. tMsg[i]:sub(4, nil)
-                    -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
-                    if tNotation[i] then
+                    tWarpMIDI[c] = s_pack("i4BI4BBB", offset, tFlags[i], 3, 0x90 | tChannels[i], tPitches[i], tV[i]) .. (tMeta[i] or "") -- In previous versions, only the msg was stored in tNotation/tMeta. Now, the entire event is stored, so not need for string.pack.
+                    --[[ Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
+                    if tMeta[i] then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tNotation[i])
-                    end
+                        tWarpMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tMeta[i])
+                    end]]
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bs4", tNoteLengths[i], tFlags[i], tMsgNoteOffs[i])
+                    tWarpMIDI[c] = s_pack("i4Bs4", tNoteLengths[i], tFlags[i], tMsgNoteOffs[i])
                     lastPPQPos = lastPPQPos + tNoteLengths[i]
                 elseif laneIsOFFVEL then
                     -- Insert note-on
                     c = c + 1 
-                    tableEditedMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i]) 
-                    -- Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
-                    if tNotation[i] then
+                    tWarpMIDI[c] = s_pack("i4Bs4", offset, tFlags[i], tMsg[i]) .. (tMeta[i] or "")
+                    --[[ Since REAPER v5.32, notation (if it exists) must always be inserted *after* its note-0n
+                    if tMeta[i] then
                         c = c + 1
-                        tableEditedMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tNotation[i])
-                    end
+                        tWarpMIDI[c] = s_pack("I4Bs4", 0, tFlags[i]&0xFE, tMeta[i])
+                    end]]
                     -- Insert note-off
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4Bi4BBB", tNoteLengths[i], tFlags[i], 3, 0x80 | tChannels[i], tPitches[i], tV[i]) .. tMsgNoteOffs[i]:sub(4, nil)
+                    tWarpMIDI[c] = s_pack("i4Bi4BBB", tNoteLengths[i], tFlags[i], 3, 0x80 | tChannels[i], tPitches[i], tV[i])
                     lastPPQPos = lastPPQPos + tNoteLengths[i]
                 elseif laneIsCHANPRESS then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xD0 | tChannels[i], tV[i]) .. tMsg[i]:sub(3, nil) -- NB Channel Pressure uses only 2 bytes!
+                    tWarpMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xD0 | tChannels[i], tV[i]) .. (tMeta[i] or "") -- NB Channel Pressure uses only 2 bytes!
                 elseif laneIsPROGRAM then
                     c = c + 1
-                    tableEditedMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xC0 | tChannels[i], tV[i]) .. tMsg[i]:sub(3, nil) -- NB Channel Pressure uses only 2 bytes!
+                    tWarpMIDI[c] = s_pack("i4BI4BB",  offset, tFlags[i], 2, 0xC0 | tChannels[i], tV[i]) .. (tMeta[i] or "") -- NB Channel Pressure uses only 2 bytes!
                 end 
             end 
             
@@ -637,7 +647,7 @@ local function DEFERLOOP_TrackMouseAndUpdateMIDI()
                      
     
         -- DRUMROLL... write the edited events into the MIDI chunk!
-        reaper.MIDI_SetAllEvts(activeTake, table.concat(tableEditedMIDI) .. s_pack("i4Bs4", -lastPPQPos, 0, "") .. remainMIDIString)
+        reaper.MIDI_SetAllEvts(activeTake, remainMIDILeft .. table.concat(tWarpMIDI) .. s_pack("i4Bs4", remainTicksLeft-lastPPQPos, 0, "") .. remainMIDIRight)
 
         if isInline then reaper.UpdateItemInProject(activeItem) end
         
@@ -1041,34 +1051,34 @@ function GetAndParseMIDIString()
             return false 
         end
     
-    local MIDIlen = MIDIString:len()
+    local MIDIlen = #MIDIString
     
     -- These functions are fast, but require complicated parsing of the MIDI string.
     -- The following tables with temporarily store data while parsing:
-    local tableNoteOns = {} -- Store note-on position and pitch while waiting for the next note-off, to calculate note length
+    local tNoteOns = {} -- Store note-on position and pitch while waiting for the next note-off, to calculate note length
     local tableTempNotation = {} -- Store notation text while waiting for a note-on with matching position, pitch and channel
-     tableCCMSB = {} -- While waiting for matching LSB of 14-bit CC: tableCCMSB[channel][PPQPos] = value
-     tableCCLSB = {} -- While waiting for matching MSB of 14-bit CC: tableCCLSB[channel][PPQPos] = value
+    local tableCCMSB = {} -- While waiting for matching LSB of 14-bit CC: tableCCMSB[channel][PPQPos] = value
+    local tableCCLSB = {} -- While waiting for matching MSB of 14-bit CC: tableCCLSB[channel][PPQPos] = value
     if laneIsNOTES or laneIsALL then
         for chan = 0, 15 do
-            tableNoteOns[chan] = {}
+            tNoteOns[chan] = {}
             tableTempNotation[chan] = {}
             for pitch = 0, 127 do
-                tableNoteOns[chan][pitch] = {}
-                tableTempNotation[chan][pitch] = {} -- tableTempNotation[channel][pitch][PPQPos] = notation text message
-                for flags = 0, 32 do
-                    tableNoteOns[chan][pitch][flags] = {} -- = {PPQPos, velocity} (note-off must match channel, pitch and flags)
+                tNoteOns[chan][pitch] = {}
+                for flags = 1, 3, 2  do
+                    tNoteOns[chan][pitch][flags] = {} -- = {PPQPos, velocity} (note-off must match channel, pitch and flags)
                 end
             end
         end
     elseif laneIsCC14BIT then
         for chan = 0, 15 do
             tableCCMSB[chan] = {} 
-            tableCCLSB[chan] = {} 
-            for flags = 1, 32 do
+            tableCCLSB[chan] = {}
+            -- Flags are not used any more for parsing envelope-style CCs, since MSB and LSB may have different flags. 
+            --[[for flags = 1, 255, 2  do
                 tableCCMSB[chan][flags] = {} -- tableCCMSB[channel][flags][PPQPos] = MSBvalue
                 tableCCLSB[chan][flags] = {} -- tableCCLSB[channel][flags][PPQPos] = LSBvalue
-            end
+            end]]
         end
     end
     
@@ -1085,155 +1095,44 @@ function GetAndParseMIDIString()
     tFlagsLSB = {} -- In the case of 14bit CCs, mute/select status of the MSB
     tPitches = {} -- This table will only be filled if laneIsVELOCITY / laneIsPIANOROLL / laneIsOFFVEL / laneIsNOTES
     tNoteLengths = {}
-    tNotation = {} -- Will only contain entries at those indices where the notes have notation
+    tMeta = {}
+    remainTicksLeft = nil -- Make sure this is nil, so that will only be initialized at first extraction.
     
-    -- The MIDI strings of non-targeted events will temnporarily be stored in a table, tableRemainingEvents[],
+    -- The MIDI strings of non-targeted events will temnporarily be stored in a table, tRemainingEvents[],
     --    and once all MIDI data have been parsed, this table (which excludes the strings of targeted events)
     --    will be concatenated into remainMIDIString.
-    local tableRemainingEvents = {}    
+    local tRemainingEvents = {}    
      
     local runningPPQPos = 0 -- The MIDI string only provides the relative offsets of each event, sp the actual PPQ positions must be calculated by iterating through all events and adding their offsets
-    local lastRemainPPQPos = 0 -- PPQ position of last event that was *not* targeted, and therefore stored in tableRemainingEvents.
+    local lastRemainPPQPos = 0 -- PPQ position of last event that was *not* targeted, and therefore stored in tRemainingEvents.
     local mustUpdateNextOffset        
     local prevPos, nextPos, unchangedPos = 1, 1, 1 -- Keep record of position within MIDIString. unchangedPos is position from which unchanged events van be copied in bulk.
     local c = 0 -- Count index inside tables - strangely, this is faster than using table.insert or even #table+1
-    local r = 0 -- Count inside tableRemainingEvents
+    local r = 0 -- Count inside tRemainingEvents
     local offset, flags, msg -- MIDI data that will be unpacked for each event
     
     ---------------------------------------------------------------
-    -- This loop will iterate through the MIDI data, event-by-event
-    -- In the case of unselected events, only their offsets are relevant, in order to update runningPPQPos.
-    -- Selected events will be checked in more detail, to find those in the target lane.
-    --
-    -- The exception is notation events: Notation 'text events' for selected noted are unfortunately not also selected. 
-    --    So relevant notation text events can only be found by checking each and every notation event.
-    -- If note positions are not changed, then do not need to extract notation, since MIDI_Sort will eventually put notes and notation together again.
-    --
-    -- Should this parser check for unsorted MIDI?  This would depend on the function of the script. 
-    -- Scripts such as "Remove redundant CCs" will only work on sorted MIDI.  For others, sorting is not relevant.
-    -- Note that even in sorted MIDI, the first event can have an negative offset if its position is to the left of the item start.
-    -- As discussed in the introduction, MIDI sorting entails several problems.  This script will therefore avoid sorting until it exits, and
-    --    will instead notify the user, in the rare case that unsorted MIDI is deteced.  (Checking for negative offsets is also faster than unneccesary sorting.)
-    
-       
+    --[[
+    This loop will iterate through the MIDI data, event-by-event
+    In the case of unselected events, only their offsets are relevant, in order to update runningPPQPos.
+    Selected events will be checked in more detail, to find those in the target lane.
+        The exception is notation events: Notation 'text events' for selected noted are unfortunately not also selected. 
+        So relevant notation text events can only be found by checking each and every notation event.
         
-    -- This function will try two main things to make execution faster:
-    --    * First, an upper bound for positions of the targeted events in MIDIString must be found. 
-    --      If such an upper bound can be found, the parser does not need to parse beyond this point,
-    --      and the remaining later part of MIDIString can be stored as is.
-    --    * Second, events that are not changed (i.e. not extracted or offset changed) will not be 
-    --      inserted individually into tableRemainingEvents, using s_pack.  Instead, they will be 
-    --      inserted as blocks of multiple events, copied directly from MIDIString.  By so doing, the 
-    --      number of table writes are lowered, the speed of table.concat is improved, and string.sub
-    --      can be used instead of s_pack.
-    
-    -----------------------------------------------------------------------------------------------------
-    -- To get an upper limit for the positions of targeted events in MIDIString, string.find will be used
-    --    to find the posision of the last targeted event in MIDIString (NB, the *string* posision, not 
-    --    the PPQ position.  string.find will search backwards from the end of MIDIString, using Lua's 
-    --    string patterns to ensure that all possible targeted events would be matched.  
-    --    (It is possible, though unlikely, that a non-targeted events might also be matched, but this is 
-    --    not a problem, since it would simply raise the upper limit.  Parsing would be a bit slower, 
-    --    but since all targeted events would still be included in below the upper limit, parsing will 
-    --    still be accurate.
-    
-    -- But what happens if one of the characters in the MIDI string is a "magic character"
-    --    of Lua's string patterns?  The magic characters are: ^$()%.[]*+-?)
-    -- The byte values for these characters are:
-    -- % = 0x25
-    -- . = 0x2e
-    -- ^ = 0x5e
-    -- ? = 0x3f
-    -- [ = 0x5b 
-    -- ] = 0x5d
-    -- + = 0x2b
-    -- - = 0x2d
-    -- ) = 0x29
-    -- ( = 0x28
-    -- Fortunately, these byte values fall outside the range of (most of the) values in the match string:
-    --    * MIDI status bytes > 0x80
-    --    * Message lengths <= 3
-    -- The only problem is msg2 (MIDI byte 2), which can range from 0 to 0xEF.
-    -- These bytes must therefore be compared to the above list, and prefixed with a "%" where necessary. gsub will be used.
-    -- (It is probably only strictly necessary to prefix % to "%" and ".", but won't hurt to prefix to all of the above.)
-    local matchStrReversed, firstTargetPosReversed = "", 0
-    --[[if laneIsBANKPROG then
-    
-        local MIDIrev = MIDIString:reverse()
-        local matchProgStrRev = table.concat({"[",string.char(0xC0),"-",string.char(0xCF),"]",
-                                                  s_pack("I4", 2):reverse(),
-                                              "[",string.char(0x01, 0x03),"]"})
-        local msg2string = string.char(0, 32):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0")
-        local matchBankStrRev = table.concat({"[",msg2string,"]",
-                                              "[",string.char(0xB0),"-",string.char(0xBF),"]", 
-                                                  s_pack("I4", 3):reverse(),
-                                              "[",string.char(0x01, 0x03),"]"})
-        firstTargetPosReversedProg = MIDIrev:find(matchProgStrRev)
-        firstTargetPosReversedBank = MIDIrev:find(matchBankStrRev)
-        if firstTargetPosReversedProg and firstTargetPosReversedBank then 
-            firstTargetPosReversed = m_min(MIDIlen-firstTargetPosReversedProg, MIDIlen-firstTargetPosReversedBank)
-        elseif firstTargetPosReversedProg then firstTargetPosReversed = firstTargetPosReversedProg
-        elseif firstTargetPosReversedBank then firstTargetPosReversed = firstTargetPosReversedBank
-        end
-              
-    else ]]
-    lastTargetStrPos = MIDIlen-12
-    --[[if laneIsALL then
-        lastTargetStrPos = MIDIlen-12
-    else
-        if laneIsCC7BIT then
-            local msg2string = string.char(mouseOrigCCLane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0") -- Replace magic characters.
-            matchStrReversed = table.concat({"[",msg2string,"]",
-                                                   "[",string.char(0xB0),"-",string.char(0xBF),"]", 
-                                                       s_pack("I4", 3):reverse(),
-                                                   "[",string.char(0x01, 0x03),"]"})    
-        elseif laneIsPITCH then
-            matchStrReversed = table.concat({"[",string.char(0xE0),"-",string.char(0xEF),"]",
-                                                       s_pack("I4", 3):reverse(),
-                                                   "[",string.char(0x01, 0x03),"]"})
-        elseif laneIsNOTES then
-            matchStrReversed = table.concat({"[",string.char(0x80),"-",string.char(0x9F),"]", -- Note-offs and note-ons in all channels.
-                                                       s_pack("I4", 3):reverse(),
-                                                   "[",string.char(0x01, 0x03),"]"})
-        elseif laneIsCHANPRESS then
-            matchStrReversed = table.concat({"[",string.char(0xD0),"-",string.char(0xDF),"]",
-                                                       s_pack("I4", 2):reverse(),
-                                                   "[",string.char(0x01, 0x03),"]"})                                      
-        elseif laneIsCC14BIT then
-            local MSBlane = mouseOrigCCLane - 256
-            local LSBlane = mouseOrigCCLane - 224
-            local msg2string = string.char(MSBlane, LSBlane):gsub("[%(%)%.%%%+%-%*%?%[%]%^]", "%%%0")
-            matchStrReversed = table.concat({"[",msg2string,"]",
-                                                   "[",string.char(0xB0),"-",string.char(0xBF),"]", 
-                                                       s_pack("I4", 3):reverse(),
-                                                   "[",string.char(0x01, 0x03),"]"})  
-        elseif laneIsSYSEX then
-            matchStrReversed = table.concat({string.char(0xF0), 
-                                                   "....",
-                                                   "[",string.char(0x01, 0x03),"]"})
-        elseif laneIsTEXT then
-            matchStrReversed = table.concat({"[",string.char(0x01),"-",string.char(0x09),"]",
-                                                        string.char(0xFF), 
-                                                        "....",
-                                                   "[", string.char(0x01, 0x03),"]"})                                                
-        elseif laneIsPROGRAM then
-            matchStrReversed = table.concat({"[",string.char(0xC0),"-",string.char(0xCF),"]",
-                                                       s_pack("I4", 2):reverse(),
-                                                   "[",string.char(0x01, 0x03),"]"})                      
-        end
-    
-        firstTargetPosReversed = MIDIString:reverse():find(matchStrReversed) -- Search backwards by using reversed string. 
-        
-        if firstTargetPosReversed then 
-            lastTargetStrPos = MIDIlen - firstTargetPosReversed 
-        else -- Found no targeted events
-            lastTargetStrPos = 0
-        end   
-    end ]]
+    Should this parser check for unsorted MIDI?  This would depend on the function of the script:
+        Scripts such as "Remove redundant CCs" will only work on sorted MIDI.  For others, sorting is not relevant.
+        Note that even in sorted MIDI, the first event can have an negative offset if its position is to the left of the item start.
+
+    In order to make execution faster, events that are not changed (i.e. not extracted or offset changed) will not be 
+        inserted individually into tRemainingEvents, using s_pack.  Instead, they will be 
+        inserted as blocks of multiple events, copied directly from MIDIString.  By so doing, the 
+        number of table writes are lowered, the speed of table.concat is improved, and string.sub
+        can be used instead of s_pack.
+    ]]
     
     ---------------------------------------------------------------------------------------------
     -- OK, got an upper limit.  Not iterate through MIDIString, until the upper limit is reached.
-    while nextPos < lastTargetStrPos do
+    while nextPos < MIDIlen do
        
         local mustExtract = false
         local offset, flags, msg, channel
@@ -1260,7 +1159,10 @@ function GetAndParseMIDIString()
         runningPPQPos = runningPPQPos + offset              
 
         -- Only analyze *selected* events - as well as notation text events (which are always unselected)
-        if flags&1 == 1 and msg:len() ~= 0 and (editAllChannels or msg:byte(1)&0x0F == activeChannel or msg:byte(1)>>4 == 0x0F) then -- bit 1: selected
+        if flags&1 == 1 -- bit 1: selected
+        and msg:len() ~= 0 -- Skip empty space events
+        and (editAllChannels or msg:byte(1)&0x0F == activeChannel or msg:byte(1)>>4 == 0x0F) -- Events with 0xF0 types, i.e. text, sysex and notation, do not have channels nibbles
+        then 
             --[[local eventType = (msg:byte(1))>>4
             local channel   = (msg:byte(1))&0xF
             local msg2      = msg:byte(2)
@@ -1269,7 +1171,7 @@ function GetAndParseMIDIString()
 
             -- When stretching ALL events, note events (note-ons, note-offs and notation) must be separated from CCs,
             --    since these may have to be reversed.
-            -- Note that notes and CCs will use the same tTicks, tMsg and tFlags, but only notes will use tableNotesLengths, tNotations etc.
+            -- Note that notes and CCs will use the same tTicks, tMsg and tFlags, but only notes will use tNoteLengths etc.
             -- The note tables will therefore only contain entries at certain keys, not every key from 1 to #tTicks
             if laneIsALL 
             then
@@ -1279,19 +1181,19 @@ function GetAndParseMIDIString()
                     local channel = msg:byte(1)&0x0F
                     local msg2 = msg:byte(2)
                     -- Check whether there was a note-on on this channel and pitch.
-                    if not tableNoteOns[channel][msg2][flags].index then
+                    if not tNoteOns[channel][msg2][flags].index then
                         reaper.MB("There appears to be orphan note-offs (probably caused by overlapping notes or unsorted MIDI data) in the active takes."
                                 .. "\n\nIn particular, at position " 
                                 .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(activeTake, runningPPQPos), "", 1)
                                 .. "\n\nPlease remove these before retrying the script."
                                 .. "\n\n"
-                                , "ERROR", 0)
+                                , "ERROR", 0) 
                         return false
                     else
                         mustExtract = true
-                        tNoteLengths[tableNoteOns[channel][msg2][flags].index] = runningPPQPos - tableNoteOns[channel][msg2][flags].PPQ
-                        tMsgNoteOffs[tableNoteOns[channel][msg2][flags].index] = msg
-                        tableNoteOns[channel][msg2][flags] = {} -- Reset this channel and pitch
+                        tNoteLengths[tNoteOns[channel][msg2][flags].index] = runningPPQPos - tNoteOns[channel][msg2][flags].PPQ
+                        tMsgNoteOffs[tNoteOns[channel][msg2][flags].index] = msg
+                        tNoteOns[channel][msg2][flags] = {} -- Reset this channel and pitch
                     end
                                                                 
                 -- Note-Ons
@@ -1299,7 +1201,7 @@ function GetAndParseMIDIString()
                 then
                     local channel = msg:byte(1)&0x0F
                     local msg2 = msg:byte(2)
-                    if tableNoteOns[channel][msg2][flags].index then
+                    if tNoteOns[channel][msg2][flags].index then
                         reaper.MB("There appears to be overlapping notes among the selected notes."
                                 .. "\n\nIn particular, at position " 
                                 .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(activeTake, runningPPQPos), "", 1)
@@ -1312,10 +1214,8 @@ function GetAndParseMIDIString()
                         tMsg[c] = msg
                         tTicks[c] = runningPPQPos
                         tFlags[c] = flags
-                        -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
-                        tNotation[c] = tableTempNotation[channel][msg2][runningPPQPos]
                         -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
-                        tableNoteOns[channel][msg2][flags] = {PPQ = runningPPQPos, index = c}
+                        tNoteOns[channel][msg2][flags] = {PPQ = runningPPQPos, index = c}
                     end  
                     
                 -- Other CCs  
@@ -1325,28 +1225,40 @@ function GetAndParseMIDIString()
                     tMsg[c] = msg
                     tTicks[c] = runningPPQPos
                     tFlags[c] = flags
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                        tMeta[c] = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end
                 end
                                       
-            elseif laneIsCC7BIT then if msg:byte(2) == mouseOrigCCLane and (msg:byte(1))>>4 == 11
-            then
-                mustExtract = true
-                c = c + 1 
-                tValues[c] = msg:byte(3)
-                tTicks[c] = runningPPQPos
-                tChannels[c] = msg:byte(1)&0x0F
-                tFlags[c] = flags
-                tMsg[c] = msg
+            elseif laneIsCC7BIT then 
+                if msg:byte(2) == mouseOrigCCLane and (msg:byte(1))>>4 == 11 then
+                    mustExtract = true
+                    c = c + 1 
+                    tValues[c] = msg:byte(3)
+                    tTicks[c] = runningPPQPos
+                    tChannels[c] = msg:byte(1)&0x0F
+                    tFlags[c] = flags
+                    tMsg[c] = msg
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                        tMeta[c] = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end 
                 end 
                                 
-            elseif laneIsPITCH then if (msg:byte(1))>>4 == 14
-            then
-                mustExtract = true 
-                c = c + 1
-                tValues[c] = (msg:byte(3)<<7) + msg:byte(2)
-                tTicks[c] = runningPPQPos
-                tChannels[c] = msg:byte(1)&0x0F
-                tFlags[c] = flags 
-                tMsg[c] = msg        
+            elseif laneIsPITCH then 
+                if (msg:byte(1))>>4 == 14 then
+                    mustExtract = true 
+                    c = c + 1
+                    tValues[c] = (msg:byte(3)<<7) + msg:byte(2)
+                    tTicks[c] = runningPPQPos
+                    tChannels[c] = msg:byte(1)&0x0F
+                    tFlags[c] = flags 
+                    tMsg[c] = msg     
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                        tMeta[c] = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end   
                 end                           
                                     
             elseif laneIsCC14BIT then 
@@ -1355,21 +1267,7 @@ function GetAndParseMIDIString()
                     mustExtract = true
                     local channel = msg:byte(1)&0x0F
                     -- Has a corresponding MSB value already been saved?  If so, combine and save in tValues.
-                    --[[ Has another LSB already been found at this
-                    local p = tableCCLSB[channel][flags][runningPPQPos] 
-                    if p then
-                        local i = p.index
-                        if i then 
-                            tValues[i] = (tValues[i]&0x80) | msg:byte(3)
-                            tMsgLSB[i] = msg
-                            tableCCLSB[channel][flags][runningPPQPos] = {message = msg, flags = flags, index = i}
-                        else
-                            tableCCLSB[channel][flags][runningPPQPos] = {message = msg, flags = flags}
-                        end
-                    end
-                    if tableCCLSB[channel][runningPPQPos] then -- Whoops, more than one CC at the same tick position.  Simply delete the first one
-                    ]]
-                    local e = tableCCMSB[channel][flags][runningPPQPos]
+                    local e = tableCCMSB[channel][runningPPQPos]
                     if e then
                         c = c + 1
                         tValues[c] = ((e.message):byte(3)<<7) + msg:byte(3)
@@ -1379,18 +1277,24 @@ function GetAndParseMIDIString()
                         tChannels[c] = channel
                         tMsg[c] = e.message
                         tMsgLSB[c] = msg
-                        tableCCMSB[channel][flags][runningPPQPos] = nil
-                        tableCCLSB[channel][flags][runningPPQPos] = nil
+                        tMeta[c] = e.meta
+                        tableCCMSB[channel][runningPPQPos] = nil
+                        tableCCLSB[channel][runningPPQPos] = nil
                     else
-                        tableCCLSB[channel][flags][runningPPQPos] = {message = msg, flags = flags}
+                        tableCCLSB[channel][runningPPQPos] = {message = msg, flags = flags}
                     end
                         
                 elseif msg:byte(2) == mouseOrigCCLane-256 and (msg:byte(1))>>4 == 11 -- 14bit CC, only the MSB lane
                 then
                     mustExtract = true
                     local channel = msg:byte(1)&0x0F
+                    local meta = ""
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then -- Only the MSB carries metadata for a 14-bit CC
+                        meta = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end
                     -- Has a corresponding LSB value already been saved?  If so, combine and save in tValues.
-                    local e = tableCCLSB[channel][flags][runningPPQPos]
+                    local e = tableCCLSB[channel][runningPPQPos]
                     if e then
                         c = c + 1
                         tValues[c] = (msg:byte(3)<<7) + (e.message):byte(3)
@@ -1400,21 +1304,22 @@ function GetAndParseMIDIString()
                         tFlagsLSB[c] = e.flags
                         tMsg[c] = msg
                         tMsgLSB[c] = e.message
-                        tableCCLSB[channel][flags][runningPPQPos] = nil -- delete record
-                        tableCCMSB[channel][flags][runningPPQPos] = nil
+                        tMeta[c] = meta
+                        tableCCLSB[channel][runningPPQPos] = nil -- delete record
+                        tableCCMSB[channel][runningPPQPos] = nil
                     else
-                        tableCCMSB[channel][flags][runningPPQPos] = {message = msg, flags = flags}
+                        tableCCMSB[channel][runningPPQPos] = {message = msg, flags = flags, meta = meta}
                     end
                 end
               
-            -- Note-Offs
-            elseif laneIsNOTES then 
+            elseif laneIsNOTES then
+                -- Note-Offs 
                 if ((msg:byte(1))>>4 == 8 or (msg:byte(3) == 0 and (msg:byte(1))>>4 == 9))
                 then
                     local channel = msg:byte(1)&0x0F
                     local pitch = msg:byte(2)
                     -- Check whether there was a note-on on this channel and pitch.
-                    if not tableNoteOns[channel][pitch][flags].index then
+                    if not tNoteOns[channel][pitch][flags].index then
                         reaper.ShowMessageBox("There appears to be orphan note-offs (probably caused by overlapping notes or unsorted MIDI data) in the active takes."
                                               .. "\n\nIn particular, at position " 
                                               .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(activeTake, runningPPQPos), "", 1)
@@ -1424,11 +1329,11 @@ function GetAndParseMIDIString()
                         return false
                     else
                         mustExtract = true
-                        local n = tableNoteOns[channel][pitch][flags]
+                        local n = tNoteOns[channel][pitch][flags]
                         tNoteLengths[n.index] = runningPPQPos - n.PPQ
                         tMsgNoteOffs[n.index] = s_pack("BBB", 0x80 | channel, pitch, msg:byte(3)) -- Replace possible note-on with vel=0 msg with proper note-off
                         if laneIsOFFVEL then tValues[n.index] = msg:byte(3) end
-                        tableNoteOns[channel][pitch][flags] = {} -- Reset this channel and pitch
+                        tNoteOns[channel][pitch][flags] = {} -- Reset this channel and pitch
                     end
                                                                 
                 -- Note-Ons
@@ -1436,7 +1341,7 @@ function GetAndParseMIDIString()
                 then
                     local channel = msg:byte(1)&0x0F
                     local pitch = msg:byte(2)
-                    if tableNoteOns[channel][pitch][flags].index then
+                    if tNoteOns[channel][pitch][flags].index then
                         reaper.ShowMessageBox("There appears to be overlapping notes among the selected notes."
                                               .. "\n\nIn particular, at position " 
                                               .. reaper.format_timestr_pos(reaper.MIDI_GetProjTimeFromPPQPos(activeTake, runningPPQPos), "", 1)
@@ -1452,56 +1357,66 @@ function GetAndParseMIDIString()
                         tPitches[c] = pitch
                         tChannels[c] = channel
                         tFlags[c] = flags
-                        -- Check whether any notation text events have been stored for this unique PPQ, channel and pitch
-                        tNotation[c] = tableTempNotation[channel][pitch][runningPPQPos]
                         -- Store the index and PPQ position of this note-on with a unique key, so that later note-offs can find their matching note-on
-                        tableNoteOns[channel][pitch][flags] = {PPQ = runningPPQPos, index = c}
+                        tNoteOns[channel][pitch][flags] = {PPQ = runningPPQPos, index = c}
                     end  
                 end
-
                 
-            elseif laneIsPROGRAM then if (msg:byte(1))>>4 == 12
-            then
-                mustExtract = true
-                c = c + 1
-                tValues[c] = msg:byte(2)
-                tTicks[c] = runningPPQPos
-                tChannels[c] = msg:byte(1)&0x0F
-                tFlags[c] = flags
-                tMsg[c] = msg
+            elseif laneIsPROGRAM then 
+                if (msg:byte(1))>>4 == 12 then
+                    mustExtract = true
+                    c = c + 1
+                    tValues[c] = msg:byte(2)
+                    tTicks[c] = runningPPQPos
+                    tChannels[c] = msg:byte(1)&0x0F
+                    tFlags[c] = flags
+                    tMsg[c] = msg
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                        tMeta[c] = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end
                 end
                 
-            elseif laneIsCHANPRESS then if (msg:byte(1))>>4 == 13
-            then
-                mustExtract = true
-                c = c + 1
-                tValues[c] = msg:byte(2)
-                tTicks[c] = runningPPQPos
-                tChannels[c] = msg:byte(1)&0x0F
-                tFlags[c] = flags
-                tMsg[c] = msg
+            elseif laneIsCHANPRESS then 
+                if (msg:byte(1))>>4 == 13 then
+                    mustExtract = true
+                    c = c + 1
+                    tValues[c] = msg:byte(2)
+                    tTicks[c] = runningPPQPos
+                    tChannels[c] = msg:byte(1)&0x0F
+                    tFlags[c] = flags
+                    tMsg[c] = msg
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                        tMeta[c] = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end
                 end
                 
-            elseif laneIsBANKPROG then if ((msg:byte(1))>>4 == 12 or ((msg:byte(1))>>4 == 11 and (msg:byte(2) == 0 or msg:byte(2) == 32)))
-            then
-                mustExtract = true
-                c = c + 1
-                tTicks[c] = runningPPQPos
-                tChannels[c] = msg:byte(1)&0x0F
-                tFlags[c] = flags
-                tMsg[c] = msg
+            elseif laneIsBANKPROG then 
+                if ((msg:byte(1))>>4 == 12 or ((msg:byte(1))>>4 == 11 and (msg:byte(2) == 0 or msg:byte(2) == 32))) then
+                    mustExtract = true
+                    c = c + 1
+                    tTicks[c] = runningPPQPos
+                    tChannels[c] = msg:byte(1)&0x0F
+                    tFlags[c] = flags
+                    tMsg[c] = msg
+                    if MIDIString:sub(nextPos, nextPos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                        tMeta[c] = MIDIString:sub(nextPos, nextPos+20) 
+                        nextPos = nextPos + 21 
+                    end
                 end
                          
-            elseif laneIsTEXT then if msg:byte(1) == 0xFF --and not (msg2 == 0x0F) -- text event (0xFF), excluding notation type (0x0F)
-            then
-                mustExtract = true
-                c = c + 1
-                tTicks[c] = runningPPQPos
-                tFlags[c] = flags
-                tMsg[c] = msg
+            elseif laneIsTEXT then 
+                if msg:byte(1) == 0xFF and not (msg:byte(2) == 0x0F) then -- text event (0xFF), excluding notation / Bezier meta type (0x0F)
+                    mustExtract = true
+                    c = c + 1
+                    tTicks[c] = runningPPQPos
+                    tFlags[c] = flags
+                    tMsg[c] = msg
                 end
                                     
-            elseif laneIsSYSEX then if (msg:byte(1))>>4 == 0xF and not (msg:byte(1) == 0xFF) then -- Selected sysex event (text events with 0xFF as first byte have already been excluded)
+            elseif laneIsSYSEX then 
+                if (msg:byte(1))>>4 == 0xF and not (msg:byte(1) == 0xFF) then -- Selected sysex event (text events with 0xFF as first byte have already been excluded)
                 mustExtract = true
                 c = c + 1
                 tTicks[c] = runningPPQPos
@@ -1510,9 +1425,10 @@ function GetAndParseMIDIString()
                 end
             end  
             
-        end -- if laneIsCC7BIT / CC14BIT / PITCH etc    
+        end -- if flags&1 == 1 and msg:len() ~= 0 and (editAllChannels or msg:byte(1)&0x0F == activeChannel or msg:byte(1)>>4 == 0x0F) then
         
         -- Check notation text events
+        -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes. So must
         if (laneIsNOTES or laneIsALL)
         and msg:byte(1) == 0xFF -- MIDI text event
         and msg:byte(2) == 0x0F -- REAPER's MIDI text event type
@@ -1530,13 +1446,13 @@ function GetAndParseMIDIString()
                         if tMsg[i]:byte(1) == 0x90 | notationChannel
                         and tMsg[i]:byte(2) == notationPitch
                         then
-                            tNotation[i] = msg
+                            tMeta[i] = string.pack("i4Bs4", 0, 0, msg)
                             mustExtract = true
-                            goto completedNotationSearch
+                            break --goto completedNotationSearch
                         end
                     end
                 end
-                -- Search forward through following events, looking for a selected note that match the channel and pitch
+                --[[ Search forward through following events, looking for a selected note that match the channel and pitch
                 local evPos = nextPos -- Start search at position of nmext event in MIDI string
                 local evOffset, evFlags, evMsg
                 repeat -- repeat until an offset is found > 0
@@ -1548,31 +1464,33 @@ function GetAndParseMIDIString()
                         and evMsg:byte(3) ~= 0 -- Note-ons with velocity == 0 are actually note-offs
                         then
                             -- Store this notation text with unique key so that future selected notes can find their matching notation
-                            tableTempNotation[notationChannel][notationPitch][runningPPQPos] = msg
+                            tableTempNotation[notationChannel][notationPitch][runningPPQPos] = string.pack("i4Bs4", 0, 0, msg)
                             mustExtract = true
                             goto completedNotationSearch
                         end
                     end
                 until evOffset ~= 0
                 ::completedNotationSearch::
+                ]]
             end   
         end    
                 
                         
         --------------------------------------------------------------------------
         -- So what must be done with the MIDI event?  Stored as non-targeted event 
-        --    in tableRemainingEvents?  Or update offset?
+        --    in tRemainingEvents?  Or update offset?
         if mustExtract then
-            -- The chain of unchanged events is broken, so write to tableRemainingEvents
+            -- The chain of unchanged events is broken, so write to tRemainingEvents
             if unchangedPos < prevPos then
                 r = r + 1
-                tableRemainingEvents[r] = MIDIString:sub(unchangedPos, prevPos-1)
+                tRemainingEvents[r] = MIDIString:sub(unchangedPos, prevPos-1)
             end
             unchangedPos = nextPos
             mustUpdateNextOffset = true
+            remainTicksLeft = remainTicksLeft or (runningPPQPos-offset) -- This value will only be stored once, when the first target event is extracted
         elseif mustUpdateNextOffset then
             r = r + 1
-            tableRemainingEvents[r] = s_pack("i4Bs4", runningPPQPos-lastRemainPPQPos, flags, msg)
+            tRemainingEvents[r] = s_pack("i4Bs4", runningPPQPos-lastRemainPPQPos, flags, msg)
             lastRemainPPQPos = runningPPQPos
             unchangedPos = nextPos
             mustUpdateNextOffset = false
@@ -1588,17 +1506,17 @@ function GetAndParseMIDIString()
         offset = s_unpack("i4", MIDIString, nextPos)
         runningPPQPos = runningPPQPos + offset
         r = r + 1
-        tableRemainingEvents[r] = s_pack("i4", runningPPQPos - lastRemainPPQPos) .. MIDIString:sub(nextPos+4) 
+        tRemainingEvents[r] = s_pack("i4", runningPPQPos - lastRemainPPQPos) .. MIDIString:sub(nextPos+4) 
     else
         r = r + 1
-        tableRemainingEvents[r] = MIDIString:sub(unchangedPos) 
+        tRemainingEvents[r] = MIDIString:sub(unchangedPos) 
     end
         
     ----------------------------------------------------------------------------
     -- The entire MIDI string has been parsed.  Now check that everything is OK. 
-    --[[local lastEvent = tableRemainingEvents[#tableRemainingEvents]:sub(-12)
-    if tableRemainingEvents[#tableRemainingEvents]:byte(-2) ~= 0x7B
-    or (tableRemainingEvents[#tableRemainingEvents]:byte(-3))&0xF0 ~= 0xB0
+    --[[local lastEvent = tRemainingEvents[#tRemainingEvents]:sub(-12)
+    if tRemainingEvents[#tRemainingEvents]:byte(-2) ~= 0x7B
+    or (tRemainingEvents[#tRemainingEvents]:byte(-3))&0xF0 ~= 0xB0
     then
         reaper.ShowMessageBox("No All-Notes-Off MIDI message was found at the end of the take."
                               .. "\n\nThis may indicate a parsing error in script, or an error in the take."
@@ -1606,34 +1524,40 @@ function GetAndParseMIDIString()
         return false
     end ]]          
     
-    if #tTicks == 0 then -- Nothing to extract, so don't need to concatenate tableRemainingEvents
-        remainOffset = s_unpack("i4", MIDIString, 1)
-        remainMIDIString = MIDIString
-        return true 
-    end         
-
+    if #tTicks == 0 then -- Nothing to extract, so don't need to concatenate tRemainingEvents
+        remainMIDILeft = ""
+        remainMIDIRight = MIDIString
+        remainTicksLeft = 0
+        return true
+    elseif tTicks[1] < string.unpack("i4", tRemainingEvents[1], 1) then -- Extracted target events are to the left of rest of events
+        --remainMIDIString = MIDIString
+        remainMIDILeft = ""
+        remainMIDIRight = table.concat(tRemainingEvents) or ""
+    else
+        --remainMIDIString = table.concat(tRemainingEvents) 
+        remainMIDILeft   = tRemainingEvents[1] or ""
+        remainMIDIRight  = table.concat(tRemainingEvents, "", 2) or ""
+    end       
     
     -- Now check that the number of LSB and MSB events were nicely balanced. If they are, these tables should be empty
     if laneIsCC14BIT then
         for chan = 0, 15 do
-            for flags = 1, 3, 2 do
-                if next(tableCCLSB[chan][flags]) then
-                    reaper.MB("There appears to be selected CCs in the LSB lane that do not have corresponding CCs in the MSB lane."
-                            .. "\n\nThe script does not know whether these CCs should be included in the edits, so please deselect these before retrying the script.", "ERROR", 0)
-                    return false
-                end
-                if next(tableCCMSB[chan][flags]) then
-                    reaper.MB("There appears to be selected CCs in the MSB lane that do not have corresponding CCs in the LSB lane."
-                            .. "\n\nThe script does not know whether these CCs should be included in the edits, so please deselect these before retrying the script.", "ERROR", 0)
-                    return false
-                end
+            if next(tableCCLSB[chan]) then
+                reaper.MB("There appears to be selected CCs in the LSB lane that do not have corresponding CCs in the MSB lane."
+                        .. "\n\nThe script does not know whether these CCs should be included in the edits, so please deselect these before retrying the script.", "ERROR", 0)
+                return false
+            end
+            if next(tableCCMSB[chan]) then
+                reaper.MB("There appears to be selected CCs in the MSB lane that do not have corresponding CCs in the LSB lane."
+                        .. "\n\nThe script does not know whether these CCs should be included in the edits, so please deselect these before retrying the script.", "ERROR", 0)
+                return false
             end
         end
     end    
         
     -- Check that every note-on had a corresponding note-off
     if (laneIsNOTES) and #tNoteLengths ~= #tValues then
-        reaper.ShowMessageBox("There appears to be an imbalanced number of note-ons and note-offs.", "ERROR", 0)
+        reaper.MB("There appears to be an imbalanced number of note-ons and note-offs.", "ERROR", 0)
         return false 
     end
     
@@ -1673,12 +1597,7 @@ function GetAndParseMIDIString()
                 
     
     ------------------------
-    -- Fiinally, return true
-    -- When concatenating tableRemainingEvents, leave out the first remaining event's offset (first 4 bytes), 
-    --    since this offset will be updated relative to the edited events' positions during each cycle.
-    -- (The edited events will be inserted in the string before all the remaining events.)
-    remainMIDIString = table.concat(tableRemainingEvents) 
-    
+    -- Finally, return true
     return true
 end
 
@@ -1831,7 +1750,7 @@ function MAIN()
     if not cursor then cursor = reaper.JS_Mouse_LoadCursor(32646) end]] -- If .cur file unavailable, load Windows/swell 4-pointed arrow cursor, to indicate that mouse can move in any direction.
     cursor = reaper.JS_Mouse_LoadCursor(32646) -- Load Windows/swell 4-pointed arrow cursor, to indicate that mouse can move in any direction.
     if cursor then reaper.JS_Mouse_SetCursor(cursor) end    
-    
+
     if sectionID ~= nil and commandID ~= nil and sectionID ~= -1 and commandID ~= -1 then
         origToggleState = reaper.GetToggleCommandStateEx(sectionID, commandID)
         reaper.SetToggleCommandState(sectionID, commandID, 1)
