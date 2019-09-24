@@ -1,11 +1,12 @@
 --[[
     Description: Generate script from custom action
-    Version: 1.0.0
+    Version: 1.0.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Initial Release
+        Add: Link to forum thread
     Links:
+        Forum Thread https://forum.cockos.com/showthread.php?p=2184417
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         As the name suggests, this script prompts the user for a custom action
