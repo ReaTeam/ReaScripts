@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b12a3a514858e0e69eaa0d1d2db3fb3273c8092c" name="ReaTeam Scripts">
+<index version="1" commit="23f4c9534872b4eef066bfd5a5b76b3ce8662e03" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11130,12 +11130,17 @@ Web Interface: restore the previous locked state on load]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Note: This tool has "dumb" and can't optimize the resulting script's perfomance - in some cases writing a script by hand will likely be much faster.\par}
 }
 ]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2184417">Forum Thread</link>
         <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
         <link rel="donation">https://www.paypal.me/Lokasenna</link>
       </metadata>
       <version name="1.0.0" author="Lokasenna" time="2019-09-24T03:44:56Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b12a3a514858e0e69eaa0d1d2db3fb3273c8092c/Various/Lokasenna_Generate%20script%20from%20custom%20action.lua</source>
+      </version>
+      <version name="1.0.1" author="Lokasenna" time="2019-09-24T03:51:33Z">
+        <changelog><![CDATA[Add: Link to forum thread]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/23f4c9534872b4eef066bfd5a5b76b3ce8662e03/Various/Lokasenna_Generate%20script%20from%20custom%20action.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Insert most recent exported file....lua" type="script" desc="Insert most recent exported file...">
