@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="749fedf08558794d0052e37cee7233de910ccf7b" name="ReaTeam Scripts">
+<index version="1" commit="b12a3a514858e0e69eaa0d1d2db3fb3273c8092c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11118,6 +11118,24 @@ Web Interface: restore the previous locked state on load]]></changelog>
       <version name="1.0.0" author="Lokasenna" time="2018-09-13T02:25:47Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8a3e0980dee005274a87b92d7fcfbcc046dee70f/Various/Lokasenna_Enable%20metronome%20until%20playback%20reaches%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="Lokasenna_Generate script from custom action.lua" type="script" desc="Generate script from custom action">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 As the name suggests, this script prompts the user for a custom action and spits out an equivalent Lua script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: This tool has "dumb" and can't optimize the resulting script's perfomance - in some cases writing a script by hand will likely be much faster.\par}
+}
+]]></description>
+        <link rel="website" href="http://forum.cockos.com/member.php?u=10417">Lokasenna's Website</link>
+        <link rel="donation">https://www.paypal.me/Lokasenna</link>
+      </metadata>
+      <version name="1.0.0" author="Lokasenna" time="2019-09-24T03:44:56Z">
+        <changelog><![CDATA[Initial Release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b12a3a514858e0e69eaa0d1d2db3fb3273c8092c/Various/Lokasenna_Generate%20script%20from%20custom%20action.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Insert most recent exported file....lua" type="script" desc="Insert most recent exported file...">
