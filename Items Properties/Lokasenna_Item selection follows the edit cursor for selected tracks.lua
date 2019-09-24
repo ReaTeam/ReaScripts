@@ -1,10 +1,10 @@
 --[[
 Description: Item selection follows the edit cursor for selected tracks
-Version: 1.0.0
+Version: 1.1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Initial release
+	Add: Script's toggle state is tracked in the action list and on toolbars
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1583631
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -31,6 +31,20 @@ local PRESERVE_SELECTION = ({reaper.get_action_context()})[2]
 
 local sel_tracks = {}
 local cursor_pos
+
+(function()
+  local _, _, sectionId, cmdId = reaper.get_action_context()
+
+  if sectionId ~= -1 then
+    reaper.SetToggleCommandState(sectionId, cmdId, 1)
+    reaper.RefreshToolbar2(sectionId, cmdId)
+
+    reaper.atexit(function()
+      reaper.SetToggleCommandState(sectionId, cmdId, 0)
+      reaper.RefreshToolbar2(sectionId, cmdId)
+    end)
+  end
+end)()
 
 -- Very limited - no error checking, types, hash tables, etc
 local function shallow_equal(t1, t2)
