@@ -1,4 +1,4 @@
--- @description Delete points before or after the edit cursor in the selected envelope
+-- @description Delete points before or after the edit cursor in selected envelope
 -- @author cfillion
 -- @version 1.0
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
