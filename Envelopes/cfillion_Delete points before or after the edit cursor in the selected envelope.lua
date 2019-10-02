@@ -1,6 +1,7 @@
 -- @description Delete points before or after the edit cursor in the selected envelope
 -- @author cfillion
 -- @version 1.0
+-- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
 -- @metapackage
 -- @provides
 --   [main] . > cfillion_Delete points before the edit cursor in the selected envelope.lua
