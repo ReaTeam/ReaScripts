@@ -1,10 +1,10 @@
 --[[
     Description: Adjust ReaSamplomatic 5000 pitch offset
-    Version: 2.1.0
+    Version: 2.1.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
-        Add: Actions for the last-touched RS5K (track FX only)
+        Fix: Script not reading the MIDI value correctly
     Links:
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
@@ -50,7 +50,7 @@
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.1 semitones.lua
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.05 semitones.lua
         [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 0.5 semitones.lua
-        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 1 semitone.lua        
+        [main] . > Lokasenna_Adjust ReaSamplomatic 5000 pitch offset/Lokasenna_Adjust pitch offset of last-touched ReaSamplomatic 5000 - Up 1 semitone.lua
 
     Donation: https://www.paypal.me/Lokasenna
 ]]--
@@ -62,12 +62,17 @@ local MODE_LASTTOUCHED = 2
 local PARAM_NUMBER = 15 -- RS5K's Pitch Offset parameter
 local PARAM_MULTIPLIER =  0.0000625002384186    -- RS5K's internal value == 0.01 semitones
 
-dm = false
+local dm = false
 
 local function dMsg(str)
    if dm then reaper.ShowConsoleMsg(tostring(str) .. "\n") end
 end
 
+local action_context = (function()
+  local c = ({reaper.get_action_context()})
+
+  return { is_new = c[1], fn = c[2], sId = c[3], cId = c[4], mode = c[5], res = c[6], val = c[7] }
+end)()
 
 
 ------------------------------------
@@ -76,10 +81,7 @@ end
 
 
 local function parse_script_name()
-
-    local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
-
-    dMsg(script_name)
+    local script_name = action_context.fn:match("([^/\\_]+).lua$")
 
     local script_mode
     if string.match(script_name, "focused ReaSamplomatic") then
@@ -92,7 +94,7 @@ local function parse_script_name()
         dMsg("no script mode found")
         return
     end
-    
+
     local dir
     if string.match(script_name, " %- Up") then
         dir = 1
@@ -117,10 +119,13 @@ end
 
 
 local function convert_adjust_amt(adjust_amt)
+    local multiplier = adjust_amt * 100 * PARAM_MULTIPLIER
 
-    local new_val, fn, sID, cID, mode, res, val = reaper.get_action_context()
-    return adjust_amt * 100 * PARAM_MULTIPLIER * ((mode > 0 and val ~= 0) and (math.abs(val) / val) or 1)
-
+    return multiplier * (
+      (action_context.mode > 0 and action_context.val ~= 0)
+        and (math.abs(action_context.val) / action_context.val)
+        or 1
+    )
 end
 
 
@@ -143,7 +148,7 @@ end
 local function is_RS5K(name)
 
     name = string.lower(name)
-    if string.match(name, "reasamplomatic") 
+    if string.match(name, "reasamplomatic")
     or  string.match(name, "rs5k") then
         return true
     end
@@ -197,9 +202,9 @@ local function adjust_focused(adjust_amt)
 
 
     if not retval or retval == 0 then
-        
+
         return
-        
+
     -- Track FX
     elseif retval == 1 then
 
@@ -239,9 +244,9 @@ local function adjust_lasttouched(adjust_amt)
     local track = reaper.GetTrack( 0, tracknumberOut - 1 )
 
     if not retval then
-        
+
         return
-        
+
     -- Track FX
     else
 
@@ -273,7 +278,7 @@ end
 
 local function adjust_selected_tracks(adjust_amt)
 
-    for idx, track in SelectedTracks() do
+    for _, track in SelectedTracks() do
 
         for i = 0, reaper.TrackFX_GetCount(track) - 1 do
 
@@ -299,10 +304,6 @@ local function Main()
 
     local script_mode, adjust_amt = parse_script_name()
     if not (script_mode and adjust_amt) then return end
-
-    --script_mode, adjust_amt = MODE_ALLSELECTED, 0.01
-    dMsg("got mode: " .. tostring(script_mode))
-    dMsg("got amt: " .. tostring(adjust_amt))
 
     adjust_amt = convert_adjust_amt(adjust_amt)
 
