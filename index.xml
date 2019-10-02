@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6cc696a5b981d095258c88aaae18fe62be06acf9" name="ReaTeam Scripts">
+<index version="1" commit="fe2010aca23552bb43c82c74878b6338a934fb2f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1481,6 +1481,23 @@ Refactored/reorganized the code for readability]]></changelog>
       <version name="1.002" author="amagalma" time="2018-07-30T16:15:26Z">
         <changelog><![CDATA[+ fixed avoiding to create undo when no tracks or no items are selected]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b748720f562b9374dae40aee3e0e563a0b2aba9c/Envelopes/amagalma_Toggle%20volume%20envelope%20visibility%20for%20selected%20tracks%20or%20items%20depending%20on%20mouse%20position.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Delete points before or after the edit cursor in selected envelope.lua" type="script" desc="Delete points before or after the edit cursor in selected envelope">
+      <metadata>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-10-02T17:04:55Z">
+        <source main="main" file="cfillion_Delete points before the edit cursor in the selected envelope.lua">https://github.com/ReaTeam/ReaScripts/raw/fe2010aca23552bb43c82c74878b6338a934fb2f/Envelopes/cfillion_Delete%20points%20before%20or%20after%20the%20edit%20cursor%20in%20selected%20envelope.lua</source>
+        <source main="main" file="cfillion_Delete points after the edit cursor in the selected envelope.lua">https://github.com/ReaTeam/ReaScripts/raw/fe2010aca23552bb43c82c74878b6338a934fb2f/Envelopes/cfillion_Delete%20points%20before%20or%20after%20the%20edit%20cursor%20in%20selected%20envelope.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Delete points outside of the time selection in selected envelopes.lua" type="script" desc="Delete points outside of the time selection in selected envelopes">
+      <metadata>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-10-02T17:03:34Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca4f36908bfb6069ab7fab84a914faa2ce084893/Envelopes/cfillion_Delete%20points%20outside%20of%20the%20time%20selection%20in%20selected%20envelopes.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle active envelopes inlane for selected track.lua" type="script" desc="Toggle active envelopes inlane for selected track">
