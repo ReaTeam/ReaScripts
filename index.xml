@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="76908ca55c1dbadc15629d2b403ab6af63dad53b" name="ReaTeam Scripts">
+<index version="1" commit="308179f68be72716088a0a04d34a2f5cc5b624e6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1507,6 +1507,11 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0" author="cfillion" time="2019-10-03T15:20:43Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76908ca55c1dbadc15629d2b403ab6af63dad53b/Envelopes/cfillion_Linear%20ramp%20selected%20envelope%20points.lua</source>
+      </version>
+      <version name="1.0.1" author="cfillion" time="2019-10-04T21:15:04Z">
+        <changelog><![CDATA[Fix value scaling in fader scaling mode
+Remember the window position, size and dock state]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/308179f68be72716088a0a04d34a2f5cc5b624e6/Envelopes/cfillion_Linear%20ramp%20selected%20envelope%20points.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle active envelopes inlane for selected track.lua" type="script" desc="Toggle active envelopes inlane for selected track">
