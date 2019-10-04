@@ -1,17 +1,26 @@
 -- @description Linear ramp selected envelope points
 -- @author cfillion
--- @version 1.0
+-- @version 1.0.1
+-- @changelog
+--   Fix value scaling in fader scaling mode
+--   Remember the window position, size and dock state
 -- @screenshot https://i.imgur.com/KwqzjfC.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
 
+local EXT_SECTION = 'cfillion_ramp_envelope_points'
+local EXT_WINDOW_STATE = 'window_state'
 local MARGIN = 10
+
+local UNDO_STATE_TRACKCFG = 1
+
 local IDC_ARROW = 32512
 local IDC_SIZENS = 32645
+
 local HCENTER = 1
 local VCENTER = 1<<2
-local ADJ_RIGHT = 0
+
 local ADJ_LEFT  = 1
-local UNDO_STATE_TRACKCFG = 1
+local ADJ_RIGHT = 0
 
 function enumEnvelopePoints()
   local pi = 0
@@ -21,8 +30,6 @@ function enumEnvelopePoints()
     local point = {reaper.GetEnvelopePoint(state.env, pi)}
     if point[1] then -- retval
       point[1] = pi
-      point[3] = reaper.ScaleFromEnvelopeMode(state.scalingMode, point[3])
-
       pi = pi + 1
       return point
     end
@@ -79,18 +86,17 @@ function loadState(count)
   state.lastPos = state.selectedPoints[#state.selectedPoints][2]
 
   state.timeSpan = state.lastPos - state.firstPos
-  state.xscale = (state.lastPos - state.firstPos) / w
+  state.xscale = state.timeSpan / w
 
-  state.minValue, state.maxValue = envprops[7], envprops[8]
-  state.valueDelta = state.maxValue - state.minValue
-  state.yscale = state.valueDelta / h
-  if state.yscale <= 0 then state.yscale = 1 end
+  state.minValue = reaper.ScaleToEnvelopeMode(state.scalingMode, envprops[7])
+  state.maxValue = reaper.ScaleToEnvelopeMode(state.scalingMode, envprops[8])
+  state.yscale = (state.maxValue - state.minValue) / h
 end
 
 function adjustValue(point)
   local value = point[3]
 
-  if not adjustment then
+  if not adjustment or adjustment == 0 then
     return value
   end
 
@@ -103,17 +109,11 @@ function adjustValue(point)
   return math.min(math.max(value, state.minValue), state.maxValue)
 end
 
-function formatValue(value)
-  value = reaper.ScaleToEnvelopeMode(state.scalingMode, value)
-  return reaper.Envelope_FormatValue(state.env, value)
-end
-
 function applyAdjustment()
   reaper.Undo_BeginBlock()
 
   for _, point in ipairs(state.selectedPoints) do
     local value = adjustValue(point)
-    value = reaper.ScaleToEnvelopeMode(state.scalingMode, value)
     reaper.SetEnvelopePoint(state.env, point[1], nil, value, nil, nil, nil, true)
   end
 
@@ -158,11 +158,14 @@ function mouseEvents()
   end
 
   if gfx.mouse_cap & 1 == 1 then
-    if mouseDownY then -- if the mousedown happened in the clickable area
+    if mouseDownY then
       adjustment = (mouseDownY - gfx.mouse_y) * state.yscale
     end
   elseif adjustment then
-    applyAdjustment()
+    if adjustment ~= 0 then
+      applyAdjustment()
+    end
+
     clearAdjustment()
   end
 end
@@ -193,7 +196,7 @@ function drawPoint(i, point, nextPoint, adjust)
     end
   end
 
-  local humanValue = formatValue(value)
+  local humanValue = reaper.Envelope_FormatValue(state.env, value)
   gfx.x, gfx.y = x + 3, y + 3
 
   local strW, strY = gfx.measurestr(humanValue)
@@ -250,14 +253,38 @@ function loop()
   reaper.defer(loop)
 end
 
+function previousWindowState()
+  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
+  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
+end
+
+function saveWindowState()
+  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
+  local w, h = gfx.w, gfx.h
+  if dockState > 0 then
+    w, h = previousWindowState()
+  end
+
+  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
+    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
+end
+
 state = {}
 scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
 
-gfx.init(scriptName, 600, 100)
+local w, h, dockState, x, y = previousWindowState()
+
+if w then
+  gfx.init(scriptName, w, h, dockState, x, y)
+else
+  gfx.init(scriptName, 600, 100)
+end
+
 if reaper.GetAppVersion():match('OSX') then
   gfx.setfont(1, 'sans-serif', 12)
 else
   gfx.setfont(1, 'sans-serif', 15)
 end
 
-reaper.defer(loop)
+reaper.atexit(saveWindowState)
+loop()
