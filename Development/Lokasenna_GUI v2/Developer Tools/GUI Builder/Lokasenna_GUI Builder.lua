@@ -1,13 +1,13 @@
 -- NoIndex: true
 --[[
-    GUI Builder for Lokasenna_GUI v2.9    
-        
+    GUI Builder for Lokasenna_GUI v2.9
+
 ]]--
 
 
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
     return
 end
 loadfile(lib_path .. "Core.lua")()
@@ -101,34 +101,34 @@ GUI.New("GB_frm_sel_elm", "Frame", 1, 1, 1, 1, 1)
 function GUI.elms.GB_frm_bg:init()
 
     self.buff = GUI.GetBuffer()
-    
+
     self.w, self.h = Sidebar_ref_x(), (GUI.cur_h or GUI.h or gfx.h)
     local w, h = self.w, self.h
-        
+
     gfx.dest = self.buff
     gfx.setimgdim(self.buff, -1, -1)
     gfx.setimgdim(self.buff, w, h)
 
     Prefs.draw_grid(self)
-    
+
 end
 
 
 -- Doesn't need to be visible.
-function GUI.elms.GB_frm_bg:draw() 
+function GUI.elms.GB_frm_bg:draw()
 
     if Prefs.preferences.grid_show then
 --gfx.blit(source, scale, rotation[, srcx, srcy, srcw, srch, destx, desty, destw, desth, rotxoffs, rotyoffs] )
         gfx.blit(self.buff, 1, 0, 0, 0, self.w, self.h, 0, Menu.h)
-    
-    end    
+
+    end
 
     GUI.color("white")
-    
-    gfx.rect(   -1, 
-                0, 
-                Project.proj_settings.w + 2, 
-                Project.proj_settings.h + Menu.h + 1, 
+
+    gfx.rect(   -1,
+                0,
+                Project.proj_settings.w + 2,
+                Project.proj_settings.h + Menu.h + 1,
                 false)
 
 end

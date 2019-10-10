@@ -1,26 +1,24 @@
--- @description Song switcher
--- @version 1.4.2
--- @changelog
---   add help button in windowed mode and in the context menu
---   add onswitch mode toggles to the context menu and allow stop-only mode
---   rename installed scripts to use sentence case
---   use sentence case for the "No song selected" message
---
---   Web interface changes:
---   fix spelling of "oops" in the noscript error message
---   improve host connection error messages
---   multiply the refresh rate by 10
---   use sentence case for all buttons
+-- @description Song switcher (for live use)
 -- @author cfillion
+-- @version 1.5
+-- @changelog
+--   add action for switching songs using a MIDI controller [p=2131262]
+--   add action for switching to the queued song [p=2133615]
+--
+--   Web Interface: restore the previous locked state on load
 -- @provides
---   [main] cfillion_Song switcher/*.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to next song.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to previous song.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Reset data.lua
 --   [webinterface] cfillion_Song switcher/song_switcher.html > song_switcher.html
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua
+--   [main] cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=181159
--- @donation https://www.paypal.me/cfillion
 -- @screenshot
 --   Docked Mode https://i.imgur.com/4xPMV9J.gif
 --   Windowed Mode https://i.imgur.com/KOP2yK3.png
 --   Web Interface https://i.imgur.com/DPcRCGh.png
+-- @donation https://www.paypal.me/cfillion
 -- @about
 --   # Song switcher
 --
@@ -42,83 +40,107 @@
 --   This script works best with REAPER settings "**Do not process muted tracks**"
 --   and "**Track mute fade**" enabled.
 --
---   The following actions are included:
---
---   - **cfillion_Song switcher.lua**:
---     This is the main script. It must be open to use the others.
---   - **cfillion_Song switcher (previous).lua**: Goes to the previous song
---   - **cfillion_Song switcher (next).lua**: Goes to the next song
---   - **cfillion_Song switcher (reset).lua**: Rebuilds the song list
+--   The following additional actions are included for communicating to the main script:
+--   - cfillion_Song switcher - Switch to previous song.lua
+--   - cfillion_Song switcher - Switch to next song.lua
+--   - cfillion_Song switcher - Switch song by MIDI CC.lua
+--   - cfillion_Song switcher - Switch to queued song.lua
+--   - cfillion_Song switcher - Reset data.lua
 --
 --   A web browser interface is also installed as **song_switcher.html** for
 --   remote use (this feature requires REAPER v5.30+ and ReaPack v1.1+).
---   Note that the timecode displayed in the web interface always starts at 00:00.
---   This means that even if a song starts at 7:45 in the project and ends at 9:12,
---   it's displayed as 00:00 to 01:26 on the web interface for convenience.
+--   Note that the timecode displayed in the web interface always starts at 00:00 for convenience.
+--   This means that a song spanning from 7:45 to 9:12 in the project is displayed as 00:00 to 01:26 on the web interface.
 
-WINDOW_TITLE = 'Song switcher'
+local WINDOW_TITLE = 'Song switcher'
 
-FONT_DEFAULT = 0
-FONT_LARGE = 1
-FONT_SMALL = 2
-FONT_HUGE = 3
+local FONT_DEFAULT = 0
+local FONT_LARGE = 1
+local FONT_SMALL = 2
+local FONT_HUGE = 3
 
-COLOR_WHITE = {255, 255, 255}
-COLOR_GRAY = {190, 190, 190}
-COLOR_BLACK = {0, 0, 0}
-COLOR_RED = {255, 0, 0}
+local COLOR_WHITE = {255, 255, 255}
+local COLOR_GRAY = {190, 190, 190}
+local COLOR_BLACK = {0, 0, 0}
+local COLOR_RED = {255, 0, 0}
 
-COLOR_NAME = COLOR_WHITE
-COLOR_FILTER = COLOR_WHITE
-COLOR_BORDER = COLOR_GRAY
-COLOR_BUTTON = COLOR_GRAY
-COLOR_HOVERBG = {30, 30, 30}
-COLOR_HOVERFG = COLOR_WHITE
-COLOR_ACTIVEBG = {124, 165, 215}
-COLOR_ACTIVEFG = COLOR_BLACK
-COLOR_DANGERBG = COLOR_RED
-COLOR_DANGERFG = COLOR_BLACK
-COLOR_HIGHLIGHTBG = {60, 90, 100}
-COLOR_HIGHLIGHTFG = COLOR_WHITE
+local COLOR_NAME = COLOR_WHITE
+local COLOR_FILTER = COLOR_WHITE
+local COLOR_BORDER = COLOR_GRAY
+local COLOR_BUTTON = COLOR_GRAY
+local COLOR_HOVERBG = {30, 30, 30}
+local COLOR_HOVERFG = COLOR_WHITE
+local COLOR_ACTIVEBG = {124, 165, 215}
+local COLOR_ACTIVEFG = COLOR_BLACK
+local COLOR_DANGERBG = COLOR_RED
+local COLOR_DANGERFG = COLOR_BLACK
+local COLOR_HIGHLIGHTBG = {60, 90, 100}
+local COLOR_HIGHLIGHTFG = COLOR_WHITE
 
-KEY_ESCAPE = 27
-KEY_SPACE = 32
-KEY_UP = 30064
-KEY_DOWN = 1685026670
-KEY_RIGHT = 1919379572
-KEY_LEFT = 1818584692
-KEY_INPUTRANGE_FIRST = 32
-KEY_INPUTRANGE_LAST = 125
-KEY_ENTER = 13
-KEY_BACKSPACE = 8
-KEY_CTRLU = 21
-KEY_CLEAR = 144
-KEY_PGUP = 1885828464
-KEY_PGDOWN = 1885824110
-KEY_MINUS = 45
-KEY_PLUS = 43
-KEY_STAR = 42
-KEY_F3 = 26163
+local KEY_ESCAPE = 27
+local KEY_SPACE = 32
+local KEY_UP = 30064
+local KEY_DOWN = 1685026670
+local KEY_RIGHT = 1919379572
+local KEY_LEFT = 1818584692
+local KEY_INPUTRANGE_FIRST = 32
+local KEY_INPUTRANGE_LAST = 125
+local KEY_ENTER = 13
+local KEY_BACKSPACE = 8
+local KEY_CTRLU = 21
+local KEY_CLEAR = 144
+local KEY_PGUP = 1885828464
+local KEY_PGDOWN = 1885824110
+local KEY_MINUS = 45
+local KEY_PLUS = 43
+local KEY_STAR = 42
+local KEY_F3 = 26163
 
-MOUSE_LEFT_BTN = 1
+local MOUSE_LEFT_BTN = 1
 
-PADDING = 3
-MARGIN = 10
-HALF_MARGIN = 5
-LIST_START = 50
+local PADDING = 3
+local MARGIN = 10
+local HALF_MARGIN = 5
+local LIST_START = 50
 
-EXT_SECTION = 'cfillion_song_switcher'
-EXT_SWITCH_MODE = 'onswitch'
-EXT_WINDOW_STATE = 'window_state'
-EXT_LAST_DOCK = 'last_dock'
-EXT_REL_MOVE = 'relative_move'
-EXT_RESET = 'reset'
-EXT_STATE = 'state'
-EXT_FILTER = 'filter'
+local EXT_SECTION = 'cfillion_song_switcher'
+local EXT_SWITCH_MODE = 'onswitch'
+local EXT_WINDOW_STATE = 'window_state'
+local EXT_LAST_DOCK = 'last_dock'
+local EXT_STATE = 'state'
 
-SWITCH_SEEK = 1
-SWITCH_STOP = 2
-SWITCH_ALL  = SWITCH_SEEK | SWITCH_STOP
+local SWITCH_SEEK   = 1<<0
+local SWITCH_STOP   = 1<<1
+local SWITCH_SCROLL = 1<<2
+local SWITCH_ALL    = SWITCH_SEEK | SWITCH_STOP | SWITCH_SCROLL
+
+local UNDO_STATE_TRACKCFG = 1
+
+local SIGNALS = {
+  relative_move=function(move)
+    move = tonumber(move)
+
+    if move then
+      trySetCurrentIndex(currentIndex + move)
+    end
+  end,
+  absolute_move=function(index)
+    trySetCurrentIndex(tonumber(index))
+  end,
+  activate_queued=function()
+    if currentIndex ~= nextIndex then
+      setCurrentIndex(nextIndex)
+    end
+  end,
+  filter=function(filter)
+    local index = findSong(filter)
+
+    if index then
+      setCurrentIndex(index)
+    end
+  end,
+  reset=function() reset() end,
+}
 
 function loadTracks()
   local songs = {}
@@ -133,7 +155,7 @@ function loadTracks()
     if depth == 0 and track_depth == 1 then
       local _, name = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
 
-      if name:find("%d+%.") then
+      if parseSongName(name) then
         isSong = true
         table.insert(songs, {name=name, folder=track, tracks={track}})
       else
@@ -169,17 +191,22 @@ function loadTracks()
   return songs
 end
 
-function getSongNum(song)
-  return tonumber(string.match(song.name, '^%d+'))
+function parseSongName(trackName)
+  local number, separator, name = string.match(trackName, '^(%d+)(%W+)(.+)$')
+  number = tonumber(number)
+
+  if number and separator and name then
+    return {number=number, separator=separator, name=name}
+  end
 end
 
 function compareSongs(a, b)
-  local anum, bnum = getSongNum(a), getSongNum(b)
+  local aparts, bparts = parseSongName(a.name), parseSongName(b.name)
 
-  if anum and bnum then
-    return anum < bnum
+  if aparts.number == bparts.number then
+    return aparts.name < bparts.name
   else
-    return a.name < b.name
+    return aparts.number < bparts.number
   end
 end
 
@@ -243,6 +270,10 @@ function setCurrentIndex(index)
     if mode & SWITCH_SEEK ~= 0 then
       reaper.SetEditCurPos(song.startTime, true, true)
     end
+
+    if mode & SWITCH_SCROLL ~= 0 then
+      reaper.GetSet_ArrangeView2(0, true, 0, 0, song.startTime, song.endTime + 5)
+    end
   end
 
   reaper.PreventUIRefresh(-1)
@@ -267,6 +298,42 @@ function setNextIndex(index)
     scrollTo = index
     highlightTime = os.time()
   end
+end
+
+function moveSong(from, to)
+  song = songs[from]
+  table.remove(songs, from)
+  table.insert(songs, to, song)
+
+  if currentIndex == from then
+    currentIndex = to
+  elseif to <= currentIndex and from > currentIndex then
+    currentIndex = currentIndex + 1
+  elseif from < currentIndex and to >= currentIndex then
+    currentIndex = currentIndex - 1
+  end
+
+  if nextIndex == from then
+    nextIndex = to
+  elseif to <= nextIndex and from > nextIndex then
+    nextIndex = nextIndex + 1
+  elseif from < nextIndex and to >= nextIndex then
+    nextIndex = nextIndex - 1
+  end
+
+  reaper.Undo_BeginBlock()
+  local maxNumLength = math.max(2, tostring(#songs):len())
+  for index, song in ipairs(songs) do
+    local nameParts = parseSongName(song.name)
+    local newName = string.format('%0' .. maxNumLength .. 'd%s%s',
+      index, nameParts.separator, nameParts.name)
+    song.name = newName
+
+    if reaper.ValidatePtr(song.folder, 'MediaTrack*') then
+      reaper.GetSetMediaTrackInfo_String(song.folder, 'P_NAME', newName, true)
+    end
+  end
+  reaper.Undo_EndBlock("Song switcher: Change song order", UNDO_STATE_TRACKCFG)
 end
 
 function findSong(buffer)
@@ -378,8 +445,17 @@ function songList(y)
     bottom = line.rect.y + line.rect.h
 
     if line.rect.y >= y - line.rect.h and bottom < gfx.h + line.rect.h then
-      if button(line, index == currentIndex, index == nextIndex) then
-        setCurrentIndex(index)
+      local triggered, mouseDown = button(line,
+        index == currentIndex, index == nextIndex)
+
+      if triggered then
+        if drag and drag ~= index then
+          moveSong(drag, index)
+        else
+          setCurrentIndex(index)
+        end
+      elseif mouseDown and not drag then
+        drag = index -- initiate drag and drop
       end
     else
       gfx.y = bottom
@@ -449,6 +525,9 @@ function switchModeButton()
   if mode & SWITCH_SEEK ~= 0 then
     table.insert(actions, 'seek')
   end
+  if mode & SWITCH_SCROLL ~= 0 then
+      table.insert(actions, 'scroll')
+    end
   if #actions < 1 then
     table.insert(actions, 'onswitch')
   end
@@ -529,7 +608,7 @@ function navButtons()
 end
 
 function button(line, active, highlight, danger)
-  local color, triggered = COLOR_BUTTON, false
+  local color, triggered, mouseDown = COLOR_BUTTON, false, false
 
   if active then
     useColor(COLOR_ACTIVEBG)
@@ -539,6 +618,8 @@ function button(line, active, highlight, danger)
 
   if isUnderMouse(line.rect.x, line.rect.y, line.rect.w, line.rect.h) then
     if (mouseState & MOUSE_LEFT_BTN) == MOUSE_LEFT_BTN then
+      mouseDown = true
+
       if danger then
         useColor(COLOR_DANGERBG)
         color = COLOR_DANGERFG
@@ -569,7 +650,7 @@ function button(line, active, highlight, danger)
   useColor(color)
   drawTextLine(line)
 
-  return triggered
+  return triggered, mouseDown
 end
 
 function shouldShowHighlight()
@@ -706,6 +787,11 @@ end
 
 function loop()
   execRemoteActions()
+  mouse()
+
+  if keyboard() then
+    reaper.defer(loop)
+  end
 
   local fullUI = gfx.h > LIST_START + MARGIN
 
@@ -743,38 +829,21 @@ function loop()
     navButtons()
   end
 
-  gfx.update()
-
-  if keyboard() then
-    reaper.defer(loop)
+  if mouseClick then
+    -- cancel drag and drop on mouse release
+    -- only after processing it in drawing functions
+    drag = nil
   end
 
-  mouse()
+  gfx.update()
 end
 
 function execRemoteActions()
-  if reaper.HasExtState(EXT_SECTION, EXT_REL_MOVE) then
-    local move = tonumber(reaper.GetExtState(EXT_SECTION, EXT_REL_MOVE))
-    reaper.DeleteExtState(EXT_SECTION, EXT_REL_MOVE, false);
-
-    if move then
-      trySetCurrentIndex(currentIndex + move)
-    end
-  end
-
-  if reaper.HasExtState(EXT_SECTION, EXT_RESET) then
-    reaper.DeleteExtState(EXT_SECTION, EXT_RESET, false);
-    reset()
-  end
-
-  if reaper.HasExtState(EXT_SECTION, EXT_FILTER) then
-    local filter = reaper.GetExtState(EXT_SECTION, EXT_FILTER)
-    reaper.DeleteExtState(EXT_SECTION, EXT_FILTER, false);
-
-    local index, _ = findSong(filter)
-
-    if index then
-      setCurrentIndex(index)
+  for signal, handler in pairs(SIGNALS) do
+    if reaper.HasExtState(EXT_SECTION, signal) then
+      local value = reaper.GetExtState(EXT_SECTION, signal)
+      reaper.DeleteExtState(EXT_SECTION, signal, false);
+      handler(value)
     end
   end
 end
@@ -816,9 +885,9 @@ function reset()
   filterBuffer = ''
 
   -- clear previous pending external commands
-  reaper.DeleteExtState(EXT_SECTION, EXT_REL_MOVE, false)
-  reaper.DeleteExtState(EXT_SECTION, EXT_RESET, false)
-  reaper.DeleteExtState(EXT_SECTION, EXT_FILTER, false)
+  for signal, _ in pairs(SIGNALS) do
+    reaper.DeleteExtState(EXT_SECTION, signal, false)
+  end
 
   if activeCount == 1 then
     if visibleCount == 0 then
@@ -895,23 +964,38 @@ function contextMenu()
   local dockState = gfx.dock(-1)
   local mode = getSwitchMode()
 
-  local menu = string.format(
-    '%sDock window|Reset data|>onswitch|%sStop|<%sSeek||Help',
-    checkbox(dockState > 0), checkbox(mode & SWITCH_STOP ~= 0),
-    checkbox(mode & SWITCH_SEEK ~= 0),
-    about
-  )
+  local separator = ''
+
+  local menu = {
+    string.format('%sDock window', checkbox(dockState > 0)),
+    'Reset data',
+    '>onswitch',
+      string.format('%sStop',    checkbox(mode & SWITCH_STOP   ~= 0)),
+      string.format('%sSeek',    checkbox(mode & SWITCH_SEEK   ~= 0)),
+      string.format('<%sScroll', checkbox(mode & SWITCH_SCROLL ~= 0)),
+    separator,
+  }
 
   local actions = {
     function() toggleDock(dockState) end,
     reset,
     function() setSwitchMode(mode ~ SWITCH_STOP) end,
     function() setSwitchMode(mode ~ SWITCH_SEEK) end,
-    about,
+    function() setSwitchMode(mode ~ SWITCH_SCROLL) end,
   }
 
+  for index, song in ipairs(songs) do
+    table.insert(menu, string.format('%s%s',
+      checkbox(index == currentIndex), song.name))
+    table.insert(actions, function() setCurrentIndex(index) end)
+  end
+
+  if #songs > 0 then table.insert(menu, separator) end
+  table.insert(menu, 'Help')
+  table.insert(actions, about)
+
   gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
-  local index = gfx.showmenu(menu)
+  local index = gfx.showmenu(table.concat(menu, '|'))
   if actions[index] then actions[index]() end
 end
 
@@ -928,6 +1012,7 @@ mouseState = 0
 mouseClick = false
 highlightTime = 0
 scrollTo = 0
+drag = nil
 
 local w, h, dockState, x, y = previousWindowState()
 

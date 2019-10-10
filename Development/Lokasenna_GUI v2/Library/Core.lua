@@ -23,7 +23,7 @@ GUI.script_path, GUI.script_name = ({reaper.get_action_context()})[2]:match("(.-
 
 GUI.lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not GUI.lib_path or GUI.lib_path == "" then
-    reaper.MB("Couldn't load the Lokasenna_GUI library. Please run 'Set Lokasenna_GUI v2 library path.lua' in the Lokasenna_GUI folder.", "Whoops!", 0)
+    reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
     return
 end
 
@@ -53,9 +53,10 @@ GUI.version = GUI.get_version()
 
 -- ReaPack version info
 GUI.get_script_version = function()
+  if not reaper.ReaPack_GetOwner then return "2.x" end
 
   local package, err = reaper.ReaPack_GetOwner(({reaper.get_action_context()})[2])
-  if not package then return "(version error)" end
+  if not package then return "2.x" end
 
   --ret, repo, cat, pkg, desc, type, ver, author, pinned, fileCount = reaper.ReaPack_GetEntryInfo( entry )
   local package_info = {reaper.ReaPack_GetEntryInfo(package)}
@@ -77,42 +78,42 @@ GUI.script_version = GUI.get_script_version()
 -- to the Reaper error message.
 GUI.crash = function (errObject, skipMsg)
 
-    if GUI.oncrash then GUI.oncrash() end
+  if GUI.oncrash then GUI.oncrash() end
 
-    local by_line = "([^\r\n]*)\r?\n?"
-    local trim_path = "[\\/]([^\\/]-:%d+:.+)$"
-    local err = errObject   and string.match(errObject, trim_path)
-                            or  "Couldn't get error message."
+  local by_line = "([^\r\n]*)\r?\n?"
+  local trim_path = "[\\/]([^\\/]-:%d+:.+)$"
+  local err = errObject   and string.match(errObject, trim_path)
+                          or  "Couldn't get error message."
 
-    local trace = debug.traceback()
-    local tmp = {}
-    for line in string.gmatch(trace, by_line) do
+  local trace = debug.traceback()
+  local tmp = {}
+  for line in string.gmatch(trace, by_line) do
 
-        local str = string.match(line, trim_path) or line
+      local str = string.match(line, trim_path) or line
 
-        tmp[#tmp + 1] = str
+      tmp[#tmp + 1] = str
 
-    end
+  end
 
-    local name = ({reaper.get_action_context()})[2]:match("([^/\\_]+)$")
+  local name = ({reaper.get_action_context()})[2]:match("([^/\\_]+)$")
 
-    local ret = skipMsg and 6 or reaper.ShowMessageBox(name.." has crashed!\n\n"..
-                                "Would you like to have a crash report printed "..
-                                "to the Reaper console?",
-                                "Oops", 4)
+  local ret = skipMsg and 6 or reaper.ShowMessageBox(name.." has crashed!\n\n"..
+                              "Would you like to have a crash report printed "..
+                              "to the Reaper console?",
+                              "Oops", 4)
 
-    if ret == 6 then
+  if ret == 6 then
 
-        reaper.ShowConsoleMsg(  "Error: "..err.."\n\n"..
-                                (GUI.error_message and tostring(GUI.error_message).."\n\n" or "") ..
-                                "Stack traceback:\n\t"..table.concat(tmp, "\n\t", 2).."\n\n"..
-                                "Lokasenna_GUI:\t".. GUI.version.."\n"..
-                                "Reaper:       \t"..reaper.GetAppVersion().."\n"..
-                                "Platform:     \t"..reaper.GetOS())
-    end
+      reaper.ShowConsoleMsg(  "Error: "..err.."\n\n"..
+                              (GUI.error_message and tostring(GUI.error_message).."\n\n" or "") ..
+                              "Stack traceback:\n\t"..table.concat(tmp, "\n\t", 2).."\n\n"..
+                              "Lokasenna_GUI:\n\t"..(GUI.version or "v2.x").."\n"..
+                              "Reaper:\n\t"..reaper.GetAppVersion().."\n"..
+                              "Platform:\n\t"..reaper.GetOS())
+  end
 
-    GUI.quit = true
-    gfx.quit()
+  GUI.quit = true
+  gfx.quit()
 end
 
 
@@ -441,6 +442,7 @@ GUI.Main_Update_Elms = function ()
     -- Just in case any user functions want to know...
     GUI.mouse.last_down = GUI.mouse.down
     GUI.mouse.last_r_down = GUI.mouse.r_down
+    GUI.mouse.last_m_down = GUI.mouse.m_down
 
 end
 
@@ -1740,7 +1742,6 @@ end
 
 ]]--
 GUI.font = function (fnt)
-
     local font, size, str = table.unpack( type(fnt) == "table"
                                             and fnt
                                             or  GUI.fonts[fnt])

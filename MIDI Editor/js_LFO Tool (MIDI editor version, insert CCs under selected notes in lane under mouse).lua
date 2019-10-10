@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, insert CCs under selected notes in lane under mouse).lua
-Version: 2.60
+Version: 2.71
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -96,28 +96,24 @@ About:
     + Fixed: Enable MIDI playback while script is running.
   v2.60 (2018-09-17)
     + "Morph" slider when applied to existing events.
+  v2.70 (2018-12-26)
+    + "Swing" envelope.
+  v2.71 (2018-12-28)
+    + Small improvements.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
 --  USER AREA:
-    --[[ 
-    Colors are defined as {red, green, blue, alpha}
-    (Values are between 0 and 1)
-    
-    Default colors are:
-    backgroundColor = {0.15, 0.15, 0.15, 1}
-    foregroundColor = {0.75, 0.29, 0, 0.8}
-    textColor       = {1, 1, 1, 0.7}  
-    buttonColor     = {1, 0, 0, 1} 
-    hotbuttonColor  = {0, 1, 0, 1}
-    shadows         = true
-    ]]
-    backgroundColor = {0.15, 0.15, 0.15, 1}
-    foregroundColor = {0.3, 0.8, 0.3, 0.7}
-    textColor       = {1, 1, 1, 0.7} 
-    buttonColor     = {1, 0, 1, 1} 
-    hotbuttonColor  = {0, 1, 0, 1}
+
+    -- Colors are defined as {red, green, blue, alpha}
+    -- (Values are between 0 and 1)
+    backgroundColor = {0.07, 0.07, 0.07, 1}
+    foregroundColor = {0.6, 0.6, 0.0, 0.7}
+    textColor       = {1, 1, 1, 0.6}  
+    buttonColor     = {0.6, 0.6, 0, 0.7} 
+    hotbuttonColor  = {1, 0.2, 0, 1}
     shadows         = true  
+    font            = "Arial" 
     
     -- Which area should be filled with CCs?  Either "notes", "time" or "existing".
     -- "notes" to fill areas underneath selected notes, "time" for time selection,
@@ -181,9 +177,9 @@ shape_function = {}
 shape_function[Bezier] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
   if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 5, 1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault/4 then return phaseStepsDefault, 0, 5, -1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 5, 1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault*3/4 then return phaseStepsDefault, 0, 5, -1, false end
+  if cnt % phaseStepsDefault == 0.25*phaseStepsDefault then return phaseStepsDefault, 0, 5, -1, false end
+  if cnt % phaseStepsDefault == 0.50*phaseStepsDefault then return phaseStepsDefault, -1, 5, 1, false end
+  if cnt % phaseStepsDefault == 0.75*phaseStepsDefault then return phaseStepsDefault, 0, 5, -1, false end
   return phaseStepsDefault, false, 5, -1, false
 end
 
@@ -201,36 +197,36 @@ end
 
 shape_function[Square] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
-  if cnt % phaseStepsDefault == phaseStepsDefault/4 then return phaseStepsDefault, -1, 1, 1, false end  
-  if cnt % phaseStepsDefault == phaseStepsDefault*3/4 then return phaseStepsDefault, 1, 1, 1, false end
+  if cnt % phaseStepsDefault == 0.25*phaseStepsDefault then return phaseStepsDefault, -1, 1, 1, false end  
+  if cnt % phaseStepsDefault == 0.75*phaseStepsDefault then return phaseStepsDefault, 1, 1, 1, false end
   return phaseStepsDefault, false, 1, 1, false
 end
 
 shape_function[Triangle] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
   if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 0, 1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 0, 1, false end
+  if cnt % phaseStepsDefault == 0.5*phaseStepsDefault then return phaseStepsDefault, -1, 0, 1, false end
   return phaseStepsDefault, false, 0, 1, false
 end
 
 shape_function[Sine] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
   if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 2, 1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 2, 1, false end
+  if cnt % phaseStepsDefault == 0.5*phaseStepsDefault then return phaseStepsDefault, -1, 2, 1, false end
   return phaseStepsDefault, false, 2, 1, false
 end
 
 shape_function[FastEndTri] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
   if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 4, 1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 4, 1, false end
+  if cnt % phaseStepsDefault == 0.5*phaseStepsDefault then return phaseStepsDefault, -1, 4, 1, false end
   return phaseStepsDefault, false, 4, 1, false
 end
 
 shape_function[FastStartTri] = function(cnt)
   -- returns totalSteps, amplitude, shape, tension, linearJump
   if cnt % phaseStepsDefault == 0 then return phaseStepsDefault, 1, 3, 1, false end
-  if cnt % phaseStepsDefault == phaseStepsDefault/2 then return phaseStepsDefault, -1, 3, 1, false end
+  if cnt % phaseStepsDefault == 0.5*phaseStepsDefault then return phaseStepsDefault, -1, 3, 1, false end
   return phaseStepsDefault, false, 3, 1, false
 end
 
@@ -276,17 +272,19 @@ Finally, in v5.32, these bugs were (seemingly) all fixed.  This new version of t
 ]]
 
 
-local shapeSelected = 6 -- Starting shape
-local GUIelementHeight = 28 -- Height of the GUI elements
-local borderWidth = 10
-local envHeight = 190
-local initXsize = 209 --300 -- Initial sizes for the GUI
-local initYsize = borderWidth + GUIelementHeight*11 + envHeight + 45
-local envYpos = initYsize - envHeight - 30
+local START_SHAPE = 6 -- Starting shape
+
+local NUM_SLIDERS = 12 
+local GUI_ELEMENT_HEIGHT = 28 -- Height of the GUI elements
+local BORDER_WIDTH = 10
+local INIT_ENV_HEIGHT = 200
+local SPACE_BELOW_ENV = 31
+local INIT_X_SIZE = 209 --300 -- Initial sizes for the GUI
+local INIT_Y_SIZE = BORDER_WIDTH + GUI_ELEMENT_HEIGHT*NUM_SLIDERS + INIT_ENV_HEIGHT + SPACE_BELOW_ENV
 
 local hotpointRateDisplayType = "period note length" -- "frequency" or "period note length"
 local hotpointTimeDisplayType = -1
-local rateInterpolationType = "parabolic" -- "linear" or "parabolic"
+local rateInterpolationType = "linear" -- "linear" or "parabolic"
 
 -- By default, these curve will align if the tempo is a constant 120bpm
 -- The range is between 2 whole notes and 1/32 notes, or 0.25Hz and 16Hz.
@@ -418,7 +416,7 @@ local m_cos    = math.cos
 local m_pi     = math.pi
 
 -- The table of GUI objects, including buttons and sliders
-local tableGUIelements={}
+ tableGUIelements={}
 
 local tableNodes = {}
 
@@ -451,20 +449,14 @@ function make_slider(x,y,w,h,val,name,valcb)
   slider.x=function() return x end
   slider.y=function() return y end
   -- gfx.w-60 was replaced by gfx.w-20 since the column of buttons was removed
-  slider.w=function() return gfx.w-20 end
-  slider.h=function() return 20 end
+  slider.w=function() return gfx.w-2*BORDER_WIDTH end
+  slider.h=function() return GUI_ELEMENT_HEIGHT end
   slider.value=val
   slider.valcb=valcb
   slider.name=name
   slider.type="Slider"
   slider.env_enabled=false
-  slider.envelope= {{ 0.0, val }, 
-                    --{ 0.25, val } , -- Two of the starting nodes were
-                    --{ 0.75 ,val } , --   removed to simple ramp simpler.
-                    { 1.0,val }}
-  slider.OnMouse=function(theslider, whichevent, x, y, extra) 
-      --reaper.ShowConsoleMsg(tostring(theslider).." "..x.." "..y.."\n") 
-  end
+  slider.OnMouse=function(theslider, whichevent, x, y, extra) end
   return slider
 end
 
@@ -472,8 +464,8 @@ function make_radiobutton(x,y,w,h,val,name,valcb)
   slider={}
   slider.x=function() return x end
   slider.y=function() return y end
-  slider.w=function() return gfx.w-20 end
-  slider.h=function() return 20 end
+  slider.w=function() return gfx.w-2*BORDER_WIDTH end
+  slider.h=function() return GUI_ELEMENT_HEIGHT end
   slider.value=val
   slider.valcb=valcb
   slider.name=name
@@ -483,9 +475,7 @@ function make_radiobutton(x,y,w,h,val,name,valcb)
                     --{ 0.25, val } , 
                     --{ 0.75 ,val } , 
                     { 1.0,val }}
-  slider.OnMouse=function(theslider, whichevent, x, y, extra) 
-      --reaper.ShowConsoleMsg(tostring(theslider).." "..x.." "..y.."\n") 
-    end
+  slider.OnMouse=function(theslider, whichevent, x, y, extra) end
   return slider
 end -- function make_radiobutton
 
@@ -493,20 +483,14 @@ function make_menubutton(x,y,w,h,val,name,valcb)
   slider={}
   slider.x=function() return x end
   slider.y=function() return y end
-  slider.w=function() return gfx.w-20 end
-  slider.h=function() return 20 end
+  slider.w=function() return gfx.w-2*BORDER_WIDTH end
+  slider.h=function() return GUI_ELEMENT_HEIGHT end
   slider.value=val
   slider.valcb=valcb
   slider.name=name
   slider.type="Menu"
   slider.env_enabled=false
-  slider.envelope= {{ 0.0, val }, 
-                    --{ 0.25, val } , 
-                    --{ 0.75 ,val } , 
-                    { 1.0,val }}
-  slider.OnMouse=function(theslider, whichevent, x, y, extra) 
-      --reaper.ShowConsoleMsg(tostring(theslider).." "..x.." "..y.."\n") 
-    end
+  slider.OnMouse=function(theslider, whichevent, x, y, extra) end
   return slider
 end -- function make_menubutton
 
@@ -514,8 +498,8 @@ function make_question(x,y,w,h,val,name,valcb, trueanswer, falseanswer)
   slider={}
   slider.x=function() return x end
   slider.y=function() return y end
-  slider.w=function() return gfx.w-20 end
-  slider.h=function() return 20 end
+  slider.w=function() return gfx.w-2*BORDER_WIDTH end
+  slider.h=function() return GUI_ELEMENT_HEIGHT end
   slider.value=val
   slider.valcb=valcb
   slider.name=name
@@ -524,48 +508,26 @@ function make_question(x,y,w,h,val,name,valcb, trueanswer, falseanswer)
   slider.falseanswer = falseanswer
   slider.type="Question"
   slider.env_enabled=false
-  slider.envelope= {{ 0.0, val }, 
-                    --{ 0.25, val } , 
-                    --{ 0.75 ,val } , 
-                    { 1.0,val }}
-  slider.OnMouse=function(theslider, whichevent, x, y, extra) 
-      --reaper.ShowConsoleMsg(tostring(theslider).." "..x.." "..y.."\n") 
-    end
+  slider.OnMouse=function(theslider, whichevent, x, y, extra) end
   return slider
 end -- function make_question
--- End new functions -------------------------------------
-----------------------------------------------------------
 
 function make_envelope(x,y,w,h,assocslider)
   result={}
-  result.x=function() return x end
-  result.y=function() return borderWidth + GUIelementHeight*(#tableGUIelements+0.5) end
-  result.w=function() return gfx.w-20 end
-  result.h=function() return (gfx.h - 34 -  borderWidth - GUIelementHeight*(#tableGUIelements+0.5)) end
+  result.x=function() return BORDER_WIDTH end
+  result.y=function() return y end
+  result.w=function() return gfx.w-2*BORDER_WIDTH end
+  result.h=function() return (gfx.h - SPACE_BELOW_ENV - y) end
   
   result.type="Envelope"
   result.hotpoint=0
-  result.envelope=assocslider.envelope
-  result.name=assocslider.name
-  return result
+  result.slider = assocslider
+  return result 
+  --tableGUIelements[GUIelement_ENV].slider.envelope
+  
 end
 
--- The column of buttons in original release was removed,
---     so this function is not necessary any more
---[[
-function make_button(x,y,w,h,click_cb)
-  result={}
-  result.x=function() return x end
-  result.y=function() return y end
-  result.w=function() return w end
-  result.h=function() return h end
-  result.type="Button"
-  result.name="MyButton"
-  result.OnClick=click_cb
-  result.checked=true
-  return result
-end
-]]
+
 function bound_value(minval, val, maxval)
     if val<minval then return minval end
     if val>maxval then return maxval end
@@ -631,7 +593,7 @@ function slider_to_string(slid)
         else return(math.ceil(3+slid.value*125))
         end
     elseif slid.name=="Phase step" then 
-        local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+        local totalSteps, _, _, _, _ = shape_function[tableGUIelements[GUIelement_SHAPE].value](0)
         local phaseStep = math.floor(slid.value * totalSteps)
         return tostring(phaseStep) .."/".. tostring(totalSteps)
     elseif slid.name=="Morph" then
@@ -657,12 +619,14 @@ function drawGUIobject(slid)
             setColor({0,0,0,1})
             gfx.rect(slid.x()+1,slid.y()+16,slidWVal,7,true)  
         end
-        setColor(foregroundColor)
-        gfx.gradrect(slid.x(), slid.y()+15, slidWVal,7, gfx.r*0.15, gfx.g*0.15, gfx.b*0.15, 0.5, gfx.r/slidWVal, gfx.g/slidWVal, gfx.b/slidWVal)
+        --setColor(foregroundColor)
+        --gfx.gradrect(slid.x(), slid.y()+15, slidWVal,7, gfx.r*0.15, gfx.g*0.15, gfx.b*0.15, 0.5, gfx.r/slidWVal, gfx.g/slidWVal, gfx.b/slidWVal)
+        gfx.gradrect(slid.x(), slid.y()+15, slid.w()*slid.value, 7, 0, 0, 0, 1, foregroundColor[1]/(slid.w()*slid.value), foregroundColor[2]/(slid.w()*slid.value), foregroundColor[3]/(slid.w()*slid.value), 0, 0)
+        
         --gfx.rect(thumbx,slid.y(),imgw,imgh,true)  
     
     elseif slid.type == "Button" then
-        function fillRoundRect(x,y,w,h,r)
+        --[[function fillRoundRect(x,y,w,h,r)
             if r>w/2 or r>h/2 then r=math.floor(min(w/2, h/2)) end
             for i = 0, r-1 do
                 gfx.line(x+r-i, y+i, x+w-1-r+i, y+i, 0)
@@ -671,31 +635,31 @@ function drawGUIobject(slid)
             for i = y+r, y+h-1-r do
                 gfx.line(x, i, x+w-1, i, 0)
             end
-        end
+        end]]
         stringw,stringh = gfx.measurestr(slid.name)
         ampw,amph = gfx.measurestr("Amplitude")
-        if slid.name == tableGUIelements[GUIelement_ENV].name then
+        if slid.name == tableGUIelements[GUIelement_ENV].slider.name then
             --local stringw,stringh = gfx.measurestr("Amplitude")
-            if shadows == true then
+            --[[if shadows == true then
                 setColor({0,0,0,1})
                 --gfx.rect(gfx.w/2-ampw/2-5, slid.y()-1, ampw+12, stringh+7, true)
                 fillRoundRect(gfx.w/2-ampw/2-5, slid.y()-1, ampw+12, stringh+7, 1)
-            end
-            setColor(foregroundColor)
-            gfx.a = gfx.a*0.7
+            end]]
+            --setColor(foregroundColor)
+            --gfx.a = gfx.a*0.7
+            gfx.gradrect(gfx.w/2-ampw/2-10, slid.y()+stringh+2, ampw+20, 5, foregroundColor[1], foregroundColor[2], foregroundColor[3], 0.8)
             --gfx.a = gfx.a+0.1
             --gfx.rect(gfx.w/2-ampw/2-6, slid.y()-2, ampw+12, stringh+7, true) --(slid.x(),slid.y()-2,stringw+6,stringh+8,true)
-            fillRoundRect(gfx.w/2-ampw/2-6, slid.y()-2, ampw+12, stringh+7, 1)
+            --[[fillRoundRect(gfx.w/2-ampw/2-6, slid.y()-2, ampw+12, stringh+7, 1)
             setColor(textColor)
             gfx.x=gfx.w/2-stringw/2 --slid.x()+3
             gfx.y=slid.y()+2
-            gfx.drawstr(slid.name)
-        else
-            setColor(textColor)
-            gfx.x=gfx.w/2-stringw/2 --slid.x()+3
-            gfx.y=slid.y()+2
-            gfx.drawstr(slid.name)
+            gfx.drawstr(slid.name)]]
         end
+        setColor(textColor)
+        gfx.x=gfx.w/2-stringw/2 --slid.x()+3
+        gfx.y=slid.y()+2
+        gfx.drawstr(slid.name)
     
     elseif slid.type == "Menu" then
         setColor(textColor)
@@ -706,13 +670,13 @@ function drawGUIobject(slid)
             setColor({0,0,0,1})
             gfx.x=slid.x()+4+gfx.measurestr(slid.name)+gfx.measurestr("w")
             gfx.y=slid.y()+3
-            gfx.drawstr(shapeTable[shapeSelected])
+            gfx.drawstr(shapeTable[tableGUIelements[GUIelement_SHAPE].value])
         end
         setColor(foregroundColor)
         gfx.x=slid.x()+3+gfx.measurestr(slid.name)+gfx.measurestr("w")
         gfx.y=slid.y()+2
         gfx.a = gfx.a + 0.3
-        gfx.drawstr(shapeTable[shapeSelected])
+        gfx.drawstr(shapeTable[tableGUIelements[GUIelement_SHAPE].value])
     
     elseif slid.type == "Question" then
         setColor(textColor)
@@ -742,25 +706,11 @@ function drawGUIobject(slid)
         
 end
 
--- The column of buttons in original release was removed,
---     so this function is not necessary any more
---[[
-function draw_button(but)
-  if but.type~="Button" then return end
-  gfx.r=1.0; gfx.g=1.0; gfx.b=1.0; gfx.a=1.0;
-  gfx.rect(but.x(),but.y(),but.w(),but.h(),false)
-  if but.checked==true then
-    gfx.line(but.x(),but.y(),but.x()+but.w(), but.y()+but.h())
-    gfx.line(but.x(),but.y()+but.h(),but.x()+but.w(),but.y())
-  end
-end
-]]
-
-function draw_envelope(env,enabled)
+function draw_envelope(env)
 
     -- Draw Envelope title
     if env.type~="Envelope" then return end
-    local title=env.name
+    local title=env.slider.name
     setColor(textColor)
     title = "Envelope: " .. title
     gfx.x = gfx.w/2 - gfx.measurestr(title)/2
@@ -790,12 +740,12 @@ function draw_envelope(env,enabled)
     gfx.rect(env.x(), env.y(), env.w(), env.h())
 
         
-    --env.h = function() return(envHeight+gfx.h-initYsize) end
+    --env.h = function() return(INIT_ENV_HEIGHT+gfx.h-INIT_Y_SIZE) end
     
     local xcor0=0.0
     local ycor0=0.0
     local i=1
-    for key,envpoint in pairs(env.envelope) do
+    for key,envpoint in pairs(env.slider.envelope) do
         local xcor = env.x()+envpoint[1]*env.w()
         local ycor = env.y()+(1.0-envpoint[2])*env.h()
         
@@ -821,12 +771,12 @@ function draw_envelope(env,enabled)
                 else
                     timeAtNode = time_start + envpoint[1]*(time_end - time_start)
                 end
-            else -- Just in case no envelope selected, or loop_GetInputsAndUpdate() has not yet been run, or something.
+            else -- Just in case no envelope selected, or DEFERLOOP_GetInputsAndUpdate() has not yet been run, or something.
                 timeAtNode = 0
             end
             
             -- If Rate envelope, display either period or frequency above hotpoint
-            if env.name == "Rate" then
+            if env.slider.name == "Rate" then
                 
                 if tableGUIelements[GUIelement_TIMEBASE].value >= 0.5 and hotpointRateDisplayType == "period note length" then
                     local pointRate = beatBaseMin + (beatBaseMax - beatBaseMin)*(envpoint[2]^2)
@@ -858,10 +808,10 @@ function draw_envelope(env,enabled)
                 hotString = "R =" .. hotString
                 
             -- If Amplitude or Center, display value scaled to actual envelope range.
-            -- (The laneMaxValue and laneMinValue variables are calculated in the loop_GetInputsAndUpdate() function.)
-            elseif env.name == "Amplitude" then
+            -- (The laneMaxValue and laneMinValue variables are calculated in the DEFERLOOP_GetInputsAndUpdate() function.)
+            elseif env.slider.name == "Amplitude" then
                 hotString = "A =" .. string.format("%.0f", tostring(envpoint[2]*0.5*(laneMaxValue-laneMinValue)))
-            else -- env.name == "Center"
+            else -- env.slider.name == "Center"
                 hotString = "C =" .. string.format("%.0f", tostring(laneMinValue + envpoint[2]*(laneMaxValue-laneMinValue)))
             end
             
@@ -886,8 +836,22 @@ function draw_envelope(env,enabled)
     end
 end
 
+function DrawGUI()
+    setColor(backgroundColor)
+    gfx.rect(0,0,gfx.w,gfx.h,true)
+    for key, slid in pairs(tableGUIelements) do
+        if slid.type == "Envelope" then
+            draw_envelope(slid)
+        else
+            drawGUIobject(slid)
+        end
+    end
+  
+    gfx.update()
+end
+
 function get_hot_env_point(env,mx,my)
-  for key,envpoint in pairs(env.envelope) do
+  for key,envpoint in pairs(env.slider.envelope) do
     local xcor = env.x()+envpoint[1]*env.w()
     local ycor = env.y()+(1.0-envpoint[2])*env.h()
     if is_in_rect(mx,my,xcor-5,ycor-5,10,10) then return key end
@@ -935,192 +899,234 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- The important function that generates the nodes
-function generateNodes()
+function MAIN_generateNodes()
 
-    local freq = GUIelement_RATE and tableGUIelements[GUIelement_RATE].value or 0.5
-    local amp  = GUIelement_AMPLITUDE and tableGUIelements[GUIelement_AMPLITUDE].value or 0.5
-    local center = GUIelement_CENTER and tableGUIelements[GUIelement_CENTER].value or 0.5
+    --local freq = GUIelement_RATE and tableGUIelements[GUIelement_RATE].value or 0.5
+    --local amp  = GUIelement_AMPLITUDE and tableGUIelements[GUIelement_AMPLITUDE].value or 0.5
+    --local center = GUIelement_CENTER and tableGUIelements[GUIelement_CENTER].value or 0.5
     local phase = GUIelement_PHASE and tableGUIelements[GUIelement_PHASE].value or 0
     local randomness = GUIelement_RANDOMNESS and tableGUIelements[GUIelement_RANDOMNESS].value or 0
     local quansteps = GUIelement_QUANTSTEPS and tableGUIelements[GUIelement_QUANTSTEPS].value or 0
-    local tilt = 0
     local fadindur = GUIelement_FADEIN and tableGUIelements[GUIelement_FADEIN].value or 0
     local fadoutdur = GUIelement_FADEOUT and tableGUIelements[GUIelement_FADEOUT].value or 0
     local ratemode = GUIelement_TIMEBASE and tableGUIelements[GUIelement_TIMEBASE].value or 0
-             
-    math.randomseed(1)
-       
-    tableVals = nil
-    tableVals = {}        
-  
-    time=time_start
-  
-    --local freqhz=1.0+7.0*freq^2.0
-    --[[local nvindex=math.floor(1+(#notevalues-1)*freq)
-    local dividend=notevalues[nvindex][1]
-    local divisor=notevalues[nvindex][2]
-    ]]
-    --reaper.ShowConsoleMsg(dividend .. " " .. divisor .. "\n")
-    --[[!!!!freqhz=1.0
-    if ratemode>0.5 then
-        freqhz=(reaper.Master_GetTempo()/60.0)*1.0/(dividend/divisor)
-    else
-        freqhz=0.1+(31.9*freq^2.0)
-    end ]]   
+    -- rate, amplitude, center and swing are envelopes, so must be determines for each step.
     
-    --!! -- Keep time_start and time_end in timebase, gen_time_start and gen_time_end is in time or beats.
+    math.randomseed(1)        
+    
+    --!! -- Keep time_start and time_end in timebase, timeStart_Base and timeEnd_Base is in time or beats.
+    local time, timeStart_Base, timeEnd_Base = nil, nil, nil
     if ratemode>0.5 then
-      time=reaper.TimeMap_timeToQN(time_start)
-      gen_time_start = time --!!
-      gen_time_end=reaper.TimeMap_timeToQN(time_end)
+      time            = reaper.TimeMap_timeToQN(time_start)
+      timeStart_Base  = time
+      timeEnd_Base    = reaper.TimeMap_timeToQN(time_end)
     else
-      time=time_start
-      gen_time_start = time
-      gen_time_end=time_end
+      time            = time_start
+      timeStart_Base  = time
+      timeEnd_Base    = time_end
     end
     
-    local timeseldur = gen_time_end - gen_time_start --!!time_end-time_start
-  
-    -- local fadoutstart_time = time_end-time_start-timeseldur*fadoutdur
+    local timeSelDur_Base = timeEnd_Base - timeStart_Base --!!time_end-time_start
     
-    local totalSteps, _, _, _, _ = shape_function[shapeSelected](0)
+    local totalSteps, _, _, _, _ = shape_function[tableGUIelements[GUIelement_SHAPE].value](0)
     local phaseStep = math.floor(phase * totalSteps)
   
-    local segshape=-1.0+2.0*tilt
-    local ptcount=0
+    ------------------------------------------------------------
+    -- CALCULATE TIME POSITIONS / APPLY SWING
+    -- In order to apply swing, the time positions for each step
+    --    must be calculated beforehand, since swing uses position relative to later nodes.
+    local tTimes = {}
+    do
+        local tSwing = {}
+        local step = 0 
+        local t = time
+        while t <= timeEnd_Base do 
+            tTimes[step] = t
+            
+            -- Calculate the step size to next envelope node
+            -- The script's internal envelope value is between [0,1] and must be mapped to 
+            --    a period between [timeBaseMin, timeBaseMax] or [beatBaseMin,beatBaseMax].
+             curNodeTimeNormalized = (1.0/timeSelDur_Base)*(t-timeStart_Base)
+            local curEnvRate = get_env_interpolated_value(tableGUIelements[GUIelement_RATE].envelope, curNodeTimeNormalized, rateInterpolationType)
+            tSwing[step] = get_env_interpolated_value(tableGUIelements[GUIelement_SWING].envelope, curNodeTimeNormalized, "linear")
+            
+            if ratemode < 0.5 then
+                -- Timebase is time, so step size in seconds
+                t = t + (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(curEnvRate^2.0))) / totalSteps
+            else
+                -- Timebase == beats, so step size in Quarter Notes
+                t = t + (4.0/(beatBaseMin + (beatBaseMax-beatBaseMin)*(curEnvRate^2.0))) / totalSteps
+            end
+            step = step + 1
+        end
+        if #tTimes < 3 then return end
         
-    tableNodes = nil
-    tableNodes = {}
+        -- Because the script may need to interpolate nodes at start and end, using invisible values from beyond the edges, 
+        --    time positions for these must also be estimated.
+        local tN = #tTimes
+        local tdL = tTimes[#tTimes] - tTimes[#tTimes-1]
+        local tL = tTimes[#tTimes]
+        local tF = tTimes[0]
+        local tdF = tTimes[1] - tTimes[0]
+        for step = 1, totalSteps*2 do
+            tTimes[tN+step] = tL + step*tdL
+            tTimes[  -step] = tF - step*tdF
+        end
+        
+        -- This may not be the most efficient way to get values, but it's not often that I get a chance to use metatables!
+        --[[
+        setmetatable(tTimes, {__index = function(t, i) 
+                                          if i < 0 then return t[0] + (i * (t[1]-t[0])) end
+                                          if i > #t then return t[#t] + ((i-#t) * ( t[#t]-t[#t-1]) ) end
+                                        end
+                                        })
+        ]]
+        setmetatable(tSwing, {__index = function(t, i) 
+                                          if i < 0 then return t[0] end
+                                          if i > #t then return t[#t] end
+                                        end
+                                        })
+        -- APPLY SWING!
+        for step = -totalSteps, totalSteps*math.floor(#tTimes/totalSteps) do
+            if (step % totalSteps) == 0 then
+                --tTimes[step] = tTimes[step] -- Fix the metatable-returned value
+            else
+                local f = math.floor(step/totalSteps) * totalSteps
+                local c = math.ceil (step/totalSteps) * totalSteps
+                swing = tSwing[f]
+                if tSwing[f] > 0.5 then 
+                --swing = math.max(0,000000001, math.min(0.99999999, swing))
+                    tTimes[step] = tTimes[step] + 2*(tSwing[f]-0.5)*(tTimes[c]-tTimes[step])
+                elseif swing < 0.5 then
+                    tTimes[step] = tTimes[step] - 2*(0.5-tSwing[f])*(tTimes[step]-tTimes[f])
+                end    
+            end
+        end
+    end
+       
     ---------------------------------------------------------------------------------------------------
     -- The main loop that inserts points.
     -- In order to interpolate the closing envelope point that will be inserted at end_time,
     --    this loop must actually progress one step beyond the end time.  The point beyond end_time 
     --    of course not be inserted, but will only be used to calculate the interpolated closing point.
     -- while isBeyondEnd == false do
+    local ptcount = 0
+    tableNodes = nil
+    tableNodes = {}
     repeat
-        time_to_interp = (1.0/timeseldur)*(time-gen_time_start) --!!time_start
 
-        freq_norm_to_use = get_env_interpolated_value(tableGUIelements[GUIelement_RATE].envelope,time_to_interp, rateInterpolationType)
-        if ratemode < 0.5 then
-            -- Timebase is time, so step size in seconds
-            nextNodeStepSize = (1.0/(timeBaseMin + (timeBaseMax-timeBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
-        else
-            -- Timebase == beats, so step size in Quarter Notes
-            nextNodeStepSize = (4.0/(beatBaseMin + (beatBaseMax-beatBaseMin)*(freq_norm_to_use^2.0))) / totalSteps
-        end                
-              
-        ---------------------     
+        time = tTimes[ptcount]   
+        -- The script's internal envelope value is between [0,1] and must be mapped to 
+        --    a period between [timeBaseMin, timeBaseMax] or [beatBaseMin,beatBaseMax].
+        -- This is done using a power curve: 
+        --    nextNodeStepSize = (1/(MINFREQ + (MAXFREQ-MINFREQ)*(curEnvRate^FREQPOWER)) / totalSteps
+        curNodeTimeNormalized = (1.0/timeSelDur_Base)*(time-timeStart_Base)            
+                 
         -- Get info for point
-        totalSteps, val, pointShape, pointTension, linearJump = shape_function[shapeSelected](ptcount-phaseStep)
+        local totalSteps, val, pointShape, pointTension, linearJump = shape_function[tableGUIelements[GUIelement_SHAPE].value](ptcount-phaseStep)
         
         -- Bézier curves are not yet implemented, so replace Bézier with Linear
         if pointShape == 5 then pointShape = 0 end
         
+        -- Interpolate first node, if necessary
+        -- Interpolation may be required at two places: left edge and right edge, if these don't fall on nodes.
         -- Usually "false" values are skipped, but not if it is the very first point
         --   Try to interpolate
+        -- After getting interpolated value, must then go through the normal steps of normalizing to env range etc.
+        -- NB: DIFFERENCE BETWEEN ENVELOPE AND MIDI EITOR VERSIONS: in latter, shape can take on fractional values, to indicate 
         if ptcount == 0 and val == false then
+            local n, nextVal, nextShape, nextTension, nextJump
+            local p, prevVal, prevShape, prevTension, prevJump
             for i = 1, totalSteps-1 do
-                _, nextVal, nextShape, nextTension, nextJump = shape_function[shapeSelected](ptcount-phaseStep+i)
+                _, nextVal, nextShape, nextTension, nextJump = shape_function[tableGUIelements[GUIelement_SHAPE].value](-phaseStep + i)
                 if nextVal ~= false then n=i break end
             end
-            for i = 1, totalSteps-1 do
-                _, prevVal, prevShape, prevTension, prevJump = shape_function[shapeSelected](ptcount-phaseStep-i)
+            for i = -1, -totalSteps+1, -1 do
+                _, prevVal, prevShape, prevTension, prevJump = shape_function[tableGUIelements[GUIelement_SHAPE].value](-phaseStep + i)
                 if prevVal ~= false then p=i break end
             end
-            if nextVal ~= false and prevVal ~= false then -- if entire shape is "false", then don't bother
+            if not (nextVal and prevVal) then -- if entire shape is "false", then don't bother
+                return 
+            else  
                 if prevJump then prevVal=-prevVal end
                 linearJump = false
-                if prevShape == 1 then -- square
-                    val = prevVal
-                elseif prevShape == 2 then -- sine
-                    val = prevVal + (nextVal-prevVal)*(1-math.cos(math.pi * p/(p+n)))/2
-                    pointShape = 2 + p/(p+n)
-                elseif prevShape == 3 then -- Fast start (aka inverse parabolic)
-                    val = nextVal + (prevVal-nextVal)*((n/(p+n))^3)
-                    pointShape = 3 + p/(p+n)
-                elseif prevShape == 4 then -- Fast end (aka parabolic)
-                    val = prevVal + (nextVal-prevVal)*((p/(p+n))^3)
-                    pointShape = 4 + p/(p+n)                
-                else -- Linear or Bézier: This interpolation will only be accurate for linear shapes
-                    val = prevVal + (nextVal-prevVal) * p / (p+n)
+                
+                if tTimes[n] == tTimes[p] then 
+                    val = nextVal 
+                else
+                    local fraction = (tTimes[0] - tTimes[p]) / (tTimes[n] - tTimes[p])
+                    if prevShape == 1 then -- square
+                        val = prevVal
+                    elseif prevShape == 2 then -- sine
+                        val = prevVal + (nextVal-prevVal)*(1-math.cos(math.pi * fraction))/2
+                        pointShape = 2 + fraction
+                    elseif prevShape == 3 then -- Fast start (aka inverse parabolic)
+                        val = nextVal + (prevVal-nextVal)*(((tTimes[n]-tTimes[0])/(tTimes[n]-tTimes[p]))^3)
+                        pointShape = 3 + fraction
+                    elseif prevShape == 4 then -- Fast end (aka parabolic)
+                        val = prevVal + (nextVal-prevVal)*(fraction^3)
+                        pointShape = 4 + fraction             
+                    else -- Linear or Bézier: This interpolation will only be accurate for linear shapes
+                        val = prevVal + (nextVal-prevVal) * fraction
+                    end
                 end
-            else
-                return(0) -- entire shape is false
             end
-        
         end  
                
-        if val == false then -- Skip point
-            time=time+nextNodeStepSize
-            ptcount=ptcount+1   
-        else -- Point will be inserted. Must first calculate value
-            -- If linearJump, then oppositeVal must also be calculated               
-            if linearJump == true then oppositeVal = -val end
+        if val then -- Point will be inserted. Must first calculate value
+            -- If linearJump, then oppositeVal must also be calculated 
+            -- Must use val *before* adjustments.              
+            local oppositeVal = -val
           
+            -- Apply Amplitude envelope / Fade in / Fade out sliders
+            local curEnvAmplitude = get_env_interpolated_value(tableGUIelements[GUIelement_AMPLITUDE].envelope, curNodeTimeNormalized, "linear")
             -- fade goes to infinity when trying to calculate point beyond end_time, 
             --    so use fadeHackTime when calculating the point efter end_time.
             fade_gain = 1.0
-            timeFadeHack = math.min(time, gen_time_end) 
-            if timeFadeHack - gen_time_start < timeseldur*fadindur then
-               fade_gain = 1.0/(timeseldur*fadindur)*(timeFadeHack - gen_time_start)
+            timeFadeHack = math.min(time, timeEnd_Base) 
+            if timeFadeHack - timeStart_Base < timeSelDur_Base*fadindur then
+               fade_gain = 1.0/(timeSelDur_Base*fadindur)*(timeFadeHack - timeStart_Base)
             end
-            if timeFadeHack - gen_time_start > timeseldur - timeseldur*fadoutdur then
-               --!!fade_gain = 1.0-(1.0/(timeseldur*fadoutdur)*(timeFadeHack - fadoutstart_time - gen_time_start))
-               fade_gain = fade_gain * (1.0/(timeseldur*fadoutdur))*(gen_time_end - timeFadeHack)
+            if timeFadeHack - timeStart_Base > timeSelDur_Base - timeSelDur_Base*fadoutdur then
+               --!!fade_gain = 1.0-(1.0/(timeSelDur_Base*fadoutdur)*(timeFadeHack - fadoutstart_time - timeStart_Base))
+               fade_gain = fade_gain * (1.0/(timeSelDur_Base*fadoutdur))*(timeEnd_Base - timeFadeHack)
             end
-                      
+            val=0.5+(0.5*curEnvAmplitude*fade_gain)*val
             
-            --if time_to_interp<0.0 or time_to_interp>1.0 then
-            --  reaper.ShowConsoleMsg(time_to_interp.." ") end
-            amp_to_use = get_env_interpolated_value(tableGUIelements[GUIelement_AMPLITUDE].envelope,time_to_interp, "linear")
-            --if amp_to_use<0.0 or amp_to_use>1.0 then reaper.ShowConsoleMsg(amp_to_use.." ") end
-            val=0.5+(0.5*amp_to_use*fade_gain)*val
-            local center_to_use=get_env_interpolated_value(tableGUIelements[GUIelement_CENTER].envelope,time_to_interp, "linear")
+            -- Apply Center envelope
+            local curEnvCenter = get_env_interpolated_value(tableGUIelements[GUIelement_CENTER].envelope, curNodeTimeNormalized, "linear")
             local rangea=laneMaxValue-laneMinValue
-            val=laneMinValue+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*val)
+            val=laneMinValue+((rangea*curEnvCenter)+(-rangea/2.0)+(rangea/1.0)*val)
+            
+            -- Apply Randomness slider
             local z=(2*math.random()-1)*randomness*(laneMaxValue-laneMinValue)/2
-            val=val+z
-            local tilt_ramp = (time - gen_time_start) / (timeseldur) --!!1.0/(gen_time_end-time_start) * (time-time_start)
-            local tilt_amount = -1.0+2.0*tilt
-            local tilt_delta = -tilt_amount+(2.0*tilt_amount)*time_to_interp --!!tilt_ramp
-                --[[val=val+tilt_delta
-            local num_quansteps=3+quansteps*61
-            if num_quansteps<64 then
-                val=quantize_value(val,num_quansteps)
-            end]]
-            --[[if quansteps ~= 1 then
-                val=quantize_value(val,3 + math.ceil(quansteps*125))
-            end]]
+            val=val+z -- Slightly different from Envelope version calculation
             
-                      
+            -- Unlike envelope version, the CC version applies Quant steps to each CC, not to the nodes.
+            
+            -- Keep within envelope bounds
             val=bound_value(laneMinValue,val,laneMaxValue)
-            --val = reaper.ScaleToEnvelopeMode(envscalingmode, val)
-            local tension = segshape*pointTension  
             
-            --[[ To insert envelope nodes, timebase==beat must be mapped back to timebase==time
-            --!!local instime=time
-            if ratemode>0.5 then
-                instime=reaper.TimeMap2_QNToTime(0, time)
-            else
-                instime = time
-            end
-            ]]
+            -- The CC version of this script doesn't actually yet implement Bezier tension
+            local tension = -pointTension  
             
+            -- To insert envelope nodes, timebase must be mapped to PPQ positions         
             if ratemode == 1 then
                 insPPQ = reaper.MIDI_GetPPQPosFromProjQN(take, time)
             else
                 insPPQ = reaper.MIDI_GetPPQPosFromProjTime(take, time)
             end
             
-            if linearJump == true then
-                oppositeVal=0.5+(0.5*amp_to_use*fade_gain)*oppositeVal
-                oppositeVal=laneMinValue+((rangea*center_to_use)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
+            -- If linearJump, then oppositeVal must also be calculated
+            if linearJump then
+                oppositeVal=0.5+(0.5*curEnvAmplitude*fade_gain)*oppositeVal
+                oppositeVal=laneMinValue+((rangea*curEnvCenter)+(-rangea/2.0)+(rangea/1.0)*oppositeVal)
                 oppositeVal=oppositeVal-z
                 --[[if quansteps ~= 1 then
                     val=quantize_value(val,3 + math.ceil(quansteps*125))
                 end]]
                 oppositeVal=bound_value(laneMinValue,oppositeVal,laneMaxValue)
-                local tension = segshape*pointTension
+            
                 table.insert(tableNodes, {PPQ = insPPQ, 
                                           value = val, 
                                           shape = 0, 
@@ -1135,21 +1141,17 @@ function generateNodes()
                                           shape = pointShape, 
                                           tension = tension})       
             end
-
-            time=time+nextNodeStepSize
-            ptcount=ptcount+1
+            
         end -- if val ~= false
        
         instime = reaper.MIDI_GetProjTimeFromPPQPos(take, insPPQ)
-    until instime >= time_end -- while time < gen_end_time
-    --end -- while time<=gen_end_time
-    
-    --if last_used_parms==nil then last_used_params={"}
-    --last_used_params[env]={freq,amp,center,phase,randomness,quansteps,tilt,fadindur,fadoutdur,ratemode,clip}
-    
-    --reaper.Envelope_SortPoints(env)
-    --tableNodes:sort(sortPPQ)
-end
+        
+        ptcount=ptcount+1   
+        
+    until instime > time_end -- while time < gen_end_time
+end -- function MAIN_generateNodes()
+
+----------------------------------------------------------
 
 function exit()
 
@@ -1159,13 +1161,7 @@ function exit()
         -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
         reaper.SetExtState("LFO generator", "Last coordinates", string.format("%i", math.floor(xPos+0.5)) .. "," .. string.format("%i", math.floor(yPos+0.5)), true)
     end
-    gfx.quit()
-  
-    -- New versions of the SWS extension provide a function to focus the MIDI editor!
-    --    This will prevent shortcuts from accidentally being sent to the Main window. 
-    if reaper.APIExists("SN_FocusMIDIEditor") then
-        reaper.SN_FocusMIDIEditor()
-    end
+    gfx.quit()  
     
     -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
     --    causing infinitely extended notes or zero-length notes.
@@ -1182,7 +1178,12 @@ function exit()
                               .. "\n\nThe original MIDI data will be restored to the take.", "ERROR", 0)
     end
         
-    if isInline then reaper.UpdateArrange() end  
+    -- Return focus to prevent shortcuts from accidentally being sent to the wrong window. 
+    if isInline then 
+        reaper.UpdateArrange()
+    elseif reaper.SN_FocusMIDIEditor then
+        reaper.SN_FocusMIDIEditor()
+    end
     
     -- Deactivate toolbar button, if any
     if sectionID ~= nil and cmdID ~= nil and sectionID ~= -1 and cmdID ~= -1 then
@@ -1214,7 +1215,7 @@ already_added_pt=false
 already_removed_pt=false
 last_mouse_cap=0
 
-function loop_GetInputsAndUpdate()
+function DEFERLOOP_GetInputsAndUpdate()
 
     ---------------------------------------------------------------------------
     -- First, go through several tests to detect whether the script should exit
@@ -1253,10 +1254,7 @@ function loop_GetInputsAndUpdate()
         if time_start_new ~= timeSelectStart or time_end_new ~= timeSelectEnd then 
             return(0) 
         end
-    end
-    
-    setColor(backgroundColor)
-    gfx.rect(0,0,gfx.w,gfx.h,true)
+    end    
     
     ------------------------------------------------------------------------
     -- Reset several parameters
@@ -1282,7 +1280,7 @@ function loop_GetInputsAndUpdate()
     end  
     
     -- Iterate through all the buttons and sliders in the GUI  
-    local dogenerate=false
+    local dogenerate, dodraw = false, false
     for key, tempcontrol in pairs(tableGUIelements) do
     
       if is_in_rect(gfx.mouse_x,gfx.mouse_y,tempcontrol.x(),tempcontrol.y(),tempcontrol.w(),tempcontrol.h()) 
@@ -1294,7 +1292,7 @@ function loop_GetInputsAndUpdate()
           end
           --[[
           if tempcontrol.type=="Slider" and gfx.mouse_cap==2 
-            and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude") then
+            and (tempcontrol.slider.name=="Rate" or tempcontrol.slider.name=="Amplitude") then
             gfx.x=gfx.mouse_x
             gfx.y=gfx.mouse_y
             local menuresult=gfx.showmenu("Toggle envelope active|Show envelope")
@@ -1306,31 +1304,32 @@ function loop_GetInputsAndUpdate()
             end
             if menuresult==2 then
               tableGUIelements[100].envelope=tempcontrol.envelope
-              tableGUIelements[100].name=tempcontrol.name
+              tableGUIelements[100].slider.name=tempcontrol.name
             end
           end
           ]]
         
           -- Click on Rate/Center/Amplitude buttons to change envelope type
-          --[[if char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and (tempcontrol.name=="Rate" or tempcontrol.name=="Amplitude" or tempcontrol.name=="Center") then
+          --[[if char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and (tempcontrol.slider.name=="Rate" or tempcontrol.slider.name=="Amplitude" or tempcontrol.slider.name=="Center") then
               tableGUIelements[100].envelope=tempcontrol.envelope
-              tableGUIelements[100].name=tempcontrol.name
+              tableGUIelements[100].slider.name=tempcontrol.slider.name
               firstClick = false
               dogenerate = true
           end ]]
           if char == string.byte("r") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Rate") then
-              tableGUIelements[GUIelement_ENV].envelope=tableGUIelements[GUIelement_RATE].envelope
-              tableGUIelements[GUIelement_ENV].name=tableGUIelements[GUIelement_RATE].name -- = tempcontrol.name
+              tableGUIelements[GUIelement_ENV].slider = tableGUIelements[GUIelement_RATE]
               firstClick = false
               dogenerate = true
           elseif char == string.byte("c") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Center") then
-              tableGUIelements[GUIelement_ENV].envelope=tableGUIelements[GUIelement_CENTER].envelope
-              tableGUIelements[GUIelement_ENV].name=tableGUIelements[GUIelement_CENTER].name -- = tempcontrol.name
+              tableGUIelements[GUIelement_ENV].slider = tableGUIelements[GUIelement_CENTER]
               firstClick = false
               dogenerate = true
           elseif char == string.byte("a") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Amplitude") then
-              tableGUIelements[GUIelement_ENV].envelope=tableGUIelements[GUIelement_AMPLITUDE].envelope
-              tableGUIelements[GUIelement_ENV].name=tableGUIelements[GUIelement_AMPLITUDE].name -- tempcontrol.name
+              tableGUIelements[GUIelement_ENV].slider = tableGUIelements[GUIelement_AMPLITUDE]
+              firstClick = false
+              dogenerate = true
+          elseif char == string.byte("s") or (gfx.mouse_cap==LEFTBUTTON and tempcontrol.name=="Swing") then
+              tableGUIelements[GUIelement_ENV].slider = tableGUIelements[GUIelement_SWING]
               firstClick = false
               dogenerate = true
           end
@@ -1353,7 +1352,7 @@ function loop_GetInputsAndUpdate()
               gfx.x = gfx.mouse_x
               gfx.y = gfx.mouse_y
               retval = gfx.showmenu(shapeMenu)
-              if retval ~= 0 then shapeSelected = retval end
+              if retval ~= 0 then tableGUIelements[GUIelement_SHAPE].value = retval end
               dogenerate = true
               firstClick = false
           end       
@@ -1367,19 +1366,19 @@ function loop_GetInputsAndUpdate()
               --       node of the envelope.  0 if no hotpoint.
               if gfx.mouse_cap==NOTHING or gfx.mouse_cap==(LEFTBUTTON+ALTKEY) then
                 tempcontrol.hotpoint=get_hot_env_point(tempcontrol,gfx.mouse_x,gfx.mouse_y)
+                dodraw = true
               end
               
               -- Ctrl+left click in envelope area to set all nodes to same value
               if gfx.mouse_cap == (LEFTBUTTON + CTRLKEY) then
                   pt_y = 1.0/tempcontrol.h()*(gfx.mouse_y-tempcontrol.y())
-                  for i = 1, #tempcontrol.envelope do
-                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, 1 - pt_y))
+                  for i = 1, #tempcontrol.slider.envelope do
+                      tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, 1 - pt_y))
                   end
                   dogenerate = true
                   firstClick = false
               end 
               
-      
               -- Leftclick to add an envelope node at mouse position
               -- Since the 'capture' area of the envelope area has been expanded, must make sure here that mouse is really inside area
               if tempcontrol.hotpoint==0 and gfx.mouse_cap==LEFTBUTTON and already_added_pt==false 
@@ -1392,15 +1391,15 @@ function loop_GetInputsAndUpdate()
                   pt_x = math.min(1, math.max(0, pt_x))
                   pt_y = math.min(1, math.max(0, 1.0-pt_y))
                   -- Insert new points *before* last node, so that sorting isn't necessary.
-                  for p = 1, #tempcontrol.envelope-1 do
-                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
-                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
+                  for p = 1, #tempcontrol.slider.envelope-1 do
+                      if tempcontrol.slider.envelope[p][1] <= pt_x and pt_x <= tempcontrol.slider.envelope[p+1][1] then
+                          table.insert(tempcontrol.slider.envelope, p+1, {pt_x, pt_y})
                           break
                       end
                   end
                   dogenerate=true
                   already_added_pt=true
-                  --sort_envelope(tempcontrol.envelope)
+                  --sort_envelope(tempcontrol.slider.envelope)
                   firstClick = false
               end
               
@@ -1416,15 +1415,15 @@ function loop_GetInputsAndUpdate()
                   pt_x = math.min(1, math.max(0, pt_x))
                   pt_y = math.min(1, math.max(0, 1.0-pt_y))
                   -- Insert new points *before* last node, so that sorting isn't necessary.
-                  for p = 1, #tempcontrol.envelope-1 do
-                      if tempcontrol.envelope[p][1] <= pt_x and pt_x <= tempcontrol.envelope[p+1][1] then
-                          table.insert(tempcontrol.envelope, p+1, {pt_x, pt_y})
+                  for p = 1, #tempcontrol.slider.envelope-1 do
+                      if tempcontrol.slider.envelope[p][1] <= pt_x and pt_x <= tempcontrol.slider.envelope[p+1][1] then
+                          table.insert(tempcontrol.slider.envelope, p+1, {pt_x, pt_y})
                           break
                       end
                   end
                   dogenerate=true
                   already_added_pt=true
-                  --sort_envelope(tempcontrol.envelope)
+                  --sort_envelope(tempcontrol.slider.envelope)
                   firstClick = false
               end
               
@@ -1432,9 +1431,9 @@ function loop_GetInputsAndUpdate()
               --Prevent removal of endpoint nodes
               --if already_removed_pt==false and tempcontrol.hotpoint>0 and gfx.mouse_cap == 17  then
               if tempcontrol.hotpoint > 0 and gfx.mouse_cap == (LEFTBUTTON+ALTKEY)
-                  and not (tempcontrol.hotpoint == 1 or tempcontrol.hotpoint == #tempcontrol.envelope)
+                  and not (tempcontrol.hotpoint == 1 or tempcontrol.hotpoint == #tempcontrol.slider.envelope)
                   then
-                  table.remove(tempcontrol.envelope,tempcontrol.hotpoint)
+                  table.remove(tempcontrol.slider.envelope,tempcontrol.hotpoint)
                   dogenerate=true
                   firstClick = false
                   --already_removed_pt=true
@@ -1445,25 +1444,25 @@ function loop_GetInputsAndUpdate()
               if tempcontrol==captured_control and tempcontrol.hotpoint>0 and gfx.mouse_cap==LEFTBUTTON then
                   local pt_x = (1.0/captured_control.w())*(gfx.mouse_x-captured_control.x())
                   local pt_y = (1.0/captured_control.h())*(gfx.mouse_y-captured_control.y())
-                  local ept = tempcontrol.envelope[tempcontrol.hotpoint]
+                  local ept = tempcontrol.slider.envelope[tempcontrol.hotpoint]
                   ept[2]=math.min(1, math.max(0, 1.0-pt_y))
                   if tempcontrol.hotpoint == 1 then 
                       ept[1]=0
-                  elseif tempcontrol.hotpoint == #tempcontrol.envelope then
+                  elseif tempcontrol.hotpoint == #tempcontrol.slider.envelope then
                       ept[1]=1
                   else
                       ept[1]=math.min(1, math.max(0, pt_x))
                       -- Did the hotpoint pass beyond another point?  If so, re-sort the envelope
                       -- (These explicit tests are faster than calling sort_envelope for the entire envelope.)
                       ::checkPointsForSorting::
-                          if ept[1] < tempcontrol.envelope[tempcontrol.hotpoint-1][1] then
-                              tempcontrol.envelope[tempcontrol.hotpoint] = tempcontrol.envelope[tempcontrol.hotpoint-1]
-                              tempcontrol.envelope[tempcontrol.hotpoint-1] = ept
+                          if ept[1] < tempcontrol.slider.envelope[tempcontrol.hotpoint-1][1] then
+                              tempcontrol.slider.envelope[tempcontrol.hotpoint] = tempcontrol.slider.envelope[tempcontrol.hotpoint-1]
+                              tempcontrol.slider.envelope[tempcontrol.hotpoint-1] = ept
                               tempcontrol.hotpoint = tempcontrol.hotpoint - 1
                               goto checkPointsForSorting
-                          elseif ept[1] > tempcontrol.envelope[tempcontrol.hotpoint+1][1] then
-                              tempcontrol.envelope[tempcontrol.hotpoint] = tempcontrol.envelope[tempcontrol.hotpoint+1]
-                              tempcontrol.envelope[tempcontrol.hotpoint+1] = ept
+                          elseif ept[1] > tempcontrol.slider.envelope[tempcontrol.hotpoint+1][1] then
+                              tempcontrol.slider.envelope[tempcontrol.hotpoint] = tempcontrol.slider.envelope[tempcontrol.hotpoint+1]
+                              tempcontrol.slider.envelope[tempcontrol.hotpoint+1] = ept
                               tempcontrol.hotpoint = tempcontrol.hotpoint + 1
                               goto checkPointsForSorting
                           end
@@ -1477,7 +1476,7 @@ function loop_GetInputsAndUpdate()
               if tempcontrol.hotpoint>0 and gfx.mouse_cap==NOTHING and gfx.mouse_wheel ~= 0 then
                   if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
                   gfx.mouse_wheel = 0
-                  tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, tempcontrol.envelope[tempcontrol.hotpoint][2] + fineAdjust))
+                  tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, tempcontrol.slider.envelope[tempcontrol.hotpoint][2] + fineAdjust))
                   dogenerate=true
                   --reaper.ShowConsoleMsg("would drag pt "..tempcontrol.hotpoint.."\n")
               end
@@ -1487,8 +1486,8 @@ function loop_GetInputsAndUpdate()
               if gfx.mouse_cap == CTRLKEY and gfx.mouse_wheel ~= 0 then
                   if gfx.mouse_wheel < 0 then fineAdjust = -math.abs(fineAdjust) else fineAdjust = math.abs(fineAdjust) end
                   gfx.mouse_wheel = 0
-                  for i = 1, #tempcontrol.envelope do
-                      tempcontrol.envelope[i][2] = math.min(1, math.max(0, tempcontrol.envelope[i][2] + fineAdjust))
+                  for i = 1, #tempcontrol.slider.envelope do
+                      tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, tempcontrol.slider.envelope[i][2] + fineAdjust))
                   end
                   dogenerate = true
               end 
@@ -1543,7 +1542,7 @@ function loop_GetInputsAndUpdate()
               end
         
               -- If Rate: Ctrl-RightClick to quantize period of ALL nodes
-              if tempcontrol.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
+              if tempcontrol.slider.name == "Rate" and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
                   local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
                   quantmenuSel = gfx.showmenu("#Set rate at ALL nodes to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
@@ -1561,6 +1560,7 @@ function loop_GetInputsAndUpdate()
                               userNoteFound = true 
                           end
                       until retval == false or userNoteFound == true
+                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                   elseif quantmenuSel == #tableNoteRates + 2 then
                       repeat
                           retval, userFreq = reaper.GetUserInputs("Set rate at all nodes", 1, "Frequency in Hz"
@@ -1577,37 +1577,38 @@ function loop_GetInputsAndUpdate()
                               userFreqFound = true 
                           end
                       until retval == false or userFreqFound == true
+                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                   end
                     
                   if userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      for i = 1, #tempcontrol.envelope do
-                          local bpm = getBPM(time_start + tempcontrol.envelope[i][1]*(time_end-time_start))
+                      for i = 1, #tempcontrol.slider.envelope do
+                          local bpm = getBPM(time_start + tempcontrol.slider.envelope[i][1]*(time_end-time_start))
                           local userFreq = (1.0/240) * userNote * bpm
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                          tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       end
                       dogenerate = true
                   elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 then
                       local normalizedValue = ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)
-                      for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
+                      for i = 1, #tempcontrol.slider.envelope do
+                          tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
                       end
                       dogenerate = true
                   elseif userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 then
                       local normalizedValue = ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)
-                      for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
+                      for i = 1, #tempcontrol.slider.envelope do
+                          tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, normalizedValue))
                       end
                       dogenerate = true
                   elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      for i = 1, #tempcontrol.envelope do
+                      for i = 1, #tempcontrol.slider.envelope do
                           local timeStartQN = reaper.TimeMap_timeToQN(time_start)
                           local timeEndQN = reaper.TimeMap_timeToQN(time_end)
-                          local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[i][1]*(timeEndQN-timeStartQN))
+                          local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.slider.envelope[i][1]*(timeEndQN-timeStartQN))
                           local bpm = getBPM(timeAtNode)
                           local userNote = (1.0/bpm) * 240.0 * userFreq
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                          tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       end
                       dogenerate = true
                   end 
@@ -1616,7 +1617,7 @@ function loop_GetInputsAndUpdate()
               
               
               -- If Rate and right-click on hotpoint: Quantize period of hotpoint
-              if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON then
+              if tempcontrol.slider.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON then
                   gfx.x = gfx.mouse_x; gfx.y = gfx.mouse_y
                   local tableNoteRates = {nil, 32.0, 16.0*3.0/2.0, 16.0, 8.0*3.0/2.0, 8.0, 4.0*3.0/2.0, 4.0, 2.0*3.0/2.0, 2.0, 1.0, 0.5}                                            
                   quantmenuSel = gfx.showmenu("#Set rate at node to:|1/32|1/16 triplet|1/16|1/8 triplet|1/8|1/4 triplet|1/4|1/2 triplet|1/2|Whole note|Two whole notes||Custom note length (beats)||Custom frequency (time)")
@@ -1634,6 +1635,7 @@ function loop_GetInputsAndUpdate()
                               userNoteFound = true 
                           end
                       until retval == false or userNoteFound == true
+                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                   elseif quantmenuSel == #tableNoteRates + 2 then
                       repeat
                           retval, userFreq = reaper.GetUserInputs("Set rate at node", 1, "Frequency in Hz"
@@ -1650,62 +1652,63 @@ function loop_GetInputsAndUpdate()
                               userFreqFound = true 
                           end
                       until retval == false or userFreqFound == true
+                      if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                   end
                   
                   if userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
-                      local bpm = getBPM(time_start + tempcontrol.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
+                      local bpm = getBPM(time_start + tempcontrol.slider.envelope[tempcontrol.hotpoint][1]*(time_end-time_start))
                       local userFreq = (1.0/240.0) * userNote * bpm
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                      tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       dogenerate = true                                            
                   elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 0 then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
+                      tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(timeBaseMax - timeBaseMin)) * (userFreq-timeBaseMin))^(0.5)))
                       dogenerate = true
                   elseif userNoteFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                      tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       dogenerate = true
                   elseif userFreqFound == true and tableGUIelements[GUIelement_TIMEBASE].value == 1 
                       and type(time_end) == "number" and type(time_start) == "number" and time_start<=time_end then
                       local timeStartQN = reaper.TimeMap_timeToQN(time_start)
                       local timeEndQN = reaper.TimeMap_timeToQN(time_end)
-                      local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.envelope[tempcontrol.hotpoint][1]*(timeEndQN-timeStartQN))
+                      local timeAtNode = reaper.TimeMap_QNToTime(timeStartQN + tempcontrol.slider.envelope[tempcontrol.hotpoint][1]*(timeEndQN-timeStartQN))
                       local bpm = getBPM(timeAtNode)
                       local userNote = (1.0/bpm) * 240.0 * userFreq
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
+                      tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = math.min(1, math.max(0, ((1.0/(beatBaseMax - beatBaseMin)) * (userNote-beatBaseMin))^(0.5)))
                       dogenerate = true
                   end              
-              end -- if tempcontrol.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON
+              end -- if tempcontrol.slider.name == "Rate" and tempcontrol.hotpoint>0 and gfx.mouse_cap==RIGHTBUTTON
               
               
               -- If Amplitude or Center and rightclick on hotpoint: Set to precise custom value
-              if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center") 
+              if (tempcontrol.slider.name == "Amplitude" or tempcontrol.slider.name == "Center" or tempcontrol.slider.name == "Swing") 
                   and tempcontrol.hotpoint>0 
                   and gfx.mouse_cap==RIGHTBUTTON 
                   then
                   repeat
-                          retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "")
+                          retval, userVal = reaper.GetUserInputs("Set node value", 1, "Node value (normalized)", "0.5")
                           userVal = tonumber(userVal)
                   until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
-                  
+                  if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                   if retval == true then
-                      tempcontrol.envelope[tempcontrol.hotpoint][2] = userVal
+                      tempcontrol.slider.envelope[tempcontrol.hotpoint][2] = userVal
                       dogenerate = true
                   end 
               end
               
               
               -- If Amplitude or Center and Ctrl-rightclick: Set ALL nodes to precise custom value
-              if (tempcontrol.name == "Amplitude" or tempcontrol.name == "Center") 
+              if (tempcontrol.slider.name == "Amplitude" or tempcontrol.slider.name == "Center" or tempcontrol.slider.name == "Swing") 
                   and gfx.mouse_cap==CTRLKEY+RIGHTBUTTON 
                   then
                   repeat
-                          retval, userVal = reaper.GetUserInputs("Set value of all nodes", 1, "Node value (normalized)", "")
+                          retval, userVal = reaper.GetUserInputs("Set value of all nodes", 1, "Node value (normalized)", "0.5")
                           userVal = tonumber(userVal)
                   until retval == false or (retval == true and type(userVal)=="number" and userVal >= 0 and userVal <= 1)
-                  
+                  if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
                   if retval == true then                  
-                      for i = 1, #tempcontrol.envelope do
-                          tempcontrol.envelope[i][2] = math.min(1, math.max(0, userVal))
+                      for i = 1, #tempcontrol.slider.envelope do
+                          tempcontrol.slider.envelope[i][2] = math.min(1, math.max(0, userVal))
                       end                 
                       dogenerate = true        
                   end
@@ -1721,7 +1724,7 @@ function loop_GetInputsAndUpdate()
               --captured_control.OnMouse(captured_control, "drag", gfx.mouse_x,gfx.mouse_y, nil)
           end
           if captured_control.type=="Slider" then
-              if captured_control.envelope==tableGUIelements[GUIelement_ENV].envelope then 
+              if captured_control.envelope==tableGUIelements[GUIelement_ENV].slider.envelope then 
                    env_enabled=captured_control.env_enabled
               end
               local new_value=1.0/captured_control.w()*(gfx.mouse_x-captured_control.x())
@@ -1734,8 +1737,6 @@ function loop_GetInputsAndUpdate()
           end
       end -- if captured_control~=nil
       
-      drawGUIobject(tempcontrol)
-      draw_envelope(tempcontrol,env_enabled)
     end -- for key,tempcontrol in pairs(tableGUIelements)
   
     ---------------------------------------------
@@ -1785,7 +1786,7 @@ function loop_GetInputsAndUpdate()
             loadStr = "#Load curve|#Delete curve|"
         end
         
-        saveLoadString = "Save curve|" .. loadStr .. "Reset curve"
+        saveLoadString = "Save curve|" .. loadStr .. "Reset envelopes"
         
         --!!!!!!!New in 2.20
         if skipRedundantCCs then
@@ -1810,27 +1811,29 @@ function loop_GetInputsAndUpdate()
             then
             skipRedundantCCs = not skipRedundantCCs
             reaper.SetExtState("LFO generator", "skipRedundantCCs", tostring(skipRedundantCCs), true)
-            updateEventValuesAndUploadIntoTake()
+            MAIN_UpdateEventValuesAndUploadIntoTake()
             
         --------------   
         -- Reset curve
         elseif (gotSavedNames == true and menuSel == 2 + 2*#savedNames)
             or (gotSavedNames == false and menuSel == 4)
             then
-            tableGUIelements[GUIelement_RATE].envelope = {{0,0.5}, {1,0.5}}
-            tableGUIelements[GUIelement_AMPLITUDE].envelope = {{0,0.5}, {1,0.5}}
-            tableGUIelements[GUIelement_CENTER].envelope = {{0,0.5}, {1,0.5}}
+            for i = 1, #tableGUIelements do
+                if tableGUIelements[i] and tableGUIelements[i].type == "Button" then
+                    tableGUIelements[i].envelope = {{0,0.5}, {1,0.5}}
+                end
+            end
             dogenerate = true
             
             -------------------------------------------------------
-            -- Draw the newly loaded envelope
-            if tableGUIelements[GUIelement_ENV].name == tableGUIelements[1].name then -- "Rate"
-                tableGUIelements[GUIelement_ENV]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_RATE])
-            elseif tableGUIelements[GUIelement_ENV].name == tableGUIelements[2].name then -- "Amplitude"
-                tableGUIelements[GUIelement_ENV]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_AMPLITUDE])
+            --[[ Draw the newly loaded envelope
+            if tableGUIelements[GUIelement_ENV].slider.name == tableGUIelements[1].slider.name then -- "Rate"
+                tableGUIelements[GUIelement_ENV]=make_envelope(BORDER_WIDTH, envYpos, 0, INIT_ENV_HEIGHT, tableGUIelements[GUIelement_RATE])
+            elseif tableGUIelements[GUIelement_ENV].slider.name == tableGUIelements[2].slider.name then -- "Amplitude"
+                tableGUIelements[GUIelement_ENV]=make_envelope(BORDER_WIDTH, envYpos, 0, INIT_ENV_HEIGHT, tableGUIelements[GUIelement_AMPLITUDE])
             else -- "Center"
-                tableGUIelements[GUIelement_ENV]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_CENTER])
-            end
+                tableGUIelements[GUIelement_ENV]=make_envelope(BORDER_WIDTH, envYpos, 0, INIT_ENV_HEIGHT, tableGUIelements[GUIelement_CENTER])
+            end]]
             
         ------------------------
         -- Save curve
@@ -1838,12 +1841,13 @@ function loop_GetInputsAndUpdate()
             repeat
                 retval, curveName = reaper.GetUserInputs("Save curve", 1, "Curve name (no | or ,)", "")
             until retval == false or (curveName:find("|") == nil and curveName:find(",") == nil and curveName:len()>0)
+            if GUIHwnd then reaper.JS_Window_SetForeground(GUIHwnd) end -- return focus to GUI
             
             if retval ~= false then
                 saveString = curveName
                 for i = 0, #tableGUIelements do
                     if tableGUIelements[i] == nil then -- skip
-                    elseif tableGUIelements[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(shapeSelected)
+                    elseif tableGUIelements[i].name == "LFO shape?" then saveString = saveString .. ",LFO shape?," .. tostring(tableGUIelements[GUIelement_SHAPE].value)
                     --elseif tableGUIelements[i].name == "Real-time copy to CC?" then saveString = saveString .. ",Real-time copy to CC?," .. tostring(tableGUIelements[i].enabled) 
                     elseif tableGUIelements[i].name == "Phase step" then saveString = saveString .. ",Phase step," .. tostring(tableGUIelements[i].value)
                     elseif tableGUIelements[i].name == "Randomness" then saveString = saveString .. ",Randomness," .. tostring(tableGUIelements[i].value)
@@ -1866,6 +1870,12 @@ function loop_GetInputsAndUpdate()
                         end
                     elseif tableGUIelements[i].name == "Amplitude" then 
                         saveString = saveString .. ",Amplitude,"  .. tostring(#tableGUIelements[i].envelope)
+                        for p = 1, #tableGUIelements[i].envelope do
+                            saveString = saveString .. "," .. tostring(tableGUIelements[i].envelope[p][1]) .. "," 
+                                                           .. tostring(tableGUIelements[i].envelope[p][2])
+                        end
+                    elseif tableGUIelements[i].name == "Swing" then 
+                        saveString = saveString .. ",Swing,"  .. tostring(#tableGUIelements[i].envelope)
                         for p = 1, #tableGUIelements[i].envelope do
                             saveString = saveString .. "," .. tostring(tableGUIelements[i].envelope[p][1]) .. "," 
                                                            .. tostring(tableGUIelements[i].envelope[p][2])
@@ -1905,7 +1915,7 @@ function loop_GetInputsAndUpdate()
             elseif 1 < menuSel and menuSel <= 1+#savedNames then 
             
                 if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
-                    loadCurve(menuSel-1)
+                    LoadCurveFromString(savedCurves[menuSel-1])
                     dogenerate = true
                 end
             end    
@@ -1915,30 +1925,33 @@ function loop_GetInputsAndUpdate()
     end -- if gfx.mouse_cap == 2
     
     
-    if dogenerate==true then
+    if dogenerate then
+        DrawGUI()
         callGenerateNodesThenUpdateEvents()      
+    elseif dodraw then
+        DrawGUI()
     end -- if dogenerate==true
     
     last_mouse_cap=gfx.mouse_cap
     gfx.update()
-    reaper.defer(loop_GetInputsAndUpdate)
+    reaper.defer(DEFERLOOP_GetInputsAndUpdate)
 end 
 
 
 --------------------------------
 
 function callGenerateNodesThenUpdateEvents()
-     generateNodes() 
+     MAIN_generateNodes() 
      was_changed=true
     
      -- Draw the envelope in CC lane
-     updateEventValuesAndUploadIntoTake()
+     MAIN_UpdateEventValuesAndUploadIntoTake()
 end
 
 
 ------------------------------------------------------------
 -- NOTE: This function requires all the tables to be sorted!
-function updateEventValuesAndUploadIntoTake() 
+function MAIN_UpdateEventValuesAndUploadIntoTake() 
 
     local i = 1 -- index in tSel
     local prevValues = {} -- store previous values for each channel, for skipRedundantCCs
@@ -2210,7 +2223,7 @@ function updateEventValuesAndUploadIntoTake()
     
     if isInline then reaper.UpdateArrange() end
 
-end -- function updateEventValuesAndUploadIntoTake()
+end -- function MAIN_UpdateEventValuesAndUploadIntoTake()
 
 
 -----------------------------------
@@ -2238,9 +2251,23 @@ function setup_parseNotesToRanges()
                 pitch = msg:byte(2)
                 startTick = tableNoteOns[flags][channel][pitch]
                 if startTick and startTick < runningPPQpos then
-                    --deleteCCs(tableNoteOns[flags][channel][pitch], runningPPQpos, channel)
-                    --insertNewCCs(tableNoteOns[flags][channel][pitch], runningPPQpos, channel)
-                    tRanges[#tRanges+1] = {channel = channel, startTick = startTick, endTick = runningPPQpos}
+                    -- Check for overlap with previous ranges, for example note chord.
+                    local updatedPreviousRange
+                    for r = 1, #tRanges do
+                        if channel == tRanges[r].channel 
+                        and startTick <= tRanges[r].endTick 
+                        and runningPPQpos >= tRanges[r].startTick 
+                        then
+                            tRanges[r].startTick = math.min(tRanges[r].startTick, startTick)
+                            tRanges[r].endTick   = math.max(tRanges[r].endTick, runningPPQpos)
+                            updatedPreviousRange = true
+                            break
+                        end
+                    end
+                    if not updatedPreviousRange then
+                        tRanges[#tRanges+1] = {channel = channel, startTick = startTick, endTick = runningPPQpos}
+                    end
+                    
                     tableNoteOns[flags][channel][pitch] = nil
                 end
             end
@@ -2294,138 +2321,149 @@ end -- function getSavedCurvesAndNames()
 
 -----------------------------------
 
-function loadCurve(curveNum)
-
-    if savedCurves ~= nil and #savedCurves ~= nil and #savedCurves >= curveNum and curveNum >= 0 then
-    
-        savedString = savedCurves[curveNum]
+function LoadCurveFromString(curveStr)
                 
-        prevComma = 0
-        function nextStr()
-            nextComma = savedString:find(",", prevComma+1)
-            if nextComma == nil then substring = savedString:sub(prevComma+1)
-            else substring = savedString:sub(prevComma+1,nextComma-1)
-                prevComma = nextComma
+    prevComma = 0
+    local function nextStr()
+        if not prevComma then 
+            return nil
+        else
+            nextComma = curveStr:find(",", prevComma+1)
+            if nextComma == nil then 
+                substring = curveStr:sub(prevComma+1)
+            else 
+                substring = curveStr:sub(prevComma+1,nextComma-1)
             end
-            --reaper.ShowConsoleMsg(substring .. "\n")
+            prevComma = nextComma
             return(substring)
         end
-        
-        curveName = nextStr()
-        -- For compatibility with previous version that only has timebase=time, timebase is set to 0 by default
-        tableGUIelements[GUIelement_TIMEBASE].value = 0
-        
-        for i = 0, 11 do
-            --reaper.ShowConsoleMsg("\nsliderName = ")
-            sliderName = nextStr()
-            if sliderName  == "LFO shape?" then shapeSelected = tonumber(nextStr())
-            --[[elseif sliderName == "Real-time copy to CC?" then 
-                if nextStr() == "true" then
-                    tableGUIelements[GUIelement_copyCC].enabled = true
-                else
-                    tableGUIelements[GUIelement_copyCC].enabled = false
-                end]]
-            elseif sliderName == "Phase step" then tableGUIelements[GUIelement_PHASE].value = tonumber(nextStr())
-            elseif sliderName == "Randomness" then tableGUIelements[GUIelement_RANDOMNESS].value = tonumber(nextStr())
-            elseif sliderName == "Quant steps" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
-            elseif sliderName == "Bezier shape" or sliderName == "Smoothing" then tableGUIelements[GUIelement_SMOOTH].value = tonumber(nextStr()) -- include shape for compatibility with previous versions
-            elseif sliderName == "Fade in duration" then tableGUIelements[GUIelement_FADEIN].value = tonumber(nextStr())
-            elseif sliderName == "Fade out duration" then tableGUIelements[GUIelement_FADEOUT].value = tonumber(nextStr())
-            elseif sliderName == "Timebase?" then tableGUIelements[GUIelement_TIMEBASE].value = tonumber(nextStr())
-            elseif sliderName == "Rate" then 
-                tableGUIelements[GUIelement_RATE].envelope = nil
-                tableGUIelements[GUIelement_RATE].envelope = {}
-                for p = 1, tonumber(nextStr()) do
-                    tableGUIelements[GUIelement_RATE].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
-                end
-            elseif sliderName == "Center" then 
-                tableGUIelements[GUIelement_CENTER].envelope = nil
-                tableGUIelements[GUIelement_CENTER].envelope = {}
-                for p = 1, tonumber(nextStr()) do
-                    tableGUIelements[GUIelement_CENTER].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
-                end
-            elseif sliderName == "Amplitude" then 
-                tableGUIelements[GUIelement_AMPLITUDE].envelope = nil
-                tableGUIelements[GUIelement_AMPLITUDE].envelope = {}
-                for p = 1, tonumber(nextStr()) do
-                    tableGUIelements[GUIelement_AMPLITUDE].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
-                end
+    end
+    
+    -- For compatibility with previous version that only has timebase=time, timebase is set to 0 by default.
+    -- Similarly, Swing is set to 0.5.
+    tableGUIelements[GUIelement_TIMEBASE].value = 0
+    tableGUIelements[GUIelement_SMOOTH].value = 0.5
+    tableGUIelements[GUIelement_SWING].envelope = {{0, 0.5}, {1, 0.5}}
+    
+    sliderName = nextStr()
+    while sliderName do
+        --reaper.ShowConsoleMsg("\nsliderName = ")
+        if sliderName  == "LFO shape?" then tableGUIelements[GUIelement_SHAPE].value = tonumber(nextStr())
+        elseif sliderName == "Phase step" then tableGUIelements[GUIelement_PHASE].value = tonumber(nextStr())
+        elseif sliderName == "Randomness" then tableGUIelements[GUIelement_RANDOMNESS].value = tonumber(nextStr())
+        elseif sliderName == "Quant steps" then tableGUIelements[GUIelement_QUANTSTEPS].value = tonumber(nextStr())
+        elseif sliderName == "Bezier shape" or sliderName == "Smoothing" then tableGUIelements[GUIelement_SMOOTH].value = tonumber(nextStr()) -- include shape for compatibility with previous versions
+        elseif sliderName == "Fade in duration" then tableGUIelements[GUIelement_FADEIN].value = tonumber(nextStr())
+        elseif sliderName == "Fade out duration" then tableGUIelements[GUIelement_FADEOUT].value = tonumber(nextStr())
+        elseif sliderName == "Timebase?" then tableGUIelements[GUIelement_TIMEBASE].value = tonumber(nextStr())
+        elseif sliderName == "Rate" then 
+            tableGUIelements[GUIelement_RATE].envelope = nil
+            tableGUIelements[GUIelement_RATE].envelope = {}
+            for p = 1, tonumber(nextStr()) do
+                tableGUIelements[GUIelement_RATE].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
             end
-        end -- for i = 0, 11 
-        
-        -------------------------------------------------------
-        -- Draw the newly loaded envelope
-        if tableGUIelements[100].name == tableGUIelements[1].name then -- "Rate"
-            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_RATE])
-        elseif tableGUIelements[100].name == tableGUIelements[2].name then -- "Amplitude"
-            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_AMPLITUDE])
-        else -- "Center"
-            tableGUIelements[100]=make_envelope(borderWidth, envYpos, 0, envHeight, tableGUIelements[GUIelement_CENTER])
+        elseif sliderName == "Center" then 
+            tableGUIelements[GUIelement_CENTER].envelope = nil
+            tableGUIelements[GUIelement_CENTER].envelope = {}
+            for p = 1, tonumber(nextStr()) do
+                tableGUIelements[GUIelement_CENTER].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
+            end
+        elseif sliderName == "Amplitude" then 
+            tableGUIelements[GUIelement_AMPLITUDE].envelope = nil
+            tableGUIelements[GUIelement_AMPLITUDE].envelope = {}
+            for p = 1, tonumber(nextStr()) do
+                tableGUIelements[GUIelement_AMPLITUDE].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
+            end
+        elseif sliderName == "Swing" then 
+            tableGUIelements[GUIelement_SWING].envelope = nil
+            tableGUIelements[GUIelement_SWING].envelope = {}
+            for p = 1, tonumber(nextStr()) do
+                tableGUIelements[GUIelement_SWING].envelope[p] = {tonumber(nextStr()), tonumber(nextStr())}
+            end
         end
         
-        generateNodes()
-        was_changed=true
-                              
-        -- Draw the envelope in CC lane
-        updateEventValuesAndUploadIntoTake()
-        
-    end -- savedCurves ~= nil and #savedCurves ~= nil and
+        sliderName = nextStr()
+    end -- while sliderName do
+    
+    -------------------------------------------------------
+    -- Draw the newly loaded envelope
+    --[[if tableGUIelements[GUIelement_ENV].slider = tableGUIelements[1].name then -- "Rate"
+        tableGUIelements[100]=make_envelope(BORDER_WIDTH, envYpos, 0, INIT_ENV_HEIGHT, tableGUIelements[GUIelement_RATE])
+    elseif tableGUIelements[100].name == tableGUIelements[2].name then -- "Amplitude"
+        tableGUIelements[100]=make_envelope(BORDER_WIDTH, envYpos, 0, INIT_ENV_HEIGHT, tableGUIelements[GUIelement_AMPLITUDE])
+    else -- "Center"
+        tableGUIelements[100]=make_envelope(BORDER_WIDTH, envYpos, 0, INIT_ENV_HEIGHT, tableGUIelements[GUIelement_CENTER])
+    end]]
+    DrawGUI()
+    MAIN_generateNodes()
+    was_changed=true
+                          
+    -- Draw the envelope in CC lane
+    MAIN_UpdateEventValuesAndUploadIntoTake()
 
-end -- loadCurve()
+end -- LoadCurveFromString()
 
   
 ---------------------------------------------
 function constructNewGUI()
-
+    
+    GUIelement_RATE = #tableGUIelements+1
+    tableGUIelements[GUIelement_RATE]=make_radiobutton(BORDER_WIDTH,BORDER_WIDTH,0,0,0.5,"Rate", function(nx) end)
+    GUIelement_AMPLITUDE = #tableGUIelements+1
+    tableGUIelements[GUIelement_AMPLITUDE]=make_radiobutton(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.5,"Amplitude",function(nx) end)
+    GUIelement_CENTER = #tableGUIelements+1
+    tableGUIelements[GUIelement_CENTER]=make_radiobutton(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.5,"Center",function(nx) end)
+    GUIelement_SWING = #tableGUIelements+1
+    tableGUIelements[GUIelement_SWING]=make_radiobutton(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.5,"Swing",function(nx) end)
+    GUIelement_TIMEBASE = #tableGUIelements+1
+    tableGUIelements[GUIelement_TIMEBASE]=make_question(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
+    GUIelement_SHAPE = #tableGUIelements+1
+    tableGUIelements[GUIelement_SHAPE]=make_menubutton(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,START_SHAPE,"LFO shape?",function(nx) end)
+    GUIelement_PHASE = #tableGUIelements+1
+    --tableGUIelements[11]=make_question(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*5,0,0,0.0,"Real-time copy to CC?",function(nx) end, "Enabled", "Disabled")
+    --GUIelement_copyCC = 11
+    -- The following slider was originally named "Phase"
+    tableGUIelements[GUIelement_PHASE]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.0,"Phase step",function(nx) end)
+    GUIelement_RANDOMNESS = #tableGUIelements+1
+    tableGUIelements[GUIelement_RANDOMNESS]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.0,"Randomness",function(nx) end)
+    GUIelement_QUANTSTEPS = #tableGUIelements+1
+    tableGUIelements[GUIelement_QUANTSTEPS]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,1.0,"Quant steps",function(nx) end)
+    GUIelement_SMOOTH = #tableGUIelements+1 
+    tableGUIelements[GUIelement_SMOOTH]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.0,"Smoothing",function(nx) end)
+    GUIelement_FADEIN = #tableGUIelements+1
+    tableGUIelements[GUIelement_FADEIN]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.0,"Fade in duration",function(nx) end)
+    -- make_slider(x,y,w,h,val,name,valcb)
+    GUIelement_FADEOUT = #tableGUIelements+1
+    tableGUIelements[GUIelement_FADEOUT]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,0.0,"Fade out duration",function(nx) end)
+    if selectionToUse == "existing" then
+        GUIelement_MORPH = #tableGUIelements+1
+        tableGUIelements[GUIelement_MORPH]=make_slider(BORDER_WIDTH,BORDER_WIDTH+GUI_ELEMENT_HEIGHT*#tableGUIelements,0,0,1,"Morph",function(nx) end)
+    end
+    -- make_envelope(x,y,w,h,assocslider)
+    GUIelement_ENV = 100
+    tableGUIelements[GUIelement_ENV]=make_envelope(BORDER_WIDTH, BORDER_WIDTH+GUI_ELEMENT_HEIGHT*(#tableGUIelements+0.5), 0, 0, tableGUIelements[GUIelement_RATE])
+    --tableGUIelements[100]=make_envelope(BORDER_WIDTH, BORDER_WIDTH+GUI_ELEMENT_HEIGHT*12, 0, INIT_ENV_HEIGHT,tableGUIelements[1]) --315-30
+    
+    
     gfx.quit()
     -- The GUI window will be opened at the last-used coordinates
     local coordinatesExtState = reaper.GetExtState("LFO generator", "Last coordinates") -- Returns an empty string if the ExtState does not exist
     xPos, yPos = coordinatesExtState:match("(%d+),(%d+)") -- Will be nil if cannot match
     if xPos and yPos then
-        gfx.init("LFO: ".. targetLaneString, initXsize, initYsize, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
+        gfx.init("LFO: ".. targetLaneString, INIT_X_SIZE, INIT_Y_SIZE, 0, tonumber(xPos), tonumber(yPos)) -- Interesting, this function can accept xPos and yPos strings, without tonumber
     else
-        gfx.init("LFO: ".. targetLaneString, initXsize, initYsize, 0)
+        gfx.init("LFO: ".. targetLaneString, INIT_X_SIZE, INIT_Y_SIZE, 0)
     end
-    gfx.setfont(1,"Ariel", 15)
+    gfx.setfont(1, font, 15)
+
+    if reaper.JS_Window_Find and reaper.JS_Window_AttachTopmostPin then 
+        GUIHwnd = reaper.JS_Window_Find("LFO: ", false)
+        if GUIHwnd then
+            reaper.JS_Window_AttachTopmostPin(GUIHwnd)
+        end
+    end
     
-    tableGUIelements[1]=make_radiobutton(borderWidth,borderWidth,0,0,0.5,"Rate", function(nx) end)
-    GUIelement_RATE = 1
-    tableGUIelements[2]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.5,"Amplitude",function(nx) end)
-    GUIelement_AMPLITUDE = 2
-    tableGUIelements[3]=make_radiobutton(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.5,"Center",function(nx) end)
-    GUIelement_CENTER = 3
-    tableGUIelements[4]=make_question(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Timebase?",function(nx) end, "Beats", "Time")
-    GUIelement_TIMEBASE = 4
-    tableGUIelements[5]=make_menubutton(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"LFO shape?",function(nx) end)
-    GUIelement_SHAPE = 5
-    --tableGUIelements[11]=make_question(borderWidth,borderWidth+GUIelementHeight*5,0,0,0.0,"Real-time copy to CC?",function(nx) end, "Enabled", "Disabled")
-    --GUIelement_copyCC = 11
-    -- The following slider was originally named "Phase"
-    tableGUIelements[6]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Phase step",function(nx) end)
-    GUIelement_PHASE = 6
-    tableGUIelements[7]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Randomness",function(nx) end)
-    GUIelement_RANDOMNESS = 7
-    tableGUIelements[8]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,1.0,"Quant steps",function(nx) end)
-    GUIelement_QUANTSTEPS = 8
-    tableGUIelements[9]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Smoothing",function(nx) end)
-    GUIelement_SMOOTH = 9 
-    tableGUIelements[10]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Fade in duration",function(nx) end)
-    GUIelement_FADEIN = 10
-    -- make_slider(x,y,w,h,val,name,valcb)
-    tableGUIelements[11]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,0.0,"Fade out duration",function(nx) end)
-    GUIelement_FADEOUT = 11
-    if selectionToUse == "existing" then
-        tableGUIelements[12]=make_slider(borderWidth,borderWidth+GUIelementHeight*#tableGUIelements,0,0,1,"Morph",function(nx) end)
-        GUIelement_MORPH = 12
-    end
-    -- make_envelope(x,y,w,h,assocslider)
-    tableGUIelements[100]=make_envelope(borderWidth, borderWidth+GUIelementHeight*#tableGUIelements, 0, 0, tableGUIelements[1])
-    --tableGUIelements[100]=make_envelope(borderWidth, borderWidth+GUIelementHeight*12, 0, envHeight,tableGUIelements[1]) --315-30
-    GUIelement_ENV = 100
-      
-    --[[for key,tempcontrol in pairs(tableGUIelements) do
-      reaper.ShowConsoleMsg(key.." "..tempcontrol.type.." "..tempcontrol.name.."\n")
-    end]]
+    DrawGUI()
     
 end -- constructNewGUI()
 
@@ -2671,7 +2709,24 @@ function setup_insertNewCCs()
     
     local tMIDI = {}
     local lastPPQpos = 0
-    
+     
+    -- Instead of trying to insert CCs on the grid, insert as close as possible to start of time selection
+    for i = 1, #tRanges do
+        local channel   = tRanges[i].channel
+        for p = tRanges[i].startTick, tRanges[i].endTick-1, PPperCC do
+            local insertPPQpos = math.ceil(p)
+            
+            if     laneIsCC7BIT  then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0|channel, targetLane, 0)
+            elseif laneIsCC14BIT then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0|channel, targetLane-256, 0)
+                                      tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", 0, 1, 3, 0xB0|channel, targetLane-224, 0)
+            elseif laneIsPROGRAM then tMIDI[#tMIDI+1] = s_pack("i4Bi4BB", insertPPQpos-lastPPQpos, 1, 2, 0xC0|channel, 0)
+            elseif laneIsCHPRESS then tMIDI[#tMIDI+1] = s_pack("i4Bi4BB", insertPPQpos-lastPPQpos, 1, 2, 0xD0|channel, 0)
+            elseif laneIsPITCH   then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xE0|channel, 0, 0)
+            end
+            lastPPQpos = insertPPQpos
+        end
+    end
+    --[[
     -- Since v2.01, first CC will be inserted at first tick within time selection, even if it does not fall on a beat, to ensure that the new LFO value is applied before any note is played.
     for i = 1, #tRanges do
         local startTick = tRanges[i].startTick
@@ -2680,7 +2735,7 @@ function setup_insertNewCCs()
         local QNstart = reaper.MIDI_GetProjQNFromPPQPos(take, startTick)
         -- For improved accuracy, do not round firstCCinsertPPQpos yet
         local firstCCinsertPPQpos = reaper.MIDI_GetPPQPosFromProjQN(take, QNperCC*(math.ceil(QNstart/QNperCC)))
-        if math.floor(firstCCinsertPPQpos+0.5) <= math.ceil(startTick) then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
+        if math.floor(0.5 + firstCCinsertPPQpos) < startTick then firstCCinsertPPQpos = firstCCinsertPPQpos + PPperCC end
             
         -- endTick is actually beyond time selection, so "-1" to prevent insert at PPQend
         for p = firstCCinsertPPQpos, tRanges[i].endTick-1, PPperCC do
@@ -2696,6 +2751,7 @@ function setup_insertNewCCs()
             lastPPQpos = insertPPQpos
         end
     end
+    ]]
     tMIDI[#tMIDI+1] = s_pack("i4Bs4", -lastPPQpos, 0, "")
     
     editMIDI = table.concat(tMIDI) .. editMIDI
@@ -2745,25 +2801,21 @@ if type(shadows) ~= "boolean" then
 if type(fineAdjust) ~= "number" or fineAdjust < 0 or fineAdjust > 1 then
     reaper.MB("The setting 'fineAdjust' must be a number between 0 and 1.", "ERROR", 0) return(false) end
 if type(phaseStepsDefault) ~= "number" or phaseStepsDefault % 4 ~= 0 or phaseStepsDefault <= 0 then
-    reaper.MB("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) 
-end
+    reaper.MB("The setting 'phaseStepsDefault' must be a positive multiple of 4.", "ERROR", 0) return(false) end
     
     
--------------------------------------------------------------
--- Check whether the required version of REAPER is available.
+-----------------------------------------------------------------------
+-- Check whether the required versions of REAPER and SWS are available.
 if not reaper.APIExists("GetArmedCommand") then
-    reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0)
-    return(false)
-end
+    reaper.MB("This script requires an up-to-date version of REAPER.", "ERROR", 0) return(false) end
+if not reaper.SN_FocusMIDIEditor then 
+    reaper.MB("This script requires an up-to-date version of the SWS/SNM extension, "
+              .. "which can be downloaded from www.sws-extension.org.", "ERROR", 0) return(false) end
 
 
 ------------------------------------------------------
 -- If laneToUse == "under mouse" then SWS is required.
 if laneToUse == "under mouse" then
-    if not reaper.APIExists("SN_FocusMIDIEditor") then
-        reaper.MB("This script requires an up-to-date version of the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
-        return(false) 
-    end 
     window, segment, details = reaper.BR_GetMouseCursorContext()
     if not (segment == "notes" or segment == "cc_lane") then
         reaper.ShowMessageBox('The mouse is not correctly positioned.'
@@ -2806,7 +2858,7 @@ end
 takeStartQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
 PPQ = reaper.MIDI_GetPPQPosFromProjQN(take, takeStartQN+1)
 CCperQN = math.floor(reaper.SNM_GetIntConfigVar("midiCCdensity", 32) + 0.5)
-CCperQN = math.min(128, math.max(4, math.abs(CCperQN))) -- If user selected "Zoom dependent", CCperQN < 0
+CCperQN = math.min(512, math.max(4, math.abs(CCperQN))) -- If user selected "Zoom dependent", CCperQN < 0
 PPperCC = PPQ/CCperQN
 QNperCC = 1/CCperQN
 
@@ -3010,7 +3062,7 @@ if getSavedCurvesAndNames() ~= false then
     if savedNames ~= nil and type(savedNames) == "table" and #savedNames > 0 then
         for i = 1, #savedNames do
             if savedNames[i] == defaultCurveName then
-                loadCurve(i)
+                LoadCurveFromString(savedCurves[i])
             end
         end
     end
@@ -3026,7 +3078,7 @@ end
 
 -- Generate the first version of the envelope nodes and draw the CCs between
 callGenerateNodesThenUpdateEvents()
-loop_GetInputsAndUpdate()
+DEFERLOOP_GetInputsAndUpdate()
 
 --[[ Archive of changelog
  * v0.1

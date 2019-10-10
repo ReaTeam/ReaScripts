@@ -1,11 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.2
+Version: 2.16.8
 Changelog:
-    Fix: Deleted elements weren't having their buffers freed, causing crashes
-    in scripts with a lot of creating/deleting going on.
-    Add: Explicit error message when a crash occurs because there were no more
-    buffers available.
+    Fix: Expand error message when the library is missing
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

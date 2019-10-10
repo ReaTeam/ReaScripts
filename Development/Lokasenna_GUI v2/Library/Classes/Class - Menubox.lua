@@ -57,7 +57,7 @@ function GUI.Menubox:new(name, z, x, y, w, h, caption, opts, pad, noarrow)
 
   if not opts then
 
-    menu.optarray = {" "}
+    menu.optarray = menu.optarray or {" "}
 
   elseif type(opts) == "string" then
 

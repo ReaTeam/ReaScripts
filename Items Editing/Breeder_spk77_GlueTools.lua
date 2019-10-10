@@ -1,16 +1,15 @@
---[[
-   * ReaScript Name: spk77_GlueTools
-   * Lua script for Cockos REAPER
-   * Author: Breeder
-   * Author URI: http://forum.cockos.com/member.php?u=27094
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
-  
---For more information check the forum: http://forum.cockos.com/showthread.php?t=160061
+-- @description Glue Tools
+-- @version 1.01
+-- @author Breeder, spk77
+-- @website http://forum.cockos.com/showthread.php?t=160061
+-- @changelog:
+--      + Save XY position (saved after click anywhere in the script)
+--      + Save checkbox states (http://github.com/ReaTeam/ReaScripts/issues/125)
 
 -- (C) 2015, Dominik Martin Drzic
 
+local conf = {}  
+local glue_btn = {}
 -- Misc functions ------------------------------------------------------------------------------------------------------
 local function SetToBounds (val, min, max)
   if min > max then
@@ -673,7 +672,7 @@ function Checkbox:create_from_name_state_table(name_state_table)
   local t = {}
   local nst = name_state_table
   for i=1, #nst do
-    t[i] = Checkbox(start_x, start_y, nil, nst[i].state, nst[i].name)
+    t[i] = Checkbox(start_x, start_y, nil, tonumber(nst[i].state)==1, nst[i].name)
   end
   return t
 end
@@ -681,12 +680,16 @@ end
 
 -- Update and draw all created checkboxes
 function Checkbox:update_all()
-  local cbs = Created_checkboxes
   
+  local cbs = Created_checkboxes
   for i=1, #cbs do
     if cbs[i]:mouse_on() and mouse.last_LMB_state == false and mouse.cap(mouse.LB) then
+      local key = cbs[i].name:gsub('%s','_')
+      conf[key] = math.abs(conf[key]-1)
+      MPL_ExtState_Save()
       cbs[i]._clicked = true
     end
+    
     local x1,y1,size = cbs[i].x1, cbs[i].y1, cbs[i].size
     local state, name = cbs[i].state, cbs[i].name
     gfx.set(0.8,0.8,0.8,1)
@@ -891,6 +894,7 @@ end
 ---------------------------
 
 function OnMouseDown(x, y)
+  MPL_ExtState_Save()
   mouse.capcnt = 0
   mouse.ox_l, mouse.oy_l = x, y
 end
@@ -980,7 +984,7 @@ function init()
   -- Initialize GUI --
   --------------------
   
-  gfx.init("Breeder - Glue tool", 220, 250, gui.settings.docker_id)
+  gfx.init("Breeder - Glue tool", conf.wind_w, conf.wind_h, gui.settings.docker_id, conf.wind_x, conf.wind_y)
   gfx.setfont(1,"Arial", gui.settings.font_size)
   gfx.clear = 3355443  -- matches with "FUSION: Pro&Clean Theme :: BETA 01" http://forum.cockos.com/showthread.php?t=155329
   -- (Double click in ReaScript IDE to open the link)
@@ -992,14 +996,14 @@ function init()
   
   -- Checkboxes are later created from this table 
   local glue_items_settings = {
-                                {name = "Process items separately",   state = false},
-                                {name = "Ignore time selection",      state = false},
-                                {name = "Include fades",              state = false},
-                                {name = "Preserve muted MIDI events", state = false},
-                                {name = "Preserve color",             state = false},
-                                {name = "Preserve names",             state = false},
-                                {name = "Preserve snap offset",       state = false},
-                                {name = "Preserve item notes",        state = false}
+                                {name = "Process items separately",   state = conf.Process_items_separately},
+                                {name = "Ignore time selection",      state = conf.Ignore_time_selection},
+                                {name = "Include fades",              state = conf.Include_fades},
+                                {name = "Preserve muted MIDI events", state = conf.Preserve_muted_MIDI_events},
+                                {name = "Preserve color",             state = conf.Preserve_color},
+                                {name = "Preserve names",             state = conf.Preserve_names},
+                                {name = "Preserve snap offset",       state = conf.Preserve_snap_offset},
+                                {name = "Preserve item notes",        state = conf.Preserve_item_notes}
                               }
                         
                                            -- (see "Checkbox_settings" in "checkbox class")
@@ -1044,5 +1048,44 @@ function init()
   mainloop()
 end
 
-init()
+--  MPL mod ------------------------------------------------- 
 
+  ---------------------------------------------------
+  function MPL_ExtState_Load()
+    local def = MPL_ExtState_Def()
+    for key in pairs(def) do 
+      local es_str = reaper.GetExtState(def.ES_key, key)
+      if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
+    end    
+  end  
+  ---------------------------------------------------
+  function MPL_ExtState_Save()
+    conf.dock , conf.wind_x, conf.wind_y, conf.wind_w, conf.wind_h= gfx.dock(-1, 0,0,0,0)
+    for key in pairs(conf) do reaper.SetExtState(conf.ES_key, key, conf[key], true)  end
+  end
+  ---------------------------------------------------
+  function MPL_ExtState_Def()  
+    local t= {
+            -- globals
+            ES_key = 'BR_SPK_GlueTools',
+            wind_x =  20,
+            wind_y =  20,
+            wind_w =  220,
+            wind_h =  250,
+            dock =    0,
+            
+            Process_items_separately = 0,
+            Ignore_time_selection = 0,
+            Include_fades = 0,
+            Preserve_muted_MIDI_events = 0,
+            Preserve_color = 0,
+            Preserve_names = 0,
+            Preserve_snap_offset = 0,
+            Preserve_item_notes = 0
+            }
+    return t
+  end
+  ---------------------------------------------------
+  
+MPL_ExtState_Load()  
+init()

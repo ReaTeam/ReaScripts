@@ -1,6 +1,6 @@
 -- @description amagalma_ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.10
+-- @version 2.12
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -33,15 +33,14 @@
 
 --[[
  * Changelog:
- * v2.10 (2018-11-25)
-  + fix flickering bug when docked (introduced in v2.07)
-  + fix loss of focus from Reaper when initially opening the script (introduced in v2.09)
+ * v2.12 (2018-12-08)
+  + fix for Linux font size
 --]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.10"
+version = "v2.12"
 
 
 
@@ -176,14 +175,20 @@ end
 ) -- end of slider class
 
 function Slider:set_help_text()
-if self.help_text == "" then return false end
-gfx.setfont(2,"Tahoma", 13)
-local width = gfx.measurestr(self.help_text)
-gfx.set(0.85,0.85,0.85,1)
-gfx.x = GUI_centerx-width/2
-gfx.y = 11
-gfx.printf(self.help_text)
-gfx.setfont(1)
+  if self.help_text == "" then return false end
+  if string.match(reaper.GetOS(), "Win") then
+      gfx.setfont(2,"Tahoma", 13)
+  elseif string.match(reaper.GetOS(), "OSX") then
+    gfx.setfont(2,"Geneva", 10)
+  else
+    gfx.setfont(2,"Tahoma", 11)
+  end
+  local width = gfx.measurestr(self.help_text)
+  gfx.set(0.85,0.85,0.85,1)
+  gfx.x = GUI_centerx-width/2
+  gfx.y = 11
+  gfx.printf(self.help_text)
+  gfx.setfont(1)
 end
 
 function Slider:draw()
@@ -1902,17 +1907,25 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
          lasty = tonumber(reaper.GetExtState("ReaNoir", "y"))
       end    
     end
-               
+
 ------------------------------------------
 --------- Init Function ------------------
-------------------------------------------                                  
+------------------------------------------
 
 function init ()
 
   Read_Prefs()
   gfx.init("ReaNoir "..version, GUI_xend, GUI_yend, dock, lastx, lasty)
-  gfx.setfont(2,"Tahoma", 13)
-  gfx.setfont(1,"Arial", 15)          
+  if string.match(reaper.GetOS(), "Win") then
+    gfx.setfont(2,"Tahoma", 13)
+    gfx.setfont(1,"Arial", 15)
+  elseif string.match(reaper.GetOS(), "OSX") then
+    gfx.setfont(2,"Geneva", 10)
+    gfx.setfont(1,"Arial", 12)
+  else
+    gfx.setfont(2,"Tahoma", 11)
+    gfx.setfont(1,"Arial", 12)
+  end
   Dock_selector_INIT()
   ColorBx_INIT()
   

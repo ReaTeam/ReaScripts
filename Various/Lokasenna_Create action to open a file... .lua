@@ -1,26 +1,40 @@
 --[[
 Description: Create action to open a file...
-Version: 1.2.1
+Version: 1.3.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Name change for consistency
+	Add: Linux compatibility (uses xdg-open)
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?t=189152
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
-About: 
+About:
 	Automates the creation of ReaScripts that will open files or folders
 	in their native app. Handy for shortcuts to plugin manuals, or commonly
 	used folders, etc.
-	
-	Note: Due to Reaper limitations, creating a shortcut to a folder equires you
+
+	Note: Due to Reaper limitations, creating a shortcut to a folder requires you
 		  to select a file IN that folder, and then manually erase the filename
 		  from the path. Sorry. :/
 --]]
 
 -- Licensed under the GNU GPL v3
 
-local ret, path, csv, alias
+local function osOpenCommand()
+  local commands = {
+    {os = "Win", cmd = 'start ""'},
+    {os = "OSX", cmd = 'open ""'},
+    {os = "Other", cmd = 'xdg-open'},
+  }
+
+  local OS = reaper.GetOS()
+
+  for _, v in ipairs(commands) do
+    if OS:match(v.os) then return v.cmd end
+  end
+end
+
+local ret, path, csv
 
 reaper.ShowMessageBox("To create an action that opens a folder:\n\n1. Use the next window to select a file in that folder.\n2. Click 'OK'.\n3. Another window will pop up; manually erase the filename there.\n\nThis is a Reaper limitation - sorry for the inconvenience.", "Create action to open a file...", 0)
 
@@ -30,8 +44,6 @@ if not ret then return 0 end
 -- Cheers to @mpl for this.
 local num = path:reverse():find('[%/%\\]')
 local alias = path:sub(-num + 1) .. " "
-	--reduced_name = reduced_name:sub(0,-1-reduced_name:reverse():find('%.')) -- cut extension also
-
 
 ret, csv = reaper.GetUserInputs("Create action to open a file... ", 2, "File/folder path:,File alias:,extrawidth=128", path..","..alias)
 if not ret or csv == "" then return 0 end
@@ -40,10 +52,7 @@ path, alias = string.match(csv, "([^,]+),([^,]*)")
 if not path then return 0 end
 
 local str =		"-- Created with Lokasenna_Create action to open a file... .lua\n"
-
-		..		[[os.execute( ( string.match( reaper.GetOS(), "Win") and ('start "" "') or ('open "" "') ) .. "]] 	
-		..		path 
-		.. 		'" )'
+  .. [[os.execute(']] .. osOpenCommand() .. [[ "]] .. path .. [["')]]
 str = string.gsub(str, [[\]], [[\\]])
 
 local info = debug.getinfo(1,'S');
@@ -58,9 +67,9 @@ end
 
 file:write(str)
 
-reaper.ShowMessageBox( "Successfully created file:\n" 
-					.. ( string.len(file_name) > 64 and ( "..." .. string.sub(file_name, -56) ) 
-													or 	file_name), 
+reaper.ShowMessageBox( "Successfully created file:\n"
+					.. ( string.len(file_name) > 64 and ( "..." .. string.sub(file_name, -56) )
+													or 	file_name),
 						"Yay!", 0)
 
 io.close(file)
