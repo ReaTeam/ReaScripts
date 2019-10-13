@@ -1151,6 +1151,20 @@ local function playScaleChord(chordNotesArray)
   setNotesThatArePlaying(chordNotesArray) 
 end
 
+function previewScaleChord()
+
+  local scaleNoteIndex = getSelectedScaleNote()
+  local chordTypeIndex = getSelectedChordType(scaleNoteIndex)
+
+  local root = scaleNotes[scaleNoteIndex]
+  local chord = scaleChords[scaleNoteIndex][chordTypeIndex]
+  local octave = getOctave()
+
+  local chordNotesArray = getChordNotesArray(root, chord, octave)
+  playScaleChord(chordNotesArray)
+  updateChordText(root, chord, chordNotesArray)
+end
+
 function insertScaleChord(chordNotesArray, keepNotesSelected)
 
   deleteExistingNotesInNextInsertionTimePeriod()
