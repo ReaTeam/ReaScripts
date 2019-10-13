@@ -1151,6 +1151,20 @@ local function playScaleChord(chordNotesArray)
   setNotesThatArePlaying(chordNotesArray) 
 end
 
+function previewScaleChord()
+
+  local scaleNoteIndex = getSelectedScaleNote()
+  local chordTypeIndex = getSelectedChordType(scaleNoteIndex)
+
+  local root = scaleNotes[scaleNoteIndex]
+  local chord = scaleChords[scaleNoteIndex][chordTypeIndex]
+  local octave = getOctave()
+
+  local chordNotesArray = getChordNotesArray(root, chord, octave)
+  playScaleChord(chordNotesArray)
+  updateChordText(root, chord, chordNotesArray)
+end
+
 function insertScaleChord(chordNotesArray, keepNotesSelected)
 
   deleteExistingNotesInNextInsertionTimePeriod()
@@ -3686,6 +3700,28 @@ local function rightButtonHasBeenClicked(valueBox)
   return mouseIsHoveringOver(hitArea) and leftMouseButtonIsHeldDown()
 end
 
+local function shiftModifierIsHeldDown()
+  return gfx.mouse_cap & 8 == 8
+end
+
+function ChordInversionValueBox:onLeftButtonPress()
+  decrementChordInversion()
+  previewScaleChord()
+end
+
+function ChordInversionValueBox:onLeftButtonShiftPress()
+  decrementChordInversionAction()
+end
+
+function ChordInversionValueBox:onRightButtonPress()
+  incrementChordInversion()
+  previewScaleChord()
+end
+
+function ChordInversionValueBox:onRightButtonShiftPress()
+  incrementChordInversionAction()
+end
+
 function ChordInversionValueBox:update()
 
   self:drawRectangles()
@@ -3693,12 +3729,22 @@ function ChordInversionValueBox:update()
 
   if mouseButtonIsNotPressedDown and leftButtonHasBeenClicked(self) then
     mouseButtonIsNotPressedDown = false
-    decrementChordInversionAction()
+
+    if shiftModifierIsHeldDown() then
+      self:onLeftButtonShiftPress()
+    else
+      self:onLeftButtonPress()
+    end
   end
 
   if mouseButtonIsNotPressedDown and rightButtonHasBeenClicked(self) then
     mouseButtonIsNotPressedDown = false
-    incrementChordInversionAction()
+
+    if shiftModifierIsHeldDown() then
+      self:onRightButtonShiftPress()
+    else
+      self:onRightButtonPress()
+    end
   end
 
   self:drawText()
@@ -3838,10 +3884,10 @@ end
 
 function ChordButton:onPress()
 
-	mouseButtonIsNotPressedDown = false
+	previewScaleChord()
+end
 
-	setSelectedScaleNote(self.scaleNoteIndex)
-	setSelectedChordType(self.scaleNoteIndex, self.chordTypeIndex)
+function ChordButton:onShiftPress()
 
 	local chord = scaleChords[self.scaleNoteIndex][self.chordTypeIndex]
 	local actionDescription = "scale chord " .. self.scaleNoteIndex .. "  (" .. chord.code .. ")"
@@ -3854,7 +3900,17 @@ function ChordButton:update()
 	self:drawText()
 
 	if mouseButtonIsNotPressedDown and buttonHasBeenClicked(self) then
-		self:onPress()
+
+		mouseButtonIsNotPressedDown = false
+
+		setSelectedScaleNote(self.scaleNoteIndex)
+		setSelectedChordType(self.scaleNoteIndex, self.chordTypeIndex)
+
+		if shiftModifierIsHeldDown() then
+			self:onShiftPress()
+		else
+			self:onPress()
+		end		
 	end
 end
 
