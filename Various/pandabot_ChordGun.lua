@@ -2,7 +2,7 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.0
+Version: 1.1
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
