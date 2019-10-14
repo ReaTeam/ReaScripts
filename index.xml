@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="851b5ec6b50cbd25cc1d1f4cd6e4c07cbb205998" name="ReaTeam Scripts">
+<index version="1" commit="aaa570945c5e001eede5ca569c5516ceb74f59c0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8437,11 +8437,12 @@ Fix loading presets from reaper-render.ini on Windows]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Playback rates other than 1 will also be converted to stretch markers.\par}
 }
 ]]></description>
+        <link rel="screenshot">https://stash.reaper.fm/37308/js_Adjust%20audio%20items%20to%20tempo%20changes%20using%20stretch%20markers.PNG</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="0.90" author="juliansader" time="2019-10-14T10:17:31Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/851b5ec6b50cbd25cc1d1f4cd6e4c07cbb205998/Stretch%20Markers/js_Adjust%20audio%20items%20to%20tempo%20changes%20using%20stretch%20markers.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aaa570945c5e001eede5ca569c5516ceb74f59c0/Stretch%20Markers/js_Adjust%20audio%20items%20to%20tempo%20changes%20using%20stretch%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="js_Convert all stretch markers in selected items to slopes with starting rate 1.0, to protect transients.lua" type="script" desc="js_Convert all stretch markers in selected items to slopes with starting rate 1.0, to protect transients.lua">
