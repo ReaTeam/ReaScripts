@@ -2,6 +2,7 @@
 ReaScript name: js_Adjust audio items to tempo changes using stretch markers.lua
 Version: 0.90
 Author: juliansader
+Screenshot: https://stash.reaper.fm/37308/js_Adjust%20audio%20items%20to%20tempo%20changes%20using%20stretch%20markers.PNG
 Donation: https://www.paypal.me/juliansader
 About:
   # DESCRIPTION
