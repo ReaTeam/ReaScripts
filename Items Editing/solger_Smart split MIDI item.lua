@@ -27,10 +27,10 @@ local trimThreshold = noteLength * noteMultiplier
 -------------------------------------------------
 local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
 local trimMode = ({
-  ['trim shorter note parts at cursor'] = 1,
-  ['trim left note parts at cursor'   ] = 2,
-  ['trim right note parts at cursor'  ] = 3,
-})[scriptName:match('%((.+)%)$')]
+  shorter = 1,
+  left    = 2,
+  right   = 3,
+})[scriptName:match('%(trim (.+) note parts at cursor%)$')]
 assert(trimMode, 'invalid filename')
 -------------------------------------------------
 
