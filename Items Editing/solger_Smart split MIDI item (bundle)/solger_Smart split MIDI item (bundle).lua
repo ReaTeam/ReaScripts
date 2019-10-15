@@ -4,10 +4,10 @@
 -- @changelog First version
 -- @metapackage
 -- @provides
---   [main] . > solger_Smart split MIDI item (bundle)/solger_Smart split MIDI item 1 (trim shorter note parts at cursor).lua
---   [main] . > solger_Smart split MIDI item (bundle)/solger_Smart split MIDI item 2 (trim left note parts at cursor).lua
---   [main] . > solger_Smart split MIDI item (bundle)/solger_Smart split MIDI item 3 (trim right note parts at cursor).lua
---   solger_Smart split MIDI item (bundle)/solger_Smart split MIDI item functions.lua
+--   [main] . > solger_Smart split MIDI item 1 (trim shorter note parts at cursor).lua
+--   [main] . > solger_Smart split MIDI item 2 (trim left note parts at cursor).lua
+--   [main] . > solger_Smart split MIDI item 3 (trim right note parts at cursor).lua
+--   [nomain] solger_Smart split MIDI item (bundle)/solger_Smart split MIDI item functions.lua
 -- @about
 --   These scripts split a MIDI item and trim the (shorter, left or right) note parts at the cursor position. The threshold of the note part length which should be trimmed can be adjusted in each script (by default all notes under the cursor are trimmed).
 --
