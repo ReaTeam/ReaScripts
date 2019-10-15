@@ -51,7 +51,8 @@ local function updateMatch()
     reaper.ShowMessageBox("Command ID or action name not found.", scriptName, MB_OK)
   end
 
-  commandIdField.value = id
+  local namedId = reaper.ReverseNamedCommandLookup(id)
+  commandIdField.value = namedId and ('_' .. namedId) or id
   actionNameField.value = name
 end
 
@@ -194,7 +195,8 @@ commandIdField = {
     local retval, newValue = defaultSetValue(field)
     if retval then
       actionNameField.value = nil
-      return retval, tonumber(newValue) or 'invalid'
+      newValue = reaper.NamedCommandLookup(newValue)
+      return retval, newValue
     end
   end,
 }
