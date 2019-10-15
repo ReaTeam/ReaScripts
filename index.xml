@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a65f0fd1e0911d7fa1b40c93b43639103c689b4f" name="ReaTeam Scripts">
+<index version="1" commit="bd3324174a67555ba24b564f4d58ff74a24253d1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -438,6 +438,15 @@ harden against ill-formed UTF-8 sequences in the history file]]></changelog>
       <version name="0.8.2" author="cfillion" time="2018-08-18T21:52:36Z">
         <changelog><![CDATA[Use the default monospace font on Linux and Menlo on macOS.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/87a32a4aa603179d067e386ab10d15d66d1284fb/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
+      <metadata>
+        <link rel="screenshot">https://i.imgur.com/nlGMR1T.gif</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-10-15T19:33:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bd3324174a67555ba24b564f4d58ff74a24253d1/Development/cfillion_Search%20action%20by%20command%20ID%20or%20name.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_GUI library v2 (developer tools).lua" type="script" desc="Lokasenna's GUI library v2 for Lua (developer tools)">
