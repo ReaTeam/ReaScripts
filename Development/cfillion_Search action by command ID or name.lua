@@ -163,7 +163,7 @@ local function loop()
 end
 
 sectionField = {
-  label = 'Section name:',
+  label = 'Section:',
   value = 0,
   setValue = function()
     local sectionIds = {}
