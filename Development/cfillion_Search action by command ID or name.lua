@@ -1,5 +1,14 @@
 -- @description Search action by command ID or name
 -- @author cfillion
+-- @version 1.0.1
+-- @changelog
+--   save and restore window position, size and dock state
+--   fix crash when no matching action is found (hotfix for a last-minute change)
+-- @screenshot https://i.imgur.com/nlGMR1T.gif
+-- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
+
+-- @description Search action by command ID or name
+-- @author cfillion
 -- @version 1.0
 -- @screenshot https://i.imgur.com/nlGMR1T.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
@@ -17,6 +26,9 @@ local MARGIN  = 10
 local PADDING = 7
 
 local MB_OK = 0
+
+local EXT_SECTION = 'cfillion_search action'
+local EXT_WINDOW_STATE = 'window_state'
 
 local function iterateActions(section)
   local i = 0
@@ -51,7 +63,7 @@ local function updateMatch()
     reaper.ShowMessageBox("Command ID or action name not found.", scriptName, MB_OK)
   end
 
-  local namedId = reaper.ReverseNamedCommandLookup(id)
+  local namedId = id and reaper.ReverseNamedCommandLookup(id)
   commandIdField.value = namedId and ('_' .. namedId) or id
   actionNameField.value = name
 end
@@ -162,6 +174,22 @@ local function loop()
   reaper.defer(loop)
 end
 
+function previousWindowState()
+  local state = tostring(reaper.GetExtState(EXT_SECTION, EXT_WINDOW_STATE))
+  return state:match("^(%d+) (%d+) (%d+) (-?%d+) (-?%d+)$")
+end
+
+function saveWindowState()
+  local dockState, xpos, ypos = gfx.dock(-1, 0, 0, 0, 0)
+  local w, h = gfx.w, gfx.h
+  if dockState > 0 then
+    w, h = previousWindowState()
+  end
+
+  reaper.SetExtState(EXT_SECTION, EXT_WINDOW_STATE,
+    string.format("%d %d %d %d %d", w, h, dockState, xpos, ypos), true)
+end
+
 sectionField = {
   label = 'Section:',
   value = 0,
@@ -230,7 +258,14 @@ fields = {sectionField, commandIdField, actionNameField}
 controls = {copyActionName, copyCommandId}
 
 scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
-gfx.init(scriptName, 400, 125)
+
+local w, h, dockState, x, y = previousWindowState()
+
+if w then
+  gfx.init(scriptName, w, h, dockState, x, y)
+else
+  gfx.init(scriptName, 400, 125)
+end
 
 if reaper.GetAppVersion():match('OSX') then
   gfx.setfont(1, 'sans-serif', 12)
@@ -238,4 +273,5 @@ else
   gfx.setfont(1, 'sans-serif', 15)
 end
 
+reaper.atexit(saveWindowState)
 loop()
