@@ -2,7 +2,7 @@
 -- @author cfillion
 -- @version 1.0.1
 -- @changelog
---   save and restore window position, size and dock state
+--   save and restore window position, size and dock state [p=2192851]
 --   fix crash when no matching action is found (hotfix for a last-minute change)
 -- @screenshot https://i.imgur.com/nlGMR1T.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
