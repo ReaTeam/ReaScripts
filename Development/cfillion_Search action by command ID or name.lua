@@ -7,12 +7,6 @@
 -- @screenshot https://i.imgur.com/nlGMR1T.gif
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
 
--- @description Search action by command ID or name
--- @author cfillion
--- @version 1.0
--- @screenshot https://i.imgur.com/nlGMR1T.gif
--- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD
-
 local AL_SECTIONS = {
   [0    ] = 'Main',
   [100  ] = 'Main (alt recording)',
