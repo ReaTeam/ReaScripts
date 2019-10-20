@@ -1,4 +1,4 @@
--- @description Disable audio or MIDI sources of all sends on selected tracks
+-- @description Disable audio or MIDI source of all sends on selected tracks
 -- @author cfillion
 -- @version 1.0
 -- @metapackage
