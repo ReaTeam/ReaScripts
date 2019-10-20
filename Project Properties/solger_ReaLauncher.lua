@@ -1,8 +1,9 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.6.2
+-- @version 1.7
 -- @changelog
---   + Bugfix for handling nil values when saving the output channel the first time to Extstate (saving the first output by default)
+--   + General: Visibility and usage of the subfolder-panel can now be toggled in the [Options] tab - requires restart of ReaLauncher for the changes to take effect
+--   + General: Automatic refresh of list entries is now only done the first time when loading a (different) tab
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -30,9 +31,9 @@
 --
 --   https://forum.cockos.com/showthread.php?t=208697
 
-------------------------------------------------------------------------------------------
-local debugEnabled = false -- Set to 'true' in order to show debug messages in the console
-------------------------------------------------------------------------------------------
+--------------------------------------------------------
+local debugEnabled = false -- show console debug messages
+--------------------------------------------------------
 -- String Helper functions
 --------------------------
 local function MsgDebug(str)
@@ -66,7 +67,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.6.2"
+appversion = "1.7"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -775,6 +776,7 @@ local function FillCustomProjectsSubDirList()
     local subDirList = {}
     table.insert(subDirList, custompathProjects)
     JoinTables(subDirList, GetSubDirectories(custompathProjects))
+    
     GUI.elms.tab_customProjects_subfolders.list = subDirList
     GUI.Val("tab_customProjects_subfolders", {1})
   end
@@ -899,6 +901,7 @@ local function FillBackupsSubDirList()
   local subDirList = {}
   table.insert(subDirList, custompathBackups)
   JoinTables(subDirList, GetSubDirectories(custompathBackups))
+
   GUI.elms.tab_backups_subfolders.list = subDirList
   GUI.Val("tab_backups_subfolders", {1})
 end
@@ -948,12 +951,12 @@ LoadCustomFolderPaths()
 -- New project/tab button functions
 -----------------------------------
 local function Global_CheckWindowPinState()
-  if GUI.Val("main_checklist_windowpin") == false then gfx.quit() end
+  if GUI.Val("main_checklistWindowPin") == false then gfx.quit() end
 end
 
 local function Global_ToggleWindowPinState()
-  if GUI.Val("main_checklist_windowpin") == true then GUI.Val("main_checklist_windowpin", {false}) 
-  else GUI.Val("main_checklist_windowpin", {true}) end
+  if GUI.Val("main_checklistWindowPin") == true then GUI.Val("main_checklistWindowPin", {false}) 
+  else GUI.Val("main_checklistWindowPin", {true}) end
 end
 
 local function Global_NewProject()
@@ -1470,19 +1473,19 @@ end
 
 local function RefreshProjectTemplates()
   MsgDebug("Refresh Project Templates")
-  FillProjectTemplateSubDirList()
+  if showSubfolderPanel then FillProjectTemplateSubDirList() end
   FillProjectTemplateListbox()
 end
 
 local function RefreshTrackTemplates()
   MsgDebug("Refresh Track Templates")
-  FillTrackTemplateSubDirList()
+  if showSubfolderPanel then FillTrackTemplateSubDirList() end
   FillTrackTemplateListbox()
 end
 
 local function RefreshCustomProjects()
   MsgDebug("Refresh Custom Projects")
-  FillCustomProjectsSubDirList()
+  if showSubfolderPanel then FillCustomProjectsSubDirList() end
   FillCustomProjectsListbox()
 end
 
@@ -1493,7 +1496,7 @@ end
 
 function RefreshBackups()
   MsgDebug("Refresh Backups")
-  FillBackupsSubDirList()
+  if showSubfolderPanel then FillBackupsSubDirList() end
   FillBackupsListbox()
 end
 
@@ -1900,15 +1903,37 @@ TabSelectionIndex = {
   SelectionIndex.Backups
 }
 
+IsTabAutoRefreshed = {
+  false,
+  false,
+  false,
+  false,
+  false,
+  false
+}
+
+function RL_AutoRefreshTab()
+  local selectedTab = RL_GetFocusedTab()
+  if (selectedTab < (#MainTabs - 1)) and (IsTabAutoRefreshed[selectedTab] == false) then
+    if tabIndex ~= 4 then IsTabAutoRefreshed[selectedTab] = true end
+      RL_Func_TabRefresh[selectedTab].call()
+    end
+end
+
 function RL_GetFocusedTab()
   return GUI.elms.main_tabs.state
 end
 
 function RL_SetFocusedTab(tabIndex)
   GUI.Val("main_tabs", tabIndex)
-  if RL_GetFocusedTab() < (#MainTabs - 1) then RL_Func_TabRefresh[RL_GetFocusedTab()].call() end
+  RL_AutoRefreshTab()
 end
 
+showSubfolderPanel = reaper.GetExtState(appname,"window_showsubfolderpanel") == "true" and true or false;
+
+---------------------------------
+-- Audio preview section elements
+---------------------------------
 local audioPreviewActive = false
 local audioPreviewChannel = 0
 
@@ -1962,6 +1987,9 @@ function RL_Draw_PreviewSection()
   end
 end
 
+----------------
+-- Main elements
+----------------
 function RL_Draw_Main()
   -- main layer
   GUI.New("main_tabs", "Tabs", LayerIndex.Main, 0, 0, 100, 20, MainTabs, 16)
@@ -1984,7 +2012,12 @@ function RL_Draw_Main()
 
   function GUI.elms.main_tabs:onmousedown()
     GUI.Tabs.onmousedown(self)
-    if RL_GetFocusedTab() < (#MainTabs - 1) then RL_Func_TabRefresh[RL_GetFocusedTab()].call() end
+    RL_AutoRefreshTab()
+  end
+
+  function GUI.elms.main_tabs:onwheel()
+    GUI.Tabs.onwheel(self)
+    RL_AutoRefreshTab()
   end
 
   -- global layer
@@ -1999,7 +2032,7 @@ function RL_Draw_Main()
   GUI.New("main_btnNewTabIgnoreTemplate", "Button", LayerIndex.Global, btn_pad_left, btn_pad_top + 2 * btn_pad_add, btn_w, btn_h, "New Tab Ignore Template", Global_NewTabIgnoreTemplate)
   
   GUI.New("main_label_windowpin", "Label", LayerIndex.Global, GUI.w - 94, 32, "Keep open", false, 3)
-  GUI.New("main_checklist_windowpin", "Checklist", LayerIndex.Global, GUI.w - 32, 30, 20, 20, "", "", "h", 0)
+  GUI.New("main_checklistWindowPin", "Checklist", LayerIndex.Global, GUI.w - 32, 30, 20, 20, "", "", "h", 0)
  
   function GUI.elms.main_menuPaths:onmousedown()
     GUI.Menubox.onmouseup(self)
@@ -2097,9 +2130,11 @@ function RL_Draw_TabProjectTemplates()
   GUI.New("tab_projectTemplates_btnRefresh", "Button", LayerIndex.ProjectTemplates, 10, pad_top-2, 20,  22,"R", RefreshProjectTemplates)
   GUI.New("tab_projectTemplates_txtFilter", "Textbox", LayerIndex.ProjectTemplates, 75, pad_top, 260, 20, "Filter", 8)
   
-  GUI.New("tab_projectTemplates_subfolders", "Listbox", LayerIndex.ProjectTemplates, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
-
-  GUI.New("tab_projectTemplates_listbox", "Listbox", LayerIndex.ProjectTemplates, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  if showSubfolderPanel then
+    GUI.New("tab_projectTemplates_listbox", "Listbox", LayerIndex.ProjectTemplates, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  else
+    GUI.New("tab_projectTemplates_listbox", "Listbox", LayerIndex.ProjectTemplates, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  end
   GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.names
   GUI.Val("tab_projectTemplates_listbox", {1})
 
@@ -2109,23 +2144,27 @@ function RL_Draw_TabProjectTemplates()
   GUI.New("tab_projectTemplates_lblEditMode", "Label", LayerIndex.ProjectTemplates, GUI.w - 158, 367, "Edit Template Mode", false, 3)
   GUI.New("tab_projectTemplates_checklistEditMode", "Checklist", LayerIndex.ProjectTemplates, GUI.w - 42, 365, 20, 20, "", "", "h", 0)
 
-  function GUI.elms.tab_projectTemplates_subfolders:onmousedown()
-    if GUI.elms.tab_projectTemplates_subfolders then 
-      TabParentSelectionIndex[2] = self:getitem(GUI.mouse.y)
-      GUI.Listbox.onmouseup(self)
-      UpdateProjectTemplateSubDirSelection()
+  if showSubfolderPanel then
+    GUI.New("tab_projectTemplates_subfolders", "Listbox", LayerIndex.ProjectTemplates, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
+  
+    function GUI.elms.tab_projectTemplates_subfolders:onmousedown()
+      if GUI.elms.tab_projectTemplates_subfolders then 
+        TabParentSelectionIndex[2] = self:getitem(GUI.mouse.y)
+        GUI.Listbox.onmouseup(self)
+        UpdateProjectTemplateSubDirSelection()
+      end
     end
-  end
 
-  function UpdateProjectTemplateSubDirSelection()
-    if TabParentSelectionIndex[2] == 1 then 
-      RefreshProjectTemplates()
-    else 
-      local selectedList = GUI.elms.tab_projectTemplates_subfolders.list 
-      FillProjectTemplateListBoxBase(GetFiles(selectedList[TabParentSelectionIndex[2]]))
+    function UpdateProjectTemplateSubDirSelection()
+      if TabParentSelectionIndex[2] == 1 then 
+        RefreshProjectTemplates()
+      else 
+        local selectedList = GUI.elms.tab_projectTemplates_subfolders.list 
+        FillProjectTemplateListBoxBase(GetFiles(selectedList[TabParentSelectionIndex[2]]))
+      end
+      TabSelectionIndex[2] = 1
+      GUI.Val("tab_projectTemplates_listbox", {1})
     end
-    TabSelectionIndex[2] = 1
-    GUI.Val("tab_projectTemplates_listbox", {1})
   end
 
   function GUI.elms.tab_projectTemplates_listbox:onmousedown()
@@ -2166,33 +2205,39 @@ function RL_Draw_TabTrackTemplates()
   GUI.New("tab_trackTemplates_btnRefresh", "Button", LayerIndex.TrackTemplates, 10, pad_top-2, 20, 22, "R", RefreshTrackTemplates)
   GUI.New("tab_trackTemplates_txtFilter", "Textbox", LayerIndex.TrackTemplates, 75, pad_top, 260, 20, "Filter", 8)
   
-  GUI.New("tab_trackTemplates_subfolders", "Listbox", LayerIndex.TrackTemplates, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
-
-  GUI.New("tab_trackTemplates_listbox", "Listbox", LayerIndex.TrackTemplates, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  if showSubfolderPanel then
+    GUI.New("tab_trackTemplates_listbox", "Listbox", LayerIndex.TrackTemplates, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  else
+    GUI.New("tab_trackTemplates_listbox", "Listbox", LayerIndex.TrackTemplates, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  end
   GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.names
   GUI.Val("tab_trackTemplates_listbox", {1})
 
   GUI.New("tab_trackTemplates_btnInsert", "Button", LayerIndex.TrackTemplates, btn_pad_left, btn_tab_top + 20, btn_w, btn_h, "Insert", Load_TrackTemplate)
   
-  function GUI.elms.tab_trackTemplates_subfolders:onmouseup()
-    if GUI.elms.tab_trackTemplates_subfolders then 
-      TabParentSelectionIndex[3] = self:getitem(GUI.mouse.y)
-      GUI.Listbox.onmouseup(self)
-      UpdateTrackTemplateSubDirSelection()
+  if showSubfolderPanel then 
+    GUI.New("tab_trackTemplates_subfolders", "Listbox", LayerIndex.TrackTemplates, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
+    
+    function GUI.elms.tab_trackTemplates_subfolders:onmouseup()
+      if GUI.elms.tab_trackTemplates_subfolders then 
+        TabParentSelectionIndex[3] = self:getitem(GUI.mouse.y)
+        GUI.Listbox.onmouseup(self)
+        UpdateTrackTemplateSubDirSelection()
+      end
+    end
+  
+    function UpdateTrackTemplateSubDirSelection()
+      if TabParentSelectionIndex[3] == 1 then 
+        RefreshTrackTemplates()
+      else 
+        local selectedList = GUI.elms.tab_trackTemplates_subfolders.list 
+        FillTrackTemplateListboxBase(GetFiles(selectedList[TabParentSelectionIndex[3]]))
+      end
+      TabSelectionIndex[3] = 1
+      GUI.Val("tab_trackTemplates_listbox", {1})
     end
   end
-
-  function UpdateTrackTemplateSubDirSelection()
-    if TabParentSelectionIndex[3] == 1 then 
-      RefreshTrackTemplates()
-    else 
-      local selectedList = GUI.elms.tab_trackTemplates_subfolders.list 
-      FillTrackTemplateListboxBase(GetFiles(selectedList[TabParentSelectionIndex[3]]))
-    end
-    TabSelectionIndex[3] = 1
-    GUI.Val("tab_trackTemplates_listbox", {1})
-  end
-
+  
   function GUI.elms.tab_trackTemplates_listbox:onmousedown()
     TabSelectionIndex[3] = self:getitem(GUI.mouse.y)
     if GUI.JSAPI() then AudioPreviewCheckForFile() end
@@ -2227,32 +2272,39 @@ function RL_Draw_TabCustomProjects()
   GUI.New("tab_customProjects_btnFilter", "Button", LayerIndex.CustomProjects, 10, pad_top-2, 20, 22, "R", RefreshCustomProjects)
   GUI.New("tab_customProjects_txtFilter", "Textbox", LayerIndex.CustomProjects, 75, pad_top, 260, 20, "Filter", 8)
   
-  GUI.New("tab_customProjects_subfolders", "Listbox", LayerIndex.CustomProjects, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
-
-  GUI.New("tab_customProjects_listbox", "Listbox", LayerIndex.CustomProjects, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  if showSubfolderPanel then
+    GUI.New("tab_customProjects_listbox", "Listbox", LayerIndex.CustomProjects, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  else
+    GUI.New("tab_customProjects_listbox", "Listbox", LayerIndex.CustomProjects, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  end
   GUI.elms.tab_customProjects_listbox.list = CustomProjects.names
   GUI.Val("tab_customProjects_listbox", {1})
 
   GUI.New("tab_customProjects_btnLoadInTab", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_CustomProject)
   GUI.New("tab_customProjects_btnLoad", "Button", LayerIndex.CustomProjects, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_CustomProject)
 
-  function GUI.elms.tab_customProjects_subfolders:onmousedown()
-    if GUI.elms.tab_customProjects_subfolders then 
-      TabParentSelectionIndex[4] = self:getitem(GUI.mouse.y)
-      GUI.Listbox.onmouseup(self)
-      UpdateCustomProjectSubDirSelection()
-    end
-  end
+  if showSubfolderPanel then 
+    GUI.New("tab_customProjects_subfolders", "Listbox", LayerIndex.CustomProjects, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
 
-  function UpdateCustomProjectSubDirSelection()
-    if TabParentSelectionIndex[4] == 1 then 
-      RefreshCustomProjects()
-    else 
-      local selectedList = GUI.elms.tab_customProjects_subfolders.list 
-      FillCustomProjectsListboxBase(GetFiles(selectedList[TabParentSelectionIndex[4]]))
+    function GUI.elms.tab_customProjects_subfolders:onmousedown()
+      if GUI.elms.tab_customProjects_subfolders then 
+        TabParentSelectionIndex[4] = self:getitem(GUI.mouse.y)
+        GUI.Listbox.onmouseup(self)
+        UpdateCustomProjectSubDirSelection()
+      end
     end
-    TabSelectionIndex[4] = 1
-    GUI.Val("tab_customProjects_listbox", {1})
+  
+    function UpdateCustomProjectSubDirSelection()
+      if TabParentSelectionIndex[4] == 1 then 
+        RefreshCustomProjects()
+      else 
+        local selectedList = GUI.elms.tab_customProjects_subfolders.list 
+        FillCustomProjectsListboxBase(GetFiles(selectedList[TabParentSelectionIndex[4]]))
+      end
+      TabSelectionIndex[4] = 1
+      GUI.Val("tab_customProjects_listbox", {1})
+    end
+
   end
 
   function GUI.elms.tab_customProjects_listbox:onmousedown()
@@ -2340,32 +2392,38 @@ function RL_Draw_TabBackups()
   GUI.New("tab_backups_btnRefresh", "Button", LayerIndex.Backups, 10, pad_top-2, 20, 22, "R", RefreshBackups)
   GUI.New("tab_backups_txtFilter", "Textbox", LayerIndex.Backups, 75, pad_top, 260, 20, "Filter", 8)
 
-  GUI.New("tab_backups_subfolders", "Listbox", LayerIndex.Backups, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
-
-  GUI.New("tab_backups_listbox", "Listbox", LayerIndex.Backups, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  if showSubfolderPanel then
+    GUI.New("tab_backups_listbox", "Listbox", LayerIndex.Backups, pad_left + listbox_w/3, listbox_top, listbox_w - listbox_w/3, listbox_h, "", true)
+  else
+    GUI.New("tab_backups_listbox", "Listbox", LayerIndex.Backups, pad_left, listbox_top, listbox_w, listbox_h, "", true)
+  end
   GUI.elms.tab_backups_listbox.list = Backups.names
   GUI.Val("tab_backups_listbox", {1})
 
   GUI.New("tab_backups_btnLoadInTab", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top, btn_w, btn_h, "Load in Tab", LoadInTab_BackupFile)
   GUI.New("tab_backups_btnLoad", "Button", LayerIndex.Backups, btn_pad_left, btn_tab_top + btn_pad_add, btn_w, btn_h, "Load", Load_BackupFile)
 
-  function GUI.elms.tab_backups_subfolders:onmousedown()
-    if GUI.elms.tab_backups_subfolders then 
-      TabParentSelectionIndex[6] = self:getitem(GUI.mouse.y)
-      GUI.Listbox.onmouseup(self)
-      UpdateBackupsSubDirSelection()
-    end
-  end
+  if showSubfolderPanel then
+    GUI.New("tab_backups_subfolders", "Listbox", LayerIndex.Backups, pad_left , listbox_top, listbox_w/3, listbox_h, "", true)
 
-  function UpdateBackupsSubDirSelection()
-    if TabParentSelectionIndex[6] == 1 then 
-      RefreshBackups()
-    else 
-      local selectedList = GUI.elms.tab_backups_subfolders.list 
-      FillBackupsListboxBase(GetFiles(selectedList[TabParentSelectionIndex[6]]))
+    function GUI.elms.tab_backups_subfolders:onmousedown()
+      if GUI.elms.tab_backups_subfolders then 
+        TabParentSelectionIndex[6] = self:getitem(GUI.mouse.y)
+        GUI.Listbox.onmouseup(self)
+        UpdateBackupsSubDirSelection()
+      end
     end
-    TabSelectionIndex[6] = 1
-    GUI.Val("tab_backups_listbox", {1})
+  
+    function UpdateBackupsSubDirSelection()
+      if TabParentSelectionIndex[6] == 1 then 
+        RefreshBackups()
+      else 
+        local selectedList = GUI.elms.tab_backups_subfolders.list 
+        FillBackupsListboxBase(GetFiles(selectedList[TabParentSelectionIndex[6]]))
+      end
+      TabSelectionIndex[6] = 1
+      GUI.Val("tab_backups_listbox", {1})
+    end
   end
 
   function GUI.elms.tab_backups_listbox:onmousedown()
@@ -2400,8 +2458,8 @@ end
 ----------------
 if GUI.SWS() then
   function RL_Draw_SavePromptOption(options_pad_top, options_yOffset)
-      GUI.New("options_lblPromptToSave", "Label", LayerIndex.Options, GUI.w - 258, options_pad_top + 6 * options_yOffset - 14, "Prompt to save on new project", false, 3)
-      GUI.New("options_checklistPromptToSave", "Checklist", LayerIndex.Options, GUI.w - 85, options_pad_top  + 6 * options_yOffset - 18, 20, 20, "", "", "h", 0)
+      GUI.New("options_lblPromptToSave", "Label", LayerIndex.Options, GUI.w - 258, options_pad_top + 6.5 * options_yOffset - 14, "Prompt to save on new project", false, 3)
+      GUI.New("options_checklistPromptToSave", "Checklist", LayerIndex.Options, GUI.w - 85, options_pad_top + 6.5 * options_yOffset - 18, 20, 20, "", "", "h", 0)
       local tooltipTogglePromptToSave = "Toggles the 'Prompt to save on new project' option under Preferences > Project"
       GUI.elms.options_lblPromptToSave.tooltip = tooltipTogglePromptToSave
       GUI.elms.options_checklistPromptToSave.tooltip = tooltipTogglePromptToSave
@@ -2463,6 +2521,10 @@ function RL_Draw_TabOptions()
   GUI.New("options_btnBackupsSet", "Button", LayerIndex.Options, GUI.w - 60, options_pad_top + 5 * options_yOffset, 40, 20, "Set", Path_Set_BackupsFolder)
   GUI.New("options_txtBackupsPath", "Textbox", LayerIndex.Options, 85, options_pad_top + 5 * options_yOffset, GUI.w - 150, 20, ".RPP-BAK [ Backups ] folder", 8)
   GUI.elms.options_txtBackupsPath.cap_pos = "top"
+
+  -- show subfolder panel
+  GUI.New("options_lblShowSubfolderPanel", "Label", LayerIndex.Options, GUI.w - 308, options_pad_top + 6 * options_yOffset - 14, "Show subfolder-panel (restart required)", false, 3)
+  GUI.New("options_checklistShowSubfolderPanel", "Checklist", LayerIndex.Options, GUI.w - 85, options_pad_top + 6 * options_yOffset - 18, 20, 20, "", "", "h", 0)
 
   if GUI.SWS() then 
     RL_Draw_SavePromptOption(options_pad_top, options_yOffset);
@@ -2533,7 +2595,7 @@ select tab directly
 filter: jump into | jump out
 - - - - -
 prev | next in list
-prev | next in parent list
+prev | next in subfolder list
 load in tab
 load
 toggle audio preview 
@@ -2694,9 +2756,9 @@ function RL_Draw_Tooltips()
   GUI.elms.main_btnNewProject.tooltip = "Create new project"
   GUI.elms.main_button_openProject.tooltip = "Show the 'Open project' window"
   -- window pin
-  local tooltip_windowpin = "Check to keep the window open"
+  local tooltip_windowpin = "Check this box to keep the window open"
   GUI.elms.main_label_windowpin.tooltip = tooltip_windowpin
-  GUI.elms.main_checklist_windowpin.tooltip = tooltip_windowpin
+  GUI.elms.main_checklistWindowPin.tooltip = tooltip_windowpin
   -- recent projects
   GUI.elms.tab_recentProjects_btnRefresh.tooltip = "Refresh the [Recent Projects] list"
   GUI.elms.tab_recentProjects_txtFilter.tooltip = "Filter the [Recent Projects] list by typing in one or multiple words separated by a 'space' character"
@@ -2750,7 +2812,11 @@ function RL_Draw_Tooltips()
   GUI.elms.options_btnBackupsClear.tooltip = "Remove backup folder path"
   GUI.elms.options_btnBackupsSet.tooltip = "Set the given path as backup folder"
   GUI.elms.options_txtBackupsPath.tooltip = "Enter a custom backup folder path"
-  
+  -- show subfolder panel
+  local tooltipSubfolderPanel = "Toggles the visibility of the subfolder-panel\nRestart required for the changes to take effect"
+  GUI.elms.options_lblShowSubfolderPanel.tooltip = tooltipSubfolderPanel
+  GUI.elms.options_checklistShowSubfolderPanel.tooltip = tooltipSubfolderPanel
+
   if GUI.SWS() then GUI.elms.themeslot.tooltip = "Switch between different Reaper Theme Slots" end
 end
 
@@ -2958,7 +3024,7 @@ function RL_RedrawAll()
   GUI.elms.main_btnNewProject:ondelete()
   GUI.elms.main_button_openProject:ondelete()
   GUI.elms.main_label_windowpin:ondelete()
-  GUI.elms.main_checklist_windowpin:ondelete()
+  GUI.elms.main_checklistWindowPin:ondelete()
   RL_Draw_Main()
   -- recent projects
   GUI.elms.tab_recentProjects_btnRefresh:ondelete()
@@ -2969,7 +3035,6 @@ function RL_RedrawAll()
   -- project templates
   GUI.elms.tab_projectTemplates_btnRefresh:ondelete()
   GUI.elms.tab_projectTemplates_txtFilter:ondelete()
-  GUI.elms.tab_projectTemplates_subfolders:ondelete()
   GUI.elms.tab_projectTemplates_listbox:ondelete()
   GUI.elms.tab_projectTemplates_btnLoadInTab:ondelete()
   GUI.elms.tab_projectTemplates_btnLoad:ondelete()
@@ -2978,13 +3043,11 @@ function RL_RedrawAll()
   -- track templates
   GUI.elms.tab_trackTemplates_btnRefresh:ondelete()
   GUI.elms.tab_trackTemplates_txtFilter:ondelete()
-  GUI.elms.tab_trackTemplates_subfolders:ondelete()
   GUI.elms.tab_trackTemplates_listbox:ondelete()
   GUI.elms.tab_trackTemplates_btnInsert:ondelete()
   -- custom projects
   GUI.elms.tab_customProjects_btnFilter:ondelete()
   GUI.elms.tab_customProjects_txtFilter:ondelete()
-  GUI.elms.tab_customProjects_subfolders:ondelete()
   GUI.elms.tab_customProjects_listbox:ondelete()
   GUI.elms.tab_customProjects_btnLoadInTab:ondelete()
   GUI.elms.tab_customProjects_btnLoad:ondelete()
@@ -2998,10 +3061,17 @@ function RL_RedrawAll()
   -- backups
   GUI.elms.tab_backups_btnRefresh:ondelete()
   GUI.elms.tab_backups_txtFilter:ondelete()
-  GUI.elms.tab_backups_subfolders:ondelete()
   GUI.elms.tab_backups_listbox:ondelete()
   GUI.elms.tab_backups_btnLoadInTab:ondelete()
   GUI.elms.tab_backups_btnLoad:ondelete()
+
+  if showSubfolderPanel then
+    GUI.elms.tab_projectTemplates_subfolders:ondelete()
+    GUI.elms.tab_trackTemplates_subfolders:ondelete()
+    GUI.elms.tab_customProjects_subfolders:ondelete()
+    GUI.elms.tab_backups_subfolders:ondelete()
+  end
+
   -- options - project templates
   GUI.elms.options_btnProjectTemplatesClear:ondelete()
   GUI.elms.options_btnProjectTemplatesSet:ondelete()
@@ -3079,9 +3149,9 @@ local function RL_ExtStates_Load_ThemeSlotAliases()
 end
 
 local function RL_ExtStates_Load()
-  local pin = reaper.GetExtState(appname,"window_pin")
-  GUI.Val("main_checklist_windowpin", {(pin == "true" and true or false)}) -- window pin state (true = keep window open)
+  GUI.Val("main_checklistWindowPin", {(reaper.GetExtState(appname,"window_pin") == "true" and true or false)}) -- window pin state (true = keep window open)
   RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) -- last selected tab
+  GUI.Val("options_checklistShowSubfolderPanel", {(reaper.GetExtState(appname,"window_showsubfolderpanel") == "true" and true or false)}) -- show subfolder panel 
 
   if GUI.SWS() then
     GUI.Val("themeslot_max", tonumber(reaper.GetExtState(appname, "themeslot_max"))) -- max number of available theme slots
@@ -3102,8 +3172,9 @@ end
 --------------------
 local function RL_ExtStates_Save()
   GUI.save_window_state(appname) -- window state
-  reaper.SetExtState(appname, "window_pin", tostring(GUI.Val("main_checklist_windowpin")), 1) -- window pin state (true = keep window open)
+  reaper.SetExtState(appname, "window_pin", tostring(GUI.Val("main_checklistWindowPin")), 1) -- window pin state (true = keep window open)
   reaper.SetExtState(appname, "window_tabfocus", RL_GetFocusedTab(), 1)  -- last selected tab
+  reaper.SetExtState(appname, "window_showsubfolderpanel", tostring(GUI.Val("options_checklistShowSubfolderPanel")), 1) -- show subfolder panel
 
   if GUI.SWS() then
     reaper.SetExtState(appname, "themeslot_max", tostring(GUI.Val("options_themeslot_number")), 1) -- max number of available theme slots
@@ -3304,14 +3375,25 @@ GUI.modifier = {
 -------------------------------
 -- Key Input - Helper functions
 -------------------------------
-TabParentListBox = {
-  "",
-  "tab_projectTemplates_subfolders",
-  "tab_trackTemplates_subfolders",
-  "tab_customProjects_subfolders",
-  "tab_projectLists_listboxRPL",
-  "tab_backups_subfolders"
-}
+if showSubfolderPanel then 
+  TabParentListBox = {
+    "",
+    "tab_projectTemplates_subfolders",
+    "tab_trackTemplates_subfolders",
+    "tab_customProjects_subfolders",
+    "tab_projectLists_listboxRPL",
+    "tab_backups_subfolders"
+  }
+else
+  TabParentListBox = {
+    "",
+    "",
+    "",
+    "",
+    "tab_projectLists_listboxRPL",
+    ""
+  }
+end
 
 TabListBox = {
   "tab_recentProjects_listbox",
@@ -3334,15 +3416,27 @@ local TabFilter = {
 -----------------
 -- Listbox scroll
 -----------------
-ParentListBoxElements = {
-  nil,
-  GUI.elms.tab_projectTemplates_subfolders,
-  GUI.elms.tab_trackTemplates_subfolders,
-  GUI.elms.tab_customProjects_subfolders,
-  GUI.elms.tab_projectLists_listboxRPL,
-  GUI.elms.tab_trackTemplates_subfolders,
-  GUI.elms.tab_backups_subfolders,
-}
+if showSubfolderPanel then
+  ParentListBoxElements = {
+    nil,
+    GUI.elms.tab_projectTemplates_subfolders,
+    GUI.elms.tab_trackTemplates_subfolders,
+    GUI.elms.tab_customProjects_subfolders,
+    GUI.elms.tab_projectLists_listboxRPL,
+    GUI.elms.tab_trackTemplates_subfolders,
+    GUI.elms.tab_backups_subfolders,
+  }
+else
+  ParentListBoxElements = {
+    nil,
+    nil,
+    nil,
+    nil,
+    GUI.elms.tab_projectLists_listboxRPL,
+    nil,
+    nil,
+  }
+end
 
 ListboxElements = {
   GUI.elms.tab_recentProjects_listbox,
@@ -3362,7 +3456,7 @@ function ScrollToTop(tabIndex)
 end
 
 local function ScrollBase(element, listIndex, direction)
-  if element.wnd_h ~= nil and element.wnd_y ~= nil then
+  if element and element.wnd_h ~= nil and element.wnd_y ~= nil then
     if listIndex > element.wnd_h then 
       element.wnd_y = GUI.clamp(1, element.wnd_y + direction, math.max(#element.list - element.wnd_h + 1, 1))
       element:redraw()
@@ -3388,22 +3482,38 @@ function SetParentListBoxIndex(tabIndex, selectedElement)
 
   local ParentListBoxItems = {
     nil,
-    GUI.elms.tab_projectTemplates_subfolders.list,
-    GUI.elms.tab_trackTemplates_subfolders.list,
-    GUI.elms.tab_customProjects_subfolders.list,
+    nil,
+    nil,
+    nil,
     GUI.elms.tab_projectLists_listboxRPL.list,
-    GUI.elms.tab_trackTemplates_subfolders.list,
-    GUI.elms.tab_backups_subfolders.list,
+    nil,
+    nil,
   }
 
-  local selectedList = ParentListBoxItems[tabIndex]
-  local selectedFiles = GetFiles(selectedList[selectedElement])
+  if showSubfolderPanel then
+    ParentListBoxItems = {
+      nil,
+      GUI.elms.tab_projectTemplates_subfolders.list,
+      GUI.elms.tab_trackTemplates_subfolders.list,
+      GUI.elms.tab_customProjects_subfolders.list,
+      GUI.elms.tab_projectLists_listboxRPL.list,
+      GUI.elms.tab_trackTemplates_subfolders.list,
+      GUI.elms.tab_backups_subfolders.list,
+    }
+  end
 
-  if tabIndex == 2 then UpdateProjectTemplateSubDirSelection(selectedFiles) end
-  if tabIndex == 3 then UpdateTrackTemplateSubDirSelection(selectedFiles) end
-  if tabIndex == 4 then UpdateCustomProjectSubDirSelection(selectedFiles) end
-  if tabIndex == 5 then FillProjectListBox(selectedFiles) end
-  if tabIndex == 6 then UpdateBackupsSubDirSelection(selectedFiles) end
+  if ParentListBoxItems[tabIndex] then
+    local selectedList = ParentListBoxItems[tabIndex]
+    local selectedFiles = GetFiles(selectedList[selectedElement])
+  
+    if tabIndex == 5 then FillProjectListBox(selectedFiles) end
+    if showSubfolderPanel then
+      if tabIndex == 2 then UpdateProjectTemplateSubDirSelection(selectedFiles) end
+      if tabIndex == 3 then UpdateTrackTemplateSubDirSelection(selectedFiles) end
+      if tabIndex == 4 then UpdateCustomProjectSubDirSelection(selectedFiles) end
+      if tabIndex == 6 then UpdateBackupsSubDirSelection(selectedFiles) end
+    end
+  end
 end
 
 -- previous parent
@@ -3423,16 +3533,29 @@ end
 function SelectNextParentIndex(tabIndex, listIndex)
   local ParentListBoxItems = {
     nil,
-    GUI.elms.tab_projectTemplates_subfolders.list,
-    GUI.elms.tab_trackTemplates_subfolders.list,
-    GUI.elms.tab_customProjects_subfolders.list,
+    nil,
+    nil,
+    nil,
     GUI.elms.tab_projectLists_listboxRPL.list,
-    GUI.elms.tab_backups_subfolders.list,
+    nil,
   }
 
-  if listIndex + 1 <= #ParentListBoxItems[tabIndex] then listIndex = listIndex + 1 end
-  SetParentListBoxIndex(tabIndex, listIndex)
-  ScrollParentListBox(tabIndex, listIndex, 1)
+  if showSubfolderPanel then
+    ParentListBoxItems = {
+      nil,
+      GUI.elms.tab_projectTemplates_subfolders.list,
+      GUI.elms.tab_trackTemplates_subfolders.list,
+      GUI.elms.tab_customProjects_subfolders.list,
+      GUI.elms.tab_projectLists_listboxRPL.list,
+      GUI.elms.tab_backups_subfolders.list,
+    }
+  end
+
+  if ParentListBoxItems[tabIndex] then
+    if listIndex + 1 <= #ParentListBoxItems[tabIndex] then listIndex = listIndex + 1 end
+    SetParentListBoxIndex(tabIndex, listIndex)
+    ScrollParentListBox(tabIndex, listIndex, 1)
+  end
 end
 
 function RL_Keys_ListboxSelectNextParent(currentTab)
