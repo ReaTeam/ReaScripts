@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0fd7472525015f2a8c1efddba26e22444d890661" name="ReaTeam Scripts">
+<index version="1" commit="2758355c29e289a2c4cb3455a4d1bd90d2f9274c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9093,6 +9093,14 @@ Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
         <changelog><![CDATA[Fix crash when encountering feedback routings]]></changelog>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively.lua">https://github.com/ReaTeam/ReaScripts/raw/ea5bb103f06865f3042183bf280668cc2cf2b398/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
         <source main="main" file="cfillion_Select source tracks of selected tracks receives recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/ea5bb103f06865f3042183bf280668cc2cf2b398/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Set audio source of all sends on selected tracks to all channels.lua" type="script" desc="Set audio source of all sends on selected tracks to all channels">
+      <metadata>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&amp;cmd=_donations&amp;currency_code=CAD</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2019-10-20T23:05:12Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2758355c29e289a2c4cb3455a4d1bd90d2f9274c/Tracks%20Properties/cfillion_Set%20audio%20source%20of%20all%20sends%20on%20selected%20tracks%20to%20all%20channels.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle track FX bypass by name.lua" type="script" desc="Toggle track FX bypass by name">
