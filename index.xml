@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b88aff6ddbec34b2c00563d7c4b8a72bc4068a70" name="ReaTeam Scripts">
+<index version="1" commit="da96050cf1f6c714a2fafdb98b0923779ea4c7ed" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11023,6 +11023,14 @@ Web Interface: restore the previous locked state on load]]></changelog>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-19T05:49:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/85cf36c56837a0d1f20b950d0ed335e63e76bd55/Various/edgemeal_Restore%20foreground%20window.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Toggle snap grid settings.lua" type="script" desc="Toggle snap grid settings">
+      <metadata>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-10-22T20:16:50Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/da96050cf1f6c714a2fafdb98b0923779ea4c7ed/Various/edgemeal_Toggle%20snap%20grid%20settings.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Ensure toggle OFF (item grouping).lua" type="script" desc="Ensure toggle OFF (item grouping)">
