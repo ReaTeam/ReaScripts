@@ -1,4 +1,4 @@
--- @description Toggle Snap Grid Settings
+-- @description Toggle snap grid settings
 -- @author Edgemeal
 -- @version 1.0
 -- @donation Donate via PayPal https://www.paypal.me/Edgemeal
