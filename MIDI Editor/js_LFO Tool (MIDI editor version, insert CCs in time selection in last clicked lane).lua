@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_LFO Tool (MIDI editor version, insert CCs in time selection in last clicked lane).lua
-Version: 2.71
+Version: 2.80
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=177437
 Screenshot: http://stash.reaper.fm/29477/LFO%20Tool%20%28MIDI%20editor%20version%2C%20apply%20to%20existing%20CCs%20or%20velocities%29.gif
@@ -100,6 +100,8 @@ About:
     + "Swing" envelope.
   v2.71 (2018-12-28)
     + Small improvements.
+  v2.80 (2019-10-22)
+    + Compatible with CC envelopes.
 ]]
 -- The archive of the full changelog is at the end of the script.
 
@@ -2693,7 +2695,7 @@ function setup_deselectAndDeleteCCs()
             prevPos = pos
         elseif mustDeselect then
             tMIDI[#tMIDI+1] = editMIDI:sub(prevPos, pos-mustDeselect)
-            tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, flags&0xE, msg)
+            tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, flags&0xFE, msg)
             prevPos = pos
         end
     end -- while pos < #editMIDI do
@@ -2716,12 +2718,12 @@ function setup_insertNewCCs()
         for p = tRanges[i].startTick, tRanges[i].endTick-1, PPperCC do
             local insertPPQpos = math.ceil(p)
             
-            if     laneIsCC7BIT  then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0|channel, targetLane, 0)
-            elseif laneIsCC14BIT then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xB0|channel, targetLane-256, 0)
-                                      tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", 0, 1, 3, 0xB0|channel, targetLane-224, 0)
-            elseif laneIsPROGRAM then tMIDI[#tMIDI+1] = s_pack("i4Bi4BB", insertPPQpos-lastPPQpos, 1, 2, 0xC0|channel, 0)
-            elseif laneIsCHPRESS then tMIDI[#tMIDI+1] = s_pack("i4Bi4BB", insertPPQpos-lastPPQpos, 1, 2, 0xD0|channel, 0)
-            elseif laneIsPITCH   then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 1, 3, 0xE0|channel, 0, 0)
+            if     laneIsCC7BIT  then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 17, 3, 0xB0|channel, targetLane, 0)
+            elseif laneIsCC14BIT then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 17, 3, 0xB0|channel, targetLane-256, 0)
+                                      tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", 0, 17, 3, 0xB0|channel, targetLane-224, 0)
+            elseif laneIsPROGRAM then tMIDI[#tMIDI+1] = s_pack("i4Bi4BB", insertPPQpos-lastPPQpos, 17, 2, 0xC0|channel, 0)
+            elseif laneIsCHPRESS then tMIDI[#tMIDI+1] = s_pack("i4Bi4BB", insertPPQpos-lastPPQpos, 17, 2, 0xD0|channel, 0)
+            elseif laneIsPITCH   then tMIDI[#tMIDI+1] = s_pack("i4Bi4BBB", insertPPQpos-lastPPQpos, 17, 3, 0xE0|channel, 0, 0)
             end
             lastPPQpos = insertPPQpos
         end
