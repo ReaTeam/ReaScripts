@@ -1,6 +1,6 @@
 -- @description amagalma_Smart contextual zoom
 -- @author amagalma
--- @version 1.53
+-- @version 1.54
 -- @link https://forum.cockos.com/showthread.php?t=215575
 -- @about
 --  # Toggles zoom to objects under mouse (if 0 or 1 is selected), or to selected objects (if 2+ are selected)
@@ -10,9 +10,7 @@
 --  # Undo points are created only when (un)hiding Master Track, which is unavoidable
 --  # Needs js_ReaScriptAPI extension and offers to install it if not present
 -- @changelog
---  # Behavior change: When zoomed to tracks, zooming to items zooms only horizontally, so when zooming out you don't loose previous track zoom
---  # New: when run over empty TCP area, it fits vertically all (as many as possible) tracks into view (no toggle action)
---  # Various optimizations
+--  # Fix vertical zoom for OSX
 
 --------------------------------------------------------------------------------
 
@@ -47,13 +45,12 @@ else
 end
 
 local reaper = reaper
+local OSX = string.match(reaper.GetOS(), "OSX") and true or false
 local abs = math.abs
 local defheightenv = {} -- stored here are envelope lanes with default height (height = 0)
 local defaultheight = 24 + 12*reaper.SNM_GetIntConfigVar("defvzoom", -1)
 local trackview = reaper.JS_Window_FindChildByID( reaper.GetMainHwnd(), 1000)
-local _, left, top, right, bottom = reaper.JS_Window_GetClientRect( trackview )
-local arrange_height = bottom - top
-local arrange_width = right - left
+local _, arrange_width, arrange_height = reaper.JS_Window_GetClientSize( trackview )
 local master = reaper.GetMasterTrack( 0 )
 local mastervis = reaper.GetMasterTrackVisibility()
 local mastersel = reaper.IsTrackSelected( master ) and 1 or 0
@@ -147,10 +144,20 @@ function CenterMaximizedPanelinTCP()
     and reaper.JS_Window_GetTitle( hwnd ) == ""
     and reaper.JS_Window_IsVisible( hwnd )
     then
-      local _, left, top, right, bottom = reaper.JS_Window_GetClientRect( hwnd )
+      local _, left, top, right, bottom
+      if OSX then
+        _, left, bottom, right, top = reaper.JS_Window_GetClientRect( hwnd )
+      else
+        _, left, top, right, bottom = reaper.JS_Window_GetClientRect( hwnd )
+      end
       local height = bottom - top
       local parent = reaper.JS_Window_GetParent( hwnd )
-      local _, _, parentpos = reaper.JS_Window_GetClientRect( parent )
+      local parentpos
+      if OSX then
+        _, _, _, _, parentpos = reaper.JS_Window_GetClientRect( parent )
+      else
+        _, _, parentpos = reaper.JS_Window_GetClientRect( parent )
+      end
       local position = top - parentpos
       if arrange_height - height < 60 and position > -(arrange_height*0.499) and position < (arrange_height*0.499) then
         pixels = position
