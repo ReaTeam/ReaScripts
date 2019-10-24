@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="da96050cf1f6c714a2fafdb98b0923779ea4c7ed" name="ReaTeam Scripts">
+<index version="1" commit="b9a8d1ccb38871351cf78daa7b44704429f4848e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8142,6 +8142,21 @@ enter or a = Exit and apply changes\par}
         <source main="main" file="cfillion_Set timecode at edit cursor (frames).lua">https://github.com/ReaTeam/ReaScripts/raw/93a9df74f15252a59834ed10efcb6c0774e7ee61/Project%20Properties/cfillion_Set%20timecode%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
+    <reapack name="edgemeal_Do not process muted tracks toggle.lua" type="script" desc="Do not process muted tracks toggle">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a toggle only, to persist the setting set in REAPER preferences.\par}
+}
+]]></description>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-10-24T00:13:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b9a8d1ccb38871351cf78daa7b44704429f4848e/Project%20Properties/edgemeal_Do%20not%20process%20muted%20tracks%20toggle.lua</source>
+      </version>
+    </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -8711,6 +8726,15 @@ Fix loading presets from reaper-render.ini on Windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/06d83d8b16669dd31d2bc80885f8768deedd8917/Time%20Selection/cfillion_Insert%20empty%20space%20from%20time%20selection%20at%20edit%20cursor%20(moving%20later%20items).lua</source>
       </version>
     </reapack>
+    <reapack name="edgemeal_Move time selection to cursor.lua" type="script" desc="Move time selection to cursor">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2190109">Forum</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-10-24T00:12:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c75d93d46071c3f6567bc4b6bfe79b1d67b1c58/Time%20Selection/edgemeal_Move%20time%20selection%20to%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="edgemeal_Select muted items within time selection.lua" type="script" desc="Select muted items within time selection">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -8724,6 +8748,15 @@ Fix loading presets from reaper-render.ini on Windows]]></changelog>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-07-30T23:33:00Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/885ab872376733e7c0d43f5381415838faf818c3/Time%20Selection/edgemeal_Select%20muted%20items%20within%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Select non-locked items in time selection.lua" type="script" desc="Select non-locked items in time selection">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=225526">Forum</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-10-24T00:13:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f5f4f8916508b95a88509185acf9788dc6f0aa26/Time%20Selection/edgemeal_Select%20non-locked%20items%20in%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Unselect items not within time selection.lua" type="script" desc="Unselect items not within time selection">
