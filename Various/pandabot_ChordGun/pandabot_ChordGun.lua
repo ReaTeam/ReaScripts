@@ -1953,49 +1953,79 @@ function drawDropdownIcon()
 
     local xOffset = gfx.x
     local yOffset = gfx.y
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 2 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.38823529411765)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 3 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 4 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 5 + yOffset
     gfx.setpixel(0.36078431372549, 0.39607843137255, 0.3843137254902)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 6 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 7 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 8 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 9 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 10 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 11 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 12 + yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
+    gfx.x = xOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 13 + yOffset
     gfx.setpixel(0.34901960784314, 0.37647058823529, 0.36470588235294)
+    gfx.x = xOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 1 + xOffset
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 2 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
     gfx.x = 2 + xOffset
@@ -2038,6 +2068,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 3 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 3 + xOffset
@@ -2080,6 +2112,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 4 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 4 + xOffset
@@ -2122,6 +2156,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 5 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 5 + xOffset
@@ -2164,6 +2200,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 6 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 6 + xOffset
@@ -2206,6 +2244,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 7 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 7 + xOffset
@@ -2248,6 +2288,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 8 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 8 + xOffset
@@ -2290,6 +2332,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 9 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 9 + xOffset
@@ -2332,6 +2376,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 10 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 10 + xOffset
@@ -2374,6 +2420,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 11 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36470588235294, 0.39607843137255, 0.3843137254902)
     gfx.x = 11 + xOffset
@@ -2416,6 +2464,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 12 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.x = 12 + xOffset
@@ -2458,6 +2508,8 @@ function drawDropdownIcon()
     gfx.y = 14 + yOffset
     gfx.setpixel(0.0, 0.0, 0.0)
     gfx.x = 13 + xOffset
+    gfx.y = yOffset
+    gfx.setpixel(0.36862745098039, 0.4, 0.38823529411765)
     gfx.y = 1 + yOffset
     gfx.setpixel(0.34901960784314, 0.38039215686275, 0.36862745098039)
     gfx.x = 13 + xOffset

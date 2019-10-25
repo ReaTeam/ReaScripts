@@ -2,7 +2,7 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.3
+Version: 1.4
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
@@ -106,3 +106,23 @@ About:
 
     command+shift+. - increment chord inversion
 --]]
+
+--[[
+Changelog:
+
+v1.4 (2019-10-25)
+  + fixed UI flaw with dropdown icon
+
+v1.3 (2019-10-14)
+  + added shift-click insertion for keyboard shortcuts
+
+v1.2 (2019-10-13)
+  + added click for preview, shift-click to insert (https://forum.cockos.com/showthread.php?t=225717)
+
+v1.1 (2019-10-13)
+  + added guard clause for scale numbers greater than 5 on pentatonic scales
+  + added fix for tempo change markers
+
+v1.0 (2018-11-07)
+  + initial version
+]]--
