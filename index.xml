@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb341510d7886e4534467038eff2059eb6b4f270" name="ReaTeam Scripts">
+<index version="1" commit="42bb4e720e7e062e9b51b7937204074ed6184514" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8320,6 +8320,11 @@ enter or a = Exit and apply changes\par}
         <changelog><![CDATA[+ General: Visibility and usage of the subfolder-panel can now be toggled in the [Options] tab - requires restart of ReaLauncher for the changes to take effect
 + General: Automatic refresh of list entries is now only done the first time when loading a (different) tab]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0fd7472525015f2a8c1efddba26e22444d890661/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.7.1" author="solger" time="2019-10-27T18:51:40Z">
+        <changelog><![CDATA[+ General: The last used Show/Hide path display mode is now stored
++ General: Some minor bugfixes and enhancements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/42bb4e720e7e062e9b51b7937204074ed6184514/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
