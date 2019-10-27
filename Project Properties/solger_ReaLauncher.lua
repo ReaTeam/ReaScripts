@@ -1,9 +1,9 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.7
+-- @version 1.7.1
 -- @changelog
---   + General: Visibility and usage of the subfolder-panel can now be toggled in the [Options] tab - requires restart of ReaLauncher for the changes to take effect
---   + General: Automatic refresh of list entries is now only done the first time when loading a (different) tab
+--   + General: The last used Show/Hide path display mode is now stored
+--   + General: Some minor bugfixes and enhancements
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -31,9 +31,10 @@
 --
 --   https://forum.cockos.com/showthread.php?t=208697
 
---------------------------------------------------------
+------------------------------------------------------------------------------
 local debugEnabled = false -- show console debug messages
---------------------------------------------------------
+local skipRefreshAtLaunch = false -- skip refresh of the focused tab at launch
+------------------------------------------------------------------------------
 -- String Helper functions
 --------------------------
 local function MsgDebug(str)
@@ -67,7 +68,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.7"
+appversion = "1.7.1"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -76,8 +77,11 @@ bitversion = string.sub(reaperVersionString, #reaperVersionString - 2, #reaperVe
 reaperversion = string.sub(reaperVersionString, 1, #reaperVersionString - (reaperVersionString:reverse()):find("%/"))
 
 reaperIniPath = reaper.get_ini_file()
+MsgDebug("Found reaper.ini: " .. reaperIniPath)
+
 resourcePath = reaper.GetResourcePath()
-if resourcePath == nil then MsgError("Could not retrieve the Reaper resource path!") end
+if resourcePath == nil then MsgError("Could not retrieve the Reaper resource path!") 
+else MsgDebug("Found resource path: " .. resourcePath .. "\n") end
 
 if osversion:find("Win") then
   -- Windows paths
@@ -307,19 +311,27 @@ local function FilterNoCase(s)
 end
 
 local function RemoveExtension_RPP(filename)
-  return string.sub(filename, 1, #filename - 4)
+  if filename ~= nil then
+    return string.sub(filename, 1, #filename - 4)
+  end
 end
 
 local function RemoveExtension_RPL(filename)
-  return string.sub(filename, 1, #filename - 4)
+  if filename ~= nil then
+    return string.sub(filename, 1, #filename - 4)
+  end
 end
 
 local function RemoveExtension_RPP_BAK(filename)
-  return string.sub(filename, 1, #filename - 8)
+  if filename ~= nil then
+    return string.sub(filename, 1, #filename - 8)
+  end
 end
 
 local function RemoveExtension_RTrackTemplate(filename)
-  return string.sub(filename, 1, #filename - 15)
+  if filename ~= nil then
+    return string.sub(filename, 1, #filename - 15)
+  end
 end
 
 local function RemoveWhiteSpaces(s)
@@ -338,8 +350,8 @@ end
 
 local function GetFilenameWithoutPath(filepath)
   local filename
-  if osversion:find("Win") then filename = filepath:match "([^\\]-([^.]+))$" -- Windows: get (filename.extension) substring
-    else filename = filepath:match "([^/]-([^.]+))$" -- macOS / Linux: get (filename.extension) substring
+  if osversion:find("Win") then filename = filepath:match("([^\\]-([^.]+))$") -- Windows: get (filename.extension) substring
+    else filename = filepath:match("([^/]-([^.]+))$") -- macOS / Linux: get (filename.extension) substring
   end
   return filename
 end
@@ -621,6 +633,7 @@ function FillRecentProjectsListbox()
       break 
     else
       local fullPath = GetReaperIniKeyValue(recentpathtag[p])
+      MsgDebug(p .. ": " .. fullPath)
       local filename = GetFilenameWithoutPath(fullPath)
 
       if CheckForDuplicates(RecentProjects.paths, fullPath) == false and fullPath ~= "removed" then
@@ -682,6 +695,7 @@ local function FillProjectTemplateListBoxBase(tempTemplates)
     local fileExtension = GetFileExtension(filename, 3)
     
     if string.find(fileExtension, ".rpp") then
+      MsgDebug(tempTemplates[i])
       ProjectTemplates.names[pos] = RemoveExtension_RPP(filename)
       ProjectTemplates.items[ProjectTemplates.names[pos]] = tempTemplates[i]
       ProjectTemplates.paths[pos] = tempTemplates[i]
@@ -738,6 +752,7 @@ local function FillTrackTemplateListboxBase(tempTemplates)
     local fileExtension = GetFileExtension(filename, 14)
 
     if fileExtension == FileTypes.tracktemplate then
+      MsgDebug(tempTemplates[i])
       TrackTemplates.names[pos] = RemoveExtension_RTrackTemplate(filename)
       TrackTemplates.items[TrackTemplates.names[pos]] = tempTemplates[i]
       TrackTemplates.paths[pos] = tempTemplates[i]
@@ -792,6 +807,7 @@ local function FillCustomProjectsListboxBase(dirFiles)
     local filename = GetFilenameWithoutPath(dirFiles[i])
     local fileExtension = GetFileExtension(filename, 3)
     if fileExtension == FileTypes.rpp then
+      MsgDebug(dirFiles[i])
       CustomProjects.names[pos] = RemoveExtension_RPP(filename)
       CustomProjects.items[CustomProjects.names[pos]] = dirFiles[i]
       CustomProjects.paths[pos] = dirFiles[i]
@@ -838,6 +854,7 @@ function FillProjectListSelector()
       local filename = GetFilenameWithoutPath(projectListFiles[i])
       local fileExtension = GetFileExtension(filename, 3)
       if fileExtension == FileTypes.rpl then
+        MsgDebug(projectListFiles[i])
         ProjectLists.rplFiles[pos] = RemoveExtension_RPL(filename)
         pos = pos + 1
       end
@@ -916,6 +933,7 @@ local function FillBackupsListboxBase(dirFiles)
     local filename = GetFilenameWithoutPath(dirFiles[i])
     local bakExtension = GetFileExtension(filename, 7)
     if bakExtension == FileTypes.bak then
+      MsgDebug(dirFiles[i])
       Backups.names[pos] = RemoveExtension_RPP_BAK(filename)
       Backups.items[Backups.names[pos]] = dirFiles[i]
       Backups.paths[pos] = dirFiles[i]
@@ -1467,34 +1485,40 @@ end
 -- Refresh Listbox functions
 ----------------------------
 local function RefreshRecentProjects()
+  MsgDebug("-----------------------")
   MsgDebug("Refresh Recent Projects")
   FillRecentProjectsListbox()
 end
 
 local function RefreshProjectTemplates()
+  MsgDebug("-----------------------")
   MsgDebug("Refresh Project Templates")
   if showSubfolderPanel then FillProjectTemplateSubDirList() end
   FillProjectTemplateListbox()
 end
 
 local function RefreshTrackTemplates()
+  MsgDebug("-----------------------")
   MsgDebug("Refresh Track Templates")
   if showSubfolderPanel then FillTrackTemplateSubDirList() end
   FillTrackTemplateListbox()
 end
 
 local function RefreshCustomProjects()
+  MsgDebug("-----------------------")
   MsgDebug("Refresh Custom Projects")
   if showSubfolderPanel then FillCustomProjectsSubDirList() end
   FillCustomProjectsListbox()
 end
 
 function RefreshProjectList()
+  MsgDebug("-----------------------")
   MsgDebug("Refresh Project Lists")
   FillProjectListSelector()
 end
 
 function RefreshBackups()
+  MsgDebug("-----------------------")
   MsgDebug("Refresh Backups")
   if showSubfolderPanel then FillBackupsSubDirList() end
   FillBackupsListbox()
@@ -1926,7 +1950,7 @@ end
 
 function RL_SetFocusedTab(tabIndex)
   GUI.Val("main_tabs", tabIndex)
-  RL_AutoRefreshTab()
+  if not skipRefreshAtLaunch then RL_AutoRefreshTab() end
 end
 
 showSubfolderPanel = reaper.GetExtState(appname,"window_showsubfolderpanel") == "true" and true or false;
@@ -3152,6 +3176,12 @@ local function RL_ExtStates_Load()
   GUI.Val("main_checklistWindowPin", {(reaper.GetExtState(appname,"window_pin") == "true" and true or false)}) -- window pin state (true = keep window open)
   RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) -- last selected tab
   GUI.Val("options_checklistShowSubfolderPanel", {(reaper.GetExtState(appname,"window_showsubfolderpanel") == "true" and true or false)}) -- show subfolder panel 
+  
+  -- show/hide paths
+  local showPaths = reaper.GetExtState(appname,"window_showpaths")
+  if showPaths == "" then showPaths = 1 end
+  GUI.Val("main_menuPaths", tonumber(showPaths))
+  Global_UpdatePathDisplayMode()
 
   if GUI.SWS() then
     GUI.Val("themeslot_max", tonumber(reaper.GetExtState(appname, "themeslot_max"))) -- max number of available theme slots
@@ -3175,6 +3205,7 @@ local function RL_ExtStates_Save()
   reaper.SetExtState(appname, "window_pin", tostring(GUI.Val("main_checklistWindowPin")), 1) -- window pin state (true = keep window open)
   reaper.SetExtState(appname, "window_tabfocus", RL_GetFocusedTab(), 1)  -- last selected tab
   reaper.SetExtState(appname, "window_showsubfolderpanel", tostring(GUI.Val("options_checklistShowSubfolderPanel")), 1) -- show subfolder panel
+  reaper.SetExtState(appname, "window_showpaths", tostring(GUI.Val("main_menuPaths")), 1) -- show/hide paths
 
   if GUI.SWS() then
     reaper.SetExtState(appname, "themeslot_max", tostring(GUI.Val("options_themeslot_number")), 1) -- max number of available theme slots
