@@ -311,27 +311,23 @@ local function FilterNoCase(s)
 end
 
 local function RemoveExtension_RPP(filename)
-  if filename ~= nil then
-    return string.sub(filename, 1, #filename - 4)
-  end
+ if filename == nil then return ""
+ else return string.sub(filename, 1, #filename - 4) end
 end
 
 local function RemoveExtension_RPL(filename)
-  if filename ~= nil then
-    return string.sub(filename, 1, #filename - 4)
-  end
+  if filename == nil then return ""
+  else return string.sub(filename, 1, #filename - 4) end
 end
 
 local function RemoveExtension_RPP_BAK(filename)
-  if filename ~= nil then
-    return string.sub(filename, 1, #filename - 8)
-  end
+  if filename == nil then return ""
+  else return string.sub(filename, 1, #filename - 8) end
 end
 
 local function RemoveExtension_RTrackTemplate(filename)
-  if filename ~= nil then
-    return string.sub(filename, 1, #filename - 15)
-  end
+  if filename == nil then return ""
+  else return string.sub(filename, 1, #filename - 15) end
 end
 
 local function RemoveWhiteSpaces(s)
