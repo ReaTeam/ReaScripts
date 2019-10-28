@@ -12861,6 +12861,7 @@ here
         <link rel="donation">https://paypal.me/benjohnson2001</link>
       </metadata>
       <version name="1.0" author="pandabot" time="2018-11-08T01:50:42Z">
+        <changelog><![CDATA[+ initial version]]></changelog>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
@@ -12905,6 +12906,8 @@ here
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
       </version>
       <version name="1.1" author="pandabot" time="2019-10-13T15:01:06Z">
+        <changelog><![CDATA[+ added guard clause for scale numbers greater than 5 on pentatonic scales
++ added fix for tempo change markers]]></changelog>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/287432c4e4c7711a59433c15740c88b6b7715a7b/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/287432c4e4c7711a59433c15740c88b6b7715a7b/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/287432c4e4c7711a59433c15740c88b6b7715a7b/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
@@ -12949,6 +12952,7 @@ here
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/287432c4e4c7711a59433c15740c88b6b7715a7b/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
       </version>
       <version name="1.2" author="pandabot" time="2019-10-13T18:40:03Z">
+        <changelog><![CDATA[+ added click for preview, shift-click to insert (https://forum.cockos.com/showthread.php?t=225717)]]></changelog>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/8940a60d07cdd0a5cca4447c035f483f2b3f0473/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/8940a60d07cdd0a5cca4447c035f483f2b3f0473/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/8940a60d07cdd0a5cca4447c035f483f2b3f0473/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
@@ -12993,6 +12997,7 @@ here
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun.lua">https://github.com/ReaTeam/ReaScripts/raw/8940a60d07cdd0a5cca4447c035f483f2b3f0473/Various/pandabot_ChordGun/pandabot_ChordGun.lua</source>
       </version>
       <version name="1.3" author="pandabot" time="2019-10-14T15:53:45Z">
+        <changelog><![CDATA[+ added shift-click insertion for keyboard shortcuts]]></changelog>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/a65f0fd1e0911d7fa1b40c93b43639103c689b4f/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20inversion.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement chord type.lua">https://github.com/ReaTeam/ReaScripts/raw/a65f0fd1e0911d7fa1b40c93b43639103c689b4f/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20chord%20type.lua</source>
         <source main="main midi_editor" file="pandabot_ChordGun/pandabot_ChordGun decrement octave.lua">https://github.com/ReaTeam/ReaScripts/raw/a65f0fd1e0911d7fa1b40c93b43639103c689b4f/Various/pandabot_ChordGun/pandabot_ChordGun%20decrement%20octave.lua</source>
