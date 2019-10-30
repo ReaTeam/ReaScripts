@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42bb4e720e7e062e9b51b7937204074ed6184514" name="ReaTeam Scripts">
+<index version="1" commit="83d76c8df66979f382bf1be7d856df1556c1bc3f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8378,15 +8378,19 @@ enter or a = Exit and apply changes\par}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Create single region from selected items (get name and color from folder track)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 See screenshot.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Made for exporting sound effects. Select all the items that make up your sound effect, and run this script. A region will be created which encompasses all the items and inherits its name and color from the parent track of the topmost item. See screenshot.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script works well with "Set render matrix by comparing track names and region names.lua".\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Tip: Name the parent track "#FX" to stop the script from traversing through it.\par}
 }
 ]]></description>
         <link rel="screenshot" href="https://i.imgur.com/xUg7bSU.gif">Creating regions from items</link>
       </metadata>
       <version name="1.0" author="Mordi" time="2019-05-03T18:02:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df647116ad677910f5ec87bfc1bf42e4367a321a/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track).lua</source>
+      </version>
+      <version name="1.1" author="Mordi" time="2019-10-30T09:34:37Z">
+        <changelog><![CDATA[Not sure what I fixed, but I fixed something...]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83d76c8df66979f382bf1be7d856df1556c1bc3f/Regions/Mordi_Create%20single%20region%20from%20selected%20items%20(get%20name%20and%20color%20from%20folder%20track).lua</source>
       </version>
     </reapack>
     <reapack name="Mordi_Set render matrix by comparing track names and region names.lua" type="script" desc="Set render matrix by comparing track names and region names">
@@ -8409,6 +8413,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.1" author="Mordi" time="2019-05-05T14:26:48Z">
         <changelog><![CDATA[Fixed a bug where markers would offset the region index.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/999ddbea3c665f305afe45dbcae7030dc9c90360/Regions/Mordi_Set%20render%20matrix%20by%20comparing%20track%20names%20and%20region%20names.lua</source>
+      </version>
+      <version name="1.2" author="Mordi" time="2019-10-30T09:34:37Z">
+        <changelog><![CDATA[Fixed a similar bug where markers would interfere with regions.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/83d76c8df66979f382bf1be7d856df1556c1bc3f/Regions/Mordi_Set%20render%20matrix%20by%20comparing%20track%20names%20and%20region%20names.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Create regions (with tail) from selected items.lua" type="script" desc="Create regions (with tail) from selected items">
