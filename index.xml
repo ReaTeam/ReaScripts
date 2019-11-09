@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a506d6cb7b92c1779194c131a29d37cbe6710ef3" name="ReaTeam Scripts">
+<index version="1" commit="7c3231e16c4482fa37d7b98daeb23e91e021c196" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13356,6 +13356,10 @@ uc_note_min_seconds = 1\par}
       <version name="0.2.8" author="spk77" time="2019-09-20T10:31:08Z">
         <changelog><![CDATA[- Load project specific script state when project changes (or when switching to another project tab)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1f6d7e67f6dd0e3b857ef12e4f29163b18a91940/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.2.9" author="spk77" time="2019-11-09T19:53:41Z">
+        <changelog><![CDATA[- Store/restore script window position]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7c3231e16c4482fa37d7b98daeb23e91e021c196/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
