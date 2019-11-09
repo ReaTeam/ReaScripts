@@ -1,8 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.2.8
+-- @version 0.2.9
 -- @author spk77
 -- @changelog
---   - Load project specific script state when project changes (or when switching to another project tab)
+--   - Store/restore script window position
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -122,6 +122,7 @@ GUI.safe_remove_btn_by_index = {}     -- a list of buttons to be removed
 GUI.safe_remove_track_from_tag = {}   -- remove tagged track from button
 GUI.safe_remove_all_tags = false
 GUI.dock = 0
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 0, 0
             
 local track_list = {}
 
@@ -850,17 +851,31 @@ end
 -------------------------------------------------
 
 function init()
-  local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
-  local center_w = 0.5*(right-left)
-  local center_h = 0.5*(bottom-top)
-  local w = 0.1*(right-left)
-  local h = w -- 0.1*(bottom-top)
-  
-  local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "GUI_dock_state")
-  local dock = state or 0
+  local dock, x, y, w, h = 0, 0, 0, 0, 0
+   --reaper.SetProjExtState(0, "spk77 Track Tags", "script state", "") -- delete data
+  local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "script state")
+  if ok == 1 and state ~= "" then
+    state = unpickle(state)
+    dock = state.GUI.dock
+    x = state.GUI.x
+    y = state.GUI.y
+    w = state.GUI.w
+    h = state.GUI.h
+  else
+    local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    w = 0.1*(right-left)
+    h = w -- 0.1*(bottom-top)
+    x = 0.5*(right-left) - 0.5*w
+    y = 0.5*(bottom-top) - 0.5*h
+  end
   gfx.clear = 3355443  -- matches with "FUSION: Pro&Clean Theme :: BETA 01" http://forum.cockos.com/showthread.php?t=155329
                        -- (Double click in ReaScript IDE to open the link)   
-  gfx.init(script.title, w, h, dock, center_w-0.5*w, center_h-0.5*h)
+  gfx.init(script.title, w, h, dock , x, y)
+  GUI.dock = dock
+  GUI.x = x
+  GUI.y = y
+  GUI.w = h
+  GUI.h = w
   gfx.setfont(1, btn_font, btn_font_size)
   gui_w, gui_h = gfx.w, gfx.h
   last_gui_w, last_gui_h = gui_w, gui_h
@@ -981,8 +996,17 @@ end
 function exit()
   msg("exit")
   store_btns(script.project_id)
-  GUI.dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
-  local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "GUI_dock_state", GUI.dock)
+  local dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
+  local script_state = {}
+  script_state.GUI =  {
+                        dock = dock,
+                        x = x,
+                        y = y,
+                        h = h,
+                        w = w
+                      }
+                      
+  local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "script state", pickle(script_state))
   gfx.quit()
   --set_all_tracks_visible(1)
 end
