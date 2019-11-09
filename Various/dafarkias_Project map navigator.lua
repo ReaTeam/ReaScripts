@@ -1,10 +1,7 @@
-@description Project Map Navigator
+@description Project map navigator
 @author Dafarkias
 @version 0.92
-@changelog
-  [v0.92]
-  		*Added borderless window option back in (shift+Lclick to center window on mouse)
-@provides . > Dfk_Project Map Navigator
+@changelog Added borderless window option back in (shift+Lclick to center window on mouse)
 @link Forum thread https://forums.cockos.com/showthread.php?t=226263
 @about
   Project Map Navigator:
