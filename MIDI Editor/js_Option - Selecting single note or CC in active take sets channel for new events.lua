@@ -1,6 +1,6 @@
 --[[
 ReaScript name:  js_Option - Selecting single note or CC in active take sets channel for new events.lua
-Version: 2.30
+Version: 2.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=178256
 Donation: https://www.paypal.me/juliansader
@@ -40,8 +40,9 @@ About:
     + CC bug fix.
   * v2.20 (2019-02-23)
     + If MIDI Inspector is active, the Option script can also be enabled with no performance costs.
-  * v2.30 (2019-11-09)
+  * v2.31 (2019-11-09)
     + Wait until mouse has lifted before applying new channel.
+    + Slightly faster execution.
 ]]
 
 local prevChannel = 0
@@ -70,13 +71,13 @@ function loopGetSetChannel()
     -- This could sometimes have been a useful indicator that the active channel has been changed, 
     --    but was usually an annoyance instead. So now, several years later, with the help of the ReaScriptAPI,
     --    this artefact was removed.
-    if reaper.JS_Mouse_GetState(1) == 0 then -- Wait until the mouse has lifted before checking for changes. 
-    
-        local time = reaper.time_precise() -- Spare CPU by not running script too often
-        if time > prevTime+0.5 then
+    local time = reaper.time_precise() -- Spare CPU by not running script too often
+    if time > prevTime+0.5 then
         
-            prevTime = time
-            
+        prevTime = time
+    
+        if reaper.JS_Mouse_GetState(1) == 0 then -- Wait until the mouse has lifted before checking for changes. 
+    
             if not reaper.HasExtState("js_Mouse actions", "Status") then
         
                 local editor = reaper.MIDIEditor_GetActive()
@@ -174,8 +175,8 @@ function loopGetSetChannel()
                     
                 end -- if editor ~= nil
             end -- if not reaper.HasExtState("js_Mouse actions", "Status")
-        end -- if time > prevTime + 0.5
-    end -- if JS_Mouse_GetState(1) == 0
+        end -- if JS_Mouse_GetState(1) == 0
+    end -- if time > prevTime + 0.5
     
     reaper.runloop(loopGetSetChannel)
     
@@ -188,7 +189,7 @@ end -- function loop GetSetChannel
 
 -- Check whether the required version of REAPER is available
 if not reaper.MIDI_GetAllEvts then
-    reaper.ShowMessageBox("This script requires REAPER v5.32 or higher.", "ERROR", 0)
+    reaper.ShowMessageBox("This script requires REAPER v5.74 or higher.", "ERROR", 0)
     return(false)
 elseif not reaper.JS_Mouse_GetState then
     reaper.ShowConsoleMsg("\n\nURL to add ReaPack repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
