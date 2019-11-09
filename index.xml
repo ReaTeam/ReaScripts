@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="83d76c8df66979f382bf1be7d856df1556c1bc3f" name="ReaTeam Scripts">
+<index version="1" commit="d1f2d3c1df4db0f551594f64f36f74adfd4feb64" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11011,6 +11011,24 @@ Web Interface: restore the previous locked state on load]]></changelog>
         <source type="webinterface" file="song_switcher.html">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/song_switcher.html</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch to queued song.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20to%20queued%20song.lua</source>
         <source main="main" file="cfillion_Song switcher/cfillion_Song switcher - Switch song by MIDI CC.lua">https://github.com/ReaTeam/ReaScripts/raw/7c852f9c73cf5537e2c8e3a12011db7e1c53fce0/Various/cfillion_Song%20switcher/cfillion_Song%20switcher%20-%20Switch%20song%20by%20MIDI%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="dafarkias_Project map navigator.lua" type="script" desc="Project map navigator">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Project Map Navigator:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Designed to assist in the workflow of REAPER items by visual assistance.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Somewhat similar to a map H.U.D. you might see in many popular video games these days, its purpose is to portray the overall view of a project in a scalable window, while providing a quick and efficient way to scroll and zoom throughout your REAPER project!\par}
+}
+]]></description>
+        <link rel="website" href="https://forums.cockos.com/showthread.php?t=226263">Forum thread</link>
+      </metadata>
+      <version name="0.92" author="Dafarkias" time="2019-11-09T01:59:23Z">
+        <changelog><![CDATA[Added borderless window option back in (shift+Lclick to center window on mouse)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d1f2d3c1df4db0f551594f64f36f74adfd4feb64/Various/dafarkias_Project%20map%20navigator.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Smart toggle mute (items, automation items, tracks).lua" type="script" desc="Smart toggle mute (items, automation items, tracks)">
