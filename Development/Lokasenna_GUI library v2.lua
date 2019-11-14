@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.8
+Version: 2.16.9
 Changelog:
-    Fix: Expand error message when the library is missing
+    Fix: Slider.inc being missed if created with a table of parameters
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
