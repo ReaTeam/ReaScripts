@@ -9,7 +9,7 @@
 --   Designed to assist in the workflow of REAPER items by visual assistance. 
 -- 
 --  Somewhat similar to a map H.U.D. you might see in many popular video games these days, its purpose is to portray the overall view of a project in a scalable window, while providing a quick and efficient way to scroll and zoom throughout your REAPER project!
---
+
 --[[
 NAME: Dfk's Project Map
 
