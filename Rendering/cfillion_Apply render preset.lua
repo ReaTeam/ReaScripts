@@ -1,7 +1,9 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.4
--- @changelog Remove quotes from the generated action's filenames
+-- @version 1.0.5
+-- @changelog
+--   Add support for "Tracks with only mono media to mono files" and "Multichannel tracks to multichannel files" (REAPER v5.984+dev1106 or later only)
+--   Don't report an error if no render presets were created yet
 -- @provides
 --   [main] .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -51,14 +53,19 @@ local function insertPreset(presets, name)
   return preset
 end
 
-local function checkTokenCount(tokens, expected)
-  if #tokens == expected then
-    return true
-  else
+local function checkTokenCount(tokens, expectedMin, expectedMax)
+  if #tokens < expectedMin then
     return false, string.format(
-      'reaper-render.ini: %s contains %d tokens, expected %d',
-      tokens[1], #tokens, expected
+      'reaper-render.ini: %s contains %d tokens, expected at least %d',
+      tokens[1], #tokens, expectedMin
     )
+  elseif expectedMax and #tokens > expectedMax then
+    return false, string.format(
+      'reaper-render.ini: %s contains %d tokens, expected no more than %d',
+      tokens[1], #tokens, expectedMax
+    )
+  else
+    return true
   end
 end
 
@@ -101,7 +108,7 @@ function parseDefault(presets, line)
 end
 
 function parseFormatPreset(presets, tokens)
-  local ok, err = checkTokenCount(tokens, 8)
+  local ok, err = checkTokenCount(tokens, 8, 9)
   if not ok then return nil, err end
 
   local preset = insertPreset(presets, tokens[2])
@@ -112,6 +119,15 @@ function parseFormatPreset(presets, tokens)
   preset.projrenderresample = tonumber(tokens[7])
   preset.RENDER_DITHER      = tonumber(tokens[8])
   preset.RENDER_FORMAT      = '' -- filled below
+
+  -- Added in v5.984+dev1106:
+  -- "Tracks with only mono media to mono files" and
+  -- "Multichannel tracks to multichannel files"
+  -- RENDER_SETTINGS is shared with Source settings from output presets
+  if tokens[9] ~= nil then
+    preset.RENDER_SETTINGS    = tonumber(tokens[9])
+      | (preset.RENDER_SETTINGS or 0)
+  end
 
   local function parseFormat(_, line)
     if line:sub(1, 1) == '>' then
@@ -136,6 +152,7 @@ function parseOutputPreset(presets, tokens)
   preset.RENDER_STARTPOS   = tonumber(tokens[4])
   preset.RENDER_ENDPOS     = tonumber(tokens[5])
   preset.RENDER_SETTINGS   = tonumber(tokens[6]) -- source
+    | (preset.RENDER_SETTINGS or 0) -- also used by format presets
   preset._unknown          = tokens[7]           -- what is this (always 0)?
   preset.RENDER_PATTERN    = tostring(tokens[8]) -- file name
   preset.RENDER_TAILFLAG   = tonumber(tokens[9])
@@ -148,6 +165,10 @@ local function getRenderPresets()
   local parser = parseDefault
 
   local path = string.format('%s/reaper-render.ini', reaper.GetResourcePath())
+  if not reaper.file_exists(path) then
+    return presets
+  end
+
   local file, err = assert(io.open(path, 'r'))
 
   for line in file:lines() do
@@ -249,6 +270,9 @@ local function getScriptInfo()
     name = path:match("([^/\\_]+)%.lua$"),
   }
 end
+
+assert(reaper.GetSetProjectInfo,   'REAPER v5.975 or newer is required')
+assert(reaper.SNM_SetIntConfigVar, 'The SWS extension is not installed')
 
 local scriptInfo = getScriptInfo()
 local presets = getRenderPresets()
