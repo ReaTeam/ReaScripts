@@ -4,7 +4,9 @@
 -- @changelog
 --   Add support for "Tracks with only mono media to mono files" and "Multichannel tracks to multichannel files" (REAPER v5.984+dev1106 or later only)
 --   Don't report an error if no render presets were created yet
--- @provides [main] . > cfillion_Apply render preset (create action).lua
+-- @provides
+--   [main] .
+--   [main] . > cfillion_Apply render preset (create action).lua
 -- @link https://cfillion.ca
 -- @screenshot https://i.imgur.com/Xy44ZlR.gif
 -- @donation https://paypal.me/cfillion
@@ -59,7 +61,7 @@ local function checkTokenCount(tokens, expectedMin, expectedMax)
     )
   elseif expectedMax and #tokens > expectedMax then
     return false, string.format(
-      'reaper-render.ini: %s contains %d tokens, expected less than %d',
+      'reaper-render.ini: %s contains %d tokens, expected no more than %d',
       tokens[1], #tokens, expectedMax
     )
   else
@@ -268,6 +270,9 @@ local function getScriptInfo()
     name = path:match("([^/\\_]+)%.lua$"),
   }
 end
+
+assert(reaper.GetSetProjectInfo,   'REAPER v5.975 or newer is required')
+assert(reaper.SNM_SetIntConfigVar, 'The SWS extension is not installed')
 
 local scriptInfo = getScriptInfo()
 local presets = getRenderPresets()
