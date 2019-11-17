@@ -30,6 +30,7 @@ while true do
   ccIdx = reaper.MIDI_EnumSelCC(take, ccIdx)
   if ccIdx == -1 then break end
 
+  -- msg3 is the CC value
   local _, _, _, _, _, _, _, msg3 = reaper.MIDI_GetCC(take, ccIdx)
 
   reaper.MIDI_SetCC(take, ccIdx, nil, nil, nil, nil, nil, nil, 127 - msg3, true)
@@ -37,9 +38,8 @@ end
 
 reaper.MIDI_Sort(take)
 
-local item = reaper.GetMediaItemTake_Item(take)
-
 -- Hack to make Reaper recognize that the item was altered
+local item = reaper.GetMediaItemTake_Item(take)
 reaper.SetMediaItemSelected(item, false)
 reaper.SetMediaItemSelected(item, true)
 
