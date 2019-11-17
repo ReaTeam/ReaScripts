@@ -7,7 +7,7 @@ Donation: https://www.paypal.me/juliansader
 
 --[[
 Changelog:
-  * v1.0 (2019-11-17)
+  * v1.00 (2019-11-17)
     + Initial beta release
 ]]
 
