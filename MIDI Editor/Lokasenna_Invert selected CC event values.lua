@@ -6,7 +6,6 @@
     Changelog:
         Initial Release
     Links:
-        Forum Thread
         Lokasenna's Website http://forum.cockos.com/member.php?u=10417
     About:
         Inverts the values of the selected CC events. That is:
