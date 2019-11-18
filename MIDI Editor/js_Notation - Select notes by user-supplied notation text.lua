@@ -1,14 +1,28 @@
 --[[
 Reascript name: js_Notation - Select notes by user-supplied notation text.lua
-Version: 1.00
+Version: 1.01
 Author: juliansader
 Donation: https://www.paypal.me/juliansader
+About:
+    If a note has notation information, REAPER stores this information as easily readable text inside a MIDI text event.
+    For example, a note in channel 1 and pitch 64 that is notated in the high voice in the top staff 
+        will carry notation text "NOTE 0 64 staff 1 voice 1".
+    (To figure out the code that REAPER uses, open the "Raw MIDI data" window, which will display all notation text.) 
+    
+    This script allows the user select notes based on notation text.  
+    It opens a dialog window in which the user can enter any text, such as "staff 1" "voice beam", 
+        and the script will select all notes with notation that matches the input.  
+    (To search for strings containing spaces, such as "voice 1", surround the string with quotation marks.)
+
+    Hint: Since all note notation starts with "NOTE", entering "NOTE" in the dialog window will select all notes that carry notation information.
 ]]
 
 --[[
 Changelog:
   * v1.00 (2019-11-17)
     + Initial beta release
+  * v1.01 (2019-11-18)
+    + Some About info.
 ]]
 
 -- Get edtor so that can return focus after opening and closing dialog window
