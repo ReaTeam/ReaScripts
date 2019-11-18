@@ -1,6 +1,6 @@
 --[[
-Reascript name: js_Notation - Select notes by user-supplied notation text.lua
-Version: 1.02
+Reascript name: js_Notation - Select notes by notation keywords.lua
+Version: 1.03
 Author: juliansader
 Donation: https://www.paypal.me/juliansader
 About:
@@ -25,6 +25,8 @@ Changelog:
     + Some About info.
   * v1.02 (2019-11-18)
     + Fix: Allow multiple phrases, each surrounded by quotation marks.
+  * v1.03 (2019-11-18)
+    + Change name.
 ]]
 
 -- Get edtor so that can return focus after opening and closing dialog window
