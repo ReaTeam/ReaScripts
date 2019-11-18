@@ -13,8 +13,6 @@ About:
     It opens a dialog window in which the user can enter any text, such as "staff 1" "voice beam", 
         and the script will select all notes with notation that matches the input.  
     (To search for strings containing spaces, such as "voice 1", surround the string with quotation marks.)
-
-    Hint: Since all note notation starts with "NOTE", entering "NOTE" in the dialog window will select all notes that carry notation information.
 ]]
 
 --[[
