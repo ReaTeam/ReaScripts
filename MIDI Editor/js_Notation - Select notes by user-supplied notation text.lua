@@ -1,6 +1,6 @@
 --[[
 Reascript name: js_Notation - Select notes by user-supplied notation text.lua
-Version: 1.01
+Version: 1.02
 Author: juliansader
 Donation: https://www.paypal.me/juliansader
 About:
@@ -23,6 +23,8 @@ Changelog:
     + Initial beta release
   * v1.01 (2019-11-18)
     + Some About info.
+  * v1.02 (2019-11-18)
+    + Fix: Allow multiple phrases, each surrounded by quotation marks.
 ]]
 
 -- Get edtor so that can return focus after opening and closing dialog window
@@ -39,7 +41,7 @@ if not ok then return end
 
 -- Parse input to separate into individual keywords and phrases
 tWords = {}
-inputs = inputs:gsub("\"(.*)\"", function(word) tWords[#tWords+1] = word return "" end) -- Get phrases
+inputs = inputs:gsub("\"(.-)\"", function(word) tWords[#tWords+1] = word return "" end) -- Get phrases
 inputs = inputs:gsub("(%S+)", function(word) tWords[#tWords+1] = word return "" end) -- Get remaining isolated words
 if #tWords == 0 then return end
 
