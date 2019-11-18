@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="87a08c831f524987ce5049ff20cd97d12971d4cd" name="ReaTeam Scripts">
+<index version="1" commit="e1f1b0ba77fe4e6b1d7ccd5cf3a82641734d325a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6465,11 +6465,24 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
     </reapack>
     <reapack name="js_Notation - Select notes by user-supplied notation text.lua" type="script" desc="js_Notation - Select notes by user-supplied notation text.lua">
       <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 If a note has notation information, REAPER stores this information as easily readable text inside a MIDI text event. For example, a note in channel 1 and pitch 64 that is notated in the high voice in the top staff will carry notation text "NOTE 0 64 staff 1 voice 1". (To figure out the code that REAPER uses, open the "Raw MIDI data" window, which will display all notation text.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script allows the user select notes based on notation text.\line It opens a dialog window in which the user can enter any text, such as "staff 1" "voice beam", and the script will select all notes with notation that matches the input.\line (To search for strings containing spaces, such as "voice 1", surround the string with quotation marks.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Hint: Since all note notation starts with "NOTE", entering "NOTE" in the dialog window will select all notes that carry notation information.\par}
+}
+]]></description>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="1.00" author="juliansader" time="2019-11-17T21:11:07Z">
         <changelog><![CDATA[+ Initial beta release]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/87a08c831f524987ce5049ff20cd97d12971d4cd/MIDI%20Editor/js_Notation%20-%20Select%20notes%20by%20user-supplied%20notation%20text.lua</source>
+      </version>
+      <version name="1.01" author="juliansader" time="2019-11-18T11:56:04Z">
+        <changelog><![CDATA[+ Some About info.]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/e1f1b0ba77fe4e6b1d7ccd5cf3a82641734d325a/MIDI%20Editor/js_Notation%20-%20Select%20notes%20by%20user-supplied%20notation%20text.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Set beaming of selected notes to custom rhythm.lua" type="script" desc="js_Notation - Set beaming of selected notes to custom rhythm (using grid as margin).lua">
