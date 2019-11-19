@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cf699b7b34107f72a0371fe0664d9ed9cf6ddefe" name="ReaTeam Scripts">
+<index version="1" commit="fbbcef56d87ee28fc3d60569a7597a2ced8ac2f3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13470,6 +13470,29 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
         <changelog><![CDATA[Added math.randomseed(os.time())]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11879c82788e0b70dd4415c353dda6ef17e3e790/Various/tompad_obliques.lua</source>
         <source file="tompad_obliques/obliques">https://github.com/ReaTeam/ReaScripts/raw/11879c82788e0b70dd4415c353dda6ef17e3e790/Various/tompad_obliques/obliques</source>
+      </version>
+    </reapack>
+    <reapack name="tompad_Practice coach.lua" type="script" desc="Practice coach">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Practice Coach\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Use Reaper when practicing guitar or bass or flute or bagpipe or......whatever you want to practice.\line This reascript will change the practice tempo in 8 steps:\line Step 1 plays with 50% of maxBPM in 5 min\line Step 2 plays with 70% of maxBPM in 2 min\line Step 3 plays with 60% of maxBPM in 2 min\line Step 4 plays with 80% of maxBPM in 2 min\line Step 5 plays with 65% of maxBPM in 2 min\line Step 6 plays with 75% of maxBPM in 2 min\line Step 7 plays with 80% of maxBPM in 2 min\line Step 8 plays with 50% of maxBPM in 3 min\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 How to use:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Make a time selection on what you want to practice.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Load Practice Coach\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Write in the maximum bpm\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hit Start button (on script window) and practice along\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When first step is done Reaper stops\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To contine with step 2 hit Continue\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab After finishing the 8th step you have practiced different tempos in 15 min and script resets.\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="tompad" time="2019-11-19T08:27:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fbbcef56d87ee28fc3d60569a7597a2ced8ac2f3/Various/tompad_Practice%20coach.lua</source>
       </version>
     </reapack>
   </category>
