@@ -1,4 +1,4 @@
--- @description practice_coach
+-- @description Practice coach
 -- @author tompad
 -- @version 1.0
 -- @about
@@ -14,7 +14,6 @@
 --   Step 6 plays with 75% of maxBPM in 2 min            
 --   Step 7 plays with 80% of maxBPM in 2 min            
 --   Step 8 plays with 50% of maxBPM in 3 min    
---          
 --
 --   How to use:
 --   - Make a time selection on what you want to practice.
