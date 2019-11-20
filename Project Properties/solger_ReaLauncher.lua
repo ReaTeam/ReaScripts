@@ -1,9 +1,11 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.7.1
+-- @version 1.7.2
 -- @changelog
---   + General: The last used Show/Hide path display mode is now stored
+--   + General: Updated [Show in Explorer] code to the usage of CF_LocateInExplorer (SWS Extensions)
+--   + General: Bugfix for keeping last path display mode when resizing window
 --   + General: Some minor bugfixes and enhancements
+--   + General: Bugfixes for usage with 32-bit Reaper version
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -16,10 +18,10 @@
 --   - Option to add additional custom folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)
 --   - Option to set custom folder paths for Projects, Project Lists and Backups tabs
 --   - List-filter at the top of each tab which supports input of multiple search words separated by a 'space' character
---   - [Show in Explorer/Finder] button for browsing to the folder location of a selected file
 --   - Global section with [New Tab], [New Project] and [Open Project] buttons
 --   - Option to preview attached 'demo' audio files of project and template files (requires js_ReaScriptAPI)
 --   - Selection and loading of multiple entries (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)
+--   - [Show in Explorer/Finder] button for browsing to the folder location of a selected file (requires SWS Extensions)
 --   - Option to switch between different pre-defined Reaper Theme Slots (requires SWS Extensions)
 --   - File paths can be shown/hidden
 --   - 'Keep open' checkbox for managing the window auto-close behavior
@@ -32,13 +34,13 @@
 --   https://forum.cockos.com/showthread.php?t=208697
 
 ------------------------------------------------------------------------------
-local debugEnabled = false -- show console debug messages
+local showDebugMessages = false -- show console debug messages
 local skipRefreshAtLaunch = false -- skip refresh of the focused tab at launch
 ------------------------------------------------------------------------------
 -- String Helper functions
 --------------------------
 local function MsgDebug(str)
-    if debugEnabled then
+    if showDebugMessages then
       reaper.ShowConsoleMsg(tostring(str) .. "\n" )
     end
 end
@@ -68,20 +70,27 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.7.1"
+appversion = "1.7.2"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
+MsgDebug("OS:\t\t\t"..osversion)
 local reaperVersionString = reaper.GetAppVersion()
-bitversion = string.sub(reaperVersionString, #reaperVersionString - 2, #reaperVersionString)
-reaperversion = string.sub(reaperVersionString, 1, #reaperVersionString - (reaperVersionString:reverse()):find("%/"))
-
-reaperIniPath = reaper.get_ini_file()
-MsgDebug("Found reaper.ini: " .. reaperIniPath)
+MsgDebug("Reaper:\t\t\t"..reaperVersionString)
+if reaperVersionString:match("x64") then
+  bitversion = string.sub(reaperVersionString, #reaperVersionString - 2, #reaperVersionString)
+  reaperversion = string.sub(reaperVersionString, 1, #reaperVersionString - (reaperVersionString:reverse()):find("%/"))  
+else
+  bitversion = "x86"
+  reaperversion = reaperVersionString
+end
 
 resourcePath = reaper.GetResourcePath()
 if resourcePath == nil then MsgError("Could not retrieve the Reaper resource path!") 
-else MsgDebug("Found resource path: " .. resourcePath .. "\n") end
+else MsgDebug("Resource path:\t\t" .. resourcePath) end
+
+reaperIniPath = reaper.get_ini_file()
+MsgDebug("Reaper ini:\t\t" .. reaperIniPath)
 
 if osversion:find("Win") then
   -- Windows paths
@@ -115,33 +124,50 @@ GUI.req("Classes/Class - Textbox.lua")()
 GUI.req("Classes/Class - Window.lua")()
 if missing_lib then return 0 end -- If any of the requested libraries weren't found, abort the script.
 
+MsgDebug("Lokasenna_GUI:\t\t"..(GUI.version or "v2.x"))
 -------------------
 -- Extensions check
 --------------------
--- SWS
-function GUI.SWS()
-  return reaper.APIExists("BR_Win32_GetPrivateProfileString")
-end
-
--- JS_ReascriptAPI
-function GUI.JSAPI()
-  local owner
-  if osversion:find("Win") and bitversion == "x64" then
-    owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI64.dll') -- Windows 64-bit
-  elseif osversion:find("Win") then
-    owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI32.dll') -- Windows 32-bit
-  elseif osversion:find("OSX") then
-    owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI64.dylib') -- macOS
-  else 
-    owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI64.so') -- Linux
-  end
-
-  if owner then
-    local version = ({reaper.ReaPack_GetEntryInfo(owner)})[7]
-    reaper.ReaPack_FreeEntry(owner)
-    return owner
+function CheckForSWS()
+  local sws = reaper.APIExists("BR_Win32_GetPrivateProfileString")
+  if sws then
+    local swsversion = reaper.CF_GetSWSVersion(swsversion)
+    MsgDebug("SWS:\t\t\tv" .. swsversion)
+    return sws
+  else
+    MsgDebug("SWS:\t\t\tNOT FOUND")
+    return false
   end
 end
+
+function CheckForJSAPI()
+  if not reaper.ReaPack_GetOwner then
+    MsgDebug("JS_ReascriptAPI:\t\t NOT FOUND")
+  else
+    local owner
+    if osversion:find("Win") and bitversion == "x64" then
+      owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI64.dll') -- Windows 64-bit
+    elseif osversion:find("Win") then
+      owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI32.dll') -- Windows 32-bit
+    elseif osversion:find("OSX") then
+      owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI64.dylib') -- macOS
+    else 
+      owner = reaper.ReaPack_GetOwner('UserPlugins/reaper_js_ReaScriptAPI64.so') -- Linux
+    end
+
+    if owner then
+      local version = ({reaper.ReaPack_GetEntryInfo(owner)})[7]
+      MsgDebug("JS_ReascriptAPI:\t\tv" .. version)
+      reaper.ReaPack_FreeEntry(owner)
+      return true
+    end
+  end
+
+  return false
+end
+
+local SWSinstalled = CheckForSWS()
+local JSAPIinstalled = CheckForJSAPI()
 
 -------------------
 -- helper functions
@@ -345,24 +371,22 @@ local function GetDirectoryPath(filepath)
 end
 
 local function GetFilenameWithoutPath(filepath)
-  local filename
-  if osversion:find("Win") then filename = filepath:match("([^\\]-([^.]+))$") -- Windows: get (filename.extension) substring
-    else filename = filepath:match("([^/]-([^.]+))$") -- macOS / Linux: get (filename.extension) substring
+  if osversion:find("Win") then return filepath:match("([^\\]-([^.]+))$") -- Windows: get (filename.extension) substring
+  else 
+    local index = (filepath:reverse()):find("%/") -- macOS / Linux
+    if index ~= nil then
+      return string.sub(filepath, (#filepath - index) + 2, #filepath)
+    else
+      return filepath
+    end
   end
-  return filename
 end
 
 ------------------------------------------
 -- Open the folder path in Explorer/Finder
 ------------------------------------------
 function ShowLocationInExplorer(path)
-  if GUI.SWS() then reaper.CF_ShellExecute(path)
-  else
-    if osversion:find("OSX") then os.execute('open "" "' .. path .. '"') -- macOS
-    elseif osversion:find("Win") then os.execute('start "" "' .. path .. '"') -- Windows
-    else os.execute('xdg-open \"' .. path .. '\"') -- Linux
-    end
-  end
+  reaper.CF_LocateInExplorer(path)
 end
 
 ---------------------------------------------
@@ -378,7 +402,7 @@ function ShowLocation_RecentProject()
       for p = 1, #vals do
         if FilterActive.RecentProjects == true then selectedProject = RecentProjects.items[RecentProjects.filteredNames[vals[p]]]
         else selectedProject = RecentProjects.items[RecentProjects.names[vals[p]]] end
-        ShowLocationInExplorer(GetDirectoryPath(selectedProject))
+        ShowLocationInExplorer(selectedProject)
       end
     end
   end
@@ -394,7 +418,7 @@ function ShowLocation_ProjectTemplates()
      for p = 1, #vals do
         if FilterActive.ProjectTemplates == true then selectedProjectTemplate = ProjectTemplates.items[ProjectTemplates.filteredNames[vals[p]]]
         else selectedProjectTemplate = ProjectTemplates.items[ProjectTemplates.names[vals[p]]] end
-        ShowLocationInExplorer(GetDirectoryPath(selectedProjectTemplate))
+        ShowLocationInExplorer(selectedProjectTemplate)
       end
     end
     else
@@ -412,7 +436,7 @@ function ShowLocation_TrackTemplates()
       for p = 1, #vals do
         if FilterActive.TrackTemplates == true then selectedTrackTemplate = TrackTemplates.items[TrackTemplates.filteredNames[vals[p]]]
         else selectedTrackTemplate = TrackTemplates.items[TrackTemplates.names[vals[p]]] end
-          ShowLocationInExplorer(GetDirectoryPath(selectedTrackTemplate))
+          ShowLocationInExplorer(selectedTrackTemplate)
         end
      end
    else
@@ -432,7 +456,7 @@ function ShowLocation_CustomProject()
         for p = 1, #vals do
           if FilterActive.CustomProjects == true then selectedProject = CustomProjects.items[CustomProjects.filteredNames[vals[p]]]
           else selectedProject = CustomProjects.items[CustomProjects.names[vals[p]]] end
-        ShowLocationInExplorer(GetDirectoryPath(selectedProject))
+        ShowLocationInExplorer(selectedProject)
       end
     end
   end
@@ -450,7 +474,7 @@ function ShowLocation_ProjectList()
       for p = 1, #vals do
         if FilterActive.ProjectLists then selectedProject = ProjectLists.filteredProjectPaths[vals[p]]
         else selectedProject = ProjectLists.projectPaths[vals[p]] end
-        ShowLocationInExplorer(GetDirectoryPath(selectedProject))
+        ShowLocationInExplorer(selectedProject)
       end
     end
   end
@@ -469,7 +493,7 @@ function ShowLocation_Backups()
       for p = 1, #vals do
         if FilterActive.Backups then selectedProject = Backups.filteredPaths[vals[p]]
         else selectedProject = Backups.paths[vals[p]] end
-        ShowLocationInExplorer(GetDirectoryPath(selectedProject))
+        ShowLocationInExplorer(selectedProject)
       end
     end
   end
@@ -478,14 +502,16 @@ end
 ---------------------------
 -- Show in Explorer - relay
 ---------------------------
-local function Global_OpenInExplorer()  
-  local tabfocus = RL_GetFocusedTab()
-  if tabfocus == 1 then ShowLocation_RecentProject() end
-  if tabfocus == 2 then ShowLocation_ProjectTemplates() end
-  if tabfocus == 3 then ShowLocation_TrackTemplates()  end
-  if tabfocus == 4 then ShowLocation_CustomProject() end
-  if tabfocus == 5 then ShowLocation_ProjectList() end
-  if tabfocus == 6 then ShowLocation_Backups() end
+local function Global_OpenInExplorer()
+  if SWSinstalled then
+    local tabfocus = RL_GetFocusedTab()
+    if tabfocus == 1 then ShowLocation_RecentProject() end
+    if tabfocus == 2 then ShowLocation_ProjectTemplates() end
+    if tabfocus == 3 then ShowLocation_TrackTemplates()  end
+    if tabfocus == 4 then ShowLocation_CustomProject() end
+    if tabfocus == 5 then ShowLocation_ProjectList() end
+    if tabfocus == 6 then ShowLocation_Backups() end
+  end
 end
 
 --------------------------------------
@@ -518,7 +544,11 @@ local function Global_TogglePaths()
 end
 
 local function Global_HidePaths()
-  GUI.Val("main_menuPaths", {1})
+  GUI.Val("main_menuPaths", 1)
+end
+
+local function Global_ShowPaths()
+  GUI.Val("main_menuPaths", 2)
 end
 
 function Global_UpdatePathDisplayMode()
@@ -1679,7 +1709,7 @@ local LayerIndex = {
 -----------------------
 -- Theme slot functions
 -----------------------
-if GUI.SWS() then
+if SWSinstalled then
 
   local ThemeSlots = {
     maxCount = 5,
@@ -1958,7 +1988,7 @@ local audioPreviewActive = false
 local audioPreviewChannel = 0
 
 function RL_Draw_PreviewSection()
-  if GUI.JSAPI() then
+  if JSAPIinstalled then
     GUI.New("main_previewVolKnob", "Knob", LayerIndex.Global, GUI.w - 155, pad_top, 20, "Volume", 0, 100, 50, 1)
     GUI.elms.main_previewVolKnob.cap_x = 26
     GUI.elms.main_previewVolKnob.cap_y = -26
@@ -2044,7 +2074,9 @@ function RL_Draw_Main()
   GUI.New("main_menuPaths", "Menubox", LayerIndex.Global, 380, pad_top, 60, 20, "Paths", "Hide,Show")
   GUI.elms.main_menuPaths.align = "1"
 
-  GUI.New("main_btnOpenInExplorer", "Button", LayerIndex.Global, btn_pad_left, 64, btn_w, btn_h, "Show in Explorer/Finder", Global_OpenInExplorer)
+  if SWSinstalled then
+    GUI.New("main_btnOpenInExplorer", "Button", LayerIndex.Global, btn_pad_left, 64, btn_w, btn_h, "Show in Explorer/Finder", Global_OpenInExplorer)
+  end
   GUI.New("main_button_openProject", "Button", LayerIndex.Global, btn_pad_left, 98, btn_w, btn_h, "Open Project", Global_ShowProjectOpenDialog) 
 
   GUI.New("main_btnNewProject", "Button", LayerIndex.Global, btn_pad_left, btn_pad_top, btn_w, btn_h, "New Project", Global_NewProject) 
@@ -2064,8 +2096,8 @@ function RL_Draw_Main()
     Global_UpdatePathDisplayMode()
   end
   
-  if GUI.SWS() then RL_Draw_ThemeSlotSelector("1") end
-  if GUI.JSAPI() then RL_Draw_PreviewSection() end
+  if SWSinstalled then RL_Draw_ThemeSlotSelector("1") end
+  if JSAPIinstalled then RL_Draw_PreviewSection() end
 end
 
 function RL_Draw_Frames()
@@ -2094,7 +2126,7 @@ function RL_Draw_TabRecentProjects()
 
   function GUI.elms.tab_recentProjects_listbox:onmousedown()
     TabSelectionIndex[1] = self:getitem(GUI.mouse.y)
-    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    if JSAPIinstalled then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2189,7 +2221,7 @@ function RL_Draw_TabProjectTemplates()
 
   function GUI.elms.tab_projectTemplates_listbox:onmousedown()
     TabSelectionIndex[2] = self:getitem(GUI.mouse.y)
-    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    if JSAPIinstalled then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2260,7 +2292,7 @@ function RL_Draw_TabTrackTemplates()
   
   function GUI.elms.tab_trackTemplates_listbox:onmousedown()
     TabSelectionIndex[3] = self:getitem(GUI.mouse.y)
-    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    if JSAPIinstalled then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2329,7 +2361,7 @@ function RL_Draw_TabCustomProjects()
 
   function GUI.elms.tab_customProjects_listbox:onmousedown()
     TabSelectionIndex[4] = self:getitem(GUI.mouse.y)
-    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    if JSAPIinstalled then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2380,7 +2412,7 @@ function RL_Draw_TabProjectLists()
 
   function GUI.elms.tab_projectLists_listboxProjects:onmousedown()
     TabSelectionIndex[5] = self:getitem(GUI.mouse.y)
-    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    if JSAPIinstalled then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2448,7 +2480,7 @@ function RL_Draw_TabBackups()
 
   function GUI.elms.tab_backups_listbox:onmousedown()
     TabSelectionIndex[6] = self:getitem(GUI.mouse.y)
-    if GUI.JSAPI() then AudioPreviewCheckForFile() end
+    if JSAPIinstalled then AudioPreviewCheckForFile() end
     GUI.Listbox.onmousedown(self)
   end
 
@@ -2476,7 +2508,7 @@ end
 ----------------
 -- Tab - Options
 ----------------
-if GUI.SWS() then
+if SWSinstalled then
   function RL_Draw_SavePromptOption(options_pad_top, options_yOffset)
       GUI.New("options_lblPromptToSave", "Label", LayerIndex.Options, GUI.w - 258, options_pad_top + 6.5 * options_yOffset - 14, "Prompt to save on new project", false, 3)
       GUI.New("options_checklistPromptToSave", "Checklist", LayerIndex.Options, GUI.w - 85, options_pad_top + 6.5 * options_yOffset - 18, 20, 20, "", "", "h", 0)
@@ -2546,7 +2578,7 @@ function RL_Draw_TabOptions()
   GUI.New("options_lblShowSubfolderPanel", "Label", LayerIndex.Options, GUI.w - 308, options_pad_top + 6 * options_yOffset - 14, "Show subfolder-panel (restart required)", false, 3)
   GUI.New("options_checklistShowSubfolderPanel", "Checklist", LayerIndex.Options, GUI.w - 85, options_pad_top + 6 * options_yOffset - 18, 20, 20, "", "", "h", 0)
 
-  if GUI.SWS() then 
+  if SWSinstalled then 
     RL_Draw_SavePromptOption(options_pad_top, options_yOffset);
     RL_Draw_ThemeSlotOptions()
   end
@@ -2748,7 +2780,7 @@ function RL_Draw_TabHelp()
 
   function GUI.elms.help_btnThread:onmousedown()
     GUI.Button.onmousedown(self)
-    if GUI.SWS() then reaper.CF_ShellExecute(threadUrl)
+    if SWSinstalled then reaper.CF_ShellExecute(threadUrl)
     else ShowLocationInExplorer(threadUrl) end
   end
 
@@ -2770,7 +2802,6 @@ function RL_Draw_Tooltips()
   local ttLoadFXoffline = "Loading with FX offline: \n\n- Hold 'CTRL + SHIFT' (Windows & Linux)\n- Hold 'CMD + SHIFT' (macOS)\n- Via the option in the [Open Project] window"
   -- main
   GUI.elms.main_menuPaths.tooltip = "Show/Hide file paths in the list"
-  GUI.elms.main_btnOpenInExplorer.tooltip = "Browse to the file location in Explorer/Finder"
   GUI.elms.main_btnNewProjectTab.tooltip = "Add new project tab"
   GUI.elms.main_btnNewTabIgnoreTemplate.tooltip = "Add new project tab (ignore template)"
   GUI.elms.main_btnNewProject.tooltip = "Create new project"
@@ -2837,7 +2868,10 @@ function RL_Draw_Tooltips()
   GUI.elms.options_lblShowSubfolderPanel.tooltip = tooltipSubfolderPanel
   GUI.elms.options_checklistShowSubfolderPanel.tooltip = tooltipSubfolderPanel
 
-  if GUI.SWS() then GUI.elms.themeslot.tooltip = "Switch between different Reaper Theme Slots" end
+  if SWSinstalled then
+    GUI.elms.main_btnOpenInExplorer.tooltip = "Browse to the file location in Explorer/Finder"
+    GUI.elms.themeslot.tooltip = "Switch between different Reaper Theme Slots"
+  end
 end
 
 --------------------------
@@ -2847,8 +2881,6 @@ local ButtonColor = "wnd_bg"
 
 function RL_Draw_Colors_Button()
   -- main section
-  GUI.elms.main_btnOpenInExplorer.col_fill = ButtonColor
-  GUI.elms.main_btnOpenInExplorer:init()
   GUI.elms.main_button_openProject.col_fill = ButtonColor
   GUI.elms.main_button_openProject:init()
   GUI.elms.main_btnNewProjectTab.col_fill = ButtonColor
@@ -2926,7 +2958,9 @@ function RL_Draw_Colors_Button()
   GUI.elms.help_btnThread.col_fill = ButtonColor
   GUI.elms.help_btnThread:init()
   -- themeslot selector
-  if GUI.SWS() then 
+  if SWSinstalled then 
+    GUI.elms.main_btnOpenInExplorer.col_fill = ButtonColor
+    GUI.elms.main_btnOpenInExplorer:init()
     GUI.elms.options_themeslot_Setup.col_fill = ButtonColor
     GUI.elms.options_themeslot_Setup:init()
     GUI.elms.options_themeslot_Save.col_fill = ButtonColor
@@ -3038,7 +3072,7 @@ function RL_RedrawAll()
   GUI.elms.main_statusbar:ondelete()
   -- main elements
   GUI.elms.main_menuPaths:ondelete()
-  GUI.elms.main_btnOpenInExplorer:ondelete()
+  if SWSinstalled then GUI.elms.main_btnOpenInExplorer:ondelete() end
   GUI.elms.main_btnNewProjectTab:ondelete()
   GUI.elms.main_btnNewTabIgnoreTemplate:ondelete()
   GUI.elms.main_btnNewProject:ondelete()
@@ -3117,7 +3151,7 @@ function RL_RedrawAll()
   GUI.elms.help_frame_middle:ondelete()
   GUI.elms.help_frame_right:ondelete()
   -- theme slot options
-  if GUI.SWS() then
+  if SWSinstalled then
     GUI.elms.options_themeslot_number:ondelete()
     GUI.elms.options_themeslot_1:ondelete()
     GUI.elms.options_themeslot_2:ondelete()
@@ -3128,7 +3162,7 @@ function RL_RedrawAll()
     GUI.elms.options_themeslot_Save:ondelete()
   end
   -- audio preview channel selector
-  if GUI.JSAPI() then GUI.elms.main_previewChannels:ondelete() end
+  if JSAPIinstalled then GUI.elms.main_previewChannels:ondelete() end
   RL_Draw_Tabs()
   RL_Draw_AddOns()
   -- confirm dialog
@@ -3168,23 +3202,25 @@ local function RL_ExtStates_Load_ThemeSlotAliases()
   ThemeSlot_LoadNames()
 end
 
-local function RL_ExtStates_Load()
-  GUI.Val("main_checklistWindowPin", {(reaper.GetExtState(appname,"window_pin") == "true" and true or false)}) -- window pin state (true = keep window open)
-  RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) -- last selected tab
-  GUI.Val("options_checklistShowSubfolderPanel", {(reaper.GetExtState(appname,"window_showsubfolderpanel") == "true" and true or false)}) -- show subfolder panel 
-  
-  -- show/hide paths
+local function RL_ExtStates_Load_PathDisplay()
   local showPaths = reaper.GetExtState(appname,"window_showpaths")
   if showPaths == "" then showPaths = 1 end
   GUI.Val("main_menuPaths", tonumber(showPaths))
   Global_UpdatePathDisplayMode()
+end
 
-  if GUI.SWS() then
+local function RL_ExtStates_Load()
+  GUI.Val("main_checklistWindowPin", {(reaper.GetExtState(appname,"window_pin") == "true" and true or false)}) -- window pin state (true = keep window open)
+  RL_SetFocusedTab(tonumber(reaper.GetExtState(appname, "window_tabfocus"))) -- last selected tab
+  GUI.Val("options_checklistShowSubfolderPanel", {(reaper.GetExtState(appname,"window_showsubfolderpanel") == "true" and true or false)}) -- show subfolder panel 
+  RL_ExtStates_Load_PathDisplay() -- show/hide paths
+
+  if SWSinstalled then
     GUI.Val("themeslot_max", tonumber(reaper.GetExtState(appname, "themeslot_max"))) -- max number of available theme slots
     RL_ExtStates_Load_ThemeSlotAliases()
   end
 
-  if GUI.JSAPI() then 
+  if JSAPIinstalled then 
     GUI.Val("main_previewVolKnob", tonumber(reaper.GetExtState(appname, "preview_vol"))) -- preview section volume
     audioPreviewChannel = tonumber(reaper.GetExtState(appname, "preview_channel")) -- preview section first output channel index
     GUI.Val("main_previewChannels",tonumber(reaper.GetExtState(appname, "preview_channelmenuitem"))) -- preview section channel menu item
@@ -3203,11 +3239,11 @@ local function RL_ExtStates_Save()
   reaper.SetExtState(appname, "window_showsubfolderpanel", tostring(GUI.Val("options_checklistShowSubfolderPanel")), 1) -- show subfolder panel
   reaper.SetExtState(appname, "window_showpaths", tostring(GUI.Val("main_menuPaths")), 1) -- show/hide paths
 
-  if GUI.SWS() then
+  if SWSinstalled then
     reaper.SetExtState(appname, "themeslot_max", tostring(GUI.Val("options_themeslot_number")), 1) -- max number of available theme slots
   end  
   
-  if GUI.JSAPI() then 
+  if JSAPIinstalled then 
     reaper.SetExtState(appname, "preview_vol", tostring(GUI.Val("main_previewVolKnob")), 1) -- preview section volume
     if audioPreviewChannel == nil then audioPreviewChannel = 0 end
     reaper.SetExtState(appname, "preview_channel", audioPreviewChannel, 1) -- preview section first output channel index
@@ -3218,7 +3254,7 @@ end
 ----------------
 -- Audio Preview
 ----------------
-if GUI.JSAPI() then
+if JSAPIinstalled then
   local AudioPreviewFileTypes = { ".wav", ".flac", ".mp3",".ogg" } -- ordered by priority from left to right
 
   function AudioPreviewGetSourceFile(currentTab, project, idx, audioExtension)
@@ -3598,7 +3634,7 @@ end
 function SetListBoxIndex(tabIndex, selectedElement)
   GUI.Val(TabListBox[tabIndex], {[selectedElement] = true})
   TabSelectionIndex[tabIndex] = selectedElement
-  if GUI.JSAPI() then AudioPreviewCheckForFile() end
+  if JSAPIinstalled then AudioPreviewCheckForFile() end
 end
 
 -- previous default
@@ -3752,7 +3788,7 @@ function RL_Keys_CheckInput()
     RL_Keys_SelectTabDirectly(inputChar)
     
     -- audio preview
-    if GUI.JSAPI() then
+    if JSAPIinstalled then
        if inputChar == GUI.chars.SPACE or inputChar == GUI.chars.MULTIPLY then AudioPreviewToggleState() end
     end
   end
@@ -3763,7 +3799,7 @@ end
 -- Main functions
 ------------------
 function RL_CleanupAtExit()
-  if GUI.JSAPI() then AudioPreviewStopAll() end
+  if JSAPIinstalled then AudioPreviewStopAll() end
 end
 
 reaper.atexit(function ()
@@ -3778,6 +3814,7 @@ local function ResizeInit(wx, wy)
 end
 
 GUI.onresize = function()
+  RL_ExtStates_Save()
   local currentTab = RL_GetFocusedTab()
   local dock_state,wx,wy,ww,wh = gfx.dock(-1,0,0,0,0)
   GUI.w = ww
@@ -3786,6 +3823,7 @@ GUI.onresize = function()
   RL_RedrawAll()
   RL_ExtStates_Load()
   RL_SetFocusedTab(currentTab)
+
   -- check for minimum window size
   if GUI.w < 610 then
     GUI.w = 610
