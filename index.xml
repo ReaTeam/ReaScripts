@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fbbcef56d87ee28fc3d60569a7597a2ced8ac2f3" name="ReaTeam Scripts">
+<index version="1" commit="7d3e35c38cd882f4c12532a0fda5b17e288d8b5d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8260,10 +8260,10 @@ enter or a = Exit and apply changes\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to add additional custom folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for Projects, Project Lists and Backups tabs\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List-filter at the top of each tab which supports input of multiple search words separated by a 'space' character\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button for browsing to the folder location of a selected file\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to preview attached 'demo' audio files of project and template files (requires js_ReaScriptAPI)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button for browsing to the folder location of a selected file (requires SWS Extensions)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to switch between different pre-defined Reaper Theme Slots (requires SWS Extensions)\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox for managing the window auto-close behavior\par}
@@ -8387,6 +8387,13 @@ enter or a = Exit and apply changes\par}
         <changelog><![CDATA[+ General: The last used Show/Hide path display mode is now stored
 + General: Some minor bugfixes and enhancements]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/42bb4e720e7e062e9b51b7937204074ed6184514/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.7.2" author="solger" time="2019-11-20T20:56:55Z">
+        <changelog><![CDATA[+ General: Updated [Show in Explorer] code to the usage of CF_LocateInExplorer (SWS Extensions)
++ General: Bugfix for keeping last path display mode when resizing window
++ General: Some minor bugfixes and enhancements
++ General: Bugfixes for usage with 32-bit Reaper version]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7d3e35c38cd882f4c12532a0fda5b17e288d8b5d/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
