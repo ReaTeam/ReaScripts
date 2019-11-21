@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7d3e35c38cd882f4c12532a0fda5b17e288d8b5d" name="ReaTeam Scripts">
+<index version="1" commit="0621b641e0722abdf1a5e723b9ec18a568f4628e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8217,6 +8217,15 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-10-24T00:13:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b9a8d1ccb38871351cf78daa7b44704429f4848e/Project%20Properties/edgemeal_Do%20not%20process%20muted%20tracks%20toggle.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Save project plugin info to text file.lua" type="script" desc="Save project plugin info to text file">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=225219">Forum</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-11-21T15:11:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0621b641e0722abdf1a5e723b9ec18a568f4628e/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
