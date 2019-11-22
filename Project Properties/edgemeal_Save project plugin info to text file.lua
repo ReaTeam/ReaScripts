@@ -1,6 +1,7 @@
 -- @description Save project plugin info to text file
 -- @author Edgemeal
--- @version 1.0
+-- @version 1.01
+-- @changelog Fix: Check for js_ReaScriptAPI extension.
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
 
@@ -138,13 +139,15 @@ function Main()
     local file = io.open(fn, "w")
     file:write(table.concat(t,"\n"))
     file:close()
-    local os = reaper.GetOS()-- if Windows then open file in notepad.
+    local os = reaper.GetOS()-- get OS
     if (os == 'Win32') or (os == 'Win64') then
-      local np_title = RemoveFileExt(reaper.GetProjectName(proj, ""))..' - Project Plugins.txt - Notepad'
-      local hwnd = reaper.JS_Window_FindTop(np_title, true)
-      while hwnd do -- close instances with exact same title first so we dont have multiple notepads open!
-        reaper.JS_WindowMessage_Send(hwnd, "WM_CLOSE", 0,0,0,0)
-        hwnd = reaper.JS_Window_FindTop(np_title, true)
+      if reaper.APIExists('JS_Window_FindTop') then -- check if JS_API extension is installed
+        local np_title = RemoveFileExt(reaper.GetProjectName(proj, ""))..' - Project Plugins.txt - Notepad'
+        local hwnd = reaper.JS_Window_FindTop(np_title, true)
+        while hwnd do -- close instances with exact same title first so we dont have multiple notepads open!
+          reaper.JS_WindowMessage_Send(hwnd, "WM_CLOSE", 0,0,0,0)
+          hwnd = reaper.JS_Window_FindTop(np_title, true)
+        end
       end
       reaper.ExecProcess('notepad.exe '..fn,-1) -- open file in Notepad.
     end
