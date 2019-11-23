@@ -103,7 +103,7 @@ end
 
 function GUI.Frame:val(new)
 
-	if new then
+	if new ~= nil then
 		self.text = new
         self:init()
 		self:redraw()

@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.9
+Version: 2.16.10
 Changelog:
-    Fix: Slider.inc being missed if created with a table of parameters
+    Fix: Options with only one element couldn't be set to false using :val()
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua
