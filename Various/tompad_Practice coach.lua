@@ -1,7 +1,7 @@
 -- @description Practice coach
 -- @author tompad
 -- @version 1.0.1
--- @changelog Added auto-continue settings
+-- @changelog Removed ShowConsoleMessage ;-)
 -- @about
 --   # Practice Coach
 --
@@ -359,8 +359,7 @@ function countDownTimer2 ()
   if (reaper.time_precise() <= endTime2) then
     reaper.defer(countDownTimer2)
   else
-    reaper.ShowConsoleMsg("Continue")
-    startButton()
+     startButton()
   end
 end
 
