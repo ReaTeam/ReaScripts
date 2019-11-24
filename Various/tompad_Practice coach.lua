@@ -1,6 +1,6 @@
 -- @description Practice coach
 -- @author tompad
--- @version 1.0.1
+-- @version 1.0.2
 -- @changelog Removed ShowConsoleMessage ;-)
 -- @about
 --   # Practice Coach
