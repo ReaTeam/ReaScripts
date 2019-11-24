@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0b8fedad58ac139b8592a2c087530cdc6b8a2fae" name="ReaTeam Scripts">
+<index version="1" commit="61fae0e89f30d9d372fdc37153c2eec627546fd8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13551,13 +13551,17 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Write in the maximum bpm\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hit Start button (on script window) and practice along\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When first step is done Reaper stops\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To contine with step 2 hit Continue\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To contine with step 2 hit Continue (if auto-continue is active - just wait)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab After finishing the 8th step you have practiced different tempos in 15 min and script resets.\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="tompad" time="2019-11-19T08:27:57Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fbbcef56d87ee28fc3d60569a7597a2ced8ac2f3/Various/tompad_Practice%20coach.lua</source>
+      </version>
+      <version name="1.0.1" author="tompad" time="2019-11-24T11:55:58Z">
+        <changelog><![CDATA[Added auto-continue settings]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61fae0e89f30d9d372fdc37153c2eec627546fd8/Various/tompad_Practice%20coach.lua</source>
       </version>
     </reapack>
   </category>
