@@ -1,27 +1,36 @@
 -- @description Project map navigator
 -- @author Dafarkias
--- @version 0.92
--- @changelog Added borderless window option back in (shift+Lclick to center window on mouse)
+-- @version 0.94beta
+-- @changelog
+--   [v0.93]
+--
+--   *FEATURE: 'x' sets edit cursor to first visable measure in arrange/track view (a.k.a. Nantho's request)
+--   *Reconfigured marquee. Attempted to bring back its intended behavior/functionality
+--   *Stereo display for media items (previously, only mono. Once again, I used code from spk77 to make this happen.)
+--   *Reconfigured MIDI-items notes visually to be slightly more prominent.
+--   *Removed small bugs, and bolstered script efficiency.
+--
+--   [v0.94] (hot-fix)
+--
+--   *Worked on misrepresentation of stereo items in display
 -- @link Forum thread https://forums.cockos.com/showthread.php?t=226263
 -- @about
---   Project Map Navigator:
+--   #Project Map Navigator
 --
---   Designed to assist in the workflow of REAPER items by visual assistance. 
--- 
---  Somewhat similar to a map H.U.D. you might see in many popular video games these days, its purpose is to portray the overall view of a project in a scalable window, while providing a quick and efficient way to scroll and zoom throughout your REAPER project!
+--   Designed to assist in the workflow of REAPER items by visual assistance.
 
 --[[
-NAME: Dfk's Project Map
+NAME: Dfk's Project Map Navigator
 
 CATEGORY OF USE: Project Workflow
 AUTHOR: Dafarkias
 LEGAL RAMIFICATIONS: GPL v.3
 COCKOS REAPER THREAD: https://forum.cockos.com/showthread.php?t=222795 
-]]local VERSION = "0.91"--[[
+]]local VERSION = "0.94"--[[
 REAPER: 5.984 (version used in development)
 EXTENSIONS: js_ReaScriptAPI v0.993 (version used in development), SWS/S&M 2.10.0
 
-[v0.5]
+[v0.5] 
 		*(script release)
 [v0.51]
 		*Minor bugs
@@ -73,13 +82,28 @@ EXTENSIONS: js_ReaScriptAPI v0.993 (version used in development), SWS/S&M 2.10.0
 		*Added: marker number to beginning of title (Sumalc, post#72)
 [v0.9]
 		*Fixed: error with assignment of mousewheel modifier(s)
-		*Added: 'user area' option for bordless window as default:
+		*Added: 'user area' option for bordless window as default: 
 		*Added: F12 cycles between borderless window and bordered window 
 [v0.91]
 		*Removed borderless window due to glitch-error between window positioning and gfx.h
 		*Fixed error with project/region marker color display
 [v0.92]
-		*Added borderless window option back in (shift+Lclick to center window on mouse)
+		*Added borderless window option back in (shift+click to center window on mouse)
+[v0.93]
+		*FEATURE: 'x' sets edit cursor to first visable measure in arrange/track view (a.k.a. Nantho's request)
+		*Reconfigured marquee. Attempted to bring back its intended behavior/functionality
+		*Stereo display for media items (previously, only mono. Once again, I used code from spk77 to make this happen.)
+		*Reconfigured MIDI-items notes visually to be slightly more prominent.
+		*Removed small bugs, and bolstered script efficiency.
+[v0.93]
+		*FEATURE: 'x' sets edit cursor to first visable measure in arrange/track view (a.k.a. Nantho's request)
+		*Reconfigured marquee. Attempted to bring back its intended behavior/functionality
+		*Stereo display for media items (previously, only mono. Once again, I used code from spk77 to make this happen.)
+		*Reconfigured MIDI-items notes visually to be slightly more prominent.
+		*Removed small bugs, and bolstered script efficiency.
+[v0.94]
+		*Worked on misrepresentation of stereo items in display
+
 		
 --]]
 
@@ -106,7 +130,7 @@ local Horizontal_MouseWheel_Modifier      = "shift"     --mousewheel+: "none", "
 --
 --USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA--USER--AREA
 
-function Msg(param) reaper.ShowConsoleMsg(tostring(param).."\n") end function Up() reaper.UpdateTimeline() reaper.UpdateArrange() end
+function msg(param, clr) if clr then reaper.ClearConsole() end reaper.ShowConsoleMsg(tostring(param).."\n") end function up() reaper.UpdateTimeline() reaper.UpdateArrange() end
 
 --window vars
 local _,_,display_width,display_height = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true )
@@ -123,16 +147,15 @@ local arrange_start, arrange_end = reaper.GetSet_ArrangeView2( 0, 0, 0, 0 ) loca
 local loop_start, loop_end = reaper.GetSet_LoopTimeRange2( 0, 0, 1, 0, 0, 0 ) local loop_state = reaper.GetSetRepeatEx( 0, -1 ) 
 local track = {} local track_name = {} local track_v_position = {} local track_color = {}
 local items = {} local items_position = {} local items_length = {}
-local script_name = " [Dfk's Project Map v"..VERSION.."]"
+local script_name = " [Dfk's Project Map Navigator v"..VERSION.."]"
 local project_name = reaper.GetProjectName( 0, "" )..script_name
 local project_length = reaper.GetProjectLength( 0 )
 local peaks = {} local track_buf = 1 local item_buf = 1
 local midi_start = {} local midi_end = {} local midi_pitch = {} 
-local lClick = 0
-local rClick = 0
+local click = 0
 
 -- bounding box
-local pinPointX = -1 local pinPointY = -1 
+local pinPointX, pinPointY = nil, nil
 local mouseGrab = 3  
 local b_x       = gfx.w/(project_length/arrange_start)
 local b_y       = gfx.h/(window_max/window_position)
@@ -187,7 +210,7 @@ function draw_load_screen()
 	end
 end
 
-function draw_items() 
+function draw_items() local show_PM_titles = true
 
 	-- update vars
 	window_retval, window_position, _, window_min, window_max, _ = reaper.JS_Window_GetScrollInfo( window_arrange, "v" )
@@ -232,13 +255,16 @@ function draw_items()
 					if reaper.TakeIsMIDI(take)   -- if MIDI 
 				then
 						if Show_MIDI_Notes == true
-					then
-						gfx.set(0,0,0,0.9) local midi_height = math.floor((gfx.h/(track_v_position[a+1]-track_v_position[a]))/12)-4 if midi_height < 1 then midi_height = 1 end
-						local midi_track = (gfx.h/(track_v_position[0]/(track_v_position[a+1]-track_v_position[a])))
+					then 
+						gfx.set(0,0,0,1) 
+						local track_v = gfx.h/(track_v_position[0]/track_v_position[a]) 
+						local track_h = gfx.h/(track_v_position[0]/(track_v_position[a+1]-track_v_position[a]))
+						local midi_height = track_h/127
 							for m = 1, #midi_start[a][b]
-						do
-							local midi_width = math.floor(gfx.w/(project_length/(midi_end[a][b][m]-midi_start[a][b][m]))) if midi_width < 1 then midi_width = 1 end
-							gfx.rect(gfx.w/(project_length/midi_start[a][b][m]), 2+math.floor((gfx.h/(track_v_position[0]/track_v_position[a])))+(((midi_pitch[a][b][m]/12)-math.floor(midi_pitch[a][b][m]/12))*(gfx.h/(track_v_position[0]/(track_v_position[a+1]-track_v_position[a])))), midi_width, midi_height, 1 )
+						do 
+							local midi_width = math.floor(gfx.w/(project_length/(midi_end[a][b][m]-midi_start[a][b][m]))) if midi_width < 2 then midi_width = 2 end
+							local m_y = midi_height*midi_pitch[a][b][m] 
+							gfx.rect(gfx.w/(project_length/midi_start[a][b][m]), track_v+track_h-m_y, midi_width, 2, 1 ) 
 						end
 					end
 				else                           -- if AUDIO
@@ -246,6 +272,7 @@ function draw_items()
 					-- set color
 					local channel_y       = gfx.h/(track_v_position[0]/track_v_position[a])
 					local channel_y_width = gfx.h/(track_v_position[0]/(track_v_position[a+1]-track_v_position[a])) channel_y_width = channel_y_width/2
+					if peaks[a][b][0] == 2 then channel_y_width = channel_y_width / 2 end 
 					
 						if waveform_color_enabled == false 
 					then
@@ -255,26 +282,51 @@ function draw_items()
 						gfx.set(r3/255,g3/255,b3/255,0.95) 
 					end
 					-- draw peaks
-					for i = 1, #peaks[a][b], 2 do --for i = 1, ((items_length[a][b]/project_length*gfx.w)*2)-1, 2 do
+					for i = 1, #peaks[a][b], peaks[a][b][0]*2 do --for i = 1, ((items_length[a][b]/project_length*gfx.w)*2)-1, 2 do
 							if peaks[a]
 						then 
-							if peaks[a][b]
-						then
-							local max_peak, min_peak = peaks[a][b][i], peaks[a][b][i+1] 
-							if max_peak == nil then update_project() return end 
-							if math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ) < (gfx.w/(project_length/items_position[a][b]))+(gfx.w/(project_length/items_length[a][b]))-2 then 
-							gfx.line( math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ), channel_y+channel_y_width+(channel_y_width*max_peak), 
-												math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ), channel_y+channel_y_width-(channel_y_width*max_peak), 1) end
-						else end
+								if peaks[a][b]
+							then
+								local max_peak, min_peak = peaks[a][b][i], peaks[a][b][i+1] 
+								if max_peak == nil then update_project() return end 
+								if math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ) < (gfx.w/(project_length/items_position[a][b]))+(gfx.w/(project_length/items_length[a][b]))-2 then 
+								gfx.line( math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ), channel_y+channel_y_width+(channel_y_width*max_peak), 
+													math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ), channel_y+channel_y_width-(channel_y_width*max_peak), 1) end
+									if peaks[a][b][0] > 1
+								then
+									max_peak, min_peak = peaks[a][b][i+2], peaks[a][b][i+3] 
+									if max_peak == nil then update_project() return end 
+										if math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ) < (gfx.w/(project_length/items_position[a][b]))+(gfx.w/(project_length/items_length[a][b]))-2 
+									then 
+										gfx.line( math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ),channel_y+(channel_y_width*3)+(channel_y_width*max_peak), 
+														math.floor(gfx.w/(project_length/items_position[a][b])+gfx.w/#peaks[a][b]/(project_length/items_length[a][b])*i ),  channel_y+(channel_y_width*3)-(channel_y_width*max_peak), 1) end
+								end
+								
+							else end
 						else end
 					end
+					
 				end
 			end
 		end
 	end
 
+	-- track names
+		if Show_Track_Names == true
+	then
+			gfx.set( 1,1,1,.95 ) for a = 1, #track
+		do 
+				if 20+(gfx.h/(track_v_position[0]/track_v_position[a]))<(gfx.h/(track_v_position[0]/track_v_position[a+1])) 
+			then 
+				gfx.x = 2 gfx.y = 10+gfx.h/(track_v_position[0]/track_v_position[a]) gfx.drawstr( track_name[a] ) 
+			else if a == 1 then show_PM_titles = false end
+				if 10+(gfx.h/(track_v_position[0]/track_v_position[a]))<(gfx.h/(track_v_position[0]/track_v_position[a+1])) then gfx.x = 2 gfx.y = gfx.h/(track_v_position[0]/track_v_position[a]) gfx.drawstr( track_name[a] ) end
+			end
+		end
+	end
+	
 	-- project markers
-		if Show_Project_Markers == true
+		if Show_Project_Markers == true and show_PM_titles
 	then local projectMarker_alpha = .9 
 		local ret_markers, num_markers, num_regions = reaper.CountProjectMarkers( 0 ) gfx.set(1,1,0,projectMarker_alpha) gfx.y = 2 
 			for i = 1, num_markers+num_regions
@@ -290,26 +342,13 @@ function draw_items()
 			gfx.x = DATAtoX_Y( posser )+2 gfx.drawstr( namer ) 
 		end 
 	end 
-	-- track names
-		if Show_Track_Names == true
-	then
-			gfx.set( 1,1,1,.95 ) for a = 1, #track
-		do 
-				if 20+(gfx.h/(track_v_position[0]/track_v_position[a]))<(gfx.h/(track_v_position[0]/track_v_position[a+1])) 
-			then if a == 1 then show_PM_titles = true end
-				gfx.x = 2 gfx.y = 10+gfx.h/(track_v_position[0]/track_v_position[a]) gfx.drawstr( track_name[a] ) 
-			else
-				if 10+(gfx.h/(track_v_position[0]/track_v_position[a]))<(gfx.h/(track_v_position[0]/track_v_position[a+1])) then gfx.x = 2 gfx.y = gfx.h/(track_v_position[0]/track_v_position[a]) gfx.drawstr( track_name[a] ) end
-			end
-		end
-	end
 
 	-- edit cursor/play cursor
 	gfx.set(1,1,1,0.8) gfx.rect(math.floor( (gfx.w/(project_length/ reaper.GetPlayPosition()))+.5)-math.floor((Play_Cursor_Width/2)), 0,Play_Cursor_Width,gfx.h,1 ) 
 	gfx.set(1,0,0,0.8) gfx.rect(math.floor( (gfx.w/(project_length/reaper.GetCursorPosition()))+.5)-math.floor((Edit_Cursor_Width/2)),0,Edit_Cursor_Width,gfx.h,1 )
 	--screen bounding box
 	gfx.set(0,1,0,0.8) 
-	if pinPointY == -1
+		if not pinPointY
 	then
 		for a = 1, Marquee_Box_Thickness do gfx.rect(b_x-(a-1),b_y-(a-1),b_w+((a-1)*2),b_h+((a-1)*2),0 ) end 
 	else
@@ -317,9 +356,9 @@ function draw_items()
 		local yy1, yy2 = pinPointY, gfx.mouse_y if pinPointY > gfx.mouse_y then yy2, yy1 = pinPointY, gfx.mouse_y end 
 		local xx1, xx2 = pinPointX, gfx.mouse_x if pinPointX > gfx.mouse_x then xx2, xx1 = pinPointX, gfx.mouse_x end 
 		for a = 1, Marquee_Box_Thickness do gfx.rect(xx1-(a-1),yy1-(a-1),xx2-xx1+((a-1)*2),yy2-yy1+((a-1)*2),0 ) end
-		-- yellow box
+		--[[ yellow box
 		gfx.set(1,1,0,0.8) 
-		for a = 1, Marquee_Box_Thickness do gfx.rect(xx1-(a-1),yy1+((yy2-yy1)/2)-(b_h/2)-(a-1),xx2-xx1+((a-1)*2),b_h+((a-1)*2),0 ) end 
+		for a = 1, Marquee_Box_Thickness do gfx.rect(xx1-(a-1),yy1+((yy2-yy1)/2)-(b_h/2)-(a-1),xx2-xx1+((a-1)*2),b_h+((a-1)*2),0 ) end ]]
 	end
 	-- display project looper
 		if Show_Project_Looper == true 
@@ -350,7 +389,8 @@ function get_peaks( go_to_main )
 			end 
 		else                             -- if AUDIO
 			------------------
-			local n_chans = 1
+			local n_chans = reaper.GetMediaSourceNumChannels( reaper.GetMediaItemTake_Source( take ) ) if n_chans > 2 then n_chans = 2 end
+			peaks[track_buf][item_buf][0] = n_chans
 			local sub_for_it = display_width if gfx.w > sub_for_it then sub_for_it = gfx.w end 
 			--local peakrate = (items_length[track_buf][item_buf]/project_length * sub_for_it)/items_length[track_buf][item_buf]
 			local peakrate = Waveform_Definition
@@ -365,12 +405,19 @@ function get_peaks( go_to_main )
 			local out_mode = (retval & 0xf00000)>>20   -- output_mode
 			------------------
 			if spl_cnt > 0 then
-				for i = 1, n_spls do
-					local p = #peaks[track_buf][item_buf]
-					peaks[track_buf][item_buf][p+1] = buf[i]             -- max peak
-					peaks[track_buf][item_buf][p+2] = buf[n_spls + i]    -- min peak
+					for i = 1, n_spls*n_chans, n_chans
+				do
+					local p = #peaks[track_buf][item_buf]                      -- number of peak buffer
+					peaks[track_buf][item_buf][p+1] = buf[i]                   -- max peak
+					peaks[track_buf][item_buf][p+2] = buf[n_spls + i]          -- min peak
+						if n_chans > 1
+					then
+						peaks[track_buf][item_buf][p+3] = buf[i+1]               -- max peak
+						peaks[track_buf][item_buf][p+4] = buf[n_spls + i + 1]    -- min peak
+					end
 				end
 			end
+			
 		end
 		item_buf = item_buf + 1 
 	else track_buf = track_buf + 1 item_buf = 1 end
@@ -429,95 +476,119 @@ function main() local draw_it = false
 		end
 	-- if script is not loading
 	else
-			if reaper.JS_Window_FromPoint( reaper.GetMousePosition() ) == window_script  
-		then if lClick ~= 1 then reaper.JS_Window_SetFocus( window_script ) end 
+			if reaper.JS_Window_FromPoint( reaper.GetMousePosition() ) == window_script or click ~= 0
+		then reaper.JS_Window_SetFocus( window_script ) 
 			local c_def = true
 			
-			-- keyboard input/controls
-			-- right: move edit cursor to next marker right
-				if gfx.getchar(1919379572 ) > 0 and gfx_char[1] < reaper.time_precise() and Show_Project_Markers == true 
-			then gfx_char[1] = reaper.time_precise()+gfx_char[0]
-				local ret_markers, num_markers, num_regions = reaper.CountProjectMarkers( 0 ) 
-					for i = 1, num_markers+num_regions
-				do 
-					local retvaller, _, posser, _, _, _, _ = reaper.EnumProjectMarkers3( 0, i-1 ) 
-					if posser > reaper.GetCursorPosition() then reaper.SetEditCurPos2( 0, posser, 0, 0 ) break end
+				if click == 0
+			then
+				-- keyboard input/controls
+				-- right: move edit cursor to next marker right
+					if gfx.getchar(1919379572 ) > 0 and gfx_char[1] < reaper.time_precise() and Show_Project_Markers == true 
+				then gfx_char[1] = reaper.time_precise()+gfx_char[0]
+					local ret_markers, num_markers, num_regions = reaper.CountProjectMarkers( 0 ) 
+						for i = 1, num_markers+num_regions
+					do 
+						local retvaller, _, posser, _, _, _, _ = reaper.EnumProjectMarkers3( 0, i-1 ) 
+						if posser > reaper.GetCursorPosition() then reaper.SetEditCurPos2( 0, posser, 0, 0 ) break end
+					end 
 				end 
-			end 
-			-- left: move edit cursor to next marker left
-				if gfx.getchar(1818584692) > 0 and gfx_char[2] < reaper.time_precise() and Show_Project_Markers == true
-			then gfx_char[2] = reaper.time_precise()+gfx_char[0]
-				local ret_markers, num_markers, num_regions = reaper.CountProjectMarkers( 0 ) 
-					local i = num_markers+num_regions
-				repeat 
-					local retvaller, _, posser, _, _, _, _ = reaper.EnumProjectMarkers3( 0, i-1 ) 
-					if posser < reaper.GetCursorPosition() then reaper.SetEditCurPos2( 0, posser, 0, 0 ) break end i = i - 1
-				until i == 0 
-			end 
-			-- up: place project loop, alternating placement ends
-				if gfx.getchar(30064) > 0 and gfx_char[3] < reaper.time_precise() and Show_Project_Markers == true 
-			then gfx_char[3] = reaper.time_precise()+.3 
-				if gfx_char[4] == 0 then reaper.GetSet_LoopTimeRange2( 0, 1, 1, reaper.GetCursorPosition(), loop_end, 0 ) gfx_char[4] = reaper.GetCursorPosition() else reaper.GetSet_LoopTimeRange2( 0, 1, 1, gfx_char[4], reaper.GetCursorPosition(), 0 ) gfx_char[4] = 0 end
-			end
+				-- left: move edit cursor to next marker left
+					if gfx.getchar(1818584692) > 0 and gfx_char[2] < reaper.time_precise() and Show_Project_Markers == true
+				then gfx_char[2] = reaper.time_precise()+gfx_char[0]
+					local ret_markers, num_markers, num_regions = reaper.CountProjectMarkers( 0 ) 
+						local i = num_markers+num_regions
+					repeat 
+						local retvaller, _, posser, _, _, _, _ = reaper.EnumProjectMarkers3( 0, i-1 ) 
+						if posser < reaper.GetCursorPosition() then reaper.SetEditCurPos2( 0, posser, 0, 0 ) break end i = i - 1
+					until i == 0 
+				end 
+				-- up: place project loop, alternating placement ends
+					if gfx.getchar(30064) > 0 and gfx_char[3] < reaper.time_precise() and Show_Project_Markers == true 
+				then gfx_char[3] = reaper.time_precise()+.3 
+					if gfx_char[4] == 0 then reaper.GetSet_LoopTimeRange2( 0, 1, 1, reaper.GetCursorPosition(), loop_end, 0 ) gfx_char[4] = reaper.GetCursorPosition() else reaper.GetSet_LoopTimeRange2( 0, 1, 1, gfx_char[4], reaper.GetCursorPosition(), 0 ) gfx_char[4] = 0 end
+				end
+				
+				-- down: 'hard' play from edit cursor, doesn't cycle between play/stop
+					if gfx.getchar(1685026670) > 0 and gfx_char[5] < reaper.time_precise() 
+				then gfx_char[5] = reaper.time_precise()+.2 
+					reaper.OnPlayButton()
+				end
+				
+				-- spacebar: playback toggle
+				if gfx.getchar() == 32 then if reaper.GetPlayState() == 1 then reaper.OnStopButton() else reaper.OnPlayButton() end end
+				
+				-- '/': toggle project looper
+				if gfx.getchar(47) > 0 and gfx_char[6] < reaper.time_precise() then gfx_char[6] = reaper.time_precise()+.3 reaper.GetSetRepeatEx( 0, 2 ) reaper.JS_Window_SetFocus( reaper.GetMainHwnd() ) end
+				
+				-- 'm': toggle project mixer window
+				if gfx.getchar(109) > 0 and gfx_char[7] < reaper.time_precise() then gfx_char[7] = reaper.time_precise()+.3 reaper.Main_OnCommand( 40078, 0 ) end
+				
+				-- Nantho's request: 'x' snaps edit cursor to first measure of arrange view
+					if gfx.getchar(120) > 0 
+				then local start_timex, end_timex = reaper.GetSet_ArrangeView2( 0, 0, 0, 0 ) 
+					local mc = 0 local timerx = 0
+						while timerx < start_timex
+					do 
+						local retvalx, qn_startx, qn_endx, timesig_numx, timesig_denomx, tempox = reaper.TimeMap_GetMeasureInfo( 0, mc )
+						if not retvalx then break end 
+						mc = mc + 1 timerx = retvalx 
+					end
+					reaper.SetEditCurPos2( 0, timerx, 0, 0 )
+				end
+			end -- if click == 0
 			
-			-- down: 'hard' play from edit cursor, doesn't cycle between play/stop
-				if gfx.getchar(1685026670) > 0 and gfx_char[5] < reaper.time_precise() 
-			then gfx_char[5] = reaper.time_precise()+.2 
-				reaper.OnPlayButton()
-			end
-			
-			-- spacebar: playback toggle
-			if gfx.getchar() == 32 then if reaper.GetPlayState() == 1 then reaper.OnStopButton() else reaper.OnPlayButton() end end
-			
-			-- '/': toggle project looper
-			if gfx.getchar(47) > 0 and gfx_char[6] < reaper.time_precise() then gfx_char[6] = reaper.time_precise()+.3 reaper.GetSetRepeatEx( 0, 2 ) reaper.JS_Window_SetFocus( reaper.GetMainHwnd() ) end
-			
-			-- 'm': toggle project mixer window
-			if gfx.getchar(109) > 0 and gfx_char[7] < reaper.time_precise() then gfx_char[7] = reaper.time_precise()+.3 reaper.Main_OnCommand( 40078, 0 ) end
-			
-			
-			-- mouse input/controls
-			
-			-- position window
-				if rClick == 0 and lClick == 0 and gfx.mouse_x > 0 and gfx.mouse_x < gfx.w and gfx.mouse_y > 0 and gfx.mouse_y < gfx.y and gfx.mouse_cap == 9 or lClick == 2
-			then lClick = 2
+			-- MOUSE INPUT/CONTROLS
+
+			-- position window (click+shift)
+				if click == 0 and gfx.mouse_x > 0 and gfx.mouse_x < gfx.w and gfx.mouse_y > 0 and gfx.mouse_y < gfx.y and gfx.mouse_cap == 9 or click == 2
+			then click = 2
 				local _, left, top, right, bottom = reaper.JS_Window_GetRect( window_script )
 				local mx, my = reaper.GetMousePosition()
 				reaper.JS_Window_SetPosition( window_script, math.floor( mx-((right-left)/2) ), math.floor( my-((bottom-top)/2) ), math.floor( right-left ), math.floor( bottom-top ) )
+				if gfx.mouse_cap ~= 9 then click = 1000 end 
 			end
-			
-			-- marquee
+
+			-- MARQUEE
 			-- click
-				if rClick == 0 and gfx.mouse_cap == 2 or rClick == 1
-			then
+				if click == 0 and gfx.mouse_cap == 2 or click == 4
+			then 
 				-- initial click
-				if rClick == 0 then pinPointX, pinPointY = gfx.mouse_x, gfx.mouse_y end 
+				if click == 0 then pinPointX, pinPointY = gfx.mouse_x, gfx.mouse_y end 
 				-- hold click
-				rClick = 1 gfx.setcursor( 32515 --[[4-point]]) reaper.JS_Mouse_SetCursor( reaper.JS_Mouse_LoadCursor( 32515 ) ) c_def = false draw_it = true
+				gfx.setcursor( 32515 --[[4-point]]) reaper.JS_Mouse_SetCursor( reaper.JS_Mouse_LoadCursor( 32515 ) ) c_def = false draw_it = true click = 4
 			end
 			-- release
-				if gfx.mouse_cap == 0 and rClick == 1 
+				if gfx.mouse_cap == 0 and click == 4 
 			then  
 				-- set horizontal
 				local xx1, xx2 = pinPointX, gfx.mouse_x if pinPointX > gfx.mouse_x then xx2, xx1 = pinPointX, gfx.mouse_x end 
 				reaper.GetSet_ArrangeView2( 0, 1, 0, 0, X_YtoDATA( xx1 ), X_YtoDATA( xx2 ) )
+				
+				
 				-- set vertical limited in function due to API
-				local yy1, yy2 = pinPointY, gfx.mouse_y if pinPointY > gfx.mouse_y then yy2, yy1 = pinPointY, gfx.mouse_y end 
-				local rater = arrange_height/track_v_position[0]
-					if rater ~= 1
-				then
-					local h_sub = gfx.h-(gfx.h*rater) local m_sub = yy2-((yy2-yy1)/2)-(gfx.h*(rater/2)) 
-					reaper.JS_Window_SetScrollPos( window_arrange, "v", math.floor(m_sub*((track_v_position[0]-arrange_height)/h_sub)) ) --Up()
+				local ny1, ny2 = pinPointY, gfx.mouse_y if pinPointY > gfx.mouse_y then ny2, ny1 = pinPointY, gfx.mouse_y end 
+				local oy1, oy2 = b_y, b_y + b_h
+				local t_h = 0
+				
+					for t = 1, #track
+				do t_h = t_h + reaper.GetMediaTrackInfo_Value( track[t], "I_WNDH" )*((oy2-oy1)/(ny2-ny1))
+					reaper.SetMediaTrackInfo_Value( track[t], "I_HEIGHTOVERRIDE",  reaper.GetMediaTrackInfo_Value( track[t], "I_WNDH" )*((oy2-oy1)/(ny2-ny1)) ) 
 				end
-				rClick = 0 pinPointX, pinPointY = -1, -1 gfx.setcursor( 0 ) 
+				
+				reaper.TrackList_AdjustWindows(0)
+				reaper.CSurf_OnScroll( 0, -100000 )
+				reaper.CSurf_OnScroll( 0, math.floor(((((t_h)/(gfx.h/ny1))/8)+.5)) )		
+				
+				pinPointX, pinPointY = nil, nil
 			end
 			
 			-- center screen
-			-- hover
-			if rClick == 0 and gfx.mouse_x > b_x+mouseGrab  and gfx.mouse_x < b_xx-mouseGrab and gfx.mouse_y > b_y+mouseGrab and gfx.mouse_y < b_yy-mouseGrab and gfx.mouse_x < gfx.w-2 and gfx.mouse_y < gfx.h-2 and gfx.mouse_y > 2 and gfx.mouse_x > 2 then gfx.setcursor( 32646 --[[4-point]]) reaper.JS_Mouse_SetCursor( reaper.JS_Mouse_LoadCursor( 32646 ) ) c_def = false end -- 4-points
+			-- set mouse cursor
+			if click == 0 and gfx.mouse_x > b_x+mouseGrab  and gfx.mouse_x < b_xx-mouseGrab and gfx.mouse_y > b_y+mouseGrab and gfx.mouse_y < b_yy-mouseGrab and gfx.mouse_x < gfx.w-2 and gfx.mouse_y < gfx.h-2 and gfx.mouse_y > 2 and gfx.mouse_x > 2 then gfx.setcursor( 32646 --[[4-point]]) reaper.JS_Mouse_SetCursor( reaper.JS_Mouse_LoadCursor( 32646 ) ) c_def = false end -- 4-points
 			-- click
-				if lClick == 0 and gfx.mouse_cap == 1 and rClick == 0 or lClick == 1
-			then lClick = 1 
+				if click == 0 and gfx.mouse_cap == 1 or click == 1
+			then click = 1 
 				local mouse_sub = gfx.mouse_x if mouse_sub > gfx.w then mouse_sub = gfx.w end local arrange_mid = arrange_end-arrange_start local starter = mouse_sub*(project_length/gfx.w)
 				reaper.GetSet_ArrangeView2( 0, 1, 0, 0, starter-(arrange_mid/2), starter+(arrange_mid/2) )
 				local ratio = arrange_height/window_max 
@@ -527,12 +598,10 @@ function main() local draw_it = false
 					reaper.JS_Window_SetScrollPos( window_arrange, "v", math.floor(m_sub*((window_max-arrange_height)/h_sub)) ) --Up()
 				end
 			end
-			-- release
-			if gfx.mouse_cap ~= 1 then lClick = 0 end
 			
 			-- ctrl+click: solo track in mixer
-				if gfx.mouse_cap == 5 and gfx_char[9] < reaper.time_precise()
-			then gfx_char[9] = reaper.time_precise() + .3
+				if gfx.mouse_cap == 5 and gfx_char[9] < reaper.time_precise() and click == 0
+			then click = 3 gfx_char[9] = reaper.time_precise() + .3
 					for a = 1, #track 
 				do  reaper.SetMediaTrackInfo_Value( track[a], "B_SHOWINMIXER", gfx_char[8] ) 
 						if gfx.mouse_y > gfx.h/(track_v_position[0]/track_v_position[a]) and gfx.mouse_y < gfx.h/(track_v_position[0]/track_v_position[a+1]) 
@@ -543,7 +612,7 @@ function main() local draw_it = false
 			end
 			
 			-- mousewheel vertical zoom
-				if gfx.mouse_wheel ~= 0 
+				if gfx.mouse_wheel ~= 0 and click == 0
 			then local xdire, ydire = 0, 0 
 				if gfx.mouse_cap == Vertical_MouseWheel_Modifier   then ydire = Vertical_MouseWheel_Sensitivity end if gfx.mouse_cap == Horizontal_MouseWheel_Modifier then xdire = Horizontal_MouseWheel_Sensitivity end
 				if gfx.mouse_cap == Vertical_MouseWheel_Modifier+2 then ydire = Vertical_MouseWheel_Sensitivity end 
@@ -561,12 +630,11 @@ function main() local draw_it = false
 				end 
 				if horizontal_zoomMode == 0 then reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETHZOOMC_EDITPLAYCUR"), 0 ) elseif horizontal_zoomMode == 1 then reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETHZOOMC_EDITCUR"), 0 ) elseif horizontal_zoomMode == 2 then reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETHZOOMC_CENTERVIEW"), 0 ) else reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETHZOOMC_MOUSECUR"), 0 ) end
 				if vertical_zoomMode == 0 then reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETVZOOMC_TRACKCVIEW"), 0 ) elseif vertical_zoomMode == 1 then reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETVZOOMC_TOPVISTRACK"), 0 ) elseif vertical_zoomMode == 2 then reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETVZOOMC_LASTSELTRACK"), 0 ) else reaper.Main_OnCommand( reaper.NamedCommandLookup("_WOL_SETVZOOMC_TRACKMOUSECUR"), 0 ) end
-				gfx.mouse_wheel = 0
-			end
+			end gfx.mouse_wheel = 0
 			
 			-- place edit cursor
-				if gfx.mouse_cap == 64 
-			then
+				if gfx.mouse_cap == 64 and click == 0
+			then click = 5
 				reaper.SetEditCurPos2( 0, project_length/(gfx.w/gfx.mouse_x), 0, 0 ) 
 				local ret_markers, num_markers, num_regions = reaper.CountProjectMarkers( 0 ) local no_overlap = {} gfx.set(1,1,0,projectMarker_alpha) gfx.y = 2 
 					for i = 1, num_markers+num_regions
@@ -576,15 +644,17 @@ function main() local draw_it = false
 					then
 						reaper.SetEditCurPos2( 0, posser, 0, 0 ) 
 					end
-					
 				end 
 			end
 			
-			-- return mouse graphic
-			if gfx.mouse_cap ~= 1 then lClick = 0 end if c_def == true then gfx.setcursor( 0 ) end 	
+			-- return mouse click and mouse cursor, if applicable
+			if gfx.mouse_cap == 0 then click = 0 end if c_def == true then gfx.setcursor( 0 ) end 	
 	
+		else
+			reaper.JS_Window_SetFocus( reaper.JS_Window_FromPoint( reaper.GetMousePosition() ) ) -- if mouse isn't under window and there is no active 'click, return mouse focus
 		end
 
+			----------------------------------------------------
 			if reaper.JS_Window_IsVisible( window_script ) == true
 		then
 			-- script gfx change/update
