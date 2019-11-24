@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="61fae0e89f30d9d372fdc37153c2eec627546fd8" name="ReaTeam Scripts">
+<index version="1" commit="337a06ee5c173c974fdfca995aa0fec43c61eab7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13562,6 +13562,10 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
       <version name="1.0.1" author="tompad" time="2019-11-24T11:55:58Z">
         <changelog><![CDATA[Added auto-continue settings]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61fae0e89f30d9d372fdc37153c2eec627546fd8/Various/tompad_Practice%20coach.lua</source>
+      </version>
+      <version name="1.0.2" author="tompad" time="2019-11-24T17:11:06Z">
+        <changelog><![CDATA[Removed ShowConsoleMessage ;-)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/337a06ee5c173c974fdfca995aa0fec43c61eab7/Various/tompad_Practice%20coach.lua</source>
       </version>
     </reapack>
   </category>
