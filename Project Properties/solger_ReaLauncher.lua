@@ -1,11 +1,7 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.7.2
--- @changelog
---   + General: Updated [Show in Explorer] code to the usage of CF_LocateInExplorer (SWS Extensions)
---   + General: Bugfix for keeping last path display mode when resizing window
---   + General: Some minor bugfixes and enhancements
---   + General: Bugfixes for usage with 32-bit Reaper version
+-- @version 1.7.3
+-- @changelog + [Project Templates]: Bugfix for checking the Reaper version (5.983 or higher) in order to determine which loading logic is used
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -70,7 +66,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.7.2"
+appversion = "1.7.3"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -1065,8 +1061,8 @@ end
 
 local function Global_ProjectTemplateLoadBase(template)
   if template ~= nil then
-    if reaperversion ~= nil and #reaperversion > 1 and tonumber(string.sub(reaperversion, 1, 5)) > 5.982 then
-      -- logic for Reaper versions 5.983 or  higher
+    if reaperversion ~= nil and #reaperversion > 1 and ((reaperversion:match("6.")) or reaperversion:match("5.98[3-9]")) then
+      -- logic for Reaper versions 5.983 or higher
       if projectTemplateLoadMode == 1 then 
         reaper.Main_openProject("template:" .. template)   
       else
