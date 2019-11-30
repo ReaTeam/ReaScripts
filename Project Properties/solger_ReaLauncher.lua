@@ -1,7 +1,7 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 1.7.3
--- @changelog + [Project Templates]: Bugfix for checking the Reaper version (5.983 or higher) in order to determine which loading logic is used
+-- @version 1.7.4
+-- @changelog + [Project Templates]: Added check for Reaper 5.99x versions to loading logic
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -66,7 +66,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "1.7.3"
+appversion = "1.7.4"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -1061,7 +1061,7 @@ end
 
 local function Global_ProjectTemplateLoadBase(template)
   if template ~= nil then
-    if reaperversion ~= nil and #reaperversion > 1 and ((reaperversion:match("6.")) or reaperversion:match("5.98[3-9]")) then
+    if reaperversion ~= nil and #reaperversion > 1 and ((reaperversion:match("6.")) or reaperversion:match("5.99") or reaperversion:match("5.98[3-9]")) then
       -- logic for Reaper versions 5.983 or higher
       if projectTemplateLoadMode == 1 then 
         reaper.Main_openProject("template:" .. template)   
