@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="567661df3fbb418bc7f16466a3781267f1c7fa7b" name="ReaTeam Scripts">
+<index version="1" commit="c0b616ca7f8443957fb0c8260a511cb17d54f721" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8456,6 +8456,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.7.3" author="solger" time="2019-11-25T18:50:02Z">
         <changelog><![CDATA[+ [Project Templates]: Bugfix for checking the Reaper version (5.983 or higher) in order to determine which loading logic is used]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8cd9bfb0e8c5cf3ea682f03c12522d4c60967ee4/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="1.7.4" author="solger" time="2019-11-30T13:57:04Z">
+        <changelog><![CDATA[+ [Project Templates]: Added check for Reaper 5.99x versions to loading logic]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0b616ca7f8443957fb0c8260a511cb17d54f721/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
