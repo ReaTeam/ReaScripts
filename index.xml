@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c0b616ca7f8443957fb0c8260a511cb17d54f721" name="ReaTeam Scripts">
+<index version="1" commit="de67e1712fbe9ff48a6a91836143f007f1500f2c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9417,6 +9417,15 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-03T21:37:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/edgemeal_Disable%20multichannel%20metering%20on%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Select tracks with locked items.lua" type="script" desc="Select tracks with locked items">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2209858">Forum</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2019-12-03T18:05:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/de67e1712fbe9ff48a6a91836143f007f1500f2c/Tracks%20Properties/edgemeal_Select%20tracks%20with%20locked%20items.lua</source>
       </version>
     </reapack>
     <reapack name="jmieszkowski_Create folders from selected tracks based on their names and color them.lua" type="script" desc="Create folders from selected tracks based on their names and color them">
