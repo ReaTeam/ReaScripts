@@ -6,9 +6,9 @@ Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
 Provides: 
   [main=midi_editor,midi_inlineeditor] .
-  js_Mouse editing - Stretch bottom.cur
-  js_Mouse editing - Stretch top.cur
-  js_Mouse editing - Arch and Tilt.cur
+  js_Mouse editing - Scale bottom.cur
+  js_Mouse editing - Scale top.cur
+  js_Mouse editing - Multi compress.cur
   js_Mouse editing - Undo.cur
   js_Mouse editing - Redo.cur
 About:
@@ -4020,15 +4020,15 @@ function MAIN()
     winOS = OS:match("Win")
     filename = filename:gsub("\\", "/") -- Change Windows format to cross-platform
     filename = filename:match("^.*/") or "" -- Remove script filename, keeping directory
-    cursorHandTop       = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Stretch top.cur") -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
+    cursorHandTop       = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Scale top.cur") -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
     if not cursorHandTop then reaper.MB("Could not load the cursorHandTop cursor", "ERROR", 0) return false end
-    cursorHandBottom    = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Stretch bottom.cur")
+    cursorHandBottom    = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Scale bottom.cur")
     if not cursorHandBottom then reaper.MB("Could not load the cursorHandBottom cursor", "ERROR", 0) return false end
     cursorHandRight     = reaper.JS_Mouse_LoadCursor(431)
     if not cursorHandRight then reaper.MB("Could not load the cursorHandRight cursor", "ERROR", 0) return false end
     cursorHandLeft      = reaper.JS_Mouse_LoadCursor(430)
     if not cursorHandLeft then reaper.MB("Could not load the cursorHandLeft cursor", "ERROR", 0) return false end
-    cursorCompress      = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Arch and Tilt.cur") --reaper.JS_Mouse_LoadCursor(533)
+    cursorCompress      = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Multi compress.cur") --reaper.JS_Mouse_LoadCursor(533)
     if not cursorCompress then reaper.MB("Could not load the cursorCompress cursor", "ERROR", 0) return false end
     cursorArpeggiateLR  = reaper.JS_Mouse_LoadCursor(502)
     if not cursorArpeggiateLR then reaper.MB("Could not load the cursorArpeggiateLR cursor", "ERROR", 0) return false end
