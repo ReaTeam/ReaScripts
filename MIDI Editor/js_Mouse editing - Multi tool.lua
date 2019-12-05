@@ -1,11 +1,11 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.00
+Version: 5.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
 Provides: 
-  [main=midi_editor] .
+  [main=midi_editor,midi_inlineeditor] .
   js_Mouse editing - Stretch bottom.cur
   js_Mouse editing - Stretch top.cur
   js_Mouse editing - Arch and Tilt.cur
@@ -173,7 +173,7 @@ About:
 
 --[[
   Changelog:
-  * v5.00 (2019-12-03)
+  * v5.01 (2019-12-03)
     + BETA version.
 ]]
 
@@ -948,20 +948,26 @@ end -- Defer_Scale
 
 --#######################
 -------------------------
-local RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, BLACK = 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFF000000
+-- Default colors:
+local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK = 0xFFAA2200, 0xFFFF0000, 0xFF00BB00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFFFF8800, 0xFF000000
 function LoadZoneColors()
     
-    local extState = reaper.GetExtState("js_Multi Tool", "Settings") or ""
+    local extState = reaper.GetExtState("js_Multi Tool", "Settfings") or ""
     local colorCompress, colorScale, colorStretch, colorTilt, colorWarp, colorUndo, colorRedo = extState:match("compress.-(%d+) scale.-(%d+) stretch.-(%d+) tilt.-(%d+) warp.-(%d+) undo.-(%d+) redo.-(%d+)")
-    tColors = {compress = (colorCompress  and tonumber(colorCompress) or GREEN),
-               scale    = (colorScale     and tonumber(colorScale)    or BLUE),
-               stretch  = (colorStretch   and tonumber(colorStretch)  or BLUE),
+    tColors = {compress = (colorCompress  and tonumber(colorCompress) or YELLOW),
+               scale    = (colorScale     and tonumber(colorScale)    or ORANGE),
+               stretch  = (colorStretch   and tonumber(colorStretch)  or DARKRED),
                tilt     = (colorTilt      and tonumber(colorTilt)     or PURPLE),
-               warp     = (colorWarp      and tonumber(colorWarp)     or TURQOISE),
+               warp     = (colorWarp      and tonumber(colorWarp)     or GREEN),
                undo     = (colorUndo      and tonumber(colorUndo)     or RED),
                redo     = (colorRedo      and tonumber(colorRedo)     or GREEN),
                black    = BLACK
               }
+    --[[
+    for k, e in pairs(tColors) do
+        reaper.ShowConsoleMsg("\n"..k..": "..string.format("0x%x", e))
+    end
+    ]]
 end
 
 
@@ -969,9 +975,16 @@ end
 --------------------------
 function ChooseZoneColor()
     if zone and zone.color then
+        local x, y = reaper.GetMousePosition()
         ok, c = reaper.GR_SelectColor(windowUnderMouse)
+        reaper.JS_Mouse_SetPosition(x, y)
+        if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 then reaper.JS_Window_SetForeground(editor) end
+        if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_SetFocus(midiview) end
+        
         if ok then 
-            c = ((c&0xff)<<16) | (c&0xff00) | ((c&0xff0000)>>16)
+            if winOS then c = 0xFF000000 | ((c&0xff)<<16) | (c&0xff00) | ((c&0xff0000)>>16)
+            else c = (c | 0xFF000000) & 0xFFFFFFFF -- Make sure that basic color is completely opaque
+            end
             tColors[zone.color] = c
             local extState = "compress="..string.format("%i", tColors.compress)
                             .." scale="..string.format("%i", tColors.scale)
@@ -988,29 +1001,6 @@ function ChooseZoneColor()
     end
 end
 
-
---#############################
--------------------------------
---[[function LeftMouseButtonInput()
-    -- LEFT MOUSE BUTTON: Terminate this step (but not entire script) if left button is released after dragTime has passed
-    local continue = true
-    if mouseStateAtDragTime then 
-        if (mouseState&1) < (mouseStateAtDragTime&1) then return true end
-    else 
-        if thisDeferTime > stepStartTime + dragTime then mouseStateAtDragTime = mouseState end -- Only get stepMouseState once, as soon as dragtime is over
-    end
-    -- mouseStateAtDragTime must contain only those modifier keys or mouse buttons that were held since start of To remove all modifiers and buttons that are lifted (even very quickly) during dragTime    
-    if thisDeferTime < stepStartTime + dragTime then
-        mouseStateAtDragTime = mouseStateAtDragTime & mouseState 
-    els
-    
-    -- Terminate if left button is clicked
-    local peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
-    if peekOK and time > stepStartTime then --prevMouseTime then
-        return true
-    end  
-end
-]]
     
 --####################
 ----------------------
@@ -1653,20 +1643,27 @@ function Defer_Compress()
         if (compressTOP and mouseY < ME_TargetTopPixel) or (compressBOTTOM and mouseY < ME_TargetBottomPixel) then delta = -delta end
         -- Pause a little if flat line has been reached
         if compressWheel == 0 then
-            if time > prevMouseTime+1 or delta ~= prevDelta then
+            if time > prevMouseTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then --or delta ~= prevDelta then
                 compressWheel = (delta == 1) and 0.025 or 40
+                prevMouseTime = time
+                mustCalculate = true
+            end
+        elseif compressWheel == 1 then
+            if time > prevMouseTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then
+                compressWheel = (delta == 1) and 1.04 or 0.962
                 prevMouseTime = time
                 mustCalculate = true
             end
         else
             -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
             local factor = (delta == prevDelta and time-prevMouseTime < 1) and 0.04/((time-prevMouseTime)^2) or 0.04
+            local prevCompressWheel = compressWheel or 1
             compressWheel = (delta == 1) and (compressWheel*(1+factor)) or (compressWheel/(1+factor))
             -- Snap to flat line (standard compression shape) if either direction goes extreme
             if compressWheel < 0.025 or 40 < compressWheel then 
                 compressWheel = 0
             -- Round to 1 if comes close
-            elseif 0.962 < compressWheel and compressWheel < 1.04 then
+            elseif (compressWheel < 1 and 1 < prevCompressWheel) or (prevCompressWheel < 1 and 1 < compressWheel) then
                 compressWheel = 1
             end
             prevMouseTime = time
@@ -1676,7 +1673,7 @@ function Defer_Compress()
     end
     mouseGreaterThanOne = (compressWheel >= 1)
     inversewheel = 1/compressWheel -- Can be infinity
-    
+        
     -- MIDDLE BUTTON: Middle button changes curve shape
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MBUTTONDOWN")
     if peekOK and time > prevDeferTime then 
@@ -2024,18 +2021,19 @@ function GetLeftRightPixels(step, withNoteOff)
     if not (type(step) == "table") then step = tSteps[step] end
     local leftTick  = step.globalLeftTick
     local rightTick = withNoteOff and step.globalNoteOffTick or step.globalRightTick
+    --local leftPixel, rightPixel
     if ME_TimeBase == "beats" then
-        left = (leftTick + loopStartPPQPos - ME_LeftmostTick) * ME_PixelsPerTick
-        right = (rightTick + loopStartPPQPos - ME_LeftmostTick)*ME_PixelsPerTick
+        leftPixel = (leftTick + loopStartPPQPos - ME_LeftmostTick) * ME_PixelsPerTick
+        rightPixel = (rightTick + loopStartPPQPos - ME_LeftmostTick)*ME_PixelsPerTick
     else -- ME_TimeBase == "time"
         local firstTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, leftTick + loopStartPPQPos)
         local lastTime  = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, rightTick + loopStartPPQPos)
-        left  = (firstTime-ME_LeftmostTime)*ME_PixelsPerSecond
-        right = (lastTime -ME_LeftmostTime)*ME_PixelsPerSecond
+        leftPixel  = (firstTime-ME_LeftmostTime)*ME_PixelsPerSecond
+        rightPixel = (lastTime -ME_LeftmostTime)*ME_PixelsPerSecond
     end
-    left  = left//1 --math.ceil(math.max(left, 0)) 
-    right = right//1 --math.floor(math.min(right, ME_midiviewWidth-1))
-    return left, right
+    leftPixel  = leftPixel//1 --math.ceil(math.max(left, 0)) 
+    rightPixel = rightPixel//1 --math.floor(math.min(right, ME_midiviewWidth-1))
+    return leftPixel, rightPixel
 end
 
 
@@ -3958,7 +3956,7 @@ function MAIN()
     -- In case the item is looped, mouse PPQ position will be adjusted to equivalent position in first iteration.
     --    * mouseOrigPPQPos will be contracted to (possibly looped) item visible boundaries
     --    * Then get tick position relative to start of loop iteration under mouse
-    local mouseOrigPPQPos
+    local mouseOrigPPQPos = nil
     if isInline then
         mouseOrigPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, reaper.BR_GetMouseCursorContext_Position())
     elseif ME_TimeBase == "beats" then
@@ -3969,7 +3967,10 @@ function MAIN()
     local itemStartTimePos = reaper.GetMediaItemInfo_Value(activeItem, "D_POSITION")
     local itemEndTimePos = itemStartTimePos + reaper.GetMediaItemInfo_Value(activeItem, "D_LENGTH")
     local itemFirstVisibleTick = math.ceil(reaper.MIDI_GetPPQPosFromProjTime(activeTake, itemStartTimePos)) 
-    local itemLastVisibleTick = math.floor(reaper.MIDI_GetPPQPosFromProjTime(activeTake, itemEndTimePos))
+    local itemLastVisibleTick = math.ceil(reaper.MIDI_GetPPQPosFromProjTime(activeTake, itemEndTimePos)) - 1 -- -1 is important, since this function returns tick that immediately *follows* the time position.
+    if mouseOrigPPQPos > itemLastVisibleTick then mouseOrigPPQPos = itemLastVisibleTick
+    elseif mouseOrigPPQPos < itemFirstVisibleTick then mouseOrigPPQPos = itemFirstVisibleTick 
+    end
     -- Source length will be used in other context too: When script terminates, check that no inadvertent shifts in PPQ position occurred.
     if not sourceLengthTicks then sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(activeTake) end
     loopStartPPQPos = (mouseOrigPPQPos // sourceLengthTicks) * sourceLengthTicks
@@ -4020,20 +4021,29 @@ function MAIN()
     filename = filename:gsub("\\", "/") -- Change Windows format to cross-platform
     filename = filename:match("^.*/") or "" -- Remove script filename, keeping directory
     cursorHandTop       = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Stretch top.cur") -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
+    if not cursorHandTop then reaper.MB("Could not load the cursorHandTop cursor", "ERROR", 0) return false end
     cursorHandBottom    = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Stretch bottom.cur")
+    if not cursorHandBottom then reaper.MB("Could not load the cursorHandBottom cursor", "ERROR", 0) return false end
     cursorHandRight     = reaper.JS_Mouse_LoadCursor(431)
+    if not cursorHandRight then reaper.MB("Could not load the cursorHandRight cursor", "ERROR", 0) return false end
     cursorHandLeft      = reaper.JS_Mouse_LoadCursor(430)
+    if not cursorHandLeft then reaper.MB("Could not load the cursorHandLeft cursor", "ERROR", 0) return false end
     cursorCompress      = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Arch and Tilt.cur") --reaper.JS_Mouse_LoadCursor(533)
+    if not cursorCompress then reaper.MB("Could not load the cursorCompress cursor", "ERROR", 0) return false end
     cursorArpeggiateLR  = reaper.JS_Mouse_LoadCursor(502)
+    if not cursorArpeggiateLR then reaper.MB("Could not load the cursorArpeggiateLR cursor", "ERROR", 0) return false end
     cursorArpeggiateUD  = reaper.JS_Mouse_LoadCursor(503) -- REAPER's own arpeggiate up/down cursor
+    if not cursorArpeggiateUD then reaper.MB("Could not load the cursorArpeggiateUD cursor", "ERROR", 0) return false end
     cursorTilt          = reaper.JS_Mouse_LoadCursor(189) --reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Arch and Tilt.cur")
+    if not cursorTilt then reaper.MB("Could not load the cursorTilt cursor", "ERROR", 0) return false end
     cursorNo            = reaper.JS_Mouse_LoadCursor(464) -- Arrow with cross
+    if not cursorNo then reaper.MB("Could not load the cursorNo cursor", "ERROR", 0) return false end
     cursorArrow         = reaper.JS_Mouse_LoadCursor(32512) -- Standard IDC_ARROW
+    if not cursorArrow then reaper.MB("Could not load the cursorArrow cursor", "ERROR", 0) return false end
     cursorUndo          = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Undo.cur", true)
+    if not cursorUndo then reaper.MB("Could not load the cursorUndo cursor", "ERROR", 0) return false end
     cursorRedo          = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Redo.cur", true)
-    if not cursor then cursor = reaper.JS_Mouse_LoadCursor(433) end -- If .cur file unavailable, load one of REAPER's own cursors]]
-    cursor = reaper.JS_Mouse_LoadCursor(32646) -- Load Windows/swell 4-pointed arrow cursor, to indicate that mouse can move in any direction.
-    if cursor then reaper.JS_Mouse_SetCursor(cursor) end   
+    if not cursorRedo then reaper.MB("Could not load the cursorRedo cursor", "ERROR", 0) return false end 
     
     -- Display something onscreen as quickly as possible, for better user responsiveness
     SetupDisplayZones()
