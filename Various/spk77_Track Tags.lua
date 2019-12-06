@@ -358,7 +358,7 @@ function show_main_menu(x, y)
     m.str = m.str .. "!<Vertical|"
   end
   
-  m.str =  m.str .. ">Set dock positions|"
+  m.str =  m.str .. ">'Drag and drop docking'|"
   if gfx.dock(-1) > 0 then
     m.str =  m.str .. "Store current dock position as 'Left'|"
     m.str =  m.str .. "Store current dock position as 'Top-Left'|"
@@ -1336,8 +1336,7 @@ function restore(proj_id)
     end
     msg("restored")
   end
-  --sort_buttons_by_tag_name()
-  sort_buttons_by_track_index()
+  sort_buttons()
   update_button_positions()
   -- update_visibility()
 end
