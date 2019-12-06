@@ -1,13 +1,9 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.1
+-- @version 0.3.2
 -- @author spk77
 -- @changelog
---   - A complete overhaul of the mouse/GUI code (still WIP)
---   - Space bar: run action "Transport: Play/stop"
---   - Left click (on the GUI) and drag to move the script window
---   - Drag and drop to dock (Positions: left, top left, top right and right)
---   - Double click on the GUI to (temporarily) show all tracks
---   - Restore focus back to REAPER on mouse button release (TCP, arrange view or selected envelope)
+--   - Main menu -> options: "Sort buttons by track index" or "sort alphabetically"
+--   - 'Drag and drop docking': Option to store dock positions (see the thread)
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -30,6 +26,7 @@
 --   - This is an alpha version
 
 local script =  {
+                  version = "0.3.2",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -68,9 +65,7 @@ local track_list = {}
 local main_menu = {}
 main_menu.str = ""
 main_menu.quit = false
-main_menu.show_only_tagged_tracks = true
-main_menu.button_layout = 1 -- 1=fit to window, 2=horizontal, 3=vertical
-main_menu.min_btn_w = 48
+
 
 local button_menu = {}
 button_menu.str = ""
@@ -256,9 +251,31 @@ function set_all_tracks_visible(visibility) -- 1 -> show all, 0 -> hide all
 end
 
 ------------------------------------------------------------
+function sort_buttons_by_track_index()
+  local btns = GUI.elements.buttons
+  for i=1, #btns do
+    local tr = btns[i].tracks[1] -- parent track
+    if not tr then
+      return
+    end
+  end
+    --reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER")
+  table.sort(btns, function(a,b) if reaper.GetMediaTrackInfo_Value(a.tracks[1], "IP_TRACKNUMBER") < reaper.GetMediaTrackInfo_Value(b.tracks[1], "IP_TRACKNUMBER") then return true end end)
+end
+
+------------------------------------------------------------
 function sort_buttons_by_tag_name()
   local btns = GUI.elements.buttons
   table.sort(btns, function(a,b) if string.lower(a.lbl) < string.lower(b.lbl) then return true end end)
+end
+
+------------------------------------------------------------
+function sort_buttons()
+  if main_menu.button_ordering == 1 then
+    sort_buttons_by_track_index()
+  else
+    sort_buttons_by_tag_name()
+  end
 end
 
 ------------------------------------------------------------
@@ -321,51 +338,68 @@ function show_main_menu(x, y)
     m.str = m.str .. "#Track selection|"
   end
   m.str = m.str .."<Folder parent tracks|"
---[[
-  if m.show_only_tagged_tracks then
-    m.str = m.str .. "!Bypass||"
-  else
-    m.str = m.str .. "Bypass||"
-  end
---]]
-  m.str = m.str .. ">Remove|"
-  m.str = m.str .. "<All tags||"
+
+  m.str = m.str .. "Dock||" 
+  
+  m.str =  m.str .. ">Options|"
+  
   m.str = m.str .. ">Layout|"
   if m.button_layout == 1 then
     m.str = m.str .. "!Fit to window|"
     m.str = m.str .. "Horizontal|"
-    m.str = m.str .. "<Vertical||"
+    m.str = m.str .. "<Vertical|"
   elseif m.button_layout == 2 then
       m.str = m.str .. "Fit to window|"
       m.str = m.str .. "!Horizontal|"
-      m.str = m.str .. "<Vertical||"
+      m.str = m.str .. "<Vertical|"
   elseif m.button_layout == 3 then
     m.str = m.str .. "Fit to window|"
     m.str = m.str .. "Horizontal|"
-    m.str = m.str .. "!<Vertical||"
+    m.str = m.str .. "!<Vertical|"
   end
-  m.str = m.str .. "Dock||"
-  m.str =  m.str .. "Quit"
-
-  local menu_ret = gfx.showmenu(m.str)
+  
+  m.str =  m.str .. ">Set dock positions|"
+  if gfx.dock(-1) > 0 then
+    m.str =  m.str .. "Store current dock position as 'Left'|"
+    m.str =  m.str .. "Store current dock position as 'Top-Left'|"
+    m.str =  m.str .. "Store current dock position as 'Top-Right'|"
+    m.str =  m.str .. "<Store current dock position as 'Right'|"
+  else
+    m.str =  m.str .. "#Store current dock position as 'Left'|"
+    m.str =  m.str .. "#Store current dock position as 'Top-Left'|"
+    m.str =  m.str .. "#Store current dock position as 'Top-Right'|"
+    m.str =  m.str .. "<#Store current dock position as 'Right'|"
+  end
+  
+  m.str =  m.str .. ">Sort buttons...|"
+  if main_menu.button_ordering == 1 then
+    m.str =  m.str .. "!by track index|"
+    m.str =  m.str .. "<alphabetically||"
+  else
+    m.str =  m.str .. "by track index|"
+    m.str =  m.str .. "<!alphabetically||"
+  end
+  
+  m.str = m.str .. "><Remove|"
+  m.str = m.str .. "<All tags||"
+  
+  m.str =  m.str .. "Quit||"
+  m.str =  m.str .. "#Track Tags v." .. script.version
+  menu_ret = gfx.showmenu(m.str)
 
   -- Handle menu return values
   if menu_ret == 1 then
     create_button_from_selection()
   elseif menu_ret == 2 then
     create_buttons_from_folder_parents(false)
---[[
   elseif menu_ret == 3 then
-    m.show_only_tagged_tracks = not m.show_only_tagged_tracks
-    if not m.show_only_tagged_tracks then
-      set_all_tracks_visible(1)
-      reaper.TrackList_AdjustWindows(false)
+    local dock_state = gfx.dock(-1)
+    if dock_state&1 == 0 then
+      gfx.dock(dock_state+1)
     else
-      update_visibility()
+      gfx.dock(dock_state-1)
     end
---]]
-  elseif menu_ret == 3 then
-    GUI.safe_remove_all_tags = true
+    GUI.dock = dock_state
   elseif menu_ret == 4 then
     m.button_layout = 1
     update_button_positions()
@@ -375,18 +409,28 @@ function show_main_menu(x, y)
   elseif menu_ret == 6 then
     m.button_layout = 3
     update_button_positions()
+    --return
   elseif menu_ret == 7 then
-    local dock_state = gfx.dock(-1)
-    if dock_state&1 == 0 then
-      gfx.dock(dock_state+1)
-    else
-      gfx.dock(dock_state-1)
-    end
-    GUI.dock = dock_state
+    main_menu.dock_pos_left = gfx.dock(-1)
   elseif menu_ret == 8 then
+    main_menu.dock_pos_top_left = gfx.dock(-1)
+  elseif menu_ret == 9 then
+    main_menu.dock_pos_top_right = gfx.dock(-1)
+  elseif menu_ret == 10 then
+    main_menu.dock_pos_right = gfx.dock(-1)
+  elseif menu_ret == 11 then
+    main_menu.button_ordering = 1
+    sort_buttons_by_track_index()
+    update_button_positions()
+  elseif menu_ret == 12 then
+    main_menu.button_ordering = 2
+    sort_buttons_by_tag_name()
+    update_button_positions()
+  elseif menu_ret == 13 then
+    GUI.safe_remove_all_tags = true
+  elseif menu_ret == 14 then
     --exit()
     main_menu.quit = true
-    --return
   end
 end
 
@@ -555,7 +599,6 @@ function Button:handle_mouse_events(btn_index)
     self.toggle_state = not self.toggle_state
     self.onLmbRelease()
   elseif self:mouseRmbRelease() then
-    mouseRClickOnElement = true
     self.onRmbRelease(btn_index)
   end
   --[[
@@ -654,9 +697,6 @@ function draw_and_update_buttons(tbl)
   for i=1, l do
     local t = tbl[i]
     t:draw(i)
-    --if t:mouseIN() then
-    --  mouse_on_element_index = i
-    --end
   end
   ---[[
   if l == 0 then
@@ -757,7 +797,7 @@ function create_button()
   btn.id = reaper.genGuid()
   btns[#btns + 1] = btn
   btn:update_w_by_lbl_w()
-  sort_buttons_by_tag_name()
+  sort_buttons()
   update_button_positions()      
   --btn:update_w_by_lbl_w()
   btn.tooltip_text = btn.lbl
@@ -787,7 +827,7 @@ function create_button_from_selection()
     btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
   end
   btn:update_w_by_lbl_w()
-  sort_buttons_by_tag_name()
+  sort_buttons()
   update_button_positions()
   store_btns()
 end
@@ -870,7 +910,7 @@ function create_buttons_from_folder_parents()
       end
     end    
   end
-  sort_buttons_by_tag_name()
+  sort_buttons()
   update_button_positions()
   store_btns()
 end
@@ -915,7 +955,15 @@ function init()
     w = state.GUI.w
     h = state.GUI.h
     if state.main_menu ~= nil then
-      main_menu.button_layout = state.main_menu.button_layout
+      main_menu.button_layout = state.main_menu.button_layout or 1
+      main_menu.dock_pos_left = state.main_menu.dock_pos_left or (256+1)
+      main_menu.dock_pos_top_left = state.main_menu.dock_pos_top_left or (2*256+1)
+      main_menu.dock_pos_top_right = state.main_menu.dock_pos_top_right or (3*256+1)
+      main_menu.dock_pos_right = main_menu.dock_pos_right or (0*256+1)
+      main_menu.show_only_tagged_tracks = state.main_menu.show_only_tagged_tracks or false
+      main_menu.button_layout = state.main_menu.button_layout or 1 -- 1=fit to window, 2=horizontal, 3=vertical
+      main_menu.min_btn_w = state.main_menu.min_btn_w or 48
+      main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
     end
   else
     local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -1012,14 +1060,14 @@ function on_lmb_up()
   if GUI.drag and gfx.dock(-1)&1 == 0 then
     local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
     if x <= 0 and y > 0 then
-      gfx.dock(256+1) -- left
+      gfx.dock(main_menu.dock_pos_left) -- left
     elseif x <= 0.5*(right-left) and y <= 0 then
-      gfx.dock(2*256+1) -- top left
+      gfx.dock(main_menu.dock_pos_top_left) -- top left
     elseif x > 0.5*(right-left) and y <= 0 then
-      gfx.dock(3*256+1) -- top right
+      gfx.dock(main_menu.dock_pos_top_right) -- top right
     elseif
       x + w >= right and y > 0 then
-      gfx.dock(0*256+1) -- right
+      gfx.dock(main_menu.dock_pos_right) -- right
     end
   end
   if GUI.drag then
@@ -1159,13 +1207,13 @@ function mainloop()
     gfx.set(1,1,1,1)
     gfx.x, gfx.y = 0, 0
     if GUI.x <= 0 and GUI.y > 0 then
-      gfx.drawstr("Dock to Left", 1|4, gfx.w, gfx.h)
+      gfx.drawstr("Dock to 'Left'", 1|4, gfx.w, gfx.h)
     elseif GUI.x <= 0.5*(screen_right-screen_left) and GUI.y <= 0 then
-      gfx.drawstr("Dock to Top Left", 1|4, gfx.w, gfx.h)
+      gfx.drawstr("Dock to 'Top-Left'", 1|4, gfx.w, gfx.h)
     elseif GUI.x > 0.5*(screen_right-screen_left) and GUI.y <= 0 then
-      gfx.drawstr("Dock to Top Right", 1|4, gfx.w, gfx.h)
+      gfx.drawstr("Dock to 'Top-Right'", 1|4, gfx.w, gfx.h)
     elseif GUI.x + GUI.w >= screen_right and GUI.y > 0 then
-      gfx.drawstr("Dock to Right", 1|4, gfx.w, gfx.h)
+      gfx.drawstr("Dock to 'Right'", 1|4, gfx.w, gfx.h)
     else
       draw_and_update_buttons(btns)
     end
@@ -1288,7 +1336,8 @@ function restore(proj_id)
     end
     msg("restored")
   end
-  sort_buttons_by_tag_name()
+  --sort_buttons_by_tag_name()
+  sort_buttons_by_track_index()
   update_button_positions()
   -- update_visibility()
 end
