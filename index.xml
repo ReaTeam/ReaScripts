@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e4b4102c2d2738f70ca736727ea89599a33aed7" name="ReaTeam Scripts">
+<index version="1" commit="48c2962561b4a1c5f7edf25f3e0a3e5127c892b7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13620,6 +13620,11 @@ uc_note_min_seconds = 1\par}
 - Double click on the GUI to (temporarily) show all tracks
 - Restore focus back to REAPER on mouse button release (TCP, arrange view or selected envelope)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/567661df3fbb418bc7f16466a3781267f1c7fa7b/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.3.2" author="spk77" time="2019-12-06T21:58:15Z">
+        <changelog><![CDATA[- Main menu -> options: "Sort buttons by track index" or "sort alphabetically"
+- 'Drag and drop docking': Option to store dock positions (see the thread)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/48c2962561b4a1c5f7edf25f3e0a3e5127c892b7/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
