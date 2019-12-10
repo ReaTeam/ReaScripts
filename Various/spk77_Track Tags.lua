@@ -1,9 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.2
+-- @version 0.3.3
 -- @author spk77
 -- @changelog
---   - Main menu -> options: "Sort buttons by track index" or "sort alphabetically"
---   - 'Drag and drop docking': Option to store dock positions (see the thread)
+--   - Fix init function
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -26,7 +25,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.2",
+                  version = "0.3.3",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -385,7 +384,7 @@ function show_main_menu(x, y)
   
   m.str =  m.str .. "Quit||"
   m.str =  m.str .. "#Track Tags v." .. script.version
-  menu_ret = gfx.showmenu(m.str)
+  local menu_ret = gfx.showmenu(m.str)
 
   -- Handle menu return values
   if menu_ret == 1 then
@@ -945,6 +944,16 @@ end
 ------------------------------------------------------------
 function init()
   local dock, x, y, w, h = 0, 0, 0, 0, 0
+  main_menu.button_layout = 1
+  main_menu.dock_pos_left = (256+1)
+  main_menu.dock_pos_top_left = (2*256+1)
+  main_menu.dock_pos_top_right = (3*256+1)
+  main_menu.dock_pos_right = (0*256+1)
+  main_menu.show_only_tagged_tracks = true
+  main_menu.button_layout =  1 -- 1=fit to window, 2=horizontal, 3=vertical
+  main_menu.min_btn_w = 48
+  main_menu.button_ordering = 1 -- 1=by track index, 2=alphabetically
+  
    --reaper.SetProjExtState(0, "spk77 Track Tags", "script state", "") -- delete data
   local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "script state")
   if ok == 1 and state ~= "" then
@@ -954,13 +963,14 @@ function init()
     y = state.GUI.y
     w = state.GUI.w
     h = state.GUI.h
+
     if state.main_menu ~= nil then
       main_menu.button_layout = state.main_menu.button_layout or 1
       main_menu.dock_pos_left = state.main_menu.dock_pos_left or (256+1)
       main_menu.dock_pos_top_left = state.main_menu.dock_pos_top_left or (2*256+1)
       main_menu.dock_pos_top_right = state.main_menu.dock_pos_top_right or (3*256+1)
       main_menu.dock_pos_right = main_menu.dock_pos_right or (0*256+1)
-      main_menu.show_only_tagged_tracks = state.main_menu.show_only_tagged_tracks or false
+      main_menu.show_only_tagged_tracks = state.main_menu.show_only_tagged_tracks or true
       main_menu.button_layout = state.main_menu.button_layout or 1 -- 1=fit to window, 2=horizontal, 3=vertical
       main_menu.min_btn_w = state.main_menu.min_btn_w or 48
       main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
@@ -1276,7 +1286,7 @@ function exit()
                         w = w
                       }
                       
-  script_state.main_menu = main_menu                  
+  script_state.main_menu = main_menu          
   local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "script state", pickle(script_state))
   gfx.quit()
   --set_all_tracks_visible(1)
