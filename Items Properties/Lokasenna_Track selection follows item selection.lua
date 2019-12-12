@@ -1,10 +1,12 @@
 --[[
 Description: Track selection follows item selection
-Version: 1.1.0
+Version: 1.1.1
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-	Add: Script's toggle state is tracked in the action list and on toolbars
+  Fix: Crash if the user deselects all tracks. Will now keep the existing track
+  selection.
+	Fix: Set the first selected track as the last touched to avoid paste issues.
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1583631
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -63,54 +65,61 @@ local function Main()
 	local cur_tracks = {}
 	for i = 1, num_tracks do
 		cur_tracks[i] = reaper.GetSelectedTrack( 0, i - 1)
-	end
+  end
 
-	if shallow_equal(sel_tracks, cur_tracks) then
-		-- The track selection hasn't been changed, so we
-		-- can move on to looking at the item selection
+  if shallow_equal(sel_tracks, cur_tracks) then
+    -- The track selection hasn't been changed, so we
+    -- can move on to looking at the item selection
 
-		local num_items = reaper.CountSelectedMediaItems( 0 )
+    local num_items = reaper.CountSelectedMediaItems( 0 )
 
-		-- Grab their MediaItems into a table
-		local cur_items = {}
-		for i = 1, num_items do
-			cur_items[i] = reaper.GetSelectedMediaItem( 0, i - 1 )
-		end
+    -- Grab their MediaItems into a table
+    local cur_items = {}
+    for i = 1, num_items do
+      cur_items[i] = reaper.GetSelectedMediaItem( 0, i - 1 )
+    end
 
-		-- If all MediaItems have a partner then the selection hasn't changed
-		if not shallow_equal(sel_items, cur_items) then
-			reaper.PreventUIRefresh(1)
-
+    -- If all MediaItems have a partner then the selection hasn't changed
+    if not shallow_equal(sel_items, cur_items) then
       sel_items = cur_items
 
-			-- Unselect all tracks
-			reaper.Main_OnCommand(40297, 0)
+      local tracks = {}
+      for i = 1, num_items do
+        tracks[i] = reaper.GetMediaItem_Track(sel_items[i])
+      end
 
-			local tracks = {}
-			for i = 1, num_items do
-				tracks[i] = reaper.GetMediaItem_Track(sel_items[i])
-			end
+      if #tracks > 0 then
+        reaper.PreventUIRefresh(1)
 
-			for _, v in pairs(tracks) do
-				reaper.SetMediaTrackInfo_Value(v, "I_SELECTED", 1)
-			end
+        -- Unselect all tracks
+        reaper.Main_OnCommand(40297, 0)
 
-			------------------------------------------
-      -- Scroll the mixer to the first selected track
-      -- Comment out the lines below if you want
-			if num_items > 0 then
-				reaper.SetMixerScroll( reaper.GetSelectedTrack(0, 0) )
-			end
-      ------------------------------------------
+        for _, v in pairs(tracks) do
+          reaper.SetTrackSelected(v, true)
+        end
 
-      reaper.PreventUIRefresh(-1)
-      reaper.UpdateArrange()
-		end
+        -- "Touch" the first track so we don't mess up things like pasting items
+        -- over multiple tracks
+        local first = reaper.GetSelectedTrack(0, 0)
+        reaper.SetTrackSelected(first, true)
+
+        ------------------------------------------
+        -- Scroll the mixer to the first selected track
+        -- Comment out the lines below if you want
+        if num_items > 0 then
+          reaper.SetMixerScroll(first)
+        end
+        ------------------------------------------
+
+        reaper.PreventUIRefresh(-1)
+        reaper.UpdateArrange()
+      end
+    end
 
   -- User changed the track selection manually
-	else
-		sel_tracks = cur_tracks
-	end
+  else
+    sel_tracks = cur_tracks
+  end
 
 	reaper.defer(Main)
 end
