@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="61d3a0c3b4f24e277233db4283a75d66bcbccfcf" name="ReaTeam Scripts">
+<index version="1" commit="0d9d50ef20839840c5194a70a74c23f51d87bcae" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3976,6 +3976,11 @@ here
       <version name="1.1.0" author="Lokasenna" time="2019-09-24T03:28:40Z">
         <changelog><![CDATA[Add: Script's toggle state is tracked in the action list and on toolbars]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/749fedf08558794d0052e37cee7233de910ccf7b/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
+      </version>
+      <version name="1.1.1" author="Lokasenna" time="2019-12-12T04:10:53Z">
+        <changelog><![CDATA[Fix: Crash if the user deselects all tracks. Will now keep the existing track
+selection.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0d9d50ef20839840c5194a70a74c23f51d87bcae/Items%20Properties/Lokasenna_Track%20selection%20follows%20item%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="Nantho_item Auto Gain Staging - Peak vs. LUFS.lua" type="script" desc="Item Auto-Gain Staging - Peak vs. LUFS">
