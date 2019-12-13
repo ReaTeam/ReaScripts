@@ -1,12 +1,10 @@
 --[[
 Description: Track selection follows item selection
-Version: 1.1.1
+Version: 1.1.2
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
 Changelog:
-  Fix: Crash if the user deselects all tracks. Will now keep the existing track
-  selection.
-	Fix: Set the first selected track as the last touched to avoid paste issues.
+  Fix: Setting the last touched track wasn't working
 Links:
 	Forum Thread http://forum.cockos.com/showthread.php?p=1583631
 	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
@@ -100,14 +98,13 @@ local function Main()
 
         -- "Touch" the first track so we don't mess up things like pasting items
         -- over multiple tracks
-        local first = reaper.GetSelectedTrack(0, 0)
-        reaper.SetTrackSelected(first, true)
+        reaper.Main_OnCommand(40914, 0)
 
         ------------------------------------------
         -- Scroll the mixer to the first selected track
         -- Comment out the lines below if you want
         if num_items > 0 then
-          reaper.SetMixerScroll(first)
+          reaper.SetMixerScroll(reaper.GetSelectedTrack(0, 0))
         end
         ------------------------------------------
 
