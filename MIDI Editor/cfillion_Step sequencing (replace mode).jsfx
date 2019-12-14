@@ -1,0 +1,75 @@
+noindex: true
+
+desc:Step sequencing (replace mode) by cfillion
+
+options:gmem=cfillion_stepRecordReplace
+options:no_meter
+
+/* Memory structure:
+
+// private
+struct Note { int chan; int pitch; int vel; int isDown; };
+struct { int size; Note data[]; } notes;
+
+// public
+struct Chord { int size; Note data[]; };
+struct { int size; Chord data[]; } gmem;
+*/
+
+@block
+NOTE_ON  = $x90;
+NOTE_OFF = $x80;
+
+NOTE_CHAN   = 1;
+NOTE_PITCH  = 2;
+NOTE_VEL    = 3;
+NOTE_ISDOWN = 4;
+NOTE_SIZE   = NOTE_ISDOWN; // sizeof(Note)
+
+function flushNoteBuffer() local(ni, bi) (
+  ni = 0;
+  bi = gmem[0];
+
+  while(ni < notes[0]) (
+    gmem[bi + NOTE_CHAN  ] = notes[ni + NOTE_CHAN  ];
+    gmem[bi + NOTE_PITCH ] = notes[ni + NOTE_PITCH ];
+    gmem[bi + NOTE_VEL   ] = notes[ni + NOTE_VEL   ];
+    gmem[bi + NOTE_ISDOWN] = notes[ni + NOTE_ISDOWN]; // unused
+
+    bi += NOTE_SIZE;
+    ni += NOTE_SIZE;
+  );
+
+  gmem[gmem[0]] = notes[0];
+  gmem[0] += 1 + notes[0];
+  notes[0] = 0;
+);
+
+while(midirecv(offset, msg, pitch, vel)) (
+  type = msg & 0xf0;
+  type == NOTE_ON && vel == 0 ? type = NOTE_OFF;
+  chan = msg & 0x0f;
+
+  type == NOTE_ON ? (
+    notes[notes[0] + NOTE_CHAN  ] = chan;
+    notes[notes[0] + NOTE_PITCH ] = pitch;
+    notes[notes[0] + NOTE_VEL   ] = vel;
+    notes[notes[0] + NOTE_ISDOWN] = 1;
+    notes[0] += NOTE_SIZE;
+  );
+
+  releasedNotes = 0;
+  type == NOTE_OFF ? (
+    ni = 0;
+    while(ni < notes[0]) (
+      notes[ni + NOTE_PITCH] == pitch ? notes[ni + NOTE_ISDOWN] = 0;
+      !notes[ni + NOTE_ISDOWN] ? releasedNotes += NOTE_SIZE;
+      ni += NOTE_SIZE;
+    );
+  );
+
+  allNotesReleased = notes[0] > 0 && releasedNotes == notes[0];
+  allNotesReleased && gmem[0] > 0 ? flushNoteBuffer();
+
+  midisend(offset, msg, note, vel);
+);
