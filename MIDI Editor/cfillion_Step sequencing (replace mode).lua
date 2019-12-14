@@ -1,9 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
 -- @version 1.0alpha
--- @provides
---   [main=main] .
---   [effect] cfillion_Step sequencing (replace mode).jsfx
+-- @provides [effect] cfillion_Step sequencing (replace mode).jsfx
 -- @screenshot https://i.imgur.com/4azf7CN.gif
 -- @donation https://paypal.me/cfillion
 -- @about
