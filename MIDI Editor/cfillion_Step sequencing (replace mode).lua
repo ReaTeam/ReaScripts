@@ -3,7 +3,7 @@
 -- @version 1.0alpha
 -- @provides
 --   [main=main] .
---   [effect] cfillion_Step sequencing (replace mode)/New file 1.lua > cfillion_Step sequencing (replace mode)/Step sequencing (replace mode).jsfx
+--   [effect] Step sequencing (replace mode).jsfx > Step sequencing (replace mode).jsfx
 -- @screenshot https://i.imgur.com/4azf7CN.gif
 -- @donation https://paypal.me/cfillion
 -- @about
@@ -19,7 +19,7 @@ local NATIVE_STEP_RECORD  = 40481
 local NOTE_BUFFER_START = 1
 
 local jsfx
-local jsfxName = 'ReaTeam Scripts/MIDI Editor/cfillion_Step sequencing (replace mode)/Step sequencing (replace mode).jsfx'
+local jsfxName = 'ReaTeam Scripts/MIDI Editor/Step sequencing (replace mode).jsfx'
 local scriptName = ({reaper.get_action_context()})[2]:match("([^/\\_]+)%.lua$")
 local scriptSection = ({reaper.get_action_context()})[3]
 local scriptId = ({reaper.get_action_context()})[4]
