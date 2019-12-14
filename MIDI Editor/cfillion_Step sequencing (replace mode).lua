@@ -3,7 +3,7 @@
 -- @version 1.0alpha
 -- @provides
 --   [main=main] .
---   [effect] Step sequencing (replace mode).jsfx > Step sequencing (replace mode).jsfx
+--   [effect] Step sequencing (replace mode).jsfx
 -- @screenshot https://i.imgur.com/4azf7CN.gif
 -- @donation https://paypal.me/cfillion
 -- @about
