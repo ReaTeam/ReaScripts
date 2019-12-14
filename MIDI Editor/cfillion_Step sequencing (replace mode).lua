@@ -190,7 +190,7 @@ local function loop()
     return
   end
 
-  if 0 ~= reaper.GetToggleCommandStateEx(MIDI_EDITOR_SECTION, NATIVE_STEP_RECORD) then
+  if 0 < reaper.GetToggleCommandStateEx(MIDI_EDITOR_SECTION, NATIVE_STEP_RECORD) then
     return -- terminate the script
   end
 
@@ -207,11 +207,11 @@ local function loop()
   reaper.defer(loop)
 end
 
-if reaper.GetToggleCommandStateEx(scriptSection, scriptId) ~= 0 then
+if reaper.GetToggleCommandStateEx(scriptSection, scriptId) > 0 then
   return
 end
 
-if 0 ~= reaper.GetToggleCommandStateEx(MIDI_EDITOR_SECTION, NATIVE_STEP_RECORD) then
+if 0 < reaper.GetToggleCommandStateEx(MIDI_EDITOR_SECTION, NATIVE_STEP_RECORD) then
   reaper.MIDIEditor_LastFocused_OnCommand(NATIVE_STEP_RECORD, false)
 end
 
