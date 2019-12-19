@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.04
+Version: 5.05
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -175,10 +175,10 @@ About:
   Changelog:
   * v5.01 (2019-12-03)
     + BETA version.
-  * v5.04 (2019-12-19)
+  * v5.05 (2019-12-19)
     + Fixed:  Load custom colors.
     + Fixed:  Display Undo/Redo boxes on macOS.
-    + Fixed:  Canceled color selection dialog don't change color.
+    + Fixed:  Canceled color selection dialog doesn't change color.
 ]]
 
 -- USER AREA 
