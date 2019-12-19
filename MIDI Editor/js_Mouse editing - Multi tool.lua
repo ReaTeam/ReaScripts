@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.02
+Version: 5.03
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -175,7 +175,7 @@ About:
   Changelog:
   * v5.01 (2019-12-03)
     + BETA version.
-  * v5.02 (2019-12-19)
+  * v5.03 (2019-12-19)
     + Fixed:  Load custom colors.
     + Fixed:  Display Undo/Redo boxes on macOS.
     + Fixed:  Canceled color selection dialog don't change color.
@@ -956,7 +956,7 @@ end -- Defer_Scale
 local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK = 0xFFAA2200, 0xFFFF0000, 0xFF00BB00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFFFF8800, 0xFF000000
 function LoadZoneColors()
     
-    local extState = reaper.GetExtState("js_Multi Tool", "Settfings") or ""
+    local extState = reaper.GetExtState("js_Multi Tool", "Settings") or ""
     local colorCompress, colorScale, colorStretch, colorTilt, colorWarp, colorUndo, colorRedo = extState:match("compress.-(%d+) scale.-(%d+) stretch.-(%d+) tilt.-(%d+) warp.-(%d+) undo.-(%d+) redo.-(%d+)")
     tColors = {compress = (colorCompress  and tonumber(colorCompress) or YELLOW),
                scale    = (colorScale     and tonumber(colorScale)    or ORANGE),
