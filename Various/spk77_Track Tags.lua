@@ -1,8 +1,12 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.3
+-- @version 0.3.4
 -- @author spk77
 -- @changelog
---   - Fix init function
+--   - Color buttons to track colors
+--   - Mouse wheel to adjust font/button size
+--   - Some user definable button properties
+--   - An option to use fixed-sized buttons (Main menu/Options/Use fixed-sized buttons)
+--   - Various bug fixes
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -25,7 +29,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.3",
+                  version = "0.3.4",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -33,43 +37,50 @@ local script =  {
                 }
 
 
-local GUI = {}
-GUI.elements =  {
-                  buttons = {}
-                }
-                
-GUI.last_hovered_element = {}
+ GUI = {
+              elements =  {buttons = {}},
+              last_hovered_element = {},
+              dock = 0,
+              x = 0,
+              y = 0,
+              w = 0,
+              h = 0,
+              win_x = 0,
+              win_y = 0,
+              win_w = 0,
+              win_h = 0,
+              drag = false,
+              drag_start_offset = 10,
+              safe_remove_btn_by_index = {},     -- a list of buttons to be removed
+              safe_remove_track_from_tag = {},   -- remove tagged track from button
+              safe_remove_all_tags = false,
+              focus_arrange_view = true
+              --show_titlebar = true
+            }
 
-GUI.dock = 0
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 0, 0
-GUI.win_x, GUI.win_y, GUI.win_w, GUI.win_h = 0, 0, 0, 0
-
-GUI.drag = false
-GUI.drag_start_offset = 10
-
-GUI.safe_remove_btn_by_index = {}     -- a list of buttons to be removed
-GUI.safe_remove_track_from_tag = {}   -- remove tagged track from button
-GUI.safe_remove_all_tags = false
-
-GUI.focus_arrange_view = true
---GUI.show_titlebar = true
-
-local gui_w, last_gui_w = -1, -1
-local gui_h, last_gui_h = -1, -1
 
 local Element = {}
- 
-local track_list = {}
 
-local main_menu = {}
-main_menu.str = ""
-main_menu.quit = false
+ main_menu =  {
+                str = "",
+                quit = false,
+                button_layout = 1,
+                dock_pos_left = (256+1),
+                dock_pos_top_left = (2*256+1),
+                dock_pos_top_right = (3*256+1),
+                dock_pos_right = (0*256+1),
+                show_only_tagged_tracks = true,
+                button_layout =  1, -- 1=fit to window, 2=horizontal, 3=vertical
+                button_ordering = 1, -- 1=by track index, 2=alphabetically
+                use_track_color = true
+              }
 
 
-local button_menu = {}
-button_menu.str = ""
-button_menu.show_in_tcp = true
-button_menu.show_in_mcp = true
+local button_menu = {
+                      str = "",
+                      show_in_tcp = true,
+                      show_in_mcp = true
+                    }
 
 local mouse = {
                 cap = 0,
@@ -97,41 +108,76 @@ local mouse = {
                 oy_screen = -1     
               }
 
-
+local gui_w, last_gui_w = -1, -1
+local gui_h, last_gui_h = -1, -1
 local char
 local GetProjectStateChangeCount = reaper.GetProjectStateChangeCount
-local proj_change_count, last_proj_change_count = 0, 0
-
-local btn_font = "Verdana"
-local btn_font_size = 14
-
-local btn_start_x = 8
-local btn_start_y = 8
-local btn_w = 48              -- width for new buttons
-local btn_min_w = 100000
-local btn_h = 14              -- height for new buttons
-local btn_pad_x = 3           -- x space between buttons
-local btn_pad_y = 5           -- y space between buttons
-
-
+local proj_change_count, last_proj_change_count = -1, -1
 local tooltip_text, last_tooltip_text = "", ""
 
 
--- Tracktion 6 track tags colors
-local btn_on_bg_col_r = 112/255
-local btn_on_bg_col_g = 124/255
-local btn_on_bg_col_b = 137/255
-local btn_on_bg_col_a = 1
+default_values = {}
+default_values.buttons =  {
+                            font = "Verdana",
+                            font_size = 14,
+                      
+                            start_x = 8,
+                            start_y = 8,
+                            w = 80,
+                            min_w = 48,
+                            pad_x = 5,            -- x space between buttons
+                            pad_y = 5,            -- y space between buttons
+                      
+                            -- Tracktion 6 track tags colors
+                            off_bg_col_r = 112/255,
+                            off_bg_col_g = 124/255,
+                            off_bg_col_b = 137/255,
+                            off_bg_col_a = 1,
+                      
+                            on_bg_col_r = 255/255,
+                            on_bg_col_g = 255/255,
+                            on_bg_col_b = 26/255,
+                            on_bg_col_a = 1
+                          }
 
-local btn_off_bg_col_r = 255/255
-local btn_off_bg_col_g = 255/255
-local btn_off_bg_col_b = 26/255
-local btn_off_bg_col_a = 1
+default_values.buttons.start_y = default_values.buttons.font_size + 2
+default_values.buttons.h = default_values.buttons.font_size + 4
+
+properties = {}
+properties.buttons =  {
+                        font = "Verdana",
+                        font_size = 14,
+                  
+                        start_x = 8,
+                        start_y = 8,
+                        w = 80,
+                        min_w = 48,
+                        pad_x = 5,            -- x space between buttons
+                        pad_y = 5,            -- y space between buttons
+                  
+                        -- Tracktion 6 track tags colors
+                        off_bg_col_r = 112/255,
+                        off_bg_col_g = 124/255,
+                        off_bg_col_b = 137/255,
+                        off_bg_col_a = 1,
+                  
+                        on_bg_col_r = 255/255,
+                        on_bg_col_g = 255/255,
+                        on_bg_col_b = 26/255,
+                        on_bg_col_a = 1
+                      }
+                        
+properties.buttons.start_y = default_values.buttons.font_size + 2
+properties.buttons.h = default_values.buttons.font_size + 4
 
 local abs = math.abs
+local floor = math.floor
+local max = math.max
+local sqrt = math.sqrt
 local reaper = reaper
 local EnumProjects = reaper.EnumProjects
 local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
+
 
 local Pickle = { clone = function (t) local nt={}; for i, v in pairs(t) do nt[i]=v end return nt end }
 
@@ -344,18 +390,35 @@ function show_main_menu(x, y)
   
   m.str = m.str .. ">Layout|"
   if m.button_layout == 1 then
-    m.str = m.str .. "!Fit to window|"
+    m.str = m.str .. "!Fit to window - fill rows first|"
     m.str = m.str .. "Horizontal|"
-    m.str = m.str .. "<Vertical|"
+    m.str = m.str .. "<Vertical||"
   elseif m.button_layout == 2 then
-      m.str = m.str .. "Fit to window|"
+      m.str = m.str .. "Fit to window - fill rows first|"
       m.str = m.str .. "!Horizontal|"
-      m.str = m.str .. "<Vertical|"
+      m.str = m.str .. "<Vertical||"
   elseif m.button_layout == 3 then
-    m.str = m.str .. "Fit to window|"
+    m.str = m.str .. "Fit to window - fill rows first|"
     m.str = m.str .. "Horizontal|"
-    m.str = m.str .. "!<Vertical|"
+    m.str = m.str .. "!<Vertical||"
   end
+  
+  m.str =  m.str .. ">Sort buttons...|"
+  if main_menu.button_ordering == 1 then
+    m.str =  m.str .. "!by track index|"
+    m.str =  m.str .. "<alphabetically|"
+  else
+    m.str =  m.str .. "by track index|"
+    m.str =  m.str .. "<!alphabetically|"
+  end
+ 
+  if m.fixed_sized_buttons then
+    m.str =  m.str .. "!Use fixed-sized buttons|"
+  else
+    m.str =  m.str .. "Use fixed-sized buttons|"
+  end
+  
+  m.str =  m.str .. "Set button properties||"
   
   m.str =  m.str .. ">'Drag and drop docking'|"
   if gfx.dock(-1) > 0 then
@@ -369,22 +432,13 @@ function show_main_menu(x, y)
     m.str =  m.str .. "#Store current dock position as 'Top-Right'|"
     m.str =  m.str .. "<#Store current dock position as 'Right'|"
   end
-  
-  m.str =  m.str .. ">Sort buttons...|"
-  if main_menu.button_ordering == 1 then
-    m.str =  m.str .. "!by track index|"
-    m.str =  m.str .. "<alphabetically||"
-  else
-    m.str =  m.str .. "by track index|"
-    m.str =  m.str .. "<!alphabetically||"
-  end
-  
+ 
   m.str = m.str .. "><Remove|"
   m.str = m.str .. "<All tags||"
   
   m.str =  m.str .. "Quit||"
   m.str =  m.str .. "#Track Tags v." .. script.version
-  local menu_ret = gfx.showmenu(m.str)
+  menu_ret = gfx.showmenu(m.str)
 
   -- Handle menu return values
   if menu_ret == 1 then
@@ -399,6 +453,7 @@ function show_main_menu(x, y)
       gfx.dock(dock_state-1)
     end
     GUI.dock = dock_state
+    
   elseif menu_ret == 4 then
     m.button_layout = 1
     update_button_positions()
@@ -408,30 +463,86 @@ function show_main_menu(x, y)
   elseif menu_ret == 6 then
     m.button_layout = 3
     update_button_positions()
-    --return
+  
   elseif menu_ret == 7 then
-    main_menu.dock_pos_left = gfx.dock(-1)
-  elseif menu_ret == 8 then
-    main_menu.dock_pos_top_left = gfx.dock(-1)
-  elseif menu_ret == 9 then
-    main_menu.dock_pos_top_right = gfx.dock(-1)
-  elseif menu_ret == 10 then
-    main_menu.dock_pos_right = gfx.dock(-1)
-  elseif menu_ret == 11 then
     main_menu.button_ordering = 1
     sort_buttons_by_track_index()
     update_button_positions()
-  elseif menu_ret == 12 then
+  elseif menu_ret == 8 then
     main_menu.button_ordering = 2
     sort_buttons_by_tag_name()
     update_button_positions()
+    
+  elseif menu_ret == 9 then
+    m.fixed_sized_buttons = not m.fixed_sized_buttons
+    update_all_buttons_w()
+    update_button_positions()
+
+    
+  elseif menu_ret == 10 then
+    get_user_inputs()
+  elseif menu_ret == 11 then
+    main_menu.dock_pos_left = gfx.dock(-1)
+  elseif menu_ret == 12 then
+    main_menu.dock_pos_top_left = gfx.dock(-1)
   elseif menu_ret == 13 then
-    GUI.safe_remove_all_tags = true
+    main_menu.dock_pos_top_right = gfx.dock(-1)
   elseif menu_ret == 14 then
+    main_menu.dock_pos_right = gfx.dock(-1)
+  elseif menu_ret == 15 then
+    GUI.safe_remove_all_tags = true
+  elseif menu_ret == 16 then
     --exit()
     main_menu.quit = true
   end
 end
+
+------------------------------------------------------------
+function get_user_inputs()
+  local p = properties.buttons
+  local default_vals = tostring(p.start_x) .."," .. tostring(p.w) .. "," .. tostring(p.pad_x) .. "," .. tostring(p.pad_y)
+  local captions =  "Margin-left,Button width,x-spacing between buttons,y-spacing between buttons,extrawidth=200"
+  local retval, retvals_csv = reaper.GetUserInputs("Button settings (leave empty for default values)", 4, captions, default_vals)
+  if not retval then return end
+  local i = 1
+  for word in retvals_csv:gmatch("([^,]*)") do
+    if word ~= "" and tonumber(word) == nil then
+      return
+    end
+    if word == "" then
+      if i==1 then
+        properties.buttons.start_x = default_values.buttons.start_x
+      elseif
+        i==2 then
+        properties.buttons.w = default_values.buttons.w
+      elseif
+        i==3 then
+        properties.buttons.pad_x = default_values.buttons.pad_x
+      elseif
+        i==4 then
+        properties.buttons.pad_y = default_values.buttons.pad_y
+      end
+    else
+      local val = tonumber(word)
+      if i==1 then
+        properties.buttons.start_x = val
+      elseif
+        i==2 then
+        properties.buttons.w = val
+      elseif
+        i==3 then
+        properties.buttons.pad_x = val
+      elseif
+        i==4 then
+        properties.buttons.pad_y = val
+      end
+    end
+    i = i+1
+  end
+  update_all_buttons_w()
+  update_button_positions()
+end
+
 
 ------------------------------------------------------------
 local function roundrect(x, y, w, h, r, fill, antialias)
@@ -440,7 +551,8 @@ local function roundrect(x, y, w, h, r, fill, antialias)
     adapted from mwe's EEL example on the forum.
     
     by Lokasenna
-  ]]-- 
+  ]]--
+  r = floor(r)
   local aa = antialias or 1
   -- If we aren't filling it in, the original function is fine
   if fill == 0 or false then
@@ -529,7 +641,7 @@ local Button = {}
 extended(Button, Element)
 
 ------------------------------------------------------------
-function Button:set_lbl_colors(r,g,b,a)
+function Button:set_lbl_color(r,g,b,a)
   self.lbl_r = r or 1
   self.lbl_g = g or 1
   self.lbl_b = b or 1
@@ -537,7 +649,7 @@ function Button:set_lbl_colors(r,g,b,a)
 end
 
 ------------------------------------------------------------
-function Button:set_colors(r,g,b,a)
+function Button:set_color(r,g,b,a)
   self.r = r or 1
   self.g = g or 1
   self.b = b or 1
@@ -545,9 +657,88 @@ function Button:set_colors(r,g,b,a)
 end
 
 ------------------------------------------------------------
+function Button:set_to_default_color()
+  local d = default_values.buttons
+  if self.toggle_state then
+    self:set_color(d.on_bg_col_r, d.on_bg_col_g, d.on_bg_col_b, d.on_bg_col_a)
+    self:set_lbl_color(0,0,0,1)
+  else
+    self:set_color(d.off_bg_col_r, d.off_bg_col_g, d.off_bg_col_b, d.off_bg_col_a)
+    self:set_lbl_color(1,1,1,1)
+  end
+end
+
+------------------------------------------------------------
+function Button:set_color_to_track_color()
+  local d = default_values.buttons
+  local tr = self.tracks[1]
+  local tr_color = reaper.GetTrackColor(tr)
+  if not main_menu.use_track_color or not tr or tr_color == 0 then
+    self:set_to_default_color()
+  else
+    self.r, self.g, self.b = color_int_to_rgb(tr_color)
+    local r,g,b = self.r*255, self.g*255, self.b*255
+    if self.toggle_state then
+      local brightness = sqrt(0.241*r*r + 0.691*g*g + 0.068*b*b)
+      -- if brightness < 130
+      if brightness < 146.8 then
+        r,g,b = 1,1,1
+      else
+        r,g,b = 0,0,0
+      end
+    else
+      r,g,b = 1,1,1
+    end
+    self:set_lbl_color(r, g, b, 1)
+  end
+end
+
+------------------------------------------------------------
+function update_buttons_color()
+  local btns = GUI.elements.buttons
+  for i=1, #btns do
+    local btn = btns[i]
+    btn:set_color_to_track_color()
+  end
+end
+
+------------------------------------------------------------
+function color_int_to_rgb(color_int)
+  local r,g,b = reaper.ColorFromNative(color_int)
+  --r = color_int & 255
+  --g = (color_int >> 8) & 255
+  --b = (color_int >> 16) & 255
+  r = r/255
+  g = g/255
+  b = b/255
+  return r, g, b
+end
+
+------------------------------------------------------------
+function update_all_buttons_w()
+  local btns = GUI.elements.buttons
+  for i=1, #btns do  
+    local b = btns[i]
+    b.lbl_w, b.lbl_h = gfx.measurestr(b.lbl)
+    if main_menu.fixed_sized_buttons then
+      b.w = properties.buttons.w
+    else
+      --b.w = math.max(b.lbl_w+10, default_values.buttons.min_w)
+      b.w = floor(max(b.lbl_w + 20, properties.buttons.min_w))
+    end
+    b.h = b.lbl_h+6
+  end
+end
+
+------------------------------------------------------------
 function Button:update_w_by_lbl_w(min_w, max_w)
   self.lbl_w, self.lbl_h = gfx.measurestr(self.lbl)
-  self.w = math.max(self.lbl_w + 8, main_menu.min_btn_w)
+  if main_menu.fixed_sized_buttons then
+    self.w = default_values.buttons.w
+  else
+    self.w = floor(max(self.lbl_w + 20, properties.buttons.min_w))
+  end
+  self.h = self.lbl_h+6
 end
 
 ------------------------------------------------------------
@@ -555,57 +746,62 @@ function Button:draw_lbl()
   local x, y, w, h = self.x, self.y, self.w, self.h
   local fnt, fnt_sz = self.fnt, self.fnt_sz
   local r, g, b, a = self.lbl_r, self.lbl_g, self.lbl_b, self.lbl_a
-  local lbl_w, lbl_h = self.lbl_w, self.lbl_h
+  --local lbl_w, lbl_h = self.lbl_w, self.lbl_h
   gfx.set(r, g, b, a)
-  --gfx.setfont(1, fnt, fnt_sz)
-  gfx.x = x + 0.5 * (w - lbl_w)
-  gfx.y = y + 0.5 * (h - lbl_h)
-  gfx.drawstr(self.lbl)
+
+  self.lbl_w, self.lbl_h = gfx.measurestr(self.lbl)
+
+  gfx.x = x
+  gfx.y = y
+  
+  
+  if self.lbl_w > self.w then -- or main_menu.use_track_color then
+    gfx.drawstr(self.lbl, 0|4, x+w, y+h)
+  else
+    gfx.drawstr(self.lbl, 1|4, x+w, y+h)
+  end
+
 end
 
 ------------------------------------------------------------
 function Button:draw(index) -- index = current button table in GUI.elements.buttons table
   local x,y,w,h  = self.x, self.y, self.w, self.h
-
--- TODO: move color setting out of this function
-  if self.toggle_state then
-    self:set_colors(btn_off_bg_col_r, btn_off_bg_col_g, btn_off_bg_col_b, btn_off_bg_col_a)
-    self:set_lbl_colors(0.1, 0.1, 0.1, 1)
-  else
-    self:set_colors(btn_on_bg_col_r, btn_on_bg_col_g, btn_on_bg_col_b, btn_on_bg_col_a)
-    self:set_lbl_colors(1, 1, 1, 1)
-  end
-  
+  local tr = self.tracks[1]
+  -- Draw info string
   if self:mouseIN() then
-    --last_hovered_element = self
+    gfx.set(1,1,1,1)
+    gfx.x = properties.buttons.start_x
+    gfx.y = 0
+    --gfx.drawstr(self.lbl)
+    gfx.drawstr(self.lbl, 0|4, gfx.w, gfx.texth)
     if self.onMouseOver then
-      self.onMouseOver()
     end
-  end
+  end 
   
   local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(r,g,b,a)--set btn color
-  roundrect(x,y,w,h,0.5*h)
+  gfx.set(r,g,b,a)
+  if self.toggle_state then
+    roundrect(x,y,w,h,0.5*h,1)
+  end
+  roundrect(x,y,w,h,0.5*h,0)
   self:draw_lbl()
 end
 
 ------------------------------------------------------------
 function Button:handle_mouse_events(btn_index)
-  if self.onMouseOver then 
-    self.onMouseOver()
-  end
+  local tr = self.tracks[1]
+  self:set_color_to_track_color()
   if self:mouseLmbRelease() then
     self.toggle_state = not self.toggle_state
+    if self.toggle_state then
+    else
+    end
     self.onLmbRelease()
   elseif self:mouseRmbRelease() then
     self.onRmbRelease(btn_index)
+  else
+    
   end
-  --[[
-  gfx.x = 10
-  gfx.y = gfx.h-20
-  gfx.drawstr(self.lbl)
-  self:draw(btn_index)
-  --]]
 end
 
 ------------------------------------------------------------
@@ -615,70 +811,38 @@ function update_button_positions(w, h)
   if len_btns == 0 then
     return
   end
+  local p = properties.buttons
   local w, h = w or gfx.w, h or gfx.h
-  local curr_row = 0
-  local x = btn_start_x
-  local y = btn_start_y
-  local mlo = main_menu.button_layout
-  
-  
---[[ TODO: sorting
-    -- rearrange buttons ("folder parent" -type buttons first)
-   folder_type_btns = {}
-   selection_type_btns = {}
+  local x = p.start_x
+  local y = p.start_y
+  local layout = main_menu.button_layout
+  local curr_row = 1
 
   for i=1, len_btns do
     local b = btns[i]
-    if b.type == "folder parent" then
-      folder_type_btns[#folder_type_btns+1] = b
-    else
-      selection_type_btns[#selection_type_btns+1] = b
-    end
-  end
-   len_folder_type_btns = #folder_type_btns
-  
-  for _,v in ipairs(selection_type_btns) do
-      table.insert(folder_type_btns, v)
-  end
-  
-  for i=1, #folder_type_btns do
-    local b = folder_type_btns[i]
---]]
-  for i=1, len_btns do
-    local b = btns[i]
-    -- fit to window
-    if mlo == 1 then
+    -- fit to window - fill rows first
+    if layout == 1 then
       if i>1 and x + b.w > w then
-        x = btn_start_x
-        
---[[ TODO: sorting
-        if i == len_folder_type_btns+1 and b.type == "selection" then -- add a gap between different types
-          curr_row = curr_row + 1
-        end
---]]
-        y = y + b.h + btn_pad_y
+        x = p.start_x
+        y = y + b.h + p.pad_y
         curr_row = curr_row + 1
       end
     -- horizontal
-    elseif mlo == 2 then
+    elseif layout == 2 then
     -- vertical
-    elseif mlo == 3 then
-      y = btn_start_y + curr_row*(b.h + btn_pad_y)
-      
---[[ TODO: sorting
-      if i == len_folder_type_btns+1 and b.type == "selection" then -- add a gap between different types
-        curr_row = curr_row + 1
-      end
---]]
+    elseif layout == 3 then  
+      y = p.start_y + (curr_row-1)*(b.h + p.pad_y)
       curr_row = curr_row + 1
     end
+    
     b.x = x
     b.y = y
-    if mlo < 3 then
-      x = x + b.w + btn_pad_x
+    
+    if layout < 3 then --or (i>1 and layout == 4 and y+b.h > h) then
+      x = x + b.w + p.pad_x
     end
-    if b.w < btn_min_w then
-      btn_min_w = b.w
+    if b.w < p.min_w then
+      p.min_w = b.w
     end
   end
 end
@@ -709,11 +873,12 @@ end
 ------------------------------------------------------------
 function create_button()
   local btns = GUI.elements.buttons
+  local d = default_values.buttons
   local btn = Button:new(   
                           0,                    --  x
                           0,                    --  y 
-                          btn_w,                --  w
-                          btn_h,                --  h
+                          d.w,                  --  w
+                          d.h,                  --  h
                           0.5,                  --  r
                           0.5,                  --  g
                           0.5,                  --  b
@@ -729,12 +894,13 @@ function create_button()
                           false                 -- toggle state
                         )
   
-  btn:set_colors(112/255, 124/255, 137/255, 1)
+  ----btn:set_color(112/255, 124/255, 137/255, 1)
   btn.tracks = {}
   btn.track_guids = {} -- from version 0.2.6 ->
   btn.type = ""
   btn.tooltip_text = ""
-  btn.lbl_w, btn.lbl_h = 0, 0
+  btn.lbl_w, btn.lbl_h = gfx.measurestr(btn.lbl)
+  btn.track_color = {r=0,g=0,b=0}
 
   btn.onLmbRelease =  function()
                         update_visibility()
@@ -769,7 +935,7 @@ function create_button()
                         btn.lbl = retvals_csv
                         btn:update_w_by_lbl_w()
                       end
-                      sort_buttons_by_tag_name()
+                      sort_buttons()
                       update_button_positions()
                     elseif ret == 2 then
                       GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = buttonindex
@@ -795,10 +961,13 @@ function create_button()
     
   btn.id = reaper.genGuid()
   btns[#btns + 1] = btn
-  btn:update_w_by_lbl_w()
-  sort_buttons()
-  update_button_positions()      
   --btn:update_w_by_lbl_w()
+  
+  
+  update_button_positions()
+  sort_buttons()
+  
+  
   btn.tooltip_text = btn.lbl
   --msg(btn.lbl)
   return btn
@@ -828,6 +997,7 @@ function create_button_from_selection()
   btn:update_w_by_lbl_w()
   sort_buttons()
   update_button_positions()
+  update_buttons_color()
   store_btns()
 end
 
@@ -861,12 +1031,17 @@ function update_folder_type_tag_buttons()
   local btns = GUI.elements.buttons
   --if #btns == 0 then return end
   for i=1, #btns do
-    local b = btns[i]
-    if b.type == "folder parent" then
-      local tr = b.tracks[1]
-      update_child_tracks(tr, b, i)
+    local btn = btns[i]
+    if btn.type == "folder parent" then
+      local tr = btn.tracks[1]
+      if tr then
+        --local r,g,b = color_int_to_rgb(reaper.GetTrackColor(tr))
+        --btn.track_color = {r=r,g=g,b=b}
+      end
+      update_child_tracks(tr, btn, i)  
     end
   end
+  update_buttons_color()
   store_btns() -- new child tracks might have been added
 end
 
@@ -902,15 +1077,22 @@ function create_buttons_from_folder_parents()
         local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
         if retval then
           btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
+          if tr_name == "" then
+            tr_name = "Track " .. tostring(floor(reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER")))
+          end
           btn.lbl = tr_name
-          btn:update_w_by_lbl_w()
+          --btn:update_w_by_lbl_w()
         end
+        --local r,g,b = reaper.ColorFromNative(reaper.GetTrackColor(tr))
+        --btn.track_color = {r=r,g=g,b=b}
         update_child_tracks(tr, btn, btn_index)
       end
     end    
   end
   sort_buttons()
+  update_all_buttons_w()
   update_button_positions()
+  update_buttons_color()
   store_btns()
 end
 
@@ -919,8 +1101,6 @@ function on_track_list_change(last_action_undo_str)
   if #GUI.elements.buttons > 0 then
     update_folder_type_tag_buttons()
   end
-  --store_btns()
-  --msg(last_action_undo_str)
 end
 
 --[[ needs JS reascript API
@@ -944,16 +1124,6 @@ end
 ------------------------------------------------------------
 function init()
   local dock, x, y, w, h = 0, 0, 0, 0, 0
-  main_menu.button_layout = 1
-  main_menu.dock_pos_left = (256+1)
-  main_menu.dock_pos_top_left = (2*256+1)
-  main_menu.dock_pos_top_right = (3*256+1)
-  main_menu.dock_pos_right = (0*256+1)
-  main_menu.show_only_tagged_tracks = true
-  main_menu.button_layout =  1 -- 1=fit to window, 2=horizontal, 3=vertical
-  main_menu.min_btn_w = 48
-  main_menu.button_ordering = 1 -- 1=by track index, 2=alphabetically
-  
    --reaper.SetProjExtState(0, "spk77 Track Tags", "script state", "") -- delete data
   local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "script state")
   if ok == 1 and state ~= "" then
@@ -963,7 +1133,6 @@ function init()
     y = state.GUI.y
     w = state.GUI.w
     h = state.GUI.h
-
     if state.main_menu ~= nil then
       main_menu.button_layout = state.main_menu.button_layout or 1
       main_menu.dock_pos_left = state.main_menu.dock_pos_left or (256+1)
@@ -972,8 +1141,12 @@ function init()
       main_menu.dock_pos_right = main_menu.dock_pos_right or (0*256+1)
       main_menu.show_only_tagged_tracks = state.main_menu.show_only_tagged_tracks or true
       main_menu.button_layout = state.main_menu.button_layout or 1 -- 1=fit to window, 2=horizontal, 3=vertical
-      main_menu.min_btn_w = state.main_menu.min_btn_w or 48
       main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
+      main_menu.fixed_sized_buttons = state.main_menu.fixed_sized_buttons or false
+    end
+    if state.properties ~= nil then
+      --local pb = properties.buttons
+      properties = state.properties
     end
   else
     local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -990,18 +1163,20 @@ function init()
   GUI.y = y
   GUI.w = w
   GUI.h = h
-  gfx.setfont(1, btn_font, btn_font_size)
+  gfx.setfont(1, default_values.buttons.font, default_values.buttons.font_size)
   gui_w, gui_h = gfx.w, gfx.h
   last_gui_w, last_gui_h = gui_w, gui_h
   
   last_proj_change_count = reaper.GetProjectStateChangeCount(0)
   script.project_id, script.project_filename = EnumProjects(-1, "")
   restore()
+  --[[
   if GUI.show_titlebar then
-   -- set_window_style("", true)
+    set_window_style("", true)
   else
-   -- set_window_style("WS_BORDER", true)
+    set_window_style("WS_BORDER", true)
   end
+  --]]
 end
 
 --[[ needs JS reascript API
@@ -1028,6 +1203,9 @@ end
 ------------------------------------------------------------
 function on_lmb_down()
   if mouse.last_cap&1 == 0 then
+    if mouse.ctrl then
+      font = gfx.getfont()
+    end
     local curr_time = os.clock()
     mouse.lmb_down_time = curr_time
     mouse.ox, mouse.oy = mouse.x, mouse.y -- click position on script window
@@ -1125,6 +1303,36 @@ function on_rmb_up()
 end
 
 ------------------------------------------------------------
+function on_mouse_wheel_up()
+---[[
+  local p = properties.buttons
+  p.font_size = p.font_size + 1
+  if p.font_size > 32 then
+    p.font_size = 32
+  end
+  gfx.setfont(1, p.font, p.font_size)
+  p.start_y = p.font_size + 2
+  update_all_buttons_w()
+  update_button_positions()
+--]]
+end
+
+------------------------------------------------------------
+function on_mouse_wheel_down()
+---[[
+  local p = properties.buttons
+  p.font_size = p.font_size - 1
+  if p.font_size < 14 then
+    p.font_size = 14
+  end
+  gfx.setfont(1, p.font, p.font_size)
+  p.start_y = p.font_size + 2
+  update_all_buttons_w()
+  update_button_positions()
+--]]
+end
+
+------------------------------------------------------------
 function get_mod_keys()
   mouse.ctrl = mouse.cap&4==4
   mouse.shift = mouse.cap&8==8
@@ -1157,6 +1365,7 @@ function get_mouse_state()
   mouse.cap = gfx.mouse_cap
   mouse.x, mouse.y = gfx.mouse_x, gfx.mouse_y
   mouse.x_screen, mouse.y_screen = reaper.GetMousePosition()
+  mouse.wheel = gfx.mouse_wheel
   mouse.moved = mouse.x_screen ~= mouse.last_x_screen or mouse.y_screen ~= mouse.last_y_screen
   local lmb_down, rmb_down = get_mouse_btn_states()
   if lmb_down then
@@ -1167,6 +1376,12 @@ function get_mouse_state()
     on_rmb_down()
   elseif mouse.last_cap&2 == 2 then
     on_rmb_up()
+  elseif mouse.wheel ~= 0 then
+    if mouse.wheel > 0 then
+      on_mouse_wheel_up()
+    else
+      on_mouse_wheel_down()
+    end
   end
 end
 
@@ -1199,6 +1414,7 @@ function mainloop()
     if reaper.CountTracks(0) == 0 then -- New empty project probably created
       GUI.safe_remove_all_tags = true
     end
+    
     msg("proj_change_count ~= last_proj_change_count")
     local last_action = reaper.Undo_CanUndo2(0)
     -- try to catch changes in track list
@@ -1234,17 +1450,18 @@ function mainloop()
   if not main_menu.show_only_tagged_tracks then -- if bypassed
     gfx.set(0.1,0.1,0.1,0.4)
     gfx.rect(0,0,gfx.w, gfx.h)
-    gfx.update()
+    --gfx.update()
   end
   
   char = gfx.getchar()
 
+  -- GUI is resized?
   if gfx.w ~= last_gui_w or gfx.h ~= last_gui_h then
     on_gui_resize(gfx.w, gfx.h)
     last_gui_w, last_gui_h = gfx.w, gfx.h
   end
   
-  -- Remove button outside the drawing loop
+  -- Remove buttons here at the end if certain flags are set
   if #GUI.safe_remove_btn_by_index > 0 then
     local l = #GUI.safe_remove_btn_by_index
     for i=l, 1, -1 do -- from end to start
@@ -1266,6 +1483,7 @@ function mainloop()
   mouse.last_y = mouse.y
   mouse.last_x_screen = mouse.x_screen
   mouse.last_y_screen = mouse.y_screen
+  gfx.mouse_wheel = 0
 
   if char == 32 then reaper.Main_OnCommand(40044, 0) end -- play/stop
   if char~=-1 and not main_menu.quit then reaper.defer(mainloop) end
@@ -1286,7 +1504,8 @@ function exit()
                         w = w
                       }
                       
-  script_state.main_menu = main_menu          
+  script_state.main_menu = main_menu
+  script_state.properties = properties
   local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "script state", pickle(script_state))
   gfx.quit()
   --set_all_tracks_visible(1)
@@ -1338,17 +1557,21 @@ function restore(proj_id)
         end
       end
       btn.lbl = state[i].lbl
+      btn.lbl_w, btn.lbl_h = gfx.measurestr(btn.lbl)
       --msg(btn.lbl)
       btn.tooltip_text = state[i].lbl
       btn.type = state[i].type
       btn.toggle_state = state[i].toggle_state
+      --btn:set_color_to_track_color() 
       btn:update_w_by_lbl_w()
     end
     msg("restored")
   end
   sort_buttons()
+  --update_all_buttons_w()
   update_button_positions()
-  -- update_visibility()
+  update_buttons_color()
+  update_visibility()
 end
 
 ------------------------------------------------------------
