@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.03
+Version: 5.04
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -175,7 +175,7 @@ About:
   Changelog:
   * v5.01 (2019-12-03)
     + BETA version.
-  * v5.03 (2019-12-19)
+  * v5.04 (2019-12-19)
     + Fixed:  Load custom colors.
     + Fixed:  Display Undo/Redo boxes on macOS.
     + Fixed:  Canceled color selection dialog don't change color.
@@ -2191,7 +2191,7 @@ function SetupDisplayZones()
         reaper.JS_LICE_FillRect(bitmap, (z.left+1)//1, (z.top+1)//1, (z.right-z.left-2)//1, (z.bottom-z.top-2)//1, color, 1, "COPY")
     end
     
-    reaper.JS_Window_InvalidateRect(midiview, GUI_LeftPixel-zoneWidth, ME_TargetTopPixel-zoneWidth, GUI_RightPixel+zoneWidth, ME_TargetBottomPixel+zoneWidth, false)
+    reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false)
 
 end
 
