@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.01
+Version: 5.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -175,6 +175,10 @@ About:
   Changelog:
   * v5.01 (2019-12-03)
     + BETA version.
+  * v5.02 (2019-12-19)
+    + Fixed:  Load custom colors.
+    + Fixed:  Display Undo/Redo boxes on macOS.
+    + Fixed:  Canceled color selection dialog don't change color.
 ]]
 
 -- USER AREA 
@@ -981,7 +985,7 @@ function ChooseZoneColor()
         if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 then reaper.JS_Window_SetForeground(editor) end
         if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_SetFocus(midiview) end
         
-        if ok then 
+        if ok == 1 and type(c) == "number" then 
             if winOS then c = 0xFF000000 | ((c&0xff)<<16) | (c&0xff00) | ((c&0xff0000)>>16)
             else c = (c | 0xFF000000) & 0xFFFFFFFF -- Make sure that basic color is completely opaque
             end
