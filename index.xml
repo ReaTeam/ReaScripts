@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7029b75c557bcfcce6d413b6ad2dd27063e5c9e0" name="ReaTeam Scripts">
+<index version="1" commit="3eeed4de1e47323bdd25f02126794ad1a711b9ee" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13740,6 +13740,14 @@ uc_note_min_seconds = 1\par}
       <version name="0.3.3" author="spk77" time="2019-12-10T18:21:43Z">
         <changelog><![CDATA[- Fix init function]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61d3a0c3b4f24e277233db4283a75d66bcbccfcf/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.3.4" author="spk77" time="2019-12-19T21:55:17Z">
+        <changelog><![CDATA[- Color buttons to track colors
+- Mouse wheel to adjust font/button size
+- Some user definable button properties
+- An option to use fixed-sized buttons (Main menu/Options/Use fixed-sized buttons)
+- Various bug fixes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3eeed4de1e47323bdd25f02126794ad1a711b9ee/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
