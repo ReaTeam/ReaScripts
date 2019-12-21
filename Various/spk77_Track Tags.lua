@@ -1,12 +1,13 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.4
+-- @version 0.3.5
 -- @author spk77
 -- @changelog
---   - Color buttons to track colors
---   - Mouse wheel to adjust font/button size
---   - Some user definable button properties
---   - An option to use fixed-sized buttons (Main menu/Options/Use fixed-sized buttons)
---   - Various bug fixes
+--   - Better error handling when tracks are deleted or not valid anymore
+--   - Remove tag-button if related tracks are deleted or not valid anymore
+--   - User-definable setting: set button edge radius
+--   - User-definable setting: set button edge thickness
+--   - User-definable setting: set button height
+--   - Store/restore all user-definable settings
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -29,7 +30,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.4",
+                  version = "0.3.5",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -37,8 +38,8 @@ local script =  {
                 }
 
 
- GUI = {
-              elements =  {buttons = {}},
+local GUI = {
+              elements = {buttons = {}},
               last_hovered_element = {},
               dock = 0,
               x = 0,
@@ -61,7 +62,7 @@ local script =  {
 
 local Element = {}
 
- main_menu =  {
+local main_menu =  {
                 str = "",
                 quit = false,
                 button_layout = 1,
@@ -116,7 +117,7 @@ local proj_change_count, last_proj_change_count = -1, -1
 local tooltip_text, last_tooltip_text = "", ""
 
 
-default_values = {}
+local default_values = {}
 default_values.buttons =  {
                             font = "Verdana",
                             font_size = 14,
@@ -124,9 +125,12 @@ default_values.buttons =  {
                             start_x = 8,
                             start_y = 8,
                             w = 80,
+                            h = 1.2,              -- times font_size
                             min_w = 48,
                             pad_x = 5,            -- x space between buttons
                             pad_y = 5,            -- y space between buttons
+                            edge_radius = 100,
+                            edge_thickness = 2,
                       
                             -- Tracktion 6 track tags colors
                             off_bg_col_r = 112/255,
@@ -141,34 +145,11 @@ default_values.buttons =  {
                           }
 
 default_values.buttons.start_y = default_values.buttons.font_size + 2
-default_values.buttons.h = default_values.buttons.font_size + 4
+--default_values.buttons.h = default_values.buttons.font_size*default_values.buttons.h
 
-properties = {}
-properties.buttons =  {
-                        font = "Verdana",
-                        font_size = 14,
-                  
-                        start_x = 8,
-                        start_y = 8,
-                        w = 80,
-                        min_w = 48,
-                        pad_x = 5,            -- x space between buttons
-                        pad_y = 5,            -- y space between buttons
-                  
-                        -- Tracktion 6 track tags colors
-                        off_bg_col_r = 112/255,
-                        off_bg_col_g = 124/255,
-                        off_bg_col_b = 137/255,
-                        off_bg_col_a = 1,
-                  
-                        on_bg_col_r = 255/255,
-                        on_bg_col_g = 255/255,
-                        on_bg_col_b = 26/255,
-                        on_bg_col_a = 1
-                      }
-                        
-properties.buttons.start_y = default_values.buttons.font_size + 2
-properties.buttons.h = default_values.buttons.font_size + 4
+local properties = {}
+properties.buttons = {} -- will have the same keys as "default_values.buttons" (see "init" function)
+
 
 local abs = math.abs
 local floor = math.floor
@@ -250,6 +231,20 @@ function unpickle(s)
   return tables[1]
 end
 ------------------------------------PICKLE------------------------------------
+
+function shallow_copy(orig)
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in pairs(orig) do
+      copy[orig_key] = orig_value
+    end
+  else -- number, string, boolean, etc
+    copy = orig
+  end
+  return copy
+end
 
 
 ------------------------------------------------------------
@@ -500,9 +495,12 @@ end
 ------------------------------------------------------------
 function get_user_inputs()
   local p = properties.buttons
-  local default_vals = tostring(p.start_x) .."," .. tostring(p.w) .. "," .. tostring(p.pad_x) .. "," .. tostring(p.pad_y)
-  local captions =  "Margin-left,Button width,x-spacing between buttons,y-spacing between buttons,extrawidth=200"
-  local retval, retvals_csv = reaper.GetUserInputs("Button settings (leave empty for default values)", 4, captions, default_vals)
+  local default_vals =  tostring(p.start_x) .."," .. tostring(p.w) .. "," ..
+                        tostring(p.h) .. "," .. tostring(p.pad_x) .. "," ..
+                        tostring(p.pad_y) .. "," .. tostring(p.edge_radius) .. "," ..
+                        tostring(p.edge_thickness)
+  local captions = "Margin-left,Width,Height (1-2) * font height,Horizontal spacing,Vertical spacing,Edge radius (0-100),Edge thickness (1-5),extrawidth=200"
+  local retval, retvals_csv = reaper.GetUserInputs("Button settings (leave empty for default values)", 7, captions, default_vals)
   if not retval then return end
   local i = 1
   for word in retvals_csv:gmatch("([^,]*)") do
@@ -517,10 +515,19 @@ function get_user_inputs()
         properties.buttons.w = default_values.buttons.w
       elseif
         i==3 then
-        properties.buttons.pad_x = default_values.buttons.pad_x
+        properties.buttons.h = default_values.buttons.h
       elseif
         i==4 then
+        properties.buttons.pad_x = default_values.buttons.pad_x
+      elseif
+        i==5 then
         properties.buttons.pad_y = default_values.buttons.pad_y
+      elseif
+        i==6 then
+        properties.buttons.edge_radius = default_values.buttons.edge_radius
+      elseif
+        i==7 then
+        properties.buttons.edge_thickness = default_values.buttons.edge_thickness
       end
     else
       local val = tonumber(word)
@@ -531,10 +538,22 @@ function get_user_inputs()
         properties.buttons.w = val
       elseif
         i==3 then
-        properties.buttons.pad_x = val
+        if val < 1 then val = 1 elseif val > 2 then val = 2 end
+        properties.buttons.h = val
       elseif
         i==4 then
+        properties.buttons.pad_x = val
+      elseif
+        i==5 then
         properties.buttons.pad_y = val
+      elseif
+        i==6 then
+        if val < 0 then val = 0 elseif val > 100 then val = 100 end
+        properties.buttons.edge_radius = val
+      elseif
+        i==7 then
+        if val < 1 then val = 1 elseif val > 5 then val = 5 end
+        properties.buttons.edge_thickness = val
       end
     end
     i = i+1
@@ -670,26 +689,30 @@ end
 
 ------------------------------------------------------------
 function Button:set_color_to_track_color()
-  local d = default_values.buttons
   local tr = self.tracks[1]
-  local tr_color = reaper.GetTrackColor(tr)
-  if not main_menu.use_track_color or not tr or tr_color == 0 then
+  if not main_menu.use_track_color or not tr then
     self:set_to_default_color()
   else
-    self.r, self.g, self.b = color_int_to_rgb(tr_color)
-    local r,g,b = self.r*255, self.g*255, self.b*255
-    if self.toggle_state then
-      local brightness = sqrt(0.241*r*r + 0.691*g*g + 0.068*b*b)
-      -- if brightness < 130
-      if brightness < 146.8 then
-        r,g,b = 1,1,1
-      else
-        r,g,b = 0,0,0
-      end
+    --if not tr then return end
+    local tr_color = reaper.GetTrackColor(tr)
+    if tr_color == 0 then 
+      self:set_to_default_color()
     else
-      r,g,b = 1,1,1
+      self.r, self.g, self.b = color_int_to_rgb(tr_color)
+      local r,g,b = self.r*255, self.g*255, self.b*255
+      if self.toggle_state then
+        local brightness = sqrt(0.241*r*r + 0.691*g*g + 0.068*b*b)
+        -- if brightness < 130
+        if brightness < 146.8 then
+          r,g,b = 1,1,1
+        else
+          r,g,b = 0,0,0
+        end
+      else
+        r,g,b = 1,1,1
+      end
+      self:set_lbl_color(r, g, b, 1)
     end
-    self:set_lbl_color(r, g, b, 1)
   end
 end
 
@@ -726,7 +749,9 @@ function update_all_buttons_w()
       --b.w = math.max(b.lbl_w+10, default_values.buttons.min_w)
       b.w = floor(max(b.lbl_w + 20, properties.buttons.min_w))
     end
-    b.h = b.lbl_h+6
+    if properties.buttons.h < 1 then properties.buttons.h = 1
+    elseif properties.buttons.h > 2 then properties.buttons.h = 2 end
+    b.h = floor(b.lbl_h*properties.buttons.h+0.5)--+properties.buttons.h
   end
 end
 
@@ -738,7 +763,9 @@ function Button:update_w_by_lbl_w(min_w, max_w)
   else
     self.w = floor(max(self.lbl_w + 20, properties.buttons.min_w))
   end
-  self.h = self.lbl_h+6
+  if properties.buttons.h < 1 then properties.buttons.h = 1
+  elseif properties.buttons.h > 2 then properties.buttons.h = 2 end
+  self.h = floor(self.lbl_h*properties.buttons.h+0.5)--+properties.buttons.h
 end
 
 ------------------------------------------------------------
@@ -780,10 +807,29 @@ function Button:draw(index) -- index = current button table in GUI.elements.butt
   
   local r,g,b,a  = self.r,self.g,self.b,self.a
   gfx.set(r,g,b,a)
+  local edge_thickness = properties.buttons.edge_thickness
+  local radius = properties.buttons.edge_radius/100*0.5*h
+  
   if self.toggle_state then
-    roundrect(x,y,w,h,0.5*h,1)
+    roundrect(x,y,w,h,radius,1)
+  else
+    roundrect(x,y,w,h,radius,1)
+    local bg_col_int = 3355443
+    local r = bg_col_int & 255
+    local g = (bg_col_int >> 8) & 255
+    local b = (bg_col_int >> 16) & 255
+    r = r/255
+    g = g/255
+    b = b/255
+    gfx.set(r,g,b)
+    radius = radius - edge_thickness
+    if radius < 0 then
+      radius = 0
+    end
+    --roundrect(x+border_size,y+border_size,w-2*border_size,h-2*border_size,0.5*(h-2*border_size),1)
+    roundrect(x+edge_thickness,y+edge_thickness,w-2*edge_thickness,h-2*edge_thickness,radius,1)
   end
-  roundrect(x,y,w,h,0.5*h,0)
+  --roundrect(x,y,w,h,0.5*h,0)
   self:draw_lbl()
 end
 
@@ -1029,20 +1075,58 @@ end
 ------------------------------------------------------------
 function update_folder_type_tag_buttons()
   local btns = GUI.elements.buttons
+  is_not_valid = 0
   --if #btns == 0 then return end
   for i=1, #btns do
     local btn = btns[i]
     if btn.type == "folder parent" then
       local tr = btn.tracks[1]
-      if tr then
-        --local r,g,b = color_int_to_rgb(reaper.GetTrackColor(tr))
-        --btn.track_color = {r=r,g=g,b=b}
+      if not reaper.ValidatePtr(tr, "MediaTrack*") then -- Parent track is not valid anymore
+        -- Remove the button at the end of this cycle
+        is_not_valid = is_not_valid+1
+        GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = i
+        
+      else
+        btn:set_color_to_track_color()
+        update_child_tracks(tr, btn, i)
       end
-      update_child_tracks(tr, btn, i)  
     end
   end
-  update_buttons_color()
-  store_btns() -- new child tracks might have been added
+  --store_btns() -- new child tracks might have been added
+end
+
+------------------------------------------------------------
+function update_custom_type_tag_buttons()
+  --msg("update_custom_type_tag_buttons")
+  local btns = GUI.elements.buttons
+  --if #btns == 0 then return end
+  local valid_tr_count = 0
+  for i=1, #btns do
+    local btn = btns[i]
+    if btn.type == "selection" then
+      local tr_count = #btn.tracks
+      valid_tr_count = tr_count
+      for track_index = 1, tr_count do
+        local tr = btn.tracks[track_index]
+--TODO: remove to end
+        if not reaper.ValidatePtr(tr, "MediaTrack*") then
+          table.remove(btn.tracks, track_index)
+          valid_tr_count = valid_tr_count-1
+---------------------
+        else
+          
+        end
+      end
+      -- If no valid tracks -> remove the button at the end of this cycle
+      if #btn.tracks == 0 then
+        GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = i
+      end
+    end
+    if valid_tr_count > 0 then
+      btn:set_color_to_track_color()
+    end
+  end
+  --store_btns()
 end
 
 ------------------------------------------------------------
@@ -1100,6 +1184,7 @@ end
 function on_track_list_change(last_action_undo_str)  
   if #GUI.elements.buttons > 0 then
     update_folder_type_tag_buttons()
+    update_custom_type_tag_buttons()
   end
 end
 
@@ -1144,9 +1229,17 @@ function init()
       main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
       main_menu.fixed_sized_buttons = state.main_menu.fixed_sized_buttons or false
     end
+
     if state.properties ~= nil then
-      --local pb = properties.buttons
-      properties = state.properties
+      local sp = state.properties
+      --test = {buttons = {}}
+      local d = default_values.buttons
+      for d_key, d_val in pairs(d) do
+        properties.buttons[d_key] = state.properties.buttons[d_key] or d_val
+        --test.buttons[d_key] = state.properties.buttons[d_key]-- or d_val
+      end
+    else
+      properties.buttons = shallow_copy(default_values.button)
     end
   else
     local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -1163,7 +1256,7 @@ function init()
   GUI.y = y
   GUI.w = w
   GUI.h = h
-  gfx.setfont(1, default_values.buttons.font, default_values.buttons.font_size)
+  gfx.setfont(1, properties.buttons.font, properties.buttons.font_size)
   gui_w, gui_h = gfx.w, gfx.h
   last_gui_w, last_gui_h = gui_w, gui_h
   
@@ -1203,9 +1296,6 @@ end
 ------------------------------------------------------------
 function on_lmb_down()
   if mouse.last_cap&1 == 0 then
-    if mouse.ctrl then
-      font = gfx.getfont()
-    end
     local curr_time = os.clock()
     mouse.lmb_down_time = curr_time
     mouse.ox, mouse.oy = mouse.x, mouse.y -- click position on script window
@@ -1419,7 +1509,8 @@ function mainloop()
     local last_action = reaper.Undo_CanUndo2(0)
     -- try to catch changes in track list
     if last_action ~= nil then
-      if (last_action:lower():find("track") or last_action:lower():find("tracks")) and not last_action:lower():find("select") then
+      if (last_action:lower():find("track") or 
+          last_action:lower():find("tracks")) then -- and not last_action:lower():find("select") then
         msg("on_track_list_change")
         on_track_list_change(last_action)
       end
@@ -1466,8 +1557,10 @@ function mainloop()
     local l = #GUI.safe_remove_btn_by_index
     for i=l, 1, -1 do -- from end to start
       local index = GUI.safe_remove_btn_by_index[i]
-      table.remove(btns, index)
+      table.remove(GUI.elements.buttons, index)
     end
+    --update_buttons_color()
+    on_track_list_change()
     update_button_positions()
     update_visibility()
     GUI.safe_remove_btn_by_index = {}
@@ -1495,7 +1588,7 @@ function exit()
   msg("exit")
   store_btns(script.project_id)
   local dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
-  local script_state = {}
+   script_state = {}
   script_state.GUI =  {
                         dock = dock,
                         x = x,
