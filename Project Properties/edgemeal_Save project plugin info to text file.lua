@@ -1,9 +1,18 @@
 -- @description Save project plugin info to text file
 -- @author Edgemeal
--- @version 1.01
--- @changelog Fix: Check for js_ReaScriptAPI extension.
+-- @version 1.02
+-- @changelog
+--   Indicate plugin offline, clear old console message.
+--   Fix: Check for js_ReaScriptAPI extension.
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
+
+function Add_TakeFX(fx_names, name)
+  for i = 1, #fx_names do -- do not add duplicates
+    if fx_names[i] == name then return end
+  end
+  fx_names[#fx_names+1] = name
+end
 
 function GetLastWord(line)
   local lastpos = (line:reverse()):find(' ')
@@ -19,23 +28,21 @@ local function RemoveFileExt(file)
   end
 end
 
-function Add_TakeFX(fx_names, name)
-  for i = 1, #fx_names do -- do not add duplicates
-    if fx_names[i] == name then return end
+function Status(fx_name,preset_name, enabled, offline)
+  if preset_name ~= "" then  -- add track fx name and preset name
+    t[#t+1] = (enabled and "" or "* ") .. (offline and "# " or "") .. fx_name .. " <> Preset: " .. preset_name
+  else
+    t[#t+1] = (enabled and "" or "* ") .. (offline and "# " or "") .. fx_name
   end
-  fx_names[#fx_names+1] = name
 end
 
 function AddFX(track,fx_count)
   for fx = 0, fx_count-1 do
     local _, fx_name = reaper.TrackFX_GetFXName(track, fx, "")
     local _, preset_name = reaper.TrackFX_GetPreset(track, fx, "")
-    local enabled = reaper.TrackFX_GetEnabled(track, fx) -- enabled
-    if preset_name ~= "" then  -- add track fx name and preset name
-      t[#t+1] = (enabled and "" or "* ") .. fx_name .. " <> Preset: " .. preset_name
-    else
-      t[#t+1] = (enabled and "" or "* ") .. fx_name
-    end
+    local enabled = reaper.TrackFX_GetEnabled(track, fx) -- bypass
+    local offline = reaper.TrackFX_GetOffline(track, fx) -- offline
+    Status(fx_name,preset_name,enabled,offline) -- add fx info
   end
 end
 
@@ -71,12 +78,9 @@ function AddFxMonitor()
       local fx = (0x1000000 + i) -- convert for fx monitoring
       local retval, fx_name = reaper.TrackFX_GetFXName(track, fx, "")
       local _, preset_name = reaper.TrackFX_GetPreset(track, fx, "")
-      local enabled = reaper.TrackFX_GetEnabled(track, fx)
-      if preset_name ~= "" then
-        t[#t+1] = (enabled and "" or "* ") .. fx_name .. " <> Preset: " .. preset_name
-      else
-        t[#t+1] = (enabled and "" or "* ") .. fx_name
-      end
+      local enabled = reaper.TrackFX_GetEnabled(track, fx) -- bypass
+      local offline = reaper.TrackFX_GetOffline(track, fx) -- offline
+      Status(fx_name,preset_name,enabled,offline) -- add fx info
     end
     t[#t+1]= "" -- add empty line
   end
@@ -105,7 +109,7 @@ function Main()
   else
     t[#t+1]="Unknown project (not saved)"
   end
-  t[#t+1]= '* = Plugin disabled.'
+  t[#t+1]= '* = Plugin disabled, # = Plugin Offline'
   t[#t+1]= ""  -- empty line
 
   -- FX Monitor
@@ -152,6 +156,7 @@ function Main()
       reaper.ExecProcess('notepad.exe '..fn,-1) -- open file in Notepad.
     end
   else
+    reaper.ClearConsole()
     reaper.ShowConsoleMsg(table.concat(t,"\n"))
   end
 end
