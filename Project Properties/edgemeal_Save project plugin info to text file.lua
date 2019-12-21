@@ -3,7 +3,6 @@
 -- @version 1.02
 -- @changelog
 --   Indicate plugin offline, clear old console message.
---   Fix: Check for js_ReaScriptAPI extension.
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
 
