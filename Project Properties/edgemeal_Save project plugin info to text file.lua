@@ -1,8 +1,7 @@
 -- @description Save project plugin info to text file
 -- @author Edgemeal
 -- @version 1.02
--- @changelog
---   Indicate plugin offline, clear old console message.
+-- @changelog Indicate plugin offline, clear old console message.
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
 
