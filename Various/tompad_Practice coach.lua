@@ -1,7 +1,7 @@
 -- @description Practice coach
 -- @author tompad
--- @version 1.0.2
--- @changelog Removed ShowConsoleMessage ;-)
+-- @version 1.0.3
+-- @changelog Added Progress Bar
 -- @about
 --   # Practice Coach
 --
@@ -41,12 +41,58 @@ GUI.req("Classes/Class - Textbox.lua")()
 GUI.req("Classes/Class - Label.lua")()
 GUI.req("Classes/Class - Options.lua")()
 GUI.req("Classes/Class - Menubox.lua")()
+GUI.req("Classes/Class - Slider.lua")()
 -- If any of the requested libraries weren't found, abort the script.
 if missing_lib then return 0 end
 
 GUI.name = "Practice Coach"
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 160, 224
 GUI.anchor, GUI.corner = "screen", "C"
+
+local xwin
+local startTime
+local endTime
+local practiceTime = {300, 120, 120, 120, 120, 120, 120, 180} -- Time for every step in seconds
+local practiceTempo = {0.5, 0.7, 0.6, 0.8, 0.65, 0.75, 0.8, 0.5}
+local maxBPM
+local stepsLeft = 8
+local i = 1
+local buttonEnabled = true
+local autoContinue
+local autoContMB
+local ok
+local pauseTime
+local startTime2
+local endTime2
+local notFinished
+local progress
+local length
+
+-- <hide-code desc='GUI'>
+
+
+GUI.New("Slider1", "Slider", {
+  z = 11,
+  x = 5,
+  y = 1,
+  w = 218,
+  caption = "",
+  min = 10000,
+  max = 0,
+  defaults = {0},
+  inc = 1,
+  dir = "v",
+  font_a = 3,
+  font_b = 4,
+  col_txt = "txt",
+  col_fill = "elm_fill",
+  bg = "wnd_bg",
+  show_handles = false,
+  show_values = false,
+  cap_x = 0,
+  cap_y = 0
+})
+
 
 GUI.New("AutoContMB", "Menubox", {
   z = 5,
@@ -177,25 +223,13 @@ GUI.New("StepsLeft_Label", "Label", {
   shadow = false
 })
 
-local xwin
-local startTime
-local endTime
-local practiceTime = {300, 120, 120, 120, 120, 120, 120, 180} -- Time for every step in seconds
-local practiceTempo = {0.5, 0.7, 0.6, 0.8, 0.65, 0.75, 0.8, 0.5}
-local maxBPM
-local stepsLeft = 8
-local i = 1
-local buttonEnabled = true
-local autoContinue
-local autoContMB
-local ok
-local pauseTime
-local startTime2
-local endTime2
-local notFinished
+-- </hide-code>
+
+
 
 GUI.Val("StepsLeft_Label", "Steps left: " .. stepsLeft)
 GUI.Val("CurrBPM_Label", "Current BPM:")
+GUI.Val("Slider1", 10000 )
 
 function storeAll ()
   store_maxBPM()
@@ -266,6 +300,7 @@ function GUI.elms.AutoContMB:onmouseup()
   pauseTime = autoContMB * 5
   store_settings()
 end
+-- <hide-code desc='shift Window'>
 
 function shiftWindow ()
   if GUI.elms.MaxBPM_Textbox1.z == 11 then
@@ -302,6 +337,7 @@ end
 
 -- Layer 5 will never be shown or updated
 GUI.elms_hide[5] = true
+-- </hide-code>
 
 function GUI.elms.Settings_btn:onmouseup()
   GUI.Button.onmouseup(self)
@@ -352,14 +388,14 @@ end
 
 function GUI.elms.Start_Cont_Button:onmouseup()
   GUI.Button.onmouseup(self)
-  startButton ()
+  startButton()
 end
 
 function countDownTimer2 ()
   if (reaper.time_precise() <= endTime2) then
     reaper.defer(countDownTimer2)
   else
-     startButton()
+    startButton()
   end
 end
 
@@ -367,8 +403,13 @@ function countDownTimer()
 
   if (reaper.time_precise() <= endTime) then
     reaper.defer(countDownTimer)
+    progress = endTime - reaper.time_precise()
+    length = endTime - startTime
+    progress = math.floor(progress / length * GUI.elms.Slider1.steps)
+    GUI.Val("Slider1", progress )
   else
     reaper.OnStopButton()
+    GUI.Val("Slider1", 10000 )
     buttonEnabled = true
     if i <= 8 then
       notFinished = true
@@ -433,3 +474,4 @@ GUI.elms.AutoContMB.x = xwin - ((GUI.elms.AutoContMB.w) / 2)
 GUI.elms.Checklist1.x = xwin - ((GUI.elms.Checklist1.w) / 2) + 16
 -- Start the main loop
 GUI.Main()
+
