@@ -1239,15 +1239,18 @@ function init()
         --test.buttons[d_key] = state.properties.buttons[d_key]-- or d_val
       end
     else
-      properties.buttons = shallow_copy(default_values.button)
+      properties.buttons = shallow_copy(default_values.buttons)
     end
   else
+    properties.buttons = shallow_copy(default_values.buttons)
     local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
     w = 0.1*(right-left)
     h = w -- 0.1*(bottom-top)
     x = 0.5*(right-left) - 0.5*w
     y = 0.5*(bottom-top) - 0.5*h
+    
   end
+
   gfx.clear = 3355443  -- matches with "FUSION: Pro&Clean Theme :: BETA 01" http://forum.cockos.com/showthread.php?t=155329
                        -- (Double click in ReaScript IDE to open the link)   
   gfx.init(script.title, w, h, dock , x, y)
