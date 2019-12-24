@@ -1,6 +1,6 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.0alpha1
+-- @version 1.0alpha2
 -- @changelog
 --   add options to individually toggle replacing pitch/channel/velocity [t=228799]
 --   add an option to skip unselected notes [t=228799]
