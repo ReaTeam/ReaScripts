@@ -4,6 +4,7 @@
 -- @changelog
 --   Fix blinking caret
 --   Fix initial blank window on macOS and REAPER 5
+--   Print the command name when running actions (SWS v2.10+ only)
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
