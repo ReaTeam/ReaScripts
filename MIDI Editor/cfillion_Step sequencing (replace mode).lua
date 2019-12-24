@@ -1,15 +1,11 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.0alpha2
--- @changelog
---   add options to individually toggle replacing pitch/channel/velocity [t=228799]
---   add an option to skip unselected notes [t=228799]
---   read/write the edit cursor position in the correct project tab
---   support removal of the helper JSFX across project tabs
+-- @version 1.0alpha3
+-- @changelog improve options menu position and styling on Windows when js_ReaScript API is present
 -- @provides
 --   .
---   [effect] cfillion_Step sequencing (replace mode).jsfx
 --   [main] . > cfillion_Step sequencing (options).lua
+--   [effect] cfillion_Step sequencing (replace mode).jsfx
 -- @screenshot
 --   Inserting and replacing notes https://i.imgur.com/4azf7CN.gif
 --   Options menu https://i.imgur.com/YFHLRWM.png
@@ -311,8 +307,18 @@ local function gfxdo(callback)
     return callback()
   end
 
-  local x, y = reaper.GetMousePosition()
-  gfx.init("", 0, 0, 0, x, y)
+  local curx, cury = reaper.GetMousePosition()
+  gfx.init("", 0, 0, 0, curx, cury)
+
+  if reaper.JS_Window_SetStyle then
+    local window = reaper.JS_Window_GetFocus()
+    local winx, winy = reaper.JS_Window_ClientToScreen(window, 0, 0)
+    gfx.x = gfx.x - (winx - curx)
+    gfx.y = gfx.y - (winy - cury)
+    reaper.JS_Window_SetStyle(window, "POPUP")
+    reaper.JS_Window_SetOpacity(window, 'ALPHA', 0)
+  end
+
   local value = callback()
   gfx.quit()
   return value
