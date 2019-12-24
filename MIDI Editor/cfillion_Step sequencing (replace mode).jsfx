@@ -26,22 +26,23 @@ NOTE_VEL    = 3;
 NOTE_ISDOWN = 4;
 NOTE_SIZE   = NOTE_ISDOWN; // sizeof(Note)
 
+function gmem_memcpy(dest, source, size) (
+  loop(size,
+    gmem[dest] = 0[source];
+    dest += 1; source += 1;
+  );
+);
+
 function flushNoteBuffer() local(ni, bi) (
-  ni = 0;
-  bi = gmem[0];
+  ni = 0; bi = gmem[0];
+  gmem[bi] = notes[0];
 
   while(ni < notes[0]) (
-    gmem[bi + NOTE_CHAN  ] = notes[ni + NOTE_CHAN  ];
-    gmem[bi + NOTE_PITCH ] = notes[ni + NOTE_PITCH ];
-    gmem[bi + NOTE_VEL   ] = notes[ni + NOTE_VEL   ];
-    gmem[bi + NOTE_ISDOWN] = notes[ni + NOTE_ISDOWN]; // unused
-
-    bi += NOTE_SIZE;
-    ni += NOTE_SIZE;
+    gmem_memcpy(bi, notes + ni, NOTE_SIZE);
+    bi += NOTE_SIZE; ni += NOTE_SIZE;
   );
 
-  gmem[gmem[0]] = notes[0];
-  gmem[0] += 1 + notes[0];
+  gmem[0] = bi;
   notes[0] = 0;
 );
 
