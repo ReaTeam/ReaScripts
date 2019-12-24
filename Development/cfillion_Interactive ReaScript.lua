@@ -3,7 +3,7 @@
 -- @version 0.8.3
 -- @changelog
 --   Fix blinking caret
---   Fix initial blank window on macOS and REAPER < 6
+--   Fix initial blank window on macOS and REAPER 5
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
