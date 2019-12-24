@@ -1,6 +1,5 @@
 noindex: true
 
-desc:Step sequencing (replace mode) by cfillion
 
 options:gmem=cfillion_stepRecordReplace
 options:no_meter
