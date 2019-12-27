@@ -1,8 +1,8 @@
 --[[
 Description: Lokasenna's GUI library v2 for Lua
-Version: 2.16.10
+Version: 2.16.11
 Changelog:
-    Fix: Options with only one element couldn't be set to false using :val()
+    Fix: Previous fix didn't apply to GUI.Val
 Author: Lokasenna
 Provides:
     [main]   Lokasenna_GUI v2/Library/Set Lokasenna_GUI v2 library path.lua

@@ -1111,7 +1111,7 @@ GUI.Val = function (elm, newval)
 
     if not GUI.elms[elm] then return nil end
 
-    if newval then
+    if newval ~= nil then
         GUI.elms[elm]:val(newval)
     else
         return GUI.elms[elm]:val()
