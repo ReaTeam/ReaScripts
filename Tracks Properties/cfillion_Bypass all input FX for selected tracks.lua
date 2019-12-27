@@ -40,4 +40,4 @@ for ti=0,reaper.CountSelectedTracks()-1 do
   end
 end
 
-reaper.Undo_EndBlock('Bypass all input FX for selected tracks', UNDO_STATE_FX)
+reaper.Undo_EndBlock(scriptName, UNDO_STATE_FX)
