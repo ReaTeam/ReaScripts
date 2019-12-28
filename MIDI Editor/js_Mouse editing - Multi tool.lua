@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.10
+Version: 5.11
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -182,6 +182,8 @@ About:
   * v5.10 (2019-12-30)
     + Scale top/bottom zones drawn at level of CC max/min values.
     + Compress bottom zone active behind bottom scroll bar.
+  * v5.11 (2019-12-31)
+    + A few tweaks.
 ]]
 
 -- USER AREA 
@@ -860,7 +862,7 @@ function Defer_Scale()
             scaleTOP, scaleBOTTOM = false, true
             pixelY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMinValue-laneMinValue)/(laneMaxValue-laneMinValue))//1
         end
-        if -20 < (pixelY-mouseY) and (pixelY-mouseY) < 20 then
+        if -zoneWidth < (pixelY-mouseY) and (pixelY-mouseY) < zoneWidth then
             mouseY = pixelY
             reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(midiview, mouseX, mouseY))
         end
