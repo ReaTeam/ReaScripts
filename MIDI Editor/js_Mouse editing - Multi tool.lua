@@ -179,10 +179,10 @@ About:
     + Fixed: Load custom colors.
     + Fixed: Display Undo/Redo boxes on macOS.
     + Fixed: Canceled color selection dialog doesn't change color.
-  * v5.10 (2019-12-30)
+  * v5.10 (2019-12-28)
     + Scale top/bottom zones drawn at level of CC max/min values.
     + Compress bottom zone active behind bottom scroll bar.
-  * v5.11 (2019-12-31)
+  * v5.11 (2019-12-29)
     + A few tweaks.
 ]]
 
