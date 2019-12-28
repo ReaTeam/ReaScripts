@@ -5,7 +5,7 @@ Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
 Provides: 
-  [main=midi_editor,midi_inlineeditor] .
+  [main=midi_editor] .
   js_Mouse editing - Scale bottom.cur
   js_Mouse editing - Scale top.cur
   js_Mouse editing - Multi compress.cur
@@ -179,7 +179,7 @@ About:
     + Fixed: Load custom colors.
     + Fixed: Display Undo/Redo boxes on macOS.
     + Fixed: Canceled color selection dialog doesn't change color.
-  * v5.10 (2019-12-03)
+  * v5.10 (2019-12-30)
     + Scale top/bottom zones drawn at level of CC max/min values.
     + Compress bottom zone active behind bottom scroll bar.
 ]]
