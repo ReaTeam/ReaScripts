@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.05
+Version: 5.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -176,9 +176,12 @@ About:
   * v5.01 (2019-12-03)
     + BETA version.
   * v5.05 (2019-12-19)
-    + Fixed:  Load custom colors.
-    + Fixed:  Display Undo/Redo boxes on macOS.
-    + Fixed:  Canceled color selection dialog doesn't change color.
+    + Fixed: Load custom colors.
+    + Fixed: Display Undo/Redo boxes on macOS.
+    + Fixed: Canceled color selection dialog doesn't change color.
+  * v5.10 (2019-12-03)
+    + Scale top/bottom zones drawn at level of CC max/min values.
+    + Compress bottom zone active behind bottom scroll bar.
 ]]
 
 -- USER AREA 
@@ -323,7 +326,8 @@ local tp = reaper.time_precise
 local tWM_Messages = {WM_LBUTTONDOWN = false, WM_LBUTTONDBLCLK = false, WM_LBUTTONUP = false,
                       WM_MBUTTONDOWN = false, WM_MBUTTONDBLCLK = false, WM_MBUTTONUP = false,
                       WM_RBUTTONDOWN = false, WM_RBUTTONDBLCLK = false, WM_RBUTTONUP = false,
-                      WM_NCMOUSEMOVE   = false, -- This intercept allows the mouse to go into the bottom scroll area (i.e. outside midiview's client area) without REAPER noticing it and changing the mouse cursor.
+                      WM_NCMOUSEMOVE = false, -- This intercept allows the mouse to go into the bottom scroll area (i.e. outside midiview's client area) without REAPER noticing it and changing the mouse cursor.
+                      WM_NCLBUTTONDOWN = false, WM_NCLBUTTONDBLCLK = false, -- Prevent clicking on scrollbar
                       WM_MOUSEWHEEL  = false, WM_MOUSEHWHEEL   = false,
                       WM_SETCURSOR   = false}                 
   
@@ -340,6 +344,7 @@ local tZones = {}
 local zone = nil
 local prevZone = nil
 local tColors = nil
+local zoneWidth = (gfx.ext_retina == 2) and 40 or 20 -- I'm nont sure if gfx.ext_retina actually works if no script GUI is created
 
 local OS, macOS, winOS        
 
@@ -464,6 +469,10 @@ function Check_MouseLeftButtonSinceLastDefer()
         ]]
         -- Terminate if left button is clicked
     local peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
+    if peekOK and time > stepStartTime + 0.1 then 
+        return true 
+    end
+    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_NCLBUTTONDOWN")
     if peekOK and time > stepStartTime + 0.1 then 
         return true 
     end
@@ -841,8 +850,21 @@ function Defer_Scale()
     if not (continueStep == "CONTINUE") then
         stepStartTime = thisDeferTime
         mouseStateAtStepDragTime = mouseState
-        scaleTOP = mouseY and (mouseY < (ME_TargetBottomPixel+ME_TargetTopPixel)/2)
-        scaleBOTTOM = not scaleTOP
+        
+        -- If mouse is close to CC height, move mouse to precisely CC height
+        local pixelY
+        if zone.cursor == cursorHandTop then
+            scaleTOP, scaleBOTTOM = true, false
+            pixelY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMaxValue-laneMinValue)/(laneMaxValue-laneMinValue))//1      
+        else
+            scaleTOP, scaleBOTTOM = false, true
+            pixelY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMinValue-laneMinValue)/(laneMaxValue-laneMinValue))//1
+        end
+        if -20 < (pixelY-mouseY) and (pixelY-mouseY) < 20 then
+            mouseY = pixelY
+            reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(midiview, mouseX, mouseY))
+        end
+
         -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
         local old = tSteps[#tSteps]
         local new = {tGroups = {}, isChangingPositions = false}
@@ -985,6 +1007,7 @@ function ChooseZoneColor()
         if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 then reaper.JS_Window_SetForeground(editor) end
         if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_SetFocus(midiview) end
         
+        --reaper.ShowConsoleMsg(tostring(ok) .. " " .. string.format("%x", c))
         if ok == 1 and type(c) == "number" then 
             if winOS then c = 0xFF000000 | ((c&0xff)<<16) | (c&0xff00) | ((c&0xff0000)>>16)
             else c = (c | 0xFF000000) & 0xFFFFFFFF -- Make sure that basic color is completely opaque
@@ -1909,13 +1932,20 @@ function Check_CommonQuitConditionsAndGetInputs()
             return false 
         end
     else 
-        -- MIDI editor closed or changed mode?  Also, quit if moved too far outside piano roll.
+        -- MIDI editor closed or changed mode? 
         if reaper.MIDIEditor_GetMode(editor) ~= 0 then return false end 
-        -- Mouse can't go outside MIDI editor, unless left-dragging (to ensure that user remembers that script is running)
         mouseX, mouseY = reaper.JS_Window_ScreenToClient(midiview, mouseX, mouseY)
+        -- When move out of midiview, WM_SETCURSOR is no longer blocked, so must continually force cursor back to script cursor
         if mouseX < 0 or mouseY < 0 or ME_midiviewWidth <= mouseX or ME_midiviewHeight <= mouseY then 
-            if mouseState ~= prevMouseState then return false end
-            if cursor then reaper.JS_Mouse_SetCursor(cursor) end
+            if cursor then 
+                reaper.JS_Mouse_SetCursor(cursor) 
+            end
+            -- Quit if clicking outside midiview -- unless click on bottom scrollbar, which may be hiding the bottom Compress zone
+            if mouseState > prevMouseState then 
+                if mouseX < 0 or mouseY < 0 or ME_midiviewWidth <= mouseX or ME_midiviewHeight+50 <= mouseY then
+                    return false 
+                end
+            end
             --[[
             if cursor then reaper.JS_Mouse_SetCursor(cursor) end
             if mouseState&1 == 0 and (mouseX < -150 or mouseY < -150 or ME_midiviewWidth+150 < mouseX or ME_midiviewHeight+150 < mouseY) then
@@ -2077,9 +2107,7 @@ end
 
 --##########################
 ----------------------------
-function SetupDisplayZones()
-    
-    local zoneWidth = (gfx.ext_retina == 2) and 40 or 20
+function SetupDisplayZones()    
     
     if not tColors then
         LoadZoneColors()
@@ -2096,6 +2124,8 @@ function SetupDisplayZones()
     local GUI_MidPixel = (GUI_LeftPixel+GUI_RightPixel)//2
     if (GUI_RightPixel - GUI_LeftPixel) < zoneWidth*4 then GUI_LeftPixel, GUI_RightPixel = GUI_MidPixel - 2*zoneWidth, GUI_MidPixel + 2*zoneWidth end
     
+    local undoLeft = math.max(0, GUI_LeftPixel-2*zoneWidth)
+     
     tZones = {}
     if (laneIsCC7BIT or laneIsCC14BIT or laneIsPITCH or laneIsCHANPRESS or laneIsPROGRAM or laneIsVELOCITY or laneIsOFFVEL) 
     and (ME_TargetBottomPixel-ME_TargetTopPixel) > 3*zoneWidth
@@ -2104,45 +2134,65 @@ function SetupDisplayZones()
         local leftValue, rightValue = t.globalLeftValue, t.globalRightValue
         if leftValue then
             --if t.tTicks[1] > t.tTicks[#t.tTicks] then leftValue, rightValue = rightValue, leftValue end
-            local leftTiltPixel = (ME_TargetTopPixel+(1-leftValue/laneMaxValue)*(ME_TargetBottomPixel-ME_TargetTopPixel))//1
+            local leftTiltPixel = ME_TargetTopPixel+(1-leftValue/laneMaxValue)*(ME_TargetBottomPixel-ME_TargetTopPixel)
             tZones[#tZones+1] = {func = Defer_Tilt,         wheel = Edit_ChaseLeft,         tooltip = "Tilt / Arch",   cursor = cursorTilt,         color = "tilt", 
                                   left = GUI_LeftPixel,  right = GUI_LeftPixel+zoneWidth-1,  top = leftTiltPixel-zoneWidth/2,    bottom = leftTiltPixel+zoneWidth/2}   
         end
         if rightValue then
-            local rightTiltPixel = (ME_TargetTopPixel+(1-rightValue/laneMaxValue)*(ME_TargetBottomPixel-ME_TargetTopPixel))//1
+            local rightTiltPixel = ME_TargetTopPixel+(1-rightValue/laneMaxValue)*(ME_TargetBottomPixel-ME_TargetTopPixel)
             tZones[#tZones+1] = {func = Defer_Tilt,           wheel = Edit_ChaseRight,          tooltip = "Tilt / Arch",  cursor = cursorTilt,      color = "tilt", 
                                   left = GUI_RightPixel-zoneWidth+1,   right = GUI_RightPixel,  top = rightTiltPixel-zoneWidth/2,  bottom = rightTiltPixel+zoneWidth/2}
         end
+        
         -- Undo/Redo        
         tZones[#tZones+1] = {func = Defer_Undo,     wheel = Defer_Undo,     tooltip = "Undo",                       cursor = cursorUndo,    color = (#tSteps > 0) and "undo" or "black", 
-                             left = 0,              right = zoneWidth-1,      top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
+                             left = undoLeft,       right = undoLeft+zoneWidth-1,      top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
         tZones[#tZones+1] = {func = Defer_Redo,     wheel = Defer_Redo,     tooltip = "Redo",                       cursor = cursorRedo,    color = (#tRedo > 0) and "redo" or "black", 
-                             left = zoneWidth,      right = 2*zoneWidth-1,  top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
+                             left = undoLeft+zoneWidth,      right = undoLeft+2*zoneWidth-1,  top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
+        
+        -- Scale
+        local left, right = GUI_LeftPixel+2*zoneWidth, GUI_RightPixel-2*zoneWidth
+        if right-left < 2*zoneWidth then left, right = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
+        
+        local minValuePixel, maxValuePixel = ME_TargetBottomPixel, ME_TargetTopPixel
+        if t.globalMaxValue and t.globalMinValue then 
+            maxValuePixel = ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(t.globalMaxValue-laneMinValue)/(laneMaxValue-laneMinValue) - zoneWidth/2
+            minValuePixel = ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(t.globalMinValue-laneMinValue)/(laneMaxValue-laneMinValue) + zoneWidth/2
+            if minValuePixel - maxValuePixel < zoneWidth*3 then maxValuePixel = (minValuePixel+maxValuePixel)/2 - zoneWidth*1.5 end
+            if maxValuePixel <= ME_TargetTopPixel    then maxValuePixel = ME_TargetTopPixel end
+            if minValuePixel - maxValuePixel <= zoneWidth*3 then minValuePixel = maxValuePixel + zoneWidth*3 end
+            if minValuePixel >= ME_TargetBottomPixel then minValuePixel = ME_TargetBottomPixel end
+            if minValuePixel - maxValuePixel <= zoneWidth*3 then maxValuePixel = minValuePixel - zoneWidth*3 end
+            minValuePixel, maxValuePixel = minValuePixel//1, maxValuePixel//1
+        end
+        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale top",      cursor = cursorHandTop,     color = "scale", 
+                             left = left,     right = right, top = maxValuePixel,    bottom = maxValuePixel+zoneWidth-1,
+                             activeTop = ME_TargetTopPixel} --activeLeft = -1/0, activeRight = 1/0}
+        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale bottom",   cursor = cursorHandBottom,  color = "scale", 
+                              left = left,    right = right, top = minValuePixel-zoneWidth+1, bottom = minValuePixel,
+                              activeBottom = ME_TargetBottomPixel} --activeLeft = -1/0, activeRight = 1/0}    
+        
         -- Stretch
         -- Make sure that the Stretch zones are always visible and separate, even if the pixel range of the selected events is tiny.
         --local leftStretchPixel, rightStretchPixel = GUI_LeftPixel+zoneWidth*2-1, GUI_RightPixel-zoneWidth*2
         --if rightStretchPixel - leftStretchPixel < 0 then leftStretchPixel, rightStretchPixel = (leftStretchPixel+rightStretchPixel)//2, (leftStretchPixel+rightStretchPixel)//2+1 end
+        local stretchTopPixel     = maxValuePixel+zoneWidth --(maxValuePixel > ME_TargetTopPixel+zoneWidth+1) and maxValuePixel or (maxValuePixel+zoneWidth+1)
+        local stretchBottomPixel  = minValuePixel-zoneWidth --(minValuePixel < ME_TargetBottomPixel-zoneWidth-1) and minValuePixel or (minValuePixel-zoneWidth-1)
         tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,               tooltip = "Stretch left",   cursor = cursorHandLeft,    color = "stretch", 
-                             left = GUI_LeftPixel+zoneWidth,       right = GUI_LeftPixel+zoneWidth*2-1, top  = ME_TargetTopPixel+zoneWidth+1, bottom = ME_TargetBottomPixel-zoneWidth-1,
-                             activeLeft = -1/0}
+                             left = GUI_LeftPixel+zoneWidth,       right = GUI_LeftPixel+zoneWidth*2-1, 
+                             top  = stretchTopPixel, bottom = stretchBottomPixel,
+                             activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, activeLeft = -1/0}
         tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,               tooltip = "Stretch right",  cursor = cursorHandRight,   color = "stretch", 
                              left = GUI_RightPixel-zoneWidth*2+1,    right = GUI_RightPixel-zoneWidth,                        
-                             top  = ME_TargetTopPixel+zoneWidth+1, bottom = ME_TargetBottomPixel-zoneWidth-1,
-                             activeRight = 1/0}
-        -- Scale
-        local left, right = GUI_LeftPixel+2*zoneWidth, GUI_RightPixel-2*zoneWidth
-        if right-left < 2*zoneWidth then left, right = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
-        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale top",      cursor = cursorHandTop,     color = "scale", 
-                             left = left,     right = right, top = ME_TargetTopPixel,    bottom = ME_TargetTopPixel+zoneWidth,
-                             activeLeft = -1/0, activeRight = 1/0}
-        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale bottom",   cursor = cursorHandBottom,  color = "scale", 
-                              left = left,    right = right, top = ME_TargetBottomPixel-zoneWidth, bottom = ME_TargetBottomPixel,
-                              activeLeft = -1/0, activeRight = 1/0}
+                             top  = stretchTopPixel, bottom = stretchBottomPixel,
+                             activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, activeRight = 1/0}         
+        
         -- Warp
         if (GUI_RightPixel - GUI_LeftPixel) > zoneWidth*4 then
             tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_Reverse,   tooltip = "Warp",           cursor = cursorArpeggiateLR,color = "warp", 
-                                 left = GUI_LeftPixel+zoneWidth*2, right = GUI_RightPixel-zoneWidth*2, top = ME_TargetTopPixel+zoneWidth+1, bottom = ME_TargetBottomPixel-zoneWidth-1}
-        end               
+                                 left = GUI_LeftPixel+zoneWidth*2, right = GUI_RightPixel-zoneWidth*2, top = stretchTopPixel, bottom = stretchBottomPixel}
+        end  
+        
         -- Compress top/bottom
         left, right = GUI_LeftPixel+3*zoneWidth, GUI_RightPixel-3*zoneWidth
         if right-left < 2*zoneWidth then left, right = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
@@ -2166,9 +2216,9 @@ function SetupDisplayZones()
             undoTop, undoBottom = bottom+1, bottom+zoneWidth+1
         end   
         tZones[#tZones+1] = {func = Defer_Undo,         wheel = Defer_Undo,       tooltip = "Undo",   cursor = cursorUndo,    color = (#tSteps > 0) and "undo" or "black", 
-                              left = 0,  right = zoneWidth,  top = undoTop, bottom = undoBottom}                  
+                              left = undoLeft,  right = undoLeft+zoneWidth,  top = undoTop, bottom = undoBottom}                  
         tZones[#tZones+1] = {func = Defer_Redo,         wheel = Defer_Redo,       tooltip = "Redo",   cursor = cursorRedo,    color = (#tRedo > 0) and "redo" or "black", 
-                              left = zoneWidth+1, right = 2*zoneWidth+1,  top = undoTop, bottom = undoBottom}                  
+                              left = undoLeft+zoneWidth+1, right = undoLeft+2*zoneWidth+1,  top = undoTop, bottom = undoBottom}                  
         -- Stretch
         tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,   tooltip = "Stretch left",   cursor = cursorHandLeft,    color = "stretch", 
                               left = GUI_LeftPixel+zoneWidth, right = GUI_LeftPixel+zoneWidth*2-1,   top = top, bottom = bottom,
@@ -2182,16 +2232,13 @@ function SetupDisplayZones()
     end    
     reaper.JS_LICE_Clear(bitmap, 0)
     for _, z in ipairs(tZones) do
-        i = _
-        --local left  = (z.left == -1/0) and (z.right-zoneWidth+1) or z.left -- This is just a hack to get stretch to work outside the colored zone, since zones that stretch to the end of midiview don't look nice.  The tables above should actually have separate entries for "display zone" and "active zone".
-        --local right = (z.right == 1/0) and (z.left+zoneWidth-1)  or z.right
         local color = tColors[z.color]
         reaper.JS_LICE_FillRect(bitmap, z.left//1, z.top//1, (z.right-z.left)//1, (z.bottom-z.top)//1, color, 1, "COPY")
         color = winOS and ((color>>3)&0x1F1F1F1F) or (color&0x1FFFFFFF)
         reaper.JS_LICE_FillRect(bitmap, (z.left+1)//1, (z.top+1)//1, (z.right-z.left-2)//1, (z.bottom-z.top-2)//1, color, 1, "COPY")
     end
     
-    reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false)
+    reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false) --GUI_LeftPixel-zoneWidth, ME_TargetTopPixel-zoneWidth, GUI_RightPixel+zoneWidth, ME_TargetBottomPixel+zoneWidth, false)
 
 end
 
@@ -2210,10 +2257,12 @@ function Defer_Zones()
     -- FIND ZONE
     prevZone = zone or false
     zone = nil
-    for _, z in ipairs(tZones) do
-        if (z.activeLeft or z.left)<=mouseX and mouseX<=(z.activeRight or z.right) and z.top<=mouseY and mouseY<=z.bottom then
-            zone = z
-            break
+    if 0 <= mouseX and mouseX < ME_midiviewWidth and 0 <= mouseY and mouseY < ME_midiviewHeight+zoneWidth then -- Add a little leeway at bottom, in case a compress zone is hidden behind scrollbar
+        for _, z in ipairs(tZones) do
+            if (z.activeLeft or z.left) <= mouseX and mouseX <= (z.activeRight or z.right) and (z.activeTop or z.top) <= mouseY and mouseY <= (z.activeBottom or z.bottom) then
+                zone = z
+                break
+            end
         end
     end
     -- MOUSE CURSOR
@@ -2225,18 +2274,6 @@ function Defer_Zones()
             cursor = cursorNo
         end
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
-    end
-    -- LEFT CLICK: Run the function linked to zone under mouse
-    local peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
-    if peekOK and time > stepStartTime then --prevMouseTime then
-        if zone then 
-            selectedEditFunction = zone.func
-            reaper.JS_LICE_Clear(bitmap, 0)
-            --reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false)
-            return "NEXT", zone.func
-        else
-            return "QUIT"
-        end
     end
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
@@ -2250,6 +2287,21 @@ function Defer_Zones()
             --reaper.JS_LICE_Clear(bitmap, 0)
             --reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false)
             return "NEXT", zone.wheel
+        else
+            return "QUIT"
+        end
+    end
+    -- LEFT CLICK: Run the function linked to zone under mouse
+    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
+    if not (peekOK and time > stepStartTime) then
+        peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_NCLBUTTONDOWN")
+    end
+    if peekOK and time > stepStartTime then --prevMouseTime then
+        if zone then 
+            selectedEditFunction = zone.func
+            reaper.JS_LICE_Clear(bitmap, 0)
+            --reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false)
+            return "NEXT", zone.func
         else
             return "QUIT"
         end
@@ -2664,6 +2716,7 @@ end
 function ParseMidi_FirstPass()
     local i = -1 
     local tGroups = tGroups
+    origValueMin, origValueMax = math.huge, -math.huge
     
     if laneIsALL then
     
@@ -2745,13 +2798,15 @@ function ParseMidi_FirstPass()
                     origNoteOffTick   = endppqpos 
                     origValueRightmost  = vel
                 end 
+                if vel > origValueMax then origValueMax = vel end
+                if vel < origValueMin then origValueMin = vel end
                 goto getNextNote
             end
         ::gotAllNotes:: end
         
     elseif laneIsCC7BIT or laneIsCC14BIT then
     
-        local ccType = laneIsCC14BIT and (mouseOrigCCLane-224) or mouseOrigCCLane -- Since we are only interested in finding ticks positions and used channels, no need to get LSB for 14 bit CCs
+        local ccType = laneIsCC14BIT and (mouseOrigCCLane-256) or mouseOrigCCLane -- Since we are only interested in finding ticks positions and used channels, no need to get LSB for 14 bit CCs
         do ::getNextCC::
             i = reaper.MIDI_EnumSelCC(activeTake, i)
             if i == -1 then 
@@ -2764,7 +2819,8 @@ function ParseMidi_FirstPass()
                     origValueRightmost  = msg3
                     origTickLeftmost    = origTickLeftmost or ppqpos
                     origTickRightmost   = ppqpos
-                    
+                    if msg3 > origValueMax then origValueMax = msg3 end
+                    if msg3 < origValueMin then origValueMin = msg3 end
                     
                     --[[if not origValueLeftmost or (ppqpos == origTickLeftmost and chan == activeChan) then
                         origValueLeftmost   = msg3
@@ -2786,7 +2842,7 @@ function ParseMidi_FirstPass()
                 goto getNextCC
             end
         ::gotAllCCs:: end
-        if laneIsCC14BIT and origValueLeftmost then origValueLeftmost, origValueRightmost = origValueLeftmost<<7, origValueRightmost<<7 end
+        if laneIsCC14BIT and origValueLeftmost then origValueLeftmost, origValueRightmost, origValueMin, origValueMax = origValueLeftmost<<7, origValueRightmost<<7, origValueMin<<7, origValueMax<<7 end
         
     elseif laneIsPROGRAM then
     
@@ -2802,6 +2858,8 @@ function ParseMidi_FirstPass()
                     origValueRightmost  = msg2
                     origTickLeftmost    = origTickLeftmost or ppqpos
                     origTickRightmost   = ppqpos
+                    if msg2 > origValueMax then origValueMax = msg2 end
+                    if msg2 < origValueMin then origValueMin = msg2 end
                 end
                 goto getNextCC
             end
@@ -2821,6 +2879,8 @@ function ParseMidi_FirstPass()
                     origValueRightmost  = msg2
                     origTickLeftmost    = origTickLeftmost or ppqpos
                     origTickRightmost   = ppqpos
+                    if msg2 > origValueMax then origValueMax = msg2 end
+                    if msg2 < origValueMin then origValueMin = msg2 end
                 end
                 goto getNextCC
             end
@@ -2841,6 +2901,8 @@ function ParseMidi_FirstPass()
                     origValueRightmost  = value
                     origTickLeftmost    = origTickLeftmost or ppqpos
                     origTickRightmost   = ppqpos
+                    if value > origValueMax then origValueMax = value end
+                    if value < origValueMin then origValueMin = value end
                 end
                 goto getNextCC
             end
@@ -2907,7 +2969,11 @@ function ParseMidi_FirstPass()
     
     origTickRightmost = origTickRightmost or origNoteOffTick
     origNoteOffTick   = origNoteOffTick or origTickRightmost
-    tSteps[0] = { globalLeftTick    = origTickLeftmost,   globalRightTick   = origTickRightmost, 
+    if origValueMin > origValueMax then
+        origValueMin, origValueMax = laneMinValue, laneMaxValue
+    end 
+    tSteps[0] = { globalMinValue    = origValueMin,       globalMaxValue    = origValueMax,
+                  globalLeftTick    = origTickLeftmost,   globalRightTick   = origTickRightmost, 
                   globalLeftValue   = origValueLeftmost,  globalRightValue  = origValueRightmost,
                   globalNoteOffTick = origNoteOffTick}
 end
@@ -3550,7 +3616,7 @@ function ArmToolbarButton()
         reaper.SetExtState("js_Mouse actions", "Armed commandID", tostring(commandID), false)
         --reaper.SetToggleCommandState(sectionID, commandID, 1)
         --reaper.RefreshToolbar2(sectionID, commandID)
-        Tooltip("Armed: Stretch and Compress")
+        Tooltip("Armed: Multi tool")
     end
 
     -- Must notify the AtExit function that button should not be deactivated when exiting.
