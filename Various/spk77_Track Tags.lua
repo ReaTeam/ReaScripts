@@ -1,13 +1,10 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.6
+-- @version 0.3.7
 -- @author spk77
 -- @changelog
---   - Separate buttons by tag-type (currently folder-type buttons are drawn first)
---   - Store state when changing project tabs
---   - Option: set margin-top value (=pixels from the top)
---   - Don't draw info text
---   - Automatically unselected all items in hidden tracks
-
+--   - Fix "Store current dock position as 'right'" (value wasn't restored at init)
+--   - Main menu option: Folder tags -> Show closest parent
+--   - Butto menu option (for folder tag-buttons): Show only parent track
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -30,7 +27,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.6",
+                  version = "0.3.7",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -50,13 +47,16 @@ local GUI = {
               win_w = 0,
               win_h = 0,
               bg_col_int = 3355443,
-              bg_col_r, bg_col_g, bg_col_b = 0,0,0,   -- set in init -function
+              bg_col_r = 0,
+              bg_col_g = 0,
+              bg_col_b = 0,
               drag = false,
               drag_start_offset = 10,
               safe_remove_btn_by_index = {},
               safe_remove_track_from_tag = {},        -- remove tagged track from button
               safe_remove_all_tags = false,
-              focus_arrange_view = true
+              focus_arrange_view = true,
+              
               --show_titlebar = true
             }
             
@@ -79,7 +79,8 @@ local main_menu =  {
                 show_only_tagged_tracks = true,
                 button_layout =  1, -- 1=fit to window, 2=horizontal, 3=vertical
                 button_ordering = 1, -- 1=by track index, 2=alphabetically
-                use_track_color = true
+                use_track_color = true,
+                show_closest_parent = false
               }
 
 
@@ -380,7 +381,17 @@ function update_visibility()
           end
           for t=1, #b.tracks do
             local tr = b.tracks[t]
+            
             if reaper.ValidatePtr(tr, "MediaTrack*") then
+---[[ Show closest parent track
+              if main_menu.show_closest_parent and t == 1 and b.type == "folder parent" then
+                local par_tr = reaper.GetParentTrack(tr)
+                if par_tr then
+                  reaper.SetMediaTrackInfo_Value(par_tr, "B_SHOWINTCP", 1)
+                  reaper.SetMediaTrackInfo_Value(par_tr, "B_SHOWINMIXER", 1)
+                end
+              end
+--]]
               reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 1)
               reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 1)
             else
@@ -483,9 +494,16 @@ function show_main_menu(x, y)
   m.str = m.str .. "><Remove|"
   m.str = m.str .. "<All tags||"
   
+  m.str =  m.str .. ">Folder tags|"
+  if main_menu.show_closest_parent then
+    m.str =  m.str .. "<!Show closest parent track||"
+  else
+    m.str =  m.str .. "<Show closest parent track||"
+  end
+  
   m.str =  m.str .. "Quit||"
   m.str =  m.str .. "#Track Tags v." .. script.version
-  local menu_ret = gfx.showmenu(m.str)
+   menu_ret = gfx.showmenu(m.str)
 
   -- Handle menu return values
   if menu_ret == 1 then
@@ -539,6 +557,10 @@ function show_main_menu(x, y)
   elseif menu_ret == 15 then
     GUI.safe_remove_all_tags = true
   elseif menu_ret == 16 then
+    main_menu.show_closest_parent = not main_menu.show_closest_parent
+    update_folder_type_tag_buttons()
+    update_visibility()
+  elseif menu_ret == 17 then
     --exit()
     main_menu.quit = true
   end
@@ -1109,12 +1131,23 @@ function create_button(btn_type)
                         --store_btns()
                       end
                   
-  btn.onRmbRelease =  function(buttonindex)
+  btn.onRmbRelease =  
+                  function(buttonindex)
                     gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
                     local m = button_menu
+                    --m.str = "#" .. "Button type: " .. btn.type .. "||"
                     m.str = "Rename tag|"
                     m.str = m.str .. "Remove tag|"
-                    m.str = m.str .. "Update tag|"
+                    m.str = m.str .. "Update tag||"
+                    if btn.type == "selection" then
+                      m.str = m.str .. "#"
+                    elseif btn.type == "folder parent" then
+                      if btn.show_only_parent then 
+                        m.str = m.str .. "!"
+                      end
+                      
+                    end
+                    m.str = m.str .. "Show only parent track|"
                     --[[
                     m.str = m.str .. ">Options|"
                     if button_menu.show_in_tcp then
@@ -1158,6 +1191,10 @@ function create_button(btn_type)
                         btn.track_guids[#btn.track_guids+1] = reaper.GetTrackGUID(tr) -- from version 0.2.6 ->
                         btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
                       end
+                    elseif ret == 4 then
+                      btn.show_only_parent = not btn.show_only_parent
+                      update_folder_type_tag_buttons()
+                      update_visibility()
                     end
                   end
   
@@ -1225,7 +1262,6 @@ end
 
 ------------------------------------------------------------
 function update_child_tracks(parent_tr, tag_button, tag_button_index)
-  
   if not reaper.ValidatePtr(parent_tr, "MediaTrack*") then
     GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = {tag_button_index, "folder parent"}
     return
@@ -1237,6 +1273,10 @@ function update_child_tracks(parent_tr, tag_button, tag_button_index)
     tag_button.tracks[i] = nil
     tag_button.track_guids[i] = nil -- from version 0.2.6 ->
   end
+  if tag_button.show_only_parent then
+    return
+  end
+  
   -- "Tag" child tracks
   for j=parent_tr_index+1, tr_count-1 do
     local child_tr = reaper.GetTrack(0, j)
@@ -1258,6 +1298,7 @@ end
 
 ------------------------------------------------------------
 function update_folder_type_tag_buttons()
+  msg("Function call: update_folder_type_tag_buttons")
   local btns = GUI.elements.buttons.folder_type
   --if #btns == 0 then return end
   for i=1, #btns do
@@ -1265,8 +1306,7 @@ function update_folder_type_tag_buttons()
     if btn.type == "folder parent" then
       local tr = btn.tracks[1]
       if not reaper.ValidatePtr(tr, "MediaTrack*") then -- Parent track is not valid anymore
-        -- Remove the button at the end of this cycle
-        is_not_valid = is_not_valid+1
+        -- Remove the button at the end of current cycle
         GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = {i, "folder parent"} 
       else
         btn:set_color_to_track_color()
@@ -1418,11 +1458,11 @@ function Pane:draw(index)
 end
 
 ------------------------------------------------------------
-function on_track_list_change(last_action_undo_str)  
-  if #GUI.elements.buttons > 0 then
+function on_track_list_change(last_action_undo_str)
+  --if #GUI.elements.buttons > 0 then
     update_folder_type_tag_buttons()
     update_custom_type_tag_buttons()
-  end
+  --end
 end
 
 --[[ needs JS reascript API
@@ -1448,6 +1488,7 @@ function init()
   local dock, x, y, w, h = 0, 0, 0, 0, 0
    --reaper.SetProjExtState(0, "spk77 Track Tags", "script state", "") -- delete data
   local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "script state")
+  
   if ok == 1 and state ~= "" then
     state = unpickle(state)
     dock = state.GUI.dock
@@ -1455,25 +1496,25 @@ function init()
     y = state.GUI.y
     w = state.GUI.w
     h = state.GUI.h
+
     if state.main_menu ~= nil then
       main_menu.button_layout = state.main_menu.button_layout or 1
       main_menu.dock_pos_left = state.main_menu.dock_pos_left or (256+1)
       main_menu.dock_pos_top_left = state.main_menu.dock_pos_top_left or (2*256+1)
       main_menu.dock_pos_top_right = state.main_menu.dock_pos_top_right or (3*256+1)
-      main_menu.dock_pos_right = main_menu.dock_pos_right or (0*256+1)
+      main_menu.dock_pos_right = state.main_menu.dock_pos_right or (0*256+1)
       main_menu.show_only_tagged_tracks = state.main_menu.show_only_tagged_tracks or true
       main_menu.button_layout = state.main_menu.button_layout or 1 -- 1=fit to window, 2=horizontal, 3=vertical
       main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
       main_menu.fixed_sized_buttons = state.main_menu.fixed_sized_buttons or false
+      main_menu.show_closest_parent = state.main_menu.show_closest_parent or false
     end
 
     if state.properties ~= nil then
       local sp = state.properties
-      --test = {buttons = {}}
       local d = default_values.buttons
       for d_key, d_val in pairs(d) do
         properties.buttons[d_key] = state.properties.buttons[d_key] or d_val
-        --test.buttons[d_key] = state.properties.buttons[d_key]-- or d_val
       end
     else
       properties.buttons = shallow_copy(default_values.buttons)
@@ -1732,6 +1773,7 @@ end
 
 ------------------------------------------------------------
 function mainloop()
+  
   --if mouse.cap == 0 then
     GUI.active_element, GUI.active_element_index = get_mouse_cursor_context()
   --end
@@ -1829,7 +1871,9 @@ function mainloop()
   
   -- Remove buttons here at the end if certain flags are set
   if #GUI.safe_remove_btn_by_index > 0 then
+    msg("#GUI.safe_remove_btn_by_index > 0")
     local l = #GUI.safe_remove_btn_by_index
+    
     for i=l, 1, -1 do -- from end to start
       local index = GUI.safe_remove_btn_by_index[i][1] -- index, "folder parent" or "selection"
       if GUI.safe_remove_btn_by_index[i][2] == "folder parent" then
@@ -1901,7 +1945,8 @@ function store_btns(proj_id)
                                   --tracks = btn.tracks,
                                   tracks = btn.track_guids,
                                   type = btn.type,
-                                  toggle_state = btn.toggle_state
+                                  toggle_state = btn.toggle_statel,
+                                  show_only_parent = btn.show_only_parent
                                 }
       end
     end
@@ -1950,6 +1995,7 @@ function restore(proj_id)
       btn.lbl_w, btn.lbl_h = gfx.measurestr(btn.lbl)
       --btn.type = state[i].type
       btn.toggle_state = state[i].toggle_state
+      btn.show_only_parent = state[i].show_only_parent or false
       --btn:set_color_to_track_color() 
       btn:update_w_by_lbl_w()
     end
