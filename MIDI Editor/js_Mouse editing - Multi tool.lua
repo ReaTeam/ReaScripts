@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.11
+Version: 5.12
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -184,6 +184,8 @@ About:
     + Compress bottom zone active behind bottom scroll bar.
   * v5.11 (2019-12-29)
     + A few tweaks.
+  * v5.12 (2019-12-30)
+    + Fixed: Bug when holding keyboard shortcut.
 ]]
 
 -- USER AREA 
@@ -1905,7 +1907,7 @@ function Check_CommonQuitConditionsAndGetInputs()
     elseif not keysDownAtDragTime then -- Second cycle
         keysDownAtDragTime = reaper.JS_VKeys_GetState(startTime-0.5):sub(VKLow, VKHi) -- Only get keyState once, when dragtime has started
     elseif keysDownAtDragTime ~= keyState0 then -- Third cycle
-        if reaper.JS_VKeys_GetState(startTime-0.5):sub(VKLow, VKHi) == keyState0 then M(1) return false end -- If keys are still held after dragtime, quit when they are released
+        if reaper.JS_VKeys_GetState(startTime-0.5):sub(VKLow, VKHi) == keyState0 then return false end -- If keys are still held after dragtime, quit when they are released
     end 
     if reaper.JS_VKeys_GetDown(prevDeferTime):sub(VKLow, VKHi) ~= keyState0 then return false end
     
