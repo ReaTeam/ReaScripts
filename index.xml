@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="169ecb9930340e70c3880785639be39f474a1577" name="ReaTeam Scripts">
+<index version="1" commit="bfe560894818a8b5f8cefa6f15a6a4d3966903f4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13734,7 +13734,25 @@ uc_note_min_seconds = 1\par}
       </version>
     </reapack>
     <reapack name="spk77_Track Tags.lua" type="script" desc="Track Tags (based on Tracktion 6 track tags)">
-      <metadata/>
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Track Tags\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script is based on Tracktion 6 track tags\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Screenshot\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showpost.php?p=1956530&postcount=1\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main Features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Show and hide tagged track groups from TCP/MCP\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Known Issues/Limitations\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab This is an alpha version\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=203446">Forum Thread</link>
+        <link rel="screenshot">https://forum.cockos.com/showpost.php?p=1956530&amp;postcount=1</link>
+        <link rel="donation">https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=5NUK834ZGR5NU&amp;lc=FI&amp;item_name=SPK77%20scripts%20for%20REAPER&amp;currency_code=EUR&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted</link>
+      </metadata>
       <version name="0.1" author="spk77" time="2018-02-25T20:41:31Z">
         <changelog><![CDATA[Create tags from folder parents: don't create new buttons if folder(s) already tagged]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e95fd33251d6799cc02e48013952d366fe17c7fc/Various/spk77_Track%20Tags.lua</source>
@@ -13837,6 +13855,12 @@ uc_note_min_seconds = 1\par}
 - Don't draw info text
 - Automatically unselected all items in hidden tracks]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/70eaf2fbbea367d4d6f1619acf0ce9e6f09c0364/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.3.7" author="spk77" time="2019-12-30T09:04:17Z">
+        <changelog><![CDATA[- Fix "Store current dock position as 'right'" (value wasn't restored at init)
+- Main menu option: Folder tags -> Show closest parent
+- Butto menu option (for folder tag-buttons): Show only parent track]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bfe560894818a8b5f8cefa6f15a6a4d3966903f4/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
