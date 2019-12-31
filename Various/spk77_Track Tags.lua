@@ -1,10 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.7
+-- @version 0.3.8
 -- @author spk77
 -- @changelog
---   - Fix "Store current dock position as 'right'" (value wasn't restored at init)
---   - Main menu option: Folder tags -> Show closest parent
---   - Butto menu option (for folder tag-buttons): Show only parent track
+--   - Try to fix "Drag and drop" -docking on macOS
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -27,12 +25,13 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.7",
+                  version = "0.3.8",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
                   debug = false
                 }
+script.os = reaper.GetOS()
 
 
 local GUI = {
@@ -59,6 +58,13 @@ local GUI = {
               
               --show_titlebar = true
             }
+
+-- Drag and drop docking
+if script.os == "OSX32" or script.os == "OSX64" then
+  GUI.reaper_titlebar_h = 22+8 -- reaper's title bar height on macOS is 22 pixels?
+else
+  GUI.reaper_titlebar_h = 0 -- other OSes: dock when window is at the top of screen
+end       
             
 GUI.elements =  {
                   buttons = {folder_type = {}, selection_type = {}},
@@ -164,7 +170,7 @@ local max = math.max
 local sqrt = math.sqrt
 local reaper = reaper
 local EnumProjects = reaper.EnumProjects
-local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
+local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
 
 
 local Pickle = { clone = function (t) local nt={}; for i, v in pairs(t) do nt[i]=v end return nt end }
@@ -1619,7 +1625,12 @@ function on_lmb_up()
   mouse.lmb_up_time = os.clock()
   local dock, x, y, w, h =  gfx.dock(-1,0,0,0,0)
   if GUI.drag and gfx.dock(-1)&1 == 0 then
-    local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
+    if script.os == "OSX32" or script.os == "OSX64" then
+      y = bottom-h-y-GUI.reaper_titlebar_h -- reaper's title bar height on macOS is 22 pixels?
+    else
+      y = y - GUI.reaper_titlebar_h
+    end
     if x <= 0 and y > 0 then
       gfx.dock(main_menu.dock_pos_left) -- left
     elseif x <= 0.5*(right-left) and y <= 0 then
@@ -1824,16 +1835,23 @@ function mainloop()
   
   --draw_and_update_buttons(btns)
   if GUI.drag then
-    _, GUI.x, GUI.y = gfx.dock(-1,0,0,0,0)
+    _, GUI.x, GUI.y, GUI.w, GUI.h = gfx.dock(-1,0,0,0,0)
+    local x, y, w, h = GUI.x, GUI.y, GUI.w, GUI.h
+    local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
+    if script.os == "OSX32" or script.os == "OSX64" then
+      y = screen_bottom-h-y-GUI.reaper_titlebar_h -- reaper's title bar height on macOS is 22 pixels?
+    else
+      y = y - GUI.reaper_titlebar_h
+    end
     gfx.set(1,1,1,1)
     gfx.x, gfx.y = 0, 0
-    if GUI.x <= 0 and GUI.y > 0 then
+    if x <= 0 and y > 0 then
       gfx.drawstr("Dock to 'Left'", 1|4, gfx.w, gfx.h)
-    elseif GUI.x <= 0.5*(screen_right-screen_left) and GUI.y <= 0 then
+    elseif x <= 0.5*(screen_right-screen_left) and y <= 0 then
       gfx.drawstr("Dock to 'Top-Left'", 1|4, gfx.w, gfx.h)
-    elseif GUI.x > 0.5*(screen_right-screen_left) and GUI.y <= 0 then
+    elseif x > 0.5*(screen_right-screen_left) and y <= 0 then
       gfx.drawstr("Dock to 'Top-Right'", 1|4, gfx.w, gfx.h)
-    elseif GUI.x + GUI.w >= screen_right and GUI.y > 0 then
+    elseif x + w >= screen_right and y > 0 then
       gfx.drawstr("Dock to 'Right'", 1|4, gfx.w, gfx.h)
     else
       draw_and_update_buttons()
