@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5a09e245a0bc9fbf1b98f6eb233bd5b33155d126" name="ReaTeam Scripts">
+<index version="1" commit="b7f1cca2449c201aa22d554980d7d423c6bae423" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13870,6 +13870,10 @@ uc_note_min_seconds = 1\par}
 - Main menu option: Folder tags -> Show closest parent
 - Butto menu option (for folder tag-buttons): Show only parent track]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bfe560894818a8b5f8cefa6f15a6a4d3966903f4/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.3.8" author="spk77" time="2019-12-31T13:15:18Z">
+        <changelog><![CDATA[- Try to fix "Drag and drop" -docking on macOS]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b7f1cca2449c201aa22d554980d7d423c6bae423/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
