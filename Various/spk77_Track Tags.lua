@@ -1,8 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.8
+-- @version 0.3.9
 -- @author spk77
 -- @changelog
---   - Try to fix "Drag and drop" -docking on macOS
+--   - New mode: Press tag-buttons to scroll to tracks when visibility filtering is disabled
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -25,10 +25,11 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.8",
+                  version = "0.3.9",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
+                  win_id = -1,
                   debug = false
                 }
 script.os = reaper.GetOS()
@@ -284,6 +285,24 @@ function msg(m)
     reaper.ShowConsoleMsg(tostring(m) .. "\n")
   end
 end
+
+------------------------------------------------------------
+function scroll_to_track(track_id)
+  if main_menu.show_only_tagged_tracks then
+    return
+  end
+  if not reaper.ValidatePtr(track_id, "MediaTrack*") then
+    return
+  end
+  if not reaper.IsTrackVisible(track_id, true) then
+    return
+  end
+  local tcp_y = reaper.GetMediaTrackInfo_Value(track_id, "I_TCPY")
+  local arrange_identifier = reaper.JS_Window_Find("trackview", true)
+  local ar_vsb_retval, ar_vsb_position, ar_vsb_page, ar_vsb_min, ar_vsb_max, ar_vsb_trackPos = reaper.JS_Window_GetScrollInfo(arrange_identifier, "v")
+  reaper.JS_Window_SetScrollPos(arrange_identifier, "v", tcp_y+ar_vsb_position)
+end
+
 
 ------------------------------------------------------------
 function setCursorContext()
@@ -956,10 +975,15 @@ function Button:handle_mouse_events(btn_index)
   local tr = self.tracks[1]
   self:set_color_to_track_color()
   if self:mouseLmbRelease() then
-    self.toggle_state = not self.toggle_state
+    if main_menu.show_only_tagged_tracks then
+      self.toggle_state = not self.toggle_state
+    else
+      scroll_to_track(tr)
+    end
     if self.toggle_state then
     else
     end
+    
     self.onLmbRelease()
   elseif self:mouseRmbRelease() then
     self.onRmbRelease(btn_index)
@@ -1537,6 +1561,8 @@ function init()
 
   gfx.clear = 3355443  -- matches with "FUSION: Pro&Clean Theme :: BETA 01" http://forum.cockos.com/showthread.php?t=155329
                        -- (Double click in ReaScript IDE to open the link)   
+  
+  
   gfx.init(script.title, w, h, dock , x, y)
   GUI.dock = dock
   GUI.x = x
@@ -1559,6 +1585,7 @@ function init()
     set_window_style("WS_BORDER", true)
   end
   --]]
+  mainloop()
 end
 
 --[[ needs JS reascript API
@@ -2032,7 +2059,10 @@ end
 
 ------------------------------------------------------------
 
-reaper.atexit(exit)
-init()
-mainloop()
+if not reaper.APIExists("JS_Window_Find") then
+  reaper.ShowConsoleMsg("Missing API - JS_ReaScript extension\nCopy and paste this URL in Extensions > ReaPack > Import a repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
+else
+  reaper.atexit(exit)
+  init()
+end
 
