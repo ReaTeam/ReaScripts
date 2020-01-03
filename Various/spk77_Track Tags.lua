@@ -298,7 +298,7 @@ function scroll_to_track(track_id)
     return
   end
   local tcp_y = reaper.GetMediaTrackInfo_Value(track_id, "I_TCPY")
-  local arrange_identifier = reaper.JS_Window_Find("trackview", true)
+  local arrange_identifier = reaper.JS_Window_FindChildByID(reaper.GetMainHwnd(), 0x3E8)
   local ar_vsb_retval, ar_vsb_position, ar_vsb_page, ar_vsb_min, ar_vsb_max, ar_vsb_trackPos = reaper.JS_Window_GetScrollInfo(arrange_identifier, "v")
   reaper.JS_Window_SetScrollPos(arrange_identifier, "v", tcp_y+ar_vsb_position)
 end
