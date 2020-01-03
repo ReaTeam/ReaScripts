@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f010d9ee625692d59477b4f0975353d862666fd" name="ReaTeam Scripts">
+<index version="1" commit="eccffe79ea6e8b300653b325622564d232ec93d0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13878,6 +13878,10 @@ uc_note_min_seconds = 1\par}
       <version name="0.3.9" author="spk77" time="2020-01-02T15:53:56Z">
         <changelog><![CDATA[- New mode: Press tag-buttons to scroll to tracks when visibility filtering is disabled]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f010d9ee625692d59477b4f0975353d862666fd/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.4.0" author="spk77" time="2020-01-03T09:22:38Z">
+        <changelog><![CDATA[- Scrolling to tracks should work on any platform now.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eccffe79ea6e8b300653b325622564d232ec93d0/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
