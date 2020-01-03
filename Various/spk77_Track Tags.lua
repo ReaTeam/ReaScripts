@@ -1,8 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.3.9
+-- @version 0.4.0
 -- @author spk77
 -- @changelog
---   - New mode: Press tag-buttons to scroll to tracks when visibility filtering is disabled
+--   - Scrolling to tracks should work on any platform now.
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -25,7 +25,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.3.9",
+                  version = "0.4.0",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
