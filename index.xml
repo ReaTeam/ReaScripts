@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eccffe79ea6e8b300653b325622564d232ec93d0" name="ReaTeam Scripts">
+<index version="1" commit="444fc4adaf974bdaaef3a44189a64b4456ba22b4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3890,6 +3890,26 @@ here
       </metadata>
       <version name="1.0" author="amagalma" time="2017-08-06T17:57:30Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76c5bcd2dd9c7b620e8007a67474118d45214fcf/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
+      </version>
+    </reapack>
+    <reapack name="cfillion_Set item volume control mode.lua" type="script" desc="Set item volume control mode">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script provides actions to set the "Item volume control" option in Preferences > Appearance > Media.\par}
+}
+]]></description>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=229900">Request thread</link>
+        <link rel="screenshot">https://i.imgur.com/LKEn1Nx.gif</link>
+        <link rel="donation" href="https://paypal.me/cfillion">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2020-01-07T17:25:21Z">
+        <source main="main" file="cfillion_Set item volume control mode to knob.lua">https://github.com/ReaTeam/ReaScripts/raw/444fc4adaf974bdaaef3a44189a64b4456ba22b4/Items%20Properties/cfillion_Set%20item%20volume%20control%20mode.lua</source>
+        <source main="main" file="cfillion_Set item volume control mode to handle (top).lua">https://github.com/ReaTeam/ReaScripts/raw/444fc4adaf974bdaaef3a44189a64b4456ba22b4/Items%20Properties/cfillion_Set%20item%20volume%20control%20mode.lua</source>
+        <source main="main" file="cfillion_Set item volume control mode to handle (center).lua">https://github.com/ReaTeam/ReaScripts/raw/444fc4adaf974bdaaef3a44189a64b4456ba22b4/Items%20Properties/cfillion_Set%20item%20volume%20control%20mode.lua</source>
       </version>
     </reapack>
     <reapack name="IXix_delete selected items active take envelopes.lua" type="script" desc="Delete selected items active take envelopes">
