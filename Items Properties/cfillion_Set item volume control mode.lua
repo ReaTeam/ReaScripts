@@ -9,6 +9,7 @@
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Request thread https://forum.cockos.com/showthread.php?t=229900
+-- @screenshot https://i.imgur.com/LKEn1Nx.gif
 -- @donation Donate via PayPal https://paypal.me/cfillion
 -- @about This script provides actions to set the "Item volume control" option in Preferences > Appearance > Media.
 
