@@ -1,8 +1,15 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.4.0
+-- @version 0.4.1
 -- @author spk77
 -- @changelog
---   - Scrolling to tracks should work on any platform now.
+--   - More fixes to auto-deleting obsolete buttons
+--   - Fix: store/restore user-definable button width
+--   - Fix: store/restore button toggle states
+--   - Replaced all "table.remove" functions (table.remove does unnecessary sorting and it's really slow)
+--   - Left mouse button now activates one button at a time
+--   - CTRL + left mouse button allows activating multiple buttons at a time
+--   - Layouts: Don't move selection-type buttons to new row: all buttons can be on a single (first) row
+--   - Store/restore initial track visibility states when starting/closing the script
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -25,7 +32,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.4.0",
+                  version = "0.4.1",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -164,6 +171,7 @@ default_values.buttons =  {
 local properties = {}
 properties.buttons = {} -- will have the same keys as "default_values.buttons" (see "init" function)
 
+local initial_track_visibility_states = {} -- store initial track visibility states (populated in "init" function)
 
 local abs = math.abs
 local floor = math.floor
@@ -285,24 +293,70 @@ function msg(m)
     reaper.ShowConsoleMsg(tostring(m) .. "\n")
   end
 end
-
 ------------------------------------------------------------
-function scroll_to_track(track_id)
+function scroll_to_track(track_id, relative_y_pos, include_envelopes)
+  relative_y_pos = relative_y_pos or 0 -- default position is "top"
+  local p = "I_WNDH"
+  if not include_envelopes then -- include envelope lane heights
+    p = "I_TCPH"
+  end
+  
+---[[
   if main_menu.show_only_tagged_tracks then
     return
   end
   if not reaper.ValidatePtr(track_id, "MediaTrack*") then
     return
   end
+--]]
   if not reaper.IsTrackVisible(track_id, true) then
-    return
+    return false
   end
   local tcp_y = reaper.GetMediaTrackInfo_Value(track_id, "I_TCPY")
-  local arrange_identifier = reaper.JS_Window_FindChildByID(reaper.GetMainHwnd(), 0x3E8)
-  local ar_vsb_retval, ar_vsb_position, ar_vsb_page, ar_vsb_min, ar_vsb_max, ar_vsb_trackPos = reaper.JS_Window_GetScrollInfo(arrange_identifier, "v")
-  reaper.JS_Window_SetScrollPos(arrange_identifier, "v", tcp_y+ar_vsb_position)
+  local tcp_h = reaper.GetMediaTrackInfo_Value(track_id, p)
+  local arrange_id = reaper.JS_Window_FindChildByID(reaper.GetMainHwnd(), 0x3E8)
+  local ok, ar_vsb_position, ar_vsb_page, ar_vsb_min, ar_vsb_max, ar_vsb_trackPos = reaper.JS_Window_GetScrollInfo(arrange_id, "v")
+  if ok then
+    ok = reaper.JS_Window_SetScrollPos(arrange_id, "v", tcp_y + ar_vsb_position - floor(relative_y_pos*(ar_vsb_page-tcp_h) + 0.5))
+  end
+  return ok
 end
 
+------------------------------------------------------------
+function get_track_visibility_states()
+  local t = {}
+  for i=1, reaper.CountTracks(0) do
+    local tr = reaper.GetTrack(0, i-1)
+    if tr then
+      local tr_guid = reaper.GetTrackGUID(tr)
+      reaper.IsTrackVisible(tr, false)
+      local show_in_tcp = reaper.GetMediaTrackInfo_Value(tr, "B_SHOWINTCP")
+      local show_in_mcp = reaper.GetMediaTrackInfo_Value(tr, "B_SHOWINMIXER")
+      t[#t+1] = {
+                  tr_guid = tr_guid,
+                  show_in_tcp = show_in_tcp,
+                  show_in_mcp = show_in_mcp
+                }
+                
+    end
+  end
+  msg("funtion call: get_track_visibility_states()")
+  return t
+end
+
+------------------------------------------------------------
+function restore_initial_track_visibility_states()
+  local t = initial_track_visibility_states
+  for i=1, #t do
+    local tr = reaper.BR_GetMediaTrackByGUID(0, t[i].tr_guid)
+    if reaper.ValidatePtr(tr, "MediaTrack*") then
+      reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", t[i].show_in_tcp)
+      reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", t[i].show_in_mcp)
+    end
+  end
+  reaper.TrackList_AdjustWindows(false)
+  msg("funtion call: restore_initial_track_visibility_states()")
+end
 
 ------------------------------------------------------------
 function setCursorContext()
@@ -580,7 +634,9 @@ function show_main_menu(x, y)
   elseif menu_ret == 14 then
     main_menu.dock_pos_right = gfx.dock(-1)
   elseif menu_ret == 15 then
-    GUI.safe_remove_all_tags = true
+    ----GUI.safe_remove_all_tags = true
+    GUI.elements.buttons = {folder_type = {}, selection_type = {}}
+    update_visibility()
   elseif menu_ret == 16 then
     main_menu.show_closest_parent = not main_menu.show_closest_parent
     update_folder_type_tag_buttons()
@@ -830,7 +886,7 @@ end
 
 ------------------------------------------------------------
 function update_buttons_color()
-  msg("function call: update_buttons_color")
+  msg("function call: update_buttons_color()")
   local btns = GUI.elements.buttons
   for k, v in pairs(btns) do
     for i=1, #v do
@@ -874,6 +930,106 @@ function update_all_buttons_w()
 end
 
 ------------------------------------------------------------
+function Button:set_other_buttons_off(btn_index)
+  local btns = GUI.elements.buttons
+  local is_other_buttons_active = false
+  for _,v in pairs(btns) do
+    for i=1, #v do 
+      local b = v[i]
+      if i ~= btn_index then
+        if not is_other_buttons_active and b.toggle_state then
+          is_other_buttons_active = true
+        end 
+        b.toggle_state = false
+        b:set_color_to_track_color()
+      end
+    end
+  end
+  if is_other_buttons_active then
+    -- keep button active (behaves the same way as when clicking on a track on TCP or MCP)
+    self.toggle_state = true 
+  end
+end
+
+------------------------------------------------------------
+function Button:create_tracks_table_from_guids_table()
+  self.tracks = {}
+  if #self.track_guids == 0 then
+    return
+  end
+  local n = #self.tr_guids
+  for i = 1, n do
+    local guid = self.track_guids[i]
+    local tr = reaper.BR_GetMediaTrackByGUID(0, guid)
+    if reaper.ValidatePtr(tr, "MediaTrack*") then
+      self.tracks[self.tracks + 1] = tr -- collect valid track pointers
+    end
+  end
+end
+
+
+------------------------------------------------------------
+-- Checks if tracks (guids) are still valid, removes invalid guids and
+--   possible gaps from "track_guids" -table
+-- Also creates a table from track pointers
+-- Returns guids and track pointers in separate tables
+function validate_track_guids(guid_table)
+  msg("function call: validate_track_guids()")
+  guid_table = guid_table or {}
+  local track_ids = {}
+  local new_index = 1
+  local n = #guid_table
+  for old_index = 1, n do
+    local guid = guid_table[old_index]
+    local tr = reaper.BR_GetMediaTrackByGUID(0, guid)
+    if reaper.ValidatePtr(tr, "MediaTrack*") then
+      track_ids[#track_ids + 1] = tr
+      -- Move old_index's kept value to new_index's position, if it's not already there.
+      if old_index ~= new_index then
+        guid_table[new_index] = guid_table[old_index]
+        guid_table[old_index] = nil
+      end
+      new_index = new_index + 1 -- Increment position of where we'll place the next kept value.
+    else
+      guid_table[old_index] = nil
+    end
+  end
+  return guid_table, track_ids
+end
+
+------------------------------------------------------------
+-- Checks if tracks (guids) are still valid, removes invalid guids and
+-- removes gaps from button's "track_guids" and "tracks" -tables
+-- Returns "track_guids" and "tracks" -tables
+function Button:validate_track_guids()
+  self.track_guids, self.tracks = validate_track_guids(self.track_guids)
+--[[
+  if #self.track_guids == 0 then
+    return
+  end
+  local new_tr_index = 1
+  local n = #self.track_guids
+  self.tracks = {}
+  for old_tr_index = 1, n do
+    local guid = self.track_guids[old_tr_index]
+    local tr = reaper.BR_GetMediaTrackByGUID(proj_id, guid)
+    if reaper.ValidatePtr(tr, "MediaTrack*") then
+      self.tracks[#self.tracks + 1] = tr -- collect valid track pointers
+      -- Move old_tr_index's kept value to new_tr_index's position, if it's not already there.
+      if old_tr_index ~= new_tr_index then
+        self.track_guids[new_tr_index] = self.track_guids[old_tr_index]
+        self.track_guids[old_tr_index] = nil
+      end
+      new_tr_index = new_tr_index + 1; -- Increment position of where we'll place the next kept value.
+    else
+      self.track_guids[old_tr_index] = nil
+    end
+  end
+  return self.track_guids, self.tracks
+--]]
+end
+      
+------------------------------------------------------------
 function Button:update_lbl_size(w, h)
   local w, h = gfx.measurestr(self.lbl)
   self.lbl_w, self.lbl_h = w or self.w, h or self.h
@@ -883,7 +1039,8 @@ end
 function Button:update_w_by_lbl_w(min_w, max_w)
   --self.lbl_w, self.lbl_h = gfx.measurestr(self.lbl)
   if main_menu.fixed_sized_buttons then
-    self.w = default_values.buttons.w
+    --self.w = default_values.buttons.w
+    self.w = properties.buttons.w
   else
     self.w = floor(max(self.lbl_w + 20, properties.buttons.min_w))
   end
@@ -913,13 +1070,14 @@ function Button:draw(index)
   local tr = self.tracks[1]
   -- Draw info string
   if self:mouseIN() then
+  -- Button info text
   --[[
     gfx.set(1,1,1,1)
     gfx.x = properties.buttons.start_x
     gfx.y = 0
     
     gfx.drawstr(self.lbl)
-    gfx.drawstr(self.lbl, 0|4, gfx.w, gfx.texth)
+    --gfx.drawstr(self.lbl, 0|4, gfx.w, gfx.texth)
   --]]
     if self.onMouseOver then
     end
@@ -977,6 +1135,9 @@ function Button:handle_mouse_events(btn_index)
   if self:mouseLmbRelease() then
     if main_menu.show_only_tagged_tracks then
       self.toggle_state = not self.toggle_state
+      if not mouse.ctrl then-- and self.toggle_state then
+        self:set_other_buttons_off(btn_index)
+      end
     else
       scroll_to_track(tr)
     end
@@ -993,6 +1154,7 @@ end
 
 ------------------------------------------------------------
 function update_button_positions(w, h)
+  msg("function call: update_button_positions()")
   local btns = GUI.elements.buttons
   local f_btns = btns.folder_type
   local s_btns = btns.selection_type
@@ -1009,15 +1171,18 @@ function update_button_positions(w, h)
   local y = p.start_y
   local layout = main_menu.button_layout
   local curr_row = 1
+  local curr_col = 1
 
   for i=1, len_f_btns do
     local b = f_btns[i]
     -- fit to window - fill rows first
     if layout == 1 then
-      if i>1 and x + b.w > w then
+      if x + b.w > w then
         x = p.start_x
-        y = y + b.h + p.pad_y
-        curr_row = curr_row + 1
+        if curr_col > 1 then
+          y = y + b.h + p.pad_y
+          curr_row = curr_row + 1
+        end
       end
     -- horizontal
     elseif layout == 2 then
@@ -1030,32 +1195,32 @@ function update_button_positions(w, h)
     b.x = x
     b.y = y
     
-    if layout < 3 then --or (i>1 and layout == 4 and y+b.h > h) then
+    if layout < 3 then
       x = x + b.w + p.pad_x
+      curr_col = curr_col + 1
     end
     if b.w < p.min_w then
       p.min_w = b.w
     end
-    
   end
   
-  
-  
-  x = p.start_x
-  if #f_btns > 0 then
-    --curr_row = curr_row+1
-    --y = f_btns[#f_btns].y + f_btns[#f_btns].h + p.pad_y
-    y = y + f_btns[#f_btns].h + 2*p.pad_y
+  if #f_btns == 0 then
+    x = p.start_x
+    y = p.start_y
+    curr_row = 1
+    curr_col = 1
   end
- -- y = gfx.y
+
   for i=1, len_s_btns do
     local b = s_btns[i]
     -- fit to window - fill rows first
     if layout == 1 then
-      if i>1 and x + b.w > w then
+      if x + b.w > w then
         x = p.start_x
-        y = y + b.h + p.pad_y
-        curr_row = curr_row + 1
+        if curr_col > 1 then
+          y = y + b.h + p.pad_y
+          curr_row = curr_row + 1
+        end
       end
     -- horizontal
     elseif layout == 2 then
@@ -1070,6 +1235,7 @@ function update_button_positions(w, h)
     
     if layout < 3 then --or (i>1 and layout == 4 and y+b.h > h) then
       x = x + b.w + p.pad_x
+      curr_col = curr_col + 1
     end
     if b.w < p.min_w then
       p.min_w = b.w
@@ -1206,8 +1372,13 @@ function create_button(btn_type)
                       sort_buttons()
                       update_button_positions()
                     elseif ret == 2 then
-                      GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = {buttonindex, btn.type}
-                      --msg(buttonindex)
+                      btn.tracks = {}
+                      btn.track_guids = {}
+-- TODO: remove by index
+                      -- button is automatically removed if button's "tracks" -table is empty
+                      remove_obsolete_buttons()
+                      update_button_positions()
+                      --update_folder_type_tag_buttons()
                     elseif ret == 3 then
                       -- X-Raym mod
                       btn.type = "selection"
@@ -1235,7 +1406,7 @@ function create_button(btn_type)
   btn.id = reaper.genGuid()
   if btn.type == "folder parent" then
     folder_type_btns[#folder_type_btns+1] = btn
-  elseif  btn.type == "selection"then
+  elseif  btn.type == "selection" then
     selection_type_btns[#selection_type_btns+1] = btn
   end
   
@@ -1287,7 +1458,7 @@ function create_button_from_selection()
   sort_buttons()
   update_button_positions()
   update_buttons_color()
-  store_btns()
+  ----store_btns()
 end
 
 ------------------------------------------------------------
@@ -1328,57 +1499,35 @@ end
 
 ------------------------------------------------------------
 function update_folder_type_tag_buttons()
-  msg("Function call: update_folder_type_tag_buttons")
+  msg("Function call: update_folder_type_tag_buttons()")
   local btns = GUI.elements.buttons.folder_type
-  --if #btns == 0 then return end
-  for i=1, #btns do
+  local len_btns = #btns
+  for i = 1, len_btns do
     local btn = btns[i]
-    if btn.type == "folder parent" then
-      local tr = btn.tracks[1]
-      if not reaper.ValidatePtr(tr, "MediaTrack*") then -- Parent track is not valid anymore
-        -- Remove the button at the end of current cycle
-        GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = {i, "folder parent"} 
-      else
+    btn:validate_track_guids()
+    if #btn.tracks > 0 then
+      local tr = btn.tracks[1] -- parent track is the first track in "tracks" -table
+      if reaper.GetMediaTrackInfo_Value(tr, "I_FOLDERDEPTH") == 1 then -- still a folder parent?
         btn:set_color_to_track_color()
         update_child_tracks(tr, btn, i)
+      else
+        btn.tracks = {}
+        btn.track_guids = {}
       end
     end
   end
-  --store_btns() -- new child tracks might have been added
+  --store_btns()
 end
 
 ------------------------------------------------------------
 function update_custom_type_tag_buttons()
-  --msg("update_custom_type_tag_buttons")
+  msg("Function call: update_custom_type_tag_buttons()")
   local btns = GUI.elements.buttons.selection_type
-  --if #btns == 0 then return end
-  local valid_tr_count = 0
-  for i=1, #btns do
+  local len_btns = #btns
+  for i = 1, len_btns do
     local btn = btns[i]
-    if btn.type == "selection" then
-      local tr_count = #btn.tracks
-      valid_tr_count = tr_count
-      for track_index = 1, tr_count do
-        local tr = btn.tracks[track_index]
---TODO: remove to end
-        if not reaper.ValidatePtr(tr, "MediaTrack*") then
-          table.remove(btn.tracks, track_index)
-          valid_tr_count = valid_tr_count-1
----------------------
-        else
-          
-        end
-      end
-      -- If no valid tracks -> remove the button at the end of this cycle
-      if #btn.tracks == 0 then
-        GUI.safe_remove_btn_by_index[#GUI.safe_remove_btn_by_index+1] = {i, "selection"}
-      end
-    end
-    if valid_tr_count > 0 then
-      btn:set_color_to_track_color()
-    end
+    btn:validate_track_guids()
   end
-  --store_btns()
 end
 
 ------------------------------------------------------------
@@ -1429,7 +1578,7 @@ function create_buttons_from_folder_parents()
   update_all_buttons_w()
   update_button_positions()
   update_buttons_color()
-  store_btns()
+  ----store_btns()
 end
 
 ------------------------------------------------------------
@@ -1489,10 +1638,13 @@ end
 
 ------------------------------------------------------------
 function on_track_list_change(last_action_undo_str)
-  --if #GUI.elements.buttons > 0 then
-    update_folder_type_tag_buttons()
-    update_custom_type_tag_buttons()
-  --end
+  update_folder_type_tag_buttons()
+  update_custom_type_tag_buttons()
+  local removed_btns_count = remove_obsolete_buttons()
+  if removed_btns_count > 0 then
+    update_button_positions()
+    update_visibility()
+  end
 end
 
 --[[ needs JS reascript API
@@ -1515,6 +1667,7 @@ end
 
 ------------------------------------------------------------
 function init()
+  initial_track_visibility_states = get_track_visibility_states()
   local dock, x, y, w, h = 0, 0, 0, 0, 0
    --reaper.SetProjExtState(0, "spk77 Track Tags", "script state", "") -- delete data
   local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "script state")
@@ -1585,7 +1738,8 @@ function init()
     set_window_style("WS_BORDER", true)
   end
   --]]
-  mainloop()
+  on_track_list_change()
+  
 end
 
 --[[ needs JS reascript API
@@ -1668,6 +1822,7 @@ function on_lmb_up()
       x + w >= right and y > 0 then
       gfx.dock(main_menu.dock_pos_right) -- right
     end
+    store_state()
   end
   if GUI.drag then
     GUI.drag = false
@@ -1721,8 +1876,8 @@ function on_mouse_wheel_up()
 ---[[
   local p = properties.buttons
   p.font_size = p.font_size + 1
-  if p.font_size > 32 then
-    p.font_size = 32
+  if p.font_size > 60 then
+    p.font_size = 60
   end
   gfx.setfont(1, p.font, p.font_size)
   ----p.start_y = p.font_size + 2
@@ -1832,17 +1987,21 @@ function mainloop()
     -- call "init" to create buttons from stored state for current project (if state exists) 
     -- (last_last_proj_change_count is set to proj_change_count in "init" -function)
     msg("proj_id changed - update_visibility")
-    exit()
+    exit()  
     init()
+    on_track_list_change(last_action)
   -- if project tab hasn't changed but RPP-file has changed...
   elseif curr_proj_id == script.project_id and curr_proj_file_name ~= script.project_filename then
     msg("same proj_id, filename changed")
+    --exit()
     init()
+    on_track_list_change(last_action)
   end
     
   if proj_change_count ~= last_proj_change_count then
     if reaper.CountTracks(0) == 0 then -- New empty project probably created
-      GUI.safe_remove_all_tags = true
+      --GUI.safe_remove_all_tags = true
+      GUI.elements.buttons = {folder_type = {}, selection_type = {}}
     end
     
     msg("proj_change_count ~= last_proj_change_count")
@@ -1913,32 +2072,7 @@ function mainloop()
     on_gui_resize(gfx.w, gfx.h)
     last_gui_w, last_gui_h = gfx.w, gfx.h
   end
-  
-  -- Remove buttons here at the end if certain flags are set
-  if #GUI.safe_remove_btn_by_index > 0 then
-    msg("#GUI.safe_remove_btn_by_index > 0")
-    local l = #GUI.safe_remove_btn_by_index
-    
-    for i=l, 1, -1 do -- from end to start
-      local index = GUI.safe_remove_btn_by_index[i][1] -- index, "folder parent" or "selection"
-      if GUI.safe_remove_btn_by_index[i][2] == "folder parent" then
-        table.remove(GUI.elements.buttons.folder_type, index)
-      elseif GUI.safe_remove_btn_by_index[i][2] == "selection" then
-        table.remove(GUI.elements.buttons.selection_type, index)
-      end
-    end
-    --update_buttons_color()
-    on_track_list_change()
-    update_button_positions()
-    update_visibility()
-    GUI.safe_remove_btn_by_index = {}
-  elseif GUI.safe_remove_all_tags then
-    GUI.elements.buttons = nil
-    GUI.elements.buttons = {folder_type = {}, selection_type = {}}
-    update_visibility()
-    GUI.safe_remove_all_tags = false
-  end
-  
+
   mouse.last_cap = mouse.cap
   mouse.last_x = mouse.x
   mouse.last_y = mouse.y
@@ -1952,8 +2086,50 @@ function mainloop()
 end
 
 ------------------------------------------------------------
+function remove_obsolete_buttons()
+---[[
+  local removed_btns_count = 0
+  -- Remove "empty" folder_type buttons
+  local t = GUI.elements.buttons.folder_type
+  local j, n = 1, #t
+  for index=1, n do
+    local btn = t[index]
+    if #btn.tracks > 0 then
+      -- Move i's kept value to j's position, if it's not already there.
+      if index ~= j then
+        t[j] = t[index]
+        t[index] = nil
+      end
+      j = j + 1; -- Increment position of where we'll place the next kept value.
+    else
+      t[index] = nil
+      removed_btns_count = removed_btns_count + 1
+    end
+  end
+  
+  -- Remove "empty" selection_type buttons
+  local t = GUI.elements.buttons.selection_type
+  local j, n = 1, #t
+  for index=1, n do
+    local btn = t[index]
+    if #btn.tracks > 0 then
+      -- Move i's kept value to j's position, if it's not already there.
+      if (index ~= j) then
+        t[j] = t[index]
+        t[index] = nil
+      end
+      j = j + 1; -- Increment position of where we'll place the next kept value.
+    else
+      t[index] = nil
+      removed_btns_count = removed_btns_count + 1
+    end
+  end
+  return removed_btns_count
+end
+
+------------------------------------------------------------
 function exit()
-  msg("function call: exit")
+  msg("function call: exit()")
   store_btns(script.project_id)
   local dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
   local script_state = {}
@@ -1973,9 +2149,31 @@ function exit()
     reaper.ShowConsoleMsg("Couldn't store GUI data - invalid ReaProject ID\n")
   end
   gfx.quit()
-  set_all_tracks_visible(1)
+  restore_initial_track_visibility_states()
 end
 
+------------------------------------------------------------
+function store_state(proj_id)
+  proj_id = proj_id or 0
+  local dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
+  local script_state = {}
+  script_state.GUI =  {
+                        dock = dock,
+                        x = x,
+                        y = y,
+                        h = h,
+                        w = w
+                      }
+                      
+  script_state.main_menu = main_menu
+  script_state.properties = properties
+  if reaper.ValidatePtr(script.project_id, "ReaProject*") then
+    local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "script state", pickle(script_state))
+  else
+    reaper.ShowConsoleMsg("Couldn't store GUI data - invalid ReaProject ID\n")
+  end
+end
+  
 ------------------------------------------------------------
 function store_btns(proj_id)
   msg("function call: store_btns")
@@ -1990,7 +2188,7 @@ function store_btns(proj_id)
                                   --tracks = btn.tracks,
                                   tracks = btn.track_guids,
                                   type = btn.type,
-                                  toggle_state = btn.toggle_statel,
+                                  toggle_state = btn.toggle_state,
                                   show_only_parent = btn.show_only_parent
                                 }
       end
@@ -2006,47 +2204,42 @@ end
 
 ------------------------------------------------------------
 function restore(proj_id)
-  msg("function call: restore")
+  msg("function call: restore()")
   local proj_id = proj_id or 0
   GUI.elements.buttons = nil
   GUI.elements.buttons = {folder_type = {}, selection_type = {}}
   --local btns = GUI.elements.buttons
-  local ok, state = reaper.GetProjExtState(proj_id, "spk77 Track Tags", "buttons")
-  
-  if state ~= "" then
-    state = unpickle(state)
-    msg(#state)
-    for i = 1, #state do
-      local btn_type = state[i].type
-      local btn = create_button(btn_type)
-      local tr_guids = state[i].tracks
-      for j = 1, #tr_guids do
-        local guid = tr_guids[j]
-        local tr = reaper.BR_GetMediaTrackByGUID(proj_id, guid)
-        ---msg(reaper.ValidatePtr(tr, "MediaTrack*"))
-        if reaper.ValidatePtr(tr, "MediaTrack*") then
-          btn.tracks[#btn.tracks+1] = tr
-          btn.track_guids[#btn.track_guids+1] = guid -- from version 0.2.6 ->
-          local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
-          if retval then
-            btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
-            if tr_name == "" then
-              tr_name = "Track " .. tostring(floor(reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER")))
-            end
+  local ok, buttons = reaper.GetProjExtState(proj_id, "spk77 Track Tags", "buttons")
+  if buttons ~= "" then
+    buttons = unpickle(buttons)
+    msg("Button count:" .. tostring(#buttons))
+    for i = 1, #buttons do
+      local tr_guids_table, tr_pointer_table = validate_track_guids(buttons[i].tracks)
+      msg("tr_guids_table length:" .. tostring(#tr_guids_table))
+      -- Create button only if it has tagged tracks
+      if #tr_guids_table > 0 then
+        local btn_type = buttons[i].type
+        local btn = create_button(btn_type)
+        btn.track_guids = tr_guids_table
+        btn.tracks = tr_pointer_table
+        local tr = btn.tracks[1] -- parent track or first track in selection
+        -- Create button's tooltip text
+        local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
+        if retval then
+          btn.tooltip_text = btn.tooltip_text .. tr_name .. "\n"
+          if tr_name == "" then
+            tr_name = "Track " .. tostring(floor(reaper.GetMediaTrackInfo_Value(tr, "IP_TRACKNUMBER")))
           end
         end
+        btn.lbl = buttons[i].lbl
+        btn.lbl_w, btn.lbl_h = gfx.measurestr(btn.lbl)
+        btn.toggle_state = buttons[i].toggle_state
+        btn.show_only_parent = buttons[i].show_only_parent or false
+        --btn:set_color_to_track_color() 
+        btn:update_w_by_lbl_w()
       end
-      btn.lbl = state[i].lbl
-      btn.lbl_w, btn.lbl_h = gfx.measurestr(btn.lbl)
-      --btn.type = state[i].type
-      btn.toggle_state = state[i].toggle_state
-      btn.show_only_parent = state[i].show_only_parent or false
-      --btn:set_color_to_track_color() 
-      btn:update_w_by_lbl_w()
     end
-    msg("restored\n")
   end
-
 
 ---[[
   sort_buttons()
@@ -2064,5 +2257,5 @@ if not reaper.APIExists("JS_Window_Find") then
 else
   reaper.atexit(exit)
   init()
+  mainloop()
 end
-
