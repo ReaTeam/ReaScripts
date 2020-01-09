@@ -1,15 +1,8 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.4.1
+-- @version 0.4.2
 -- @author spk77
 -- @changelog
---   - More fixes to auto-deleting obsolete buttons
---   - Fix: store/restore user-definable button width
---   - Fix: store/restore button toggle states
---   - Replaced all "table.remove" functions (table.remove does unnecessary sorting and it's really slow)
---   - Left mouse button now activates one button at a time
---   - CTRL + left mouse button allows activating multiple buttons at a time
---   - Layouts: Don't move selection-type buttons to new row: all buttons can be on a single (first) row
---   - Store/restore initial track visibility states when starting/closing the script
+--   - Added a new option to auto-create folder tags (Main menu/Folder tags/Auto-create)
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -32,7 +25,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.4.1",
+                  version = "0.4.2",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -94,7 +87,8 @@ local main_menu =  {
                 button_layout =  1, -- 1=fit to window, 2=horizontal, 3=vertical
                 button_ordering = 1, -- 1=by track index, 2=alphabetically
                 use_track_color = true,
-                show_closest_parent = false
+                show_closest_parent = false,
+                auto_create_folder_tags = false
               }
 
 
@@ -574,6 +568,11 @@ function show_main_menu(x, y)
   m.str = m.str .. "<All tags||"
   
   m.str =  m.str .. ">Folder tags|"
+  if main_menu.auto_create_folder_tags then
+    m.str =  m.str .. "!Auto-create|"
+  else
+    m.str =  m.str .. "Auto-create|"
+  end
   if main_menu.show_closest_parent then
     m.str =  m.str .. "<!Show closest parent track||"
   else
@@ -582,7 +581,7 @@ function show_main_menu(x, y)
   
   m.str =  m.str .. "Quit||"
   m.str =  m.str .. "#Track Tags v." .. script.version
-   menu_ret = gfx.showmenu(m.str)
+  local menu_ret = gfx.showmenu(m.str)
 
   -- Handle menu return values
   if menu_ret == 1 then
@@ -638,10 +637,15 @@ function show_main_menu(x, y)
     GUI.elements.buttons = {folder_type = {}, selection_type = {}}
     update_visibility()
   elseif menu_ret == 16 then
-    main_menu.show_closest_parent = not main_menu.show_closest_parent
+    main_menu.auto_create_folder_tags = not main_menu.auto_create_folder_tags
+    create_buttons_from_folder_parents()
     update_folder_type_tag_buttons()
     update_visibility()
   elseif menu_ret == 17 then
+    main_menu.show_closest_parent = not main_menu.show_closest_parent
+    update_folder_type_tag_buttons()
+    update_visibility()
+  elseif menu_ret == 18 then
     --exit()
     main_menu.quit = true
   end
@@ -1636,8 +1640,13 @@ function Pane:draw(index)
   --self:draw_lbl()
 end
 
+
 ------------------------------------------------------------
 function on_track_list_change(last_action_undo_str)
+  msg("Function call: on_track_list_change()")
+  if main_menu.auto_create_folder_tags then
+    create_buttons_from_folder_parents()
+  end
   update_folder_type_tag_buttons()
   update_custom_type_tag_buttons()
   local removed_btns_count = remove_obsolete_buttons()
@@ -1691,6 +1700,7 @@ function init()
       main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
       main_menu.fixed_sized_buttons = state.main_menu.fixed_sized_buttons or false
       main_menu.show_closest_parent = state.main_menu.show_closest_parent or false
+      main_menu.auto_create_folder_tags = state.main_menu.auto_create_folder_tags or false
     end
 
     if state.properties ~= nil then
