@@ -1,8 +1,18 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.4.2
+-- @version 0.4.3
 -- @author spk77
 -- @changelog
---   - Added a new option to auto-create folder tags (Main menu/Folder tags/Auto-create)
+--   - Fix: Pressing LMB on a button didn't always set other buttons state to "off"
+--   - Script state: Call SetProjExtState each time when new buttons are created, settings are changed etc.
+--   - Folder buttons: Gray out "Update tag" -menu item in the button menu
+--   - Appearance: New option for removing the title bar (not tested on mac)
+--   - Buttons: New shortcut button for tagging selected tracks
+--   - Drag and drop docking: Use native actions for docking
+--   - Quit the script when project filename changes (to prevent script state data loss):
+--     - There isn't a reliable way to detect when a new project is created or when a project template is loaded
+--     - Now it also works better if the script is set as a project startup action (SWS/S&M: Set project startup action)
+--   - reaper.MarkProjectDirty() is called almost every time when script state is changed
+--     - reaper.MarkProjectDirty(ReaProject proj) Marks project as dirty (needing save) if 'undo/prompt to save' is enabled in preferences.)
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -25,11 +35,12 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.4.2",
+                  version = "0.4.3",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
                   win_id = -1,
+                  guid = "",
                   debug = false
                 }
 script.os = reaper.GetOS()
@@ -57,7 +68,6 @@ local GUI = {
               safe_remove_all_tags = false,
               focus_arrange_view = true,
               
-              --show_titlebar = true
             }
 
 -- Drag and drop docking
@@ -69,7 +79,8 @@ end
             
 GUI.elements =  {
                   buttons = {folder_type = {}, selection_type = {}},
-                  panes = {folder_btns = {0,0,0,0}, selection_btns = {0,0,0,0}}
+                  panes = {folder_btns = {0,0,0,0}, selection_btns = {0,0,0,0}},
+                  extra_buttons = {}
                 }
             
 
@@ -79,16 +90,17 @@ local main_menu =  {
                 str = "",
                 quit = false,
                 button_layout = 1,
-                dock_pos_left = (256+1),
-                dock_pos_top_left = (2*256+1),
-                dock_pos_top_right = (3*256+1),
-                dock_pos_right = (0*256+1),
+                --dock_pos_left = (256+1),
+                --dock_pos_top_left = (2*256+1),
+                --dock_pos_top_right = (3*256+1),
+                --dock_pos_right = (0*256+1),
                 show_only_tagged_tracks = true,
                 button_layout =  1, -- 1=fit to window, 2=horizontal, 3=vertical
                 button_ordering = 1, -- 1=by track index, 2=alphabetically
                 use_track_color = true,
                 show_closest_parent = false,
-                auto_create_folder_tags = false
+                auto_create_folder_tags = false,
+                show_titlebar = false
               }
 
 
@@ -128,8 +140,12 @@ local gui_w, last_gui_w = -1, -1
 local gui_h, last_gui_h = -1, -1
 local char
 local GetProjectStateChangeCount = reaper.GetProjectStateChangeCount
+local curr_proj_id, curr_proj_file_name
 local proj_change_count, last_proj_change_count = -1, -1
 local tooltip_text, last_tooltip_text = "", ""
+local first_selected_track = -1
+local last_selected_track = -1
+
 
 
 local default_values = {}
@@ -142,9 +158,10 @@ default_values.buttons =  {
                             w = 80,
                             h = 1.2,              -- times font_size
                             min_w = 48,
+                            min_h = 14,
                             pad_x = 5,            -- x space between buttons
                             pad_y = 5,            -- y space between buttons
-                            edge_radius = 100,
+                            edge_radius = 30,
                             edge_thickness = 2,
                       
                             -- Tracktion 6 track tags colors
@@ -175,14 +192,37 @@ local reaper = reaper
 local EnumProjects = reaper.EnumProjects
 local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
 
+------------------------------------------------------------
+local Tracks = {}
+------------------------------------------------------------
+function Tracks:get_first_selected()
+  local tr = reaper.GetSelectedTrack(0, 0)
+  return tr
+end
+
+------------------------------------------------------------
+function Tracks:get_name(track, default_name)
+-- Returns:
+--   track name (if the track is named)
+--   default_name (if default_name is passed to the function and the track isn't named)
+--   track number (if default_name is not passed to the function and the track isn't named)
+  if track then
+    local retval, tr_name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+    if retval then
+      tr_name = tr_name ~= "" and tr_name or default_name or "Track " .. tostring(floor(reaper.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")))
+    return tr_name
+    end
+  end
+  return default_name or ""
+end
+
+------------------------------------PICKLE------------------------------------
 
 local Pickle = { clone = function (t) local nt={}; for i, v in pairs(t) do nt[i]=v end return nt end }
 
 function pickle(t)
   return Pickle:clone():pickle_(t)
 end
-
-------------------------------------PICKLE------------------------------------
 
 function Pickle:pickle_(root)
   if type(root) ~= "table" then error("can only pickle tables, not ".. type(root).."s") end
@@ -274,6 +314,7 @@ end
 
 ------------------------------------------------------------
 function get_project_filename(proj)
+  msg("Function call: get_project_filename(proj)")
   local ret, proj_filename = reaper.EnumProjects(-1, "")
   if ret then
     return proj_filename
@@ -318,6 +359,7 @@ end
 
 ------------------------------------------------------------
 function get_track_visibility_states()
+  msg("Function call: get_track_visibility_states()")
   local t = {}
   for i=1, reaper.CountTracks(0) do
     local tr = reaper.GetTrack(0, i-1)
@@ -334,7 +376,6 @@ function get_track_visibility_states()
                 
     end
   end
-  msg("funtion call: get_track_visibility_states()")
   return t
 end
 
@@ -349,7 +390,7 @@ function restore_initial_track_visibility_states()
     end
   end
   reaper.TrackList_AdjustWindows(false)
-  msg("funtion call: restore_initial_track_visibility_states()")
+  msg("Function call: restore_initial_track_visibility_states()")
 end
 
 ------------------------------------------------------------
@@ -381,6 +422,7 @@ end
 
 ------------------------------------------------------------
 function sort_buttons()
+  msg("Function call: sort_buttons()")
   local order = ""
   if main_menu.button_ordering == 1 then
     order = "track index"
@@ -434,7 +476,7 @@ end
 
 ------------------------------------------------------------
 function update_visibility()
-  msg("update_visibility")
+  msg("Function call: update_visibility()")
   local btns = GUI.elements.buttons
   --if #btns == 0 then return end
   reaper.PreventUIRefresh(1)
@@ -467,6 +509,9 @@ function update_visibility()
 --]]
               reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 1)
               reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 1)
+              --I_MCPW : int * : current MCP width in pixels
+              --reaper.SetMediaTrackInfo_Value(tr, "I_MCPW", 100)
+              --
             else
               --GUI.safe_remove_track_from_tag[#GUI.safe_remove_track_from_tag + 1] = {i, t} -- i = button index, t = track index
             end
@@ -479,7 +524,7 @@ function update_visibility()
     if all_btns_off then
       set_all_tracks_visible(1)
     else
-      -- Unselected items in hidden tracks (if hidden from TCP)
+      -- Unselect items in hidden tracks (if hidden from TCP)
       for i=1, tr_count do
         local tr = reaper.GetTrack(0, i-1)
         if not reaper.GetMediaTrackInfo_Value(tr, "B_SHOWINTCP") then
@@ -499,7 +544,7 @@ function update_visibility()
   reaper.PreventUIRefresh(-1)
   reaper.TrackList_AdjustWindows(false)
   reaper.UpdateArrange()
-  store_btns()
+  ----store_btns()
 end
 
 ------------------------------------------------------------
@@ -550,19 +595,27 @@ function show_main_menu(x, y)
   end
   
   m.str =  m.str .. "Set button properties||"
-  
+--[[  
   m.str =  m.str .. ">'Drag and drop docking'|"
   if gfx.dock(-1) > 0 then
     m.str =  m.str .. "Store current dock position as 'Left'|"
     m.str =  m.str .. "Store current dock position as 'Top-Left'|"
     m.str =  m.str .. "Store current dock position as 'Top-Right'|"
-    m.str =  m.str .. "<Store current dock position as 'Right'|"
+    m.str =  m.str .. "<Store current dock position as 'Right'||"
   else
     m.str =  m.str .. "#Store current dock position as 'Left'|"
     m.str =  m.str .. "#Store current dock position as 'Top-Left'|"
     m.str =  m.str .. "#Store current dock position as 'Top-Right'|"
-    m.str =  m.str .. "<#Store current dock position as 'Right'|"
+    m.str =  m.str .. "<#Store current dock position as 'Right'||"
   end
+--]]  
+
+  if m.show_titlebar then
+    m.str =  m.str .. "!Show title bar||"
+  else
+    m.str =  m.str .. "Show title bar||"
+  end
+
  
   m.str = m.str .. "><Remove|"
   m.str = m.str .. "<All tags||"
@@ -581,7 +634,7 @@ function show_main_menu(x, y)
   
   m.str =  m.str .. "Quit||"
   m.str =  m.str .. "#Track Tags v." .. script.version
-  local menu_ret = gfx.showmenu(m.str)
+   menu_ret = gfx.showmenu(m.str)
 
   -- Handle menu return values
   if menu_ret == 1 then
@@ -596,6 +649,11 @@ function show_main_menu(x, y)
       gfx.dock(dock_state-1)
     end
     GUI.dock = dock_state
+    if main_menu.show_titlebar then
+      set_window_style("", true)
+    else
+      set_window_style("WS_BORDER", true)
+    end
     
   elseif menu_ret == 4 then
     m.button_layout = 1
@@ -624,6 +682,7 @@ function show_main_menu(x, y)
     
   elseif menu_ret == 10 then
     get_user_inputs()
+--[[
   elseif menu_ret == 11 then
     main_menu.dock_pos_left = gfx.dock(-1)
   elseif menu_ret == 12 then
@@ -632,23 +691,47 @@ function show_main_menu(x, y)
     main_menu.dock_pos_top_right = gfx.dock(-1)
   elseif menu_ret == 14 then
     main_menu.dock_pos_right = gfx.dock(-1)
-  elseif menu_ret == 15 then
+--]]
+  elseif menu_ret == 11 then
+    main_menu.show_titlebar = not main_menu.show_titlebar
+    if main_menu.show_titlebar then
+      set_window_style("", true)
+    else
+      set_window_style("WS_BORDER", true)
+    end
+  elseif menu_ret == 12 then
     ----GUI.safe_remove_all_tags = true
     GUI.elements.buttons = {folder_type = {}, selection_type = {}}
-    update_visibility()
-  elseif menu_ret == 16 then
+    --update_visibility()
+    update_button_positions(w, h)
+    if main_menu.auto_create_folder_tags then
+      create_buttons_from_folder_parents()
+      --update_folder_type_tag_buttons()
+      --GUI.elements.buttons.selection_type = {}
+      update_visibility()
+    end
+  elseif menu_ret == 13 then
     main_menu.auto_create_folder_tags = not main_menu.auto_create_folder_tags
-    create_buttons_from_folder_parents()
-    update_folder_type_tag_buttons()
-    update_visibility()
-  elseif menu_ret == 17 then
+    if main_menu.auto_create_folder_tags then
+      create_buttons_from_folder_parents()
+      update_folder_type_tag_buttons()
+      update_visibility()
+    end
+  elseif menu_ret == 14 then
     main_menu.show_closest_parent = not main_menu.show_closest_parent
     update_folder_type_tag_buttons()
     update_visibility()
-  elseif menu_ret == 18 then
+  elseif menu_ret == 15 then
     --exit()
+    gfx.quit()
     main_menu.quit = true
   end
+---[[  
+  if menu_ret > 0 then
+    store_state()
+    store_btns()
+  end
+--]]
 end
 
 ------------------------------------------------------------
@@ -729,6 +812,7 @@ function get_user_inputs()
   end
   update_all_buttons_w()
   update_button_positions()
+  store_state()
 end
 
 
@@ -861,7 +945,12 @@ end
 
 ------------------------------------------------------------
 function Button:set_color_to_track_color()
+  msg("Function call: set_color_to_track_color()")
   local tr = self.tracks[1]
+  if not reaper.ValidatePtr(tr, "MediaTrack*") then
+    return
+  end
+  
   if not main_menu.use_track_color or not tr then
     self:set_to_default_color()
   else
@@ -883,7 +972,11 @@ function Button:set_color_to_track_color()
       else
         r,g,b = 1,1,1
       end
-      self:set_lbl_color(r, g, b, 1)
+      if self.toggle_state then
+        self:set_lbl_color(r, g, b, 1)
+      else
+        self:set_lbl_color(1, 1, 1, 1)
+      end
     end
   end
 end
@@ -931,6 +1024,9 @@ function update_all_buttons_w()
       b.h = floor(b.lbl_h*properties.buttons.h+0.5)--+properties.buttons.h
     end
   end
+  local btn_create_new = GUI.elements.extra_buttons[1]
+  btn_create_new:update_lbl_size()
+  btn_create_new:update_w_by_lbl_w()
 end
 
 ------------------------------------------------------------
@@ -940,11 +1036,13 @@ function Button:set_other_buttons_off(btn_index)
   for _,v in pairs(btns) do
     for i=1, #v do 
       local b = v[i]
-      if i ~= btn_index then
+      ----if i ~= btn_index then
+      if v ~= self then
         if not is_other_buttons_active and b.toggle_state then
           is_other_buttons_active = true
         end 
         b.toggle_state = false
+        --b:set_color_to_track_color()
         b:set_color_to_track_color()
       end
     end
@@ -978,7 +1076,7 @@ end
 -- Also creates a table from track pointers
 -- Returns guids and track pointers in separate tables
 function validate_track_guids(guid_table)
-  msg("function call: validate_track_guids()")
+  msg("Function call: validate_track_guids()")
   guid_table = guid_table or {}
   local track_ids = {}
   local new_index = 1
@@ -1036,7 +1134,14 @@ end
 ------------------------------------------------------------
 function Button:update_lbl_size(w, h)
   local w, h = gfx.measurestr(self.lbl)
-  self.lbl_w, self.lbl_h = w or self.w, h or self.h
+  self.lbl_w = w
+  if w < properties.buttons.min_w then
+    self.lbl_w = properties.buttons.min_w
+  end
+  self.lbl_h = h
+ if h < properties.buttons.min_h then
+   self.lbl_h = properties.buttons.min_h
+ end
 end
 
 ------------------------------------------------------------
@@ -1050,7 +1155,7 @@ function Button:update_w_by_lbl_w(min_w, max_w)
   end
   if properties.buttons.h < 1 then properties.buttons.h = 1
   elseif properties.buttons.h > 2 then properties.buttons.h = 2 end
-  self.h = floor(self.lbl_h*properties.buttons.h+0.5)--+properties.buttons.h
+  self.h = floor(self.lbl_h*properties.buttons.h+0.5)
 end
 
 ------------------------------------------------------------
@@ -1072,27 +1177,44 @@ end
 function Button:draw(index)
   local x,y,w,h  = self.x, self.y, self.w, self.h
   local tr = self.tracks[1]
+  local edge_thickness = properties.buttons.edge_thickness
+  local radius = properties.buttons.edge_radius/100*0.5*h
+  local r,g,b,a  = self.r,self.g,self.b,self.a
+  gfx.set(r,g,b,a)
+  if self == GUI.elements.extra_buttons[1] then
+    if self:mouseIN() then
+      self.a = 0.6
+      self.lbl_a = 0.6
+    else
+      self.a = 0.4
+      self.lbl_a = 0.4
+    end
+    roundrect(x,y,w,h,radius,0)
+    --roundrect(x+edge_thickness,y+edge_thickness,w-2*edge_thickness,h-2*edge_thickness,radius,1)
+
+    self:draw_lbl()
+    return
+  end
+--[[
   -- Draw info string
   if self:mouseIN() then
   -- Button info text
-  --[[
+  
     gfx.set(1,1,1,1)
     gfx.x = properties.buttons.start_x
     gfx.y = 0
     
     gfx.drawstr(self.lbl)
     --gfx.drawstr(self.lbl, 0|4, gfx.w, gfx.texth)
-  --]]
+  
     if self.onMouseOver then
     end
   end
+--]]
   
-  local r,g,b,a  = self.r,self.g,self.b,self.a
-  gfx.set(r,g,b,a)
-  
-  local edge_thickness = properties.buttons.edge_thickness
-  local radius = properties.buttons.edge_radius/100*0.5*h
-
+  if self == GUI.elements.extra_buttons[1] then
+    return
+  end
   if self.toggle_state then
     roundrect(x,y,w,h,radius,1)
   else
@@ -1134,24 +1256,29 @@ end
 
 ------------------------------------------------------------
 function Button:handle_mouse_events(btn_index)
+  if self.type == "" then
+    if self:mouseLmbRelease() then
+      self.onLmbRelease()
+      return
+    end
+  end
   local tr = self.tracks[1]
-  self:set_color_to_track_color()
+  
   if self:mouseLmbRelease() then
     if main_menu.show_only_tagged_tracks then
       self.toggle_state = not self.toggle_state
       if not mouse.ctrl then-- and self.toggle_state then
         self:set_other_buttons_off(btn_index)
       end
+      self:set_color_to_track_color()
     else
       scroll_to_track(tr)
     end
-    if self.toggle_state then
-    else
-    end
-    
     self.onLmbRelease()
+    store_btns(proj_id)
   elseif self:mouseRmbRelease() then
     self.onRmbRelease(btn_index)
+    store_btns()
   else
   end
 end
@@ -1162,10 +1289,13 @@ function update_button_positions(w, h)
   local btns = GUI.elements.buttons
   local f_btns = btns.folder_type
   local s_btns = btns.selection_type
+  local extra_btn = GUI.elements.extra_buttons[1]
+
+
   local len_f_btns = #f_btns
   local len_s_btns = #s_btns
   if len_f_btns == 0 and len_s_btns == 0 then
-    return
+    --return
   end
   --local max_r, max_b = 0, 0
   local p = properties.buttons
@@ -1245,16 +1375,78 @@ function update_button_positions(w, h)
       p.min_w = b.w
     end
   end
+  
+  
+  
+  
+  local b = extra_btn
+  -- fit to window - fill rows first
+  if layout == 1 then
+    if x + b.w > w then
+      x = p.start_x
+      if curr_col > 1 then
+        y = y + b.h + p.pad_y
+        curr_row = curr_row + 1
+      end
+    end
+  -- horizontal
+  elseif layout == 2 then
+  -- vertical
+  elseif layout == 3 then  
+    y = p.start_y + (curr_row-1)*(b.h + p.pad_y)
+    curr_row = curr_row + 1
+  end
+  
+  b.x = x
+  b.y = y
   return x,y
 end
 
 ------------------------------------------------------------
 function on_gui_resize(w, h)
+  msg("Function call: on_gui_resize(w, h)")
   GUI.dock, GUI.x, GUI.y, GUI.w, GUI.h = gfx.dock(-1,0,0,0,0)
   update_button_positions(w, h)
+  --store_state()
 end
 
 ---[[
+------------------------------------------------------------                       
+function draw_btn_create_new()
+  local btn_create_new = GUI.elements.extra_buttons[1]
+  if btn_create_new then
+    first_selected_track = reaper.GetSelectedTrack(0, 0)
+    if first_selected_track then
+      if first_selected_track ~= last_selected_track then
+        local tr_name = "+ " .. Tracks:get_name(first_selected_track)
+        if tr_name ~= btn_create_new.lbl then
+          btn_create_new.lbl =  tr_name
+          btn_create_new:update_lbl_size()
+          btn_create_new:update_w_by_lbl_w()
+        end
+        --btn_create_new:update_lbl_size()
+        --btn_create_new:update_w_by_lbl_w()
+        --[[
+        local retval, tr_name = reaper.GetSetMediaTrackInfo_String(first_selected_track, "P_NAME", "", false)
+        if retval then
+          if tr_name ~= "" then
+            btn_create_new.lbl = "+ " .. tr_name
+            --reaper.ShowConsoleMsg(btn_create_new.lbl)
+            --if btn_create_new.lbl ~= tr_name then
+            --  btn_create_new.lbl = "+ " .. tr_name
+            --else
+            --  btn_create_new.lbl = "+"
+            --end
+            
+          end
+        end
+        --]]
+        last_selected_track = first_selected_track
+      end
+      btn_create_new:draw(1)
+    end
+  end
+end  
 ------------------------------------------------------------                       
 function draw_and_update_buttons()
   local button_count = 0
@@ -1267,12 +1459,15 @@ function draw_and_update_buttons()
       button_count = button_count+1
     end
   end
-  if button_count == 0 then
+
+---[[  
+  if button_count == 0  and not first_selected_track then
     gfx.x, gfx.y = 8,8
     gfx.set(1,1,1,1)
     gfx.drawstr("No tags assigned\nRight click to open the menu") 
     return gfx.x, gfx.y, gfx.w, gfx.h
   end
+--]]
 end
 
 ------------------------------------------------------------                       
@@ -1290,12 +1485,13 @@ function draw_panes(tbl)
   return x, y, w, h
 end
 
-
+  
 ------------------------------------------------------------
 function create_button(btn_type)
   --local btns = GUI.elements.buttons
   local folder_type_btns = GUI.elements.buttons.folder_type
   local selection_type_btns = GUI.elements.buttons.selection_type
+  local extra_btns = GUI.elements.extra_buttons
   local d = default_values.buttons
   local btn = Button:new(   
                           0,                    --  x
@@ -1307,7 +1503,7 @@ function create_button(btn_type)
                           0.5,                  --  b
                           1.0,                  --  a
                           "Tag " .. #GUI.elements.buttons.selection_type + 1,  --  lbl (button name)
-                          "Arial",              --  label font
+                          "Verdana",              --  label font
                           14,                   --  label font size
                           1,                    -- label color r
                           1,                    -- label color g
@@ -1333,11 +1529,17 @@ function create_button(btn_type)
                   
   btn.onRmbRelease =  
                   function(buttonindex)
+                    if btn.type ~= "folder parent" and btn.type ~= "selection" then
+                      return
+                    end
                     gfx.x, gfx.y = gfx.mouse_x, gfx.mouse_y
                     local m = button_menu
                     --m.str = "#" .. "Button type: " .. btn.type .. "||"
                     m.str = "Rename tag|"
                     m.str = m.str .. "Remove tag|"
+                    if btn.type == "folder parent" then
+                      m.str = m.str .. "#"
+                    end
                     m.str = m.str .. "Update tag||"
                     if btn.type == "selection" then
                       m.str = m.str .. "#"
@@ -1367,6 +1569,9 @@ function create_button(btn_type)
                     if ret == 1 then
                       local retval, retvals_csv = reaper.GetUserInputs("Rename", 1, "Set new tag name:", btn.lbl)
                       if retval then
+                        if retvals_csv == "" then
+                          retvals_csv = "Tag"
+                        end
                         btn.lbl = retvals_csv
                         btn:update_lbl_size(w, h)
                         btn:update_w_by_lbl_w()
@@ -1382,6 +1587,7 @@ function create_button(btn_type)
                       -- button is automatically removed if button's "tracks" -table is empty
                       remove_obsolete_buttons()
                       update_button_positions()
+                      update_visibility()
                       --update_folder_type_tag_buttons()
                     elseif ret == 3 then
                       -- X-Raym mod
@@ -1412,19 +1618,37 @@ function create_button(btn_type)
     folder_type_btns[#folder_type_btns+1] = btn
   elseif  btn.type == "selection" then
     selection_type_btns[#selection_type_btns+1] = btn
+  elseif  btn.type == "" then
+    extra_btns[#extra_btns+1] = btn
   end
   
   --btns[#btns + 1] = btn
   --btn:update_w_by_lbl_w()
   
-  update_button_positions()
-  sort_buttons()
+  ----update_button_positions()
+  ----sort_buttons()
   
   btn.tooltip_text = ""--btn.lbl
   --msg(btn.lbl)
+  
   return btn
 end
 
+------------------------------------------------------------
+function create_new_from_selection_shortcut_btn()
+  local btn = create_button()
+  local tr = reaper.GetSelectedTrack(0, 0)
+  btn.lbl = "+ " .. Tracks:get_name(tr)
+  btn:update_lbl_size(w, h)
+  btn:update_w_by_lbl_w()
+  btn.a = 0.4
+  btn.lbl_a = 0.4
+  btn.onLmbRelease =  function()
+                        create_button_from_selection()
+                      end
+  return btn
+end
+ 
 ------------------------------------------------------------
 function create_button_from_selection()
   local sel_tr_count = reaper.CountSelectedTracks(0)
@@ -1438,8 +1662,7 @@ function create_button_from_selection()
     local retval, tr_name = reaper.GetSetMediaTrackInfo_String(tr, "P_NAME", "", false)
     if retval and tr_name ~= "" then
       def_name = tr_name
-    end
-      
+    end 
   end
   
   local retval, retvals_csv = reaper.GetUserInputs("New tag from selection", 1, "Tag name:", def_name)
@@ -1448,7 +1671,7 @@ function create_button_from_selection()
   end
   local btns = GUI.elements.buttons
   local btn = create_button("selection")
-  btn.lbl = retvals_csv
+  btn.lbl = retvals_csv or def_name
   --btn.type = "selection"
   for i=1, sel_tr_count do
     local tr = reaper.GetSelectedTrack(0, i-1)
@@ -1462,7 +1685,7 @@ function create_button_from_selection()
   sort_buttons()
   update_button_positions()
   update_buttons_color()
-  ----store_btns()
+  store_btns()
 end
 
 ------------------------------------------------------------
@@ -1499,6 +1722,7 @@ function update_child_tracks(parent_tr, tag_button, tag_button_index)
       break
     end
   end
+  store_btns()
 end
 
 ------------------------------------------------------------
@@ -1520,7 +1744,7 @@ function update_folder_type_tag_buttons()
       end
     end
   end
-  --store_btns()
+  store_btns()
 end
 
 ------------------------------------------------------------
@@ -1532,6 +1756,7 @@ function update_custom_type_tag_buttons()
     local btn = btns[i]
     btn:validate_track_guids()
   end
+  store_btns()
 end
 
 ------------------------------------------------------------
@@ -1582,7 +1807,7 @@ function create_buttons_from_folder_parents()
   update_all_buttons_w()
   update_button_positions()
   update_buttons_color()
-  ----store_btns()
+  store_btns()
 end
 
 ------------------------------------------------------------
@@ -1644,11 +1869,11 @@ end
 ------------------------------------------------------------
 function on_track_list_change(last_action_undo_str)
   msg("Function call: on_track_list_change()")
+  update_folder_type_tag_buttons()
+  update_custom_type_tag_buttons()
   if main_menu.auto_create_folder_tags then
     create_buttons_from_folder_parents()
   end
-  update_folder_type_tag_buttons()
-  update_custom_type_tag_buttons()
   local removed_btns_count = remove_obsolete_buttons()
   if removed_btns_count > 0 then
     update_button_positions()
@@ -1656,29 +1881,34 @@ function on_track_list_change(last_action_undo_str)
   end
 end
 
---[[ needs JS reascript API
+---[[ needs JS reascript API
 ------------------------------------------------------------
 function set_window_style(style, attach_resize_grip)
+  
   if gfx.dock(-1)&1 == 0 then
-    local hWnd_array = reaper.new_array({}, 20)
-    local num_script_windows = reaper.JS_Window_ArrayFind(script.title, true, hWnd_array)
-    local handles = hWnd_array.table()
-    for i=1, num_script_windows do
-      local hwnd = reaper.JS_Window_HandleFromAddress(handles[i])
-      if attach_resize_grip then
-        reaper.JS_Window_AttachResizeGrip(hwnd)
-      end
-      reaper.JS_Window_SetStyle(hwnd, style)
+    script.win_id = reaper.JS_Window_FindTop(script.title, 1)
+    if attach_resize_grip then
+      reaper.JS_Window_AttachResizeGrip(script.win_id)
     end
+    reaper.JS_Window_SetStyle(script.win_id, style)
   end
 end
 --]]
 
 ------------------------------------------------------------
 function init()
+  reaper.ClearConsole()
+  msg("-------------------------------------------------") 
+  msg("Function call: init()")
+  msg("script.project_id: " .. tostring(script.project_id))
+  msg("Current project ID: " .. tostring(EnumProjects(-1, "")))
+  msg("script.project_filename: " .. tostring(script.project_filename))
+  msg("curr_proj_file_name: " .. tostring(curr_proj_file_name))
+  GUI.elements.buttons = {folder_type = {}, selection_type = {}}
   initial_track_visibility_states = get_track_visibility_states()
   local dock, x, y, w, h = 0, 0, 0, 0, 0
    --reaper.SetProjExtState(0, "spk77 Track Tags", "script state", "") -- delete data
+  
   local ok, state = reaper.GetProjExtState(0, "spk77 Track Tags", "script state")
   
   if ok == 1 and state ~= "" then
@@ -1688,19 +1918,25 @@ function init()
     y = state.GUI.y
     w = state.GUI.w
     h = state.GUI.h
+    --msg("state.GUI.dock: " .. tostring(state.GUI.dock))
+    --msg("gfx.dock(-1): " .. tostring(gfx.dock(-1)))
+    --msg("dock: " .. tostring(dock))
 
     if state.main_menu ~= nil then
       main_menu.button_layout = state.main_menu.button_layout or 1
+    --[[
       main_menu.dock_pos_left = state.main_menu.dock_pos_left or (256+1)
       main_menu.dock_pos_top_left = state.main_menu.dock_pos_top_left or (2*256+1)
       main_menu.dock_pos_top_right = state.main_menu.dock_pos_top_right or (3*256+1)
       main_menu.dock_pos_right = state.main_menu.dock_pos_right or (0*256+1)
+    --]]
       main_menu.show_only_tagged_tracks = state.main_menu.show_only_tagged_tracks or true
       main_menu.button_layout = state.main_menu.button_layout or 1 -- 1=fit to window, 2=horizontal, 3=vertical
       main_menu.button_ordering = state.main_menu.button_ordering or 1 -- 1=by track index, 2=alphabetically
       main_menu.fixed_sized_buttons = state.main_menu.fixed_sized_buttons or false
       main_menu.show_closest_parent = state.main_menu.show_closest_parent or false
       main_menu.auto_create_folder_tags = state.main_menu.auto_create_folder_tags or false
+      main_menu.show_titlebar = state.main_menu.show_titlebar or false
     end
 
     if state.properties ~= nil then
@@ -1719,14 +1955,16 @@ function init()
     h = w -- 0.1*(bottom-top)
     x = 0.5*(right-left) - 0.5*w
     y = 0.5*(bottom-top) - 0.5*h
-    
   end
 
   gfx.clear = 3355443  -- matches with "FUSION: Pro&Clean Theme :: BETA 01" http://forum.cockos.com/showthread.php?t=155329
                        -- (Double click in ReaScript IDE to open the link)   
   
-  
-  gfx.init(script.title, w, h, dock , x, y)
+
+  gfx.init(script.title, w, h, dock, x, y) -- Start undocked to get window/client size
+  script.win_id = reaper.JS_Window_FindTop(script.title, 1)
+  --gfx.dock(dock)
+  --msg("gfx.dock(-1): " .. tostring(gfx.dock(-1)))
   GUI.dock = dock
   GUI.x = x
   GUI.y = y
@@ -1739,39 +1977,25 @@ function init()
   
   last_proj_change_count = reaper.GetProjectStateChangeCount(0)
   script.project_id, script.project_filename = EnumProjects(-1, "")
+  
+  create_new_from_selection_shortcut_btn()
   -- Restore buttons
-  restore()
-  --[[
-  if GUI.show_titlebar then
+  local button_count = restore_button_states()
+  ----store_btns(script.project_id)
+---[[
+  if main_menu.show_titlebar then
+    --reaper.JS_Window_AttachTopmostPin(script.win_id)
     set_window_style("", true)
   else
+    --reaper.JS_Window_AttachTopmostPin(script.win_id)
     set_window_style("WS_BORDER", true)
+    _, GUI.win_x, GUI.win_y, GUI.win_w, GUI.win_h = gfx.dock(-1,0,0,0,0)
   end
-  --]]
-  on_track_list_change()
-  
-end
-
---[[ needs JS reascript API
-------------------------------------------------------------
-function move_window(mx_screen, my_screen)
-  if gfx.dock(-1)&1 == 1 then
-    gfx.dock(0)
-    if GUI.show_titlebar then
-    --  set_window_style("", true)
-    else
-     -- set_window_style("WS_BORDER", true)
-    end
-  elseif gfx.dock(-1)&1 == 0 then
-    script.win_id = reaper.JS_Window_Find(script.title, 1)
-    --_,GUI.left_scr, GUI.top_scr, GUI.right_scr, GUI.bottom_scr = reaper.BR_Win32_GetWindowRect(script.win_id)
-   -- GUI.w_scr, GUI.h_scr = GUI.right_scr - GUI.left_scr, GUI.bottom_scr - GUI.top_scr
-    local l, t, w, h = GUI.left_scr, GUI.top_scr, GUI.w_scr, GUI.h_scr
-    gfx.init("", w, h, 0,  l-mouse.click_pos_x_screen+mx_screen, t-mouse.click_pos_y_screen+my_screen)
-    --reaper.JS_Window_SetPosition(script.win_id, l-mouse.click_pos_x_screen+mx_screen, t-mouse.click_pos_y_screen+my_screen, w, h)
-  end
-end
 --]]
+  if button_count > 0 then
+    update_button_positions()
+  end
+end
 
 ------------------------------------------------------------
 function on_lmb_down()
@@ -1797,15 +2021,20 @@ function on_lmb_down()
       if gfx.dock(-1)&1 == 1 then
       gfx.dock(0) -- ...undock it
         -- move the undocked window to mouse position (centered to mouse cursor)
-        GUI.win_x, GUI.win_y = mouse.x_screen-0.5*GUI.win_w, mouse.y_screen-0.5*GUI.win_h
-        gfx.init("", GUI.win_w, GUI.win_h, 0, GUI.win_x, GUI.win_y) -- move window to new position
-        --set_window_style(style, false)
+        GUI.win_x, GUI.win_y = floor(mouse.x_screen-0.5*GUI.win_w + 0.5), floor(mouse.y_screen-0.5*GUI.win_h + 0.5)
+        --gfx.init("", GUI.win_w, GUI.win_h, 0, GUI.win_x, GUI.win_y) -- move window to new position
+        if not main_menu.show_titlebar then
+          set_window_style("WS_BORDER", true)
+        else
+-- Fix this: docked default style -window doesn't move without this...
+          set_window_style("", true)
+        end
       elseif gfx.dock(-1)&1 == 0 then
         -- calculate new window position
         local new_x = GUI.win_x-mouse.ox_screen+mouse.x_screen
         local new_y = GUI.win_y-mouse.oy_screen+mouse.y_screen
-        gfx.init("", GUI.win_w, GUI.win_h, 0, new_x, new_y) -- move window to new position
-        -- move_window(mouse.x_screen, mouse.y_screen) -- needs JS reascript API
+        --gfx.init("", GUI.win_w, GUI.win_h, 0, new_x, new_y) -- move window to new position
+        reaper.JS_Window_Move(script.win_id, new_x, new_y)
       end
     end
   end
@@ -1815,7 +2044,10 @@ end
 function on_lmb_up()
   mouse.lmb_up_time = os.clock()
   local dock, x, y, w, h =  gfx.dock(-1,0,0,0,0)
+  --dock_ID = reaper.GetConfigWantsDock("spk77_Track Tags.lua")
+  --dock_pos = reaper.DockGetPosition(dock_ID)
   if GUI.drag and gfx.dock(-1)&1 == 0 then
+    reaper.PreventUIRefresh(1)
     local left, top, right, bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
     if script.os == "OSX32" or script.os == "OSX64" then
       y = bottom-h-y-GUI.reaper_titlebar_h -- reaper's title bar height on macOS is 22 pixels?
@@ -1823,15 +2055,26 @@ function on_lmb_up()
       y = y - GUI.reaper_titlebar_h
     end
     if x <= 0 and y > 0 then
-      gfx.dock(main_menu.dock_pos_left) -- left
-    elseif x <= 0.5*(right-left) and y <= 0 then
-      gfx.dock(main_menu.dock_pos_top_left) -- top left
-    elseif x > 0.5*(right-left) and y <= 0 then
-      gfx.dock(main_menu.dock_pos_top_right) -- top right
-    elseif
-      x + w >= right and y > 0 then
-      gfx.dock(main_menu.dock_pos_right) -- right
+      gfx.dock(1*256+1)
+      reaper.Main_OnCommand(41599, 0) -- Docker: Show in left of main window
+    elseif y <= 0 then
+      gfx.dock(2*256+1)
+      reaper.Main_OnCommand(41600, 0) --Docker: Show in top of main window
+    elseif x + w >= right and y > 0 then
+      gfx.dock(3*256+1)
+      reaper.Main_OnCommand(41601, 0) -- Docker: Show in right of main window
+-- bottom
+    --elseif then
+    --reaper.Main_OnCommand(41598, 0) -- Docker: Show in bottom of main window
     end
+    reaper.PreventUIRefresh(-1)
+    --reaper.DockWindowRefresh()
+    local dock_state, x, y, w, h =  gfx.dock(-1,0,0,0,0)
+    if dock_state > -1 then
+      GUI.dock = dock_state
+    end
+    
+    
     store_state()
   end
   if GUI.drag then
@@ -1886,13 +2129,14 @@ function on_mouse_wheel_up()
 ---[[
   local p = properties.buttons
   p.font_size = p.font_size + 1
-  if p.font_size > 60 then
-    p.font_size = 60
+  if p.font_size > 40 then
+    p.font_size = 40
   end
   gfx.setfont(1, p.font, p.font_size)
   ----p.start_y = p.font_size + 2
   update_all_buttons_w()
   update_button_positions()
+  store_state()
 --]]
 end
 
@@ -1908,6 +2152,7 @@ function on_mouse_wheel_down()
   ----p.start_y = p.font_size + 2
   update_all_buttons_w()
   update_button_positions()
+  store_state()
 --]]
 end
 
@@ -1930,6 +2175,7 @@ function get_mouse_cursor_context()
   if GUI.drag then return nil end
   local ft = GUI.elements.buttons.folder_type
   local st = GUI.elements.buttons.selection_type
+  local btn_add_new = GUI.elements.extra_buttons[1]
   --local t = GUI.elements.buttons
   for i=1, #ft do
     local btn = ft[i]
@@ -1945,6 +2191,9 @@ function get_mouse_cursor_context()
       --GUI.last_hovered_element = btn
       return btn, i
     end
+  end
+  if btn_add_new:mouseIN() then
+    return btn_add_new, 1
   end
   return nil
 end
@@ -1985,27 +2234,35 @@ function mainloop()
   if GUI.active_element then
     GUI.active_element:handle_mouse_events(GUI.active_element_index)
   end
-  
+ 
   local f_btns = GUI.elements.buttons.folder_type
   local s_btns = GUI.elements.buttons.selection_type
+  
 
-  local curr_proj_id, curr_proj_file_name = EnumProjects(-1, "")
+  curr_proj_id, curr_proj_file_name = EnumProjects(-1, "")
   proj_change_count = GetProjectStateChangeCount(curr_proj_id)
   
   -- if project tab has changed...
   if curr_proj_id ~= script.project_id then
     -- call "init" to create buttons from stored state for current project (if state exists) 
     -- (last_last_proj_change_count is set to proj_change_count in "init" -function)
-    msg("proj_id changed - update_visibility")
-    exit()  
+    msg("PROJECT ID CHANGED")
+    exit()
     init()
     on_track_list_change(last_action)
+    --script.project_id = curr_proj_id
   -- if project tab hasn't changed but RPP-file has changed...
   elseif curr_proj_id == script.project_id and curr_proj_file_name ~= script.project_filename then
-    msg("same proj_id, filename changed")
-    --exit()
-    init()
-    on_track_list_change(last_action)
+    msg("Same proj_id, filename changed")
+    msg(" Old filename: " .. tostring(script.project_filename))
+    msg(" New filename: " .. tostring(curr_proj_file_name))
+    --exit() -- don't store buttons here
+    --script.project_filename = curr_proj_file_name
+    gfx.quit()
+    restore_initial_track_visibility_states()
+    return
+    --init()
+    --on_track_list_change(last_action)
   end
     
   if proj_change_count ~= last_proj_change_count then
@@ -2025,6 +2282,8 @@ function mainloop()
         msg("on_track_list_change")
         on_track_list_change(last_action)
       end
+    else
+      --on_track_list_change(last_action)
     end
     last_proj_change_count = proj_change_count
   end
@@ -2033,7 +2292,7 @@ function mainloop()
   if GUI.drag then
     _, GUI.x, GUI.y, GUI.w, GUI.h = gfx.dock(-1,0,0,0,0)
     local x, y, w, h = GUI.x, GUI.y, GUI.w, GUI.h
-    local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
+    --local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
     if script.os == "OSX32" or script.os == "OSX64" then
       y = screen_bottom-h-y-GUI.reaper_titlebar_h -- reaper's title bar height on macOS is 22 pixels?
     else
@@ -2042,19 +2301,18 @@ function mainloop()
     gfx.set(1,1,1,1)
     gfx.x, gfx.y = 0, 0
     if x <= 0 and y > 0 then
-      gfx.drawstr("Dock to 'Left'", 1|4, gfx.w, gfx.h)
-    elseif x <= 0.5*(screen_right-screen_left) and y <= 0 then
-      gfx.drawstr("Dock to 'Top-Left'", 1|4, gfx.w, gfx.h)
-    elseif x > 0.5*(screen_right-screen_left) and y <= 0 then
-      gfx.drawstr("Dock to 'Top-Right'", 1|4, gfx.w, gfx.h)
+      gfx.drawstr("Dock to left of main window", 1|4, gfx.w, gfx.h)
+    elseif y <= 0 then
+      gfx.drawstr("Dock to top of main window", 1|4, gfx.w, gfx.h)
     elseif x + w >= screen_right and y > 0 then
-      gfx.drawstr("Dock to 'Right'", 1|4, gfx.w, gfx.h)
+      gfx.drawstr("Dock to right of main window", 1|4, gfx.w, gfx.h)
     else
       draw_and_update_buttons()
-      --draw_and_update_buttons(tbl)
+      draw_btn_create_new()
     end
   else
     draw_and_update_buttons()
+    draw_btn_create_new()
     --[[
     if mouse.ctrl and GUI.active_element then
       local e = GUI.active_element
@@ -2139,9 +2397,18 @@ end
 
 ------------------------------------------------------------
 function exit()
-  msg("function call: exit()")
+  msg("-------------------------------------------------") 
+  msg("Function call: exit()")
+  msg("script.project_id: " .. tostring(script.project_id))
+  msg("Current project ID: " .. tostring(EnumProjects(-1, "")))
+  msg("script.project_filename: " .. tostring(script.project_filename))
+  msg("curr_proj_file_name: " .. tostring(curr_proj_file_name))
+  
   store_btns(script.project_id)
+  set_window_style("", true)
   local dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
+  
+  
   local script_state = {}
   script_state.GUI =  {
                         dock = dock,
@@ -2155,6 +2422,7 @@ function exit()
   script_state.properties = properties
   if reaper.ValidatePtr(script.project_id, "ReaProject*") then
     local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "script state", pickle(script_state))
+    reaper.MarkProjectDirty(script.project_id)
   else
     reaper.ShowConsoleMsg("Couldn't store GUI data - invalid ReaProject ID\n")
   end
@@ -2164,7 +2432,9 @@ end
 
 ------------------------------------------------------------
 function store_state(proj_id)
-  proj_id = proj_id or 0
+  msg("Function call: store_state()")
+  proj_id = proj_id or EnumProjects(-1, "")
+  
   local dock, x, y, w, h = gfx.dock(-1,0,0,0,0)
   local script_state = {}
   script_state.GUI =  {
@@ -2179,6 +2449,7 @@ function store_state(proj_id)
   script_state.properties = properties
   if reaper.ValidatePtr(script.project_id, "ReaProject*") then
     local size = reaper.SetProjExtState(script.project_id, "spk77 Track Tags", "script state", pickle(script_state))
+    reaper.MarkProjectDirty(script.project_id)
   else
     reaper.ShowConsoleMsg("Couldn't store GUI data - invalid ReaProject ID\n")
   end
@@ -2186,7 +2457,7 @@ end
   
 ------------------------------------------------------------
 function store_btns(proj_id)
-  msg("function call: store_btns")
+  msg("Function call: store_btns(" .. tostring(script.project_id) .. ")")
   local proj_id = proj_id or EnumProjects(-1, "")
   local btns = GUI.elements.buttons
   local btn_data = {}
@@ -2207,23 +2478,26 @@ function store_btns(proj_id)
   --msg(reaper.ValidatePtr(proj_id, "ReaProject*"))
   if reaper.ValidatePtr(proj_id, "ReaProject*") then
     local size = reaper.SetProjExtState(proj_id, "spk77 Track Tags", "buttons", pickle(btn_data))
+    reaper.MarkProjectDirty(script.project_id)
   else
     reaper.ShowConsoleMsg("Couldn't store button data - invalid ReaProject ID\n")
   end
 end
 
 ------------------------------------------------------------
-function restore(proj_id)
-  msg("function call: restore()")
-  local proj_id = proj_id or 0
+function restore_button_states(proj_id)
+  --msg("Function call: restore_button_states(proj_id)")
+  local proj_id = proj_id or EnumProjects(-1, "")
+  msg("Function call: restore_button_states(" .. tostring(proj_id) .. ")")
   GUI.elements.buttons = nil
   GUI.elements.buttons = {folder_type = {}, selection_type = {}}
+  local button_count = 0
   --local btns = GUI.elements.buttons
   local ok, buttons = reaper.GetProjExtState(proj_id, "spk77 Track Tags", "buttons")
   if buttons ~= "" then
     buttons = unpickle(buttons)
-    msg("Button count:" .. tostring(#buttons))
-    for i = 1, #buttons do
+    button_count = #buttons
+    for i = 1, button_count do
       local tr_guids_table, tr_pointer_table = validate_track_guids(buttons[i].tracks)
       msg("tr_guids_table length:" .. tostring(#tr_guids_table))
       -- Create button only if it has tagged tracks
@@ -2242,6 +2516,9 @@ function restore(proj_id)
           end
         end
         btn.lbl = buttons[i].lbl
+        if btn.lbl == "" then
+          btn.lbl = "Tag"
+        end
         btn.lbl_w, btn.lbl_h = gfx.measurestr(btn.lbl)
         btn.toggle_state = buttons[i].toggle_state
         btn.show_only_parent = buttons[i].show_only_parent or false
@@ -2252,20 +2529,25 @@ function restore(proj_id)
   end
 
 ---[[
-  sort_buttons()
-  --update_all_buttons_w()
-  update_button_positions()
-  update_buttons_color()
-  update_visibility()
+  msg("Button count:" .. tostring(button_count))
+  if button_count > 0 then
+    sort_buttons()
+    --update_all_buttons_w()
+    update_button_positions()
+    update_buttons_color()
+    update_visibility()
+  end
+  return button_count
 --]]
 end
 
 ------------------------------------------------------------
 
+---[[
 if not reaper.APIExists("JS_Window_Find") then
   reaper.ShowConsoleMsg("Missing API - JS_ReaScript extension\nCopy and paste this URL in Extensions > ReaPack > Import a repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
 else
-  reaper.atexit(exit)
+  --reaper.atexit(exit)
   init()
   mainloop()
 end
