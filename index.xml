@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6f1967783c2513840963594b22fe1989c2f688fa" name="ReaTeam Scripts">
+<index version="1" commit="ada794a34ef90e0341de06e3bdb8e52d1f25dae4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13928,6 +13928,20 @@ uc_note_min_seconds = 1\par}
       <version name="0.4.2" author="spk77" time="2020-01-09T19:35:43Z">
         <changelog><![CDATA[- Added a new option to auto-create folder tags (Main menu/Folder tags/Auto-create)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8eaea75c55e269da99d0b12338fb398396bc0f57/Various/spk77_Track%20Tags.lua</source>
+      </version>
+      <version name="0.4.3" author="spk77" time="2020-01-18T22:19:02Z">
+        <changelog><![CDATA[- Fix: Pressing LMB on a button didn't always set other buttons state to "off"
+- Script state: Call SetProjExtState each time when new buttons are created, settings are changed etc.
+- Folder buttons: Gray out "Update tag" -menu item in the button menu
+- Appearance: New option for removing the title bar (not tested on mac)
+- Buttons: New shortcut button for tagging selected tracks
+- Drag and drop docking: Use native actions for docking
+- Quit the script when project filename changes (to prevent script state data loss):
+  - There isn't a reliable way to detect when a new project is created or when a project template is loaded
+  - Now it also works better if the script is set as a project startup action (SWS/S&M: Set project startup action)
+- reaper.MarkProjectDirty() is called almost every time when script state is changed
+  - reaper.MarkProjectDirty(ReaProject proj) Marks project as dirty (needing save) if 'undo/prompt to save' is enabled in preferences.)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ada794a34ef90e0341de06e3bdb8e52d1f25dae4/Various/spk77_Track%20Tags.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
