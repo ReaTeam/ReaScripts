@@ -2,16 +2,16 @@
 -- @author solger
 -- @version 2.0
 -- @changelog
---   --  + Audio Preview: Playback of another preview (if one is already playing) can now be started directly
---   --  + Audio Preview: Fixed a bug when checking for available files if the list was filtered
---   --  + Filter: The last filter field entries are now saved
---   --  + Filter: The active status of the filter is now indicated by changing the font color
---   --  + Filter: Added function to clear the filter field (via [x] button or 'Backspace/Delete' key)
---   --  + General: Subfolder panel improvements: show/hide folder paths, don't list empty custom folders
---   --  + General: Added first implementation for multiple custom folder support (paths are set in the [Options] tab, separated by a semicolon
---   --  + General: Comprehensive refactoring and optimization of code base
---   --  + Recent Projects: Code improvements for reading and removing entries (requires SWS Extensions)
---   --  + UI: Got a few updates and is now scalable (via the function keys [F10], [F11] and [F12] :)
+--   + Audio Preview: Playback of another preview (if one is already playing) can now be started directly
+--   + Audio Preview: Fixed a bug when checking for available files if the list was filtered
+--   + Filter: The last filter field entries are now saved
+--   + Filter: The active status of the filter is now indicated by changing the font color
+--   + Filter: Added function to clear the filter field (via [x] button or 'Backspace/Delete' key)
+--   + General: Subfolder panel improvements: show/hide folder paths, don't list empty custom folders
+--   + General: Added first implementation for multiple custom folder support (paths are set in the [Options] tab, separated by a semicolon
+--   + General: Comprehensive refactoring and optimization of code base
+--   + Recent Projects: Code improvements for reading and removing entries (requires SWS Extensions)
+--   + UI: Got a few updates and is now scalable (via the function keys [F10], [F11] and [F12] :)
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
