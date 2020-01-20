@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="686a1924014f8927983ad0d73708e9cf9ff2849f" name="ReaTeam Scripts">
+<index version="1" commit="6a48c6819cc975c70cf21fe9b85f2b56edf3b440" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8794,21 +8794,24 @@ enter or a = Exit and apply changes\par}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaLauncher\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects and project/track templates with additional features\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects, project/track templates and more with additional features.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Uses 'Lokasenna's GUI library v2 for Lua' as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Separate tabs for Recent Projects, (.rpp) Project Templates, (.rtracktemplate) Track Templates, (.rpp) Projects, (.rpl) Project Lists and (.rpp-bak) Backups\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to add additional custom folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for Projects, Project Lists and Backups tabs\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab List-filter at the top of each tab which supports input of multiple search words separated by a 'space' character\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to preview attached 'demo' audio files of project and template files (requires js_ReaScriptAPI)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button for browsing to the folder location of a selected file (requires SWS Extensions)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Option to switch between different pre-defined Reaper Theme Slots (requires SWS Extensions)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox for managing the window auto-close behavior\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Resizeable window\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Uses Lokasenna's GUI library v2 (for LUA) as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Separate tabs for Recent Projects, (.rpp) Project Templates, (.rtracktemplate) Track Templates, (.rpp) Projects, (.rpl) Project Lists and (.rpp-bak) Backups\line
+- Option to set additional folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)\line
+- Option to set custom folder paths for Projects, Project Lists and Backups tabs\line
+- List-filter in each tab which supports input of multiple search words separated by a 'space' character\line
+- Global section with [New Tab], [New Project] and [Open Project] buttons\line
+- Selection and loading of multiple entries at once (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)\line
+- File paths can be shown/hidden\line
+- 'Keep open' checkbox to switch the automatic closing behavior of the window\line
+- Scalable and resizeable window\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require SWS Extensions:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - [Recent Projects] tab for listing and managing the recent projects (with functions to remove selected entries and clearing the entire list)\line
+- [Show in Explorer/Finder] button to search for the location of a selected file\line
+- Setup of predefined Reaper Theme Slots and the possibility to switch between them (uses SWS Resources)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require js_ReaScriptAPI:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Function to preview attached 'demo' audio files (supported file extensions: .wav, .flac, .mp3 and .ogg)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
 }
@@ -8942,6 +8945,19 @@ enter or a = Exit and apply changes\par}
       <version name="1.7.4" author="solger" time="2019-11-30T13:57:04Z">
         <changelog><![CDATA[+ [Project Templates]: Added check for Reaper 5.99x versions to loading logic]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0b616ca7f8443957fb0c8260a511cb17d54f721/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.0" author="solger" time="2020-01-20T19:01:39Z">
+        <changelog><![CDATA[+ Audio Preview: Playback of another preview (if one is already playing) can now be started directly
++ Audio Preview: Fixed a bug when checking for available files if the list was filtered
++ Filter: The last filter field entries are now saved
++ Filter: The active status of the filter is now indicated by changing the font color
++ Filter: Added function to clear the filter field (via [x] button or 'Backspace/Delete' key)
++ General: Subfolder panel improvements: show/hide folder paths, don't list empty custom folders
++ General: Added first implementation for multiple custom folder support (paths are set in the [Options] tab, separated by a semicolon
++ General: Comprehensive refactoring and optimization of code base
++ Recent Projects: Code improvements for reading and removing entries (requires SWS Extensions)
++ UI: Got a few updates and is now scalable (via the function keys [F10], [F11] and [F12] :)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6a48c6819cc975c70cf21fe9b85f2b56edf3b440/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
