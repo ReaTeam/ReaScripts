@@ -1,6 +1,7 @@
 -- @description Display last touched FX parameter
 -- @author Edgemeal
--- @version 1.0
+-- @version 1.01
+-- @changelog Show FX param value.
 -- @donation Donate https://www.paypal.me/Edgemeal
 
 function Loop()
@@ -9,24 +10,26 @@ function Loop()
   if retval then
     if (tracknumber >> 16) == 0 then -- Track FX or Input FX
       local track = reaper.CSurf_TrackFromID(tracknumber, false)
-      local retval, track_name = reaper.GetTrackName(track)
+      local _, track_name = reaper.GetTrackName(track)
       if tracknumber == 0 then track_name = 'Master Track' else track_name = 'Track '..tostring(tracknumber)..' - '..track_name end
-      local retval, fx_name = reaper.TrackFX_GetFXName(track, fxnumber, "")
-      local retval, param_name = reaper.TrackFX_GetParamName(track, fxnumber, paramnumber, "")
+      local _, fx_name = reaper.TrackFX_GetFXName(track, fxnumber, "")
+      local _, param_name = reaper.TrackFX_GetParamName(track, fxnumber, paramnumber, "")
       local fx_id = "FX: " if (fxnumber >> 24) == 1 then fx_id = "Input FX: " end
-      txt = track_name..'\n'..fx_id..fx_name..'\n'..'Param: '..param_name..'\n'
+      local _, f_value = reaper.TrackFX_GetFormattedParamValue(track, fxnumber, paramnumber,'')
+      txt = track_name..'\n'..fx_id..fx_name..'\nParam: '..param_name..' Value: '..f_value
     else -- ITEM FX >>>>>
       local track = reaper.CSurf_TrackFromID((tracknumber & 0xFFFF), false)
-      local retval, track_name = reaper.GetTrackName(track)
+      local _, track_name = reaper.GetTrackName(track)
       track_name = 'Track '..tostring(tracknumber & 0xFFFF) ..' - ' ..track_name
-      local takenumber  = (fxnumber >> 16)
+      local takenumber = (fxnumber >> 16)
       fxnumber = (fxnumber & 0xFFFF)
       local item_index = (tracknumber >> 16)-1
       local item = reaper.GetTrackMediaItem(track, item_index)
       local take = reaper.GetTake(item, takenumber)
-      local retval, fx_name = reaper.TakeFX_GetFXName(take, fxnumber, "")
-      local retval, take_param_name = reaper.TakeFX_GetParamName(take, fxnumber, paramnumber, "")
-      txt = track_name..'\n'.."Item "..tostring(item_index+1).."  Take "..tostring(takenumber+1)..'\n'.."FX: "..fx_name..'\n'..'Param: '..take_param_name..'\n'
+      local _, fx_name = reaper.TakeFX_GetFXName(take, fxnumber, "")
+      local _, take_param_name = reaper.TakeFX_GetParamName(take, fxnumber, paramnumber, "")
+      local _, f_value = reaper.TakeFX_GetFormattedParamValue(take, fxnumber, paramnumber,'')
+      txt = track_name..'\nItem '..tostring(item_index+1).."  Take "..tostring(takenumber+1)..'\nFX: '..fx_name..'\nParam: '..take_param_name..' Value: '..f_value
     end
   end
   local str_w, str_h = gfx.measurestr(txt)
