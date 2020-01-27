@@ -5,7 +5,7 @@
 --   # Create a single region with name and tail length from selected items
 --
 --   - LUA script by Eddie Pacheco 23-January-2020
---   - Modification of LUA script by SPK77 13-Sept-2015: http://forum.cockos.com/member.php?u=49553
+--   - Modification of LUA script by SPK77 "Create regions (with tail) from selected items" 13-Sept-2015: http://forum.cockos.com/member.php?u=49553
 --   - User is prompted to enter a valid non-negative numerical tail length in seconds
 --   - User is prompted to enter a name for the created region
 
