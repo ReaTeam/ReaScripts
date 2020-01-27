@@ -1,9 +1,13 @@
--- @description Adjust volume envelope point at mouse cursor via mousewheel
--- @version 1.1
--- @changelog amagalma modification: added support for Tempo envelope
--- @author spk77
---
--- Author URI: http://forum.cockos.com/member.php?u=49553
+--[[
+ReaScript name: spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua
+Version: 1.2
+Author: spk77
+About:
+  # Adjusts envelope points under mouse cursor via the mousewheel
+Changelog:
+ * v1.2(27-01-2020)
+  + amagalma modifications: added improved support for Tempo envelope, added Trim Volume env support, added support for any other envelope
+--]]
 
 -------------------
 -- User settings --
@@ -23,6 +27,9 @@ local width_env_step = 0.01 -- 200 steps (-1 to 1)
 
 -- Mute envelope step size
 local mute_env_step = 1 -- 2 steps (0 to 1)
+
+-- Step count for all other envelopes
+local all_steps = 200
 
 ----------------------------------------------------------------------
 
@@ -73,7 +80,7 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
   reaper.BR_EnvFree(br_env, false)
 
   -- Volume envelopes
-  if e.name == "Volume" or e.name == "Volume (Pre-FX)" then
+  if e.name == "Volume" or e.name == "Volume (Pre-FX)" or e.name == "Trim Volume" then
     local dB_val = VAL2DB(abs(value))
    
     -- Change the "dB_step" here
@@ -124,6 +131,13 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
     else
       value = value + 2*sign
     end
+    
+  else -- all other envelopes
+    local step = (e.max_val - e.min_val)/all_steps
+    if m_wheel_delta < -1 then 
+     step = -step
+   end
+   value = value + step
   end
   
   if value < e.min_val then
@@ -140,7 +154,7 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
   
   reaper.SetEnvelopePoint(env, p_index, nil, value, nil, nil, nil, true)
   reaper.UpdateTimeline()
-  reaper.Undo_OnStateChangeEx("Adjust envelope point", -1, -1)
+  reaper.Undo_OnStateChangeEx("Adjust envelope point", 1, -1)
 end
 
 
@@ -203,7 +217,7 @@ end
 ----------
 function main()
   local m_wheel_delta = ({reaper.get_action_context()})[7]
-  if m_wheel_delta == -1 then 
+  if m_wheel_delta == -1 then
     return
   end 
   local windowOut, segment, details = reaper.BR_GetMouseCursorContext()
@@ -214,7 +228,13 @@ function main()
     env, is_take_env = reaper.BR_GetMouseCursorContext_Envelope()
   end
   if env == nil then -- or is_take_env then
-    return
+    local track, context = reaper.BR_TrackAtMouseCursor()
+    local master = reaper.GetMasterTrack( 0 )
+    if context == 2 and track == master then
+      env = reaper.GetTrackEnvelopeByName( master, "Tempo map" )
+    else
+      return
+    end
   end
   local env_name = ({reaper.GetEnvelopeName(env, "")})[2]
   env_properties = get_env_properties(env)
