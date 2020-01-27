@@ -1,16 +1,9 @@
---[[
-ReaScript name: spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua
-Version: 1.1
-Author: spk77
-About:
-  # Adjusts envelope points under mouse cursor via the mousewheel
---]] 
-
---[[
- * Changelog:
- * v1.1(27-01-2020)
-  + amagalma modification: added support for Tempo envelope
---]]
+-- @description Adjust volume envelope point at mouse cursor via mousewheel
+-- @version 1.1
+-- @changelog amagalma modification: added support for Tempo envelope
+-- @author spk77
+--
+-- Author URI: http://forum.cockos.com/member.php?u=49553
 
 -------------------
 -- User settings --

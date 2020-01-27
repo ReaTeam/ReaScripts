@@ -1,11 +1,12 @@
 --[[
-ReaScript name: amagalma_Float centered exclusively the previous FX for the current track
+ReaScript Name: Float centered exclusively the previous FX for the current track
 Version: 1.0
 Author: amagalma
 About:
-  # Closes all open floating FX and FX chains and floats centered in the screen the previous FX for the current track (first selected or last touched)
-     - works similarly to "SWS/S&M: Float next FX (and close others) for selected tracks" but centers correctly the Master FX and works with last touched track too
-     - requires JS_ReaScriptAPI
+  Closes all open floating FX and FX chains and floats centered in the screen the previous FX for the current track (first selected or last touched)
+
+  - works similarly to "SWS/S&M: Float next FX (and close others) for selected tracks" but centers correctly the Master FX and works with last touched track too
+  - requires JS_ReaScriptAPI
 --]] 
 --------------------------------------------------------------------------------------
 
