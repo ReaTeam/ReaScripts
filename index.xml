@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="795eb39bbbd07543f1d716ba6f3ff0d521e4883d" name="ReaTeam Scripts">
+<index version="1" commit="57bdb537f902533ad221efbe6127fb5c980a835b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9041,6 +9041,24 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.0" author="cfillion" time="2017-01-20T17:44:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/555980fce3a01348fdfddea71aca73687cb1f1c2/Regions/cfillion_Nudge%20start%20or%20end%20of%20regions%20in%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="epacheco_Create a single region with name and tail length from selected items.lua" type="script" desc="Create a single region with name and tail length from selected items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Create a single region with name and tail length from selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab LUA script by Eddie Pacheco 23-January-2020\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Modification of LUA script by SPK77 "Create regions (with tail) from selected items" 13-Sept-2015: http://forum.cockos.com/member.php?u=49553\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab User is prompted to enter a valid non-negative numerical tail length in seconds\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab User is prompted to enter a name for the created region\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Eddie Pacheco" time="2020-01-27T06:16:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/57bdb537f902533ad221efbe6127fb5c980a835b/Regions/epacheco_Create%20a%20single%20region%20with%20name%20and%20tail%20length%20from%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_RegionMatrixAutoTrack.lua" type="script" desc="Automatically assigns a track with a certain name to all Regions in the Region Render Matrix">
