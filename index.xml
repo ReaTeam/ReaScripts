@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9519b7311973e9b4e274099d199c1ab8f7555544" name="ReaTeam Scripts">
+<index version="1" commit="9c84e14813c066b5c48cf052fdc12eacb7b7661b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1701,6 +1701,27 @@ Refactored/reorganized the code for readability]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes">
+    <reapack name="amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua" type="script" desc="amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Adjusts any envelope point under mouse cursor via the mousewheel (action must be assigned to modifier key(s) + mousewheel)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Based on "spk77_Adjust volume envelope point at mouse cursor via mousewheel.lua"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Step size can be set inside the script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can work with any envelope under the mouse or with selected envelope only (preference set inside the script)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Tooltip that shows current value even if mouse is not over point\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart Undo point creation (only one undo point is created when the modifier key is released)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created per envelope (in case more than one envelopes are changed while modifier key is pressed)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI and SWS (if not installed, user is prompted to have a browser opened to the relevant web pages)\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma &amp; spk77" time="2020-01-29T14:56:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c84e14813c066b5c48cf052fdc12eacb7b7661b/Envelopes/amagalma_spk77_Adjust%20envelope%20point%20at%20mouse%20cursor%20via%20mousewheel.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Toggle active take volume envelope visible for selected item(s).lua" type="script" desc="amagalma_Toggle active take volume envelope visible for selected item(s)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
