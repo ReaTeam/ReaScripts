@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9c84e14813c066b5c48cf052fdc12eacb7b7661b" name="ReaTeam Scripts">
+<index version="1" commit="715ab08d23920f52b929a3b28d09e21e8d917fe7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1720,6 +1720,9 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma &amp; spk77" time="2020-01-29T14:56:10Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9c84e14813c066b5c48cf052fdc12eacb7b7661b/Envelopes/amagalma_spk77_Adjust%20envelope%20point%20at%20mouse%20cursor%20via%20mousewheel.lua</source>
+      </version>
+      <version name="1.01" author="amagalma &amp; spk77" time="2020-01-29T18:46:39Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/715ab08d23920f52b929a3b28d09e21e8d917fe7/Envelopes/amagalma_spk77_Adjust%20envelope%20point%20at%20mouse%20cursor%20via%20mousewheel.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle active take volume envelope visible for selected item(s).lua" type="script" desc="amagalma_Toggle active take volume envelope visible for selected item(s)">
