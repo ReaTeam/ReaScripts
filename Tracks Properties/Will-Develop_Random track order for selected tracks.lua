@@ -1,49 +1,27 @@
--- @description random track order for selected tracks by Will Develop
+-- @description Random track order for selected tracks
 -- @author Will Develop
 -- @version 1.0
 -- @link
---   Forum thread https://forum.cockos.com/showthread.php?p=2237863#post2237863
+--   Forum thread https://forum.cockos.com/showthread.php?p=2237863
 --   My Website https://will-records.tk/site/php/home.php
 -- @about
---   # random track order for selected tracks by Will Develop
+--   # Random track order for selected tracks by Will Develop
 --
 --   ## INFO:
---   - ReaScript Name: random track order for selected tracks
+--
+--   - ReaScript Name: Random track order for selected tracks
 --   - Author: Will Develop 
 --   - Website: https://www.will-records.tk
 --   - REAPER: 6.02
---   - Version: 1.0
 --  
 --   ## DESCRIPTION:
---   This script randomized the order for the selected tracks. Useful for Blind-Tests
 --
+--   This script randomized the order for the selected tracks. Useful for Blind-Tests
 --    
 --   ## INTRODUCTION:
 --      
 --   1. Select the tracks.
 --   2. Run the Script
-
---[[
-  INFO:
-    - ReaScript Name: random track order for selected tracks
-    - Author: Will Develop 
-    - Website: https://www.will-records.tk
-    - REAPER: 6.02
-    - Version: 1.0
-  
-  DESCRIPTION:
-    This script randomized the order for the selected tracks. Useful for Blind-Tests
-
-    
-    INTRODUCTION:
-      
-      1.Select the tracks.
-      2.Run the Script
-      
---]]
-
-
-
 
  --Lua Shuffle-Function
 function shuffle(array)
