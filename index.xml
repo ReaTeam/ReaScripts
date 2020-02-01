@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="33eb3d98829f7f5af521720ef382fe0d67b29807" name="ReaTeam Scripts">
+<index version="1" commit="ddc1608bc51c5bf0cf5ac45f091ed28873ba2294" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8843,6 +8843,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.03" author="Edgemeal" time="2020-01-12T01:54:06Z">
         <changelog><![CDATA[Open created text file in OS default application.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/91484740d974a695fbb20576e290b9b4d842d968/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
+      </version>
+      <version name="1.04" author="Edgemeal" time="2020-02-01T04:06:21Z">
+        <changelog><![CDATA[Add track Sends info.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ddc1608bc51c5bf0cf5ac45f091ed28873ba2294/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
