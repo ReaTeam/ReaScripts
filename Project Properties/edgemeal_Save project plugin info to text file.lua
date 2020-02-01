@@ -1,7 +1,7 @@
 -- @description Save project plugin info to text file
 -- @author Edgemeal
--- @version 1.03
--- @changelog Open created text file in OS default application.
+-- @version 1.04
+-- @changelog Add track Sends info.
 -- @link Forum https://forum.cockos.com/showthread.php?t=225219
 -- @donation Donate https://www.paypal.me/Edgemeal
 
@@ -41,6 +41,16 @@ function AddFX(track,fx_count)
     local enabled = reaper.TrackFX_GetEnabled(track, fx) -- bypass
     local offline = reaper.TrackFX_GetOffline(track, fx) -- offline
     Status(fx_name,preset_name,enabled,offline) -- add fx info
+  end
+  -- Track Sends
+  local send_cnt = reaper.GetTrackNumSends(track, 0)
+  if send_cnt > 0 then
+    local s = 'Track Sends('..tostring(send_cnt)..'): '
+    for send_index = 0, send_cnt - 1 do
+      local retval, send_name = reaper.GetTrackSendName(track, send_index, '')
+      s = s .. send_name .. ((send_index < send_cnt - 1) and ', ' or '')
+    end
+   t[#t+1] = s
   end
 end
 
