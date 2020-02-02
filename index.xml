@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ec4eb629a3f6955db51e0ed38595a6899052b5ff" name="ReaTeam Scripts">
+<index version="1" commit="99e5244c8b3dca29c0e7bdbd8445c924d7830a51" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1701,6 +1701,23 @@ Refactored/reorganized the code for readability]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes">
+    <reapack name="amagalma_Set envelope segment under mouse cursor to 0 dB or center.lua" type="script" desc="amagalma_Set envelope segment under mouse cursor to 0 dB or center">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Resets the envelope segment under the mouse cursor to 0 dB for Volume, or to the center for all other envelopes\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Recommended to be used as an Envelope segment mouse modifier for double click\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo point is created if needed and is named accordingly\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Needs SWS Extensions\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2020-02-02T20:21:05Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/99e5244c8b3dca29c0e7bdbd8445c924d7830a51/Envelopes/amagalma_Set%20envelope%20segment%20under%20mouse%20cursor%20to%200%20dB%20or%20center.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua" type="script" desc="amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
