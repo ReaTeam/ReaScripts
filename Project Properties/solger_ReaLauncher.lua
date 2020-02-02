@@ -1,17 +1,9 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.0
+-- @version 2.1
 -- @changelog
---   + Audio Preview: Playback of another preview (if one is already playing) can now be started directly
---   + Audio Preview: Fixed a bug when checking for available files if the list was filtered
---   + Filter: The last filter field entries are now saved
---   + Filter: The active status of the filter is now indicated by changing the font color
---   + Filter: Added function to clear the filter field (via [x] button or 'Backspace/Delete' key)
---   + General: Subfolder panel improvements: show/hide folder paths, don't list empty custom folders
---   + General: Added first implementation for multiple custom folder support (paths are set in the [Options] tab, separated by a semicolon
---   + General: Comprehensive refactoring and optimization of code base
---   + Recent Projects: Code improvements for reading and removing entries (requires SWS Extensions)
---   + UI: Got a few updates and is now scalable (via the function keys [F10], [F11] and [F12] :)
+--   + Audio Preview: Bugfix for 'nil value' error when checking for available preview files
+--   + General: Added 'Save as New Version' checkbox (to save the loaded project(s) with an incremented version number: _1, _2, ...)
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -68,7 +60,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "2.0"
+appversion = "2.1"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -336,7 +328,8 @@ local function GetDirectoryPath(filepath)
   if osversion:find("Win") then index = (filepath:reverse()):find("%\\") -- Windows
     else index = (filepath:reverse()):find("%/") -- macOS / Linux
   end
-  return string.sub(filepath, 1, #filepath - index)
+  if index == nil then return ""
+  else return string.sub(filepath, 1, #filepath - index) end
 end
 
 local function GetFilenameWithoutPath(filepath)
@@ -508,10 +501,12 @@ local function RL_AutoRefreshTab()
     RL_Func_TabRefresh[selectedTab].call()
     Global_UpdateSubfolderPathDisplayMode()
   end
+  GUI.Val("main_checklistSaveAsNewVersion", {false})  
 end
 
 local function RL_SetFocusedTab(tabIndex)
   GUI.Val("main_tabs", tabIndex)
+  GUI.Val("main_checklistSaveAsNewVersion", {false})
   if not skipRefreshAtLaunch then RL_AutoRefreshTab() end
 end
 
@@ -1000,15 +995,23 @@ local function Global_NewTabIgnoreDefaultTemplate()
   Global_CheckWindowPinState()
 end
 
+local function Global_SaveAsNewVersion()
+  if GUI.Val("main_checklistSaveAsNewVersion") then
+    reaper.Main_OnCommand(41895, 0) -- [Main] - File: Save new version of project (automatically increment project name)
+  end
+end
+
 local function Global_Load(tabmode, selectedFile, fileCount)
   if selectedFile ~= nil then 
     if tabmode then
         reaper.Main_OnCommand(40859, 0) -- New project tab
         reaper.Main_openProject(selectedFile) 
+        Global_SaveAsNewVersion()
         RL_CleanupAtExit()
     else
       if fileCount > 1 then reaper.Main_OnCommand(40859, 0) end -- New project tab
-      reaper.Main_openProject(selectedFile) 
+      reaper.Main_openProject(selectedFile)
+      Global_SaveAsNewVersion()
       RL_CleanupAtExit()
     end
   end
@@ -1809,6 +1812,7 @@ local LayerIndex = {
   Backups = 8,
   Options = 9,
   Help = 10,
+  SaveAsNewVersion = 11,
   DialogContent = 20,
   DialogWindow = 21
 }
@@ -2226,14 +2230,14 @@ local function RL_Draw_Main()
   GUI.New("main_statusbar", "Label", LayerIndex.Main, pad_left + (91 * RL.scaleFactor), GUI.h - (16 * RL.scaleFactor), "", false, 4)
 
   GUI.elms.main_tabs:update_sets(
-    { [1] = {LayerIndex.Global, LayerIndex.RecentProjects},
-      [2] = {LayerIndex.Global, LayerIndex.ProjectTemplates},
-      [3] = {LayerIndex.Global, LayerIndex.TrackTemplates},
-      [4] = {LayerIndex.Global, LayerIndex.CustomProjects},
-      [5] = {LayerIndex.Global, LayerIndex.ProjectLists},
-      [6] = {LayerIndex.Global, LayerIndex.Backups},
-      [7] = {LayerIndex.Options},
-      [8] = {LayerIndex.Help}
+    { [1] = { LayerIndex.Global, LayerIndex.RecentProjects, LayerIndex.SaveAsNewVersion },
+      [2] = { LayerIndex.Global, LayerIndex.ProjectTemplates },
+      [3] = { LayerIndex.Global, LayerIndex.TrackTemplates },
+      [4] = { LayerIndex.Global, LayerIndex.CustomProjects, LayerIndex.SaveAsNewVersion },
+      [5] = { LayerIndex.Global, LayerIndex.ProjectLists, LayerIndex.SaveAsNewVersion },
+      [6] = { LayerIndex.Global, LayerIndex.Backups },
+      [7] = { LayerIndex.Options },
+      [8] = { LayerIndex.Help }
     }
   )
 
@@ -2261,6 +2265,11 @@ local function RL_Draw_Main()
   GUI.New("main_checklistWindowPin", "Checklist", LayerIndex.Global, GUI.w - (26 * RL.scaleFactor) + (RL.scaleFactor * 5), 30 * RL.scaleFactor + (RL.scaleFactor * 2), 20 * RL.scaleFactor - (5 * RL.scaleFactor), 20 * RL.scaleFactor - (5 * RL.scaleFactor), "", "", "h", 0)
   GUI.elms.main_checklistWindowPin.opt_size = 20 * RL.scaleFactor - (5 * RL.scaleFactor)
   GUI.elms.main_checklistWindowPin:init()
+
+  GUI.New("main_lblSaveNewVersion", "Label", LayerIndex.SaveAsNewVersion, GUI.w - (154 * RL.scaleFactor) + (RL.scaleFactor * 11), 320 * RL.scaleFactor, "Save as New Version", false, 3)
+  GUI.New("main_checklistSaveAsNewVersion", "Checklist", LayerIndex.SaveAsNewVersion, GUI.w - (44 * RL.scaleFactor) + (RL.scaleFactor * 11), 318 * RL.scaleFactor + (RL.scaleFactor * 2), 20 * RL.scaleFactor - (5 * RL.scaleFactor), 20 * RL.scaleFactor - (5 * RL.scaleFactor), "", "", "h", 0)
+  GUI.elms.main_checklistSaveAsNewVersion.opt_size = 20 * RL.scaleFactor - (5 * RL.scaleFactor)
+  GUI.elms.main_checklistSaveAsNewVersion:init()
 
   function GUI.elms.main_menuPaths:onmousedown()
     GUI.Menubox.onmouseup(self)
@@ -2904,7 +2913,7 @@ local helpKeyDescriptions = {
 select prev | next tab
 select tab directly
 - - - - -
-filter - jump into | jump out
+filter - jump into | out
 filter - clear
 - - - - -
 prev | next subfolder
@@ -2927,7 +2936,7 @@ prev | next project tab
 help
 options
 list refresh
-window - toggle scale
+window - scale toggle
 window - scale down | up]]
 }
 
@@ -2976,9 +2985,9 @@ Preparation: Place a WAV, FLAC, MP3 or OGG audio file with identical name into t
 - -
 Adjust the preview volume knob (0 - 100 %) via LEFT DRAG or MOUSEWHEEL
 - -
-2) Select the preview output channels (by default 1/2 is used)
+Select preview output channels (by default outputs 1/2 are used)
 - -
-3) Start & Stop a preview of a selected entry via DOUBLE CLICK on the volume knob or via the assigned KEY SHORTCUT
+Start & Stop a preview of a selected entry via DOUBLE CLICK on the volume knob or via the SPACE and * key
 - -
   Status colors:
   - SILVER: preview file available
@@ -2998,15 +3007,15 @@ Loading a single entry directly is also possible via DOUBLE CLICK
 ]]
 ,
 [[
-- - - - - - - - - - - - - - - - - - - - - - - 
+- - - - - - - - - - - - - - - - - - - - - -
 Load projects with FX offline
-- - - - - - - - - - - - - - - - - - - - - - - 
-Either hold the following key combination while loading:
+- - - - - - - - - - - - - - - - - - - - - - 
+Possible by holding the global key combination while loading:
 - -
   CTRL + SHIFT (Windows & Linux)
   CMD + SHIFT  (macOS)
 - -
-Or use the 'Open with FX offline' option in the [Open Project] window
+Or by using the 'Open with FX offline' option in the [Open Project] window
 ]]
 ,
 [[
@@ -3014,13 +3023,10 @@ Or use the 'Open with FX offline' option in the [Open Project] window
 [ Recent Projects ]
 - - - - - - - - - - - - - - -
 [ Requires SWS Extensions installed ]
-- - - - -
-RIGHT CLICK on the Recent Projects listbox opens the context menu for removing selected entries or clearing the entire recent projects list:
 - -
-  Remove entry
-  Clear list
+RIGHT CLICK on the Recent Projects listbox opens the (Remove entry | Clear list) context menu for removing selected entries or clearing the entire list
 - -
-The 'Remove entry' menu option is only available for the unfiltered list
+The 'Remove entry' menu option is only available for an unfiltered list
 ]]
 }
 
@@ -3082,6 +3088,10 @@ local function RL_Draw_Tooltips()
   local ttWindowPin = "Check this box to keep the window open"
   GUI.elms.main_lblWindowpin.tooltip = ttWindowPin
   GUI.elms.main_checklistWindowPin.tooltip = ttWindowPin
+  -- save as new version
+  local ttSaveAsNewVersion = "Save the loaded project(s) with an incremented version number: _1, _2, ..."
+  GUI.elms.main_lblSaveNewVersion.tooltip = ttSaveAsNewVersion
+  GUI.elms.main_checklistSaveAsNewVersion.tooltip = ttSaveAsNewVersion
   -- recent projects
   GUI.elms.tab_recentProjects_btnRefresh.tooltip = "Refresh the [Recent Projects] list"
   GUI.elms.tab_recentProjects_txtFilter.tooltip = "Filter the [Recent Projects] list by typing in one or multiple words separated by a 'space' character"
@@ -3306,6 +3316,8 @@ local function RL_RedrawAll()
   GUI.elms.main_btnOpenProject:ondelete()
   GUI.elms.main_lblWindowpin:ondelete()
   GUI.elms.main_checklistWindowPin:ondelete()
+  GUI.elms.main_lblSaveNewVersion:ondelete()
+  GUI.elms.main_checklistSaveAsNewVersion:ondelete()
   RL_Draw_Main()
   -- recent projects
   GUI.elms.tab_recentProjects_btnRefresh:ondelete()
