@@ -1,11 +1,9 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.4.4
+-- @version 0.4.5
 -- @author spk77
 -- @changelog
---   - New element: Search box - find (show/hide) tracks by search string (WIP)
---   - New option: Main menu/Options/Hide and disable all buttons
---   - New option: Main menu/Search box/Show (show or hide the search box)
---   - MCP: Scroll to track (if possible)
+--   - Search box: more advanced search with pre-filters
+--   - Search box: improve window focusing logic
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -28,7 +26,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.4.4",
+                  version = "0.4.5",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -189,11 +187,15 @@ local abs = math.abs
 local floor = math.floor
 local max = math.max
 local sqrt = math.sqrt
+local string_len = string.len
+local string_sub = string.sub
+local string_gsub = string.gsub
+local string_find = string.find
 local reaper = reaper
 local EnumProjects = reaper.EnumProjects
 local screen_left, screen_top, screen_right, screen_bottom = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, true)
 
-
+-- Static elements
 local search_box = {}
 local main_frame = {}
 
@@ -258,6 +260,21 @@ msg("Function call: Tracks:restore_initial_visibility_states()")
   end
   reaper.TrackList_AdjustWindows(false)
 end
+
+------------------------------------------------------------
+function Tracks:show_or_hide(track, show_in_TCP, show_in_MCP)
+  msg("Function call: Tracks:show(show_in_TCP, show_in_MCP)")
+  --[[
+  if not reaper.ValidatePtr(track, "MediaTrack*") then
+    return false
+  end
+  --]]
+  show_in_TCP = show_in_TCP and 1 or 0
+  show_in_MCP = show_in_MCP and 1 or 0
+  reaper.SetMediaTrackInfo_Value(track, "B_SHOWINTCP", show_in_TCP)
+  reaper.SetMediaTrackInfo_Value(track, "B_SHOWINMIXER", show_in_MCP)
+end
+
 
 ------------------------------------PICKLE------------------------------------
 
@@ -769,6 +786,13 @@ function show_main_menu(x, y)
     update_visibility()
   elseif menu_ret == 16 then
     main_menu.show_search_box = not main_menu.show_search_box
+    if main_menu.show_search_box then
+      
+      search_box.toggle_state = true
+      search_box.is_focused = true
+      GUI.edit_box_has_focus = true
+      reaper.JS_Window_SetFocus(script.win_id)
+    end
     update_button_positions()
     update_visibility()
   elseif menu_ret == 17 then
@@ -2129,31 +2153,83 @@ end
 function Edit_box:find_tracks()
   msg("Function call: Edit_box:find_tracks()")
   msg(self.text)
-  local first_found_tr = false
+  local search_string = self.text
+  local text_len = string_len(self.text)
+  local search_receives = starts_with(self.text, "#r")
+  local search_sends = starts_with(self.text, "#s")
+  local search_instruments = starts_with(self.text, "#i")
+  local search_fxs = starts_with(self.text, "#fx")
+  local apply_pre_filter = search_receives or search_sends or search_instruments or search_fxs
+  local first_visible_tr = false
+  
   reaper.PreventUIRefresh(1)
   for i = 1, reaper.CountTracks(0) do
     local track = reaper.GetTrack(0,i-1)
     if track then
-      if not first_found_tr then
-        first_found_tr = track
+      local show_track = false
+      if search_receives then
+        if reaper.GetTrackNumSends(track, -1) > 0 then
+          search_string = string_sub(self.text, 3)
+          show_track = true
+        end
+      elseif search_sends then
+        if reaper.GetTrackNumSends(track, 0) > 0 then
+          search_string = string.sub(self.text, 3)
+          show_track = true
+        end
+      elseif search_instruments then
+        if reaper.TrackFX_GetInstrument(track) > -1 then
+          search_string = string.sub(self.text, 3)
+          show_track = true
+        end
+      elseif search_fxs then
+        local fx_count = reaper.TrackFX_GetCount(track)
+        if fx_count > 0 then
+          search_string = string.sub(self.text, 4)
+          search_string = search_string:gsub("^%s*", "")
+          if text_len > 3 then
+            for fx_index=1, fx_count do
+              local retval, fx_name = reaper.TrackFX_GetFXName(track, fx_index-1, "")
+              if retval then
+                fx_name = fx_name:gsub("(.-):", ""):gsub("%b()", "") -- remove "vst:" and manufacturer
+                if fx_name:lower():find(search_string) then
+                  show_track = true
+                  break
+                end
+              end 
+            end
+          else
+            show_track = true -- show all tracks that have FXs
+          end
+        end
       end
-      local _, tr_name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
-      if tr_name:lower():find(self.text) then
-      --if #self.text > 0 and starts_with(tr_name, self.text) then
-        reaper.SetMediaTrackInfo_Value(track, "B_SHOWINTCP", 1)
-        reaper.SetMediaTrackInfo_Value(track, "B_SHOWINMIXER", 1)
+      
+      search_string = search_string:gsub("^%s*", "")
+      if (not search_fxs and apply_pre_filter) or not apply_pre_filter and string.len(search_string) > 0 then
+        local _, tr_name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+        if tr_name:lower():find(search_string) then
+          show_track = true
+        else
+          show_track = false
+        end
+      end
+      
+      if show_track then
+        if not first_visible_tr then
+          first_visible_tr = track
+        end
+        -- Tracks:show_or_hide(track, show_in_TCP, show_in_MCP)
+        Tracks:show_or_hide(track, true, true)
       else
-        reaper.SetMediaTrackInfo_Value(track, "B_SHOWINTCP", 0)
-        reaper.SetMediaTrackInfo_Value(track, "B_SHOWINMIXER", 0)
+        Tracks:show_or_hide(track, false, false)
       end
     end
   end
-    
   reaper.PreventUIRefresh(-1)
   reaper.TrackList_AdjustWindows(false)
   reaper.UpdateArrange()
-  if first_found_tr then
-    scroll_to_track(first_found_tr)
+  if first_visible_tr then
+    scroll_to_track(first_visible_tr)
   end
 end
 
@@ -2468,7 +2544,7 @@ function on_lmb_up()
     GUI.drag = false
   end
   if GUI.focus_arrange_view then
-    if GUI.active_element.type ~= "edit box" then
+    if not search_box.is_focused and not GUI.edit_box_has_focus and GUI.active_element.type ~= "edit box" then
       setCursorContext()
     end
   end
@@ -2511,7 +2587,9 @@ function on_rmb_up()
    -- GUI.active_element = nil
   end
   if GUI.focus_arrange_view then
-    setCursorContext()
+    if not search_box.is_focused and not GUI.edit_box_has_focus and GUI.active_element.type ~= "edit box" then
+      setCursorContext()
+    end
   end
 end
 
