@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1c7176077431e10051efd4840ab4e76dbfc2442e" name="ReaTeam Scripts">
+<index version="1" commit="45d4e88ab5160946245b829adf1861cd2667b854" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10650,6 +10650,32 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       </metadata>
       <version name="1.0" author="TM" time="2019-05-28T00:52:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f6f426669d103cd5f412e44493dc8d45d8428def/Tracks%20Properties/tm_Set%20hardware%20outputs%20of%20selected%20tracks%20to%20pre-fader%20(pre-fx).lua</source>
+      </version>
+    </reapack>
+    <reapack name="Will-Develop_Random track order for selected tracks.lua" type="script" desc="Random track order for selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Random track order for selected tracks by Will Develop\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 INFO:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ReaScript Name: Random track order for selected tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Author: Will Develop\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Website: https://www.will-records.tk\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab REAPER: 6.02\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 DESCRIPTION:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script randomized the order for the selected tracks. Useful for Blind-Tests\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 INTRODUCTION:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select the tracks.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run the Script\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2237863">Forum thread</link>
+        <link rel="website" href="https://will-records.tk/site/php/home.php">My Website</link>
+      </metadata>
+      <version name="1.0" author="Will Develop" time="2020-02-04T12:50:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/45d4e88ab5160946245b829adf1861cd2667b854/Tracks%20Properties/Will-Develop_Random%20track%20order%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
   </category>
