@@ -1,9 +1,10 @@
 -- @description Track Tags (based on Tracktion 6 track tags)
--- @version 0.4.5
+-- @version 0.4.6
 -- @author spk77
 -- @changelog
---   - Search box: more advanced search with pre-filters
---   - Search box: improve window focusing logic
+--   - Allow dragging the window across screen boundaries (to the right). Thanks amagalma!
+--   - Layout: fix overlapping elements. Thanks todoublez!
+--   - Items in hidden tracks: (Fix) unselect items when they are hid by the script
 -- @links
 --   Forum Thread https://forum.cockos.com/showthread.php?t=203446
 -- @donation https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5NUK834ZGR5NU&lc=FI&item_name=SPK77%20scripts%20for%20REAPER&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
@@ -26,7 +27,7 @@
 --   - This is an alpha version
 
 local script =  {
-                  version = "0.4.5",
+                  version = "0.4.6",
                   title = "Track Tags",
                   project_filename = "",
                   project_id = nil,
@@ -263,7 +264,7 @@ end
 
 ------------------------------------------------------------
 function Tracks:show_or_hide(track, show_in_TCP, show_in_MCP)
-  msg("Function call: Tracks:show(show_in_TCP, show_in_MCP)")
+  --msg("Function call: Tracks:show(show_in_TCP, show_in_MCP)")
   --[[
   if not reaper.ValidatePtr(track, "MediaTrack*") then
     return false
@@ -525,6 +526,7 @@ function update_visibility()
     set_all_tracks_visible(0) -- hide all
     
     for _,v in pairs(btns) do
+      --msg(#v)
       for i=1, #v do
         local b = v[i]
         --b.show_mixer = true
@@ -537,17 +539,14 @@ function update_visibility()
             local tr = b.tracks[t]
             
             if reaper.ValidatePtr(tr, "MediaTrack*") then
----[[ Show closest parent track
+              -- Show closest parent track
               if main_menu.show_closest_parent and t == 1 and b.type == "folder parent" then
                 local par_tr = reaper.GetParentTrack(tr)
                 if par_tr then
-                  reaper.SetMediaTrackInfo_Value(par_tr, "B_SHOWINTCP", 1)
-                  reaper.SetMediaTrackInfo_Value(par_tr, "B_SHOWINMIXER", 1)
+                  Tracks:show_or_hide(par_tr, true, true)
                 end
-              end
---]]
-              reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINTCP", 1)
-              reaper.SetMediaTrackInfo_Value(tr, "B_SHOWINMIXER", 1)
+              end          
+              Tracks:show_or_hide(tr, true, true)
             else
               --GUI.safe_remove_track_from_tag[#GUI.safe_remove_track_from_tag + 1] = {i, t} -- i = button index, t = track index
             end
@@ -563,7 +562,7 @@ function update_visibility()
       -- Unselect items in hidden tracks (if hidden from TCP)
       for i=1, tr_count do
         local tr = reaper.GetTrack(0, i-1)
-        if not reaper.GetMediaTrackInfo_Value(tr, "B_SHOWINTCP") then
+        if reaper.GetMediaTrackInfo_Value(tr, "B_SHOWINTCP") == 0 then
           local item_count = reaper.CountTrackMediaItems(tr)
           for j=1, item_count do
             local item = reaper.GetTrackMediaItem(tr, j-1)
@@ -573,6 +572,7 @@ function update_visibility()
           end
         end      
       end
+      
     end
   else -- main_menu.show_only_tagged_tracks is false
     set_all_tracks_visible(1)
@@ -1567,6 +1567,7 @@ function update_button_positions(w, h)
   main_frame.w, main_frame.h = gfx.w, gfx.h
   
   if main_menu.show_search_box then
+    curr_row = 2
     search_box.x = p.start_x
     search_box.y = p.start_y
     search_box.w = (gfx.w > 100 and gfx.w or 100) - 2*p.start_x
@@ -2107,21 +2108,19 @@ function Edit_box:onchar(c)
     e.sel=0
   end
 --]]
-  if c == 13 then
+  if c == 13 then -- return
     self.toggle_state = false
     self.is_focused = false
     GUI.edit_box_has_focus = false
     update_visibility()
     return
-  end
----[[
-  if c == 0x6C656674 then -- left arrow
+  elseif c == 37 then -- % char
+    return
+  elseif c == 0x6C656674 then -- left arrow
     if self.caret > 0 then self.caret=self.caret-1 end
   elseif c == 0x72676874 then -- right arrow
     if self.caret < string.len(self.text) then self.caret=self.caret+1 end
   elseif c == 8 then -- backspace
---]]
-  --if c == 8 then -- backspace
     if self.caret > 0 then 
       self.text=string.sub(self.text,1,self.caret-1)..string.sub(self.text,self.caret+1)
       self.caret=self.caret-1
@@ -2525,7 +2524,8 @@ function on_lmb_up()
     elseif y <= 0 then
       gfx.dock(2*256+1)
       reaper.Main_OnCommand(41600, 0) --Docker: Show in top of main window
-    elseif x + w >= right and y > 0 then
+    --elseif x + w >= right and y > 0 then
+    elseif x + w >= right and x <= right and y > 0 then
       gfx.dock(3*256+1)
       reaper.Main_OnCommand(41601, 0) -- Docker: Show in right of main window
 -- bottom
@@ -2812,7 +2812,8 @@ function mainloop()
       gfx.drawstr("Dock to left of main window", 1|4, gfx.w, gfx.h)
     elseif y <= 0 then
       gfx.drawstr("Dock to top of main window", 1|4, gfx.w, gfx.h)
-    elseif x + w >= screen_right and y > 0 then
+    --elseif x + w >= screen_right and y > 0 then
+    elseif x + w >= screen_right and x <= screen_right and y > 0 then
       gfx.drawstr("Dock to right of main window", 1|4, gfx.w, gfx.h)
     else
       draw_and_update_buttons()
@@ -3068,6 +3069,7 @@ else
   mainloop()
 end
 --]]
+
 
 
 
