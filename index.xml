@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1e3fa40657aaea838cc724c15f99562add85e37f" name="ReaTeam Scripts">
+<index version="1" commit="da1d6845fd869d96215949f1d162ec8fa16cfe85" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -8524,6 +8524,9 @@ Made by Mordi, Jan 2016]]></changelog>
     <reapack name="spk77_MIDI velocity tool.eel" type="script" desc="MIDI velocity tool">
       <version name="1.0" author="spk77" time="2016-04-24T04:22:52Z">
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/5848a417a16dc1285a99cb0fb2669641280504a6/MIDI%20Editor/spk77_MIDI%20velocity%20tool.eel</source>
+      </version>
+      <version name="1.01" author="spk77" time="2020-02-08T00:41:46Z">
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/da1d6845fd869d96215949f1d162ec8fa16cfe85/MIDI%20Editor/spk77_MIDI%20velocity%20tool.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Move edit cursor to start of next note + preview.eel" type="script" desc="Move edit cursor to start of next note + preview">
