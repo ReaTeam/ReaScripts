@@ -230,14 +230,13 @@ local function createAction(presetName, scriptInfo)
     reaper.GetResourcePath(), actionName)
   local baseName = scriptInfo.path:match('([^/\\]+)$')
   local relPath = scriptInfo.path:sub(reaper.GetResourcePath():len() + 2)
-  assert(not (presetName..relPath):match('%]%]'))
 
-  local code = string.format([=[
+  local code = string.format([[
 -- This file was created by %s on %s
 
-ApplyPresetByName = [[%s]]
-dofile(string.format([[%%s/%s]], reaper.GetResourcePath()))
-]=], baseName, os.date('%c'), presetName, relPath)
+ApplyPresetByName = %q
+dofile(string.format(%q, reaper.GetResourcePath()))
+]], baseName, os.date('%c'), presetName, '%s/'..relPath)
 
   local file = assert(io.open(outputFn, 'w'))
   file:write(code)
