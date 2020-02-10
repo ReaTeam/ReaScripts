@@ -1,7 +1,10 @@
 -- @description Toggle track FX bypass by name
--- @version 1.1
--- @changelog Add track filter feature (by name or selection)
 -- @author cfillion
+-- @version 1.2
+-- @changelog Add a "create action" script for creating bypass actions without user input
+-- @provides
+--   .
+--   [main] . > cfillion_Toggle track FX bypass by name (create action).lua
 -- @link http://forum.cockos.com/showthread.php?t=184623
 -- @screenshot
 --   Basic Usage https://i.imgur.com/jVgwbi3.gif
@@ -12,6 +15,9 @@
 --   This script asks for a string to match against all track FX in the current
 --   project, matching tracks or selected tracks. The search is case insensitive.
 --   Bypass is toggled for all matching FXs. Undo points are consolidated into one.
+--
+--   This script can also be used to create custom actions that bypass matching
+--   track effects without always requesting user input.
 
 if not reaper.GetTrackName then
   -- for REAPER prior to v5.30 (native GetTrackName returns "Track N" when it's empty)
@@ -20,7 +26,7 @@ if not reaper.GetTrackName then
   end
 end
 
-function matchTrack(track, filter)
+local function matchTrack(track, filter)
   if filter == '/selected' then
     return reaper.IsTrackSelected(track)
   else
@@ -29,22 +35,72 @@ function matchTrack(track, filter)
   end
 end
 
-local defaultTrackFilter = ''
-if reaper.CountSelectedTracks() > 0 then
-  defaultTrackFilter = '/selected'
+local function prompt()
+  local default_track_filter = ''
+  if reaper.CountSelectedTracks() > 0 then
+    default_track_filter = '/selected'
+  end
+
+  local ok, csv = reaper.GetUserInputs(script_name, 2,
+    "Toggle track FX bypass matching:,On tracks (name or /selected):,extrawidth=100",
+    ',' .. default_track_filter)
+  if not ok or csv:len() <= 1 then return end
+
+  local fx_filter, track_filter = csv:match("^(.*),(.*)$")
+  return fx_filter:lower(), track_filter:lower()
 end
 
-local ok, csv = reaper.GetUserInputs("Toggle track FX bypass by name", 2,
-  "Toggle track FX bypass matching:,On tracks (name or /selected):,extrawidth=100",
-  ',' .. defaultTrackFilter)
+local function sanitizeFilename(name)
+  -- replace special characters that are reserved on Windows
+  return name:gsub("[*\\:<>?/|\"%c]+", '-')
+end
 
-if not ok or csv:len() < 1 then
-  reaper.defer(function() end) -- no undo point if nothing to do
+local function createAction()
+  local fx_filter_fn = sanitizeFilename(fx_filter)
+  local action_name = string.format('Toggle track FX bypass by name - %s', fx_filter_fn)
+  local output_fn = string.format('%s/Scripts/%s.lua',
+    reaper.GetResourcePath(), action_name)
+  local base_name = script_path:match('([^/\\]+)$')
+  local rel_path = script_path:sub(reaper.GetResourcePath():len() + 2)
+
+  local code = string.format([[
+-- This file was created by %s on %s
+
+fx_filter = %q
+track_filter = %q
+dofile(string.format(%q, reaper.GetResourcePath()))
+]], base_name, os.date('%c'), fx_filter, track_filter, '%s/'..rel_path)
+
+  local file = assert(io.open(output_fn, 'w'))
+  file:write(code)
+  file:close()
+
+  if reaper.AddRemoveReaScript(true, 0, output_fn, true) == 0 then
+    reaper.ShowMessageBox(
+      'Failed to create or register the new action.', script_name, 0)
+    return
+  end
+
+  reaper.ShowMessageBox(
+    string.format('Created the action "%s".', action_name), script_name, 0)
+end
+
+script_path = ({reaper.get_action_context()})[2]
+script_name = script_path:match("([^/\\_]+)%.lua$")
+
+if not fx_filter or not track_filter then
+  fx_filter, track_filter = prompt()
+
+  if not fx_filter then
+    reaper.defer(function() end) -- no undo point if nothing to do
+    return
+  end
+end
+
+if script_name == 'Toggle track FX bypass by name (create action)' then
+  createAction()
   return
 end
-
-local fx_filter, track_filter = csv:match("^(.*),(.*)$")
-fx_filter, track_filter = fx_filter:lower(), track_filter:lower()
 
 reaper.Undo_BeginBlock()
 
