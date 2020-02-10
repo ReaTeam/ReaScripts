@@ -232,8 +232,7 @@ local function createAction(presetName, scriptInfo)
   local relPath = scriptInfo.path:sub(reaper.GetResourcePath():len() + 2)
   assert(not (presetName..relPath):match('%]%]'))
 
-  local code = string.format(
-[=[
+  local code = string.format([=[
 -- This file was created by %s on %s
 
 ApplyPresetByName = [[%s]]
