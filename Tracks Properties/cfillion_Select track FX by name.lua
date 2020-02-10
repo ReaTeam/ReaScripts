@@ -31,11 +31,11 @@ if not reaper.CF_SelectTrackFX then
     end
 
     local _, chunk = reaper.GetTrackStateChunk(track, '', false)
-    local newChunk = chunk:gsub('\nLASTSEL %d+\n',
+    local new_chunk = chunk:gsub('\nLASTSEL %d+\n',
       string.format('\nLASTSEL %d\n', fx_index), 1)
 
-    if chunk ~= newChunk then
-      reaper.SetTrackStateChunk(track, newChunk, false)
+    if chunk ~= new_chunk then
+      reaper.SetTrackStateChunk(track, new_chunk, false)
     end
   end
 end
