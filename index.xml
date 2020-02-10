@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8acd9c753be91a2f0aba143041647a87d3650812" name="ReaTeam Scripts">
+<index version="1" commit="f5571cd460cc11806d3371403072246884ccaeae" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10152,6 +10152,7 @@ Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle track FX bypass by name\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script asks for a string to match against all track FX in the current project, matching tracks or selected tracks. The search is case insensitive. Bypass is toggled for all matching FXs. Undo points are consolidated into one.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script can also be used to create custom actions that bypass matching track effects without always requesting user input.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=184623</link>
@@ -10164,6 +10165,11 @@ Select tracks down the folder hierarchy (obeying parent send)]]></changelog>
       <version name="1.1" author="cfillion" time="2016-12-20T07:34:24Z">
         <changelog><![CDATA[Add track filter feature (by name or selection)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f7bc709df5dbff69d45053136810469ff66bba6a/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+      </version>
+      <version name="1.2" author="cfillion" time="2020-02-10T20:51:15Z">
+        <changelog><![CDATA[Add a "create action" script for creating bypass actions without user input]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f5571cd460cc11806d3371403072246884ccaeae/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
+        <source main="main" file="cfillion_Toggle track FX bypass by name (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/f5571cd460cc11806d3371403072246884ccaeae/Tracks%20Properties/cfillion_Toggle%20track%20FX%20bypass%20by%20name.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle visibility of empty non-folder tracks.lua" type="script" desc="Toggle visibility of empty non-folder tracks">
