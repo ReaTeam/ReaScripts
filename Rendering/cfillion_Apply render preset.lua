@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.6
--- @changelog "Create action": Improve menu position and styling on Windows
+-- @version 1.0.7
+-- @changelog Fix action creation on drives not using NTFS on Windows [p=2240471]
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -218,20 +218,26 @@ local function selectRenderPreset(presets)
   return menu[choice] -- preset name
 end
 
+local function sanitizeFilename(name)
+  -- replace special characters that are reserved on Windows
+  return name:gsub('[*\\:<>?/|"%c]+', '-')
+end
+
 local function createAction(presetName, scriptInfo)
-  local actionName = string.format('Apply render preset: %s', presetName)
+  local fnPresetName = sanitizeFilename(presetName)
+  local actionName = string.format('Apply render preset - %s', fnPresetName)
   local outputFn = string.format('%s/Scripts/%s.lua',
     reaper.GetResourcePath(), actionName)
   local baseName = scriptInfo.path:match('([^/\\]+)$')
   local relPath = scriptInfo.path:sub(reaper.GetResourcePath():len() + 2)
-  assert(not relPath:match('%]%]'))
+  assert(not (presetName..relPath):match('%]%]'))
 
-  local code = string.format(
-[[-- This file was created by %s on %s
+  local code = string.format([=[
+-- This file was created by %s on %s
 
-ApplyPresetByName = ({reaper.get_action_context()})[2]:match(': (.+)%%.lua$')
-dofile(string.format(]]..'[[%%s/%s]]'..[[, reaper.GetResourcePath()))
-]], baseName, os.date('%c'), relPath)
+ApplyPresetByName = [[%s]]
+dofile(string.format([[%%s/%s]], reaper.GetResourcePath()))
+]=], baseName, os.date('%c'), presetName, relPath)
 
   local file = assert(io.open(outputFn, 'w'))
   file:write(code)
