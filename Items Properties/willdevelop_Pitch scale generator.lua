@@ -1,11 +1,11 @@
--- @description Pitch_Scale_Generator
+-- @description Pitch scale generator
 -- @author Will Develop
 -- @version 1.0
 -- @link
 --   My Website https://will-records.tk
---   Forum thread https://forum.cockos.com/showthread.php?p=2239383#post2239383
+--   Forum thread https://forum.cockos.com/showthread.php?p=2239383
 -- @about
---   # Pitch_Scale_Generator
+--   # Pitch scale generator
 --
 --   This script allows you to generate a scale from the lowest note to the highest note.
 --    
