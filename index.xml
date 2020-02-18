@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="49792fc170cbac83f42ccbc450f54bddc81d23a8" name="ReaTeam Scripts">
+<index version="1" commit="9fd95d2e19b3a191e04807f7bef46ac80dbd8596" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4540,6 +4540,34 @@ selection.]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Trim%20item%20volumes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="willdevelop_Pitch scale generator.lua" type="script" desc="Pitch scale generator">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Pitch scale generator\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script allows you to generate a scale from the lowest note to the highest note.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INTRODUCTION:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select an audio item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Open the script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Set the Root Note on the pitch of the item\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Set the lowest Note of your scale\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Set the highest Note of your scale\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab Set which algorithm you are using. Pitch-algorithm or Playrate\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 7.\tx360\tab Click "Create", so that the scale is generated\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 !IMPORTANT!:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab You need to install the "Lokasenna's GUI library v2 for Lua" about ReaPack\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab And Run the Action "Script: Set Lokasenna_GUI v2 library path.lua"\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://will-records.tk">My Website</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2239383">Forum thread</link>
+      </metadata>
+      <version name="1.0" author="Will Develop" time="2020-02-18T17:02:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9fd95d2e19b3a191e04807f7bef46ac80dbd8596/Items%20Properties/willdevelop_Pitch%20scale%20generator.lua</source>
       </version>
     </reapack>
   </category>
