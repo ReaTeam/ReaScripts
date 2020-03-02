@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2484bbd9bcef6d28b26d7cd42d305f41ad52841d" name="ReaTeam Scripts">
+<index version="1" commit="137be70a8ebf34339c6f375ea2ca93a33a20377f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3327,21 +3327,21 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d2a30cb92e3021e5f47a2d36ebf7ffaafa40681/Items%20Editing/amagalma_Snap%20MIDI%20item(s)%20edges%20to%20grid%20without%20changing%20content%20position.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Split selected or grouped items at mouse cursor (with selection option).lua" type="script" desc="amagalma_Split selected or grouped items at mouse cursor (with selection option)">
+    <reapack name="amagalma_Split items under mouse with selection option (selected items get priority over grouped).lua" type="script" desc="amagalma_Split items under mouse with selection option (selected items get priority over grouped)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Splits item under mouse cursor and selected items or grouped items (if none selected at mouse position)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Splits item(s) under mouse cursor and all relevant grouped items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there are selected items, they get priority over grouped items (only the selected ones will be split)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want a change of selection by selecting left or right slpit items or not\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="amagalma" time="2017-11-15T14:32:22Z">
-        <changelog><![CDATA[+ replaces "amagalma_Split under mouse cursor (grouped items too) with selection option.lua"]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/507734bfd13ef8524cf009e8c02c0067995f00af/Items%20Editing/amagalma_Split%20selected%20or%20grouped%20items%20at%20mouse%20cursor%20(with%20selection%20option).lua</source>
+      <version name="1.0" author="amagalma" time="2020-03-02T11:51:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/137be70a8ebf34339c6f375ea2ca93a33a20377f/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
