@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="137be70a8ebf34339c6f375ea2ca93a33a20377f" name="ReaTeam Scripts">
+<index version="1" commit="1ae1def815b82c7c8ca76264db87ee47db2221f9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10885,6 +10885,23 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       <version name="1.61" author="Airon" time="2016-06-15T15:29:41Z">
         <changelog><![CDATA[+ spk77: fixed colour swatch reset (forum.cockos.com/showpost.php?p=1694646&postcount=282)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/Airon_Colour%20Swatch.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Adjust theme colors.lua" type="script" desc="amagalma_Adjust theme colors">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Adjusts the colors of any unzipped ReaperTheme\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Theme must be unzipped for the colors to be adjusted\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires Lokasenna GUI v2 and JS_ReaScriptAPI\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Offers Gamma, Brightness and Contrast adjustments\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2020-03-11T22:11:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ae1def815b82c7c8ca76264db87ee47db2221f9/Various/amagalma_Adjust%20theme%20colors.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track">
