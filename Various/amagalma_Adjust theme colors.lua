@@ -1,6 +1,6 @@
 -- @description amagalma_Adjust theme colors
 -- @author amagalma
--- @version 1.2
+-- @version 1.25
 -- @about
 --   # Adjusts the colors of any unzipped ReaperTheme
 --
@@ -11,21 +11,22 @@
 --   - Alt-click an item in the Listbox to remove a setting
 --   - A/B Button to toggle between current setting and original theme colors
 
---[[ @changelog
-  Listbox where previous settings can be chosen and inspected (instead of Undo and Redo buttons)
-  Alt-Click Listbox item to remove it
-  Added A/B button that toggles between current setting and original theme colors
-  Increased range of sliders and reordered them for better results (Brightness & Contrast -> Gamma)
+--[[
+  @changelog
+    Fixed order of appearance of previous settings to coincide with sliders' order
+    Fixed adjusted theme not saving if saved under the name of an existing theme file
+    Fixed OSX and Linux crashing
 --]]
 
 -- @link http://forum.cockos.com/showthread.php?t=232639
 
 local reaper = reaper
-local version = "1.2"
+local version = "1.25"
 local path, theme
 local current = 1
 local previous
 local settings = {}
+local Win = string.match(reaper.GetOS(), "Win" ) == "Win"
 settings[1] = {g = 1, b = 0, c = 0}
 -- tables to store data
 local l, fon = {}, {}
@@ -78,7 +79,7 @@ if not reaper.APIExists("JS_Dialog_BrowseForSaveFile") then
   local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
   if answer == 6 then
     local url = "https://forum.cockos.com/showthread.php?t=212174"
-    if string.match(reaper.GetOS(), "OSX" ) == "OSX" then
+    if not Win then
       os.execute('open "" "' .. url .. '"')
     else
       os.execute('start "" "' .. url .. '"')
@@ -98,7 +99,11 @@ if string.find(theme, "adjusted__") then
   reaper.OpenColorThemeFile( theme )
 end
 if theme then
-  path, theme = theme:match("(.*\\)(.+)")
+  if Win then
+    path, theme = theme:match("(.*\\)(.+)")
+  else
+    path, theme = theme:match("(.*/)(.+)")
+  end
 end
 
 -- Check Lokasenna_GUI library availability --
@@ -211,7 +216,7 @@ function AdjustColors()
   -- Write adjusted file
   WriteFile(current)
   -- Update listbox
-  GUI.elms.Compare.list[#GUI.elms.Compare.list+1] = string.format("(   %.2f   |   %d   |   %d   )", settings[current].g, settings[current].b, settings[current].c)
+  GUI.elms.Compare.list[#GUI.elms.Compare.list+1] = string.format("(   %d  |   %d   |   %.2f    )", settings[current].b, settings[current].c, settings[current].g)
   GUI.elms.Compare:init()
   GUI.Val("Compare", current)
   if #settings > 6 then
@@ -423,10 +428,15 @@ function Additional()
   end
 end
 
+function delete_adjustedTheme()
+  os.remove(path .. "adjusted__" .. theme)
+  reaper.OpenColorThemeFile( path .. theme )
+end
+
 function exit()
   -- if current theme colors are not changed, then do not prompt to save
   if current ~= 0 and settings[current].g == 1 and settings[current].b == 0 and settings[current].c == 0 then
-    goto done
+    delete_adjustedTheme()
   else -- prompt
     local ok = reaper.MB( "Would you like to save the theme under a new name?", "Save current color theme?", 4 )
     local file
@@ -438,18 +448,23 @@ function exit()
         -- make sure that extension exists
         if not string.find(filename, ".ReaperTheme$") then
           filename = filename .. ".ReaperTheme"
-          if file then file:close() end -- unprotect
-          os.rename( path .. "adjusted__" .. theme, filename)
-          reaper.OpenColorThemeFile( filename )
-          return
         end
+        if file then file:close() end -- unprotect
+        -- in case we want to overwrite a file
+        if reaper.file_exists( filename ) then
+          os.remove( filename )
+        end
+        os.rename( path .. "adjusted__" .. theme, filename)
+        reaper.OpenColorThemeFile( filename )
+      else
+        if file then file:close() end -- unprotect
+        delete_adjustedTheme()
       end
+    else
+      delete_adjustedTheme()
     end
   end
-  ::done::
-  if file then file:close() end -- unprotect
-  os.remove(path .. "adjusted__" .. theme)
-  reaper.OpenColorThemeFile( path .. theme )
+  return
 end
 
 GUI.exit = exit
