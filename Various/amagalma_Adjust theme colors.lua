@@ -1,21 +1,32 @@
 -- @description amagalma_Adjust theme colors
 -- @author amagalma
--- @version 1.0
+-- @version 1.2
 -- @about
 --   # Adjusts the colors of any unzipped ReaperTheme
 --
 --   - Theme must be unzipped for the colors to be adjusted
 --   - Requires Lokasenna GUI v2 and JS_ReaScriptAPI
 --   - Offers Gamma, Brightness and Contrast adjustments
+--   - Listbox with previous settings
+--   - Alt-click an item in the Listbox to remove a setting
+--   - A/B Button to toggle between current setting and original theme colors
+
+--[[ @changelog
+  Listbox where previous settings can be chosen and inspected (instead of Undo and Redo buttons)
+  Alt-Click Listbox item to remove it
+  Added A/B button that toggles between current setting and original theme colors
+  Increased range of sliders and reordered them for better results (Brightness & Contrast -> Gamma)
+--]]
 
 -- @link http://forum.cockos.com/showthread.php?t=232639
 
 local reaper = reaper
-local version = "1.0"
+local version = "1.2"
 local path, theme
-local current = 0
+local current = 1
+local previous
 local settings = {}
-settings[0] = {g = 1, b = 0, c = 0}
+settings[1] = {g = 1, b = 0, c = 0}
 -- tables to store data
 local l, fon = {}, {}
 
@@ -79,7 +90,7 @@ end
 -- Load theme --
 theme = reaper.GetLastColorThemeFile()
 if not reaper.file_exists(theme) then
-  reaper.MB( "The currently loaded theme may be zipped. Please unzip it for this script to work.\n\n( Extract the ReaperTheme file from the ReaperThemeZip file )", "Problem: theme is zipped", 0 )
+  reaper.MB( "The currently loaded theme may be zipped or its file does no longer exist.\n\nIf the theme is zipped, please unzip it and try again.\n( Extract the ReaperTheme file from the ReaperThemeZip file and load the extracted theme. )", "Problem...", 0 )
   return
 end
 if string.find(theme, "adjusted__") then
@@ -99,6 +110,7 @@ end
 loadfile(lib_path .. "Core.lua")()
 GUI.req("Classes/Class - Slider.lua")()
 GUI.req("Classes/Class - Button.lua")()
+GUI.req("Classes/Class - Listbox.lua")()
 if missing_lib then return 0 end
 
 -----------------------------------------------------------------------
@@ -147,7 +159,7 @@ function GetThemeColors()
     if record then
       local k, v = string.match(line, "([^%s]-)=([^%s/n/r]+)")
       if k and v then 
-        l[k] = {[0] = tonumber(v)} -- table to store theme colors
+        l[k] = {[1] = tonumber(v)} -- table to store theme colors
       end
     end
     if reap then
@@ -170,83 +182,90 @@ end
 
 function AdjustColors()
   -- if settings have not been changed then do nothing and tell to user
-  if settings[current].g == GUI.Val("Gamma") and
-  settings[current].c == GUI.Val("Contrast") and
-  settings[current].b == GUI.Val("Brightness") then
-    local x, y = gfx.clienttoscreen( gfx.mouse_x, gfx.mouse_y )
-    reaper.TrackCtl_SetToolTip( "You haven't changed any settings", x-92, y+20, true )
+  if settings[current] and ( (settings[current].g == GUI.Val("Gamma") and
+     settings[current].c == GUI.Val("Contrast") and
+     settings[current].b == GUI.Val("Brightness")) )
+  then
+    local x, y = gfx.clienttoscreen( GUI.elms.Apply.x, GUI.elms.Apply.y )
+    reaper.TrackCtl_SetToolTip( "You haven't changed any settings", x-4, y+35, true )
     return
   end
   -- create new table for new settings
   current = #settings + 1
   for k,v in pairs(l) do
-    l[k][current] = v[0]
+    l[k][current] = v[1]
   end
   for i = 1, #t do
     if l[t[i]] then
-      local r, g, b = reaper.ColorFromNative( l[t[i]][0] )
-      r, g, b = Gamma(r, g, b, GUI.Val("Gamma"))
+      local r, g, b = reaper.ColorFromNative( l[t[i]][1] )
       r, g, b = BrightnessContrast(r, g, b, GUI.Val("Brightness"), GUI.Val("Contrast") )
+      r, g, b = Gamma(r, g, b, GUI.Val("Gamma"))
       l[t[i]][current] = reaper.ColorToNative( r, g, b )
     end
   end
-  -- store settings for undoing
+  -- store settings
   settings[current] = {}
   settings[current].g = GUI.Val("Gamma")
   settings[current].b = GUI.Val("Brightness")
   settings[current].c = GUI.Val("Contrast")
   -- Write adjusted file
   WriteFile(current)
+  -- Update listbox
+  GUI.elms.Compare.list[#GUI.elms.Compare.list+1] = string.format("(   %.2f   |   %d   |   %d   )", settings[current].g, settings[current].b, settings[current].c)
+  GUI.elms.Compare:init()
+  GUI.Val("Compare", current)
+  if #settings > 6 then
+    GUI.elms.Compare.wnd_y = GUI.clamp(1, GUI.elms.Compare.wnd_y + 1, math.max(#GUI.elms.Compare.list - GUI.elms.Compare.wnd_h + 1, 1))
+    GUI.elms.Compare:redraw()
+  end
 end
-
-function SetSliders(setting)
+  
+function Load(setting)
+  WriteFile(setting)
+  current = setting
+  -- Set sliders
   GUI.Val("Gamma", (settings[setting].g - GUI.elms.Gamma.min)/GUI.elms.Gamma.inc )
   GUI.Val("Brightness", (settings[setting].b - GUI.elms.Brightness.min)/GUI.elms.Brightness.inc )
   GUI.Val("Contrast", (settings[setting].c - GUI.elms.Contrast.min)/GUI.elms.Contrast.inc )
 end
 
-function Undo()
-  if current == 0 then
-    local x, y = gfx.clienttoscreen( gfx.mouse_x, gfx.mouse_y )
-    reaper.TrackCtl_SetToolTip( "Theme is in initial state - cannot undo", x-125, y+20, true )
+function AB()
+  local x, y = gfx.clienttoscreen( GUI.elms.AB.x, GUI.elms.AB.y )
+  -- if no other settings are available then do nothing and tell to user
+  if #settings == 1 then
+    reaper.TrackCtl_SetToolTip( "No other settings are available", x-90, y+35, true )
+    return
+  elseif current == 0 then
+    reaper.TrackCtl_SetToolTip( "Setting deleted - cannot toggle", x-90, y+35, true )
     return
   end
-  current = current - 1
-  -- Set sliders
-  SetSliders(current)
-  -- Undo adjustments
-  WriteFile(current)
-end
-
-function Redo()
-  if current == #settings then
-    local x, y = gfx.clienttoscreen( gfx.mouse_x, gfx.mouse_y )
-    reaper.TrackCtl_SetToolTip( "Cannot redo", x-50, y+20, true )
-    return
+  reaper.TrackCtl_SetToolTip( "Toggle between current setting and original theme colors", x-199, y+35, true )
+  if current ~= 1 then -- recall original
+    previous = current
+    current = 1
+  else -- recall previous
+    current = previous
   end
-  current = current + 1
-  -- Set sliders
-  SetSliders(current)
-  -- Undo adjustments
-  WriteFile(current)
+  Load(current)
+  GUI.Val("Compare", current)
 end
 
 -----------------------------------------------------------------------
 
 -- GUI Code --
 GUI.name = "Adjust theme colors v" .. version
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 330, 270
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 330, 415
 GUI.anchor, GUI.corner = "screen", "C"
 
 GUI.New("Gamma", "Slider", {
     z = 11,
-    x = 15.0,
-    y = 40.0,
+    x = 15,
+    y = 170,
     w = 300,
     caption = "Gamma",
-    min = 0.2,
-    max = 2,
-    defaults = {40},
+    min = 0.1,
+    max = 6,
+    defaults = 45,
     inc = 0.02,
     dir = "h",
     font_a = 2,
@@ -259,16 +278,22 @@ GUI.New("Gamma", "Slider", {
     cap_x = 0,
     cap_y = 0
 })
+GUI.elms.Gamma.align_values = 1
+
+-- Needed to display correctly number like eg 1.02
+function GUI.elms.Gamma:formatretval(val)
+  if val == 1 then return 1 else return val end
+end
 
 GUI.New("Brightness", "Slider", {
     z = 11,
-    x = 15.0,
-    y = 105,
+    x = 15,
+    y = 40,
     w = 300,
     caption = "Brightness",
-    min = -127,
-    max = 127,
-    defaults = {127},
+    min = -200,
+    max = 200,
+    defaults = 200,
     inc = 1,
     dir = "h",
     font_a = 2,
@@ -281,16 +306,17 @@ GUI.New("Brightness", "Slider", {
     cap_x = 0,
     cap_y = 0
 })
+GUI.elms.Brightness.align_values = 1
 
 GUI.New("Contrast", "Slider", {
     z = 11,
-    x = 15.0,
-    y = 170.0,
+    x = 15,
+    y = 105,
     w = 300,
     caption = "Contrast",
-    min = -127,
-    max = 127,
-    defaults = {127},
+    min = -200,
+    max = 200,
+    defaults = 200,
     inc = 1,
     dir = "h",
     font_a = 2,
@@ -303,12 +329,13 @@ GUI.New("Contrast", "Slider", {
     cap_x = 0,
     cap_y = 0
 })
+GUI.elms.Contrast.align_values = 1
 
-GUI.New("Apply settings", "Button", {
+GUI.New("Apply", "Button", {
     z = 11,
-    x = 30,
-    y = 220.0,
-    w = 120,
+    x = 35,
+    y = 214,
+    w = 180,
     h = 25,
     caption = "Apply settings",
     font = 2,
@@ -317,36 +344,78 @@ GUI.New("Apply settings", "Button", {
     func = AdjustColors
 })
 
-GUI.New("Undo", "Button", {
+GUI.New("AB", "Button", {
     z = 11,
-    x = 188,
-    y = 220.0,
-    w = 50,
+    x = 224,
+    y = 214,
+    w = 70,
     h = 25,
-    caption = "Undo",
+    caption = "A / B",
     font = 2,
     col_txt = "white",
     col_fill = "elm_frame",
-    func = Undo
+    func = AB
 })
 
-GUI.New("Redo", "Button", {
+-- Modified to display items centered
+function GUI.Listbox:drawtext()
+  GUI.color(self.color)
+  GUI.font(self.font_b)
+  local tmp = {}
+  for i = self.wnd_y, math.min(self:wnd_bottom() - 1, #self.list) do
+    local str = tostring(self.list[i]) or ""
+    tmp[#tmp + 1] = str
+  end
+  gfx.y = self.y + self.pad
+  for i = 1, #tmp do
+    gfx.x = self.x + self.pad
+    local r = gfx.x + self.w - 2*self.pad
+    local b = gfx.y + self.h - 2*self.pad
+    gfx.drawstr( tmp[i], 1, r, b)
+    gfx.y = gfx.y + 20
+  end
+end
+
+-- Modified so that: Load when you click | Delete when Alt-click an item
+function GUI.Listbox:onmouseup()
+  if not self:overscrollbar() then
+    local item = self:getitem(GUI.mouse.y)
+    if item ~= 1 and GUI.mouse.cap & 16 == 16 then
+      table.remove(self.list, item)
+      table.remove(settings, item)
+      if current == item then
+        current = 0
+      end
+    else
+      self.retval = {[item] = true}
+      Load(item)
+    end
+  end
+  self:redraw()
+end
+
+GUI.New("Compare", "Listbox", {
     z = 11,
-    x = 248,
-    y = 220.0,
-    w = 50,
-    h = 25,
-    caption = "Redo",
-    font = 2,
-    col_txt = "white",
-    col_fill = "elm_frame",
-    func = Redo
+    x = 35,
+    y = 260,
+    w = 260,
+    h = 131,
+    list = {"--  Original theme colors  --"},
+    multi = false,
+    caption = "",
+    font_a = 3,
+    font_b = 2,
+    color = "white",
+    col_fill = "elm_fill",
+    bg = "elm_bg",
+    cap_bg = "wnd_bg",
+    shadow = false,
+    pad = 5,
 })
-
 
 -----------------------------------------------------------------------
 
-function noResize()
+function Additional()
   -- do not let resize
   if gfx.w ~= GUI.w or gfx.h ~= GUI.h then
     gfx.quit()
@@ -356,7 +425,7 @@ end
 
 function exit()
   -- if current theme colors are not changed, then do not prompt to save
-  if settings[current].g == 1 and settings[current].b == 0 and settings[current].c == 0 then
+  if current ~= 0 and settings[current].g == 1 and settings[current].b == 0 and settings[current].c == 0 then
     goto done
   else -- prompt
     local ok = reaper.MB( "Would you like to save the theme under a new name?", "Save current color theme?", 4 )
@@ -384,8 +453,9 @@ function exit()
 end
 
 GUI.exit = exit
-GUI.func = noResize
-a = GUI.dock
+GUI.freq = 0
+GUI.Val("Compare", 1)
+GUI.func = Additional
 GetThemeColors()
 GUI.Init()
 GUI.Main()
