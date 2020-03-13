@@ -53,7 +53,9 @@
 --
 --   For the machanism Reset to operate correctly and for the operations on-the-fly to follow each other smoothly, it is OBLIGATORY for the items to start from the beginning of the bar. It's the condition which ensures comfortable work without surprises like a sudden move of the items after the following quantization. Additionaly, I don't recommend to change selection manually or do anything with the items while the script is working. 
 --
---   Sometimes a script applies glue to items. For example, when several items are selected, or a part of the item is used. This is required for some functions to work correctly. If this is critical for you, I added another version - it is more "non-destructive" and will use glue only when several items are selected and when a MIDI is created in a sampler mode. But some functionality will be lost: after using slices quantization,  you sometimes will not be able to use Reset and change operations on-the-fly between SliceQ and Slice functions, but you will always be able to use Ctrl+Z to cancel any operation. Also, do not forget to save your project regularly. Just in case.
+--   Sometimes a script applies glue to items. For example, when several items are selected, or a part of the item is used. This is required for some functions to work correctly. If this is critical for you, I added another version - it is more "non-destructive" and will use glue only when several items are selected and when a MIDI is created in a sampler mode. But some functionality will be lost: after using slices quantization,  
+
+you sometimes will not be able to use Reset and change operations on-the-fly between SliceQ and Slice functions, but you will always be able to use Ctrl+Z to cancel any operation. Also, do not forget to save your project regularly. Just in case.
 
 --[[
 MK Slicer v1.2 by Maxim Kokarev 
