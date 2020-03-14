@@ -1,6 +1,6 @@
 -- @description amagalma_Adjust theme colors
 -- @author amagalma
--- @version 1.25
+-- @version 1.27
 -- @about
 --   # Adjusts the colors of any unzipped ReaperTheme
 --
@@ -13,19 +13,20 @@
 
 --[[
   @changelog
-    Fixed order of appearance of previous settings to coincide with sliders' order
-    Fixed adjusted theme not saving if saved under the name of an existing theme file
-    Fixed OSX and Linux crashing
+    Various optimizations and improvements of the A/B mode
+    Bug fixes of some corner cases
 --]]
 
 -- @link http://forum.cockos.com/showthread.php?t=232639
 
 local reaper = reaper
-local version = "1.25"
+local debug = false
+local version = "1.27"
 local path, theme
 local current = 1
-local previous
+local previous = 1
 local settings = {}
+local AB_mode = false
 local Win = string.match(reaper.GetOS(), "Win" ) == "Win"
 settings[1] = {g = 1, b = 0, c = 0}
 -- tables to store data
@@ -121,6 +122,17 @@ if missing_lib then return 0 end
 -----------------------------------------------------------------------
 
 -- Functions --
+
+function DEBUG(extra)
+  if debug then
+    local msg = string.format("\nCurrent = %s, Previous = %s, AB_mode = %s\n_______________\n", tostring(current), tostring(previous), tostring(AB_mode))
+    if extra then msg = "\n" .. extra .. msg end
+    reaper.ShowConsoleMsg(msg)
+    local windowHWND = reaper.JS_Window_Find( "ReaScript console output", true )
+    if windowHWND then reaper.JS_Window_SetZOrder( windowHWND, "TOP" ) end
+  end
+end
+
 function round(num)
   if num >= 0 then return math.floor(num + 0.5)
   else return math.ceil(num - 0.5)
@@ -186,14 +198,20 @@ function WriteFile(setting)
 end
 
 function AdjustColors()
+  local x, y = gfx.clienttoscreen( GUI.elms.Apply.x, GUI.elms.Apply.y )
   -- if settings have not been changed then do nothing and tell to user
   if settings[current] and ( (settings[current].g == GUI.Val("Gamma") and
      settings[current].c == GUI.Val("Contrast") and
      settings[current].b == GUI.Val("Brightness")) )
   then
-    local x, y = gfx.clienttoscreen( GUI.elms.Apply.x, GUI.elms.Apply.y )
     reaper.TrackCtl_SetToolTip( "You haven't changed any settings", x-4, y+35, true )
     return
+  end
+  -- if in AB mode, do net let user apply changes
+  if AB_mode then
+    AB_mode = false
+    GUI.elms.AB.col_fill = "elm_frame"
+    GUI.elms.AB:init()
   end
   -- create new table for new settings
   current = #settings + 1
@@ -216,13 +234,14 @@ function AdjustColors()
   -- Write adjusted file
   WriteFile(current)
   -- Update listbox
-  GUI.elms.Compare.list[#GUI.elms.Compare.list+1] = string.format("(   %d  |   %d   |   %.2f    )", settings[current].b, settings[current].c, settings[current].g)
+  GUI.elms.Compare.list[#GUI.elms.Compare.list+1] = string.format("|    %d    |    %d    |    %.2f    |", settings[current].b, settings[current].c, settings[current].g)
   GUI.elms.Compare:init()
   GUI.Val("Compare", current)
   if #settings > 6 then
     GUI.elms.Compare.wnd_y = GUI.clamp(1, GUI.elms.Compare.wnd_y + 1, math.max(#GUI.elms.Compare.list - GUI.elms.Compare.wnd_h + 1, 1))
     GUI.elms.Compare:redraw()
   end
+  DEBUG("Created " .. current)
 end
   
 function Load(setting)
@@ -235,24 +254,41 @@ function Load(setting)
 end
 
 function AB()
+  local extra
   local x, y = gfx.clienttoscreen( GUI.elms.AB.x, GUI.elms.AB.y )
   -- if no other settings are available then do nothing and tell to user
   if #settings == 1 then
-    reaper.TrackCtl_SetToolTip( "No other settings are available", x-90, y+35, true )
+    extra = "No other settings are available"
+    reaper.TrackCtl_SetToolTip( extra, x-90, y+35, true )
     return
   elseif current == 0 then
-    reaper.TrackCtl_SetToolTip( "Setting deleted - cannot toggle", x-90, y+35, true )
+    extra = "Setting deleted - cannot toggle"
+    reaper.TrackCtl_SetToolTip( extra, x-90, y+35, true )
+    return
+  elseif current == 1 and not AB_mode then
+    extra = "Already viewing original theme colors"
+    reaper.TrackCtl_SetToolTip( extra, x-169, y+35, true )
+    return
+  elseif not settings[previous] then
+    extra = "Previous setting no longer exists"
+    reaper.TrackCtl_SetToolTip( extra, x-100, y+35, true )
     return
   end
+  AB_mode = not AB_mode -- toggle
+  -- change color button
+  GUI.elms.AB.col_fill = AB_mode and "green" or "elm_frame"
+  GUI.elms.AB:init()
   reaper.TrackCtl_SetToolTip( "Toggle between current setting and original theme colors", x-199, y+35, true )
-  if current ~= 1 then -- recall original
+  if AB_mode then -- recall original
     previous = current
     current = 1
   else -- recall previous
     current = previous
+    previous = 1
   end
   Load(current)
-  GUI.Val("Compare", current)
+  --GUI.Val("Compare", current)
+  DEBUG(extra)
 end
 
 -----------------------------------------------------------------------
@@ -383,17 +419,56 @@ end
 
 -- Modified so that: Load when you click | Delete when Alt-click an item
 function GUI.Listbox:onmouseup()
+  local extra
   if not self:overscrollbar() then
+    local x, y = gfx.clienttoscreen( GUI.elms.Compare.x, GUI.elms.Compare.y )
     local item = self:getitem(GUI.mouse.y)
-    if item ~= 1 and GUI.mouse.cap & 16 == 16 then
-      table.remove(self.list, item)
-      table.remove(settings, item)
-      if current == item then
-        current = 0
+    -- Alt-click
+    if GUI.mouse.cap & 16 == 16 then
+      if item == 1 then -- protect original colors setting
+        reaper.TrackCtl_SetToolTip( "Can't delete original theme colors", x+35, y-20, true )
+        return
+      else
+        if AB_mode and item == previous then
+          reaper.TrackCtl_SetToolTip( "Can't delete previous setting while in A/B mode", x-3, y-20, true )
+          return
+        else -- delete item and setting
+          table.remove(self.list, item)
+          table.remove(settings, item)
+          extra = "Removed " .. item
+          -- when deleting active setting
+          if current == item then
+            current = 0
+            extra = extra .. " (last active)"
+          end
+          -- adjust previous setting if deleting an item before it
+          if item < previous then
+            previous = previous - 1
+            GUI.Val("Compare", previous)
+          end
+        end
+        DEBUG(extra)
       end
-    else
-      self.retval = {[item] = true}
-      Load(item)
+    else -- Click
+      if current == 1 and item == 1 then
+        DEBUG()
+        reaper.TrackCtl_SetToolTip( "Already viewing original theme colors", x+24, y-20, true )
+        return
+      else
+        -- Load selected item
+        self.retval = {[item] = true}
+        Load(item)
+        extra = "Loaded " .. tostring(item)
+        -- if in AB mode, exit it
+        if AB_mode then
+          GUI.elms.AB.col_fill = "elm_frame"
+          GUI.elms.AB:init()
+          AB_mode = false
+          extra = "Loaded " .. tostring(item .. " and exited A/B mode")
+          previous = 1
+        end
+        DEBUG(extra)
+      end
     end
   end
   self:redraw()
