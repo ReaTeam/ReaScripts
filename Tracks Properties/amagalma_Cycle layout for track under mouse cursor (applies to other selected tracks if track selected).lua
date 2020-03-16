@@ -1,4 +1,4 @@
--- @description Script: amagalma_Cycle layout for track under mouse cursor (applies to other selected tracks if track selected)
+-- @description Cycle layout for track under mouse cursor (applies to other selected tracks if track selected)
 -- @author amagalma
 -- @version 1.0
 -- @about
