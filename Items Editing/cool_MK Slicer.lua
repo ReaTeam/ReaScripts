@@ -1,27 +1,9 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.3.1
+-- @version 1.3.2
 -- @changelog
---   ! MK Slicer (Non-Destructive) renamed to MK Slicer. Old MK Slicer has been removed.
---   + Improved Slicer accuracy
---   + Improved MIDI Trigger accuracy
---   + New slider Quantizing Strength 
---   + New slider Crossfades Length
---   + New Slice Quantizing algorithm. Quantizing items to swing grid now able!
---   + Addition Ctrl+Wheel for vertical zoom. May be handle for mac users.
---   + Zoom by Arrow Keys available. May be handle for notebook users.
---   + New internal crossfades algorithm. No more SWS setups.
---   + View Gain renamed to Filtered Gain, to avoid misunderstanding.
---   + Some minor changes/improvements
---   + User Area (set defaults inside the script):
---   Docked/Windowed Start
---   Esc to Exit (on/off)
---   MIDI_Base_Oct - Define Start octave for Export to MIDI Sampler
---   Default Crossfade Time in ms. (0 = Crossfades Off)
---   Default Quantize Strength in %. (0 = Quantize Off)
---   Default MIDI Mode (Sampler or Trigger)
---   Override Reaper option "Toggle auto-crossfade on split" (on/off)
---   Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)
+--   *Fixed bug of incorrect position Snap Offset
+--   *Fixed bug launching scripts in a completely empty project.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -170,8 +152,10 @@ end
 
 function UnselectAllTracks()
 	first_track = r.GetTrack(0, 0)
-	r.SetOnlyTrackSelected(first_track)
-	r.SetTrackSelected(first_track, false)
+          if first_track then
+	      r.SetOnlyTrackSelected(first_track)
+	      r.SetTrackSelected(first_track, false)
+          end
 end
 
 sel_tracks_items() 
@@ -2882,7 +2866,7 @@ local i=0;
 
 while(true) do;
   i=i+1;
-  local item = reaper.GetSelectedMediaItem(0,i-1);
+  local item = r.GetSelectedMediaItem(0,i-1);
   if item then;
 
    active_take = r.GetActiveTake(item)  -- active take in item
@@ -3021,11 +3005,11 @@ while(true) do
   if item then
         pos = r.GetMediaItemInfo_Value(item, "D_POSITION") + r.GetMediaItemInfo_Value(item, "D_SNAPOFFSET")
 
-if r.GetToggleCommandState(reaper.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0) == 1 then
+if r.GetToggleCommandState(r.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0) == 1 then
       grid_opt = 1
   else
       grid_opt = 0
-      r.Main_OnCommand(reaper.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0)
+      r.Main_OnCommand(r.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0)
 end
 
 if r.GetToggleCommandState(1157) == 1 then
@@ -3047,7 +3031,7 @@ end
     break
   end
 
- if  grid_opt == 0 then r.Main_OnCommand(reaper.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0) end
+ if  grid_opt == 0 then r.Main_OnCommand(r.NamedCommandLookup('_BR_OPTIONS_SNAP_FOLLOW_GRID_VIS'), 0) end
  if  snap == 0 then r.Main_OnCommand(1157, 0) end
  if  grid == 0 then r.Main_OnCommand(40145, 0) end
 
@@ -3066,38 +3050,41 @@ r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps
 
     local function Overlap(CrossfadeT);
         local t,ret = {};
-        local items_count = reaper.CountSelectedMediaItems(0);
+        local items_count = r.CountSelectedMediaItems(0);
         if items_count == 0 then return 0 end;
         for i = 1 ,items_count do;
-            local item = reaper.GetSelectedMediaItem(0,i-1);
-            local trackIt = reaper.GetMediaItem_Track(item);
+            local item = r.GetSelectedMediaItem(0,i-1);
+            local trackIt = r.GetMediaItem_Track(item);
             if t[tostring(trackIt)] then;
                 ----
                 ret = 1;
                 local crossfade_time = (CrossfadeT or 0)/1000;
-                local take = reaper.GetActiveTake(item); 
-                local pos = reaper.GetMediaItemInfo_Value(item,'D_POSITION');
-                local length = reaper.GetMediaItemInfo_Value( item,'D_LENGTH');
-                local rateIt = reaper.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
-                local ofSetIt = reaper.GetMediaItemTakeInfo_Value(take,'D_STARTOFFS');
+                local take = r.GetActiveTake(item); 
+                local pos = r.GetMediaItemInfo_Value(item,'D_POSITION');
+                local length = r.GetMediaItemInfo_Value( item,'D_LENGTH');
+                local SnOffs = r.GetMediaItemInfo_Value( item,'D_SNAPOFFSET');
+                local rateIt = r.GetMediaItemTakeInfo_Value(take,'D_PLAYRATE');
+                local ofSetIt = r.GetMediaItemTakeInfo_Value(take,'D_STARTOFFS');
+
                 if pos < crossfade_time then crossfade_time = pos end;
                 ----
-                reaper.SetMediaItemInfo_Value(item,'D_POSITION',pos-crossfade_time);
-                reaper.SetMediaItemInfo_Value(item,'D_LENGTH',length+crossfade_time);
-                reaper.SetMediaItemTakeInfo_Value(take,'D_STARTOFFS',ofSetIt-(crossfade_time*rateIt));
+                r.SetMediaItemInfo_Value(item,'D_POSITION',pos-crossfade_time);
+                r.SetMediaItemInfo_Value(item,'D_LENGTH',length+crossfade_time);
+                r.SetMediaItemTakeInfo_Value(take,'D_STARTOFFS',ofSetIt-(crossfade_time*rateIt));
+                r.SetMediaItemInfo_Value(item,'D_SNAPOFFSET',SnOffs+crossfade_time);
             else;
                 t[tostring(trackIt)] = trackIt;
             end;
         end;
-        if ret == 1 then reaper.Main_OnCommand(41059,0) end;
+        if ret == 1 then r.Main_OnCommand(41059,0) end;
         return ret or 0;
     end;
     
     
-    reaper.Undo_BeginBlock();
+    r.Undo_BeginBlock();
     local Over = Overlap(CrossfadeT);
-    reaper.Undo_EndBlock("Overlap",Over-Over*2);
-    reaper.UpdateArrange();
+    r.Undo_EndBlock("Overlap",Over-Over*2);
+    r.UpdateArrange();
 
        r.GetSetProjectGrid(proj, true, save_project_grid, save_swing, save_swing_amt) -- restore saved grid settings
 
@@ -3301,7 +3288,7 @@ local i=0;
     r.Undo_BeginBlock();
 while(true) do;
   i=i+1;
-  local item = reaper.GetSelectedMediaItem(0,i-1);
+  local item = r.GetSelectedMediaItem(0,i-1);
   if item then;
 
     local q_force = q_strength or 100;
