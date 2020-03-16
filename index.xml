@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="df2f24fa62b7f96a10c28ab14db64b2e922b498b" name="ReaTeam Scripts">
+<index version="1" commit="7a83e8ef9f4629fd631d8d3594de5bc77e19a399" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10039,6 +10039,21 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
     </reapack>
   </category>
   <category name="Tracks Properties">
+    <reapack name="amagalma_Cycle layout for track under mouse cursor (applies to other selected tracks if track selected).lua" type="script" desc="Cycle layout for track under mouse cursor (applies to other selected tracks if track selected)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Cycles between available layouts for the track under the mouse cursor (TCP or MCP)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the track under the mouse cursor is selected, then the action applies to all selected tracks, else only to the track under the mouse cursor Tooltip with the loaded layout name\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2020-03-16T13:18:26Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7a83e8ef9f4629fd631d8d3594de5bc77e19a399/Tracks%20Properties/amagalma_Cycle%20layout%20for%20track%20under%20mouse%20cursor%20(applies%20to%20other%20selected%20tracks%20if%20track%20selected).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Fit vertically all tracks into view (if possible).lua" type="script" desc="amagalma_Fit vertically all tracks into view (if possible)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
