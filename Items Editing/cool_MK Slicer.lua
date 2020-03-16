@@ -53,7 +53,7 @@
 --
 --     On Waveform Area:
 --     Mouswheel or Left/Right keys - Horizontal Zoom,
---     Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom, 
+--     Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom,
 --     Middle Drag - Move View (Scroll),
 --     Left Click - Set Edit Cursor,
 --     Shift+Left Drag - Move Marker,
@@ -77,23 +77,7 @@
 --
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
--- @description MK Slicer
--- @author cool
--- @version 1.3
--- @provides [main] cool_MK Slicer/cool_MK Slicer.lua
--- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
--- @donation Donate via PayPal https://www.paypal.me/MKokarev
--- @about
---   # MK Slicer
---
---   This is a lua script for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
---
---   Key features:
---
---    - Advanced detector. Thanks to filters and good visualization, you can precisely cut even material in which transients are not initially visualized.
---    - Quick Slicing or placing Markers (by Transients or by Grid).
---    - One click Quantize by Grid. Without gaps, clicks and artificial duplication of items.
---    - Ability to work with mul--[[
+--[[
 MK Slicer v1.3 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
