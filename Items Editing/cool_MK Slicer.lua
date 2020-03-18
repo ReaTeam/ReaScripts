@@ -1,9 +1,10 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.3.3
+-- @version 1.3.4
 -- @changelog
---   + Several additional Defaults in the User Area
---   + The script can remember some sliders positions from last session
+--   + Better font scaling
+--   + The script can remember dock state from last session
+--   + Minor script optimizations
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -60,7 +61,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.3.3 by Maxim Kokarev 
+MK Slicer v1.3.4 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -241,12 +242,12 @@ if DefaultSens < 0 then DefaultSens = 0 end
 -------------------------------------Get States from last session--------------------------------------
 
 if RememberLast == 1 then
-CrossfadeTime = tonumber(reaper.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 15;
-QuantizeStrength = tonumber(reaper.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 100;
-Offs_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0.5;
-HF_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0.3312;
-LF_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 1;
-Sens_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0.31;
+CrossfadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 15;
+QuantizeStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 100;
+Offs_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0.5;
+HF_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0.3312;
+LF_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 1;
+Sens_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0.31;
 else
 CrossfadeTime = DefaultXFadeTime or 15;
 QuantizeStrength = DefaultQStrength or 100;
@@ -843,8 +844,8 @@ function Element:update_xywh()
   self.x, self.w = ceil(self.def_xywh[1]* Z_w) , ceil(self.def_xywh[3]* Z_w) -- upd x,w
   self.y, self.h = ceil(self.def_xywh[2]* Z_h) , ceil(self.def_xywh[4]* Z_h) -- upd y,h
   if self.fnt_sz then --fix it!--
-     self.fnt_sz = max(9,self.def_xywh[5]* (Z_w+Z_h)/2)
-     self.fnt_sz = min(22,self.fnt_sz)
+     self.fnt_sz = max(16,self.def_xywh[5]* (Z_w+Z_h)/1.9)
+     self.fnt_sz = min(22,self.fnt_sz* Z_h)
   end           
 end
 ------------------------
@@ -1041,8 +1042,8 @@ function HP_Slider:set_norm_val()
 
 if RememberLast == 1 then 
     local SAVE_VAL = VAL;
-    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0 ~= SAVE_VAL then;
-        reaper.SetExtState('cool_MK Slicer.lua','HF_Slider',SAVE_VAL,true);
+    if tonumber(r.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0 ~= SAVE_VAL then;
+        r.SetExtState('cool_MK Slicer.lua','HF_Slider',SAVE_VAL,true);
     end;
 else
 HF_Slider = DefaultHP
@@ -1059,8 +1060,8 @@ function LP_Slider:set_norm_val()
 
 if RememberLast == 1 then 
     local SAVE_VAL = VAL;
-    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 0 ~= SAVE_VAL then;
-        reaper.SetExtState('cool_MK Slicer.lua','LF_Slider',SAVE_VAL,true);
+    if tonumber(r.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 0 ~= SAVE_VAL then;
+        r.SetExtState('cool_MK Slicer.lua','LF_Slider',SAVE_VAL,true);
     end;
 else
 LF_Slider = DefaultLP
@@ -1086,8 +1087,8 @@ function S_Slider:set_norm_val()
 
 if RememberLast == 1 then 
     local SAVE_VAL = VAL;
-    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0 ~= SAVE_VAL then;
-        reaper.SetExtState('cool_MK Slicer.lua','Sens_Slider',SAVE_VAL,true);
+    if tonumber(r.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0 ~= SAVE_VAL then;
+        r.SetExtState('cool_MK Slicer.lua','Sens_Slider',SAVE_VAL,true);
     end;
 else
 Sens_Slider = DefaultSens
@@ -1123,8 +1124,8 @@ function O_Slider:set_norm_val()
 
 if RememberLast == 1 then 
     local SAVE_VAL = VAL;
-    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0 ~= SAVE_VAL then;
-        reaper.SetExtState('cool_MK Slicer.lua','Offs_Slider',SAVE_VAL,true);
+    if tonumber(r.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0 ~= SAVE_VAL then;
+        r.SetExtState('cool_MK Slicer.lua','Offs_Slider',SAVE_VAL,true);
     end;
 else
 Offs_Slider = DefaultOffset
@@ -1141,8 +1142,8 @@ function Q_Slider:set_norm_val()
 
 if RememberLast == 1 then 
     local SAVE_VAL = VAL*100;
-    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 0 ~= SAVE_VAL then;
-        reaper.SetExtState('cool_MK Slicer.lua','QuantizeStrength',SAVE_VAL,true);
+    if tonumber(r.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 0 ~= SAVE_VAL then;
+        r.SetExtState('cool_MK Slicer.lua','QuantizeStrength',SAVE_VAL,true);
     end;
 else
 QuantizeStrength = DefaultQStrength
@@ -1159,8 +1160,8 @@ function X_Slider:set_norm_val()
     
 if RememberLast == 1 then 
     local SAVE_VAL = VAL*50;
-    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 0 ~= SAVE_VAL then;
-        reaper.SetExtState('cool_MK Slicer.lua','CrossfadeTime',SAVE_VAL,true);
+    if tonumber(r.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 0 ~= SAVE_VAL then;
+        r.SetExtState('cool_MK Slicer.lua','CrossfadeTime',SAVE_VAL,true);
     end;
 else
 CrossfadeTime = DefaultXFadeTime
@@ -2012,7 +2013,7 @@ function()
 end
 
 -- QStrength slider ------------------------------ 
-local QStrength_Sld = Q_Slider:new(400,450,101,18, 0.3,0.4,0.7,0.7, "Q Strength","Arial",16, QuantizeStrength*0.01 )
+local QStrength_Sld = Q_Slider:new(400,450,101,18, 0.3,0.4,0.7,0.7, "QStrength","Arial",16, QuantizeStrength*0.01 )
 function QStrength_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -4168,9 +4169,9 @@ end
 ---  Wave - show_help, info ----------------------------------------------------
 --------------------------------------------------------------------------------
 function Wave:show_help()
- local fnt_sz = 16
- fnt_sz = max(9,  fnt_sz* (Z_w+Z_h)/2)
- fnt_sz = min(20, fnt_sz)
+ local fnt_sz = 15
+ fnt_sz = max(16,  fnt_sz* (Z_w+Z_h)/2)
+ fnt_sz = min(18, fnt_sz* Z_h)
  gfx.setfont(1, "Arial", fnt_sz)
  gfx.set(0.7, 0.7, 0.7, 1) -- цвет текста инфо
  gfx.x, gfx.y = self.x+10, self.y+10
@@ -4274,19 +4275,29 @@ function draw_controls()
     for key,frame  in pairs(Frame_TB)    do frame:draw()  end       
 end
 
+function store_settings() --store dock position
+    r.SetExtState("cool_MK Slicer.lua", "dock", gfx.dock(-1), true)
+end
+
 --------------------------------------------------------------------------------
 --   INIT   --------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function Init()
+   dock_pos = r.GetExtState("cool_MK Slicer.lua", "dock")
+       if Docked == 1 then
+           dock_pos = dock_pos or 1025
+           else
+           dock_pos = 0
+        end
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.3.3"
-    local Wnd_Dock, Wnd_X,Wnd_Y = Docked,400,320 
+    local Wnd_Title = "MK Slicer v1.3.4"
+    local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos,400,320 
     Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
     -- Init window ------
     gfx.clear = Wnd_bgd         
-    gfx.init( Wnd_Title, Wnd_W,Wnd_H,Wnd_Dock, Wnd_X,Wnd_Y )
+    gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
     -- Init mouse last --
     last_mouse_cap = 0
     last_x, last_y = 0, 0
@@ -4376,6 +4387,7 @@ function ClearExState()
 r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
 r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
 r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
+store_settings ()
 end
 
 r.atexit(ClearExState)
