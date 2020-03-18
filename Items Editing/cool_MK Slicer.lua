@@ -1,9 +1,9 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.3.2
+-- @version 1.3.3
 -- @changelog
---   *Fixed bug of incorrect position Snap Offset
---   *Fixed bug launching scripts in a completely empty project.
+--   + Several additional Defaults in the User Area
+--   + The script can remember some sliders positions from last session
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -60,7 +60,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.3 by Maxim Kokarev 
+MK Slicer v1.3.3 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -89,14 +89,19 @@ https://forum.cockos.com/showthread.php?t=207971
 Docked = 0              -- (1 - Script starts docked, 0 - Windowed) 
 EscToExit = 1           -- (Use ESC to close script? 1 - Yes, 0 - No.)
 MIDI_Base_Oct = 2         -- (Start note for Export to MIDI Sampler. 0 = C-1, 1 = C0, 2 = C1, etc)
-CrossfadeTime = 15   -- (Default Crossfades Length in ms. 0 = Crossfades Off, max. 50)
-QuantizeStrength = 100 -- (Default Quantize Strength in %. 0 = Quantize Off, max. 100)
+DefaultXFadeTime = 15    -- (Default Crossfades Length in ms. 0 = Crossfades Off, max. 50)
+DefaultQStrength = 100     -- (Default Quantize Strength in %. 0 = Quantize Off, max. 100)
 MIDI_Mode = 1             --  (Default MIDI Mode. 1 = Sampler, 2 = Trigger)
+RememberLast = 1            -- (Remember some sliders positions from last session. 1 - On, 0 - Off)
 
 -------------------------------Advanced-------------------------------------------
 
 AutoXFadesOnSplitOverride = 1 -- (Override "Options: Toggle auto-crossfade on split" option. 0 - Don't Override, 1 - Override)
 ItemFadesOverride = 1 -- (Override "Item: Toggle enable/disable default fadein/fadeout" option. 0 - Don't Override, 1 - Override)
+DefaultOffset = 0.5 --(Default Offset slider position. max. 1)
+DefaultHP = 0.3312 --(Default HP slider position.  max. 1)
+DefaultLP = 1 --(Default LP slider position. max. 1)
+DefaultSens = 0.31 --(Default Sensitivity slider position. max. 1)
 
 ---------------------------End of User Area----------------------------------------
 --|
@@ -190,6 +195,7 @@ end
  r.Main_OnCommand(41588, 0) -- glue (если больше одного айтема и не миди айтем, то клей).
   
   end
+
 --------------------------------------UA  protection--------------------------------------------------
 
 if Docked == nil then Docked = 0 end 
@@ -216,6 +222,39 @@ if AutoXFadesOnSplitOverride < 0 then AutoXFadesOnSplitOverride = 0 end
 if ItemFadesOverride == nil then ItemFadesOverride = 1 end 
 if ItemFadesOverride > 1 then ItemFadesOverride = 1 end 
 if ItemFadesOverride < 0 then ItemFadesOverride = 0 end 
+if RememberLast == nil then RememberLast = 1 end 
+if RememberLast > 1 then RememberLast = 1 end 
+if RememberLast < 0 then RememberLast = 0 end 
+if DefaultOffset == nil then DefaultOffset = 0.5 end 
+if DefaultOffset > 1 then DefaultOffset = 1 end 
+if DefaultOffset < 0 then DefaultOffset = 0 end 
+if DefaultHP == nil then DefaultHP = 0 end 
+if DefaultHP > 1 then DefaultHP = 1 end 
+if DefaultHP < 0 then DefaultHP = 0 end 
+if DefaultLP == nil then DefaultLP = 1 end 
+if DefaultLP > 1 then DefaultLP = 1 end 
+if DefaultLP < 0 then DefaultLP = 0 end 
+if DefaultSens == nil then DefaultSens = 0.31 end 
+if DefaultSens > 1 then DefaultSens = 1 end 
+if DefaultSens < 0 then DefaultSens = 0 end 
+
+-------------------------------------Get States from last session--------------------------------------
+
+if RememberLast == 1 then
+CrossfadeTime = tonumber(reaper.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 15;
+QuantizeStrength = tonumber(reaper.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 100;
+Offs_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0.5;
+HF_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0.3312;
+LF_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 1;
+Sens_Slider = tonumber(reaper.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0.31;
+else
+CrossfadeTime = DefaultXFadeTime or 15;
+QuantizeStrength = DefaultQStrength or 100;
+Offs_Slider = DefaultOffset or 0.5;
+HF_Slider = DefaultHP or 0.3312;
+LF_Slider = DefaultLP or 1;
+Sens_Slider = DefaultSens or 0.31;
+end
 
 --------------------------------Save Item Position and Fade-out length-------------------------------
 
@@ -989,6 +1028,7 @@ function T_Slider:set_norm_val()
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
     if MCtrl then VAL = readrms end --set default value by Ctrl+LMB
     self.norm_val=VAL
+
 end
 function HP_Slider:set_norm_val()
     local x, w = self.x, self.w
@@ -996,8 +1036,17 @@ function HP_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = 0.3312 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = DefaultHP end --set default value by Ctrl+LMB
     self.norm_val=VAL
+
+if RememberLast == 1 then 
+    local SAVE_VAL = VAL;
+    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0 ~= SAVE_VAL then;
+        reaper.SetExtState('cool_MK Slicer.lua','HF_Slider',SAVE_VAL,true);
+    end;
+else
+HF_Slider = DefaultHP
+end
 end
 function LP_Slider:set_norm_val()
     local x, w = self.x, self.w
@@ -1005,8 +1054,17 @@ function LP_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = 1 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = DefaultLP end --set default value by Ctrl+LMB
     self.norm_val=VAL
+
+if RememberLast == 1 then 
+    local SAVE_VAL = VAL;
+    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 0 ~= SAVE_VAL then;
+        reaper.SetExtState('cool_MK Slicer.lua','LF_Slider',SAVE_VAL,true);
+    end;
+else
+LF_Slider = DefaultLP
+end
 end
 function G_Slider:set_norm_val()
     local x, w = self.x, self.w
@@ -1023,8 +1081,18 @@ function S_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = 0.31 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = DefaultSens end --set default value by Ctrl+LMB
     self.norm_val=VAL
+
+if RememberLast == 1 then 
+    local SAVE_VAL = VAL;
+    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0 ~= SAVE_VAL then;
+        reaper.SetExtState('cool_MK Slicer.lua','Sens_Slider',SAVE_VAL,true);
+    end;
+else
+Sens_Slider = DefaultSens
+end
+
 end
 function Rtg_Slider:set_norm_val()
     local x, w = self.x, self.w
@@ -1050,8 +1118,17 @@ function O_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = 0.5 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = DefaultOffset end --set default value by Ctrl+LMB
     self.norm_val=VAL
+
+if RememberLast == 1 then 
+    local SAVE_VAL = VAL;
+    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0 ~= SAVE_VAL then;
+        reaper.SetExtState('cool_MK Slicer.lua','Offs_Slider',SAVE_VAL,true);
+    end;
+else
+Offs_Slider = DefaultOffset
+end
 end
 function Q_Slider:set_norm_val()
     local x, w = self.x, self.w
@@ -1059,8 +1136,17 @@ function Q_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = QuantizeStrength*0.01 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = DefaultQStrength*0.01 end --set default value by Ctrl+LMB
     self.norm_val=VAL
+
+if RememberLast == 1 then 
+    local SAVE_VAL = VAL*100;
+    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','QuantizeStrength'))or 0 ~= SAVE_VAL then;
+        reaper.SetExtState('cool_MK Slicer.lua','QuantizeStrength',SAVE_VAL,true);
+    end;
+else
+QuantizeStrength = DefaultQStrength
+end
 end
 function X_Slider:set_norm_val()
     local x, w = self.x, self.w
@@ -1068,8 +1154,17 @@ function X_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    if MCtrl then VAL = CrossfadeTime*0.02 end --set default value by Ctrl+LMB
+    if MCtrl then VAL = DefaultXFadeTime*0.02 end --set default value by Ctrl+LMB
     self.norm_val=VAL
+    
+if RememberLast == 1 then 
+    local SAVE_VAL = VAL*50;
+    if tonumber(reaper.GetExtState('cool_MK Slicer.lua','CrossfadeTime'))or 0 ~= SAVE_VAL then;
+        reaper.SetExtState('cool_MK Slicer.lua','CrossfadeTime',SAVE_VAL,true);
+    end;
+else
+CrossfadeTime = DefaultXFadeTime
+end
 end
 -----------------------------------------------------------------------------
 function H_Slider:draw_body()
@@ -1723,9 +1818,9 @@ local Midi_Sampler = CheckBox:new(610,410,68,18, 0.3,0.4,0.7,0.7, "","Arial",16,
 --- Filter Sliders ------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -- Filter HP_Freq --------------------------------
-local HP_Freq = HP_Slider:new(20,410,160,18, 0.3,0.4,0.7,0.7, "Low Cut","Arial",16, 0.3312 )
+local HP_Freq = HP_Slider:new(20,410,160,18, 0.3,0.4,0.7,0.7, "Low Cut","Arial",16, HF_Slider )
 -- Filter LP_Freq --------------------------------
-local LP_Freq = LP_Slider:new(20,430,160,18, 0.3,0.4,0.7,0.7, "High Cut","Arial",16, 1 )
+local LP_Freq = LP_Slider:new(20,430,160,18, 0.3,0.4,0.7,0.7, "High Cut","Arial",16, LF_Slider )
 
 --------------------------------------------------
 -- Filter Freq Sliders draw_val function ---------
@@ -1827,7 +1922,7 @@ end
 
 
 -- Sensitivity -------------------------------------
-local Gate_Sensitivity = S_Slider:new(210,400,160,18, 0.3,0.4,0.7,0.7, "Sensitivity","Arial",16, 0.31 )
+local Gate_Sensitivity = S_Slider:new(210,400,160,18, 0.3,0.4,0.7,0.7, "Sensitivity","Arial",16, Sens_Slider )
 function Gate_Sensitivity:draw_val()
   self.form_val = 2+(self.norm_val)*8       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -1847,7 +1942,7 @@ function Gate_Retrig:draw_val()
   gfx.drawstr(val)--draw Slider Value
 end
 -- Detect Velo time ------------------------------ 
-local Gate_DetVelo = H_Slider:new(0,0,0,0, 0,0,0,0, "","Arial",16, 0.50 )------velodaw (680,450,90,18, 0.3,0.4,0.7,0.7, "Look","Arial",16, 0.50 )
+local Gate_DetVelo = H_Slider:new(0,0,0,0, 0,0,0,0, "","Arial",16, 0.50 )
 function Gate_DetVelo:draw_val()
   self.form_val  = 5+ self.norm_val * 20     -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -1890,7 +1985,7 @@ Gate_DetVelo.onUp   = Gate_Sldrs_onUp
 
 
 -- Detect Velo time ------------------------------ 
-local Offset_Sld = O_Slider:new(400,430,205,18, 0.3,0.4,0.7,0.7, "Offset","Arial",16, 0.5 )------velodaw
+local Offset_Sld = O_Slider:new(400,430,205,18, 0.3,0.4,0.7,0.7, "Offset","Arial",16, Offs_Slider )
 function Offset_Sld:draw_val()
 
   self.form_val  = (100- self.norm_val * 200)*( -1)     -- form_val
@@ -1917,7 +2012,7 @@ function()
 end
 
 -- QStrength slider ------------------------------ 
-local QStrength_Sld = Q_Slider:new(400,450,101,18, 0.3,0.4,0.7,0.7, "Q Strength","Arial",16, QuantizeStrength*0.01 ) --205 (400,450,136,18
+local QStrength_Sld = Q_Slider:new(400,450,101,18, 0.3,0.4,0.7,0.7, "Q Strength","Arial",16, QuantizeStrength*0.01 )
 function QStrength_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -1933,7 +2028,7 @@ function()
 end
 
 -- XFade slider ------------------------------ 
-local XFade_Sld = X_Slider:new(503,450,102,18, 0.3,0.4,0.7,0.7, "XFades","Arial",16, CrossfadeTime*0.02 ) --205
+local XFade_Sld = X_Slider:new(503,450,102,18, 0.3,0.4,0.7,0.7, "XFades","Arial",16, CrossfadeTime*0.02 )
 function XFade_Sld:draw_val()
   self.form_val = (self.norm_val)*50       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -4186,7 +4281,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.3"
+    local Wnd_Title = "MK Slicer v1.3.3"
     local Wnd_Dock, Wnd_X,Wnd_Y = Docked,400,320 
     Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
     -- Init window ------
