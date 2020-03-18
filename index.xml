@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b3777c28bd077ea0990913cc216fcca9ea9d10ba" name="ReaTeam Scripts">
+<index version="1" commit="d5f97e7aae301fb0bc1e5fd11607def472a707a3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3694,6 +3694,11 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
         <changelog><![CDATA[*Fixed bug of incorrect position Snap Offset
 *Fixed bug launching scripts in a completely empty project.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1103bb57ef65a736a0bb06aace03531f6235b29a/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.3.3" author="cool" time="2020-03-18T11:45:20Z">
+        <changelog><![CDATA[+ Several additional Defaults in the User Area
++ The script can remember some sliders positions from last session]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d5f97e7aae301fb0bc1e5fd11607def472a707a3/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
