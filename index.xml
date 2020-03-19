@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c23c8b0401e4e3d4ac7bc238506ebf95974ba4f9" name="ReaTeam Scripts">
+<index version="1" commit="36edc9e1a661739b54c63dc8f69031829dc536b0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -14768,11 +14768,12 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 How to use:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Make a time selection on what you want to practice.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Load Practice Coach\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Write in the maximum bpm\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Hit Start button (on script window) and practice along\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is no temposign at start of time selection you will be asked if you want to create one, else Practice Coach will load the tempo from sign and start to play time selection.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When first step is done Reaper stops\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To contine with step 2 hit Continue (if auto-continue is active - just wait)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab After finishing the 8th step you have practiced different tempos in 15 min and script resets.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab After finishing the 8th step you have practiced different tempos in 15 min and script resets.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Is auto-increase selected the temposign will be increased by 1 bpm after finishing.\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -14790,6 +14791,10 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
       <version name="1.0.3" author="tompad" time="2019-12-22T10:32:23Z">
         <changelog><![CDATA[Added Progress Bar]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e9e08ef774f55280e5118cec747c7b6a3490ccba/Various/tompad_Practice%20coach.lua</source>
+      </version>
+      <version name="1.0.4" author="tompad" time="2020-03-19T21:57:11Z">
+        <changelog><![CDATA[Added and changed some functionality (auto-increase, save bpm in tempo sign etc)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/36edc9e1a661739b54c63dc8f69031829dc536b0/Various/tompad_Practice%20coach.lua</source>
       </version>
     </reapack>
   </category>
