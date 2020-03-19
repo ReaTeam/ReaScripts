@@ -1,33 +1,34 @@
--- @description amagalma_Adjust theme colors
+-- @description Adjust theme colors
 -- @author amagalma
--- @version 1.27
+-- @version 1.35
+-- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
---   # Adjusts the colors of any unzipped ReaperTheme
+--   # Adjusts the colors of any ReaperTheme or ReaperThemeZip
 --
---   - Theme must be unzipped for the colors to be adjusted
+--   - Theme supports both zipped and unzipped themes
 --   - Requires Lokasenna GUI v2 and JS_ReaScriptAPI
 --   - Offers Gamma, Brightness and Contrast adjustments
 --   - Listbox with previous settings
 --   - Alt-click an item in the Listbox to remove a setting
 --   - A/B Button to toggle between current setting and original theme colors
-
---[[
-  @changelog
-    Various optimizations and improvements of the A/B mode
-    Bug fixes of some corner cases
---]]
-
--- @link http://forum.cockos.com/showthread.php?t=232639
+--   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
+-- @changelog
+--   Zipped themes support (ReaperThemeZip)
+--   The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 
 local reaper = reaper
 local debug = false
-local version = "1.27"
+local version = "1.35"
 local path, theme
 local current = 1
 local previous = 1
 local settings = {}
 local AB_mode = false
+local zipped = false
+local ReaperThemeName
 local Win = string.match(reaper.GetOS(), "Win" ) == "Win"
+local sep = Win == true and "\\" or "/"
+local ResourcePath = reaper.GetResourcePath()
 settings[1] = {g = 1, b = 0, c = 0}
 -- tables to store data
 local l, fon = {}, {}
@@ -89,24 +90,6 @@ if not reaper.APIExists("JS_Dialog_BrowseForSaveFile") then
   return
 end
 
--- Load theme --
-theme = reaper.GetLastColorThemeFile()
-if not reaper.file_exists(theme) then
-  reaper.MB( "The currently loaded theme may be zipped or its file does no longer exist.\n\nIf the theme is zipped, please unzip it and try again.\n( Extract the ReaperTheme file from the ReaperThemeZip file and load the extracted theme. )", "Problem...", 0 )
-  return
-end
-if string.find(theme, "adjusted__") then
-  theme = string.gsub(theme, "adjusted__", "")
-  reaper.OpenColorThemeFile( theme )
-end
-if theme then
-  if Win then
-    path, theme = theme:match("(.*\\)(.+)")
-  else
-    path, theme = theme:match("(.*/)(.+)")
-  end
-end
-
 -- Check Lokasenna_GUI library availability --
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
 if not lib_path or lib_path == "" then
@@ -117,7 +100,97 @@ loadfile(lib_path .. "Core.lua")()
 GUI.req("Classes/Class - Slider.lua")()
 GUI.req("Classes/Class - Button.lua")()
 GUI.req("Classes/Class - Listbox.lua")()
-if missing_lib then return 0 end
+if missing_lib then 
+  reaper.MB("Please re-install 'Lokasenna's GUI library v2 for Lua'", "Missing library!", 0)
+  return
+end
+
+-- Function to extract theme --
+function UnzipReaperTheme(ReaperThemeZip)
+  ReaperThemeName = ReaperThemeZip:match([[.*[\/]([^\/]-)Zip$]])
+  local TempFolder = string.match(reaper.time_precise()*100, "(%d+)%.") -- will be a random number in the same dir as the ReaperThemeZip
+  local cmd, FullTempFolder, script_path
+  local ColorthemePath = ResourcePath .. sep .. "ColorThemes" .. sep
+  if Win then -- (use PowerShell .NET methods)
+    FullTempFolder = ReaperThemeZip:match("(.*\\)") .. TempFolder
+    local script =
+    [[$ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zipFilePath = "]] .. ReaperThemeZip .. '"\n$extractPath = "' .. FullTempFolder .. '"\n' ..
+[[$zip = [System.IO.Compression.ZipFile]::OpenRead($zipFilePath)
+[System.IO.Directory]::CreateDirectory($extractPath)
+$zip.Entries | Where-Object Name -like *.ReaperTheme | ForEach-Object{[System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, "$extractPath\$($_.Name)", $true)}
+$zip.Dispose()]]
+    script_path = ResourcePath .. sep .. "UnzipReaperTheme.ps1"
+    local file = io.open(script_path, "w+")
+    file:write(script)
+    file:close()
+    cmd = "powershell.exe -ExecutionPolicy Bypass " .. script_path, 'w'
+  else -- OSX/LINUX (use unzip)
+    cmd = 'read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"', 'w'
+    FullTempFolder = ReaperThemeZip:match("(.*/)") .. TempFolder
+  end
+  local pipe = io.popen(cmd)
+  if not Win then -- pass values to unzip (OSX/Linux)
+    pipe:write(ReaperThemeZip .. '\n')
+    pipe:write(FullTempFolder .. '\n')
+  end
+  local state = ({pipe:close()})[3]
+  -- Delete temporary PowerShell script
+  if Win then os.remove(script_path) end
+  if state == 0 then
+    local ReaperTheme = reaper.EnumerateFiles( FullTempFolder, 0 )
+    -- Move extracted theme to ColorThemes directory and name it as the zipped file
+    os.rename(FullTempFolder .. sep .. ReaperTheme, ColorthemePath .. ReaperThemeName)
+    -- Delete temporary folder
+    if Win then
+      os.execute('rd /s/q "'.. FullTempFolder ..'"')
+    else
+      ok = os.remove(FullTempFolder)
+      if not ok then os.execute('rm -rd "'..path_to_dir..'"')
+        reaper.ShowConsoleMsg("Failed to delete temp directory in ColorThemes")
+      end
+    end
+    return ColorthemePath .. ReaperThemeName -- full path to extracted ReaperTheme file
+  else
+    local msg
+    if Win then
+      msg = "Possibly your Windows version does not have PowerShell?"
+    else
+      msg = "Check that you have 'unzip' installed."
+    end
+    reaper.MB( "Failed to unzip the ReaperThemeZip file. " .. msg, "Something went wrong...", 0 )
+    return
+  end
+end
+
+-- Load theme --
+theme = reaper.GetLastColorThemeFile()
+if not reaper.file_exists(theme) then
+  if reaper.file_exists(theme .. "Zip") then
+    -- do not change order!
+    zipped = theme
+    theme = theme .. "Zip"
+    theme = UnzipReaperTheme(theme)
+  else
+    reaper.MB( "The file of the currently loaded theme does no longer exist.", "Quitting...", 0 )
+    return
+  end
+end
+-- Deprecated
+--[[if string.find(theme, "adjusted__") then
+  theme = string.gsub(theme, "adjusted__", "")
+  reaper.OpenColorThemeFile( theme )
+end--]]
+if theme then
+  if Win then
+    path, theme = theme:match("(.*\\)(.+)")
+  else
+    path, theme = theme:match("(.*/)(.+)")
+  end
+else
+  return
+end
 
 -----------------------------------------------------------------------
 
@@ -180,6 +253,10 @@ function GetThemeColors()
       end
     end
     if reap then
+      -- point to zip file if zipped
+      if zipped and line:find("^ui_img=") then
+        line = "ui_img=" .. ReaperThemeName .. "Zip"
+      end
       fon[#fon+1] = line
     end
   end
@@ -289,6 +366,30 @@ function AB()
   Load(current)
   --GUI.Val("Compare", current)
   DEBUG(extra)
+end
+
+function InheritSettings(SectionName)
+  local copy = false
+  local themeconfig = ResourcePath .. sep .. [[reaper-themeconfig.ini]]
+  if not reaper.file_exists(themeconfig) then return end
+  file = io.open(themeconfig, "a+")
+  -- locate settings to inherit
+  local section = ReaperThemeName:match("(.*)%.ReaperTheme$")
+  local section_settings = {}
+  for line in file:lines() do
+    if line == "[" .. section .. "]" then copy = true
+    elseif copy and line:match("%[.*%]$") then copy = false
+    end
+    if copy then
+      section_settings[#section_settings+1] = line
+    end
+  end
+  -- append inherited settings if they exist
+  if #section_settings > 1 then
+    section_settings[1] = "[" .. SectionName .. "]"
+    file:write("\n" .. table.concat(section_settings, "\n"))
+  end
+  file:close()
 end
 
 -----------------------------------------------------------------------
@@ -524,12 +625,14 @@ function exit()
         if not string.find(filename, ".ReaperTheme$") then
           filename = filename .. ".ReaperTheme"
         end
+        local SectionName = filename:match[[.*[\/]([^\/]+).ReaperTheme]]
         if file then file:close() end -- unprotect
         -- in case we want to overwrite a file
         if reaper.file_exists( filename ) then
           os.remove( filename )
         end
         os.rename( path .. "adjusted__" .. theme, filename)
+        InheritSettings(SectionName)
         reaper.OpenColorThemeFile( filename )
       else
         if file then file:close() end -- unprotect
@@ -539,7 +642,7 @@ function exit()
       delete_adjustedTheme()
     end
   end
-  return
+  return reaper.defer(function() end)
 end
 
 GUI.exit = exit
@@ -547,5 +650,7 @@ GUI.freq = 0
 GUI.Val("Compare", 1)
 GUI.func = Additional
 GetThemeColors()
+-- Delete extracted theme, that is no more needed
+if zipped then os.remove(zipped) end
 GUI.Init()
 GUI.Main()
