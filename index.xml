@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="36edc9e1a661739b54c63dc8f69031829dc536b0" name="ReaTeam Scripts">
+<index version="1" commit="715013c3fd915383efef237fc2e710d776cd2117" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11066,6 +11066,13 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
         <changelog><![CDATA[Zipped themes support (ReaperThemeZip)
 The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c23c8b0401e4e3d4ac7bc238506ebf95974ba4f9/Various/amagalma_Adjust%20theme%20colors.lua</source>
+      </version>
+      <version name="1.40" author="amagalma" time="2020-03-20T20:51:42Z">
+        <changelog><![CDATA[Fixed bug with messed up recall of last undo setting when having deleted a previous one
+Now when moving the sliders, the new setting is automatically applied
+Mousewheel always adjusts by 1 (fine tunning) and needs a click on the slider to apply setting
+Changed slider behavior: clicking on the slider does not move the handle any more, but now it applies the setting - same as clicking on the Apply Settings button (useful after mousewheel)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/715013c3fd915383efef237fc2e710d776cd2117/Various/amagalma_Adjust%20theme%20colors.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track">
