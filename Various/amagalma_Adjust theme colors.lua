@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 1.35
+-- @version 1.40
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
 --   # Adjusts the colors of any ReaperTheme or ReaperThemeZip
@@ -13,12 +13,15 @@
 --   - A/B Button to toggle between current setting and original theme colors
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 -- @changelog
---   Zipped themes support (ReaperThemeZip)
---   The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
+--   Fixed bug with messed up recall of last undo setting when having deleted a previous one
+--   Now when moving the sliders, the new setting is automatically applied
+--   Mousewheel always adjusts by 1 (fine tunning) and needs a click on the slider to apply setting
+--   Changed slider behavior: clicking on the slider does not move the handle any more, but now it applies the setting - same as clicking on the Apply Settings button (useful after mousewheel)
 
 local reaper = reaper
 local debug = false
-local version = "1.35"
+if debug then reaper.ClearConsole() end
+local version = "1.40"
 local path, theme
 local current = 1
 local previous = 1
@@ -32,6 +35,7 @@ local ResourcePath = reaper.GetResourcePath()
 settings[1] = {g = 1, b = 0, c = 0}
 -- tables to store data
 local l, fon = {}, {}
+l[1] = {}
 
 -- Table with all the colors that will be adjusted
 local t = { "col_cursor", "col_cursor2", "guideline_color", "col_arrangebg", "col_mixerbg", "col_tracklistbg", 
@@ -177,11 +181,6 @@ if not reaper.file_exists(theme) then
     return
   end
 end
--- Deprecated
---[[if string.find(theme, "adjusted__") then
-  theme = string.gsub(theme, "adjusted__", "")
-  reaper.OpenColorThemeFile( theme )
-end--]]
 if theme then
   if Win then
     path, theme = theme:match("(.*\\)(.+)")
@@ -249,7 +248,7 @@ function GetThemeColors()
     if record then
       local k, v = string.match(line, "([^%s]-)=([^%s/n/r]+)")
       if k and v then 
-        l[k] = {[1] = tonumber(v)} -- table to store theme colors
+        l[1][k] = tonumber(v) -- table to store theme colors
       end
     end
     if reap then
@@ -266,8 +265,8 @@ end
 function WriteFile(setting)
   local file = io.open(path .. "adjusted__" .. theme, "w+")
   file:write("[color theme]\n")
-  for k, v in pairs(l) do
-    file:write(k .. "=" .. tostring(v[setting]) .. "\n")
+  for k, v in pairs(l[setting]) do
+    file:write(k .. "=" .. tostring(v) .. "\n")
   end
   file:write(table.concat(fon, "\n"))
   io.close(file)
@@ -292,15 +291,16 @@ function AdjustColors()
   end
   -- create new table for new settings
   current = #settings + 1
-  for k,v in pairs(l) do
-    l[k][current] = v[1]
+  l[current] = {}
+  for k,v in pairs(l[1]) do
+    l[current][k] = v
   end
   for i = 1, #t do
-    if l[t[i]] then
-      local r, g, b = reaper.ColorFromNative( l[t[i]][1] )
+    if l[1][t[i]] then
+      local r, g, b = reaper.ColorFromNative( l[1][t[i]] )
       r, g, b = BrightnessContrast(r, g, b, GUI.Val("Brightness"), GUI.Val("Contrast") )
       r, g, b = Gamma(r, g, b, GUI.Val("Gamma"))
-      l[t[i]][current] = reaper.ColorToNative( r, g, b )
+      l[current][t[i]] = reaper.ColorToNative( r, g, b )
     end
   end
   -- store settings
@@ -322,6 +322,10 @@ function AdjustColors()
 end
   
 function Load(setting)
+  if debug then
+    reaper.ShowConsoleMsg(string.format("Loaded Settings:    B -> %d    C -> %d    G -> %.2f",
+    settings[setting].b, settings[setting].c, settings[setting].g))
+  end
   WriteFile(setting)
   current = setting
   -- Set sliders
@@ -398,6 +402,45 @@ end
 GUI.name = "Adjust theme colors v" .. version
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 330, 415
 GUI.anchor, GUI.corner = "screen", "C"
+
+-- do not position slider when clicking
+function GUI.Slider:onmousedown()
+end
+
+-- change speed
+function GUI.Slider:ondrag()
+  local mouse_val, n, ln = table.unpack(self.dir == "h"
+          and {(GUI.mouse.x - self.x) / self.w, GUI.mouse.x, GUI.mouse.lx}
+          or  {(GUI.mouse.y - self.y) / self.h, GUI.mouse.y, GUI.mouse.ly}
+  )
+  local cur = self.cur_handle or 1
+  -- Ctrl?
+  local ctrl = GUI.mouse.cap&4==4
+  -- A multiplier for how fast the slider should move. Higher values = slower
+  --            Ctrl              Normal
+  local adj = ctrl and 1200 or 150
+  local adj_scale = (self.dir == "h" and self.w or self.h) / 150
+  adj = adj * adj_scale
+    self:setcurval(cur, GUI.clamp( self.handles[cur].curval + ((n - ln) / adj) , 0, 1 ) )
+  self:redraw()
+end
+
+-- wheel always fine tunes
+function GUI.Slider:onwheel()
+  local mouse_val = (GUI.mouse.x - self.x) / self.w
+  local inc = GUI.round( GUI.mouse.inc)
+  local cur = self:getnearesthandle(mouse_val)
+  local ctrl = GUI.mouse.cap&4==4
+  -- How many steps per wheel-step
+  local coarse = math.max( GUI.round(self.steps / 30), 1)
+  local adj = ctrl and 1 or 1
+    self:setcurval(cur, GUI.clamp( self.handles[cur].curval + (inc * adj / self.steps) , 0, 1) )
+  self:redraw()
+end
+
+function GUI.Slider:onmouseup()
+  AdjustColors()
+end
 
 GUI.New("Gamma", "Slider", {
     z = 11,
@@ -530,30 +573,35 @@ function GUI.Listbox:onmouseup()
         reaper.TrackCtl_SetToolTip( "Can't delete original theme colors", x+35, y-20, true )
         return
       else
-        if AB_mode and item == previous then
-          reaper.TrackCtl_SetToolTip( "Can't delete previous setting while in A/B mode", x-3, y-20, true )
-          return
+        if AB_mode then
+          if item == previous then
+            reaper.TrackCtl_SetToolTip( "Can't delete previous setting while in A/B mode", x-3, y-20, true )
+            return
+          elseif item < previous then
+            table.remove(self.list, item)
+            table.remove(settings, item)
+            table.remove(l, item)
+            extra = "Removed " .. item .. " while in AB mode"
+            -- adjust previous setting if deleting an item before it
+            previous = previous - 1
+            GUI.Val("Compare", previous)
+            DEBUG(extra) 
+          end
         else -- delete item and setting
           table.remove(self.list, item)
           table.remove(settings, item)
+          table.remove(l, item)
           extra = "Removed " .. item
-          -- when deleting active setting
-          if current == item then
-            current = 0
-            extra = extra .. " (last active)"
-          end
-          -- adjust previous setting if deleting an item before it
-          if item < previous then
-            previous = previous - 1
-            GUI.Val("Compare", previous)
+          if current >= item then
+            current = current - 1
+            GUI.Val("Compare", current)
           end
         end
         DEBUG(extra)
       end
     else -- Click
-      if current == 1 and item == 1 then
-        DEBUG()
-        reaper.TrackCtl_SetToolTip( "Already viewing original theme colors", x+24, y-20, true )
+      if current == item then
+        reaper.TrackCtl_SetToolTip( "Already viewing the selected settings", x+26, y-20, true )
         return
       else
         -- Load selected item
