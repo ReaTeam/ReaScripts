@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 1.40
+-- @version 1.41
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
 --   # Adjusts the colors of any ReaperTheme or ReaperThemeZip
@@ -13,15 +13,14 @@
 --   - A/B Button to toggle between current setting and original theme colors
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 -- @changelog
---   Fixed bug with messed up recall of last undo setting when having deleted a previous one
---   Now when moving the sliders, the new setting is automatically applied
---   Mousewheel always adjusts by 1 (fine tunning) and needs a click on the slider to apply setting
---   Changed slider behavior: clicking on the slider does not move the handle any more, but now it applies the setting - same as clicking on the Apply Settings button (useful after mousewheel)
+--   - Fixed crashing while saving unzipped files (introduced in 1.40)
+
+-- Thanks to cfillion for his help in making the ReaperThemeZip extraction function!
 
 local reaper = reaper
 local debug = false
 if debug then reaper.ClearConsole() end
-local version = "1.40"
+local version = "1.41"
 local path, theme
 local current = 1
 local previous = 1
@@ -190,6 +189,7 @@ if theme then
 else
   return
 end
+ReaperThemeName = theme
 
 -----------------------------------------------------------------------
 
