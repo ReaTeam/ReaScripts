@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="715013c3fd915383efef237fc2e710d776cd2117" name="ReaTeam Scripts">
+<index version="1" commit="275bb961de47173381394f3333640905ffaabb8b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -14802,6 +14802,11 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
       <version name="1.0.4" author="tompad" time="2020-03-19T21:57:11Z">
         <changelog><![CDATA[Added and changed some functionality (auto-increase, save bpm in tempo sign etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/36edc9e1a661739b54c63dc8f69031829dc536b0/Various/tompad_Practice%20coach.lua</source>
+      </version>
+      <version name="1.0.5" author="tompad" time="2020-03-21T14:55:14Z">
+        <changelog><![CDATA[Added UpdateTimeline to make Time Signature show right bpm after session on Windows
+Added a check for time selection]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/275bb961de47173381394f3333640905ffaabb8b/Various/tompad_Practice%20coach.lua</source>
       </version>
     </reapack>
   </category>
