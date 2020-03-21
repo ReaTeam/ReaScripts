@@ -1,7 +1,9 @@
 -- @description Practice coach
 -- @author tompad
--- @version 1.0.4
--- @changelog Added and changed some functionality (auto-increase, save bpm in tempo sign etc)
+-- @version 1.0.5
+-- @changelog
+--   Added UpdateTimeline to make Time Signature show right bpm after session on Windows
+--   Added a check for time selection
 -- @about
 --   # Practice Coach
 --
@@ -411,6 +413,19 @@ function round2(num, numDecimalPlaces)
   return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
 end
 
+function checkTimeSelection ()
+  --Kollar om en timeselection är gjord - om inte starta en dialogruta som påpekar att det måste finnas en. Return
+  local starttime3, endtime3 = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
+
+  if starttime3 == endtime3 then
+    reaper.ShowMessageBox("No time selection is done - please make one!", "Info", 0)
+
+  else
+    CheckForTimSig()
+  end
+
+end
+
 function CheckForTimSig ()
   reaper.Main_OnCommandEx( 40630, 0, 0 ) --- Go to start of time selection
   curpos = reaper.GetCursorPosition()
@@ -473,7 +488,8 @@ function GUI.elms.Start_Cont_Button:onmouseup()
     -- Do nothing
   else
     if buttonEnabled then
-      CheckForTimSig()
+      checkTimeSelection()
+      --CheckForTimSig()
     else
       --do nothing
     end
@@ -536,6 +552,8 @@ function countDownTimer()
         maxBPM = maxBPMbackup
       end
       reaper.SetTempoTimeSigMarker( 0, reaper.FindTempoTimeSigMarker( 0, reaper.GetCursorPosition() ), reaper.GetCursorPosition(), - 1, - 1, maxBPM, 0, 0, false )
+      reaper.UpdateTimeline()
+
       GUI.Val("MaxBPM", maxBPM)
       GUI.Val("StepsLeft_Label", "Steps left: " .. stepsLeft)
       GUI.Val("CurrBPM_Label", "Current BPM:")
@@ -614,3 +632,5 @@ GUI.elms.Checklist1.x = xwin - ((GUI.elms.Checklist1.w) / 2) + 16
 reaper.atexit(writeSettings)
 -- Start the main loop
 GUI.Main()
+
+
