@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 1.41
+-- @version 1.42
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
 --   # Adjusts the colors of any ReaperTheme or ReaperThemeZip
@@ -13,14 +13,14 @@
 --   - A/B Button to toggle between current setting and original theme colors
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 -- @changelog
---   - Fixed crashing while saving unzipped files (introduced in 1.40)
+--   - The extraction code should now work in OSX/Linux too (thanks cfillion again!)
 
 -- Thanks to cfillion for his help in making the ReaperThemeZip extraction function!
 
 local reaper = reaper
 local debug = false
 if debug then reaper.ClearConsole() end
-local version = "1.41"
+local version = "1.42"
 local path, theme
 local current = 1
 local previous = 1
@@ -119,8 +119,9 @@ function UnzipReaperTheme(ReaperThemeZip)
     local script =
     [[$ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$zipFilePath = "]] .. ReaperThemeZip .. '"\n$extractPath = "' .. FullTempFolder .. '"\n' ..
-[[$zip = [System.IO.Compression.ZipFile]::OpenRead($zipFilePath)
+$zipFilePath = Read-Host
+$extractPath =  Read-Host
+$zip = [System.IO.Compression.ZipFile]::OpenRead($zipFilePath)
 [System.IO.Directory]::CreateDirectory($extractPath)
 $zip.Entries | Where-Object Name -like *.ReaperTheme | ForEach-Object{[System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, "$extractPath\$($_.Name)", $true)}
 $zip.Dispose()]]
@@ -128,16 +129,14 @@ $zip.Dispose()]]
     local file = io.open(script_path, "w+")
     file:write(script)
     file:close()
-    cmd = "powershell.exe -ExecutionPolicy Bypass " .. script_path, 'w'
+    cmd = "powershell.exe -ExecutionPolicy Bypass " .. script_path
   else -- OSX/LINUX (use unzip)
-    cmd = 'read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"', 'w'
+    cmd = 'read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"'
     FullTempFolder = ReaperThemeZip:match("(.*/)") .. TempFolder
   end
-  local pipe = io.popen(cmd)
-  if not Win then -- pass values to unzip (OSX/Linux)
-    pipe:write(ReaperThemeZip .. '\n')
-    pipe:write(FullTempFolder .. '\n')
-  end
+  local pipe = io.popen(cmd, "w")
+  pipe:write(ReaperThemeZip .. '\n')
+  pipe:write(FullTempFolder .. '\n')
   local state = ({pipe:close()})[3]
   -- Delete temporary PowerShell script
   if Win then os.remove(script_path) end
@@ -149,10 +148,8 @@ $zip.Dispose()]]
     if Win then
       os.execute('rd /s/q "'.. FullTempFolder ..'"')
     else
-      ok = os.remove(FullTempFolder)
-      if not ok then os.execute('rm -rd "'..path_to_dir..'"')
-        reaper.ShowConsoleMsg("Failed to delete temp directory in ColorThemes")
-      end
+      local ok = os.remove(FullTempFolder)
+      if not ok then os.execute('rm -r "'.. FullTempFolder ..'"') end
     end
     return ColorthemePath .. ReaperThemeName -- full path to extracted ReaperTheme file
   else
