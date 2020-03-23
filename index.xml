@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8e4a3f6f19f6f32251ca513668e42249ee066cf3" name="ReaTeam Scripts">
+<index version="1" commit="19b8adfbef1e2ab44c7894523718834e0dc82a6e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11077,6 +11077,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.41" author="amagalma" time="2020-03-21T21:51:41Z">
         <changelog><![CDATA[- Fixed crashing while saving unzipped files (introduced in 1.40)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8e4a3f6f19f6f32251ca513668e42249ee066cf3/Various/amagalma_Adjust%20theme%20colors.lua</source>
+      </version>
+      <version name="1.42" author="amagalma" time="2020-03-23T00:16:18Z">
+        <changelog><![CDATA[- The extraction code should now work in OSX/Linux too (thanks cfillion again!)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/19b8adfbef1e2ab44c7894523718834e0dc82a6e/Various/amagalma_Adjust%20theme%20colors.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track">
