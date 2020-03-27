@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="19b8adfbef1e2ab44c7894523718834e0dc82a6e" name="ReaTeam Scripts">
+<index version="1" commit="b565d6455f0188588ae72aeb98d51d80aac56f65" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9367,6 +9367,12 @@ enter or a = Exit and apply changes\par}
         <changelog><![CDATA[+ Audio Preview: Bugfix for 'nil value' error when checking for available preview files
 + General: Added 'Save as New Version' checkbox (to save the loaded project(s) with an incremented version number: _1, _2, ...)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec4eb629a3f6955db51e0ed38595a6899052b5ff/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.2" author="solger" time="2020-03-27T15:42:29Z">
+        <changelog><![CDATA[+ Filter: Now also works with paths displayed (previously paths were hidden by default when using the filter)
++ General: Bugfix for tooltip positioning on macOS
++ Project Lists: Bugfix for not listing < All > entries when loading the tab the first time]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b565d6455f0188588ae72aeb98d51d80aac56f65/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
