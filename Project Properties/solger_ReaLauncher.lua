@@ -1,9 +1,10 @@
 -- @description ReaLauncher
 -- @author solger
--- @version 2.1
+-- @version 2.2
 -- @changelog
---   + Audio Preview: Bugfix for 'nil value' error when checking for available preview files
---   + General: Added 'Save as New Version' checkbox (to save the loaded project(s) with an incremented version number: _1, _2, ...)
+--   + Filter: Now also works with paths displayed (previously paths were hidden by default when using the filter)
+--   + General: Bugfix for tooltip positioning on macOS
+--   + Project Lists: Bugfix for not listing < All > entries when loading the tab the first time
 -- @screenshot https://forum.cockos.com/showthread.php?t=208697
 -- @about
 --   # ReaLauncher
@@ -60,7 +61,7 @@ end
 ------------------------------------------
 -- Reaper resource paths and version infos
 ------------------------------------------
-appversion = "2.1"
+appversion = "2.2"
 appname = "solger_ReaLauncher"
 
 osversion = reaper.GetOS()
@@ -510,61 +511,80 @@ local function RL_SetFocusedTab(tabIndex)
   if not skipRefreshAtLaunch then RL_AutoRefreshTab() end
 end
 
-local function Global_HidePaths()
-  GUI.Val("main_menuPaths", 1)
+local function UpdatePathDisplay_RecentProjects(showPaths)
+  if showPaths then
+    if FilterActive.RecentProjects then GUI.elms.tab_recentProjects_listbox.list = RecentProjects.filteredPaths
+    else GUI.elms.tab_recentProjects_listbox.list = RecentProjects.paths end
+  else
+    if FilterActive.RecentProjects then GUI.elms.tab_recentProjects_listbox.list = RecentProjects.filteredNames
+    else GUI.elms.tab_recentProjects_listbox.list = RecentProjects.names end
+  end
+  GUI.elms.tab_recentProjects_listbox:redraw()
+end
+
+local function UpdatePathDisplay_ProjectTemplates(showPaths)
+  if showPaths then
+    if FilterActive.ProjectTemplates then GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.filteredPaths
+    else GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.paths end
+  else
+    if FilterActive.ProjectTemplates then GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.filteredNames
+    else GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.names end
+  end
+  GUI.elms.tab_projectTemplates_listbox:redraw()
+end
+
+local function UpdatePathDisplay_TrackTemplates(showPaths)
+  if showPaths then
+    if FilterActive.TrackTemplates then GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.filteredPaths
+    else GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.paths end
+  else
+    if FilterActive.TrackTemplates then GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.filteredNames
+    else GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.names end
+  end
+  GUI.elms.tab_trackTemplates_listbox:redraw()
+end
+
+local function UpdatePathDisplay_CustomProjects(showPaths)
+  if showPaths then
+    if FilterActive.CustomProjects then GUI.elms.tab_customProjects_listbox.list = CustomProjects.filteredPaths
+    else GUI.elms.tab_customProjects_listbox.list = CustomProjects.paths end
+  else
+    if FilterActive.CustomProjects then GUI.elms.tab_customProjects_listbox.list = CustomProjects.filteredNames
+    else GUI.elms.tab_customProjects_listbox.list = CustomProjects.names end
+  end
+  GUI.elms.tab_customProjects_listbox:redraw()
+end
+
+local function UpdatePathDisplay_ProjectLists(showPaths)
+  if showPaths then
+    if FilterActive.ProjectLists then GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.filteredProjectPaths
+    else GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.projectPaths end
+  else
+    if FilterActive.ProjectLists then GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.filteredProjectNames
+    else GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.projectNames end
+  end
+  GUI.elms.tab_projectLists_listboxProjects:redraw()
+end
+
+local function UpdatePathDisplay_Backups(showPaths)
+  if showPaths then
+    if FilterActive.Backups then GUI.elms.tab_backups_listbox.list = Backups.filteredPaths
+    else GUI.elms.tab_backups_listbox.list = Backups.paths end
+  else
+    if FilterActive.Backups then GUI.elms.tab_backups_listbox.list = Backups.filteredNames
+    else GUI.elms.tab_backups_listbox.list = Backups.names end
+  end
+  GUI.elms.tab_backups_listbox:redraw()
 end
 
 local function Global_UpdatePathDisplayMode()
-  if GUI.Val("main_menuPaths") == 1 then
-    -- hide paths
-    showFullPaths = false
-
-    if FilterActive.RecentProjects then GUI.elms.tab_recentProjects_listbox.list = RecentProjects.filteredNames
-    else GUI.elms.tab_recentProjects_listbox.list = RecentProjects.names end
-   
-    if FilterActive.ProjectTemplates then GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.filteredNames
-    else GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.names end
-
-    if FilterActive.TrackTemplates then GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.filteredNames
-      else GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.names end
-
-    if FilterActive.CustomProjects then GUI.elms.tab_customProjects_listbox.list = CustomProjects.filteredNames
-    else GUI.elms.tab_customProjects_listbox.list = CustomProjects.names end
-
-    if FilterActive.ProjectLists then GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.filteredProjectNames
-    else GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.projectNames end
-
-    if FilterActive.Backups then GUI.elms.tab_backups_listbox.list = Backups.filteredNames
-    else GUI.elms.tab_backups_listbox.list = Backups.names end
-  else 
-    -- show paths
-    showFullPaths = true
-
-    if FilterActive.RecentProjects then GUI.elms.tab_recentProjects_listbox.list = RecentProjects.filteredPaths
-    else GUI.elms.tab_recentProjects_listbox.list = RecentProjects.paths end
-    
-    if FilterActive.ProjectTemplates then GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.filteredPaths
-    else GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.paths end
-
-    if FilterActive.TrackTemplates then GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.filteredPaths
-    else GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.paths end
-
-    if FilterActive.CustomProjects then GUI.elms.tab_customProjects_listbox.list = CustomProjects.filteredPaths
-    else GUI.elms.tab_customProjects_listbox.list = CustomProjects.paths end
-    
-    if FilterActive.ProjectLists then GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.filteredProjectPaths
-    else GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.projectPaths end
-
-    if FilterActive.Backups then GUI.elms.tab_backups_listbox.list = Backups.filteredPaths
-    else GUI.elms.tab_backups_listbox.list = Backups.paths end
-  end
-
-  GUI.elms.tab_recentProjects_listbox:redraw()
-  GUI.elms.tab_projectTemplates_listbox:redraw()
-  GUI.elms.tab_trackTemplates_listbox:redraw()
-  GUI.elms.tab_customProjects_listbox:redraw()
-  GUI.elms.tab_projectLists_listboxProjects:redraw()
-  GUI.elms.tab_backups_listbox:redraw()
+  if GUI.Val("main_menuPaths") == 1 then showFullPaths = false else showFullPaths = true end
+  UpdatePathDisplay_RecentProjects(showFullPaths)
+  UpdatePathDisplay_ProjectTemplates(showFullPaths)
+  UpdatePathDisplay_TrackTemplates(showFullPaths)
+  UpdatePathDisplay_CustomProjects(showFullPaths)
+  UpdatePathDisplay_ProjectLists(showFullPaths)
+  UpdatePathDisplay_Backups(showFullPaths)
 end
 
 ---------------------------
@@ -1241,17 +1261,19 @@ end
 local function Filter_RecentProject_Apply()
   RecentProjects.filteredNames = {}
   RecentProjects.filteredPaths = {}
+  local searchList = {}
   local searchStr = GUI.Val("tab_recentProjects_txtFilter")
   if #searchStr > 0 then
     FilterActive.RecentProjects = true
     GUI.elms.tab_recentProjects_txtFilter.color = FilterColor.active
     GUI.elms.tab_recentProjects_btnFilterClear.col_txt = FilterColor.active
-    searchterms = GetSearchTable(searchStr)
-    for t = 1, #searchterms do
-        for i = 1, #RecentProjects.names do
-        if string.find(RecentProjects.names[i], searchterms[t]) then
-          RecentProjects.filteredNames[RecentProjects.names[i]] = RecentProjects.paths[i]
 
+    if showFullPaths then searchList = RecentProjects.paths else searchList = RecentProjects.names end
+    local searchterms = GetSearchTable(searchStr)
+    for t = 1, #searchterms do
+        for i = 1, #searchList do
+        if string.find(searchList[i], searchterms[t]) then
+          RecentProjects.filteredNames[RecentProjects.names[i]] = RecentProjects.paths[i]
           if not CheckForDuplicates(RecentProjects.filteredNames, RecentProjects.names[i]) then
             RecentProjects.filteredNames[#RecentProjects.filteredNames + 1] = RecentProjects.names[i]
             RecentProjects.filteredPaths[#RecentProjects.filteredPaths + 1] = RecentProjects.items[RecentProjects.names[i]]
@@ -1263,19 +1285,11 @@ local function Filter_RecentProject_Apply()
     FilterActive.RecentProjects = false
     GUI.elms.tab_recentProjects_txtFilter.color = FilterColor.inactive
     GUI.elms.tab_recentProjects_btnFilterClear.col_txt = FilterColor.inactive
-    Global_UpdatePathDisplayMode()
   end
 
-  -- update list filter
-  if FilterActive.RecentProjects then
-    GUI.elms.tab_recentProjects_listbox.list = RecentProjects.filteredNames
-  else
-    GUI.elms.tab_recentProjects_listbox.list = RecentProjects.names
-  end
-
+  UpdatePathDisplay_RecentProjects(showFullPaths)
   GUI.Val("tab_recentProjects_listbox",{})
   ScrollToTop(1)
-  Global_HidePaths()
 end
 
 local function Filter_RecentProject_Clear()
@@ -1289,16 +1303,18 @@ end
 local function Filter_ProjectTemplate_Apply()
   ProjectTemplates.filteredNames = {}
   ProjectTemplates.filteredPaths = {}
-
+  local searchList = {}
   local searchStr = GUI.Val("tab_projectTemplates_txtFilter")
   if #searchStr > 0 then
     FilterActive.ProjectTemplates = true
     GUI.elms.tab_projectTemplates_txtFilter.color = FilterColor.active
     GUI.elms.tab_projectTemplates_btnFilterClear.col_txt = FilterColor.active
-    searchterms = GetSearchTable(searchStr)
+    
+    if showFullPaths then searchList = ProjectTemplates.paths else searchList = ProjectTemplates.names end
+    local searchterms = GetSearchTable(searchStr)
     for t = 1, #searchterms do
-      for i = 1, #ProjectTemplates.names do
-        if string.find(ProjectTemplates.names[i], searchterms[t]) then
+      for i = 1, #searchList do
+        if string.find(searchList[i], searchterms[t]) then
           ProjectTemplates.filteredNames[ProjectTemplates.names[i]] = ProjectTemplates.names[i]
           if not CheckForDuplicates(ProjectTemplates.filteredNames, ProjectTemplates.names[i]) then
             ProjectTemplates.filteredNames[#ProjectTemplates.filteredNames + 1] = ProjectTemplates.names[i]
@@ -1313,16 +1329,9 @@ local function Filter_ProjectTemplate_Apply()
     GUI.elms.tab_projectTemplates_btnFilterClear.col_txt = FilterColor.inactive
   end
 
-  -- update list filter
-  if FilterActive.ProjectTemplates then
-    GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.filteredNames
-  else
-    GUI.elms.tab_projectTemplates_listbox.list = ProjectTemplates.names 
-  end
-  
+  UpdatePathDisplay_ProjectTemplates(showFullPaths)
   GUI.Val("tab_projectTemplates_listbox",{})
   ScrollToTop(2)
-  Global_HidePaths()
 end
 
 local function Filter_ProjectTemplate_Clear()
@@ -1336,16 +1345,18 @@ end
 local function Filter_TrackTemplate_Apply()
   TrackTemplates.filteredNames = {}
   TrackTemplates.filteredPaths = {}
-  
+  local searchList = {}
   local searchStr = GUI.Val("tab_trackTemplates_txtFilter")
   if #searchStr > 0 then
     FilterActive.TrackTemplates = true
     GUI.elms.tab_trackTemplates_txtFilter.color = FilterColor.active
     GUI.elms.tab_trackTemplates_btnFilterClear.col_txt = FilterColor.active
-    searchterms = GetSearchTable(searchStr)
+    
+    if showFullPaths then searchList = TrackTemplates.paths else searchList = TrackTemplates.names end
+    local searchterms = GetSearchTable(searchStr)
     for t = 1, #searchterms do
-      for i = 1, #TrackTemplates.names do
-        if string.find(TrackTemplates.names[i], searchterms[t]) then
+      for i = 1, #searchList do
+        if string.find(searchList[i], searchterms[t]) then
           TrackTemplates.filteredNames[TrackTemplates.names[i]] = TrackTemplates.names[i]
           if not CheckForDuplicates(TrackTemplates.filteredNames, TrackTemplates.names[i]) then
             TrackTemplates.filteredNames[#TrackTemplates.filteredNames + 1] = TrackTemplates.names[i]
@@ -1354,23 +1365,15 @@ local function Filter_TrackTemplate_Apply()
         end
       end
     end
-    else
-      FilterActive.TrackTemplates = false
-      GUI.elms.tab_trackTemplates_txtFilter.color = FilterColor.inactive
-      GUI.elms.tab_trackTemplates_btnFilterClear.col_txt = FilterColor.inactive
-      Global_UpdatePathDisplayMode()
-    end
-  
-  -- update list filter
-  if FilterActive.TrackTemplates then
-    GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.filteredNames
   else
-    GUI.elms.tab_trackTemplates_listbox.list = TrackTemplates.names
+    FilterActive.TrackTemplates = false
+    GUI.elms.tab_trackTemplates_txtFilter.color = FilterColor.inactive
+    GUI.elms.tab_trackTemplates_btnFilterClear.col_txt = FilterColor.inactive
   end
-
+  
+  UpdatePathDisplay_TrackTemplates(showFullPaths)
   GUI.Val("tab_trackTemplates_listbox",{})
   ScrollToTop(3)
-  Global_HidePaths()
 end
 
 local function Filter_TrackTemplate_Clear()
@@ -1384,16 +1387,18 @@ end
 local function Filter_CustomProjects_Apply()
   CustomProjects.filteredNames = {}
   CustomProjects.filteredPaths = {}
-  
+  local searchList = {}
   local searchStr = GUI.Val("tab_customProjects_txtFilter")
   if #searchStr > 0 then
     FilterActive.CustomProjects = true
     GUI.elms.tab_customProjects_txtFilter.color = FilterColor.active
     GUI.elms.tab_customProjects_btnFilterClear.col_txt = FilterColor.active
-    searchterms = GetSearchTable(searchStr)
+    
+    if showFullPaths then searchList = CustomProjects.paths else searchList = CustomProjects.names end
+    local searchterms = GetSearchTable(searchStr)
     for t = 1, #searchterms do
-      for i = 1, #CustomProjects.names do
-        if string.find(CustomProjects.names[i], searchterms[t]) then
+      for i = 1, #searchList do
+        if string.find(searchList[i], searchterms[t]) then
           CustomProjects.filteredNames[CustomProjects.names[i]] = CustomProjects.names[i]
           if not CheckForDuplicates(CustomProjects.filteredNames, CustomProjects.names[i]) then
             CustomProjects.filteredNames[#CustomProjects.filteredNames + 1] = CustomProjects.names[i]
@@ -1406,19 +1411,11 @@ local function Filter_CustomProjects_Apply()
     FilterActive.CustomProjects = false
     GUI.elms.tab_customProjects_txtFilter.color = FilterColor.inactive
     GUI.elms.tab_customProjects_btnFilterClear.col_txt = FilterColor.inactive
-    Global_UpdatePathDisplayMode()
   end
 
-  -- update list filter
-  if FilterActive.CustomProjects then
-    GUI.elms.tab_customProjects_listbox.list = CustomProjects.filteredNames
-  else
-    GUI.elms.tab_customProjects_listbox.list = CustomProjects.names
-  end
-
+  UpdatePathDisplay_CustomProjects(showFullPaths)
   GUI.Val("tab_customProjects_listbox",{})
   ScrollToTop(4)
-  Global_HidePaths()
 end
 
 local function Filter_CustomProjects_Clear()
@@ -1432,17 +1429,18 @@ end
 local function Filter_ProjectLists_Apply()
   ProjectLists.filteredProjectNames = {}
   ProjectLists.filteredProjectPaths = {}
-  
+  local searchList = {}
   local searchStr = GUI.Val("tab_projectLists_txtFilter")
-  
   if #searchStr > 0 then
     FilterActive.ProjectLists = true
     GUI.elms.tab_projectLists_txtFilter.color = FilterColor.active
     GUI.elms.tab_projectLists_btnFilterClear.col_txt = FilterColor.active
-    searchterms = GetSearchTable(searchStr)
+    
+    if showFullPaths then searchList = ProjectLists.projectPaths else searchList = ProjectLists.projectNames end
+    local searchterms = GetSearchTable(searchStr)
     for t = 1, #searchterms do
-      for i = 1, #ProjectLists.projectNames do
-        if string.find(ProjectLists.projectNames[i], searchterms[t]) then
+      for i = 1, #searchList do
+        if string.find(searchList[i], searchterms[t]) then
           ProjectLists.filteredProjectNames[ProjectLists.projectNames[i]] = ProjectLists.projectNames[i]
           if not CheckForDuplicates(ProjectLists.filteredProjectNames, ProjectLists.projectNames[i]) then
             ProjectLists.filteredProjectNames[#ProjectLists.filteredProjectNames + 1] = ProjectLists.projectNames[i]
@@ -1455,19 +1453,11 @@ local function Filter_ProjectLists_Apply()
     FilterActive.ProjectLists = false
     GUI.elms.tab_projectLists_txtFilter.color = FilterColor.inactive
     GUI.elms.tab_projectLists_btnFilterClear.col_txt = FilterColor.inactive
-    Global_UpdatePathDisplayMode()
   end
 
-  -- update list filter
-  if FilterActive.ProjectLists then
-    GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.filteredProjectNames
-  else
-    GUI.elms.tab_projectLists_listboxProjects.list = ProjectLists.projectNames
-  end
-
+  UpdatePathDisplay_ProjectLists(showFullPaths)
   GUI.Val("tab_projectLists_listboxProjects",{})
   ScrollToTop(5)
-  Global_HidePaths()
 end
 
 local function Filter_ProjectLists_Clear()
@@ -1481,16 +1471,18 @@ end
 local function Filter_Backups_Apply()
   Backups.filteredNames = {}
   Backups.filteredPaths = {}
-  
+  local searchList = {}
   local searchStr = GUI.Val("tab_backups_txtFilter")
   if #searchStr > 0 then
     FilterActive.Backups = true
     GUI.elms.tab_backups_txtFilter.color = FilterColor.active
     GUI.elms.tab_backups_btnFilterClear.col_txt = FilterColor.active
-    searchterms = GetSearchTable(searchStr)
+    
+    if showFullPaths then searchList = Backups.paths else searchList = Backups.names end
+    local searchterms = GetSearchTable(searchStr)
     for t = 1, #searchterms do
-      for i = 1, #Backups.names do
-        if string.find(Backups.names[i], searchterms[t]) then
+      for i = 1, #searchList do
+        if string.find(searchList[i], searchterms[t]) then
           Backups.filteredNames[Backups.names[i]] = Backups.names[i]
           if not CheckForDuplicates(Backups.filteredNames, Backups.names[i]) then
             Backups.filteredNames[#Backups.filteredNames + 1] = Backups.names[i]
@@ -1499,23 +1491,15 @@ local function Filter_Backups_Apply()
         end
       end
     end
-    else
-      FilterActive.Backups = false
-      GUI.elms.tab_backups_txtFilter.color = FilterColor.inactive
-      GUI.elms.tab_backups_btnFilterClear.col_txt = FilterColor.inactive
-      Global_UpdatePathDisplayMode()
-    end
-  
-  -- update list filter
-  if FilterActive.Backups then
-    GUI.elms.tab_backups_listbox.list = Backups.filteredNames
   else
-    GUI.elms.tab_backups_listbox.list = Backups.names
+    FilterActive.Backups = false
+    GUI.elms.tab_backups_txtFilter.color = FilterColor.inactive
+    GUI.elms.tab_backups_btnFilterClear.col_txt = FilterColor.inactive
   end
-
+  
+  UpdatePathDisplay_Backups(showFullPaths)
   GUI.Val("tab_backups_listbox",{})
   ScrollToTop(6)
-  Global_HidePaths()
 end
 
 local function Filter_Backups_Clear()
@@ -1636,6 +1620,7 @@ local function RefreshProjectList()
     Global_UpdatePathDisplayMode()
     Filter_ProjectLists_Apply()
     GUI.Val("tab_projectLists_listboxRPL", {1})
+    FillProjectListBoxWithAll()
   else
     MsgStatusBar(msgNoFolderPathSet .. "[ Project Lists ]", true, false)
   end
@@ -1852,8 +1837,8 @@ if SWSinstalled then
 
   -- draw the UI element
   function RL_Draw_ThemeSlotSelector(alignment)
-    GUI.New("themeslot", "Menubox", LayerIndex.Global, GUI.w - (74 * RL.scaleFactor) + (RL.scaleFactor * 10), 346 * RL.scaleFactor + (RL.scaleFactor * 2), 40 * RL.scaleFactor, 20 * RL.scaleFactor, "Reaper Theme", ThemeSlots.items)
-    GUI.elms.themeslot.tooltip = "Set up and switch between different Reaper Theme Slots\nAdditional slot descriptions can be set in the [Options]"
+    GUI.New("themeslot", "Menubox", LayerIndex.Global, GUI.w - (74 * RL.scaleFactor) + (RL.scaleFactor * 10), 346 * RL.scaleFactor + (RL.scaleFactor * 2), 40 * RL.scaleFactor, 20 * RL.scaleFactor, "Reaper Theme", ThemeSlots.items, 8)
+    GUI.elms.themeslot.tooltip = "Set up and switch between different Reaper Theme Slots\nSlot number and descriptions can be set in the [Options]"
     GUI.elms.themeslot.align = alignment
 
     function GUI.elms.themeslot:onmousedown()
@@ -1998,6 +1983,21 @@ GUI.name = "ReaLauncher"
 GUI.anchor, GUI.corner = "mouse", "C" -- Center on "mouse" or "screen"
 GUI.x, GUI.y = 0, 0
 
+-----------------------------------------------------------------------------
+-- Override tooltip function for handling macOS coordinates (inverted y-axis)
+-----------------------------------------------------------------------------
+GUI.settooltip = function(str)
+  if not str or str == "" then return end
+  local x, y = gfx.clienttoscreen(0, 0)
+  if osversion:find("OSX") then
+    local mouseX, mouseY = reaper.GetMousePosition()
+    reaper.TrackCtl_SetToolTip(str, mouseX + 16, mouseY + 16, true)
+  else
+    reaper.TrackCtl_SetToolTip(str, x + GUI.mouse.x + 16, y + GUI.mouse.y + 16, true)
+  end
+  GUI.tooltip = str
+end
+
 --------------------
 -- Scaling functions
 --------------------
@@ -2063,13 +2063,13 @@ local function RL_SetWindowParameters()
   refreshH = 22 * RL.scaleFactor
 
   -- filter textbox
-  filterX = 65 * RL.scaleFactor - (RL.scaleFactor * 5)
+  filterX = 65 * RL.scaleFactor - (RL.scaleFactor * 4)
   filterY = pad_top
   filterW = 225 * RL.scaleFactor
   filterH = 20 * RL.scaleFactor
 
   -- path display box
-  pathX = 342
+  pathX = 348
 end
 
 RL_InitElementScaling(null)
@@ -2251,7 +2251,7 @@ local function RL_Draw_Main()
     RL_AutoRefreshTab()
   end
 
-  GUI.New("main_menuPaths", "Menubox", LayerIndex.Global, pathX * RL.scaleFactor - (RL.scaleFactor * 10), pad_top, 60 * RL.scaleFactor, 20 * RL.scaleFactor, "Paths", "Hide,Show")
+  GUI.New("main_menuPaths", "Menubox", LayerIndex.Global, pathX * RL.scaleFactor - (RL.scaleFactor * 5), pad_top, 60 * RL.scaleFactor, 20 * RL.scaleFactor, "Paths", "Hide,Show", 8)
   GUI.elms.main_menuPaths.align = "1"
   
   if SWSinstalled then GUI.New("main_btnOpenInExplorer", "Button", LayerIndex.Global, btn_pad_left, 98 * RL.scaleFactor, btn_w, btn_h, "Show in Explorer/Finder", Global_OpenInExplorer) end
@@ -2266,7 +2266,7 @@ local function RL_Draw_Main()
   GUI.elms.main_checklistWindowPin.opt_size = 20 * RL.scaleFactor - (5 * RL.scaleFactor)
   GUI.elms.main_checklistWindowPin:init()
 
-  GUI.New("main_lblSaveNewVersion", "Label", LayerIndex.SaveAsNewVersion, GUI.w - (154 * RL.scaleFactor) + (RL.scaleFactor * 11), 320 * RL.scaleFactor, "Save as New Version", false, 3)
+  GUI.New("main_lblSaveNewVersion", "Label", LayerIndex.SaveAsNewVersion, GUI.w - (152 * RL.scaleFactor) + (RL.scaleFactor * 11), 320 * RL.scaleFactor, "Save as New Version", false, 3)
   GUI.New("main_checklistSaveAsNewVersion", "Checklist", LayerIndex.SaveAsNewVersion, GUI.w - (44 * RL.scaleFactor) + (RL.scaleFactor * 11), 318 * RL.scaleFactor + (RL.scaleFactor * 2), 20 * RL.scaleFactor - (5 * RL.scaleFactor), 20 * RL.scaleFactor - (5 * RL.scaleFactor), "", "", "h", 0)
   GUI.elms.main_checklistSaveAsNewVersion.opt_size = 20 * RL.scaleFactor - (5 * RL.scaleFactor)
   GUI.elms.main_checklistSaveAsNewVersion:init()
@@ -3089,7 +3089,7 @@ local function RL_Draw_Tooltips()
   GUI.elms.main_lblWindowpin.tooltip = ttWindowPin
   GUI.elms.main_checklistWindowPin.tooltip = ttWindowPin
   -- save as new version
-  local ttSaveAsNewVersion = "Save the loaded project(s) with an incremented version number: _1, _2, ..."
+  local ttSaveAsNewVersion = "Save the loaded project(s) with an\nincremented version number: _1, _2, ..."
   GUI.elms.main_lblSaveNewVersion.tooltip = ttSaveAsNewVersion
   GUI.elms.main_checklistSaveAsNewVersion.tooltip = ttSaveAsNewVersion
   -- recent projects
@@ -3105,7 +3105,7 @@ local function RL_Draw_Tooltips()
   GUI.elms.tab_projectTemplates_btnLoadInTab.tooltip = "Load selected project template(s) in tab(s)\n\n" .. ttLoadFXoffline
   GUI.elms.tab_projectTemplates_btnLoad.tooltip = "Load selected project templates(s)\n\n" .. ttLoadFXoffline
   -- template edit mode
-  local tooltip_projectTemplatesEditMode = "Check if project template should be opened in edit mode"
+  local tooltip_projectTemplatesEditMode = "Check to open project template in edit mode"
   GUI.elms.tab_projectTemplates_lblEditMode.tooltip = tooltip_projectTemplatesEditMode
   GUI.elms.tab_projectTemplates_checklistEditMode.tooltip = tooltip_projectTemplatesEditMode
   -- track templates
@@ -3156,7 +3156,7 @@ local function RL_Draw_Tooltips()
   GUI.elms.options_checklistShowSubfolderPanel.tooltip = tooltipSubfolderPanel
 
   if SWSinstalled then
-    GUI.elms.main_btnOpenInExplorer.tooltip = "Browse to file location in Explorer/Finder"
+    GUI.elms.main_btnOpenInExplorer.tooltip = "Browse to file location"
   end
 end
 
