@@ -1,97 +1,88 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 1.42
+-- @version 2.05
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
---   # Adjusts the colors of any ReaperTheme or ReaperThemeZip
+--   # Adjusts the colors of any ReaperTheme/ReaperThemeZip
 --
 --   - Theme supports both zipped and unzipped themes
---   - Requires Lokasenna GUI v2 and JS_ReaScriptAPI
---   - Offers Gamma, Brightness and Contrast adjustments
---   - Listbox with previous settings
---   - Alt-click an item in the Listbox to remove a setting
---   - A/B Button to toggle between current setting and original theme colors
+--   - Offers Brightness, Contrast and Gamma adjustments
+--   - Tooltips to always inform user of what is happening
+--   - A/B Button to toggle between the current setting and the original theme colors
+--   - Use the Take Snapshot button to store settings and make new adjustments on these rather than the original theme's colors
+--   - Take Snapshot button: left-click to add new, right-click to replace current selected
+--   - The Snapshots are the base colors on which you make adjustments using the sliders
+--   - The adjustments are applied to the selected color groups in the Color Groups Tab. The rest of the theme colors are copied over
+--   - In the Color Groups Tab you can inspect or change the theme colors on which the adjustments apply
+--   - In the Listbox you can choose (click) or delete (Alt-click) your saved Snapshots
+--   - If you change the Color Groups selection, and the new selection includes groups of the previous selection, a Snapshot is automatically taken
+--   - UNDO/REDO buttons to undo/redo adjustments made on the selected theme color Snapshot in the Listbox
+--   - User is prompted to save when exiting and if there were color changes in comparison to the original theme
+--   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
+--   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
 -- @changelog
---   - The extraction code should now work in OSX/Linux too (thanks cfillion again!)
+--   - Added Color Groups ability, Undo/Redo Buttons, Snapshots
+--   - Use the Take Snapshot button to store settings and make new adjustments on these rather than the original theme's colors
+--   - Take Snapshot button: left-click to add new, right-click to replace current selected
+--   - The Snapshots are the base colors on which you make adjustments using the sliders
+--   - The adjustments are applied to the selected color groups in the Color Groups Tab. The rest of the theme colors are copied over
+--   - In the Color Groups Tab you can inspect or change the theme colors on which the adjustments apply
+--   - In the Listbox you can choose (click) or delete (Alt-click) your saved Snapshots
+--   - If you change the Color Groups selection a Snapshot is automatically taken
+--   - UNDO/REDO buttons to undo/redo adjustments made on the selected theme color Snapshot in the Listbox
+--   - User is prompted to save when exiting and if there were color changes in comparison to the original theme
+--   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
+--   - Official "thank you" to cfillion for his help in making the ReaperThemeZip extraction function
 
--- Thanks to cfillion for his help in making the ReaperThemeZip extraction function!
 
+-----------------------------------------------------------------------
+
+
+-- Global variables
+local version = "2.05"
 local reaper = reaper
-local debug = false
-if debug then reaper.ClearConsole() end
-local version = "1.42"
-local path, theme
-local current = 1
-local previous = 1
-local settings = {}
-local AB_mode = false
-local zipped = false
-local ReaperThemeName
-local Win = string.match(reaper.GetOS(), "Win" ) == "Win"
-local sep = Win == true and "\\" or "/"
-local ResourcePath = reaper.GetResourcePath()
-settings[1] = {g = 1, b = 0, c = 0}
--- tables to store data
-local l, fon = {}, {}
-l[1] = {}
+local math = math
 
--- Table with all the colors that will be adjusted
-local t = { "col_cursor", "col_cursor2", "guideline_color", "col_arrangebg", "col_mixerbg", "col_tracklistbg", 
-"col_envlane2_divline", "col_envlane1_divline", "col_env12", "col_env11", "col_env13", "col_env14", "col_env15", 
-"col_env16", "env_item_mute", "env_item_pan", "env_item_pitch", "env_item_vol", "col_env5", "col_env6", 
-"env_track_mute", "col_env4", "col_env3", "env_sends_mute", "col_env8", "col_env10", "col_env7", "col_env9", 
-"auto_item_unsel", "col_env2", "col_env1", "col_fadearm2", "col_fadearm", "col_fadearm3", "col_mi_label_float", 
-"col_mi_label_float_sel", "group_0", "group_9", "group_10", "group_11", "group_12", "group_13", "group_14", 
-"group_15", "group_16", "group_17", "group_18", "group_1", "group_19", "group_20", "group_21", "group_22", "group_23", 
-"group_24", "group_25", "group_26", "group_27", "group_28", "group_2", "group_29", "group_30", "group_31", "group_32",
-"group_33", "group_34", "group_35", "group_36", "group_37", "group_38", "group_3", "group_39", "group_40", 
-"group_41", "group_42", "group_43", "group_44", "group_45", "group_46", "group_47", "group_48", "group_4", "group_49",
-"group_50", "group_51", "group_52", "group_53", "group_54", "group_55", "group_56", "group_57", "group_58", "group_5",
-"group_59", "group_60", "group_61", "group_62", "group_63", "group_6", "group_7", "group_8", "io_3dhl", "io_3dsh",
-"io_text", "midi_ccbut", "midi_trackbg1", "midi_trackbg2", "midi_trackbg_outer1", "midi_trackbg_outer2",
-"midi_selpitch1", "midi_selpitch2", "midi_editcurs", "midi_endpt", "midi_ofsn", "midi_ofsnsel", "midi_itemctl",
-"midifont_col_dark", "midifont_col_light", "midifont_col_dark_unsel", "midifont_col_light_unsel", "midi_notemute_sel",
-"midi_notemute", "midi_notefg", "midi_notebg", "midioct", "midi_rulerbg", "midi_rulerfg", "midi_selbg",
-"midi_inline_trackbg1", "midi_inline_trackbg2", "midioct_inline", "midieditorlist_bg", "midieditorlist_bg2",
-"midieditorlist_selbg", "midieditorlist_seliabg", "midieditorlist_selbg2", "midieditorlist_selfg",
-"midieditorlist_seliafg", "midieditorlist_selfg2", "midieditorlist_fg", "midieditorlist_fg2", "score_bg",
-"score_loop", "score_sel", "score_fg", "score_timesel", "midi_pkey1", "midi_pkey3", "midi_pkey2",
-"midi_noteon_flash", "midi_leftbg", "col_main_3dhl", "col_main_3dsh", "col_main_resize2", "col_main_textshadow",
-"col_main_bg2", "col_main_text2", "marker_lane_bg", "marker_lane_text", "marker", "col_explorer_sel",
-"col_explorer_seledge", "col_offlinetext", "col_mi_bg2", "col_mi_bg", "col_tr2_itembgsel", "col_tr1_itembgsel",
-"item_grouphl", "col_mi_fade2", "col_mi_fades", "col_mi_label", "col_mi_label_sel", "col_tr2_peaks", "col_tr1_peaks",
-"col_peaksedge2", "col_peaksedge", "col_peaksedgesel2", "col_peaksedgesel", "col_peaksfade2", "col_peaksfade1",
-"col_tr2_ps2", "col_tr1_ps2", "col_stretchmarker_h0", "col_stretchmarker_h2", "col_stretchmarker_h1",
-"col_stretchmarker_b", "col_stretchmarker", "col_stretchmarker_text", "col_stretchmarker_tm", "mcp_fxparm_bypassed",
-"mcp_fxparm_normal", "mcp_fxparm_offlined", "mcp_fx_bypassed", "mcp_fx_normal", "mcp_fx_offlined", "mcp_sends_levels",
-"mcp_send_midihw", "mcp_sends_muted", "mcp_sends_normal", "playcursor_color", "playrate_edited", "region_lane_bg",
-"region_lane_text", "region", "col_routinghl2", "col_routinghl1", "col_seltrack", "docker_bg", "windowtab_bg",
-"docker_selface", "docker_shadow", "docker_text", "docker_text_sel", "docker_unselface", "col_tl_bgsel",
-"col_tsigmark", "ts_lane_bg", "ts_lane_text", "timesig_sel_bg", "col_tl_bg", "col_tl_bgsel2", "col_tl_fg",
-"col_tl_fg2", "toolbararmed_color", "col_toolbar_text_on", "col_toolbar_text", "col_toolbar_frame", "col_tr2_bg",
-"col_tr1_bg", "col_tr2_divline", "col_tr1_divline", "col_tcp_textsel", "col_tcp_text", "col_transport_editbk",
-"col_trans_bg", "col_trans_fg", "col_vuind4", "col_vuind2", "col_vuind3", "col_vuind1", "col_vubot", "col_vuclip",
-"col_vuintcol", "col_vumid", "col_vumidi", "col_vutop", "col_main_editbk", "genlist_bg", "genlist_grid",
-"genlist_selbg", "genlist_seliabg", "genlist_selfg", "genlist_seliafg", "genlist_fg", "col_main_text", "wiring_grid2",
-"wiring_grid", "wiring_tbg", "wiring_border", "wiring_ticon", "wiring_fader", "wiring_hwoutwire", "wiring_horz_col",
-"wiring_parent", "wiring_parentwire_master", "wiring_parentwire_folder", "wiring_parentwire_border", "wiring_media",
-"wiring_pin_connected", "wiring_pin_disconnected", "wiring_pin_normal", "wiring_recv", "wiring_recinputwire",
-"wiring_recbg", "wiring_recitem", "wiring_sendwire", "wiring_send", "wiring_hwout", "wiring_recinput" }
+local path, theme
+local ReaperThemeName -- name_of_theme.ReaperTheme
+local zipped = false -- if ReaperThemeZip
+local loaded, userchangedtheme = false, false -- used to check if user changed theme while script is running
+
+local Win = string.find(reaper.GetOS(), "Win" )
+local sep = Win and "\\" or "/"
+local ResourcePath = reaper.GetResourcePath()
+local Start = reaper.time_precise()
+
+local AB_mode = false -- toggle current colors vs original theme colors
+
+-- Variables and Tables working with color data
+local current = 1 -- current colors to be adjusted (1 = original theme colors)
+local cur_version = 1 -- used for undo/redo
+local snapshot = 0 -- used for enumerating the snapshots
+local settings = {} -- table to store sliders' values
+settings[cur_version] = {g = 1, b = 0, c = 0} -- default settings / no changed colors
+-- table with the Color Groups selection
+local group_settings = { false, true, false, true, true, true, false, false, false, true, true, true, true, false }
+local col = {} -- holds the actual color values for the reconstruction of the ReaperTheme file
+local fon = {} -- holds the fonts/etc for the reconstruction of the ReaperTheme file
+col[0] = {{}}
+col[1] = {{}}
+
+
+----------------------------------------------------------------------- Checks
+
 
 -- Check if JS_ReaScriptAPI is installed
 if not reaper.APIExists("JS_Dialog_BrowseForSaveFile") then
   local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
   if answer == 6 then
     local url = "https://forum.cockos.com/showthread.php?t=212174"
-    if not Win then
-      os.execute('open "" "' .. url .. '"')
-    else
-      os.execute('start "" "' .. url .. '"')
-    end
+     reaper.CF_ShellExecute( url )
   end
   return
 end
+
 
 -- Check Lokasenna_GUI library availability --
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
@@ -103,10 +94,14 @@ loadfile(lib_path .. "Core.lua")()
 GUI.req("Classes/Class - Slider.lua")()
 GUI.req("Classes/Class - Button.lua")()
 GUI.req("Classes/Class - Listbox.lua")()
+GUI.req("Classes/Class - Options.lua")()
+GUI.req("Classes/Class - Tabs.lua")()
 if missing_lib then 
   reaper.MB("Please re-install 'Lokasenna's GUI library v2 for Lua'", "Missing library!", 0)
   return
 end
+GUI.colors.dark = {76,76,76,255} -- color for inactive buttons
+local GUI = GUI
 
 -- Function to extract theme --
 function UnzipReaperTheme(ReaperThemeZip)
@@ -164,6 +159,7 @@ $zip.Dispose()]]
   end
 end
 
+
 -- Load theme --
 theme = reaper.GetLastColorThemeFile()
 if not reaper.file_exists(theme) then
@@ -188,19 +184,48 @@ else
 end
 ReaperThemeName = theme
 
+
 -----------------------------------------------------------------------
+
+
+-- Table with all the color groups that will be adjusted --
+local gr = {}
+-- Main window
+gr[2] = { "col_main_bg2", "col_main_text2", "col_main_textshadow", "col_main_3dhl", "col_main_3dsh", "col_main_resize2", "col_transport_editbk", "col_toolbar_text", "col_toolbar_text_on", "col_toolbar_frame", "toolbararmed_color", "io_text", "io_3dhl", "io_3dsh", "col_tracklistbg", "col_mixerbg", "col_trans_bg", "col_trans_fg" }
+-- Other windows (like Action List etc)
+gr[3] = { "col_main_text", "col_main_bg", "col_main_editbk", "genlist_bg", "genlist_fg", "genlist_grid", "genlist_selbg", "genlist_selfg", "genlist_seliabg", "genlist_seliafg" }
+-- Dockers & Tabs
+gr[4] = { "docker_shadow", "docker_selface", "docker_unselface", "docker_text", "docker_text_sel", "docker_bg", "windowtab_bg" }
+-- Timeline & Lanes
+gr[5] = { "col_tl_fg", "col_tl_fg2", "col_tl_bg", "col_tl_bgsel", "col_tl_bgsel2", "region", "region_lane_bg", "region_lane_text", "marker", "marker_lane_bg", "marker_lane_text", "col_tsigmark", "ts_lane_bg", "ts_lane_text", "timesig_sel_bg" }
+-- Arrange
+gr[6] = { "col_tr1_bg", "col_tr2_bg", "col_tr1_divline", "col_tr2_divline", "col_envlane1_divline", "col_envlane2_divline", "col_arrangebg", "arrange_vgrid", "col_gridlines2", "col_gridlines3", "col_gridlines" }
+-- Media Item Labels
+gr[7] = { "col_mi_label", "col_mi_label_sel", "col_mi_label_float", "col_mi_label_float_sel" }
+-- Media Item Peaks
+gr[8] = { "col_tr1_peaks", "col_tr2_peaks", "col_tr1_ps2", "col_tr2_ps2", "col_peaksedge", "col_peaksedge2", "col_peaksedgesel", "col_peaksedgesel2", "col_peaksfade1", "col_peaksfade2" }
+-- Marks on Media Items
+gr[9] = { "col_mi_fades", "fadezone_color", "fadearea_color", "col_mi_fade2", "item_grouphl", "col_offlinetext", "col_stretchmarker", "col_stretchmarker_h0", "col_stretchmarker_h1", "col_stretchmarker_h2", "col_stretchmarker_b", "col_stretchmarker_text", "col_stretchmarker_tm", "take_marker" }
+-- MCP texts (FX & Sends)
+gr[10] = { "mcp_fx_normal", "mcp_fx_bypassed", "mcp_fx_offlined", "mcp_sends_normal", "mcp_sends_muted", "mcp_send_midihw", "mcp_sends_levels", "mcp_fxparm_normal", "mcp_fxparm_bypassed", "mcp_fxparm_offlined" }
+-- MIDI Editor
+gr[11] = { "midieditorlist_bg", "midieditorlist_fg", "midieditorlist_grid", "midieditorlist_selbg", "midieditorlist_selfg", "midieditorlist_seliabg", "midieditorlist_seliafg", "midieditorlist_bg2", "midieditorlist_fg2", "midieditorlist_selbg2", "midieditorlist_selfg2" }
+-- MIDI List Editor
+gr[12] = { "midi_rulerbg", "midi_rulerfg", "midi_grid2", "midi_grid3", "midi_grid1", "midi_trackbg1", "midi_trackbg2", "midi_trackbg_outer1", "midi_trackbg_outer2", "midi_selpitch1", "midi_selpitch2", "midi_selbg", "midi_gridhc", "midi_gridh", "midi_ccbut", "midioct", "midi_inline_trackbg1", "midi_inline_trackbg2", "midioct_inline", "midi_endpt" }
+-- Wiring
+gr[13] = { "wiring_grid2", "wiring_grid", "wiring_border", "wiring_tbg", "wiring_ticon", "wiring_recbg", "wiring_recitem", "wiring_media", "wiring_recv", "wiring_send", "wiring_fader", "wiring_parent", "wiring_parentwire_border", "wiring_parentwire_master", "wiring_parentwire_folder", "wiring_pin_normal", "wiring_pin_connected", "wiring_pin_disconnected", "wiring_horz_col", "wiring_sendwire", "wiring_hwoutwire", "wiring_recinputwire", "wiring_hwout", "wiring_recinput" }
+-- All cursors (play/edit/midi)
+gr[14] = { "col_cursor", "col_cursor2", "playcursor_color", "midi_editcurs" }
+
+-- Table that will hold the selected tables combined
+local t = {}
+
+
+-----------------------------------------------------------------------
+
 
 -- Functions --
 
-function DEBUG(extra)
-  if debug then
-    local msg = string.format("\nCurrent = %s, Previous = %s, AB_mode = %s\n_______________\n", tostring(current), tostring(previous), tostring(AB_mode))
-    if extra then msg = "\n" .. extra .. msg end
-    reaper.ShowConsoleMsg(msg)
-    local windowHWND = reaper.JS_Window_Find( "ReaScript console output", true )
-    if windowHWND then reaper.JS_Window_SetZOrder( windowHWND, "TOP" ) end
-  end
-end
 
 function round(num)
   if num >= 0 then return math.floor(num + 0.5)
@@ -208,11 +233,49 @@ function round(num)
   end
 end
 
+
 function rng(value) -- Keep value between range 0 to 255
   if value < 0 then value = 0 end
   if value > 255 then value = 255 end
   return round(value)
 end
+
+
+function MakeColorGroupTable(grouplist)
+  t = {} -- empty current combination
+  local n = 0
+  for i = 2, 14 do
+    if grouplist[i] then
+      for j = 1, #gr[i] do
+        n = n + 1
+        t[n] = gr[i][j]
+      end
+    end
+  end
+end
+
+
+function TableContentsAreEqual(t1, t2)
+  for k,v in pairs(t1) do
+    if (t2[k] == nil) or (t2[k] ~= v) then return false end
+  end
+  return true
+end
+
+
+function CompareGroupSelection(new, old)
+  local total = 0
+  local same = 0
+  for i = 1, 14 do
+    if old[i] then
+      total = total + 1
+      if new[i] == old[i] then same = same + 1 end
+    end
+  end
+  -- returns -1 for being exactly the same | 0 for new not having common groups | 1 for having common groups selected
+  return same == 0 and 0 or (same == total and -1 or 1)
+end
+
 
 function BrightnessContrast(r,g,b, brightness, contrast) -- change range -255 to 255
   local f = 5440/21 -- 259.047619048
@@ -223,6 +286,7 @@ function BrightnessContrast(r,g,b, brightness, contrast) -- change range -255 to
   return rng(r), rng(g), rng(b)
 end
 
+
 function Gamma(r,g,b, change) -- change range 0.01 to 7.99
   local correction = 1 / change
   r = 255 * (r / 255) ^ correction
@@ -230,6 +294,7 @@ function Gamma(r,g,b, change) -- change range 0.01 to 7.99
   b = 255 * (b / 255) ^ correction
   return rng(r), rng(g), rng(b)
 end
+
 
 function GetThemeColors()
   local file, record, reap = io.open(path .. theme)
@@ -244,8 +309,9 @@ function GetThemeColors()
     end
     if record then
       local k, v = string.match(line, "([^%s]-)=([^%s/n/r]+)")
-      if k and v then 
-        l[1][k] = tonumber(v) -- table to store theme colors
+      if k and v then
+        col[0][1][k] = tonumber(v) -- table with original theme colors (for AB)
+        col[1][1][k] = tonumber(v) -- table to store theme colors
       end
     end
     if reap then
@@ -259,10 +325,11 @@ function GetThemeColors()
   io.close(file)
 end
 
-function WriteFile(setting)
+
+function WriteFile(setting,version)
   local file = io.open(path .. "adjusted__" .. theme, "w+")
   file:write("[color theme]\n")
-  for k, v in pairs(l[setting]) do
+  for k, v in pairs(col[setting][version]) do
     file:write(k .. "=" .. tostring(v) .. "\n")
   end
   file:write(table.concat(fon, "\n"))
@@ -270,104 +337,95 @@ function WriteFile(setting)
   reaper.OpenColorThemeFile(path .. "adjusted__" .. theme )
 end
 
+
 function AdjustColors()
-  local x, y = gfx.clienttoscreen( GUI.elms.Apply.x, GUI.elms.Apply.y )
   -- if settings have not been changed then do nothing and tell to user
-  if settings[current] and ( (settings[current].g == GUI.Val("Gamma") and
-     settings[current].c == GUI.Val("Contrast") and
-     settings[current].b == GUI.Val("Brightness")) )
+  if settings[cur_version] and ( (settings[cur_version].g == GUI.Val("Gamma") and
+     settings[cur_version].c == GUI.Val("Contrast") and
+     settings[cur_version].b == GUI.Val("Brightness")) )
   then
-    reaper.TrackCtl_SetToolTip( "You haven't changed any settings", x-4, y+35, true )
+    GUI.settooltip( "No changed settings" )
     return
   end
-  -- if in AB mode, do net let user apply changes
-  if AB_mode then
-    AB_mode = false
-    GUI.elms.AB.col_fill = "elm_frame"
-    GUI.elms.AB:init()
+  -- prepare to overwrite settings (needed for clean undo-redo)
+  if cur_version ~= #settings then
+    for i = cur_version+1, #settings do
+      settings[i] = nil
+      col[current][i] = nil
+    end
   end
   -- create new table for new settings
-  current = #settings + 1
-  l[current] = {}
-  for k,v in pairs(l[1]) do
-    l[current][k] = v
+  cur_version = #settings + 1
+  col[current][cur_version] = {}
+  -- copy the base settings from the first setting
+  for k,v in pairs(col[current][1]) do
+    col[current][cur_version][k] = v
   end
   for i = 1, #t do
-    if l[1][t[i]] then
-      local r, g, b = reaper.ColorFromNative( l[1][t[i]] )
+    if col[current][1][t[i]] then
+      local fix = 0
+      if col[current][1][t[i]] < 0 then fix = 2147483648 end
+      local r, g, b = reaper.ColorFromNative( col[current][1][t[i]] - fix )
       r, g, b = BrightnessContrast(r, g, b, GUI.Val("Brightness"), GUI.Val("Contrast") )
       r, g, b = Gamma(r, g, b, GUI.Val("Gamma"))
-      l[current][t[i]] = reaper.ColorToNative( r, g, b )
+      col[current][cur_version][t[i]] = reaper.ColorToNative( r, g, b ) + fix
     end
   end
   -- store settings
-  settings[current] = {}
-  settings[current].g = GUI.Val("Gamma")
-  settings[current].b = GUI.Val("Brightness")
-  settings[current].c = GUI.Val("Contrast")
+  settings[cur_version] = {}
+  settings[cur_version].g = GUI.Val("Gamma")
+  settings[cur_version].b = GUI.Val("Brightness")
+  settings[cur_version].c = GUI.Val("Contrast")
+  -- Enable Undo Button
+    SetUndoRedoButtons(1, 0)
   -- Write adjusted file
-  WriteFile(current)
-  -- Update listbox
-  GUI.elms.Compare.list[#GUI.elms.Compare.list+1] = string.format("|    %d    |    %d    |    %.2f    |", settings[current].b, settings[current].c, settings[current].g)
-  GUI.elms.Compare:init()
-  GUI.Val("Compare", current)
-  if #settings > 6 then
-    GUI.elms.Compare.wnd_y = GUI.clamp(1, GUI.elms.Compare.wnd_y + 1, math.max(#GUI.elms.Compare.list - GUI.elms.Compare.wnd_h + 1, 1))
-    GUI.elms.Compare:redraw()
-  end
-  DEBUG("Created " .. current)
-end
-  
-function Load(setting)
-  if debug then
-    reaper.ShowConsoleMsg(string.format("Loaded Settings:    B -> %d    C -> %d    G -> %.2f",
-    settings[setting].b, settings[setting].c, settings[setting].g))
-  end
-  WriteFile(setting)
-  current = setting
-  -- Set sliders
-  GUI.Val("Gamma", (settings[setting].g - GUI.elms.Gamma.min)/GUI.elms.Gamma.inc )
-  GUI.Val("Brightness", (settings[setting].b - GUI.elms.Brightness.min)/GUI.elms.Brightness.inc )
-  GUI.Val("Contrast", (settings[setting].c - GUI.elms.Contrast.min)/GUI.elms.Contrast.inc )
+  WriteFile(current, cur_version)
 end
 
-function AB()
-  local extra
-  local x, y = gfx.clienttoscreen( GUI.elms.AB.x, GUI.elms.AB.y )
-  -- if no other settings are available then do nothing and tell to user
-  if #settings == 1 then
-    extra = "No other settings are available"
-    reaper.TrackCtl_SetToolTip( extra, x-90, y+35, true )
-    return
-  elseif current == 0 then
-    extra = "Setting deleted - cannot toggle"
-    reaper.TrackCtl_SetToolTip( extra, x-90, y+35, true )
-    return
-  elseif current == 1 and not AB_mode then
-    extra = "Already viewing original theme colors"
-    reaper.TrackCtl_SetToolTip( extra, x-169, y+35, true )
-    return
-  elseif not settings[previous] then
-    extra = "Previous setting no longer exists"
-    reaper.TrackCtl_SetToolTip( extra, x-100, y+35, true )
-    return
+
+function SetUndoRedoButtons(undo, redo) -- -1 = no change, 0 = disabled, 1 = enabled
+  if undo ~= -1 then
+    GUI.elms.Undo.col_txt = undo == 0 and "txt" or "white"
+    GUI.elms.Undo.col_fill = undo == 0 and "dark" or "elm_frame"
+    GUI.elms.Undo:init()
+    GUI.elms.Undo:redraw()
   end
+  if redo ~= -1 then
+    GUI.elms.Redo.col_txt = redo == 0 and "txt" or "white"
+    GUI.elms.Redo.col_fill = redo == 0 and "dark" or "elm_frame"
+    GUI.elms.Redo:init()
+    GUI.elms.Redo:redraw()
+  end
+end
+
+
+function SetSliders(brightness, contrast, gamma)
+  GUI.Val("Brightness", (brightness - GUI.elms.Brightness.min)/GUI.elms.Brightness.inc )
+  GUI.Val("Contrast", (contrast - GUI.elms.Contrast.min)/GUI.elms.Contrast.inc )
+  GUI.Val("Gamma", (gamma - GUI.elms.Gamma.min)/GUI.elms.Gamma.inc )
+end
+
+
+function Load(setting,version)
+  WriteFile(setting,version)
+  -- Set sliders
+  SetSliders(settings[version].b, settings[version].c, settings[version].g)
+end
+
+
+function AB()
   AB_mode = not AB_mode -- toggle
   -- change color button
   GUI.elms.AB.col_fill = AB_mode and "green" or "elm_frame"
   GUI.elms.AB:init()
-  reaper.TrackCtl_SetToolTip( "Toggle between current setting and original theme colors", x-199, y+35, true )
+  GUI.settooltip( "Toggle between current setting and original theme colors" )
   if AB_mode then -- recall original
-    previous = current
-    current = 1
+    Load(0,1)
   else -- recall previous
-    current = previous
-    previous = 1
+    Load(current, cur_version)
   end
-  Load(current)
-  --GUI.Val("Compare", current)
-  DEBUG(extra)
 end
+
 
 function InheritSettings(SectionName)
   local copy = false
@@ -393,22 +451,134 @@ function InheritSettings(SectionName)
   file:close()
 end
 
------------------------------------------------------------------------
 
--- GUI Code --
-GUI.name = "Adjust theme colors v" .. version
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 330, 415
-GUI.anchor, GUI.corner = "screen", "C"
-
--- do not position slider when clicking
-function GUI.Slider:onmousedown()
+function TakeSnapshot(automatic, overwrite)
+-- set automatic to true if function is NOT called by the Take Snapshot button
+-- set overwrite to true if you want to overwrite the current Snapshot
+  -- disable if in AB_mode
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  end
+  if not automatic then
+    -- if settings have not been changed (same with the previous) then do nothing and tell to user
+    if not settings[cur_version-1] or ( 
+        settings[cur_version-1].g == GUI.Val("Gamma") and
+        settings[cur_version-1].c == GUI.Val("Contrast") and
+        settings[cur_version-1].b == GUI.Val("Brightness")
+        )
+    then
+      GUI.settooltip("No adjustments have been made")
+      return
+    end
+  end
+  overwrite = overwrite and -1 or 0
+  snapshot = snapshot + 1
+  if overwrite == 0 then -- create new
+    col[#col+1] = {[1] = col[current][cur_version]}
+  else -- overwrite
+    col[current][1] = col[current][cur_version]
+  end
+  -- delete undo settings no longer needed
+  for i = 2, #col[current] do
+    col[current][i] = nil
+  end
+  -- make a new start for adjustments
+  settings = {}
+  cur_version = 1
+  settings[cur_version] = {g = 1, b = 0, c = 0}
+  current = overwrite == 0 and #col or current
+  -- Set sliders
+  SetSliders(0, 0, 1)
+  -- Update listbox
+  GUI.elms.Compare.list[overwrite == 0 and #GUI.elms.Compare.list+1 or current] = "Adjusted colors Snapshot #" .. snapshot
+  GUI.elms.Compare:init()
+  GUI.Val("Compare", current)
+  if #settings > 6 then
+    GUI.elms.Compare.wnd_y = GUI.clamp(1, GUI.elms.Compare.wnd_y + 1, math.max(#GUI.elms.Compare.list - GUI.elms.Compare.wnd_h + 1, 1))
+    GUI.elms.Compare:redraw()
+  end
+  -- darken Undo & Redo buttons
+  SetUndoRedoButtons(0, 0)
+  if overwrite == 0 then
+    GUI.settooltip( "Added new Snapshot" )
+  else
+    GUI.settooltip( "Overwrote current Snapshot" )
+  end
 end
 
--- change speed
+
+function UNDO()
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  elseif #settings == 1 then
+    GUI.settooltip( "There are no other settings" )
+    return
+  elseif cur_version == 1 then
+    GUI.settooltip( "Cannot Undo\nReached first setting" )
+    return
+  end
+  cur_version = cur_version - 1
+  Load(current, cur_version)
+  local undo = cur_version == 1 and 0 or 1
+  local redo = cur_version == #settings and 0 or 1
+  SetUndoRedoButtons(undo, redo)
+end
+
+
+function REDO()
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  elseif #settings == 1 then
+    GUI.settooltip( "There are no other settings" )
+    return
+  elseif cur_version == #settings then
+    GUI.settooltip( "Cannot Redo\nReached last setting" )
+    return
+  end
+  cur_version = cur_version + 1
+  Load(current, cur_version)
+  local undo = cur_version == 1 and 0 or 1
+  local redo = cur_version == #settings and 0 or 1
+  SetUndoRedoButtons(undo, redo)
+end
+
+
+-----------------------------------------------------------------------
+
+
+-- GUI Code --
+
+
+GUI.name = "Adjust Theme Colors  -  v" .. version
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 330, 455
+GUI.anchor, GUI.corner = "screen", "C"
+
+
+-- Modified to display tooltip centered
+function GUI.settooltip(str)
+  if not str or str == "" then return end
+  local x, y = gfx.clienttoscreen( gfx.mouse_x, gfx.mouse_y )
+  reaper.TrackCtl_SetToolTip(str, x, y + 20, true)
+  local hwnd = reaper.GetTooltipWindow()
+  local ok, width = reaper.JS_Window_GetClientSize( hwnd )
+  width = ok and math.floor(width/2) or 0
+  if hwnd then reaper.JS_Window_Move( hwnd, x - width, y + 22 ) end
+  GUI.tooltip = str
+end
+
+
+-- modified to not let user change values in AB_mode
 function GUI.Slider:ondrag()
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  end
   local mouse_val, n, ln = table.unpack(self.dir == "h"
-          and {(GUI.mouse.x - self.x) / self.w, GUI.mouse.x, GUI.mouse.lx}
-          or  {(GUI.mouse.y - self.y) / self.h, GUI.mouse.y, GUI.mouse.ly}
+      and {(GUI.mouse.x - self.x) / self.w, GUI.mouse.x, GUI.mouse.lx}
+      or  {(GUI.mouse.y - self.y) / self.h, GUI.mouse.y, GUI.mouse.ly}
   )
   local cur = self.cur_handle or 1
   -- Ctrl?
@@ -418,31 +588,64 @@ function GUI.Slider:ondrag()
   local adj = ctrl and 1200 or 150
   local adj_scale = (self.dir == "h" and self.w or self.h) / 150
   adj = adj * adj_scale
-    self:setcurval(cur, GUI.clamp( self.handles[cur].curval + ((n - ln) / adj) , 0, 1 ) )
+  self:setcurval(cur, GUI.clamp( self.handles[cur].curval + ((n - ln) / adj) , 0, 1 ) )
   self:redraw()
 end
 
--- wheel always fine tunes
+
+-- modified to not let user change values in AB_mode
 function GUI.Slider:onwheel()
-  local mouse_val = (GUI.mouse.x - self.x) / self.w
-  local inc = GUI.round( GUI.mouse.inc)
-  local cur = self:getnearesthandle(mouse_val)
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  end
+  local mouse_val = self.dir == "h"
+          and (GUI.mouse.x - self.x) / self.w
+          or  (GUI.mouse.y - self.y) / self.h
+  local inc = GUI.round( self.dir == "h" and GUI.mouse.inc
+                      or -GUI.mouse.inc )
+    local cur = self:getnearesthandle(mouse_val)
   local ctrl = GUI.mouse.cap&4==4
   -- How many steps per wheel-step
-  local coarse = math.max( GUI.round(self.steps / 30), 1)
-  local adj = ctrl and 1 or 1
+  local fine = 1
+  local coarse = self.steps == 400 and 10 or 5
+  local adj = ctrl and fine or coarse
     self:setcurval(cur, GUI.clamp( self.handles[cur].curval + (inc * adj / self.steps) , 0, 1) )
   self:redraw()
-end
-
-function GUI.Slider:onmouseup()
   AdjustColors()
 end
 
+
+-- modified to not let user change values in AB_mode
+function GUI.Slider:onmousedown()
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  end
+  local mouse_val = self.dir == "h"
+    and (GUI.mouse.x - self.x) / self.w
+    or  (GUI.mouse.y - self.y) / self.h
+  self.cur_handle = self:getnearesthandle(mouse_val)
+  self:setcurval(self.cur_handle, GUI.clamp(mouse_val, 0, 1) )
+  self:redraw()
+end
+
+
+-- modified to not let user change values in AB_mode
+function GUI.Slider:onmouseup()
+  -- if in AB mode, do not let user apply changes
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  end
+  AdjustColors()
+end
+
+
 GUI.New("Gamma", "Slider", {
-    z = 11,
+    z = 1,
     x = 15,
-    y = 170,
+    y = 210,
     w = 300,
     caption = "Gamma",
     min = 0.1,
@@ -458,19 +661,21 @@ GUI.New("Gamma", "Slider", {
     show_handles = true,
     show_values = true,
     cap_x = 0,
-    cap_y = 0
+    cap_y = 0,
+    align_values = 1
 })
-GUI.elms.Gamma.align_values = 1
+
 
 -- Needed to display correctly number like eg 1.02
 function GUI.elms.Gamma:formatretval(val)
   if val == 1 then return 1 else return val end
 end
 
+
 GUI.New("Brightness", "Slider", {
-    z = 11,
+    z = 1,
     x = 15,
-    y = 40,
+    y = 80,
     w = 300,
     caption = "Brightness",
     min = -200,
@@ -486,14 +691,15 @@ GUI.New("Brightness", "Slider", {
     show_handles = true,
     show_values = true,
     cap_x = 0,
-    cap_y = 0
+    cap_y = 0,
+    align_values = 1
 })
-GUI.elms.Brightness.align_values = 1
+
 
 GUI.New("Contrast", "Slider", {
-    z = 11,
+    z = 1,
     x = 15,
-    y = 105,
+    y = 145,
     w = 300,
     caption = "Contrast",
     min = -200,
@@ -509,35 +715,46 @@ GUI.New("Contrast", "Slider", {
     show_handles = true,
     show_values = true,
     cap_x = 0,
-    cap_y = 0
+    cap_y = 0,
+    align_values = 1
 })
-GUI.elms.Contrast.align_values = 1
 
-GUI.New("Apply", "Button", {
-    z = 11,
-    x = 35,
-    y = 214,
-    w = 180,
-    h = 25,
-    caption = "Apply settings",
+
+GUI.New("Snapshot", "Button", {
+    z = 1,
+    x = 21,
+    y = 255,
+    w = 111,
+    h = 28,
+    caption = "Take Snapshot",
     font = 2,
     col_txt = "white",
     col_fill = "elm_frame",
-    func = AdjustColors
+    func = TakeSnapshot,
 })
+
+
+-- Right-clicking Snapshot
+function GUI.elms.Snapshot:onmouser_up()
+  if GUI.IsInside(self, GUI.mouse.x, GUI.mouse.y) then
+    TakeSnapshot(false, true) -- Overwrite
+  end
+end
+
 
 GUI.New("AB", "Button", {
-    z = 11,
-    x = 224,
-    y = 214,
-    w = 70,
-    h = 25,
-    caption = "A / B",
+    z = 1,
+    x = 139,
+    y = 255,
+    w = 170,
+    h = 28,
+    caption = "A / B current vs original",
     font = 2,
     col_txt = "white",
     col_fill = "elm_frame",
-    func = AB
+    func = AB,
 })
+
 
 -- Modified to display items centered
 function GUI.Listbox:drawtext()
@@ -558,73 +775,74 @@ function GUI.Listbox:drawtext()
   end
 end
 
+
 -- Modified so that: Load when you click | Delete when Alt-click an item
 function GUI.Listbox:onmouseup()
-  local extra
   if not self:overscrollbar() then
     local x, y = gfx.clienttoscreen( GUI.elms.Compare.x, GUI.elms.Compare.y )
     local item = self:getitem(GUI.mouse.y)
-    -- Alt-click
+    
+    -- Alt-click --
     if GUI.mouse.cap & 16 == 16 then
       if item == 1 then -- protect original colors setting
-        reaper.TrackCtl_SetToolTip( "Can't delete original theme colors", x+35, y-20, true )
+        GUI.settooltip( "Can't delete first Snapshot" )
         return
       else
         if AB_mode then
-          if item == previous then
-            reaper.TrackCtl_SetToolTip( "Can't delete previous setting while in A/B mode", x-3, y-20, true )
+          if item == current then
+            GUI.settooltip( "Can't delete previous setting while in A/B mode" )
             return
-          elseif item < previous then
+          else
             table.remove(self.list, item)
-            table.remove(settings, item)
-            table.remove(l, item)
-            extra = "Removed " .. item .. " while in AB mode"
-            -- adjust previous setting if deleting an item before it
-            previous = previous - 1
-            GUI.Val("Compare", previous)
-            DEBUG(extra) 
+            table.remove(col, item)
+            if current > item then
+              current = current - 1
+              GUI.Val("Compare", current)
+            end
           end
         else -- delete item and setting
           table.remove(self.list, item)
-          table.remove(settings, item)
-          table.remove(l, item)
-          extra = "Removed " .. item
+          table.remove(col, item)
           if current >= item then
             current = current - 1
             GUI.Val("Compare", current)
+            Load(current,1)
           end
         end
-        DEBUG(extra)
       end
-    else -- Click
-      if current == item then
-        reaper.TrackCtl_SetToolTip( "Already viewing the selected settings", x+26, y-20, true )
+        
+    -- Left Click --
+    else
+      if not AB_mode and current == item then
+        GUI.settooltip( "Your color adjustments are\napplied on this version already" )
+        return
+      elseif AB_mode and item == 1 then
+        GUI.settooltip( "A / B mode is enabled. Already\nviewing original theme colors" )
         return
       else
         -- Load selected item
         self.retval = {[item] = true}
-        Load(item)
-        extra = "Loaded " .. tostring(item)
+        Load(item,1)
         -- if in AB mode, exit it
         if AB_mode then
           GUI.elms.AB.col_fill = "elm_frame"
           GUI.elms.AB:init()
           AB_mode = false
-          extra = "Loaded " .. tostring(item .. " and exited A/B mode")
-          previous = 1
         end
-        DEBUG(extra)
+        current = item
       end
+    
     end
   end
   self:redraw()
 end
 
+
 GUI.New("Compare", "Listbox", {
-    z = 11,
-    x = 35,
-    y = 260,
-    w = 260,
+    z = 1,
+    x = 21,
+    y = 300,
+    w = 210,
     h = 131,
     list = {"--  Original theme colors  --"},
     multi = false,
@@ -639,7 +857,163 @@ GUI.New("Compare", "Listbox", {
     pad = 5,
 })
 
+
+-- modified to create Table for Color Groups
+function GUI.Tabs:onmousedown()
+  -- disable if in AB_mode
+  if AB_mode then
+    GUI.settooltip( "Exit A/B mode first" )
+    return
+  end
+  -- Offset for the first tab
+  local previous_state = self.state  
+  local adj = 0.75*self.h
+  local mouseopt = (GUI.mouse.x - (self.x + adj)) / (#self.optarray * (self.tab_w + self.pad))
+  mouseopt = GUI.clamp((math.floor(mouseopt * #self.optarray) + 1), 1, #self.optarray)
+  -- Create table when leaving Color Groups tab
+  if previous_state == 2 and mouseopt == 1 then
+    -- check that there is at least one selected Group before leaving
+    local ok = false
+    for i = 1, 14 do
+      if GUI.elms.Groups.optsel[i] then
+        ok = true
+        break
+      end
+    end
+    if not ok then
+      GUI.settooltip("Cannot exit if not at least\none group is selected")
+      return
+    end
+    local result = CompareGroupSelection(GUI.elms.Groups.optsel, group_settings)
+    if result == -1 then
+      -- do nothing
+    else
+      group_settings = {table.unpack(GUI.elms.Groups.optsel)}
+      MakeColorGroupTable(GUI.elms.Groups.optsel)
+      if result == 1 and cur_version ~= 1 then
+        TakeSnapshot(true)
+        GUI.settooltip("New Color Groups selection has common groups with the old one: new Snapshot was automatically taken")
+      else
+        TakeSnapshot(true, true)
+        GUI.settooltip("New Color Groups selection has no common groups with the previous: new Snapshot overwrote old one")
+      end
+    end 
+  end
+  self.state = mouseopt
+  self:redraw()
+end
+
+
+GUI.New("Tabs", "Tabs", {
+    z = 10,
+    x = 13,
+    y = 10,
+    w = 300,
+    caption = "Tabs",
+    optarray = {"Settings", "Color Groups"},
+    tab_w = 134,
+    tab_h = 22,
+    pad = 5,
+    font_a = 2,
+    font_b = 2,
+    col_txt = "white",
+    col_tab_a = "green",
+    col_tab_b = "tab_bg",
+    bg = "elm_bg",
+    fullwidth = false
+})
+GUI.elms.Tabs:update_sets({ [1] = {1}, [2] = {2} })
+
+
+GUI.New("Undo", "Button", {
+    z = 1,
+    x = 239,
+    y = 312,
+    w = 70,
+    h = 35,
+    caption = "UNDO",
+    font = 3,
+    col_txt = "txt", -- white
+    col_fill = "dark", -- "elm_frame"
+    func = UNDO
+})
+
+
+GUI.New("Redo", "Button", {
+    z = 1,
+    x = 239,
+    y = 368,
+    w = 70,
+    h = 35,
+    caption = "REDO",
+    font = 3,
+    col_txt = "txt", -- white
+    col_fill = "dark", -- "elm_frame"
+    func = REDO
+})
+
+
+-- modified to toggle Select/Unselect All
+function GUI.Checklist:onmouseup()
+  if not self.focus then
+    self:redraw()
+    return
+  end
+  local mouseopt = self:getmouseopt()
+  if not mouseopt then return end
+  self.optsel[mouseopt] = not self.optsel[mouseopt]
+  -- toggle Select All
+  if mouseopt == 1 then
+    if self.optsel[mouseopt] then
+      -- select all
+      for i = 2, 14 do
+        self.optsel[i] = true
+      end
+    else -- unselect all
+      for i = 2, 14 do
+        self.optsel[i] = false
+      end
+    end
+  else
+    -- Set Select All to false, if any button is false, or true if all true
+    for i = 2, 14 do
+      if not self.optsel[i] then
+        self.optsel[1] = false
+        break
+      else
+        self.optsel[1] = true
+      end
+    end
+  end
+  self.focus = false
+  self:redraw()
+end
+
+
+GUI.New("Groups", "Checklist", {
+    z = 2,
+    x = 15,
+    y = 51,
+    w = 300,
+    h = 376,
+    caption = "",
+    optarray = {"--  SELECT ALL  --", "Main window", "Other windows  ( like Action List etc )", "Dockers & Tabs", "Timeline & Marker / Region Lanes", "Arrange", "Media Item Labels", "Media Item Peaks", "Marks on Media Items", "MCP texts  ( FX & Sends )", "MIDI Editor", "MIDI List Editor", "Wiring", "All cursors  ( play / edit / midi )"},
+    dir = "v",
+    pad = 6,
+    font_a = 2,
+    font_b = 2,
+    col_txt = "white",
+    col_fill = "green",
+    bg = "wnd_bg",
+    frame = true,
+    shadow = true,
+    swap = false,
+    opt_size = 20
+})
+
+
 -----------------------------------------------------------------------
+
 
 function Additional()
   -- do not let resize
@@ -647,19 +1021,37 @@ function Additional()
     gfx.quit()
     gfx.init(GUI.name, GUI.w, GUI.h, 0, GUI.x, GUI.y)
   end
+  -- check if the user changed theme while having open the script
+  if GUI.last_time >= Start + 1 then
+    Start = GUI.last_time
+    loaded = reaper.GetLastColorThemeFile()
+    local loaded2 = loaded:match(".*[\\/](.+)")
+    --reaper.ShowConsoleMsg(theme .. "\n" .. loaded .. "\n\n")
+    if loaded2 ~= theme and loaded2 ~= "adjusted__" .. theme then
+      userchangedtheme = true
+      gfx.quit()
+    end
+  end
 end
+
 
 function delete_adjustedTheme()
   os.remove(path .. "adjusted__" .. theme)
-  reaper.OpenColorThemeFile( path .. theme )
+  if not userchangedtheme then reaper.OpenColorThemeFile( path .. theme ) end
 end
+
 
 function exit()
   -- if current theme colors are not changed, then do not prompt to save
-  if current ~= 0 and settings[current].g == 1 and settings[current].b == 0 and settings[current].c == 0 then
+  if TableContentsAreEqual(col[current][cur_version], col[0][1]) then
     delete_adjustedTheme()
   else -- prompt
-    local ok = reaper.MB( "Would you like to save the theme under a new name?", "Save current color theme?", 4 )
+    local ok
+    if userchangedtheme then
+      ok = reaper.MB( "Would you like to save the changes you made under a new name?", "Script quits because you changed theme", 4 )
+    else
+      ok = reaper.MB( "Would you like to save the theme under a new name?", "Save current color theme?", 4 )
+    end
     local file
     if ok == 6 then
       -- protect _adjusted theme file
@@ -690,12 +1082,25 @@ function exit()
   return reaper.defer(function() end)
 end
 
+
+-----------------------------------------------------------------------
+
+
 GUI.exit = exit
 GUI.freq = 0
-GUI.Val("Compare", 1)
 GUI.func = Additional
+
+
+-- Set defaults
+GUI.Val("Compare", 1)
+GUI.elms.Groups.optsel = {table.unpack(group_settings)}
+MakeColorGroupTable(group_settings)
 GetThemeColors()
+
+
 -- Delete extracted theme, that is no more needed
 if zipped then os.remove(zipped) end
+
+
 GUI.Init()
 GUI.Main()
