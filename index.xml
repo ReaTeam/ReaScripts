@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb389d5616d7f23c9df9c24e725f07089f164e16" name="ReaTeam Scripts">
+<index version="1" commit="e0733aeba70eeb472033a433d3280e44380a1bba" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3720,6 +3720,13 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + The script can remember dock state from last session
 + Minor script optimizations]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cc7fb72fb2158c9c72c516d4afe58e3d99a81827/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.3.5" author="cool" time="2020-03-29T13:30:33Z">
+        <changelog><![CDATA[+ Fixed bug of conflict of "Toggle trim behind items when editing" option with MIDI Sampler.
++ The script can remember window position from last session
++ MIDI Sampler stops creating notes after reaching the highest (G9, 127)
++ Right click Inserts/Removes the markers immediately and without additional menus]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e0733aeba70eeb472033a433d3280e44380a1bba/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
