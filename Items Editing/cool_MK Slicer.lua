@@ -1,10 +1,11 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.3.4
+-- @version 1.3.5
 -- @changelog
---   + Better font scaling
---   + The script can remember dock state from last session
---   + Minor script optimizations
+--   + Fixed bug of conflict of "Toggle trim behind items when editing" option with MIDI Sampler.
+--   + The script can remember window position from last session
+--   + MIDI Sampler stops creating notes after reaching the highest (G9, 127)
+--   + Right click Inserts/Removes the markers immediately and without additional menus
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -61,7 +62,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.3.4 by Maxim Kokarev 
+MK Slicer v1.3.5 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -2811,18 +2812,20 @@ function Gate_Gl:manual_Correction()
             --------------------
             self.Res_Points[self.cap_ln] = self.start_smpl + (curs_x-Wave.x) / self.Xsc -- Set New Position
         end
+
         -- Delete Line ---------------------------
         if Wave:mouseR_Down() then gfx.x, gfx.y  = mouse_ox, mouse_oy
-            if gfx.showmenu("Delete")==1 then
+            if mouseR_Up_status == 1 then
                table.remove(self.Res_Points,self.cap_ln) -- Del self.cap_ln - Элементы смещаются влево!
                table.remove(self.Res_Points,self.cap_ln) -- Поэтому, опять тот же индекс(а не self.cap_ln+1)
+                    mouseR_Up_status = 0
             end
         end       
     end
     
     -- Insert Line(on mouseR_Down) -------------------------
     if not self.cap_ln and Wave:mouseR_Down() then gfx.x, gfx.y  = mouse_ox, mouse_oy
-        if gfx.showmenu("Insert")==1 then
+        if mouseR_Up_status == 1 then
             local line_pos = self.start_smpl + (mouse_ox-Wave.x)/self.Xsc  -- Time point(in Samples!) from mouse_ox pos
             --------------------
             local newVelo = (self.Yop - mouse_oy)/(Wave.h*self.scale) -- velo from mouse y pos
@@ -2832,6 +2835,7 @@ function Gate_Gl:manual_Correction()
             table.insert(self.Res_Points, {newVelo, newVelo}) -- В конец таблицы
             --------------------
             self.cap_ln = #self.Res_Points
+                    mouseR_Up_status = 0
         end
     end 
 end
@@ -2965,10 +2969,7 @@ while(true) do;
   local item = r.GetSelectedMediaItem(0,i-1);
   if item then;
 
-   active_take = r.GetActiveTake(item)  -- active take in item
-   take_start_offset = r.GetMediaItemTakeInfo_Value(active_take, "D_STARTOFFS") -- take offset
-
-          r.Main_OnCommand(41588, 0) -- glue (если кусок айтема и не со стартовой точки, то клей).
+          r.Main_OnCommand(41588, 0) -- glue 
 
   else;
     break;
@@ -3476,6 +3477,12 @@ function Wave:Load_To_Sampler(sel_start, sel_end, track)
               r.Undo_BeginBlock()
              r.PreventUIRefresh(1) 
 
+local trim_content_option
+  if r.GetToggleCommandState(41117) == 1 then
+    r.Main_OnCommand(41117,0)--Options: Toggle trim behind items when editing
+    trim_content_option = 1
+  end
+
 ItemState = r.GetExtState('_Slicer_', 'GetItemState')
 
 if  (ItemState=="ItemLoaded") then 
@@ -3545,11 +3552,11 @@ function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
         return #data[note]+1        
       end
      else
+     if note > 127 then return end
        ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
        return 1
     end
   end
-
 
  function ExportSelItemsToRs5k_FormMIDItake_data()
     local MIDI = {}
@@ -3589,7 +3596,7 @@ new_tk = r.GetActiveTake( new_it )
             base_pitch+i-1, 
             100, 
             true)--noSortInOptional )
-          --if ret then r.ShowConsoleMsg('done') end
+        if base_pitch+i-1 == 127 then return end
       end
       r.MIDI_Sort( new_tk )
       r.GetSetMediaItemTakeInfo_String( new_tk, 'P_NAME', 'sliced loop', 1 )
@@ -3597,6 +3604,8 @@ new_tk = r.GetActiveTake( new_it )
       newmidiitem = r.GetMediaItemTake_Item(new_tk)
  
       r.SetMediaItemSelected( newmidiitem, 1 )
+
+  if trim_content_option then r.Main_OnCommand(41117,0) end--Options: Toggle trim behind items when editing
       
       r.UpdateArrange()    
   end
@@ -4285,15 +4294,21 @@ end
 function Init()
    dock_pos = r.GetExtState("cool_MK Slicer.lua", "dock")
        if Docked == 1 then
+         if dock_pos == "0.0" then dock_pos = 1025 end
            dock_pos = dock_pos or 1025
+           xpos = 400
+           ypos = 320
            else
            dock_pos = 0
+           xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
+           ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
         end
+
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.3.4"
-    local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos,400,320 
+    local Wnd_Title = "MK Slicer v1.3.5"
+    local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
     -- Init window ------
     gfx.clear = Wnd_bgd         
@@ -4313,6 +4328,7 @@ function mainloop()
     if Z_w<0.65 then Z_w = 0.65 elseif Z_w>1.8 then Z_w = 1.8 end 
     if Z_h<0.65 then Z_h = 0.65 elseif Z_h>1.8 then Z_h = 1.8 end 
     -- mouse and modkeys --
+    if gfx.mouse_cap&2==0 then mouseR_Up_status = 1 end
     if gfx.mouse_cap&1==1   and last_mouse_cap&1==0  or   -- L mouse
        gfx.mouse_cap&2==2   and last_mouse_cap&2==0  or   -- R mouse
        gfx.mouse_cap&64==64 and last_mouse_cap&64==0 then -- M mouse
@@ -4357,6 +4373,12 @@ end
     gfx.update()
     -----------
 
+function store_window_position() --store window position
+  local _, xpos, ypos, _, _ = gfx.dock(-1, 0, 0, 0, 0)
+    r.SetExtState("cool_MK Slicer.lua", "window_x", xpos, true)
+    r.SetExtState("cool_MK Slicer.lua", "window_y", ypos, true)
+end
+
 end
 
 function getitem()
@@ -4388,6 +4410,7 @@ r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
 r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
 r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
 store_settings ()
+store_window_position()
 end
 
 r.atexit(ClearExState)
