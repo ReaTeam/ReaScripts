@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e0733aeba70eeb472033a433d3280e44380a1bba" name="ReaTeam Scripts">
+<index version="1" commit="af74e513cd2d2622b555c5952b3009b337746ce2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -14759,6 +14759,26 @@ uc_note_min_seconds = 1\par}
 - Layout: fix overlapping elements. Thanks todoublez!
 - Items in hidden tracks: (Fix) unselect items when they are hid by the script]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e3fa40657aaea838cc724c15f99562add85e37f/Various/spk77_Track%20Tags.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tagirijus_Prevent item extend on record.lua" type="script" desc="Prevent item extend on record">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a Reaper script which prevents the item extending on record.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Problem\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In my workflow I like to place the play cursor one measure in front of the passage I want to record to have a pre-count. The Reaper pre-count is not able to record an upbeat, AFAIK. And when the cursors is on an media item an record starts (MIDI overdub + Tape Mode active), the media item will be extended. I want to have a new media item after such a recording situation, though.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Solution\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script looks which tracks are selected (I am using "Auto arm on select") and looks which media items are underneath the play cursors. Then the script shortens these media items to the cursor. Recording will start. After recording the script restores the lengths of the media items. Now there are the "old" media items basically untouched and the new recorded ones separately.\par}
+}
+]]></description>
+        <link rel="website" href="https://www.tagirijus.de">Website</link>
+      </metadata>
+      <version name="1.0" author="Tagirijus" time="2020-03-30T17:38:24Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af74e513cd2d2622b555c5952b3009b337746ce2/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
