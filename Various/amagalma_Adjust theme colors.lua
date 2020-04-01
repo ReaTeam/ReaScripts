@@ -1,6 +1,7 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.07
+-- @version 2.08
+-- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
 --   # Adjusts the colors of any ReaperTheme/ReaperThemeZip
@@ -21,15 +22,13 @@
 --   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
--- @changelog
---   - Improved extraction method for Windows (no cmd window pops up)
-
+-- @changelog - Changed extraction method for Windows to support older OS like XP. 7za.exe is used
 
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.07"
+local version = "2.08"
 local reaper = reaper
 local math = math
 
@@ -101,20 +100,12 @@ function UnzipReaperTheme(ReaperThemeZip)
   local ColorthemePath = ResourcePath .. sep .. "ColorThemes" .. sep
   local cmd, script_path
   if Win then -- (use PowerShell .NET methods)
-    local script = '$ErrorActionPreference = "Stop"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$zipFilePath = "' .. ReaperThemeZip
- .. '"\n$extractPath = "' .. FullTempFolder .. '"\n' ..
-[[$zip = [System.IO.Compression.ZipFile]::OpenRead($zipFilePath)
-[System.IO.Directory]::CreateDirectory($extractPath)
-$zip.Entries | Where-Object Name -like *.ReaperTheme | ForEach-Object{[System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, "$extractPath\$($_.Name)", $true)}
-$zip.Dispose()]]
-    script_path = ResourcePath .. sep .. "UnzipReaperTheme.ps1"
-    local file = io.open(script_path, "w+")
-    file:write(script)
-    file:close()
-    reaper.ExecProcess( "cmd.exe /C powershell.exe -ExecutionPolicy Bypass " .. script_path, 500 )
-    --state2 = os.execute( "powershell.exe -ExecutionPolicy Bypass " .. script_path)
-    -- Delete temporary PowerShell script
-    os.remove(script_path)
+    local exepath = ResourcePath .. sep .. "UserPlugins" .. sep .. "7za.exe"
+    if not reaper.file_exists(exepath) then
+      reaper.MB( "7za.exe is needed for the extraction.\n" .. exepath, "Quitting...", 0 )
+      return
+    end
+    reaper.ExecProcess( "cmd.exe /C " .. exepath .. ' e "' .. ReaperThemeZip .. '" *.ReaperTheme -y -o"' .. FullTempFolder .. '"', 500 )
   else -- OSX/LINUX (use unzip)
     local pipe = io.popen('read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"', "w")
     pipe:write(ReaperThemeZip .. '\n')
@@ -136,7 +127,7 @@ $zip.Dispose()]]
   else
     local msg
     if Win then
-      msg = "Possibly your Windows version does not have PowerShell?"
+      msg = ""
     else
       msg = "Check that you have 'unzip' installed."
     end
