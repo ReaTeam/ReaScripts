@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.06
+-- @version 2.07
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
 --   # Adjusts the colors of any ReaperTheme/ReaperThemeZip
@@ -22,14 +22,14 @@
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
 -- @changelog
---   - Changed extraction method for Windows (now works for Reaper x86 too)
+--   - Improved extraction method for Windows (no cmd window pops up)
 
 
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.06"
+local version = "2.07"
 local reaper = reaper
 local math = math
 
@@ -99,7 +99,7 @@ function UnzipReaperTheme(ReaperThemeZip)
   local TempFolder = string.match(reaper.time_precise()*100, "(%d+)%.") -- will be a random number in the same dir as the ReaperThemeZip
   local FullTempFolder = (Win and ReaperThemeZip:match("(.*\\)") or ReaperThemeZip:match("(.*/)")) .. TempFolder
   local ColorthemePath = ResourcePath .. sep .. "ColorThemes" .. sep
-  local cmd, script_path, state, state2
+  local cmd, script_path
   if Win then -- (use PowerShell .NET methods)
     local script = '$ErrorActionPreference = "Stop"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$zipFilePath = "' .. ReaperThemeZip
  .. '"\n$extractPath = "' .. FullTempFolder .. '"\n' ..
@@ -111,24 +111,23 @@ $zip.Dispose()]]
     local file = io.open(script_path, "w+")
     file:write(script)
     file:close()
-    --state2 = reaper.ExecProcess( "powershell.exe -ExecutionPolicy Bypass " .. script_path, 300 )
-    --reaper.ShowConsoleMsg(tostring(state2))
-    state2 = os.execute( "powershell.exe -ExecutionPolicy Bypass " .. script_path)
+    reaper.ExecProcess( "cmd.exe /C powershell.exe -ExecutionPolicy Bypass " .. script_path, 500 )
+    --state2 = os.execute( "powershell.exe -ExecutionPolicy Bypass " .. script_path)
     -- Delete temporary PowerShell script
     os.remove(script_path)
   else -- OSX/LINUX (use unzip)
     local pipe = io.popen('read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"', "w")
     pipe:write(ReaperThemeZip .. '\n')
     pipe:write(FullTempFolder .. '\n')
-    state = ({pipe:close()})[3]
+    pipe:close()
   end
-  if state == 0 or state2 then
-    local ReaperTheme = reaper.EnumerateFiles( FullTempFolder, 0 )
+  local ReaperTheme = reaper.EnumerateFiles( FullTempFolder, 0 )
+  if ReaperTheme then
     -- Move extracted theme to ColorThemes directory and name it as the zipped file
     os.rename(FullTempFolder .. sep .. ReaperTheme, ColorthemePath .. ReaperThemeName)
     -- Delete temporary folder
     if Win then
-      os.execute('rd /s/q "'.. FullTempFolder ..'"')
+      reaper.ExecProcess('cmd.exe /C rd /s/q "'.. FullTempFolder ..'"' , 200)
     else
       local ok = os.remove(FullTempFolder)
       if not ok then os.execute('rm -r "'.. FullTempFolder ..'"') end
