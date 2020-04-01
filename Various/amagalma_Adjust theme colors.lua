@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.05
+-- @version 2.06
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
 --   # Adjusts the colors of any ReaperTheme/ReaperThemeZip
@@ -22,25 +22,14 @@
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
 -- @changelog
---   - Added Color Groups ability, Undo/Redo Buttons, Snapshots
---   - Use the Take Snapshot button to store settings and make new adjustments on these rather than the original theme's colors
---   - Take Snapshot button: left-click to add new, right-click to replace current selected
---   - The Snapshots are the base colors on which you make adjustments using the sliders
---   - The adjustments are applied to the selected color groups in the Color Groups Tab. The rest of the theme colors are copied over
---   - In the Color Groups Tab you can inspect or change the theme colors on which the adjustments apply
---   - In the Listbox you can choose (click) or delete (Alt-click) your saved Snapshots
---   - If you change the Color Groups selection a Snapshot is automatically taken
---   - UNDO/REDO buttons to undo/redo adjustments made on the selected theme color Snapshot in the Listbox
---   - User is prompted to save when exiting and if there were color changes in comparison to the original theme
---   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
---   - Official "thank you" to cfillion for his help in making the ReaperThemeZip extraction function
+--   - Changed extraction method for Windows (now works for Reaper x86 too)
 
 
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.05"
+local version = "2.06"
 local reaper = reaper
 local math = math
 
@@ -103,20 +92,18 @@ end
 GUI.colors.dark = {76,76,76,255} -- color for inactive buttons
 local GUI = GUI
 
+
 -- Function to extract theme --
 function UnzipReaperTheme(ReaperThemeZip)
   ReaperThemeName = ReaperThemeZip:match([[.*[\/]([^\/]-)Zip$]])
   local TempFolder = string.match(reaper.time_precise()*100, "(%d+)%.") -- will be a random number in the same dir as the ReaperThemeZip
-  local cmd, FullTempFolder, script_path
+  local FullTempFolder = (Win and ReaperThemeZip:match("(.*\\)") or ReaperThemeZip:match("(.*/)")) .. TempFolder
   local ColorthemePath = ResourcePath .. sep .. "ColorThemes" .. sep
+  local cmd, script_path, state, state2
   if Win then -- (use PowerShell .NET methods)
-    FullTempFolder = ReaperThemeZip:match("(.*\\)") .. TempFolder
-    local script =
-    [[$ErrorActionPreference = "Stop"
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-$zipFilePath = Read-Host
-$extractPath =  Read-Host
-$zip = [System.IO.Compression.ZipFile]::OpenRead($zipFilePath)
+    local script = '$ErrorActionPreference = "Stop"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$zipFilePath = "' .. ReaperThemeZip
+ .. '"\n$extractPath = "' .. FullTempFolder .. '"\n' ..
+[[$zip = [System.IO.Compression.ZipFile]::OpenRead($zipFilePath)
 [System.IO.Directory]::CreateDirectory($extractPath)
 $zip.Entries | Where-Object Name -like *.ReaperTheme | ForEach-Object{[System.IO.Compression.ZipFileExtensions]::ExtractToFile($_, "$extractPath\$($_.Name)", $true)}
 $zip.Dispose()]]
@@ -124,18 +111,18 @@ $zip.Dispose()]]
     local file = io.open(script_path, "w+")
     file:write(script)
     file:close()
-    cmd = "powershell.exe -ExecutionPolicy Bypass " .. script_path
+    --state2 = reaper.ExecProcess( "powershell.exe -ExecutionPolicy Bypass " .. script_path, 300 )
+    --reaper.ShowConsoleMsg(tostring(state2))
+    state2 = os.execute( "powershell.exe -ExecutionPolicy Bypass " .. script_path)
+    -- Delete temporary PowerShell script
+    os.remove(script_path)
   else -- OSX/LINUX (use unzip)
-    cmd = 'read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"'
-    FullTempFolder = ReaperThemeZip:match("(.*/)") .. TempFolder
+    local pipe = io.popen('read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"', "w")
+    pipe:write(ReaperThemeZip .. '\n')
+    pipe:write(FullTempFolder .. '\n')
+    state = ({pipe:close()})[3]
   end
-  local pipe = io.popen(cmd, "w")
-  pipe:write(ReaperThemeZip .. '\n')
-  pipe:write(FullTempFolder .. '\n')
-  local state = ({pipe:close()})[3]
-  -- Delete temporary PowerShell script
-  if Win then os.remove(script_path) end
-  if state == 0 then
+  if state == 0 or state2 then
     local ReaperTheme = reaper.EnumerateFiles( FullTempFolder, 0 )
     -- Move extracted theme to ColorThemes directory and name it as the zipped file
     os.rename(FullTempFolder .. sep .. ReaperTheme, ColorthemePath .. ReaperThemeName)
