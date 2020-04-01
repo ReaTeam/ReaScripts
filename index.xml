@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af74e513cd2d2622b555c5952b3009b337746ce2" name="ReaTeam Scripts">
+<index version="1" commit="c3b4896140f73c834d7c9941e927981537891029" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11118,6 +11118,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
 - Official "thank you" to cfillion for his help in making the ReaperThemeZip extraction function]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eb389d5616d7f23c9df9c24e725f07089f164e16/Various/amagalma_Adjust%20theme%20colors.lua</source>
+      </version>
+      <version name="2.06" author="amagalma" time="2020-04-01T12:00:10Z">
+        <changelog><![CDATA[- Changed extraction method for Windows (now works for Reaper x86 too)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c3b4896140f73c834d7c9941e927981537891029/Various/amagalma_Adjust%20theme%20colors.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track">
