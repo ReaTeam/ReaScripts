@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.08
+-- @version 2.09
 -- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
@@ -22,13 +22,13 @@
 --   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
--- @changelog - Changed extraction method for Windows to support older OS like XP. 7za.exe is used
+-- @changelog - Fixed failing extraction when Reaper path contains spaces
 
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.08"
+local version = "2.09"
 local reaper = reaper
 local math = math
 
@@ -105,7 +105,7 @@ function UnzipReaperTheme(ReaperThemeZip)
       reaper.MB( "7za.exe is needed for the extraction.\n" .. exepath, "Quitting...", 0 )
       return
     end
-    reaper.ExecProcess( "cmd.exe /C " .. exepath .. ' e "' .. ReaperThemeZip .. '" *.ReaperTheme -y -o"' .. FullTempFolder .. '"', 500 )
+    reaper.ExecProcess( 'cmd.exe /C ""' .. exepath .. '" e "' .. ReaperThemeZip .. '" *.ReaperTheme -y -o"' .. FullTempFolder .. '""', 500 )
   else -- OSX/LINUX (use unzip)
     local pipe = io.popen('read a; read d; unzip -oqq "$a" "*.ReaperTheme" -d "$d"', "w")
     pipe:write(ReaperThemeZip .. '\n')
