@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5cf2d6d3c61f73b49c3c634906e726dbd3b7257e" name="ReaTeam Scripts">
+<index version="1" commit="0b7ab37ef73e52c97854ebee73238c018953b8b4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9168,6 +9168,13 @@ enter or a = Exit and apply changes\par}
       <version name="1.04" author="Edgemeal" time="2020-02-01T04:06:21Z">
         <changelog><![CDATA[Add track Sends info.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ddc1608bc51c5bf0cf5ac45f091ed28873ba2294/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
+      </version>
+      <version name="1.05" author="Edgemeal" time="2020-04-04T07:03:10Z">
+        <changelog><![CDATA[Minor text format changes.
+Tweak reading line from project file.
+Check for SWS extension before calling CF_ShellExecute.
+Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0b7ab37ef73e52c97854ebee73238c018953b8b4/Project%20Properties/edgemeal_Save%20project%20plugin%20info%20to%20text%20file.lua</source>
       </version>
     </reapack>
     <reapack name="JerContact_Open project based on file in clipboard.lua" type="script" desc="Open project based on file in clipboard">
