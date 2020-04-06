@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a010b044d470df2f7bb41d583c0e20f96648df5" name="ReaTeam Scripts">
+<index version="1" commit="8e0844b3e48035cd02da8c944ce80ef1d54ed04a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3394,6 +3394,24 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a010b044d470df2f7bb41d583c0e20f96648df5/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Toggle show editing guide line on item under mouse cursor.lua" type="script" desc="Toggle show editing guide line on item under mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Displays a guide line on the item under the mouse cursor for easier editing\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Nice for a toolbar action\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When prompted by Reaper, choose to "Terminate instance" and to remember your choice\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.01" author="amagalma" time="2020-04-06T13:07:50Z">
+        <changelog><![CDATA[- Fixed lines sometimes staying behind when changing item]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8e0844b3e48035cd02da8c944ce80ef1d54ed04a/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
@@ -4469,23 +4487,6 @@ here
       </metadata>
       <version name="1.0" author="spk77" time="2016-10-13T23:43:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1f9a91dc1f6d31062e17b2bcd8efabfc8ea9aaa/Items%20Editing/spk77_Split%20selected%20items%20at%20mouse%20cursor.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Toggle show editing guide line on item under mouse cursor.lua" type="script" desc="Toggle show editing guide line on item under mouse cursor">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Displays a guide line on the item under the mouse cursor for easier editing\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Nice for a toolbar action\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When prompted by Reaper, choose to "Terminate instance" and to remember your choice\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.00" author="amagalma" time="2020-04-04T15:42:58Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/df292bdb5190168e03ceaaeda52644e5388f3066/Items%20Editing/Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
   </category>
