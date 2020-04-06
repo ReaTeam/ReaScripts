@@ -1,23 +1,23 @@
 -- @description amagalma_Split items under mouse with selection option (selected items get priority over grouped)
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Splits item(s) under mouse cursor and all relevant grouped items
 --   - If there are selected items, they get priority over grouped items (only the selected ones will be split)
 --   - You can specify in the script if you want a change of selection by selecting left or right slpit items or not
+--   - You can specify in the script if you want to always ignore Snap settings or not for the splits under the mouse
 --   - Smart undo point creation
+-- @changelog + option inside the script to always ignore Snap settings for splits under mouse (default is ON)
 
---[[
- @changelog
- * v1.0 (2020-02-03)
-  + replaces "amagalma_Split selected or grouped items at mouse cursor (with selection option).lua"
---]]
 
 -----------------------------------------------------------------------------------------------------
 
 
--- USER SETTINGS -- 0: no change,  1: select left,  2: select right --
+-- USER SETTINGS -----------------------------------------------------
+-- 0: no change,  1: select left,  2: select right                  --
 local selection = 2                                                 --
+-- 1: split exactly at mouse, 0: respect snap setting               --
+local ignoreSnap = 1                                                --
 ----------------------------------------------------------------------
 
 
@@ -76,7 +76,14 @@ end
 -- Main function
 if #selected == 0 then -- no selected items
   if #grouped == 0 then -- single item, unselected, not grouped
-    reaper.Main_OnCommand(cmd_mouse, 0) 
+    if ignoreSnap == 1 then
+      reaper.Main_OnCommand(40755, 0) -- Snapping: Save snap state
+      reaper.Main_OnCommand(40753, 0) -- Snapping: Disable snap
+    end
+    reaper.Main_OnCommand(cmd_mouse, 0)
+    if ignoreSnap == 1 then
+      reaper.Main_OnCommand(40756, 0) -- Snapping: Restore snap state
+    end
     undoMsg = "Split item under mouse"
   else -- not selected, grouped
     reaper.SelectAllMediaItems( 0, false )
