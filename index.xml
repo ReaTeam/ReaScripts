@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f656382f1a82e04d4b5b14e32ff6e81b2f7e6749" name="ReaTeam Scripts">
+<index version="1" commit="1a010b044d470df2f7bb41d583c0e20f96648df5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3381,12 +3381,17 @@ Better error-checking in general]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Splits item(s) under mouse cursor and all relevant grouped items\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there are selected items, they get priority over grouped items (only the selected ones will be split)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want a change of selection by selecting left or right slpit items or not\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want to always ignore Snap settings or not for the splits under the mouse\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="amagalma" time="2020-03-02T11:51:01Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/137be70a8ebf34339c6f375ea2ca93a33a20377f/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-04-06T12:04:29Z">
+        <changelog><![CDATA[+ option inside the script to always ignore Snap settings for splits under mouse (default is ON)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a010b044d470df2f7bb41d583c0e20f96648df5/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
