@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.22
+Version: 5.23
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -105,8 +105,8 @@ About:
       * Scale values from top / Flip values relative
       * Scale value from bottom / Flip values relative
       * Warp left/right or up/down (depending on initial mouse movement) / Reset and evenly space events
-      * Stretch from left / Reverse positions
-      * Stretch from right / Reverse positions
+      * Stretch or move from left / Reverse positions
+      * Stretch or move from right / Reverse positions
       * Tilt left side / Snap to chased values on left
       * Tilt right side / Snap to chased values on right
       * Undo
@@ -213,7 +213,7 @@ About:
     + Zone size can be set via right-click context menu.
     + Stretch mode can switch to Move by right-clicking.
     + All editable takes can be edited together -- but only if editability follows item selection.
-  * v5.22 (2020-04-05)
+  * v5.23 (2020-04-06)
     + Works even if active take contains no selected events.
 ]]
 
@@ -4273,7 +4273,7 @@ function CONSTRUCT_MIDI_STRING()
     end -- for take, tID in pairs(tSteps[#tSteps].tGroups) do  
                   
     if isInline then reaper.UpdateItemInProject(activeItem) 
-    elseif activeTakeForceUpdateMsg then reaper.MIDI_SetEvt(activeTake, 0, nil, nil, nil, activeTakeForceUpdateMsg)
+    elseif activeTakeForceUpdateMsg then reaper.MIDI_SetEvt(activeTake, 0, nil, nil, nil, activeTakeForceUpdateMsg, true)
     end
 end
 
