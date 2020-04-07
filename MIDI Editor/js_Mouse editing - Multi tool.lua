@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.12
+Version: 5.20
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -47,9 +47,31 @@ About:
       * And, of course, the script offers a variety of editing tools such as warping, compressing, stretching and tilting that are not found among REAPER's native actions.
   
   
+  REAPER BUGS:
+  
+  On OSX, current versions of REAPER has a bug in its implementation of Metal graphics, which prevents scripts from drawing transparent graphics inside REAPER's windows.
+  To use this scripts, Metal graphics should be DISabled in Preferences -> General -> Advanced UI/system tweaks.
+  Please bump the bug report thread in the Cockos forums: t=230013.
+  
+  REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.  
+  Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable.
+  Please bump the Feature Request thread: t=168563.
+  
+  
+  EDITABLE ITEMS:
+  
+  This script can edit selected events in all editable items, but only if the following settings are all enabled:
+  * Preferences -> MIDI editor -> On MIDI editor per project
+  * Options: MIDI track list/media item lane selection is linked to visibility
+  * Options: MIDI track list/media item lane selection is linked to editability
+  * Options: Draw and edit CC events on all tracks
+  
+  If these setting are not all enabled, the script can only edit events in the active item.
+  
+  
   LANE UNDER MOUSE:
   
-  The script can either affect 1) all selected MIDI events in the MIDI editor's active take, or 2) only the selected MIDI events in lane under the mouse.
+  The script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.
   
       * To edit only the selected events in a single lane, the mouse must be positioned inside that lane when the script starts.  
           (After the script has started, the mouse may move out of the starting lane.)
@@ -82,7 +104,7 @@ About:
       * Compress lane from bottom / Flip values absolute
       * Scale values from top / Flip values relative
       * Scale value from bottom / Flip values relative
-      * Warp left/right or up/down (depending on initial mouse movement)
+      * Warp left/right or up/down (depending on initial mouse movement) / Reset and evenly space events
       * Stretch from left / Reverse positions
       * Stretch from right / Reverse positions
       * Tilt left side / Snap to chased values on left
@@ -186,6 +208,11 @@ About:
     + A few tweaks.
   * v5.12 (2019-12-30)
     + Fixed: Bug when holding keyboard shortcut.
+  * v5.20 (2020-04-03
+    + Warning if used on macOS with Metal.
+    + Zone size can be set via right-click context menu.
+    + Stretch mode can switch to Move by right-clicking.
+    + All editable takes can be edited together -- but only if editability follows item selection.
 ]]
 
 -- USER AREA 
@@ -203,11 +230,11 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
-local MIDIString -- The original raw MIDI data returned by GetAllEvts
+tTakeInfo = {}
 local tMIDI = {}
 
---[[ CCs in different lanes and different channels must be handled separately.  
-    For example, when deleting overlapping CCs, only CCs in the same lane and channel as the selected CCs must be deleted.
+--[[ CCs in different takes, lanes and channels must each be handled separately.  
+    For example, when deleting overlapping CCs, only CCs in the same take, lane and channel as the selected CCs must be deleted.
         Also, when tilting/snapping to chased values, each channel must be chased individually.
     The CCs events in different lanes and different channels will therefore be separated into distinct tables, which will be stored in tGroups.
         Notes, sysex and text also get separate groups.
@@ -234,6 +261,7 @@ local tGroups = {}
 -- NOTE:  Not all tables will be copied entry-by-entry at each step.  Tables that remain unchanged will simply be aliases for the corresponding tables in the previous step.
 local tSteps = {} -- At each step, tSteps will store a new tValues, tTicks 
   
+
 -- If the curve is being auditioned in real time, must be sorted, since unsorted events with negative offset may not play back properly.
 local isRealtimeAudition = ((reaper.GetPlayStateEx(0)&5) ~= 0)
 
@@ -266,7 +294,7 @@ local prevMouseTick, mouseTick
 local mouseState
 local mousewheel = 1 -- Track mousewheel movement.  ***** This default value may change, depending on the script and formulae used. *****
 local prevDelta = 0
-local prevMouseTime = 0
+local prevMouseInputTime = 0
 
 -- The script will intercept keystrokes, to allow control of script via keyboard, 
 --    and to prevent inadvertently running other actions such as closing MIDI editor by pressing ESC
@@ -349,8 +377,56 @@ local zone = nil
 local prevZone = nil
 local tColors = nil
 local zoneWidth = (gfx.ext_retina == 2) and 40 or 20 -- I'm nont sure if gfx.ext_retina actually works if no script GUI is created
+local tCursors = {} -- Will be filled with cursor file names in MAIN
 
-local OS, macOS, winOS        
+local OS, macOS, winOS     
+
+local function M(m) reaper.ShowConsoleMsg("\n"..tostring(m)) end 
+
+
+-- Memoize: In order to avoid calling MIDI_GetProjTimeFromPPQPos thousands of times, memoize these maps here.
+local tTimeFromTick = {} 
+local tTickFromTime = {}
+local tPixelFromTime = {}
+local tTimeFromPixel = {} 
+setmetatable(tTimeFromTick, {__index = function(t, take) t[take] = setmetatable({}, {__index = function(tt, tick) 
+                                                                                                  --if tick then
+                                                                                                  --    if tick <= -math.huge or tick >= math.huge then reaper.ShowConsoleMsg(debug.traceback()) error() end --"\ntake: "..tostring(take).." / tick: "..tostring(tick))
+                                                                                                      local time = reaper.MIDI_GetProjTimeFromPPQPos(take, tick + tTakeInfo[take].loopStartTick)
+                                                                                                      tt[tick] = time
+                                                                                                      tTickFromTime[take][time] = tick
+                                                                                                      return time 
+                                                                                                  --end
+                                                                                              end
+                                                                                    }) return t[take] end})
+                                                                                    
+setmetatable(tTickFromTime, {__index = function(t, take) t[take] = setmetatable({}, {__index = function(tt, time) 
+                                                                                                  --if time then
+                                                                                                  --    if time <= -math.huge or time >= math.huge then reaper.ShowConsoleMsg(debug.traceback()) error() end
+                                                                                                      local tick = reaper.MIDI_GetPPQPosFromProjTime(take, time) - tTakeInfo[take].loopStartTick
+                                                                                                      tt[time] = tick
+                                                                                                      tTimeFromTick[take][tick] = time
+                                                                                                      return tick 
+                                                                                                  --end
+                                                                                              end
+                                                                                    }) return t[take] end})
+                                                                    
+                                                                                   
+setmetatable(tPixelFromTime, {__index = function(t, time)
+                                            local pixel = (ME_TimeBase == "beats")
+                                                      and ((reaper.MIDI_GetPPQPosFromProjTime(activeTake, time) - ME_LeftmostTick) * ME_PixelsPerTick)//1
+                                                      or  ((time - ME_LeftmostTime) * ME_PixelsPerSecond)//1                  
+                                            t[time] = pixel
+                                            return pixel
+                                        end })     
+                                        
+setmetatable(tTimeFromPixel, {__index = function(t, x) 
+                                            local time = (ME_TimeBase == "beats")
+                                                      and (reaper.MIDI_GetProjTimeFromPPQPos(activeTake, ME_LeftmostTick + (x/ME_PixelsPerTick)))
+                                                      or  (ME_LeftmostTime + (x/ME_PixelsPerSecond))
+                                            t[x] = time
+                                            return time
+                                        end })                                                                                                                         
 
 --##################################
 ------------------------------------
@@ -365,7 +441,7 @@ local function GetMouseTick(trySnap)
     else
         if not mouseX then 
             local x, y = reaper.GetMousePosition()
-            local mouseX = reaper.JS_Window_ScreenToClient(midiview, x, y)
+            mouseX = reaper.JS_Window_ScreenToClient(midiview, x, y)
         end
         if ME_TimeBase == "beats" then
             mouseNewPPQPos = ME_LeftmostTick + mouseX/ME_PixelsPerTick
@@ -373,7 +449,7 @@ local function GetMouseTick(trySnap)
             mouseNewPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + mouseX/ME_PixelsPerSecond )
         end
     end
-    mouseNewPPQPos = mouseNewPPQPos - loopStartPPQPos -- Adjust mouse PPQ position for looped items
+    mouseNewPPQPos = mouseNewPPQPos - tTakeInfo[activeTake].loopStartTick -- Adjust mouse PPQ position for looped items
     
     -- Adjust mouse PPQ position for snapping
     if not trySnap or not isSnapEnabled or (mouseState and mouseState&8 == 8) then -- While shift is held down, don't snap
@@ -387,9 +463,21 @@ local function GetMouseTick(trySnap)
         local roundedGridQN = math.floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- nearest grid to mouse position
         snappedNewTick = m_floor(reaper.MIDI_GetPPQPosFromProjQN(activeTake, roundedGridQN) + 0.5)
     end
-    snappedNewTick = math.max(minimumTick, math.min(maximumTick, snappedNewTick))
+    snappedNewTick = math.max(tTakeInfo[activeTake].minimumTick, math.min(tTakeInfo[activeTake].maximumTick, snappedNewTick))
     
     return snappedNewTick
+end
+
+function SnapTime(time)
+    if not isSnapEnabled or (mouseState and mouseState&8 == 8) then -- While shift is held down, don't snap
+        return time --snappedNewTick = (mouseNewPPQPos+0.5)//1 
+    elseif isInline then
+        return reaper.SnapToGrid(0, time) -- If snap-to-grid is not enabled, will return timePos unchanged
+    else
+        local mouseQNpos = reaper.TimeMap2_timeToQN(0, time) -- Mouse position in quarter notes
+        local roundedGridQN = math.floor((mouseQNpos/QNperGrid)+0.5)*QNperGrid -- nearest grid to mouse position
+        return reaper.TimeMap2_QNToTime(0, roundedGridQN)
+    end
 end
 
 
@@ -474,16 +562,20 @@ function Check_MouseLeftButtonSinceLastDefer()
         -- Terminate if left button is clicked
     local peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_LBUTTONDOWN")
     if peekOK and time > stepStartTime + 0.1 then 
+        prevMouseInputTime = time
         return true 
     end
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_NCLBUTTONDOWN")
     if peekOK and time > stepStartTime + 0.1 then 
+        prevMouseInputTime = time
         return true 
     end
 end
     
    
-local stretchFactor = 1
+local prevStretchFactor = 1
+local prevMouseTimePos = nil
+local stretchMOVE = false
 --###########################
 -----------------------------
 function Defer_Stretch_Left()
@@ -492,48 +584,88 @@ function Defer_Stretch_Left()
     if not (continueStep == "CONTINUE") then
         stepStartTime = thisDeferTime
         mouseStateAtStepDragTime = mouseState
-        stretchFactor = 1
+        prevStretchFactor = 1
         -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
         local old = tSteps[#tSteps]
         local new = {tGroups = {}, isChangingPositions = true}
         tSteps[#tSteps+1] = new
-        for k, e in pairs(old) do
-            if not new[k] then new[k] = e end
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
         end
-        for id, t in pairs(old.tGroups) do
-            new.tGroups[id] = (id == "notes") and {tT = {}, tOff = {}} or {tT = {}}
-            for a, b in pairs(t) do
-                if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+        for take, tID in pairs(old.tGroups) do
+            new.tGroups[take] = {}
+            for id, t in pairs(tID) do
+                new.tGroups[take][id] = (id == "notes") and {tT = {}, tOff = {}} or {tT = {}}
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
             end
         end
         mustCalculate = true -- Always start step with re-calculation        
     end
     
-    local prevMouseTick = mouseTick 
-    mouseTick = GetMouseTick("SNAPPED") -- Don't snap if shift is pressed
-    if mouseTick ~= prevMouseTick then
+    local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
+    if mouseTime < globalLeftmostItemStartTimePos then mouseTime = globalLeftmostItemStartTimePos -- Prevent stretching out of item bounds
+    elseif mouseTime > globalRightmostItemEndTimePos then mouseTime = globalRightmostItemEndTimePos -- Prevent stretching out of item bounds
+    end
+    if mouseTime ~= prevMouseTimePos then
+        prevMouseTimePos = mouseTime
         mustCalculate = true
     end
     
+    -- RIGHT CLICK: Right click changes script mode
+    --    * If script is terminated by right button, disarm toolbar.
+    --    * REAPER shows context menu when right button is *lifted*, so must continue intercepting mouse messages until right button is lifted.
+    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
+    if peekOK and time > prevDeferTime then
+        stretchMOVE = not stretchMOVE
+        prevMouseInputTime = time
+        mustCalculate = true
+    end   
+    
     if mustCalculate then
-        local new, old = tSteps[#tSteps], tSteps[#tSteps-1]
-        local oldNoteOffTick = old.globalNoteOffTick
-        local prevStretchFactor = stretchFactor
-        stretchFactor = (oldNoteOffTick - mouseTick) / (oldNoteOffTick - old.globalLeftTick)
-        if stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
-        local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
+        local new, old    = tSteps[#tSteps], tSteps[#tSteps-1]
+        local oldLeftTick = tTickFromTime[activeTake][old.globalLeftmostTime]
+        local oldRightTick = tTickFromTime[activeTake][old.globalNoteOffTime]
+        local mouseTick = tTickFromTime[activeTake][mouseTime]
         
-        for id, t in pairs(new.tGroups) do
-            local nT, oT = t.tT, old.tGroups[id].tT
-            for i = 1, #oT do
-                nT[i] = oldNoteOffTick - stretchFactor*(oldNoteOffTick - oT[i])
-            end
-            if id == "notes" then
-                local nO, oO = t.tOff, old.tGroups[id].tOff
-                for i = 1, #oO do
-                    nO[i] = oldNoteOffTick - stretchFactor*(oldNoteOffTick - oO[i])
+        if stretchMOVE then
+            local moveTicks = mouseTick - oldLeftTick
+            for take, tID in pairs(new.tGroups) do
+                for id, t in pairs(tID) do
+                    local nT, oT =  t.tT, old.tGroups[take][id].tT
+                    for i = 1, #oT do
+                        nT[i] = oT[i]+moveTicks
+                    end
+                    if id == "notes" then
+                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                        for i = 1, #oO do
+                            nO[i] = oO[i]+moveTicks
+                        end
+                    end
                 end
-                if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
+            end
+        else
+            local stretchFactor = (oldRightTick - mouseTick) / (oldRightTick - oldLeftTick)
+            if stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
+            prevStretchFactor = stretchFactor
+            local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
+            
+            for take, tID in pairs(new.tGroups) do
+                oldNoteOffTick = tTickFromTime[take][old.globalNoteOffTime]
+                for id, t in pairs(tID) do
+                    local nT, oT = t.tT, old.tGroups[take][id].tT
+                    for i = 1, #oT do
+                        nT[i] = oldNoteOffTick - stretchFactor*(oldNoteOffTick - oT[i])
+                    end
+                    if id == "notes" then
+                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                        for i = 1, #oO do
+                            nO[i] = oldNoteOffTick - stretchFactor*(oldNoteOffTick - oO[i])
+                        end
+                        if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
+                    end
+                end
             end
         end
         
@@ -542,12 +674,7 @@ function Defer_Stretch_Left()
    
     -- GO TO NEXT STEP?
     if Check_MouseLeftButtonSinceLastDefer() then 
-        if stretchFactor < 0 then
-            GetAllEdgeValues(tSteps[#tSteps])
-        else
-            local new, old = tSteps[#tSteps], tSteps[#tSteps-1]
-            new.globalLeftTick = old.globalNoteOffTick - stretchFactor*(old.globalNoteOffTick - old.globalLeftTick)
-        end
+        GetAllEdgeValues(tSteps[#tSteps])
         return "NEXT"
     else
         return "CONTINUE"
@@ -563,48 +690,88 @@ function Defer_Stretch_Right()
     if not (continueStep == "CONTINUE") then
         stepStartTime = thisDeferTime
         mouseStateAtStepDragTime = mouseState
-        stretchFactor = 1
+        prevStretchFactor = 1
         -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
-        local old = tSteps[#tSteps]
-        local new = {tGroups = {}, isChangingPositions = true}
-        tSteps[#tSteps+1] = new
-        for k, e in pairs(old) do
-            if not new[k] then new[k] = e end
+        tSteps[#tSteps+1] = {tGroups = {}, isChangingPositions = true}
+        local old = tSteps[#tSteps-1]
+        local new = tSteps[#tSteps]
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
         end
-        for id, t in pairs(old.tGroups) do
-            new.tGroups[id] = (id == "notes") and {tT = {}, tOff = {}} or {tT = {}}
-            for a, b in pairs(t) do
-                if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+        for take, tID in pairs(old.tGroups) do
+            new.tGroups[take] = {}
+            for id, t in pairs(tID) do
+                new.tGroups[take][id] = (id == "notes") and {tT = {}, tOff = {}} or {tT = {}}
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
             end
         end
         mustCalculate = true -- Always start step with re-calculation        
     end
     
-    local prevMouseTick = mouseTick 
-    mouseTick = GetMouseTick("SNAPPED")
-    if mouseTick ~= prevMouseTick then
+    -- RIGHT CLICK: Right click changes script mode
+    --    * If script is terminated by right button, disarm toolbar.
+    --    * REAPER shows context menu when right button is *lifted*, so must continue intercepting mouse messages until right button is lifted.
+    peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
+    if peekOK and time > prevDeferTime then
+        stretchMOVE = not stretchMOVE
+        prevMouseInputTime = time
         mustCalculate = true
     end
     
+    local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
+    if mouseTime < globalLeftmostItemStartTimePos then mouseTime = globalLeftmostItemStartTimePos -- Prevent stretching out of item bounds
+    elseif mouseTime > globalRightmostItemEndTimePos then mouseTime = globalRightmostItemEndTimePos -- Prevent stretching out of item bounds
+    end
+    if mouseTime ~= prevMouseTimePos then
+        prevMouseTimePos = mouseTime
+        mustCalculate = true
+    end    
+    
     if mustCalculate then
         local new, old    = tSteps[#tSteps], tSteps[#tSteps-1]
-        local oldLeftTick = old.globalLeftTick
-        local prevStretchFactor = stretchFactor
-        stretchFactor = (mouseTick - oldLeftTick) / (old.globalNoteOffTick - oldLeftTick)
-        if stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
-        local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
+        local oldLeftTick = tTickFromTime[activeTake][old.globalLeftmostTime]
+        local oldRightTick = tTickFromTime[activeTake][old.globalNoteOffTime]
+        local mouseTick = tTickFromTime[activeTake][mouseTime]
         
-        for id, t in pairs(new.tGroups) do
-            local nT, nL, oT, oL = t.tT, t.tOff, old.tGroups[id].tT, old.tGroups[id].tOff
-            for i = 1, #oT do
-                nT[i] = oldLeftTick + stretchFactor*(oT[i]-oldLeftTick)
-            end
-            if id == "notes" then
-                local nO, oO = t.tOff, old.tGroups[id].tOff
-                for i = 1, #oO do
-                    nO[i] = oldLeftTick + stretchFactor*(oO[i]-oldLeftTick)
+        if stretchMOVE then
+            local moveTicks = mouseTick - oldRightTick
+            for take, tID in pairs(new.tGroups) do
+                for id, t in pairs(tID) do
+                    local nT, oT =  t.tT, old.tGroups[take][id].tT
+                    for i = 1, #oT do
+                        nT[i] = oT[i]+moveTicks
+                    end
+                    if id == "notes" then
+                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                        for i = 1, #oO do
+                            nO[i] = oO[i]+moveTicks
+                        end
+                    end
                 end
-                if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
+            end
+        else
+            local stretchFactor = (mouseTick - oldLeftTick) / (oldRightTick - oldLeftTick)
+            if stretchFactor == 0 then stretchFactor = prevStretchFactor or 1 end -- Avoid zero-length notes or CCs on top of each other in same channel
+            prevStretchFactor = stretchFactor
+            local noteFactor = (stretchFactor > 0) and stretchFactor or -stretchFactor        
+            
+            for take, tID in pairs(new.tGroups) do
+                oldLeftTick = tTickFromTime[take][old.globalLeftmostTime]
+                for id, t in pairs(tID) do
+                    local nT, nL, oT, oL = t.tT, t.tOff, old.tGroups[take][id].tT, old.tGroups[take][id].tOff
+                    for i = 1, #oT do
+                        nT[i] = oldLeftTick + stretchFactor*(oT[i]-oldLeftTick)
+                    end
+                    if id == "notes" then
+                        local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                        for i = 1, #oO do
+                            nO[i] = oldLeftTick + stretchFactor*(oO[i]-oldLeftTick)
+                        end
+                        if stretchFactor < 0 then t.tT, t.tOff = t.tOff, t.tT end
+                    end
+                end
             end
         end
         
@@ -613,14 +780,17 @@ function Defer_Stretch_Right()
     
     -- GO TO NEXT STEP?
     if Check_MouseLeftButtonSinceLastDefer() then 
+        GetAllEdgeValues(tSteps[#tSteps])
+        --[[
         if stretchFactor < 0 then
             GetAllEdgeValues(tSteps[#tSteps])
         else
             local new, old = tSteps[#tSteps], tSteps[#tSteps-1]
-            new.globalLeftTick    = old.globalLeftTick
-            new.globalRightTick   = old.globalLeftTick + stretchFactor*(old.globalRightTick - old.globalLeftTick)
-            new.globalNoteOffTick = old.globalLeftTick + stretchFactor*(old.globalNoteOffTick - old.globalLeftTick)
+            new.globalLeftmostTick    = old.globalLeftmostTick
+            new.globalRightmostTick   = old.globalLeftmostTick + stretchFactor*(old.globalRightmostTick - old.globalLeftmostTick)
+            new.globalNoteOffTick = old.globalLeftmostTick + stretchFactor*(old.globalNoteOffTick - old.globalLeftmostTick)
         end
+        ]]
         return "NEXT"
     else
         return "CONTINUE"
@@ -628,7 +798,7 @@ function Defer_Stretch_Right()
 end
 
 
- warpLEFTRIGHT, warpUPDOWN, canWarpBothDirections, mouseStartTick = false, false, nil, nil
+local warpLEFTRIGHT, warpUPDOWN, canWarpBothDirections, mouseStartTick = false, false, nil, nil
 local mouseMovementResolution, warpCurve = 5, 1
 local hasConstructedNewWarpStep = false
 --#################################
@@ -641,7 +811,7 @@ function Defer_Warp()
         stepStartTime = thisDeferTime
         mouseStateAtStepDragTime = mouseState
         hasConstructedNewWarpStep = false
-        mouseStartTick = GetMouseTick()
+        --mouseStartTick = GetMouseTick()
 
         -- DIRECTION: Determine the direction of warping.
         -- Notes, sysex and text can only be warped left/right
@@ -656,7 +826,7 @@ function Defer_Warp()
         else 
             canWarpBothDirections = true
             warpLEFTRIGHT, warpUPDOWN = false, false
-            reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1, 1, false)
+            reaper.JS_Window_InvalidateRect(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, false)
             if Check_MouseLeftButtonSinceLastDefer() then return "NEXT" else return "CONTINUE" end
             return "CONTINUE"
         end
@@ -685,7 +855,13 @@ function Defer_Warp()
     if not hasConstructedNewWarpStep then
         -- If warpLEFTRIGHT, the event under the mouse should follow mouse X position exactly, so get relative position.
         if warpLEFTRIGHT then
-            mouseStartFraction = (mouseStartTick-tSteps[#tSteps].globalLeftTick) / (tSteps[#tSteps].globalNoteOffTick - tSteps[#tSteps].globalLeftTick)   
+            local mouseTime = tTimeFromPixel[mouseX]
+            local mouseTick = tTickFromTime[activeTake][mouseTime]
+            local left  = tTickFromTime[activeTake][tSteps[#tSteps].globalLeftmostTime] -- At this time, the new step table has not yet been constructed.
+            local right = tTickFromTime[activeTake][tSteps[#tSteps].globalNoteOffTime]
+            local range = right - left
+            mouseStartFraction = (mouseTick-left)/range
+            --mouseStartFraction = (mouseStartTick-tSteps[#tSteps].globalLeftmostTick) / (tSteps[#tSteps].globalNoteOffTick - tSteps[#tSteps].globalLeftmostTick)   
         else -- warpUPDOWN
             mouseStartCCValue = GetMouseValue()
             mouseStartY = mouseY
@@ -698,15 +874,18 @@ function Defer_Warp()
         local old = tSteps[#tSteps]
         local new = {tGroups = {}, isChangingPositions = warpLEFTRIGHT}
         tSteps[#tSteps+1] = new
-        for k, e in pairs(old) do
-            if not new[k] then new[k] = e end
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
         end
-        for id, t in pairs(old.tGroups) do
-            if warpUPDOWN then new.tGroups[id] = {tV = {}}
-            else               new.tGroups[id] = {tT = {}, tOff = {}}
-            end
-            for a, b in pairs(t) do
-                if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+        for take, tID in pairs(old.tGroups) do
+            new.tGroups[take] = {}
+            for id, t in pairs(tID) do
+                if warpUPDOWN then new.tGroups[take][id] = {tV = {}}
+                else               new.tGroups[take][id] = {tT = {}, tOff = {}}
+                end
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
             end
         end
         
@@ -716,17 +895,15 @@ function Defer_Warp()
     
     -- MIDDLE BUTTON: (Middle button changes curve shape.)
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MBUTTONDOWN")
-    if peekOK and time > prevMouseTime then 
+    if peekOK and time > prevMouseInputTime then 
         warpCurve = (warpCurve == 1) and 0 or 1
-        prevMouseTime = time
+        prevMouseInputTime = time
         mustCalculate = true
     end
  
     -- MOUSE MOVEMENT:
     if warpLEFTRIGHT then
-        prevMouseTick = mouseTick
-        mouseTick = GetMouseTick()
-        if mouseTick ~= prevMouseTick then mustCalculate = true end
+        if mouseX ~= prevMouseX then mustCalculate = true end
     else
         if mouseY ~= prevMouseY then mustCalculate = true end
     end
@@ -740,6 +917,7 @@ function Defer_Warp()
     -- NO NEED TO CALCULATE:
     if mustCalculate then 
 
+        
         -- CALCULATE NEW MIDI DATA! and write the tWarpMIDI!
         -- The warping uses a power function, and the power variable is determined
         --     by calculating to what power 0.5 must be raised to reach the 
@@ -764,63 +942,75 @@ function Defer_Warp()
             local min, max = tSteps[#tSteps-1].globalMinValue, tSteps[#tSteps-1].globalMaxValue
             local range = max-min
             if range == 0 or mouseMovement == 0 then
-                for grp, t in pairs(tSteps[#tSteps-1].tGroups) do  
-                    local tV, tOldV = tSteps[#tSteps].tGroups[grp].tV, t.tV
-                    for i = 1, #tOldV do  
-                        tV[i] = tOldV[i]
+                for take, tID in pairs(tSteps[#tSteps-1].tGroups) do
+                    for id, t in pairs(tID) do  
+                        local tV, tOldV = tSteps[#tSteps].tGroups[take][id].tV, t.tV
+                        for i = 1, #tOldV do  
+                            tV[i] = tOldV[i]
+                        end
                     end
                 end
             else
                 local newValue
-                for grp, t in pairs(tSteps[#tSteps-1].tGroups) do  
-                    local tV, tOldV = tSteps[#tSteps].tGroups[grp].tV, t.tV
-                    for i = 1, #tOldV do                             
-                        if warpCurve == 1 then 
-                            newValue = min + (((tOldV[i] - min)/range)^power)*range          
-                        else -- mouseMovement > 0
-                            newValue = max - (((max - tOldV[i])/range)^power)*range           
+                for take, tID in pairs(tSteps[#tSteps-1].tGroups) do  
+                    for id, t in pairs(tID) do  
+                        local tV, tOldV = tSteps[#tSteps].tGroups[take][id].tV, t.tV
+                        for i = 1, #tOldV do                             
+                            if warpCurve == 1 then 
+                                newValue = min + (((tOldV[i] - min)/range)^power)*range          
+                            else -- mouseMovement > 0
+                                newValue = max - (((max - tOldV[i])/range)^power)*range           
+                            end
+                            if     newValue > laneMaxValue then tV[i] = laneMaxValue
+                            elseif newValue < laneMinValue then tV[i] = laneMinValue
+                            else tV[i] = newValue
+                            end       
                         end
-                        if     newValue > laneMaxValue then tV[i] = laneMaxValue
-                        elseif newValue < laneMinValue then tV[i] = laneMinValue
-                        else tV[i] = newValue
-                        end       
                     end
                 end
             end
             
         else -- warpLEFTRIGHT or warpBOTH then  
         
-            local left, right = tSteps[#tSteps].globalLeftTick, tSteps[#tSteps].globalNoteOffTick
-            local range = right - left
-            local mouseFraction = (mouseTick-left)/range
-            if mouseFraction > 0.95 then mouseFraction = 0.95 elseif mouseFraction < 0.05 then mouseFraction = 0.05 end
-            local power = (warpCurve == 1) and (math.log(mouseFraction, mouseStartFraction)) or (math.log(1-mouseFraction, 1-mouseStartFraction))
-            if range == 0 or power == 1 then -- just copy, if no warp
-                for grp, t in pairs(tSteps[#tSteps-1].tGroups) do  
-                    local tT, tOldT, tOff, tOldL = tSteps[#tSteps].tGroups[grp].tT, t.tT, tSteps[#tSteps].tGroups[grp].tOff, t.tOff
-                    for i = 1, #tOldT do  
-                        tT[i] = tOldT[i]
-                        tOff[i] = tOldL[i]
+            local mouseTime = tTimeFromPixel[mouseX]
+        
+            for take, tID in pairs(tSteps[#tSteps-1].tGroups) do 
+            
+                local left  = tTickFromTime[take][tSteps[#tSteps].globalLeftmostTime]
+                local right = tTickFromTime[take][tSteps[#tSteps].globalNoteOffTime]
+                local range = right - left
+                local mouseTick = tTickFromTime[take][mouseTime]
+                local mouseFraction = (mouseTick-left)/range
+                if mouseFraction > 0.95 then mouseFraction = 0.95 elseif mouseFraction < 0.05 then mouseFraction = 0.05 end
+                local power = (warpCurve == 1) and (math.log(mouseFraction, mouseStartFraction)) or (math.log(1-mouseFraction, 1-mouseStartFraction))
+                
+                if range == 0 or power == 1 then -- just copy, if no warp             
+                    for id, t in pairs(tID) do  
+                        local tT, tOldT, tOff, tOldL = tSteps[#tSteps].tGroups[take][id].tT, t.tT, tSteps[#tSteps].tGroups[take][id].tOff, t.tOff
+                        for i = 1, #tOldT do  
+                            tT[i] = tOldT[i]
+                            tOff[i] = tOldL[i]
+                        end
                     end
-                end
-            else
-                for grp, t in pairs(tSteps[#tSteps-1].tGroups) do  
-                    local tT, tOldT = tSteps[#tSteps].tGroups[grp].tT, t.tT
-                    for i = 1, #tOldT do                             
-                        if warpCurve == 1 then
-                            tT[i] = left + (((tOldT[i] - left)/range)^power)*range
-                        else
-                            tT[i] = right - (((right - tOldT[i])/range)^power)*range
-                        end    
-                    end
-                    if grp == "notes" then
-                        local tOff, tOldO = tSteps[#tSteps].tGroups[grp].tOff, t.tOff
-                        for i = 1, #tOldO do                             
+                else
+                    for id, t in pairs(tID) do  
+                        local tT, tOldT = tSteps[#tSteps].tGroups[take][id].tT, t.tT
+                        for i = 1, #tOldT do                             
                             if warpCurve == 1 then
-                                tOff[i] = left + (((tOldO[i] - left)/range)^power)*range
+                                tT[i] = left + (((tOldT[i] - left)/range)^power)*range
                             else
-                                tOff[i] = right - (((right - tOldO[i])/range)^power)*range
+                                tT[i] = right - (((right - tOldT[i])/range)^power)*range
                             end    
+                        end
+                        if id == "notes" then
+                            local tOff, tOldO = tSteps[#tSteps].tGroups[take][id].tOff, t.tOff
+                            for i = 1, #tOldO do                             
+                                if warpCurve == 1 then
+                                    tOff[i] = left + (((tOldO[i] - left)/range)^power)*range
+                                else
+                                    tOff[i] = right - (((right - tOldO[i])/range)^power)*range
+                                end    
+                            end
                         end
                     end
                 end
@@ -857,7 +1047,7 @@ function Defer_Scale()
         
         -- If mouse is close to CC height, move mouse to precisely CC height
         local pixelY
-        if zone.cursor == cursorHandTop then
+        if zone.cursor == tCursors.HandTop then
             scaleTOP, scaleBOTTOM = true, false
             pixelY = (ME_TargetBottomPixel - (ME_TargetBottomPixel-ME_TargetTopPixel)*(tSteps[#tSteps].globalMaxValue-laneMinValue)/(laneMaxValue-laneMinValue))//1      
         else
@@ -873,13 +1063,16 @@ function Defer_Scale()
         local old = tSteps[#tSteps]
         local new = {tGroups = {}, isChangingPositions = false}
         tSteps[#tSteps+1] = new
-        for k, e in pairs(old) do
-            if not new[k] then new[k] = e end
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
         end
-        for id, t in pairs(old.tGroups) do
-            new.tGroups[id] = {tV = {}}
-            for a, b in pairs(t) do
-                if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+        for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+            new.tGroups[take] = {}
+            for id, t in pairs(tID) do
+                new.tGroups[take][id] = {tV = {}}
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
             end
         end
         SetupGuidelineTables() -- Can only get left/right pixels and set up tables *after* constructing new step's table
@@ -892,7 +1085,7 @@ function Defer_Scale()
     local peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
     if peekOK and time > prevDeferTime then
         scaleSYMMETRIC = not scaleSYMMETRIC
-        prevMouseTime = time
+        prevMouseInputTime = time
         mustCalculate = true
     end
     
@@ -908,10 +1101,12 @@ function Defer_Scale()
         if oldMinValue == oldMaxValue then
             newRangeMax = GetMouseValue("LIMIT")
             newRangeMin = newRangeMax
-            for id, t in pairs(new.tGroups) do
-                local tV, tOldV = t.tV, old.tGroups[id].tV
-                for i = 1, #tOldV do
-                    tV[i] = newRangeMax
+            for take, tID in pairs(new.tGroups) do
+                for id, t in pairs(tID) do
+                    local tV, tOldV = t.tV, old.tGroups[take][id].tV
+                    for i = 1, #tOldV do
+                        tV[i] = newRangeMax
+                    end
                 end
             end
         else
@@ -947,10 +1142,12 @@ function Defer_Scale()
         
             local stretchFactor = (newRangeMax - newRangeMin)/(oldMaxValue-oldMinValue)
                 
-            for id, t in pairs(new.tGroups) do
-                local tV, tOldV = t.tV, old.tGroups[id].tV
-                for i = 1, #tOldV do
-                    tV[i] = newRangeMin + stretchFactor*(tOldV[i] - oldMinValue)
+            for take, tID in pairs(new.tGroups) do
+                for id, t in pairs(tID) do
+                    local tV, tOldV = t.tV, old.tGroups[take][id].tV
+                    for i = 1, #tOldV do
+                        tV[i] = newRangeMin + stretchFactor*(tOldV[i] - oldMinValue)
+                    end
                 end
             end
         end
@@ -983,7 +1180,14 @@ local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK = 0xFFA
 function LoadZoneColors()
     
     local extState = reaper.GetExtState("js_Multi Tool", "Settings") or ""
-    local colorCompress, colorScale, colorStretch, colorTilt, colorWarp, colorUndo, colorRedo = extState:match("compress.-(%d+) scale.-(%d+) stretch.-(%d+) tilt.-(%d+) warp.-(%d+) undo.-(%d+) redo.-(%d+)")
+    local colorCompress = extState:match("compress.-(%d+)")
+    local colorScale    = extState:match("scale.-(%d+)")
+    local colorStretch  = extState:match("stretch.-(%d+)")
+    local colorTilt     = extState:match("tilt.-(%d+)")
+    local colorWarp     = extState:match("warp.-(%d+)")
+    local colorUndo     = extState:match("undo.-(%d+)")
+    local colorRedo     = extState:match("redo.-(%d+)")
+
     tColors = {compress = (colorCompress  and tonumber(colorCompress) or YELLOW),
                scale    = (colorScale     and tonumber(colorScale)    or ORANGE),
                stretch  = (colorStretch   and tonumber(colorStretch)  or DARKRED),
@@ -993,11 +1197,9 @@ function LoadZoneColors()
                redo     = (colorRedo      and tonumber(colorRedo)     or GREEN),
                black    = BLACK
               }
-    --[[
-    for k, e in pairs(tColors) do
-        reaper.ShowConsoleMsg("\n"..k..": "..string.format("0x%x", e))
-    end
-    ]]
+
+    -- While we are busy parsing the extstate, load zone width too.
+    zoneWidth = tonumber(extState:match("zoneWidth.-(%d+)") or "20")
 end
 
 
@@ -1005,15 +1207,15 @@ end
 --------------------------
 function ChooseZoneColor()
     if zone and zone.color then
-        local x, y = reaper.GetMousePosition()
+    
         ok, c = reaper.GR_SelectColor(windowUnderMouse)
-        reaper.JS_Mouse_SetPosition(x, y)
+
         if editor and reaper.MIDIEditor_GetMode(editor) ~= -1 then reaper.JS_Window_SetForeground(editor) end
         if midiview and reaper.ValidatePtr(midiview, "HWND") then reaper.JS_Window_SetFocus(midiview) end
         
         --reaper.ShowConsoleMsg(tostring(ok) .. " " .. string.format("%x", c))
         if ok == 1 and type(c) == "number" then 
-            if winOS then c = 0xFF000000 | ((c&0xff)<<16) | (c&0xff00) | ((c&0xff0000)>>16)
+            if winOS then c = 0xFF000000 | ((c&0xff)<<16) | (c&0xff00) | ((c&0xff0000)>>16) -- Windows returns RGB as BGR
             else c = (c | 0xFF000000) & 0xFFFFFFFF -- Make sure that basic color is completely opaque
             end
             tColors[zone.color] = c
@@ -1024,11 +1226,30 @@ function ChooseZoneColor()
                             .." warp="..string.format("%i", tColors.warp)
                             .." undo="..string.format("%i", tColors.undo)
                             .." redo="..string.format("%i", tColors.redo)
+                            .." zoneWidth=" .. tostring(zoneWidth)
             reaper.SetExtState("js_Multi Tool", "Settings", extState, true)
-            SetupDisplayZones()
+            DisplayZones()
         end
     else
         reaper.MB("No zone found under mouse", "ERROR", 0)
+    end
+end
+
+
+--########################
+--------------------------
+function ChooseZoneSize()
+    local ext = reaper.GetExtState("js_Multi Tool", "Settings") or ""
+    zoneWidth = tonumber(ext:match("zoneWidth=(%d+)") or "20")
+    local iOK, i = reaper.GetUserInputs("Zone size", 1, "Zone size (in pixels)", tostring(zoneWidth))
+    if iOK then 
+        i = tonumber(i)
+        if i then 
+            zoneWidth = ((i < 14) and 14) or ((i > 80) and 80) or i//1
+            ext = ext:gsub("%s?zoneWidth=%d+", "")
+            ext = ext .. " zoneWidth=" .. tostring(zoneWidth)
+            reaper.SetExtState("js_Multi Tool", "Settings", ext, true)
+        end
     end
 end
 
@@ -1037,7 +1258,20 @@ end
 ----------------------
 -- Eventually, this function can include all kinds of settings. But for now, only color.
 function ContextMenu()
-    ChooseZoneColor()
+    local x, y = reaper.GetMousePosition()
+    local uniqueTitle = "q9283rxyq9238rxtg78i"
+    gfx.init(uniqueTitle, 0, 0, 0, x, y)
+    local w = reaper.JS_Window_FindTop(uniqueTitle, true)
+    --if w then reaper.JS_Window_SetOpacity(w, "ALPHA", 0) end
+    gfx.x, gfx.y = -20, -40
+    local s = gfx.showmenu("|Zone color||Zone size||")
+    gfx.quit()
+    if s == 1 then
+        ChooseZoneColor()
+    elseif s == 2 then
+        ChooseZoneSize()
+    end
+    reaper.JS_Mouse_SetPosition(x, y)
     return "NEXT"
 end
 
@@ -1066,9 +1300,11 @@ function Defer_Undo()
                 if tSteps[i].isChangingPositions then tSteps[#tSteps-1].isChangingPositions = true break end
             end
             if not tSteps[#tSteps-1].isChangingPositions then
-                for id, t in pairs(tSteps[#tSteps-1].tGroups) do
-                    for i = 1, #t.tD do
-                        tMIDI[t.tD[i].index] = t.tD[i].flagsMsg
+                for take, tID in pairs(tSteps[#tSteps-1].tGroups) do
+                    for id, t in pairs(tID) do
+                        for i = 1, #t.tD do
+                            tMIDI[take][t.tD[i].index] = t.tD[i].flagsMsg
+                        end
                     end
                 end
             end
@@ -1076,7 +1312,6 @@ function Defer_Undo()
         
         tRedo[#tRedo+1] = tSteps[#tSteps]
         tSteps[#tSteps] = nil
-        --if tSteps[#tSteps].isChangingPositions then tSteps[#tSteps-1].isChangingPositions = true end
     end
     CONSTRUCT_MIDI_STRING()
     return "NEXT"
@@ -1089,54 +1324,59 @@ function Edit_ChaseRight()
     local old = tSteps[#tSteps]
     local new = {tGroups = {}, isChangingPositions = false}
     tSteps[#tSteps+1] = new
-    for k, e in pairs(old) do
-        if not new[k] then new[k] = e end
+    for key, entry in pairs(old) do
+        if not new[key] then new[key] = entry end
     end
     
-    for id, t in pairs(old.tGroups) do
-    
-        -- Get edge ticks and values
-        local prevLeft, prevRight, prevLeftVal, prevRightVal = t.tT[1], t.tT[#t.tT], t.tV[1], t.tV[#t.tV]
-        local origLeft, origRight = tSteps[0].tGroups[id].tT[1], tSteps[0].tGroups[id].tT[#t.tT] -- step 0 was sorted
-        if prevLeft > prevRight then prevLeft, prevRight, prevLeftVal, prevRightVal = prevRight, prevLeft, prevRightVal, prevLeftVal end
-        local left  = (origLeft < prevLeft)   and origLeft or prevLeft
-        local right = (origRight > prevRight) and origRight or prevRight
+    for take, tID in pairs(old.tGroups) do
         
-        local tC = t.tChase
-        -- If there is nothing to chase, simpy copy previous step's values
-        if not tC or #tC == 0 or tC[#tC].ticks <= right or prevLeft == prevRight then
-            new.tGroups[id] = {tV = t.tV}
-        -- Otherwise, do binary search to quickly find closest event
-        else
-            new.tGroups[id] = {tV = {}}
-            local targetValue
-            if tC[1].ticks > right then
-                targetValue = tC[1].value
-            else
-                local hi, lo = #tC, 1
-                while hi-lo > 1 do 
-                    local mid = (lo+hi)//2
-                    if tC[mid].ticks <= right then
-                        lo = mid
-                    else 
-                        hi = mid
-                    end
-                end
-                targetValue = tC[hi].value
-            end
+        new.tGroups[take] = {}
+        
+        for id, t in pairs(tID) do
+        
+            -- Get edge ticks and values
+            local prevLeft, prevRight, prevLeftVal, prevRightVal = t.tT[1], t.tT[#t.tT], t.tV[1], t.tV[#t.tV]
+            local origLeft, origRight = tSteps[0].tGroups[take][id].tT[1], tSteps[0].tGroups[take][id].tT[#t.tT] -- step 0 was sorted
+            if prevLeft > prevRight then prevLeft, prevRight, prevLeftVal, prevRightVal = prevRight, prevLeft, prevRightVal, prevLeftVal end
+            local left  = (origLeft < prevLeft)   and origLeft or prevLeft
+            local right = (origRight > prevRight) and origRight or prevRight
             
-            -- Tilt values
-            local valueDelta = targetValue - prevRightVal
-            local tickRange = prevRight-prevLeft
-            local pT, pV, nV = t.tT, t.tV, new.tGroups[id].tV
-            for i = 1, #pV do
-                nV[i] = pV[i] + valueDelta*(pT[i]-prevLeft)/tickRange
+            local tC = t.tChase
+            -- If there is nothing to chase, simpy copy previous step's values
+            if not tC or #tC == 0 or tC[#tC].ticks <= right or prevLeft == prevRight then
+                new.tGroups[take][id] = {tV = t.tV}
+            -- Otherwise, do binary search to quickly find closest event
+            else
+                new.tGroups[take][id] = {tV = {}}
+                local targetValue
+                if tC[1].ticks > right then
+                    targetValue = tC[1].value
+                else
+                    local hi, lo = #tC, 1
+                    while hi-lo > 1 do 
+                        local mid = (lo+hi)//2
+                        if tC[mid].ticks <= right then
+                            lo = mid
+                        else 
+                            hi = mid
+                        end
+                    end
+                    targetValue = tC[hi].value
+                end
+                
+                -- Tilt values
+                local valueDelta = targetValue - prevRightVal
+                local tickRange = prevRight-prevLeft
+                local pT, pV, nV = t.tT, t.tV, new.tGroups[take][id].tV
+                for i = 1, #pV do
+                    nV[i] = pV[i] + valueDelta*(pT[i]-prevLeft)/tickRange
+                end
             end
-        end
-    
-        -- Copy remaining tables to new step    
-        for a, b in pairs(t) do
-            if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+        
+            -- Copy remaining tables to new step    
+            for a, b in pairs(t) do
+                if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+            end
         end
     end
     
@@ -1152,54 +1392,119 @@ function Edit_ChaseLeft()
     local old = tSteps[#tSteps]
     local new = {tGroups = {}, isChangingPositions = false}
     tSteps[#tSteps+1] = new
-    for k, e in pairs(old) do
-        if not new[k] then new[k] = e end
+    for key, entry in pairs(old) do
+        if not new[key] then new[key] = entry end
     end
     
-    for id, t in pairs(old.tGroups) do
-    
-        -- Get edge ticks and values
-        local prevLeft, prevRight, prevLeftVal, prevRightVal = t.tT[1], t.tT[#t.tT], t.tV[1], t.tV[#t.tV]
-        local origLeft, origRight = tSteps[0].tGroups[id].tT[1], tSteps[0].tGroups[id].tT[#t.tT] -- step 0 was sorted
-        if prevLeft > prevRight then prevLeft, prevRight, prevLeftVal, prevRightVal = prevRight, prevLeft, prevRightVal, prevLeftVal end
-        local left  = (origLeft < prevLeft)   and origLeft or prevLeft
-        local right = (origRight > prevRight) and origRight or prevRight
+    for take, tID in pairs(old.tGroups) do
         
-        local tC = t.tChase
-        -- If there is nothing to chase, simpy copy previous step's values
-        if not tC or #tC == 0 or tC[1].ticks >= left or prevLeft == prevRight then
-            new.tGroups[id] = {tV = t.tV}
-        -- Otherwise, do binary search to quickly find closest event
-        else
-            new.tGroups[id] = {tV = {}}
-            local targetValue
-            if tC[#tC].ticks < left then
-                targetValue = tC[#tC].value
-            else
-                local hi, lo = #tC, 1
-                while hi-lo > 1 do 
-                    local mid = (lo+hi)//2
-                    if tC[mid].ticks < left then
-                        lo = mid
-                    else 
-                        hi = mid
-                    end
-                end
-                targetValue = tC[lo].value
-            end
+        new.tGroups[take] = {}
+        
+        for id, t in pairs(tID) do
+    
+            -- Get edge ticks and values
+            local prevLeft, prevRight, prevLeftVal, prevRightVal = t.tT[1], t.tT[#t.tT], t.tV[1], t.tV[#t.tV]
+            local origLeft, origRight = tSteps[0].tGroups[take][id].tT[1], tSteps[0].tGroups[take][id].tT[#t.tT] -- step 0 was sorted
+            if prevLeft > prevRight then prevLeft, prevRight, prevLeftVal, prevRightVal = prevRight, prevLeft, prevRightVal, prevLeftVal end
+            local left  = (origLeft < prevLeft)   and origLeft or prevLeft
+            local right = (origRight > prevRight) and origRight or prevRight
             
-            -- Tilt values
-            local valueDelta = targetValue - prevLeftVal
-            local tickRange = prevRight-prevLeft
-            local pT, pV, nV = t.tT, t.tV, new.tGroups[id].tV
-            for i = 1, #pV do
-                nV[i] = pV[i] + valueDelta*(prevRight-pT[i])/tickRange
+            local tC = t.tChase
+            -- If there is nothing to chase, simpy copy previous step's values
+            if not tC or #tC == 0 or tC[1].ticks >= left or prevLeft == prevRight then
+                new.tGroups[take][id] = {tV = t.tV}
+            -- Otherwise, do binary search to quickly find closest event
+            else
+                new.tGroups[take][id] = {tV = {}}
+                local targetValue
+                if tC[#tC].ticks < left then
+                    targetValue = tC[#tC].value
+                else
+                    local hi, lo = #tC, 1
+                    while hi-lo > 1 do 
+                        local mid = (lo+hi)//2
+                        if tC[mid].ticks < left then
+                            lo = mid
+                        else 
+                            hi = mid
+                        end
+                    end
+                    targetValue = tC[lo].value
+                end
+                
+                -- Tilt values
+                local valueDelta = targetValue - prevLeftVal
+                local tickRange = prevRight-prevLeft
+                local pT, pV, nV = t.tT, t.tV, new.tGroups[take][id].tV
+                for i = 1, #pV do
+                    nV[i] = pV[i] + valueDelta*(prevRight-pT[i])/tickRange
+                end
+            end
+        
+            -- Copy remaining tables to new step    
+            for a, b in pairs(t) do
+                if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
             end
         end
+    end
     
-        -- Copy remaining tables to new step    
-        for a, b in pairs(t) do
-            if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+    GetAllEdgeValues()
+    CONSTRUCT_MIDI_STRING()
+    return "NEXT"
+end
+
+
+--######################
+------------------------
+function Edit_SpaceEvenly()
+    -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
+    local old = tSteps[#tSteps]
+    local new = {tGroups = {}, isChangingPositions = true}
+    tSteps[#tSteps+1] = new
+    for key, value in pairs(old) do
+        if not new[key] then new[key] = value end
+    end
+    for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+        new.tGroups[take] = {}
+        for id, t in pairs(tID) do
+            new.tGroups[take][id] = {tT = {}}
+            for a, b in pairs(t) do
+                if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+            end
+        end
+    end
+
+    for take, tID in pairs(new.tGroups) do
+        local left  = math.max(tTakeInfo[take].minimumTick, tTickFromTime[take][new.globalLeftmostTime])
+        local right = math.min(tTakeInfo[take].maximumTick, tTickFromTime[take][new.globalNoteOffTime])
+        if left > right then left, right = right, left end
+        local range = right-left
+        if range ~= 0 then
+            for id, t in pairs(tID) do
+                if id == "notes" then
+                    t.tOff = {}
+                    local nT, oT, nO, oO = t.tT, old.tGroups[take][id].tT, t.tOff, old.tGroups[take][id].tOff
+                    local spacing = range/#oT
+                    for i = 1, #oT do
+                        nT[i] = left + (i-1)*spacing
+                        nO[i] = nT[i]+spacing
+                    end
+                    t.noteWithLastNoteOff = #oT
+                else
+                    local nT, oT = t.tT, old.tGroups[take][id].tT
+                    local spacing = range/(#oT-1)
+                    for i = 1, #oT do
+                        nT[i] = left + (i-1)*spacing
+                    end
+                end
+                local laneMidValue = (laneMinValue and laneMaxValue) and (laneMinValue+laneMaxValue)/2
+                if laneMidValue then
+                    t.tV = {}
+                    for i = 1, #old.tGroups[take][id].tV do
+                        t.tV[i] = laneMidValue
+                    end
+                end
+            end
         end
     end
     
@@ -1212,31 +1517,37 @@ end
 --######################
 ------------------------
 function Edit_Reverse()
+    -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
     local old = tSteps[#tSteps]
-    local new = {tGroups = {}, globalLeftValue = old.globalRightValue, globalRightValue = old.globalLeftValue, isChangingPositions = true}
+    local new = {tGroups = {}, globalLeftmostValue = old.globalRightmostValue, globalRightmostValue = old.globalLeftmostValue, isChangingPositions = true}
     tSteps[#tSteps+1] = new
-    for k, e in pairs(old) do
-        if not new[k] then new[k] = e end
+    for key, value in pairs(old) do
+        if not new[key] then new[key] = value end
     end
-    for id, t in pairs(old.tGroups) do
-        new.tGroups[id] = {tT = {}}
-        for a, b in pairs(t) do
-            if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+    for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+        new.tGroups[take] = {}
+        for id, t in pairs(tID) do
+            new.tGroups[take][id] = {tT = {}}
+            for a, b in pairs(t) do
+                if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+            end
         end
     end
 
-    local left, right = new.globalLeftTick, new.globalNoteOffTick
-    for id, t in pairs(new.tGroups) do
-        local nT, oT = t.tT, old.tGroups[id].tT
-        for i = 1, #oT do
-            nT[i] = right - (oT[i] - left)
-        end
-        if id == "notes" then
-            local nO, oO = t.tOff, old.tGroups[id].tOff
-            for i = 1, #oO do
-                nO[i] = right - (oO[i] - left)
+    for take, tID in pairs(new.tGroups) do
+        local left, right = tTickFromTime[take][new.globalLeftmostTime], tTickFromTime[take][new.globalNoteOffTime]
+        for id, t in pairs(tID) do
+            local nT, oT = t.tT, old.tGroups[take][id].tT
+            for i = 1, #oT do
+                nT[i] = right - (oT[i] - left)
             end
-            t.tT, t.tOff = t.tOff, t.tT
+            if id == "notes" then
+                local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                for i = 1, #oO do
+                    nO[i] = right - (oO[i] - left)
+                end
+                t.tT, t.tOff = t.tOff, t.tT
+            end
         end
     end
     
@@ -1248,27 +1559,35 @@ end
 --###########################
 -----------------------------
 function Edit_FlipValuesAbsolute()
-    local old = tSteps[#tSteps]
-    local new = {tGroups = {}, isChangingPositions = false}
-    tSteps[#tSteps+1] = new
-    for k, e in pairs(old) do
-        if not new[k] then new[k] = e end
+
+    -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
+    tSteps[#tSteps+1] = {tGroups = {}, isChangingPositions = false}
+    local old = tSteps[#tSteps-1]
+    local new = tSteps[#tSteps]
+    for key, value in pairs(old) do
+        if not new[key] then new[key] = value end
     end
-    for id, t in pairs(old.tGroups) do
-        new.tGroups[id] = {tV = {}}
-        for a, b in pairs(t) do
-            if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+    for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+        new.tGroups[take] = {}
+        for id, t in pairs(tID) do
+            new.tGroups[take][id] = {tV = {}}
+            for a, b in pairs(t) do
+                if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+            end
         end
     end
-    new.globalLeftValue   = laneMaxValue - (old.globalLeftValue - laneMinValue)
-    new.globalRightValue  = laneMaxValue - (old.globalRightValue - laneMinValue)
+
+    new.globalLeftmostValue   = laneMaxValue - (old.globalLeftmostValue - laneMinValue)
+    new.globalRightmostValue  = laneMaxValue - (old.globalRightmostValue - laneMinValue)
     new.globalMinValue    = laneMaxValue - (old.globalMaxValue - laneMinValue)
     new.globalMaxValue    = laneMaxValue - (old.globalMinValue - laneMinValue)
     
-    for id, t in pairs(new.tGroups) do
-        local nV, oV = t.tV, old.tGroups[id].tV
-        for i = 1, #oV do
-            nV[i] = laneMaxValue - (oV[i] - laneMinValue)
+    for take, tID in pairs(new.tGroups) do
+        for id, t in pairs(tID) do
+            local nV, oV = t.tV, old.tGroups[take][id].tV
+            for i = 1, #oV do
+                nV[i] = laneMaxValue - (oV[i] - laneMinValue)
+            end
         end
     end
 
@@ -1280,25 +1599,32 @@ end
 --###########################
 -----------------------------
 function Edit_FlipValuesRelative()
-    local old = tSteps[#tSteps]
-    local new = {tGroups = {}, isChangingPositions = false}
-    tSteps[#tSteps+1] = new
-    for k, e in pairs(old) do
-        if not new[k] then new[k] = e end
+    -- Construct new tStep by copying previous - except those tables/values that will be newly contructed
+    tSteps[#tSteps+1] = {tGroups = {}, isChangingPositions = false}
+    local old = tSteps[#tSteps-1]
+    local new = tSteps[#tSteps]
+    for key, entry in pairs(old) do
+        if not new[key] then new[key] = entry end
     end
-    for id, t in pairs(old.tGroups) do
-        new.tGroups[id] = {tV = {}}
-        for a, b in pairs(t) do
-            if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+    for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+        new.tGroups[take] = {}
+        for id, t in pairs(tID) do
+            new.tGroups[take][id] = {tV = {}}
+            for a, b in pairs(t) do
+                if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+            end
         end
     end
-    new.globalLeftValue   = old.globalMaxValue - (old.globalLeftValue - old.globalMinValue)
-    new.globalRightValue  = old.globalMaxValue - (old.globalRightValue - old.globalMinValue)
+
+    new.globalLeftmostValue   = old.globalMaxValue - (old.globalLeftmostValue - old.globalMinValue)
+    new.globalRightmostValue  = old.globalMaxValue - (old.globalRightmostValue - old.globalMinValue)
     
-    for id, t in pairs(new.tGroups) do
-        local nV, oV = t.tV, old.tGroups[id].tV
-        for i = 1, #oV do
-            nV[i] = old.globalMaxValue - (oV[i] - old.globalMinValue)
+    for take, tID in pairs(new.tGroups) do
+        for id, t in pairs(tID) do
+            local nV, oV = t.tV, old.tGroups[take][id].tV
+            for i = 1, #oV do
+                nV[i] = old.globalMaxValue - (oV[i] - old.globalMinValue)
+            end
         end
     end
 
@@ -1320,13 +1646,16 @@ function Defer_Tilt()
         tSteps[#tSteps+1] = {tGroups = {}, isChangingPositions = false}
         local old = tSteps[#tSteps-1]
         local new = tSteps[#tSteps]
-        for k, e in pairs(old) do
-            if not new[k] then new[k] = e end
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
         end
-        for id, t in pairs(old.tGroups) do
-            new.tGroups[id] = {tV = {}}
-            for a, b in pairs(t) do
-                if not new.tGroups[id][a] then new.tGroups[id][a] = b end
+        for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+            new.tGroups[take] = {}
+            for id, t in pairs(tID) do
+                new.tGroups[take][id] = {tV = {}}
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
             end
         end
         SetupGuidelineTables() -- Can only get left/right pixels and set up tables *after* constructing new step's table
@@ -1338,15 +1667,15 @@ function Defer_Tilt()
      
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
-    if not (peekOK and time > prevMouseTime) then 
+    if not (peekOK and time > prevMouseInputTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
     if peekOK then
-        if time <= prevMouseTime then
-            if reaper.time_precise() - time > 0.5 then --<= prevMouseTime then 
+        if time <= prevMouseInputTime then
+            if reaper.time_precise() - time > 0.5 then --<= prevMouseInputTime then 
                 prevDelta = 0
             end
-        else --if time > prevMouseTime then
+        else --if time > prevMouseInputTime then
             --if keys&12 ~= 0 then return false end -- Any modifier keys (may be sent from mouse) terminate script.
             -- Standardize delta values so that can compare with previous
             if tiltHeight and tiltHeight > 0 then delta = -delta end
@@ -1354,8 +1683,8 @@ function Defer_Tilt()
             local sameDirection = (delta*prevDelta > 0)
             --delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
             -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
-            --local factor = ((delta == prevDelta) and (time-prevMouseTime < 1)) and 0.04/((time-prevMouseTime)) or 0.04
-            if not (tiltWheel == 1 and sameDirection and time < prevMouseTime + 1) then
+            --local factor = ((delta == prevDelta) and (time-prevMouseInputTime < 1)) and 0.04/((time-prevMouseInputTime)) or 0.04
+            if not (tiltWheel == 1 and sameDirection and time < prevMouseInputTime + 1) then
                 factor = sameDirection and factor*1.4 or 1.04
                 local prevTiltWheel = tiltWheel
                 tiltWheel = ((delta > 0) and tiltWheel*factor) or ((delta < 0) and tiltWheel/factor) or tiltWheel
@@ -1364,7 +1693,7 @@ function Defer_Tilt()
                 elseif tiltWheel > 40 then tiltWheel = 40
                 --elseif 0.962 < tiltWheel and tiltWheel < 1.04 then tiltWheel = 1 -- Round to 1 if comes close
                 end
-                prevMouseTime = time 
+                prevMouseInputTime = time 
                 mustCalculate = true
             end
             prevDelta = delta
@@ -1373,10 +1702,10 @@ function Defer_Tilt()
     
     -- MIDDLE BUTTON:
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MBUTTONDOWN")
-    if peekOK and time > prevMouseTime then 
+    if peekOK and time > prevMouseInputTime then 
         tiltShape = (tiltShape == "linear") and "sine" or "linear"
         Tooltip("Curve: "..tiltShape)
-        prevMouseTime = time
+        prevMouseInputTime = time
         mustCalculate = true
     end
     
@@ -1389,112 +1718,119 @@ function Defer_Tilt()
     if mustCalculate then
         
         local new = tSteps[#tSteps]
-        local old = tSteps[#tSteps-1]
-        local leftTick, rightTick = old.globalLeftTick, old.globalRightTick
-        local range           = rightTick - leftTick
+        local old = tSteps[#tSteps-1]        
         local mouseNewCCValue = GetMouseValue("LIMIT")
-        tiltHeight      = tiltLEFT and (mouseNewCCValue - old.globalLeftValue) or (mouseNewCCValue - old.globalRightValue)
+        tiltHeight      = tiltLEFT and (mouseNewCCValue - old.globalLeftmostValue) or (mouseNewCCValue - old.globalRightmostValue)
         
-        -- A power > 1 gives a more musical shape, therefore the cases tiltWheel >= 1 and tiltWheel < 1 will be dealt with separately.
-        -- If tiltWheel < 1, its inverse will be used as power.
-        if tiltLEFT then
-            if tiltShape == "sine" then
-                if tiltWheel >= 1 then 
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
-                            v = tOldV[i] + tiltHeight*(v^tiltWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
+        for take, tID in pairs(new.tGroups) do
+            local leftTick, rightTick =  tTickFromTime[take][new.globalLeftmostTime], tTickFromTime[take][new.globalRightmostTime]
+            local range = rightTick - leftTick
+            
+            -- A power > 1 gives a more musical shape, therefore the cases tiltWheel >= 1 and tiltWheel < 1 will be dealt with separately.
+            -- If tiltWheel < 1, its inverse will be used as power.
+            if tiltLEFT then
+                if tiltShape == "sine" then
+                    if tiltWheel >= 1 then 
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
+                                v = tOldV[i] + tiltHeight*(v^tiltWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
+                        end
+                    else -- tiltWheel < 1, so use inverse as power, and also change the sine formula
+                        local inverseWheel = 1.0/tiltWheel
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = 0.5*(1-m_cos(m_pi*(tT[i] - leftTick)/range))
+                                v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
                         end
                     end
-                else -- tiltWheel < 1, so use inverse as power, and also change the sine formula
-                    local inverseWheel = 1.0/tiltWheel
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = 0.5*(1-m_cos(m_pi*(tT[i] - leftTick)/range))
-                            v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
+                else -- tiltShape == "linear"
+                    if tiltWheel >= 1 then 
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = tOldV[i] + tiltHeight*(((rightTick - tT[i])/range)^tiltWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
                         end
-                    end
-                end
-            else -- tiltShape == "linear"
-                if tiltWheel >= 1 then 
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = tOldV[i] + tiltHeight*(((rightTick - tT[i])/range)^tiltWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
-                        end
-                    end
-                else -- tiltWheel < 1
-                    local inverseWheel = 1.0/tiltWheel
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = tOldV[i] + tiltHeight - tiltHeight*(((tT[i] - leftTick)/range)^inverseWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
-                        end
-                    end
-                end
-            end
-        else -- tiltRIGHT
-            if tiltShape == "sine" then
-                if tiltWheel >= 1 then 
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = 0.5*(1-m_cos(m_pi*(tT[i] - leftTick)/range))
-                            v = tOldV[i] + tiltHeight*(v^tiltWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
-                        end
-                    end
-                else -- tiltWheel < 1
-                    local inverseWheel = 1.0/tiltWheel
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
-                            v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
+                    else -- tiltWheel < 1
+                        local inverseWheel = 1.0/tiltWheel
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = tOldV[i] + tiltHeight - tiltHeight*(((tT[i] - leftTick)/range)^inverseWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
                         end
                     end
                 end
-            else -- tiltShape == "linear"
-                if tiltWheel >= 1 then 
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do 
-                            local v = tOldV[i] + tiltHeight*(((tT[i] - leftTick)/range)^tiltWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
+            else -- tiltRIGHT
+                if tiltShape == "sine" then
+                    if tiltWheel >= 1 then 
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = 0.5*(1-m_cos(m_pi*(tT[i] - leftTick)/range))
+                                v = tOldV[i] + tiltHeight*(v^tiltWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
+                        end
+                    else -- tiltWheel < 1
+                        local inverseWheel = 1.0/tiltWheel
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
+                                v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
                         end
                     end
-                else -- tiltWheel < 1
-                    local inverseWheel = 1.0/tiltWheel
-                    for id, t in pairs(new.tGroups) do
-                        local tT, tV, tOldV = t.tT, t.tV, old.tGroups[id].tV
-                        for i = 1, #tT do
-                            local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
-                            v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
-                            if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
-                            tV[i] = v
+                else -- tiltShape == "linear"
+                    if tiltWheel >= 1 then 
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do 
+                                local v = tOldV[i] + tiltHeight*(((tT[i] - leftTick)/range)^tiltWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
+                        end
+                    else -- tiltWheel < 1
+                        local inverseWheel = 1.0/tiltWheel
+                        for id, t in pairs(tID) do
+                            local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
+                            for i = 1, #tT do
+                                local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
+                                v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
+                                if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
+                                tV[i] = v
+                            end
                         end
                     end
                 end
             end
         end
         
+        -- Draw guidelines
         local tTopY = {}
         local tBottomY = {}
         local apexPixels = (tiltHeight/laneMaxValue) * (ME_TargetTopPixel - ME_TargetBottomPixel)
+        -- Guideline ticks are calculated using active take
+        local leftTick, rightTick =  tTickFromTime[activeTake][new.globalLeftmostTime], tTickFromTime[activeTake][new.globalRightmostTime]
+        local range = rightTick - leftTick
         
         if tiltWheel >= 1 then 
             if tiltShape == "sine" then
@@ -1554,11 +1890,6 @@ function Defer_Tilt()
         reaper.JS_LICE_Clear(bitmap, 0)
         local x1, t1, b1 = tGuides_X[1], tTopY[1], tBottomY[1] -- Coordinates of left pixel of each line segment
         for i = 2, #tGuides_X do
-            if x1 < mouseX and mouseX < tGuides_X[i] then -- To make sure than pointy curve is correctly drawn, even is point falls between 10-pixel segements, insert extra line
-                reaper.JS_LICE_Line(bitmap, x1, t1, mouseX, ME_TargetTopPixel+apexPixels,      Guides_COLOR_TOP, 1, "COPY", true)
-                reaper.JS_LICE_Line(bitmap, x1, b1, mouseX, ME_TargetBottomPixel+apexPixels+1, Guides_COLOR_BOTTOM, 1, "COPY", true)
-                x1, t1, b1 = mouseX, ME_TargetTopPixel+apexPixels, ME_TargetBottomPixel+apexPixels+1
-            end
             x2, t2, b2 = tGuides_X[i], tTopY[i], tBottomY[i]
             reaper.JS_LICE_Line(bitmap, x1, t1, x2, t2, Guides_COLOR_TOP, 1, "COPY", true)
             reaper.JS_LICE_Line(bitmap, x1, b1, x2, b2, Guides_COLOR_BOTTOM, 1, "COPY", true)
@@ -1581,13 +1912,12 @@ function Defer_Tilt()
 end -- Defer_Tilt()
 
 
-local tRel = {} -- Compress formula uses relative values, not absolute
+local tRel = {} -- Compress formula uses relative values, not absolute.  For fast repeated access, pre-calculate and store relative values here.
 local compressWheel, compressTOP, compressBOTTOM, compressSYMMETRIC, compressShape = 1, nil, nil, false, "linear"
 --#######################
 -------------------------
 function Defer_Compress()
 
-    --local tRel = tRel or {}
     -- Setup stuff at first defer cycle for this step
     if not (continueStep == "CONTINUE") then
         stepStartTime = thisDeferTime
@@ -1600,34 +1930,38 @@ function Defer_Compress()
         local old = tSteps[#tSteps]
         local new = {tGroups = {}, isChangingPositions = false}
         tSteps[#tSteps+1] = new
-        for k, e in pairs(old) do
-            if not new[k] then new[k] = e end
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
         end
-        for id, t in pairs(old.tGroups) do
-            new.tGroups[id] = {tV = {}}
-            for a, b in pairs(t) do
-                if not new.tGroups[id][a] then new.tGroups[id][a] = b end
-            end
-            tRel[id] = {}
-            local r = tRel[id]
-            local laneHeight = laneMaxValue-laneMinValue
-            for i, v in ipairs(t.tV) do
-                r[i] = (v-laneMinValue)/laneHeight
+        for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
+            new.tGroups[take] = {}
+            tRel[take] = {}
+            for id, t in pairs(tID) do
+                new.tGroups[take][id] = {tV = {}}
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
+                
+                -- For faster access, calculate and store the relative values here
+                tRel[take][id] = {}
+                local r = tRel[take][id]
+                local laneHeight = laneMaxValue-laneMinValue
+                for i, v in ipairs(t.tV) do
+                    r[i] = (v-laneMinValue)/laneHeight
+                end
             end
         end
         SetupGuidelineTables() -- Can only get left/right pixels and set up tables *after* constructing new step's table
         mustCalculate = true -- Always calculate when script starts
-    end
-  
-    local s = tSteps[#tSteps]
+    end  
     
     --[==[ MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
-    if not (peekOK and time > prevMouseTime) then 
+    if not (peekOK and time > prevMouseInputTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
-    if peekOK and time > prevMouseTime + 0.1 then 
-        prevMouseTime = time
+    if peekOK and time > prevMouseInputTime + 0.1 then 
+        prevMouseInputTime = time
         mustCalculate = true
         --if keys&12 ~= 0 then return false end
         -- Standardize delta values
@@ -1644,29 +1978,29 @@ function Defer_Compress()
         -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
         if compressWheel == 0 then if delta == 1 then compressWheel = 0.025 else compressWheel = 40 end end
         --else
-            local factor = (delta == prevDelta and time-prevMouseTime < 1) and 0.04/((time-prevMouseTime)^2) or 0.04
+            local factor = (delta == prevDelta and time-prevMouseInputTime < 1) and 0.04/((time-prevMouseInputTime)^2) or 0.04
             compressWheel = (delta == 1) and (compressWheel*(1+factor)) or (compressWheel/(1+factor))
             --if mousewheel <= 0 then mousewheel = (delta == 1) and 0.025 or 40 end
             -- Snap to flat line (standard compression shape) if either direction goes extreme
             if compressWheel < 0.025 or 40 < compressWheel then 
                 compressWheel = 0
-                --prevMouseTime = prevMouseTime + 1
+                --prevMouseInputTime = prevMouseInputTime + 1
             -- Round to 1 if comes close
             elseif 0.962 < compressWheel and compressWheel < 1.04 then
                 compressWheel = 1
-                --prevMouseTime = prevMouseTime + 1
+                --prevMouseInputTime = prevMouseInputTime + 1
             end
         --end]]
-        if compressWheel == 0 or compressWheel == 1 then prevMouseTime = prevMouseTime + 1 end
+        if compressWheel == 0 or compressWheel == 1 then prevMouseInputTime = prevMouseInputTime + 1 end
         prevDelta = delta
     end]==]
     
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
-    if not (peekOK and time > prevMouseTime) then 
+    if not (peekOK and time > prevMouseInputTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
-    if peekOK and time > prevMouseTime + 0.1 then 
+    if peekOK and time > prevMouseInputTime + 0.1 then 
         --if keys&12 ~= 0 then return false end
         -- Standardize delta values
         delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0
@@ -1674,20 +2008,20 @@ function Defer_Compress()
         if (compressTOP and mouseY < ME_TargetTopPixel) or (compressBOTTOM and mouseY < ME_TargetBottomPixel) then delta = -delta end
         -- Pause a little if flat line has been reached
         if compressWheel == 0 then
-            if time > prevMouseTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then --or delta ~= prevDelta then
+            if time > prevMouseInputTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then --or delta ~= prevDelta then
                 compressWheel = (delta == 1) and 0.025 or 40
-                prevMouseTime = time
+                prevMouseInputTime = time
                 mustCalculate = true
             end
         elseif compressWheel == 1 then
-            if time > prevMouseTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then
+            if time > prevMouseInputTime+1 or (delta ~= prevDelta and delta ~= 0 and prevDelta ~= 0) then
                 compressWheel = (delta == 1) and 1.04 or 0.962
-                prevMouseTime = time
+                prevMouseInputTime = time
                 mustCalculate = true
             end
         else
             -- Meradium's suggestion: If mousewheel is turned rapidly, make larger changes to the curve per defer cycle
-            local factor = (delta == prevDelta and time-prevMouseTime < 1) and 0.04/((time-prevMouseTime)^2) or 0.04
+            local factor = (delta == prevDelta and time-prevMouseInputTime < 1) and 0.04/((time-prevMouseInputTime)^2) or 0.04
             local prevCompressWheel = compressWheel or 1
             compressWheel = (delta == 1) and (compressWheel*(1+factor)) or (compressWheel/(1+factor))
             -- Snap to flat line (standard compression shape) if either direction goes extreme
@@ -1697,7 +2031,7 @@ function Defer_Compress()
             elseif (compressWheel < 1 and 1 < prevCompressWheel) or (prevCompressWheel < 1 and 1 < compressWheel) then
                 compressWheel = 1
             end
-            prevMouseTime = time
+            prevMouseInputTime = time
             mustCalculate = true
         end
         prevDelta = delta
@@ -1710,7 +2044,7 @@ function Defer_Compress()
     if peekOK and time > prevDeferTime then 
         compressShape = (compressShape == "linear") and "sine" or "linear"
         Tooltip("Curve: "..compressShape)
-        prevMouseTime = time
+        prevMouseInputTime = time
         mustCalculate = true
     end
     
@@ -1720,7 +2054,7 @@ function Defer_Compress()
     peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
     if peekOK and time > prevDeferTime then
         compressSYMMETRIC = not compressSYMMETRIC
-        prevMouseTime = time
+        prevMouseInputTime = time
         mustCalculate = true
     end
   
@@ -1730,66 +2064,69 @@ function Defer_Compress()
     ---------------------
     
     if mustCalculate then
+    
+        local s = tSteps[#tSteps]
          
-        local globalLeftTick = s.globalLeftTick
-        local globalRightTick = s.globalRightTick
         -- MOUSE NEW CC VALUE (vertical position)
-        mouseNewCCValue = GetMouseValue()        
-        mouseNewPPQPos = GetMouseTick() -- Adjust mouse PPQ position for looped items
-        mouseNewPPQPos = math.max(globalLeftTick, math.min(globalRightTick, mouseNewPPQPos)) -- !!!!!!!!!!!! Unique to this script: limit PPQ pos to CC range, so that curve doesn't change the further mouse goes outside CC range
-        
-        leftPPQrange = mouseNewPPQPos - globalLeftTick
-        rightPPQrange = globalRightTick - mouseNewPPQPos
-                
+        mouseNewCCValue    = GetMouseValue()        
+        local mouseNewTime = math.max(s.globalLeftmostTime, math.min(s.globalRightmostTime, tTimeFromPixel[mouseX])) -- Unique to this script: limit PPQ pos to CC range, so that curve doesn't change the further mouse goes outside CC range    
                 
         -- CALCULATE NEW CC VALUES!
         local newValue, fraction 
 
-        for id, t in pairs(s.tGroups) do
-            local tOldV = tSteps[#tSteps-1].tGroups[id].tV
-            local tR    = tRel[id]
-            local tV    = t.tV
-            for i = 1, #tOldV do
-                local ticks = t.tT[i]
-                if ticks == mouseNewPPQPos or compressWheel == 0 then
-                    fraction = 1
-                else
-                    if mouseGreaterThanOne then
-                        if ticks < mouseNewPPQPos then
-                            fraction = ((ticks - globalLeftTick)/leftPPQrange)^compressWheel
+        for take, tID in pairs(s.tGroups) do
+            local globalLeftmostTick = tTickFromTime[take][s.globalLeftmostTime]
+            local globalRightmostTick = tTickFromTime[take][s.globalRightmostTime]
+            local mouseTick = tTickFromTime[take][mouseNewTime]
+            local leftPPQrange = mouseTick - globalLeftmostTick
+            local rightPPQrange = globalRightmostTick - mouseTick
+            
+            for id, t in pairs(tID) do
+                local tOldV = tSteps[#tSteps-1].tGroups[take][id].tV
+                local tR    = tRel[take][id]
+                local tV    = t.tV
+                for i = 1, #tOldV do
+                    local ticks = t.tT[i]
+                    if ticks == mouseTick or compressWheel == 0 then
+                        fraction = 1
+                    else
+                        if mouseGreaterThanOne then
+                            if ticks < mouseTick then
+                                fraction = ((ticks - globalLeftmostTick)/leftPPQrange)^compressWheel
+                            else
+                                fraction = ((globalRightmostTick - ticks)/rightPPQrange)^compressWheel
+                            end
                         else
-                            fraction = ((globalRightTick - ticks)/rightPPQrange)^compressWheel
+                            if ticks < mouseTick then
+                                fraction = 1 - ((mouseTick - ticks)/leftPPQrange)^inversewheel
+                            else
+                                fraction = 1 - ((ticks - mouseTick)/rightPPQrange)^inversewheel
+                            end
                         end
-                    else
-                        if ticks < mouseNewPPQPos then
-                            fraction = 1 - ((mouseNewPPQPos - ticks)/leftPPQrange)^inversewheel
+                    end
+                    if compressShape == "sine" then fraction = 0.5*(1-m_cos(m_pi*fraction)) end
+                        
+                    local tempLaneMin, tempLaneMax
+                    if compressTOP then
+                        tempLaneMax = laneMaxValue + fraction*(mouseNewCCValue-laneMaxValue)
+                        if compressSYMMETRIC then
+                            tempLaneMin = laneMinValue + fraction*(laneMaxValue-mouseNewCCValue)
                         else
-                            fraction = 1 - ((ticks - mouseNewPPQPos)/rightPPQrange)^inversewheel
+                            tempLaneMin = laneMinValue
+                        end
+                    else -- compressBOTTON
+                        tempLaneMin = laneMinValue + fraction*(mouseNewCCValue-laneMinValue)
+                        if compressSYMMETRIC then
+                            tempLaneMax = laneMaxValue + fraction*(laneMinValue-mouseNewCCValue)
+                        else
+                            tempLaneMax = laneMaxValue
                         end
                     end
-                end
-                if compressShape == "sine" then fraction = 0.5*(1-m_cos(m_pi*fraction)) end
-                    
-                local tempLaneMin, tempLaneMax
-                if compressTOP then
-                    tempLaneMax = laneMaxValue + fraction*(mouseNewCCValue-laneMaxValue)
-                    if compressSYMMETRIC then
-                        tempLaneMin = laneMinValue + fraction*(laneMaxValue-mouseNewCCValue)
-                    else
-                        tempLaneMin = laneMinValue
+                    local   newValue = tempLaneMin + tR[i] * (tempLaneMax - tempLaneMin) -- Replace with tRel
+                    if      newValue > laneMaxValue then tV[i] = laneMaxValue
+                    elseif  newValue < laneMinValue then tV[i] = laneMinValue
+                    else tV[i] = newValue
                     end
-                else -- compressBOTTON
-                    tempLaneMin = laneMinValue + fraction*(mouseNewCCValue-laneMinValue)
-                    if compressSYMMETRIC then
-                        tempLaneMax = laneMaxValue + fraction*(laneMinValue-mouseNewCCValue)
-                    else
-                        tempLaneMax = laneMaxValue
-                    end
-                end
-                local newValue = tempLaneMin + tR[i] * (tempLaneMax - tempLaneMin) -- Replace with tRel
-                if      newValue > laneMaxValue then tV[i] = laneMaxValue
-                elseif  newValue < laneMinValue then tV[i] = laneMinValue
-                else tV[i] = newValue
                 end
             end
         end
@@ -1801,21 +2138,27 @@ function Defer_Compress()
         local tBottomY = {}
         local y
         
+        local globalLeftmostTick = tTickFromTime[activeTake][s.globalLeftmostTime]
+        local globalRightmostTick = tTickFromTime[activeTake][s.globalRightmostTime]
+        local mouseTick = tTickFromTime[activeTake][mouseNewTime]
+        local leftPPQrange = mouseTick - globalLeftmostTick
+        local rightPPQrange = globalRightmostTick - mouseTick
+        
         for i, ticks in ipairs(tGuides_Ticks) do
             if compressWheel == 0 then --or (mouseNewPPQPos-5 < ticks and ticks < mouseNewPPQPos+5) then 
                 fraction = 1
             else
                 if mouseGreaterThanOne then
-                    if ticks < mouseNewPPQPos then
-                        fraction = ((ticks - globalLeftTick)/leftPPQrange)^compressWheel
+                    if ticks < mouseTick then
+                        fraction = ((ticks - globalLeftmostTick)/leftPPQrange)^compressWheel
                     else
-                        fraction = ((globalRightTick - ticks)/rightPPQrange)^compressWheel
+                        fraction = ((globalRightmostTick - ticks)/rightPPQrange)^compressWheel
                     end
                 else
-                    if ticks < mouseNewPPQPos then
-                        fraction = 1 - ((mouseNewPPQPos - ticks)/leftPPQrange)^inversewheel
+                    if ticks < mouseTick then
+                        fraction = 1 - ((mouseTick - ticks)/leftPPQrange)^inversewheel
                     else
-                        fraction = 1 - ((ticks - mouseNewPPQPos)/rightPPQrange)^inversewheel
+                        fraction = 1 - ((ticks - mouseTick)/rightPPQrange)^inversewheel
                     end
                 end
             end
@@ -1979,99 +2322,83 @@ function GetMinMaxTicks()
 end
 
 
---#################################
------------------------------------
---[[
---function GetAllEdgeValues(tGroups, preferredGroup)
-    local leftTick, leftValue, rightTick, rightValue, minValue, maxValue = math.huge, nil, -math.huge, nil, math.huge, -math.huge
-    local tP = tGroups[preferredGroup]
-    if tP then
-        leftTick, leftValue, rightTick, rightValue = tP.tT[1], tP.tV[1], tP.tT[#tP.tT], tP.tV[#tP.tV]
-        if leftTick > rightTick then leftTick, leftValue, rightTick, rightValue = rightTick, rightValue, leftTick, leftValue end
-    end
-    for id, t in pairs(tGroups) do
-        local tV, tT = t.tV, t.tT
-        if id ~= preferredGroup then
-            if tT[1] < leftTick then leftTick, leftValue = tT[1], tV[1] end
-            if tT[#tT] < leftTick then leftTick, leftValue = tT[#tT], tV[#tV] end
-            if tT[1] > rightTick then rightTick, rightValue = tT[1], tV[1] end
-            if tT[#tT] >rightTick then rightTick, rightValue = tT[#tT], tV[#tV] end
-        end
-        for i = 1, #tV do
-            if tV[i] < minValue then minValue = tV[i] end -- !!!! Can speed this up with elseif
-            if tV[i] > maxValue then maxValue = tV[i] end
-        end
-    end
-    return leftTick, leftValue, rightTick, rightValue, minValue, maxValue
-end]]
+--#############################
+-------------------------------
 function GetAllEdgeValues(step)
-    local leftTick, leftValue, rightTick, rightValue, minValue, maxValue, noteOffTick = math.huge, nil, -math.huge, nil, math.huge, -math.huge, -math.huge
     step = step or tSteps[#tSteps]
-    -- The active channel takes precedence when finding edge values, if multiple CCs at same tick positions, so that Tilt zones correspond to active channel
-    local tP = step.tGroups[activeChannel]
-    if tP then
-        leftTick, leftValue, rightTick, rightValue = tP.tT[1], tP.tV[1], tP.tT[#tP.tT], tP.tV[#tP.tV]
-        if leftTick > rightTick then leftTick, leftValue, rightTick, rightValue = rightTick, rightValue, leftTick, leftValue end
-    end
-    for id, t in pairs(step.tGroups) do
-        local tV, tT, tOff = t.tV, t.tT, t.tOff
-        if id == "notes" and t.noteWithLastNoteOff then
-            local n = t.noteWithLastNoteOff
-            local t1 = tOff[1]
-            local tn = tOff[n]
-            if t1 < tn then 
-                noteOffTick, rightValue = tn, tV[n] 
-            else 
-                noteOffTick, rightValue = t1, tV[1]
-            end
-            if tT[1] < leftTick then leftTick, leftValue = tT[1], tV[1] end
-            if tT[n] < leftTick then leftTick, leftValue = tT[n], tV[n] end
-            if tT[1] > rightTick then rightTick = tT[1] end
-            if tT[#tT] > rightTick then rightTick = tT[#tT] end
-        elseif id ~= activeChannel then
-            if tT[1] < leftTick then leftTick, leftValue = tT[1], tV[1] end
-            if tT[#tT] < leftTick then leftTick, leftValue = tT[#tT], tV[#tV] end
-            if tT[1] > rightTick then rightTick, rightValue = tT[1], tV[1] end
-            if tT[#tT] > rightTick then rightTick, rightValue = tT[#tT], tV[#tV] end
-        end
-        if id ~= "text" then
-            for i = 1, #tV do
-                if tV[i] < minValue then minValue = tV[i] end -- !!!! Can speed this up with elseif, and one comparison when all done
-                if tV[i] > maxValue then maxValue = tV[i] end
-            end
-        end
-    end
-    if noteOffTick < rightTick then noteOffTick = rightTick end
-    step.globalLeftTick   = leftTick
-    step.globalLeftValue  = leftValue
-    step.globalRightTick  = rightTick
-    step.globalRightValue = rightValue
-    step.globalMinValue   = minValue
-    step.globalMaxValue   = maxValue
-    step.globalNoteOffTick = noteOffTick         
-end
-
-
---############################################
-----------------------------------------------
-function GetLeftRightPixels(step, withNoteOff)
     
-    if not (type(step) == "table") then step = tSteps[step] end
-    local leftTick  = step.globalLeftTick
-    local rightTick = withNoteOff and step.globalNoteOffTick or step.globalRightTick
-    --local leftPixel, rightPixel
-    if ME_TimeBase == "beats" then
-        leftPixel = (leftTick + loopStartPPQPos - ME_LeftmostTick) * ME_PixelsPerTick
-        rightPixel = (rightTick + loopStartPPQPos - ME_LeftmostTick)*ME_PixelsPerTick
-    else -- ME_TimeBase == "time"
-        local firstTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, leftTick + loopStartPPQPos)
-        local lastTime  = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, rightTick + loopStartPPQPos)
-        leftPixel  = (firstTime-ME_LeftmostTime)*ME_PixelsPerSecond
-        rightPixel = (lastTime -ME_LeftmostTime)*ME_PixelsPerSecond
+    local globalLeftmostTime   = math.huge
+    local globalLeftmostValue  = nil
+    local globalRightmostTime  = -math.huge
+    local globalRightmostValue = nil
+    local globalMinValue       = math.huge
+    local globalMaxValue       = -math.huge
+    local globalNoteOffTime    = -math.huge 
+
+    -- If multiple takes and/or channels have selected events at the same leftmost and rightmost positions, but with different values,
+    --    where should the Tilt zones be positioned?  This script gives precedence to the active take and active channel, if these exist.
+    local tActive = step.tGroups[activeTake] and step.tGroups[activeTake][activeChannel]
+    if tActive and tActive.tT[1] and tActive.tT[#tActive.tT] then
+        local activeTime1 = tTimeFromTick[activeTake][tActive.tT[1]]
+        local activeTimeT  = tTimeFromTick[activeTake][tActive.tT[#tActive.tT]]
+        if activeTime1 < activeTimeT then
+            globalLeftmostTime, globalLeftmostValue, globalRightmostTime, globalRightmostValue 
+                = activeTime1, tActive.tV[1], activeTimeT, tActive.tV[#tActive.tV]
+        else
+            globalLeftmostTime, globalLeftmostValue, globalRightmostTime, globalRightmostValue 
+                = activeTimeT, tActive.tV[#tActive.tV], activeTime1, tActive.tV[1]
+        end
     end
-    leftPixel  = leftPixel//1 --math.ceil(math.max(left, 0)) 
-    rightPixel = rightPixel//1 --math.floor(math.min(right, ME_midiviewWidth-1))
-    return leftPixel, rightPixel
+    
+    for take, groups in pairs(step.tGroups) do
+        local takeLeftmostTick, takeLeftmostValue, takeRightmostTick, takeRightmostValue, takeMinValue, takeMaxValue, takeNoteOffTick = math.huge, nil, -math.huge, nil, math.huge, -math.huge, -math.huge
+        for grp, t in pairs(groups) do
+            local tV, tT, tOff = t.tV, t.tT, t.tOff
+            if grp == "notes" and t.noteWithLastNoteOff then
+                local n = t.noteWithLastNoteOff
+                local t1 = tOff[1]
+                local tn = tOff[n]
+                if t1 < tn then 
+                    takeNoteOffTick, takeRightmostValue = tn, tV[n] 
+                else 
+                    takeNoteOffTick, takeRightmostValue = t1, tV[1]
+                end
+                if tT[1] < takeLeftmostTick then takeLeftmostTick, takeLeftmostValue = tT[1], tV[1] end
+                if tT[n] < takeLeftmostTick then takeLeftmostTick, takeLeftmostValue = tT[n], tV[n] end
+                if tT[1] > takeRightmostTick then takeRightmostTick = tT[1] end
+                if tT[#tT] > takeRightmostTick then takeRightmostTick = tT[#tT] end
+            else --if t ~= tActive then --(take == activeTake and grp == activeChannel) then
+                if tT[1] < takeLeftmostTick then takeLeftmostTick, takeLeftmostValue = tT[1], tV[1] end
+                if tT[#tT] < takeLeftmostTick then takeLeftmostTick, takeLeftmostValue = tT[#tT], tV[#tV] end
+                if tT[1] > takeRightmostTick then takeRightmostTick, takeRightmostValue = tT[1], tV[1] end
+                if tT[#tT] > takeRightmostTick then takeRightmostTick, takeRightmostValue = tT[#tT], tV[#tV] end
+            end
+            if grp ~= "text" then
+                for i = 1, #tV do
+                    if tV[i] < takeMinValue then takeMinValue = tV[i] end -- !!!! Can speed this up with elseif, and one comparison when all done
+                    if tV[i] > takeMaxValue then takeMaxValue = tV[i] end
+                end
+            end
+        end
+        if takeNoteOffTick < takeRightmostTick then takeNoteOffTick = takeRightmostTick end
+        local takeLeftmostTime  = tTimeFromTick[take][takeLeftmostTick]
+        local takeRightmostTime = tTimeFromTick[take][takeRightmostTick]
+        local takeNoteOffTime   = tTimeFromTick[take][takeNoteOffTick]
+        if takeLeftmostTime  < globalLeftmostTime  then globalLeftmostTime,  globalLeftmostValue  = takeLeftmostTime,  takeLeftmostValue end
+        if takeRightmostTime > globalRightmostTime then globalRightmostTime, globalRightmostValue = takeRightmostTime, takeRightmostValue end
+        if takeNoteOffTime   > globalNoteOffTime   then globalNoteOffTime,   globalRightmostValue = takeNoteOffTime,   takeRightmostValue end
+        if takeMinValue < globalMinValue then globalMinValue = takeMinValue end
+        if takeMaxValue > globalMaxValue then globalMaxValue = takeMaxValue end
+    end
+
+    -- The active take and active channel takes precedence when finding edge values, if multiple CCs at same tick positions, so that Tilt zones correspond to active channel
+    step.globalLeftmostTime   = globalLeftmostTime
+    step.globalLeftmostValue  = globalLeftmostValue
+    step.globalRightmostTime  = globalRightmostTime
+    step.globalRightmostValue = globalRightmostValue
+    step.globalMinValue       = globalMinValue
+    step.globalMaxValue       = globalMaxValue
+    step.globalNoteOffTime    = globalNoteOffTime
 end
 
 
@@ -2079,7 +2406,8 @@ end
 -------------------------------
 function SetupGuidelineTables()
  
-    Guides_LeftPixel, Guides_RightPixel = GetLeftRightPixels(tSteps[#tSteps], false)
+    Guides_LeftPixel  = tPixelFromTime[tSteps[#tSteps].globalLeftmostTime]
+    Guides_RightPixel = tPixelFromTime[tSteps[#tSteps].globalRightmostTime]
     if Guides_LeftPixel and Guides_RightPixel 
     and (Guides_LeftPixel ~= prevGuides_LeftPixel) or (Guides_RightPixel ~= prevGuides_RightPixel) 
     then
@@ -2088,6 +2416,7 @@ function SetupGuidelineTables()
         -- The line will be calculated at nodes spaced 10 pixels. Get PPQ positions of each node.
         tGuides_Ticks = {}
         tGuides_X = {} -- Pixel positions relative to midiview client area
+        local loopStartPPQPos = tTakeInfo[activeTake].loopStartTick
         if ME_TimeBase == "beats" then
             for x = Guides_LeftPixel, Guides_RightPixel-1, 2 do
                 tGuides_X[#tGuides_X+1] = x
@@ -2098,12 +2427,10 @@ function SetupGuidelineTables()
         else -- ME_TimeBase == "time"
             for x = Guides_LeftPixel, Guides_RightPixel-1, 2 do
                 tGuides_X[#tGuides_X+1] = x
-                tGuides_Ticks[#tGuides_Ticks+1] = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + x/ME_PixelsPerSecond )
-                                            - loopStartPPQPos
+                tGuides_Ticks[#tGuides_Ticks+1] = tTickFromTime[activeTake][ME_LeftmostTime + x/ME_PixelsPerSecond] - loopStartPPQPos
             end
             tGuides_X[#tGuides_X+1] = Guides_RightPixel
-            tGuides_Ticks[#tGuides_Ticks+1] = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + Guides_RightPixel/ME_PixelsPerSecond )
-                                        - loopStartPPQPos
+            tGuides_Ticks[#tGuides_Ticks+1] = tTickFromTime[activeTake][ME_LeftmostTime + Guides_RightPixel/ME_PixelsPerSecond] - loopStartPPQPos
         end
     end
 end
@@ -2111,7 +2438,7 @@ end
 
 --##########################
 ----------------------------
-function SetupDisplayZones()    
+function DisplayZones()    
     
     if not tColors then
         LoadZoneColors()
@@ -2120,7 +2447,8 @@ function SetupDisplayZones()
     tZones = {}
     local t = tSteps[#tSteps]
     
-    local GUI_LeftPixel, GUI_RightPixel = GetLeftRightPixels(tSteps[#tSteps], "NOTEOFF")
+    local GUI_LeftPixel  = tPixelFromTime[tSteps[#tSteps].globalLeftmostTime]
+    local GUI_RightPixel = tPixelFromTime[tSteps[#tSteps].globalNoteOffTime or tSteps[#tSteps].globalRightmostTime]
     GUI_LeftPixel, GUI_RightPixel = (GUI_LeftPixel-zoneWidth*1.5)//1, (GUI_RightPixel+zoneWidth*1.5)//1
     -- Always show stretch zones, even if MIDI is offscreen, so that stretchig can still be performed
     if GUI_LeftPixel > ME_midiviewWidth then GUI_LeftPixel = ME_midiviewWidth-zoneWidth*2 end
@@ -2135,23 +2463,23 @@ function SetupDisplayZones()
     and (ME_TargetBottomPixel-ME_TargetTopPixel) > 3*zoneWidth
     then
         -- Tilt
-        local leftValue, rightValue = t.globalLeftValue, t.globalRightValue
+        local leftValue, rightValue = t.globalLeftmostValue, t.globalRightmostValue
         if leftValue then
             --if t.tTicks[1] > t.tTicks[#t.tTicks] then leftValue, rightValue = rightValue, leftValue end
             local leftTiltPixel = ME_TargetTopPixel+(1-leftValue/laneMaxValue)*(ME_TargetBottomPixel-ME_TargetTopPixel)
-            tZones[#tZones+1] = {func = Defer_Tilt,         wheel = Edit_ChaseLeft,         tooltip = "Tilt / Arch",   cursor = cursorTilt,         color = "tilt", 
+            tZones[#tZones+1] = {func = Defer_Tilt,         wheel = Edit_ChaseLeft,         tooltip = "Tilt / Arch",   cursor = tCursors.Tilt,         color = "tilt", 
                                   left = GUI_LeftPixel,  right = GUI_LeftPixel+zoneWidth-1,  top = leftTiltPixel-zoneWidth/2,    bottom = leftTiltPixel+zoneWidth/2}   
         end
         if rightValue then
             local rightTiltPixel = ME_TargetTopPixel+(1-rightValue/laneMaxValue)*(ME_TargetBottomPixel-ME_TargetTopPixel)
-            tZones[#tZones+1] = {func = Defer_Tilt,           wheel = Edit_ChaseRight,          tooltip = "Tilt / Arch",  cursor = cursorTilt,      color = "tilt", 
+            tZones[#tZones+1] = {func = Defer_Tilt,           wheel = Edit_ChaseRight,          tooltip = "Tilt / Arch",  cursor = tCursors.Tilt,      color = "tilt", 
                                   left = GUI_RightPixel-zoneWidth+1,   right = GUI_RightPixel,  top = rightTiltPixel-zoneWidth/2,  bottom = rightTiltPixel+zoneWidth/2}
         end
         
         -- Undo/Redo        
-        tZones[#tZones+1] = {func = Defer_Undo,     wheel = Defer_Undo,     tooltip = "Undo",                       cursor = cursorUndo,    color = (#tSteps > 0) and "undo" or "black", 
+        tZones[#tZones+1] = {func = Defer_Undo,     wheel = Defer_Undo,     tooltip = "Undo",                       cursor = tCursors.Undo,    color = (#tSteps > 0) and "undo" or "black", 
                              left = undoLeft,       right = undoLeft+zoneWidth-1,      top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
-        tZones[#tZones+1] = {func = Defer_Redo,     wheel = Defer_Redo,     tooltip = "Redo",                       cursor = cursorRedo,    color = (#tRedo > 0) and "redo" or "black", 
+        tZones[#tZones+1] = {func = Defer_Redo,     wheel = Defer_Redo,     tooltip = "Redo",                       cursor = tCursors.Redo,    color = (#tRedo > 0) and "redo" or "black", 
                              left = undoLeft+zoneWidth,      right = undoLeft+2*zoneWidth-1,  top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
         
         -- Scale
@@ -2169,12 +2497,12 @@ function SetupDisplayZones()
             if minValuePixel - maxValuePixel <= zoneWidth*3 then maxValuePixel = minValuePixel - zoneWidth*3 end
             minValuePixel, maxValuePixel = minValuePixel//1, maxValuePixel//1
         end
-        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale top",      cursor = cursorHandTop,     color = "scale", 
+        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale top",      cursor = tCursors.HandTop,     color = "scale", 
                              left = left,     right = right, top = maxValuePixel,    bottom = maxValuePixel+zoneWidth-1,
-                             activeTop = ME_TargetTopPixel} --activeLeft = -1/0, activeRight = 1/0}
-        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale bottom",   cursor = cursorHandBottom,  color = "scale", 
+                             activeTop = ME_TargetTopPixel, activeLeft = -1/0, activeRight = 1/0}
+        tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale bottom",   cursor = tCursors.HandBottom,  color = "scale", 
                               left = left,    right = right, top = minValuePixel-zoneWidth+1, bottom = minValuePixel,
-                              activeBottom = ME_TargetBottomPixel} --activeLeft = -1/0, activeRight = 1/0}    
+                              activeBottom = ME_TargetBottomPixel, activeLeft = -1/0, activeRight = 1/0}    
         
         -- Stretch
         -- Make sure that the Stretch zones are always visible and separate, even if the pixel range of the selected events is tiny.
@@ -2182,28 +2510,30 @@ function SetupDisplayZones()
         --if rightStretchPixel - leftStretchPixel < 0 then leftStretchPixel, rightStretchPixel = (leftStretchPixel+rightStretchPixel)//2, (leftStretchPixel+rightStretchPixel)//2+1 end
         local stretchTopPixel     = maxValuePixel+zoneWidth --(maxValuePixel > ME_TargetTopPixel+zoneWidth+1) and maxValuePixel or (maxValuePixel+zoneWidth+1)
         local stretchBottomPixel  = minValuePixel-zoneWidth --(minValuePixel < ME_TargetBottomPixel-zoneWidth-1) and minValuePixel or (minValuePixel-zoneWidth-1)
-        tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,               tooltip = "Stretch left",   cursor = cursorHandLeft,    color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,               tooltip = "Stretch left",   cursor = tCursors.HandLeft,    color = "stretch", 
                              left = GUI_LeftPixel+zoneWidth,       right = GUI_LeftPixel+zoneWidth*2-1, 
                              top  = stretchTopPixel, bottom = stretchBottomPixel,
-                             activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, activeLeft = -1/0}
-        tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,               tooltip = "Stretch right",  cursor = cursorHandRight,   color = "stretch", 
+                             --activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, 
+                             activeLeft = -1/0}
+        tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,               tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
                              left = GUI_RightPixel-zoneWidth*2+1,    right = GUI_RightPixel-zoneWidth,                        
                              top  = stretchTopPixel, bottom = stretchBottomPixel,
-                             activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, activeRight = 1/0}         
+                             --activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, 
+                             activeRight = 1/0}         
         
         -- Warp
         if (GUI_RightPixel - GUI_LeftPixel) > zoneWidth*4 then
-            tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_Reverse,   tooltip = "Warp",           cursor = cursorArpeggiateLR,color = "warp", 
+            tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_SpaceEvenly,   tooltip = "Warp",           cursor = tCursors.ArpeggiateLR,color = "warp", 
                                  left = GUI_LeftPixel+zoneWidth*2, right = GUI_RightPixel-zoneWidth*2, top = stretchTopPixel, bottom = stretchBottomPixel}
         end  
         
         -- Compress top/bottom
         left, right = GUI_LeftPixel+3*zoneWidth, GUI_RightPixel-3*zoneWidth
         if right-left < 2*zoneWidth then left, right = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
-        tZones[#tZones+1] = {func = Defer_Compress,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Scale top",      cursor = cursorCompress,    color = "compress", 
+        tZones[#tZones+1] = {func = Defer_Compress,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Scale top",      cursor = tCursors.Compress,    color = "compress", 
                               left = left,  right = right,  top = ME_TargetTopPixel-zoneWidth-1, bottom = ME_TargetTopPixel-1,
                               activeLeft = -1/0, activeRight = 1/0}
-        tZones[#tZones+1] = {func = Defer_Compress,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Scale bottom",   cursor = cursorCompress,    color = "compress", 
+        tZones[#tZones+1] = {func = Defer_Compress,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Scale bottom",   cursor = tCursors.Compress,    color = "compress", 
                               left = left,  right = right,  top = ME_TargetBottomPixel+1, bottom = ME_TargetBottomPixel+zoneWidth+1,
                               activeLeft = -1/0, activeRight = 1/0}  
                   
@@ -2219,19 +2549,19 @@ function SetupDisplayZones()
         if undoTop < 0 then
             undoTop, undoBottom = bottom+1, bottom+zoneWidth+1
         end   
-        tZones[#tZones+1] = {func = Defer_Undo,         wheel = Defer_Undo,       tooltip = "Undo",   cursor = cursorUndo,    color = (#tSteps > 0) and "undo" or "black", 
+        tZones[#tZones+1] = {func = Defer_Undo,         wheel = Defer_Undo,       tooltip = "Undo",   cursor = tCursors.Undo,    color = (#tSteps > 0) and "undo" or "black", 
                               left = undoLeft,  right = undoLeft+zoneWidth,  top = undoTop, bottom = undoBottom}                  
-        tZones[#tZones+1] = {func = Defer_Redo,         wheel = Defer_Redo,       tooltip = "Redo",   cursor = cursorRedo,    color = (#tRedo > 0) and "redo" or "black", 
+        tZones[#tZones+1] = {func = Defer_Redo,         wheel = Defer_Redo,       tooltip = "Redo",   cursor = tCursors.Redo,    color = (#tRedo > 0) and "redo" or "black", 
                               left = undoLeft+zoneWidth+1, right = undoLeft+2*zoneWidth+1,  top = undoTop, bottom = undoBottom}                  
         -- Stretch
-        tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,   tooltip = "Stretch left",   cursor = cursorHandLeft,    color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch_Left,   wheel = Edit_Reverse,   tooltip = "Stretch left",   cursor = tCursors.HandLeft,    color = "stretch", 
                               left = GUI_LeftPixel+zoneWidth, right = GUI_LeftPixel+zoneWidth*2-1,   top = top, bottom = bottom,
                               activeLeft = -1/0}
-        tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,   tooltip = "Stretch right",  cursor = cursorHandRight,   color = "stretch", 
+        tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,   tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
                               left = GUI_RightPixel-zoneWidth*2+1,    right = GUI_RightPixel-zoneWidth,   top = top, bottom = bottom,
                               activeRight = 1/0}
         -- Warp
-        tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_Reverse,   tooltip = "Warp",           cursor = cursorArpeggiateLR,color = "warp", 
+        tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_SpaceEvenly,   tooltip = "Warp",           cursor = tCursors.ArpeggiateLR,color = "warp", 
                               left = GUI_LeftPixel+zoneWidth*2, right = GUI_RightPixel-zoneWidth*2, top = top, bottom = bottom}
     end    
     reaper.JS_LICE_Clear(bitmap, 0)
@@ -2254,7 +2584,7 @@ function Defer_Zones()
 
     -- continueStep = true means that a deferred function is already running, so no need for GUI setup
     if not (continueStep == "CONTINUE") then
-        SetupDisplayZones()
+        DisplayZones()
         stepStartTime = thisDeferTime
     end
     
@@ -2275,17 +2605,17 @@ function Defer_Zones()
             --Tooltip(zone.tooltip) -- tooltips seem to flicker when compositing is used
             cursor = zone.cursor
         else
-            cursor = cursorNo
+            cursor = tCursors.Cross
         end
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
     end
     -- MOUSEWHEEL
     local peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEWHEEL")
-    if not (peekOK and time > prevMouseTime) then 
+    if not (peekOK and time > stepStartTime) then 
         peekOK, pass, time, keys, delta = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_MOUSEHWHEEL")
     end 
-    if peekOK and time > prevMouseTime + 0.2 then 
-        prevMouseTime = time
+    if peekOK and time > stepStartTime + 0.1 then 
+        prevMouseInputTime = time
         if zone and zone.wheel then 
             selectedEditFunction = zone.wheel
             --reaper.JS_LICE_Clear(bitmap, 0)
@@ -2300,7 +2630,7 @@ function Defer_Zones()
     if not (peekOK and time > stepStartTime) then
         peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_NCLBUTTONDOWN")
     end
-    if peekOK and time > stepStartTime then --prevMouseTime then
+    if peekOK and time > stepStartTime then --prevMouseInputTime then
         if zone then 
             selectedEditFunction = zone.func
             reaper.JS_LICE_Clear(bitmap, 0)
@@ -2348,7 +2678,7 @@ end
 --##########################################################################
 ----------------------------------------------------------------------------
 function AtExit()   
-
+    
     -- Remove intercepts, restore original intercepts.  Do this first, because these are most important to restore, in case anything else goes wrong during AtExit.
     if interceptKeysOK ~= nil then pcall(function() reaper.JS_VKeys_Intercept(-1, -1) end) end
     if compositeOK and midiview and bitmap then pcall(function() reaper.JS_Composite_Unlink(midiview, bitmap) end) end
@@ -2367,6 +2697,19 @@ function AtExit()
             end
         end
     end
+
+    --[[ Just something to display table with userdata keys in IDE watchlist
+    tTT = {}
+    for take, t in pairs(tTakeInfo) do
+        tTT[take] = true
+    end
+    for take in pairs(tTT) do
+        local t = tostring(take):sub(-7)
+        tTakeInfo[t] = tTakeInfo[take]
+        tGroups[t] = tGroups[take]
+        tTickFromTime[t] = tTickFromTime[take]
+    end
+    ]]
     
     -- As when starting the script, restore cursor and toolbar button as soon as possible, in order to seem more responsive.
     -- Was a custom cursur loaded? Restore plain cursor.
@@ -2385,41 +2728,48 @@ function AtExit()
     -- Before getting to errors in MAIN, clean up stuff that could have been changed in MAIN
     if not mainOK then
         reaper.MB("The script encountered an error during startup:\n\n"
-                .. tostring(mainRetval)
+                .. "mainretval: "..tostring(mainRetval)
                 .."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
                 , "ERROR", 0)
     end
     
-    -- Was an active take found, and does it still exist?  If not, don't need to do anything to the MIDI.
-    if activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.TakeIsMIDI(activeTake) then        
-        -- DEFER_pcall was executed, but exception encountered:
-        if pcallOK == false then
-            if MIDIString then reaper.MIDI_SetAllEvts(activeTake, MIDIString) end -- Restore original MIDI
-            reaper.MB("The script encountered an error:\n\n"
-                    .. tostring(continueStep or continue or pcallRetval)
-                    --.."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
-                    .."\n\n* The original, unaltered MIDI has been restored to the take."
-                    , "ERROR", 0)
-        -- DEFER_pcall and DeleteExistingCCsInRange were executed, and no exceptions encountered:
-        elseif pcallOK == true then  
-            -- MIDI_Sort used to be buggy when dealing with overlapping or unsorted notes,
-            --    causing infinitely extended notes or zero-length notes.
-            -- Fortunately, these bugs were seemingly all fixed in v5.32.
-            reaper.MIDI_Sort(activeTake)
-             
-            -- Check that there were no inadvertent shifts in the PPQ positions of unedited events.
-            if sourceLengthTicks and not (sourceLengthTicks == reaper.BR_GetMidiSourceLenPPQ(activeTake)) then
-                if MIDIString then reaper.MIDI_SetAllEvts(activeTake, MIDIString) end -- Restore original MIDI
-                reaper.MB("The script has detected inadvertent shifts in the PPQ positions of unedited events."
-                .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
-                .. "\n\nPlease report the bug in the following forum thread:"
-                .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
-                .. "\n\nThe original MIDI data will be restored to the take."
-                , "ERROR", 0)
+    -- Double-check that nothing went awry, by checking MIDI source lengths.
+    if pcallOK == true then
+        for take in pairs(tGroups) do
+            if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
+                if tTakeInfo[take] and tTakeInfo[take].sourceLenTicks and not (tTakeInfo[take].sourceLenTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
+                    pcallOK = "shifted MIDI"
+                    break
+                end
+            else
+                tGroups[take] = nil
             end
         end
-    end -- if reaper.ValidatePtr2(0, "MediaItem_Take*", activeTake) and reaper.TakeIsMIDI(activeTake)    
-                  
+    end
+    if pcallOK == "shifted MIDI" then
+        reaper.MB("The script has detected inadvertent shifts in the PPQ positions of unedited events."
+              .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
+              .. "\n\nPlease report the bug in the following forum thread:"
+              .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
+              .. "\n\nThe original MIDI data will be restored to the take."
+              , "ERROR", 0)
+    elseif pcallOK == false then
+        reaper.MB("The script encountered an error:\n"
+              .. "\ncontinueStep: "..tostring(continueStep)
+              .. "\ncontinue: "..tostring(continue)
+              .. "\npcallRetval: "..tostring(pcallRetval)
+              --.."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
+              .."\n\n* The original, unaltered MIDI has been restored to the take."
+              , "ERROR", 0)
+    end
+    if pcallOK == "shifted MIDI" or pcallOK == false then
+        for take in pairs(tGroups) do
+            if tTakeInfo[take] and tTakeInfo[take].origMIDI 
+            and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
+                reaper.MIDI_SetAllEvts(take, tTakeInfo[take].origMIDI)
+            end
+        end
+    end        
                   
     -- Write nice, informative Undo strings
     if laneIsCC7BIT then
@@ -2448,14 +2798,13 @@ function AtExit()
     end 
     
     -- Undo_OnStateChange_Item is expected to be the fastest undo function, since it limits the info stored 
-    --    in the undo point to changes in this specific item.
-    if activeItem and reaper.ValidatePtr2(0, activeItem, "MediaItem*") then    
-        if isInline then reaper.UpdateItemInProject(activeItem) end
+    --    in the undo point to changes in this specific item.  
+    if isInline and reaper.ValidatePtr2(0, activeItem, "MediaItem*") then 
+        reaper.UpdateItemInProject(activeItem)
         reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
     else
         reaper.Undo_OnStateChange2(0, undoString)
     end
-    --end
 
 
     -- At the very end, no more notification windows will be opened, 
@@ -2597,13 +2946,14 @@ function SetupMIDIEditorInfoFromTakeChunk()
             reaper.MB("Could not determine the MIDI editor's zoom and scroll positions.", "ERROR", 0) 
             return(false) 
         end
+    ME_LeftmostTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, ME_LeftmostTick)
+    
     activeChannel, ME_TimeBase = activeTakeChunk:match("\nCFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+) %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+)")
     ME_TimeBase = (ME_TimeBase == "0" or ME_TimeBase == "4") and "beats" or "time"
     if ME_TimeBase == "beats" then
         ME_PixelsPerTick = ME_HorzZoom
     else
         ME_PixelsPerSecond = ME_HorzZoom
-        ME_LeftmostTime    = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, ME_LeftmostTick)
     end
 
     -- Now get the heights and types of all the CC lanes.
@@ -2641,11 +2991,13 @@ function SetupMIDIEditorInfoFromTakeChunk()
         ME_midiviewHeight = ((rectTop-rectBottom) >= 0) and (rectTop-rectBottom) or (rectBottom-rectTop)--ME_midiviewBottomPixel - ME_midiviewTopPixel + 1
             if ME_midiviewWidth < 100 or ME_midiviewHeight < 100 then reaper.MB("The MIDI editor is too small for editing with the mouse", "ERROR", 0) return false end
         
-        -- Now that we have the MIDI editor width, can calculate rightmost tick
+        -- Now that we have the MIDI editor width, can calculate rightmost tick and time
         if ME_TimeBase == "beats" then
             ME_RightmostTick = ME_LeftmostTick + (ME_midiviewWidth-1)/ME_PixelsPerTick
+            ME_RightmostTime = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, ME_RightmostTick)
         else
-            ME_RightmostTick = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + (ME_midiviewWidth-1)/ME_PixelsPerSecond)
+            ME_RightmostTime = ME_LeftmostTime + (ME_midiviewWidth-1)/ME_PixelsPerSecond
+            ME_RightmostTick = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_RightmostTime)
         end
         
         -- And now, calculate top and bottom pixels of each lane -- AND lane divider
@@ -2708,6 +3060,80 @@ function GetCCLaneIDFromPoint(x, y)
 end
 
 
+--###########################
+-----------------------------
+function SetupEditableTakes()
+    
+    -- Get mouse starting TIME position, which will then be converted to ticks for each editable take
+    if isInline then
+        mouseOrigTimePos = reaper.BR_GetMouseCursorContext_Position()
+        mouseOrigPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, mouseOrigTimePos)
+    elseif ME_TimeBase == "beats" then
+        mouseOrigPPQPos = ME_LeftmostTick + mouseOrigX/ME_PixelsPerTick
+        mouseOrigTimePos = reaper.MIDI_GetProjTimeFromPPQPos(activeTake, mouseOrigPPQPos)
+    else -- ME_TimeBase == "time"
+        mouseOrigTimePos = ME_LeftmostTime + mouseOrigX/ME_PixelsPerSecond
+        mouseOrigPPQPos  = reaper.MIDI_GetPPQPosFromProjTime(activeTake, mouseOrigTimePos)
+    end
+    
+    --activeItem  = reaper.GetMediaItemTake_Item(activeTake)
+    activeTrack = reaper.GetMediaItem_Track(activeItem)
+    tTakeInfo[activeTake] = {item = activeItem, track = activeTrack}
+    
+    local midiSettingOK, midiSetting = reaper.get_config_var_string("midieditor") -- One MIDI editor per project?
+    if midiSettingOK and tonumber(midiSetting)&3 == 1
+    --and reaper.GetToggleCommandStateEx(sectionID, 40874) == 1 -- Options: Draw and edit CC events on all tracks
+    and reaper.GetToggleCommandStateEx(sectionID, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
+    and reaper.GetToggleCommandStateEx(sectionID, 40891) == 1 -- Options: MIDI track list/media item lane selection is linked to editability
+    then
+        local allTracks = (reaper.GetToggleCommandStateEx(sectionID, 40901) == 0) -- Options: Avoid automatically setting MIDI items from other tracks editable
+        for i = 0, reaper.CountSelectedMediaItems(0)-1 do
+            local item = reaper.GetSelectedMediaItem(0, i)
+            if item and item ~= activeItem and reaper.ValidatePtr2(0, item, "MediaItem*") then -- Active take has already been saved
+                local track = reaper.GetMediaItem_Track(item)
+                if allTracks or track == activeTrack then
+                    local take = reaper.GetActiveTake(item)
+                    if take and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then                  
+                        tTakeInfo[take] = {item = item, track = track} --, source = source, ppq = ppq, sourceLenTicks = sourceLenTicks, loopStartTick = loopStartTick}
+                    end
+                end
+            end
+        end
+    end
+
+    globalLeftmostItemStartTimePos = math.huge
+    globalRightmostItemEndTimePos  = -math.huge
+    
+    for take, t in pairs(tTakeInfo) do
+        -- Find MIDI source length and PPQ.  
+        -- Source length will be used in other contexts too: When script terminates, check that no inadvertent shifts in PPQ position occurred.
+        t.source = reaper.GetMediaItemTake_Source(take)
+        local sourceLenQN, isQN = reaper.GetMediaSourceLength(t.source)
+        local sourceStartQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
+        t.ppq = reaper.MIDI_GetPPQPosFromProjQN(take, sourceStartQN + 1) 
+        t.sourceLenTicks = (sourceLenQN*t.ppq)//1
+        -- Find loop iteration closest to mouse position
+        t.itemStartTimePos = reaper.GetMediaItemInfo_Value(t.item, "D_POSITION")
+        t.sourceStartTimePos = t.itemStartTimePos - reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
+        t.itemEndTimePos = t.itemStartTimePos + reaper.GetMediaItemInfo_Value(t.item, "D_LENGTH")
+        
+        if t.itemStartTimePos < globalLeftmostItemStartTimePos then globalLeftmostItemStartTimePos = t.itemStartTimePos end
+        if t.itemEndTimePos > globalRightmostItemEndTimePos then globalRightmostItemEndTimePos = t.itemEndTimePos end
+        
+        local mouseTime = mouseOrigTimePos
+        if mouseTime < t.itemStartTimePos then mouseTime = t.itemStartTimePos+0.0001 end
+        if mouseTime > t.itemEndTimePos then mouseTime = t.itemEndTimePos-0.0001 end
+        local mouseTick = reaper.MIDI_GetPPQPosFromProjTime(take, mouseTime)//1
+        t.loopStartTick = (mouseTick // t.sourceLenTicks) * t.sourceLenTicks -- When converting ticks and time, must always add loopStartTick to event posision.
+        
+        t.itemFirstVisibleTick = math.ceil(reaper.MIDI_GetPPQPosFromProjTime(take, t.itemStartTimePos)) 
+        t.itemLastVisibleTick  = math.floor(reaper.MIDI_GetPPQPosFromProjTime(take, t.itemEndTimePos)) -- 1 -- -1 is important, since this function returns tick that immediately *follows* the time position.
+        t.minimumTick = math.max(0, t.itemFirstVisibleTick)
+        t.maximumTick = math.min(t.sourceLenTicks, t.itemLastVisibleTick)
+    end
+end
+
+
 --[[ Why parse using two passes?  
         1) In order to improve responsiveness, the script must display zones as quickly as possible. Zones require only global left/right positions and values.
         2) If every individual event is separated into a separate table entry in tMIDI, concatenation will be much slower.  
@@ -2718,268 +3144,299 @@ end
 --############################
 ------------------------------
 function ParseMidi_FirstPass()
-    local i = -1 
-    local tGroups = tGroups
-    origValueMin, origValueMax = math.huge, -math.huge
-    
-    if laneIsALL then
-    
-        do ::getNextEvt::
-            i = reaper.MIDI_EnumSelEvts(activeTake, i)
-            if i == -1 then 
-                goto gotAllEvts 
-            else
-                local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(activeTake, i, true, false, 0, "")
-                local status = msg:byte(1)&0xF0
-                if msg:byte(1) == 0xFF then
-                    if not tGroups.text then tGroups.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                elseif status == 0xF0 then
-                    if not tGroups.sysex then tGroups.sysex = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                elseif status == 0x90 then
-                    if not tGroups.notes then tGroups.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                elseif status == 0xB0 then
-                    if not tGroups[msg:sub(1,2)] then tGroups[msg:sub(1,2)] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                elseif status > 0xB0 then
-                    if not tGroups[msg:byte(1)] then tGroups[msg:byte(1)] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end                           
-                end
-                origTickLeftmost    = origTickLeftmost or ppqpos
-                origTickRightmost   = ppqpos
-                goto getNextEvt
-            end
-        ::gotAllEvts:: end
-        
-        --[[ Quickly check if there are any selected notes and text/sysex
-        if reaper.MIDI_EnumSelNotes(activeTake, -1) ~= -1 then tGroups.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-        if reaper.MIDI_EnumSelTextSysexEvts(activeTake, -1) ~= -1 then tGroups.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-        
-        -- Must iterate through all selected CCs, since they are separated into groups
-        do ::getNextCC::
-            i = reaper.MIDI_EnumSelCC(activeTake, i)
-            if i == -1 then 
-                goto gotAllCCs
-            else
-                local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(activeTake, i)
-                local group = (chanmsg == 0xB0) and string.char(chanmsg|chan, msg2) or (chanmsg|chan)
-                if not tGroups[group] then tGroups[group] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                goto getNextCC
-            end
-        ::gotAllCCs:: end
-        
-        -- Get first and last selected event (which may, for example, be a note's note-off)
-        local firstEvt = reaper.MIDI_EnumSelEvts(activeTake, -1)
-        local lastEvt  = firstEvt
-        do ::getNextEvt::
-            local i = reaper.MIDI_EnumSelEvts(activeTake, lastEvt)
-            if i ~= -1 then 
-                lastEvt = i 
-                goto getNextEvt
-            else
-                goto gotAllEvts
-            end
-        ::gotAllEvts:: end
-        
-        -- laneIsALL only needs global left and right positions, not any global values
-        local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(activeTake, firstEvt, true, false, 0, "")
-        if ok then origTickLeftmost = ppqpos end
-        local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(activeTake, lastEvt, true, false, 0, "")
-        if ok then origTickRightmost = ppqpos end
-        ]]
 
-    elseif laneIsNOTES then
+    -- Note that the global positions use time, whereas the within-take positions use ticks.  
+    origLeftmostTime, origLeftmostValue, origRightmostTime, origRightmostValue, origNoteOffTime, origMaxValue, origMinValue = math.huge, nil, -math.huge, nil, -math.huge, -math.huge, math.huge
     
-        origTickLeftmost, origNoteOffTick = nil, -math.huge
-        tGroups.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}}
-        do ::getNextNote:: 
-            i = reaper.MIDI_EnumSelNotes(activeTake, i)
-            if i == -1 then 
-                goto gotAllNotes
-            else
-                local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(activeTake, i)
-                origTickLeftmost    = origTickLeftmost or startppqpos
-                origValueLeftmost   = origValueLeftmost or vel
-                origTickRightmost   = ppqpos
-                if endppqpos > origNoteOffTick then 
-                    origNoteOffTick   = endppqpos 
-                    origValueRightmost  = vel
-                end 
-                if vel > origValueMax then origValueMax = vel end
-                if vel < origValueMin then origValueMin = vel end
-                goto getNextNote
-            end
-        ::gotAllNotes:: end
+    for take, tInfo in pairs(tTakeInfo) do
         
-    elseif laneIsCC7BIT or laneIsCC14BIT then
+        local t = {} -- Each distinct lane/channel that is used in this take, will get a table entry in t, which will later be stored in tGroups.
+        local i = - 1 -- Starting index for enumeration of events 
+         takeMinValue, takeMaxValue, takeLeftmostTick, takeRightmostTick, takeNoteOffTick, takeLeftmostValue, takeRightmostValue = math.huge, -math.huge, nil, nil, -math.huge, nil, nil
+        
+        if laneIsALL then
+        
+            do ::getNextEvt::
+                i = reaper.MIDI_EnumSelEvts(take, i)
+                if i == -1 then 
+                    goto gotAllEvts 
+                else
+                    local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, i, true, false, 0, "")
+                    local status = msg:byte(1)&0xF0
+                    -- Each event type gets a distinctive group key.  Note that CCs require two bytes, for status, channel and number.
+                    if msg:byte(1) == 0xFF then
+                        if not t.text then t.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                    elseif status == 0xF0 then
+                        if not t.sysex then t.sysex = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                    elseif status == 0x90 then
+                        if not t.notes then t.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                    elseif status == 0xB0 then
+                        if not t[msg:sub(1,2)] then t[msg:sub(1,2)] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                    elseif status > 0xB0 then
+                        if not t[msg:byte(1)] then t[msg:byte(1)] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end                           
+                    end
+                    takeLeftmostTick    = takeLeftmostTick or ppqpos
+                    takeRightmostTick   = ppqpos
+                    goto getNextEvt
+                end
+            ::gotAllEvts:: end
+            
+            --[[ Quickly check if there are any selected notes and text/sysex
+            if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then t.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+            if reaper.MIDI_EnumSelTextSysexEvts(take, -1) ~= -1 then t.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+            
+            -- Must iterate through all selected CCs, since they are separated into groups
+            do ::getNextCC::
+                i = reaper.MIDI_EnumSelCC(take, i)
+                if i == -1 then 
+                    goto gotAllCCs
+                else
+                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, i)
+                    local group = (chanmsg == 0xB0) and string.char(chanmsg|chan, msg2) or (chanmsg|chan)
+                    if not t[group] then t[group] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                    goto getNextCC
+                end
+            ::gotAllCCs:: end
+            
+            -- Get first and last selected event (which may, for example, be a note's note-off)
+            local firstEvt = reaper.MIDI_EnumSelEvts(take, -1)
+            local lastEvt  = firstEvt
+            do ::getNextEvt::
+                local i = reaper.MIDI_EnumSelEvts(take, lastEvt)
+                if i ~= -1 then 
+                    lastEvt = i 
+                    goto getNextEvt
+                else
+                    goto gotAllEvts
+                end
+            ::gotAllEvts:: end
+            
+            -- laneIsALL only needs orig left and right positions, not any orig values
+            local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, firstEvt, true, false, 0, "")
+            if ok then takeLeftmostTick = ppqpos end
+            local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, lastEvt, true, false, 0, "")
+            if ok then takeRightmostTick = ppqpos end
+            ]]
     
-        local ccType = laneIsCC14BIT and (mouseOrigCCLane-256) or mouseOrigCCLane -- Since we are only interested in finding ticks positions and used channels, no need to get LSB for 14 bit CCs
-        do ::getNextCC::
-            i = reaper.MIDI_EnumSelCC(activeTake, i)
-            if i == -1 then 
-                goto gotAllCCs
-            else
-                local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(activeTake, i)
-                if msg2 == ccType and chanmsg == 0xB0 then --and (editAllChannels or chan == activeChannel) then 
-                    if not tGroups[chan] then tGroups[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
-                    origValueLeftmost   = origValueLeftmost or msg3
-                    origValueRightmost  = msg3
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                    if msg3 > origValueMax then origValueMax = msg3 end
-                    if msg3 < origValueMin then origValueMin = msg3 end
-                    
-                    --[[if not origValueLeftmost or (ppqpos == origTickLeftmost and chan == activeChan) then
-                        origValueLeftmost   = msg3
-                        origTickLeftmost    = ppqpos
-                    end
-                    if (chan == activeChan or ppqpos ~= origTickRightmost) then
-                        origValueRightmost  = msg3
-                        origTickRightmost   = ppqpos
-                    end
-                    ]]
-                    --[[if tGroups[chan] then 
-                        tGroups[chan].right = ppqpos 
-                    else 
-                        --tGroups[chan] = {left = ppqpos, right = ppqpos, tTicks = {}, tPrevTicks = {}, tIndices = {}, tMsg = {}, tMsg2 = {}, tValues = {}, tTicks = {}, tChannels = {}, tFlags = {}, tFlags2 = {}, tPitches = {}, tLengths = {}, tMeta = {}, tDelete = {}} 
-                        tGroups[chan] = {left = ppqpos, right = ppqpos, tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} 
+        elseif laneIsNOTES then
+        
+            do ::getNextNote:: 
+                i = reaper.MIDI_EnumSelNotes(take, i)
+                if i == -1 then 
+                    goto gotAllNotes
+                else
+                    local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i)
+                    takeLeftmostTick    = takeLeftmostTick or startppqpos
+                    takeLeftmostValue   = takeLeftmostValue or vel
+                    takeRightmostTick   = startppqpos
+                    if vel > takeMaxValue then takeMaxValue = vel end
+                    if vel < takeMinValue then takeMinValue = vel end
+                    if endppqpos > takeNoteOffTick then 
+                        takeNoteOffTick   = endppqpos 
+                        takeRightmostValue  = vel
+                    end 
+                    goto getNextNote
+                end
+            ::gotAllNotes:: end
+            if takeLeftmostTick then t.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+            
+        elseif laneIsCC7BIT or laneIsCC14BIT then
+        
+            local ccType = laneIsCC14BIT and (mouseOrigCCLane-256) or mouseOrigCCLane -- Since we are only interested in finding ticks positions and used channels, no need to get LSB for 14 bit CCs
+            do ::getNextCC::
+                i = reaper.MIDI_EnumSelCC(take, i)
+                if i == -1 then 
+                    goto gotAllCCs
+                else
+                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, i)
+                    if msg2 == ccType and chanmsg == 0xB0 then --and (editAllChannels or chan == activeChannel) then 
+                        if not t[chan] then t[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
+                        takeLeftmostValue   = takeLeftmostValue or msg3
+                        takeRightmostValue  = msg3
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                        if msg3 > takeMaxValue then takeMaxValue = msg3 end
+                        if msg3 < takeMinValue then takeMinValue = msg3 end
                         
-                    end]]
+                        --[[if not takeLeftmostValue or (ppqpos == takeLeftmostTick and chan == activeChan) then
+                            takeLeftmostValue   = msg3
+                            takeLeftmostTick    = ppqpos
+                        end
+                        if (chan == activeChan or ppqpos ~= takeRightmostTick) then
+                            takeRightmostValue  = msg3
+                            takeRightmostTick   = ppqpos
+                        end
+                        ]]
+                        --[[if t[chan] then 
+                            t[chan].right = ppqpos 
+                        else 
+                            --t[chan] = {left = ppqpos, right = ppqpos, tTicks = {}, tPrevTicks = {}, tIndices = {}, tMsg = {}, tMsg2 = {}, tValues = {}, tTicks = {}, tChannels = {}, tFlags = {}, tFlags2 = {}, tPitches = {}, tLengths = {}, tMeta = {}, tDelete = {}} 
+                            t[chan] = {left = ppqpos, right = ppqpos, tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} 
+                            
+                        end]]
+                    end
+                    goto getNextCC
                 end
-                goto getNextCC
-            end
-        ::gotAllCCs:: end
-        if laneIsCC14BIT and origValueLeftmost then origValueLeftmost, origValueRightmost, origValueMin, origValueMax = origValueLeftmost<<7, origValueRightmost<<7, origValueMin<<7, origValueMax<<7 end
+            ::gotAllCCs:: end
+            if laneIsCC14BIT and takeLeftmostValue then takeMinValue, takeMaxValue, takeLeftmostValue, takeRightmostValue = takeMinValue<<7, takeMaxValue<<7, takeLeftmostValue<<7, takeRightmostValue<<7 end
+            
+        elseif laneIsPROGRAM then
         
-    elseif laneIsPROGRAM then
+            do ::getNextCC::
+                i = reaper.MIDI_EnumSelCC(take, i)
+                if i == -1 then 
+                    goto gotAllCCs
+                else
+                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2 = reaper.MIDI_GetCC(take, i)
+                    if chanmsg == 0xC0 then 
+                        if not t[chan] then t[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
+                        takeLeftmostValue   = takeLeftmostValue or msg2
+                        takeRightmostValue  = msg2
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                        if msg2 > takeMaxValue then takeMaxValue = msg2 end
+                        if msg2 < takeMinValue then takeMinValue = msg2 end
+                    end
+                    goto getNextCC
+                end
+            ::gotAllCCs:: end
+            
+        elseif laneIsCHANPRESS then
+        
+            do ::getNextCC::
+                i = reaper.MIDI_EnumSelCC(take, i)
+                if i == -1 then 
+                    goto gotAllCCs
+                else
+                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2 = reaper.MIDI_GetCC(take, i)
+                    if chanmsg == 0xD0 then 
+                        if not t[chan] then t[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
+                        takeLeftmostValue   = takeLeftmostValue or msg2
+                        takeRightmostValue  = msg2
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                        if msg2 > takeMaxValue then takeMaxValue = msg2 end
+                        if msg2 < takeMinValue then takeMinValue = msg2 end
+                    end
+                    goto getNextCC
+                end
+            ::gotAllCCs:: end
+            
+        elseif laneIsPITCH then
+        
+            do ::getNextCC::
+                i = reaper.MIDI_EnumSelCC(take, i)
+                if i == -1 then 
+                    goto gotAllCCs
+                else
+                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, i)
+                    if chanmsg == 0xE0 then --and (editAllChannels or chan == activeChannel) then 
+                        local value = ((msg3<<7) | msg2)
+                        if not t[chan] then t[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
+                        takeLeftmostValue   = takeLeftmostValue or value
+                        takeRightmostValue  = value
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                        if value > takeMaxValue then takeMaxValue = value end
+                        if value < takeMinValue then takeMinValue = value end
+                    end
+                    goto getNextCC
+                end
+            ::gotAllCCs:: end
+            
+        elseif laneIsTEXT then
+            
+            do ::getNextEvt::
+                i = reaper.MIDI_EnumSelEvts(take, i)
+                if i == -1 then 
+                    goto gotAllEvts 
+                else
+                    local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, i, true, false, 0, "")
+                    if msg:byte(1) == 0xFF and msg:byte(2) ~= 0xF then
+                        if not t.text then t.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                    end
+                    goto getNextEvt
+                end
+            ::gotAllEvts:: end
     
-        do ::getNextCC::
-            i = reaper.MIDI_EnumSelCC(activeTake, i)
-            if i == -1 then 
-                goto gotAllCCs
-            else
-                local OK, selected, muted, ppqpos, chanmsg, chan, msg2 = reaper.MIDI_GetCC(activeTake, i)
-                if chanmsg == 0xC0 then 
-                    if not tGroups[chan] then tGroups[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
-                    origValueLeftmost   = origValueLeftmost or msg2
-                    origValueRightmost  = msg2
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                    if msg2 > origValueMax then origValueMax = msg2 end
-                    if msg2 < origValueMin then origValueMin = msg2 end
+        elseif laneIsSYSEX then
+            
+            do ::getNextEvt::
+                i = reaper.MIDI_EnumSelEvts(take, i)
+                if i == -1 then 
+                    goto gotAllEvts 
+                else
+                    local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, i, true, false, 0, "")
+                    if msg:byte(1)&0xF0 == 0xF0 and msg:byte(1) ~= 0xFF then
+                        if not t.sysex then t.sysex = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                    end
+                    goto getNextEvt
                 end
-                goto getNextCC
-            end
-        ::gotAllCCs:: end
+            ::gotAllEvts:: end
+            
+        elseif laneIsBANKPROG then
         
-    elseif laneIsCHANPRESS then
-    
-        do ::getNextCC::
-            i = reaper.MIDI_EnumSelCC(activeTake, i)
-            if i == -1 then 
-                goto gotAllCCs
-            else
-                local OK, selected, muted, ppqpos, chanmsg, chan, msg2 = reaper.MIDI_GetCC(activeTake, i)
-                if chanmsg == 0xD0 then 
-                    if not tGroups[chan] then tGroups[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
-                    origValueLeftmost   = origValueLeftmost or msg2
-                    origValueRightmost  = msg2
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                    if msg2 > origValueMax then origValueMax = msg2 end
-                    if msg2 < origValueMin then origValueMin = msg2 end
+            do ::getNextCC::
+                i = reaper.MIDI_EnumSelCC(take, i)
+                if i == -1 then 
+                    goto gotAllCCs
+                else
+                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, i)
+                    local id
+                    if chanmsg == 0xC0 then -- Program
+                        id = chanmsg|chan
+                    elseif chanmsg == 0xB0 and (msg2 == 0 or msg2 == 32) then -- Bank select, MSB or LSB
+                        id = string.char(chanmsg|chan, msg2)
+                    end
+                    if id then
+                        if not t[id] then t[id] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
+                        takeLeftmostTick    = takeLeftmostTick or ppqpos
+                        takeRightmostTick   = ppqpos
+                    end
+                    goto getNextCC
                 end
-                goto getNextCC
-            end
-        ::gotAllCCs:: end
+            ::gotAllCCs:: end
         
-    elseif laneIsPITCH then
-    
-        do ::getNextCC::
-            i = reaper.MIDI_EnumSelCC(activeTake, i)
-            if i == -1 then 
-                goto gotAllCCs
+        end
+        
+        if takeLeftmostTick and takeRightmostTick and takeLeftmostTick <= takeRightmostTick then
+            takeRightmostTick  = takeRightmostTick or takeNoteOffTick
+            if takeNoteOffTick < takeRightmostTick then takeNoteOffTick = takeRightmostTick end
+            local takeLeftmostTime  = tTimeFromTick[take][takeLeftmostTick]
+            local takeRightmostTime = tTimeFromTick[take][takeRightmostTick]
+            local takeNoteOffTime   = tTimeFromTick[take][takeNoteOffTick]
+            
+            -- When calculating the edge *values*, the active take and active channel takes precedence, so the the Tilt zone, will be drawn next to 
+            if take == activeTake then 
+                if takeLeftmostTime  <= origLeftmostTime  then origLeftmostTime, origLeftmostValue = takeLeftmostTime, takeLeftmostValue end
+                if takeRightmostTime >= origRightmostTime then origRightmostTime, origRightmostValue = takeRightmostTime, takeRightmostValue end
             else
-                local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(activeTake, i)
-                if chanmsg == 0xE0 then --and (editAllChannels or chan == activeChannel) then 
-                    local value = ((msg3<<7) | msg2)
-                    if not tGroups[chan] then tGroups[chan] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}, tChase = {}} end
-                    origValueLeftmost   = origValueLeftmost or value
-                    origValueRightmost  = value
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                    if value > origValueMax then origValueMax = value end
-                    if value < origValueMin then origValueMin = value end
-                end
-                goto getNextCC
+                if takeLeftmostTime  < origLeftmostTime  then origLeftmostTime, origLeftmostValue = takeLeftmostTime, takeLeftmostValue end
+                if takeRightmostTime > origRightmostTime then origRightmostTime, origRightmostValue = takeRightmostTime, takeRightmostValue end
             end
-        ::gotAllCCs:: end
-        
-    elseif laneIsTEXT then
-        
-        do ::getNextEvt::
-            i = reaper.MIDI_EnumSelEvts(activeTake, i)
-            if i == -1 then 
-                goto gotAllEvts 
-            else
-                local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(activeTake, i, true, false, 0, "")
-                if msg:byte(1) == 0xFF and msg:byte(2) ~= 0xF then
-                    if not tGroups.text then tGroups.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                end
-                goto getNextEvt
-            end
-        ::gotAllEvts:: end
+            if takeNoteOffTime > origNoteOffTime then origNoteOffTime = takeNoteOffTime end
+            if takeMaxValue > origMaxValue then origMaxValue = takeMaxValue end
+            if takeMinValue < origMinValue then origMinValue = takeMinValue end
+            tInfo.origLeftmostTick = takeLeftmostTick
+            tInfo.origRightmostTick = takeRightmostTick
 
-    elseif laneIsSYSEX then
-        
-        do ::getNextEvt::
-            i = reaper.MIDI_EnumSelEvts(activeTake, i)
-            if i == -1 then 
-                goto gotAllEvts 
-            else
-                local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(activeTake, i, true, false, 0, "")
-                if msg:byte(1)&0xF0 == 0xF0 and msg:byte(1) ~= 0xFF then
-                    if not tGroups.sysex then tGroups.sysex = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                end
-                goto getNextEvt
-            end
-        ::gotAllEvts:: end
-        
-    elseif laneIsBANKPROG then
+            tGroups[take] = t
+        else
+            --tTakeInfo[take] = nil
+        end
+    end -- for take, t in pairs(tGroups)
     
-        do ::getNextCC::
-            i = reaper.MIDI_EnumSelCC(activeTake, i)
-            if i == -1 then 
-                goto gotAllCCs
-            else
-                local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(activeTake, i)
-                local id
-                if chanmsg == 0xC0 then -- Program
-                    id = chanmsg|chan
-                elseif chanmsg == 0xB0 and msg2 == 0 then -- Bank select
-                    id = string.char(chanmsg|chan, msg2)
-                end
-                if id then
-                    if not tGroups[id] then tGroups[id] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                    origTickLeftmost    = origTickLeftmost or ppqpos
-                    origTickRightmost   = ppqpos
-                end
-                goto getNextCC
-            end
-        ::gotAllCCs:: end
-    
-    end
-    
-    origTickRightmost = origTickRightmost or origNoteOffTick
-    origNoteOffTick   = origNoteOffTick or origTickRightmost
-    if origValueMin > origValueMax then
-        origValueMin, origValueMax = laneMinValue, laneMaxValue
-    end 
-    tSteps[0] = { globalMinValue    = origValueMin,       globalMaxValue    = origValueMax,
-                  globalLeftTick    = origTickLeftmost,   globalRightTick   = origTickRightmost, 
-                  globalLeftValue   = origValueLeftmost,  globalRightValue  = origValueRightmost,
-                  globalNoteOffTick = origNoteOffTick}
+    tSteps[0] = { --tGroups = tGroups,
+                  globalLeftmostTime  = origLeftmostTime,   globalRightmostTime   = origRightmostTime, 
+                  globalMaxValue      = origMaxValue,       globalMinValue        = origMinValue,
+                  globalLeftmostValue = origLeftmostValue,  globalRightmostValue  = origRightmostValue,
+                  globalNoteOffTime   = origNoteOffTime
+                }
+
 end
 
 
@@ -2993,588 +3450,592 @@ end
             In order to know which channels contain selected CCs, the selected CCs must first be parsed, *after* which the unselected ones can be parsed in a second pass.
 ]]
 function ParseMidi_SecondPass()
-
-    getAllEvtsOK, MIDIString = reaper.MIDI_GetAllEvts(activeTake, "")
-        if not getAllEvtsOK then reaper.MB("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0) return "QUIT" end
-      
-    local tMIDI = tMIDI
-    -- The abstracted info of targeted MIDI events (that will be edited) will be will be stored in
-    --    several new tables such as tTicks and tValues.
-    --[[ Clean up these tables in case starting again after sorting.
-    local tI  = tIndices -- Indices of target events inside tMIDI -- will not change during editing
-    local tO  = tPrevTicks -- Original offsets to events -- will not change during editing
-    local tT  = tTicks -- Tick position of edited events -- tSteps[0] contain the original tick positions
-    local tM  = tMsg
-    local tM2 = tMsg2
-    local tV  = tValues -- CC values, 14bit CC combined values, note velocities
-    local tC  = tChannels
-    local tF  = tFlags
-    local tF2 = tFlags2 -- Flags of second event of multi-part events: 14bit CC LSB, or note note-offs.
-    local tP  = tPitches -- This table will only be filled if laneIsVELOCITY / laneIsPIANOROLL / laneIsOFFVEL / laneIsNOTES
-    local tOff  = tLengths -- Not lengths.  When editing all, lanes, will only be filled at indices that refer to notes.
-    local tQ  = tMeta -- Meta events such as notation or Bézier tension.  Will only be filled at indices where notes have notation or CCs have tension.
-    local e = 0]]
     
-    -- This script does not scroll the MIDI editor if the mouse moves out of the client area, so the only CCs that
-    --    may need to be deleted, are those visible in the editor. Only those will be separated into entries in tMIDI.
-    local leftTickLimit = math.min(origTickLeftmost, ME_LeftmostTick)
-    local rightTickLimit = math.max(origTickRightmost, ME_RightmostTick) -- !!!!!!!!!!!!!!!!! length 
+    for take, tID in pairs(tGroups) do
     
-    -- Store LSB and MSB info in this table, so that can be combined with next matching CC while parsing.
-    local t14 = {}
-    local tNotes = {}
-    for chan = 0, 15 do 
-        t14[chan], tNotes[chan] = {}, nil --{} 
-    end        
-  
-    -- The entire MIDI string does not need to be parsed.  
-    -- Instead, go on till ticks reached beyond rightTickLimit, *and* got at least one further event that can be chased in each group.
-    local tBeyond = {}
-    for grp, t in pairs(tGroups) do
-        if not (grp == "sysex" or grp == "text") then
-            tBeyond[grp] = true
-        end
-    end
-    --[[ Store note-on info
-    local tNotes = {}
-    if laneIsVELOCITY or laneIsPIANOROLL or laneIsOFFVEL then   
+        local getAllEvtsOK, MIDI = reaper.MIDI_GetAllEvts(take, "")
+            if not getAllEvtsOK then reaper.MB("MIDI_GetAllEvts could not load the raw MIDI data.", "ERROR", 0) return "QUIT" end
+          
+        tTakeInfo[take].origMIDI = MIDI
+        tMIDI[take] = {}
+        local tMIDI = tMIDI[take]
+        -- The abstracted info of targeted MIDI events (that will be edited) will be will be stored in
+        --    several new tables such as tTicks and tValues.
+        --[[ Clean up these tables in case starting again after sorting.
+        local tI  = tIndices -- Indices of target events inside tMIDI -- will not change during editing
+        local tO  = tPrevTicks -- Original offsets to events -- will not change during editing
+        local tT  = tTicks -- Tick position of edited events -- tSteps[0] contain the original tick positions
+        local tM  = tMsg
+        local tM2 = tMsg2
+        local tV  = tValues -- CC values, 14bit CC combined values, note velocities
+        local tC  = tChannels
+        local tF  = tFlags
+        local tF2 = tFlags2 -- Flags of second event of multi-part events: 14bit CC LSB, or note note-offs.
+        local tP  = tPitches -- This table will only be filled if laneIsVELOCITY / laneIsPIANOROLL / laneIsOFFVEL / laneIsNOTES
+        local tOff  = tLengths -- Not lengths.  When editing all, lanes, will only be filled at indices that refer to notes.
+        local tQ  = tMeta -- Meta events such as notation or Bézier tension.  Will only be filled at indices where notes have notation or CCs have tension.
+        local e = 0]]
+        
+        -- This script does not scroll the MIDI editor if the mouse moves out of the client area, so the only CCs that
+        --    may need to be deleted, are those visible in the editor. Only those will be separated into entries in tMIDI.
+        local leftTickLimit  = math.min(tTakeInfo[take].origLeftmostTick,  tTickFromTime[take][ME_LeftmostTime]) -- tTakeInfo[take].loopStartTick)
+        local rightTickLimit = math.max(tTakeInfo[take].origRightmostTick, tTickFromTime[take][ME_RightmostTime]) -- tTakeInfo[take].loopStartTick) -- !!!!!!!!!!!!!!!!! length 
+        tTakeInfo[take].leftTickLimit  = leftTickLimit
+        tTakeInfo[take].rightTickLimit = rightTickLimit
+        
+        local origNoteOffTick = tTickFromTime[take][origNoteOffTime]
+        
+        -- Store LSB and MSB info in this table, so that can be combined with next matching CC while parsing.
+        local t14 = {}
+        local tNotes = {}
         for chan = 0, 15 do 
-            tNotes[chan] = {} 
-            for pitch = 0, 127 do
-                tNotes[chan][pitch] = {}
+            t14[chan], tNotes[chan] = {}, nil --{} 
+        end        
+        
+        -- The entire MIDI string does not need to be parsed.  
+        -- Instead, go on till ticks reached beyond rightTickLimit, *and* got at least one further event that can be chased in each group.
+        local tBeyond = {}
+        for grp, t in pairs(tID) do
+            if not (grp == "sysex" or grp == "text") then
+                tBeyond[grp] = true
             end
         end
-    end]]
-    
-    local prevPos, savePos = 1, 1 -- Position inside MIDI string while parsing / Last position not yet stored in tMIDI
-    local ticks = 0 -- Running PPQ position of events while parsing
-    --local offset, flags, msg
-    
-    local MIDI, MIDILen = MIDIString, #MIDIString
-    local targetLane = mouseOrigCCLane
-    local s_unpack, s_pack = string.unpack, string.pack
-
-    if laneIsALL or laneIsPIANOROLL or laneIsBANKPROG then
-        local tGrpN, tGrpT, tGrpS = tGroups.notes, tGroups.text, tGroups.sysex
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if ticks > rightTickLimit then break end
-            if #msg >= 2 then
-                local status = msg:byte(1)&0xF0
-                local tGrpCC = tGroups[  (status == 0xB0) and msg:sub(1,2) or msg:byte(1)  ] -- CCs require two byte to distinguish their group: channel + lane
-                -- Text and notation
-                if msg:byte(1) == 0xFF then
-                    -- Notation meta
-                    -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes (prior to v5.9??)
-                    --    but this code assumes that notation follows *before* the note-off.
-                    if offset == 0 and msg:sub(2,6) == "\15NOTE" then
-                        if tGrpN then
-                            local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ")
-                            if notationChannel and notationPitch then
-                                notationChannel = tonumber(notationChannel)
-                                notationPitch   = tonumber(notationPitch)
-                                local saved = tNotes[(notationPitch<<4) | notationChannel]
-                                if saved then
-                                    if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                                    tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, 0) -- Delete form tMIDI, since will be combined with note-on and note-off at note-on's entry
-                                    tGrpN.tQ[saved] = MIDI:sub(prevPos, pos-1)
-                                    savePos = pos
-                                end
-                            end
-                        end
-                    elseif flags&1 == 1 then 
-                        if tGrpT then
-                            if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                            tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1) --(pos-#msg-5, pos-1)
-                            savePos = pos
-                            local i = #tGrpT.tT + 1
-                            tGrpT.tI[i], tGrpT.tA[i] = #tMIDI, ticks-offset
-                            tGrpT.tT[i], tGrpT.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
-                        end
-                    end
-                elseif status == 0xF0 then
-                    if tGrpS and flags&1 == 1 then
-                        if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
-                        savePos = pos
-                        local i = #tGrpS.tT + 1
-                        tGrpS.tI[i], tGrpS.tA[i] = #tMIDI, ticks-offset
-                        tGrpS.tT[i], tGrpS.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
-                    end
-                -- Notes
-                -- Note-on
-                elseif status == 0x90 and msg:byte(3) ~= 0 then
-                    if tGrpN and flags&1 == 1 then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = ""
-                        savePos = pos
-                        local i = #tGrpN.tT+1
-                        tGrpN.tI[i], tGrpN.tA[i] = #tMIDI, ticks-offset
-                        tGrpN.tT[i], tGrpN.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
-                        local id = (msg:byte(2)<<4) | (msg:byte(1)&0x0F)
-                        if tNotes[id] then 
-                            reaper.MB("The script encountered overlapping notes, which cannot be parsed.\n\nOverlapping notes can be removed using the \"Correct overlapping notes\" action", "ERROR", 0)
-                            return "QUIT"
-                        else 
-                            tNotes[id] = i 
-                        end
-                    end
-                -- Note-off
-                elseif status == 0x80 or (status == 0x90 and msg:byte(3) == 0) then
-                    if tGrpN and flags&1 == 1 then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = s_pack("i4", offset) .. "\0\0\0\0\0" -- Delete note-off from this position. If note-off has no note-on partner, will remain deleted.
-                        savePos = pos
-                        local id = (msg:byte(2)<<4) | (msg:byte(1)&0x0F)
-                        local saved = tNotes[id]
-                        if saved then
-                            tGrpN.tOff[saved] = ticks
-                            --t.tF2[saved]  = flags
-                            tGrpN.tM2[saved]  = MIDI:sub(prevPos+4, pos-1) --msg
-                        end
-                        if ticks >= origNoteOffTick then tGrpN.noteWithLastNoteOff = saved end
-                        tNotes[id] = nil
-                    end
-                -- CCs
-                elseif tGrpCC then    
-                    if flags&1 == 1 then 
-                        if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
-                        --local t = tGroups[msg:byte(1)]
-                        local i = #tGrpCC.tT + 1
-                        tGrpCC.tI[i], tGrpCC.tA[i], tGrpCC.tT[i] = #tMIDI, ticks-offset, ticks
-                        if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
-                            tGrpCC.tM[i] = MIDI:sub(prevPos+4, pos+20) 
-                            pos = pos + 21
-                        else
-                            tGrpCC.tM[i] = MIDI:sub(prevPos+4, pos-1)
-                        end
-                        savePos = pos
-                    elseif leftTickLimit < ticks and ticks < rightTickLimit then
-                        tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
-                        tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
-                        savePos = pos
-                        tGrpCC.tD[#tGrpCC.tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
-                    end
+        --[[ Store note-on info
+        local tNotes = {}
+        if laneIsVELOCITY or laneIsPIANOROLL or laneIsOFFVEL then   
+            for chan = 0, 15 do 
+                tNotes[chan] = {} 
+                for pitch = 0, 127 do
+                    tNotes[chan][pitch] = {}
                 end
             end
-            prevPos = pos
-        end
-    elseif laneIsCC7BIT then
-        while prevPos < MIDILen do -- and next(tBeyond) do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if #msg ~= 0 and msg:byte(2) == targetLane and (msg:byte(1))>>4 == 11 then
-                local grp = msg:byte(1)&0x0F
-                local t = tGroups[grp]
-                if t then
-                    if flags&1==1 then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end --pos-#msg-10)
-                        tMIDI[#tMIDI+1] = "" --if tMIDI[#tMIDI] ~= "" then tMIDI[#tMIDI+1] = "" end
-                        local i = #t.tT + 1
-                        if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[i] = MIDI:sub(pos, pos+20) pos = pos + 21 end
-                        savePos = pos
-                        t.tI[i], t.tA[i] = #tMIDI, ticks-offset
-                        t.tT[i], t.tF[i], t.tC[i], t.tV[i] = ticks, flags, msg:byte(1)&0x0F, msg:byte(3) -- tC not actually necessary, since ID = chan
-                    else
-                        if ticks < leftTickLimit then
-                            t.tChase[1] = {ticks = ticks, value = msg:byte(3)} --chaseIndex = 1 --local tChase = tGroups[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
-                        elseif ticks <= rightTickLimit then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(3)}
-
+        end]]
+        
+        local prevPos, savePos = 1, 1 -- Position inside MIDI string while parsing / Last position not yet stored in tMIDI
+        local ticks = 0 -- Running PPQ position of events while parsing
+        --local offset, flags, msg
+        
+        local MIDILen = #MIDI
+        local targetLane = mouseOrigCCLane
+        local s_unpack, s_pack = string.unpack, string.pack
+    
+        if laneIsALL or laneIsPIANOROLL or laneIsBANKPROG then
+            local tGrpN, tGrpT, tGrpS = tID.notes, tID.text, tID.sysex
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if ticks > rightTickLimit then break end
+                if #msg >= 2 then
+                    local status = msg:byte(1)&0xF0
+                    local tGrpCC = tID[  (status == 0xB0) and msg:sub(1,2) or msg:byte(1)  ] -- CCs require two byte to distinguish their group: channel + lane
+                    -- Text and notation
+                    if msg:byte(1) == 0xFF then
+                        -- Notation meta
+                        -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes (prior to v5.9??)
+                        --    but this code assumes that notation follows *before* the note-off.
+                        if offset == 0 and msg:sub(2,6) == "\15NOTE" then
+                            if tGrpN then
+                                local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ")
+                                if notationChannel and notationPitch then
+                                    notationChannel = tonumber(notationChannel)
+                                    notationPitch   = tonumber(notationPitch)
+                                    local saved = tNotes[(notationPitch<<4) | notationChannel]
+                                    if saved then
+                                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                                        tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, 0) -- Delete form tMIDI, since will be combined with note-on and note-off at note-on's entry
+                                        tGrpN.tQ[saved] = MIDI:sub(prevPos, pos-1)
+                                        savePos = pos
+                                    end
+                                end
+                            end
+                        elseif flags&1 == 1 then 
+                            if tGrpT then
+                                if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                                tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1) --(pos-#msg-5, pos-1)
+                                savePos = pos
+                                local i = #tGrpT.tT + 1
+                                tGrpT.tI[i], tGrpT.tA[i] = #tMIDI, ticks-offset
+                                tGrpT.tT[i], tGrpT.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+                            end
+                        end
+                    elseif status == 0xF0 then
+                        if tGrpS and flags&1 == 1 then
+                            if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
+                            savePos = pos
+                            local i = #tGrpS.tT + 1
+                            tGrpS.tI[i], tGrpS.tA[i] = #tMIDI, ticks-offset
+                            tGrpS.tT[i], tGrpS.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+                        end
+                    -- Notes
+                    -- Note-on
+                    elseif status == 0x90 and msg:byte(3) ~= 0 then
+                        if tGrpN and flags&1 == 1 then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = ""
+                            savePos = pos
+                            local i = #tGrpN.tT+1
+                            tGrpN.tI[i], tGrpN.tA[i] = #tMIDI, ticks-offset
+                            tGrpN.tT[i], tGrpN.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+                            local id = (msg:byte(2)<<4) | (msg:byte(1)&0x0F)
+                            if tNotes[id] then 
+                                reaper.MB("The script encountered overlapping notes, which cannot be parsed.\n\nOverlapping notes can be removed using the \"Correct overlapping notes\" action", "ERROR", 0)
+                                return "QUIT"
+                            else 
+                                tNotes[id] = i 
+                            end
+                        end
+                    -- Note-off
+                    elseif status == 0x80 or (status == 0x90 and msg:byte(3) == 0) then
+                        if tGrpN and flags&1 == 1 then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = s_pack("i4", offset) .. "\0\0\0\0\0" -- Delete note-off from this position. If note-off has no note-on partner, will remain deleted.
+                            savePos = pos
+                            local id = (msg:byte(2)<<4) | (msg:byte(1)&0x0F)
+                            local saved = tNotes[id]
+                            if saved then
+                                tGrpN.tOff[saved] = ticks
+                                --t.tF2[saved]  = flags
+                                tGrpN.tM2[saved]  = MIDI:sub(prevPos+4, pos-1) --msg
+                            end
+                            if ticks >= origNoteOffTick then tGrpN.noteWithLastNoteOff = saved end
+                            tNotes[id] = nil
+                        end
+                    -- CCs
+                    elseif tGrpCC then    
+                        if flags&1 == 1 then 
+                            if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
+                            --local t = tID[msg:byte(1)]
+                            local i = #tGrpCC.tT + 1
+                            tGrpCC.tI[i], tGrpCC.tA[i], tGrpCC.tT[i] = #tMIDI, ticks-offset, ticks
+                            if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then 
+                                tGrpCC.tM[i] = MIDI:sub(prevPos+4, pos+20) 
+                                pos = pos + 21
+                            else
+                                tGrpCC.tM[i] = MIDI:sub(prevPos+4, pos-1)
+                            end
+                            savePos = pos
+                        elseif leftTickLimit < ticks and ticks < rightTickLimit then
                             tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
                             tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
                             savePos = pos
-                            local tD = t.tD
-                            tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
-                        elseif tBeyond[grp] then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(3)}
-                            tBeyond[grp] = nil
-                            if not next(tBeyond) then break end
+                            tGrpCC.tD[#tGrpCC.tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
                         end
                     end
                 end
+                prevPos = pos
             end
-            prevPos = pos
-        end
-    elseif laneIsCC14BIT then
-        local targetLaneMSB, targetLaneLSB = targetLane-256, targetLane-224
-        local tRunning = {} -- Running 14-bit value.  Its MSB and LSB will be updated whenever a MSB or LSB is parsed.
-        for grp in pairs(tGroups) do tRunning[grp] = 0 end
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if #msg ~= 0 and (msg:byte(1))>>4 == 11 then
-                local grp = msg:byte(1)&0x0F
-                local t = tGroups[grp]
-                if t then
-                    local lane
-                    if msg:byte(2) == targetLaneMSB and "MSB" then
-                        lane = "MSB"
-                        tRunning[grp] = (msg:byte(3)<<7)|(tRunning[grp]&0x7F)
-                    elseif msg:byte(2) == targetLaneLSB then
-                        lane = "LSB"
-                        tRunning[grp] = (tRunning[grp]&0xFF80)|msg:byte(3)
-                    end
-                    if lane then
-                        if flags&1==1 then           
-                            if lane == "MSB" then --msg:byte(2) == targetLaneMSB then
-                                tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1)
-                                tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, "")
-                                local meta = (MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ ") and MIDI:sub(pos, pos+20) or nil
-                                if meta then pos = pos + 21 end
-                                savePos = pos                               
-                                local saved = t14[grp][ticks]
-                                if saved and saved.valueLSB then -- combine with saved values, store in tGroups, delete record
-                                    local i = #t.tT + 1
-                                    t.tI[i], t.tA[i], t.tQ[i]   = #tMIDI, ticks-offset, meta
-                                    t.tT[i], t.tF[i], t.tF2[i]  = ticks, flags, saved.flagsLSB
-                                    t.tC[i], t.tV[i]            = grp, (msg:byte(3)<<7)|(saved.valueLSB) -- tC not actually necessary, since ID = chan
-                                    t14[grp][ticks] = nil
-                                else -- save info, delete from midi string
-                                    t14[grp][ticks] = {valueMSB = msg:byte(3), flagsMSB = flags, meta = meta}
-                                end
-                            else --if msg:byte(2) == targetLaneLSB then
-                                tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1)
-                                tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, "") -- LSB does not have envelope meta data
-                                savePos = pos
-                                local saved = t14[grp][ticks]
-                                if saved and saved.valueMSB then -- combine with saved values, store in tGroups, delete record
-                                    local i = #t.tT + 1
-                                    t.tI[i], t.tA[i], t.tQ[i]   = #tMIDI, ticks-offset, saved.meta
-                                    t.tT[i], t.tF[i], t.tF2[i]  = ticks, saved.flagsMSB, flags
-                                    t.tC[i], t.tV[i]            = grp, ((saved.valueMSB)<<7)|msg:byte(3) -- tC not actually necessary, since ID = chan
-                                    t14[grp][ticks] = nil
-                                else -- save info, delete from midi string
-                                    t14[grp][ticks] = {valueLSB = msg:byte(3), flagsLSB = flags}
-                                end
-                            end -- if msg:byte(2) == targetLaneMSB then
-                        else -- Unselected
+        elseif laneIsCC7BIT then
+            while prevPos < MIDILen do -- and next(tBeyond) do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if #msg ~= 0 and msg:byte(2) == targetLane and (msg:byte(1))>>4 == 11 then
+                    local grp = msg:byte(1)&0x0F
+                    local t = tID[grp]
+                    if t then
+                        if flags&1==1 then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end --pos-#msg-10)
+                            tMIDI[#tMIDI+1] = "" --if tMIDI[#tMIDI] ~= "" then tMIDI[#tMIDI+1] = "" end
+                            local i = #t.tT + 1
+                            if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[i] = MIDI:sub(pos, pos+20) pos = pos + 21 end
+                            savePos = pos
+                            t.tI[i], t.tA[i] = #tMIDI, ticks-offset
+                            t.tT[i], t.tF[i], t.tC[i], t.tV[i] = ticks, flags, msg:byte(1)&0x0F, msg:byte(3) -- tC not actually necessary, since ID = chan
+                        else
                             if ticks < leftTickLimit then
-                                t.tChase[1] = {ticks = ticks, value = tRunning[grp]}
+                                t.tChase[1] = {ticks = ticks, value = msg:byte(3)} --chaseIndex = 1 --local tChase = tID[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
                             elseif ticks <= rightTickLimit then
-                                if #t.tChase ~= 0 and ticks == t.tChase[#t.tChase].ticks then
-                                    t.tChase[#t.tChase].value = tRunning[grp]
-                                else
-                                    t.tChase[#t.tChase+1] = {ticks = ticks, value = tRunning[grp]}
-                                end
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(3)}
+    
                                 tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
                                 tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
                                 savePos = pos
                                 local tD = t.tD
                                 tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
                             elseif tBeyond[grp] then
-                                if #t.tChase ~= 0 and ticks == t.tChase[#t.tChase].ticks then
-                                    t.tChase[#t.tChase].value = tRunning[grp]
-                                    tBeyond[grp] = nil
-                                    if not next(tBeyond) then break end
-                                else
-                                    t.tChase[#t.tChase+1] = {ticks = ticks, value = tRunning[grp]}
-                                end                  
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(3)}
+                                tBeyond[grp] = nil
+                                if not next(tBeyond) then break end
                             end
-                            
-                            --if chaseIndex then t.tChase[chaseIndex] = {ticks = ticks, value = tRunning[grp]} end
-                            --if not next(tBeyond) then break end
-                            
-                            --[[local chaseIndex = (ticks < leftTickLimit and 1) or 
-                                local oldValue = 0
-                                if t.tChase[#t.tChase] and t.tChase[#t.tChase].ticks == ticks then
-                                    local oldValue = t.tChase[#t.tChase].value
-                                    tChase[#t.tChase] = {ticks = ticks, value = (oldValue&0xFF80)|(msg:byte(3))}
-                                end
-                                    
-                                    
-                            --local lane = (msg:byte(2) == targetLaneMSB and "MSB") or (msg:byte(2) == targetLaneLSB and "LSB") or nil
-                            --if lane then
+                        end
+                    end
+                end
+                prevPos = pos
+            end
+        elseif laneIsCC14BIT then
+            local targetLaneMSB, targetLaneLSB = targetLane-256, targetLane-224
+            local tRunning = {} -- Running 14-bit value.  Its MSB and LSB will be updated whenever a MSB or LSB is parsed.
+            for grp in pairs(tID) do tRunning[grp] = 0 end
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if #msg ~= 0 and (msg:byte(1))>>4 == 11 then
+                    local grp = msg:byte(1)&0x0F
+                    local t = tID[grp]
+                    if t then
+                        local lane
+                        if msg:byte(2) == targetLaneMSB and "MSB" then
+                            lane = "MSB"
+                            tRunning[grp] = (msg:byte(3)<<7)|(tRunning[grp]&0x7F)
+                        elseif msg:byte(2) == targetLaneLSB then
+                            lane = "LSB"
+                            tRunning[grp] = (tRunning[grp]&0xFF80)|msg:byte(3)
+                        end
+                        if lane then
+                            if flags&1==1 then           
                                 if lane == "MSB" then --msg:byte(2) == targetLaneMSB then
-                                    
-                                    tChase[1] = {ticks = ticks, value = (msg:byte(3)<<7)|(oldValue&0x007F)}
+                                    tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1)
+                                    tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, "")
+                                    local meta = (MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ ") and MIDI:sub(pos, pos+20) or nil
+                                    if meta then pos = pos + 21 end
+                                    savePos = pos                               
+                                    local saved = t14[grp][ticks]
+                                    if saved and saved.valueLSB then -- combine with saved values, store in tID, delete record
+                                        local i = #t.tT + 1
+                                        t.tI[i], t.tA[i], t.tQ[i]   = #tMIDI, ticks-offset, meta
+                                        t.tT[i], t.tF[i], t.tF2[i]  = ticks, flags, saved.flagsLSB
+                                        t.tC[i], t.tV[i]            = grp, (msg:byte(3)<<7)|(saved.valueLSB) -- tC not actually necessary, since ID = chan
+                                        t14[grp][ticks] = nil
+                                    else -- save info, delete from midi string
+                                        t14[grp][ticks] = {valueMSB = msg:byte(3), flagsMSB = flags, meta = meta}
+                                    end
                                 else --if msg:byte(2) == targetLaneLSB then
-                                    local tChase1 = tGroups[msg:byte(1)&0x0F].tChase
-                                    local 
+                                    tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1)
+                                    tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, "") -- LSB does not have envelope meta data
+                                    savePos = pos
+                                    local saved = t14[grp][ticks]
+                                    if saved and saved.valueMSB then -- combine with saved values, store in tID, delete record
+                                        local i = #t.tT + 1
+                                        t.tI[i], t.tA[i], t.tQ[i]   = #tMIDI, ticks-offset, saved.meta
+                                        t.tT[i], t.tF[i], t.tF2[i]  = ticks, saved.flagsMSB, flags
+                                        t.tC[i], t.tV[i]            = grp, ((saved.valueMSB)<<7)|msg:byte(3) -- tC not actually necessary, since ID = chan
+                                        t14[grp][ticks] = nil
+                                    else -- save info, delete from midi string
+                                        t14[grp][ticks] = {valueLSB = msg:byte(3), flagsLSB = flags}
+                                    end
+                                end -- if msg:byte(2) == targetLaneMSB then
+                            else -- Unselected
+                                if ticks < leftTickLimit then
+                                    t.tChase[1] = {ticks = ticks, value = tRunning[grp]}
+                                elseif ticks <= rightTickLimit then
+                                    if #t.tChase ~= 0 and ticks == t.tChase[#t.tChase].ticks then
+                                        t.tChase[#t.tChase].value = tRunning[grp]
+                                    else
+                                        t.tChase[#t.tChase+1] = {ticks = ticks, value = tRunning[grp]}
+                                    end
+                                    tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
+                                    tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
+                                    savePos = pos
+                                    local tD = t.tD
+                                    tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
+                                elseif tBeyond[grp] then
+                                    if #t.tChase ~= 0 and ticks == t.tChase[#t.tChase].ticks then
+                                        t.tChase[#t.tChase].value = tRunning[grp]
+                                        tBeyond[grp] = nil
+                                        if not next(tBeyond) then break end
+                                    else
+                                        t.tChase[#t.tChase+1] = {ticks = ticks, value = tRunning[grp]}
+                                    end                  
                                 end
+                                
+                                --if chaseIndex then t.tChase[chaseIndex] = {ticks = ticks, value = tRunning[grp]} end
+                                --if not next(tBeyond) then break end
+                                
+                                --[[local chaseIndex = (ticks < leftTickLimit and 1) or 
+                                    local oldValue = 0
+                                    if t.tChase[#t.tChase] and t.tChase[#t.tChase].ticks == ticks then
+                                        local oldValue = t.tChase[#t.tChase].value
+                                        tChase[#t.tChase] = {ticks = ticks, value = (oldValue&0xFF80)|(msg:byte(3))}
+                                    end
+                                        
+                                        
+                                --local lane = (msg:byte(2) == targetLaneMSB and "MSB") or (msg:byte(2) == targetLaneLSB and "LSB") or nil
+                                --if lane then
+                                    if lane == "MSB" then --msg:byte(2) == targetLaneMSB then
+                                        
+                                        tChase[1] = {ticks = ticks, value = (msg:byte(3)<<7)|(oldValue&0x007F)}
+                                    else --if msg:byte(2) == targetLaneLSB then
+                                        local tChase1 = tID[msg:byte(1)&0x0F].tChase
+                                        local 
+                                    end
+                                elseif ticks <= rightTickLimit then
+                                    tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) -- Exclude offset, which won't change when deleting with empty event
+                                    tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1)
+                                    savePos = pos
+                                    local tD = tID[msg:byte(1)&0x0F].tD
+                                    tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
+                                end]]
+                            end
+                        end
+                    end -- if t
+                end -- if #msg ~= 0 and (msg:byte(1))>>4 == 11 then
+                prevPos = pos
+            end -- while prevPos < MIDILen do
+        elseif laneIsPITCH then
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if #msg ~= 0 and (msg:byte(1)&0xF0) == 0xE0 then
+                    local grp = msg:byte(1)&0x0F
+                    local t = tID[grp]
+                    if t then
+                        if flags&1==1 then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = ""
+                            local e = #t.tT + 1
+                            if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[e] = MIDI:sub(pos, pos+20) pos = pos + 21 end
+                            savePos = pos
+                            t.tI[e], t.tA[e] = #tMIDI, ticks-offset
+                            t.tT[e], t.tF[e], t.tC[e], t.tV[e] = ticks, flags, msg:byte(1)&0x0F, (msg:byte(3)<<7)|msg:byte(2) -- tC not actually necessary, since ID = chan
+                        else
+                            if ticks < leftTickLimit then
+                                t.tChase[1] = {ticks = ticks, value = (msg:byte(3)<<7)|msg:byte(2)} --chaseIndex = 1 --local tChase = tID[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
                             elseif ticks <= rightTickLimit then
-                                tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) -- Exclude offset, which won't change when deleting with empty event
-                                tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1)
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = (msg:byte(3)<<7)|msg:byte(2)}
+    
+                                tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
+                                tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
                                 savePos = pos
-                                local tD = tGroups[msg:byte(1)&0x0F].tD
+                                local tD = t.tD
                                 tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
-                            end]]
+                            elseif tBeyond[grp] then
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = (msg:byte(3)<<7)|msg:byte(2)}
+                                tBeyond[grp] = nil
+                                if not next(tBeyond) then break end
+                            end
                         end
                     end
-                end -- if t
-            end -- if #msg ~= 0 and (msg:byte(1))>>4 == 11 then
-            prevPos = pos
-        end -- while prevPos < MIDILen do
-    elseif laneIsPITCH then
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if #msg ~= 0 and (msg:byte(1)&0xF0) == 0xE0 then
-                local grp = msg:byte(1)&0x0F
-                local t = tGroups[grp]
-                if t then
-                    if flags&1==1 then
+                end
+                prevPos = pos
+            end
+        elseif laneIsPROGRAM then 
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if #msg ~= 0 and (msg:byte(1)&0xF0) == 0xC0 then
+                    local grp = msg:byte(1)&0x0F
+                    local t = tID[grp]
+                    if t then
+                        if flags&1==1 then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = ""
+                            local t = tID[msg:byte(1)&0x0F]
+                            local e = #t.tT + 1
+                            if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[e] = MIDI:sub(pos, pos+20) pos = pos + 21 end
+                            savePos = pos
+                            t.tI[e], t.tA[e] = #tMIDI, ticks-offset
+                            t.tT[e], t.tF[e], t.tC[e], t.tV[e] = ticks, flags, msg:byte(1)&0x0F, msg:byte(2) -- tC not actually necessary, since ID = chan
+                        else
+                            if ticks < leftTickLimit then
+                                t.tChase[1] = {ticks = ticks, value = msg:byte(2)} --chaseIndex = 1 --local tChase = tID[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
+                            elseif ticks <= rightTickLimit then
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
+                            
+                                tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
+                                tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
+                                savePos = pos
+                                local tD = t.tD
+                                tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
+                            elseif tBeyond[grp] then
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
+                                tBeyond[grp] = nil
+                                if not next(tBeyond) then break end
+                            end
+                        end
+                    end
+                end
+                prevPos = pos
+            end
+        elseif laneIsCHANPRESS then 
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if #msg ~= 0 and (msg:byte(1)&0xF0) == 0xD0 then
+                    local grp = msg:byte(1)&0x0F
+                    local t = tID[grp]
+                    if t then
+                        if flags&1==1 then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = ""
+                            local t = tID[msg:byte(1)&0x0F]
+                            local e = #t.tT + 1
+                            if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[e] = MIDI:sub(pos, pos+20) pos = pos + 21 end
+                            savePos = pos
+                            t.tI[e], t.tA[e] = #tMIDI, ticks-offset
+                            t.tT[e], t.tF[e], t.tC[e], t.tV[e] = ticks, flags, msg:byte(1)&0x0F, msg:byte(2) -- tC not actually necessary, since ID = chan
+                        else                        
+                            if ticks < leftTickLimit then
+                                t.tChase[1] = {ticks = ticks, value = msg:byte(2)} --chaseIndex = 1 --local tChase = tID[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
+                            elseif ticks <= rightTickLimit then
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
+                            
+                                tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
+                                tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
+                                savePos = pos
+                                local tD = t.tD
+                                tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
+                            elseif tBeyond[grp] then
+                                t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
+                                tBeyond[grp] = nil
+                                if not next(tBeyond) then break end
+                            end
+                        end
+                    end
+                end
+                prevPos = pos
+            end
+        --[[elseif laneIsVELOCITY or laneIsOFFVEL then 
+            local t = tID.notes
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if flags&1==1 and #msg == 3 then 
+                    -- Note-on
+                    if msg:byte(1)>>4 == 9 and msg:byte(3) ~= 0 then
                         if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
                         tMIDI[#tMIDI+1] = ""
-                        local e = #t.tT + 1
-                        if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[e] = MIDI:sub(pos, pos+20) pos = pos + 21 end
                         savePos = pos
-                        t.tI[e], t.tA[e] = #tMIDI, ticks-offset
-                        t.tT[e], t.tF[e], t.tC[e], t.tV[e] = ticks, flags, msg:byte(1)&0x0F, (msg:byte(3)<<7)|msg:byte(2) -- tC not actually necessary, since ID = chan
-                    else
-                        if ticks < leftTickLimit then
-                            t.tChase[1] = {ticks = ticks, value = (msg:byte(3)<<7)|msg:byte(2)} --chaseIndex = 1 --local tChase = tGroups[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
-                        elseif ticks <= rightTickLimit then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = (msg:byte(3)<<7)|msg:byte(2)}
-
-                            tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
-                            tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
+                        local i = #t.tT+1
+                        t.tI[i], t.tA[i] = #tMIDI, ticks-offset
+                        t.tT[i], t.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+                        tNotes[msg:byte(1)&0x0F][msg:byte(2)] = i 
+                    -- Note-off
+                    elseif msg:byte(1)>>4 == 8 or (msg:byte(1)>>4 == 9 and msg:byte(3) == 0) then
+                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                        tMIDI[#tMIDI+1] = s_pack("i4", offset) .. "\0\0\0\0\0" -- Delete note-off from this position. If note-off has no note-on partner, will remain deleted.
+                        savePos = pos
+                        local saved = tNotes[msg:byte(1)&0x0F][msg:byte(2)]
+                        if saved then
+                            t.tOff[saved] = ticks
+                            --t.tF2[saved]  = flags
+                            t.tM2[saved]  = MIDI:sub(prevPos+4, pos-1)
+                        end
+                        if ticks >= origNoteOffTick then t.noteWithLastNoteOff = saved end
+                        tNotes[msg:byte(1)&0x0F][msg:byte(2)] = nil
+                    end
+                -- Notation meta
+                -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes (prior to v5.9??)
+                --    but this code assumes that notation follows *before* the note-off.
+                elseif offset == 0 and msg:sub(1,6) == "\255\15NOTE" then
+                    local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ")
+                    if notationChannel and notationPitch then
+                        notationChannel = tonumber(notationChannel)
+                        notationPitch   = tonumber(notationPitch)
+                        local saved = tNotes[notationChannel] and tNotes[notationChannel][notationPitch]
+                        if saved then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, 0) -- Delete form tMIDI, since will be combined with note-on and note-off at note-on's entry
+                            t.tQ[saved] = MIDI:sub(prevPos, pos-1)
                             savePos = pos
-                            local tD = t.tD
-                            tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
-                        elseif tBeyond[grp] then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = (msg:byte(3)<<7)|msg:byte(2)}
-                            tBeyond[grp] = nil
-                            if not next(tBeyond) then break end
                         end
                     end
-                end
-            end
-            prevPos = pos
-        end
-    elseif laneIsPROGRAM then 
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if #msg ~= 0 and (msg:byte(1)&0xF0) == 0xC0 then
-                local grp = msg:byte(1)&0x0F
-                local t = tGroups[grp]
-                if t then
-                    if flags&1==1 then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = ""
-                        local t = tGroups[msg:byte(1)&0x0F]
-                        local e = #t.tT + 1
-                        if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[e] = MIDI:sub(pos, pos+20) pos = pos + 21 end
-                        savePos = pos
-                        t.tI[e], t.tA[e] = #tMIDI, ticks-offset
-                        t.tT[e], t.tF[e], t.tC[e], t.tV[e] = ticks, flags, msg:byte(1)&0x0F, msg:byte(2) -- tC not actually necessary, since ID = chan
-                    else
-                        if ticks < leftTickLimit then
-                            t.tChase[1] = {ticks = ticks, value = msg:byte(2)} --chaseIndex = 1 --local tChase = tGroups[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
-                        elseif ticks <= rightTickLimit then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
-                        
-                            tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
-                            tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
-                            savePos = pos
-                            local tD = t.tD
-                            tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
-                        elseif tBeyond[grp] then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
-                            tBeyond[grp] = nil
-                            if not next(tBeyond) then break end
-                        end
-                    end
-                end
-            end
-            prevPos = pos
-        end
-    elseif laneIsCHANPRESS then 
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if #msg ~= 0 and (msg:byte(1)&0xF0) == 0xD0 then
-                local grp = msg:byte(1)&0x0F
-                local t = tGroups[grp]
-                if t then
-                    if flags&1==1 then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = ""
-                        local t = tGroups[msg:byte(1)&0x0F]
-                        local e = #t.tT + 1
-                        if MIDI:sub(pos, pos+15) == "\0\0\0\0\0\12\0\0\0\255\15CCBZ " then t.tQ[e] = MIDI:sub(pos, pos+20) pos = pos + 21 end
-                        savePos = pos
-                        t.tI[e], t.tA[e] = #tMIDI, ticks-offset
-                        t.tT[e], t.tF[e], t.tC[e], t.tV[e] = ticks, flags, msg:byte(1)&0x0F, msg:byte(2) -- tC not actually necessary, since ID = chan
-                    else                        
-                        if ticks < leftTickLimit then
-                            t.tChase[1] = {ticks = ticks, value = msg:byte(2)} --chaseIndex = 1 --local tChase = tGroups[msg:byte(1)&0x0F].tChase[1] = {ticks = ticks, value = msg:byte(3)}
-                        elseif ticks <= rightTickLimit then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
-                        
-                            tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos+3) --pos-#msg-6) -- Exclude offset, which won't change when deleting with empty event
-                            tMIDI[#tMIDI+1] = MIDI:sub(prevPos+4, pos-1) --(pos-#msg-5, pos-1)
-                            savePos = pos
-                            local tD = t.tD
-                            tD[#tD+1] = {index = #tMIDI, id = msg:byte(1)&0x0F, ticks = ticks, flagsMsg = tMIDI[#tMIDI]}
-                        elseif tBeyond[grp] then
-                            t.tChase[#t.tChase+1] = {ticks = ticks, value = msg:byte(2)}
-                            tBeyond[grp] = nil
-                            if not next(tBeyond) then break end
-                        end
-                    end
-                end
-            end
-            prevPos = pos
-        end
-    --[[elseif laneIsVELOCITY or laneIsOFFVEL then 
-        local t = tGroups.notes
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if flags&1==1 and #msg == 3 then 
-                -- Note-on
-                if msg:byte(1)>>4 == 9 and msg:byte(3) ~= 0 then
-                    if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                    tMIDI[#tMIDI+1] = ""
-                    savePos = pos
-                    local i = #t.tT+1
-                    t.tI[i], t.tA[i] = #tMIDI, ticks-offset
-                    t.tT[i], t.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
-                    tNotes[msg:byte(1)&0x0F][msg:byte(2)] = i 
-                -- Note-off
-                elseif msg:byte(1)>>4 == 8 or (msg:byte(1)>>4 == 9 and msg:byte(3) == 0) then
-                    if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                    tMIDI[#tMIDI+1] = s_pack("i4", offset) .. "\0\0\0\0\0" -- Delete note-off from this position. If note-off has no note-on partner, will remain deleted.
-                    savePos = pos
-                    local saved = tNotes[msg:byte(1)&0x0F][msg:byte(2)]
-                    if saved then
-                        t.tOff[saved] = ticks
-                        --t.tF2[saved]  = flags
-                        t.tM2[saved]  = MIDI:sub(prevPos+4, pos-1)
-                    end
-                    if ticks >= origNoteOffTick then t.noteWithLastNoteOff = saved end
-                    tNotes[msg:byte(1)&0x0F][msg:byte(2)] = nil
-                end
-            -- Notation meta
-            -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes (prior to v5.9??)
-            --    but this code assumes that notation follows *before* the note-off.
-            elseif offset == 0 and msg:sub(1,6) == "\255\15NOTE" then
-                local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ")
-                if notationChannel and notationPitch then
-                    notationChannel = tonumber(notationChannel)
-                    notationPitch   = tonumber(notationPitch)
-                    local saved = tNotes[notationChannel] and tNotes[notationChannel][notationPitch]
-                    if saved then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, 0) -- Delete form tMIDI, since will be combined with note-on and note-off at note-on's entry
-                        t.tQ[saved] = MIDI:sub(prevPos, pos-1)
-                        savePos = pos
-                    end
-                end
-            end            
-            prevPos = pos
-        end]]
-    -- The data that is stored for Velocity and off-velocity only differ in tV.
-    elseif laneIsVELOCITY or laneIsOFFVEL then 
-        local t = tGroups.notes
-        while prevPos < MIDILen do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if flags&1==1 and #msg == 3 then 
-                -- Note-on
-                if msg:byte(1)>>4 == 9 and msg:byte(3) ~= 0 then
-                    if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                    tMIDI[#tMIDI+1] = ""
-                    savePos = pos
-                    local i = #t.tT+1
-                    t.tI[i], t.tA[i] = #tMIDI, ticks-offset
-                    t.tT[i], t.tF[i], t.tC[i], t.tP[i], t.tM[i] = ticks, flags, msg:byte(1)&0x0F, msg:byte(2), msg
-                    local id = (msg:byte(2)<<4) | msg:byte(1)&0x0F
-                    if tNotes[id] then 
-                        reaper.MB("The script encountered overlapping notes, which cannot be parsed.\n\nOverlapping notes can be removed using the \"Correct overlapping notes\" action", "ERROR", 0)
-                        return "QUIT"
-                    else
-                        tNotes[id] = i 
-                    end
-                -- Note-off
-                elseif msg:byte(1)>>4 == 8 or (msg:byte(1)>>4 == 9 and msg:byte(3) == 0) then
-                    if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                    tMIDI[#tMIDI+1] = s_pack("i4", offset) .. "\0\0\0\0\0" -- Delete note-off from this position. If note-off has no note-on partner, will remain deleted.
-                    savePos = pos
-                    local id = (msg:byte(2)<<4) | msg:byte(1)&0x0F
-                    local saved = tNotes[id]
-                    if saved then
-                        t.tOff[saved] = ticks -- - t.tT[saved]
-                        t.tF2[saved]  = flags
-                        t.tM2[saved]  = msg
-                    end
-                    if ticks >= origNoteOffTick then t.noteWithLastNoteOff = saved end
-                    tNotes[id] = nil
-                end
-            -- Notation meta
-            -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes (prior to v5.9??)
-            --    but this code assumes that notation follows *before* the note-off.
-            elseif offset == 0 and msg:sub(1,6) == "\255\15NOTE" then
-                local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ")
-                if notationChannel and notationPitch then
-                    notationChannel = tonumber(notationChannel)
-                    notationPitch   = tonumber(notationPitch)
-                    local saved = tNotes[(notationPitch<<4) | notationChannel]
-                    if saved then
-                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                        tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, 0) -- Delete form tMIDI, since will be combined with note-on and note-off at note-on's entry
-                        t.tQ[saved] = MIDI:sub(prevPos, pos-1)
-                        savePos = pos
-                    end
-                end
-            end            
-            prevPos = pos
-        end
+                end            
+                prevPos = pos
+            end]]
         -- The data that is stored for Velocity and off-velocity only differ in tV.
-        local tM = laneIsVELOCITY and t.tM or t.tM2
-        local tV = t.tV
-        for i = 1, #tM do
-            tV[i] = tM[i]:byte(3)
-        end
-    elseif laneIsTEXT then
-        local tGrpT = tGroups.text
-        while prevPos < MIDILen and ticks <= rightTickLimit do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if flags&1 == 1 and msg ~= 0 and msg:byte(1) == 0xFF and msg:byte(2) ~= 0x0F then
-                if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
-                savePos = pos
-                local i = #tGrpT.tT + 1
-                tGrpT.tI[i], tGrpT.tA[i] = #tMIDI, ticks-offset
-                tGrpT.tT[i], tGrpT.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+        elseif laneIsVELOCITY or laneIsOFFVEL then 
+            local t = tID.notes
+            while prevPos < MIDILen do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if flags&1==1 and #msg == 3 then 
+                    -- Note-on
+                    if msg:byte(1)>>4 == 9 and msg:byte(3) ~= 0 then
+                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                        tMIDI[#tMIDI+1] = ""
+                        savePos = pos
+                        local i = #t.tT+1
+                        t.tI[i], t.tA[i] = #tMIDI, ticks-offset
+                        t.tT[i], t.tF[i], t.tC[i], t.tP[i], t.tM[i] = ticks, flags, msg:byte(1)&0x0F, msg:byte(2), msg
+                        local id = (msg:byte(2)<<4) | msg:byte(1)&0x0F
+                        if tNotes[id] then 
+                            reaper.MB("The script encountered overlapping notes, which cannot be parsed.\n\nOverlapping notes can be removed using the \"Correct overlapping notes\" action", "ERROR", 0)
+                            return "QUIT"
+                        else
+                            tNotes[id] = i 
+                        end
+                    -- Note-off
+                    elseif msg:byte(1)>>4 == 8 or (msg:byte(1)>>4 == 9 and msg:byte(3) == 0) then
+                        if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                        tMIDI[#tMIDI+1] = s_pack("i4", offset) .. "\0\0\0\0\0" -- Delete note-off from this position. If note-off has no note-on partner, will remain deleted.
+                        savePos = pos
+                        local id = (msg:byte(2)<<4) | msg:byte(1)&0x0F
+                        local saved = tNotes[id]
+                        if saved then
+                            t.tOff[saved] = ticks -- - t.tT[saved]
+                            t.tF2[saved]  = flags
+                            t.tM2[saved]  = msg
+                        end
+                        if ticks >= origNoteOffTick then t.noteWithLastNoteOff = saved end
+                        tNotes[id] = nil
+                    end
+                -- Notation meta
+                -- Unlike Bezier meta events, notation events don't immediately follow their correspnding notes (prior to v5.9??)
+                --    but this code assumes that notation follows *before* the note-off.
+                elseif offset == 0 and msg:sub(1,6) == "\255\15NOTE" then
+                    local notationChannel, notationPitch = msg:match("NOTE (%d+) (%d+) ")
+                    if notationChannel and notationPitch then
+                        notationChannel = tonumber(notationChannel)
+                        notationPitch   = tonumber(notationPitch)
+                        local saved = tNotes[(notationPitch<<4) | notationChannel]
+                        if saved then
+                            if savePos < prevPos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                            tMIDI[#tMIDI+1] = s_pack("i4Bs4", offset, 0, 0) -- Delete form tMIDI, since will be combined with note-on and note-off at note-on's entry
+                            t.tQ[saved] = MIDI:sub(prevPos, pos-1)
+                            savePos = pos
+                        end
+                    end
+                end            
+                prevPos = pos
             end
-            prevPos = pos
-        end
-    elseif laneIsSYSEX then
-        local tGrpT = tGroups.text
-        while prevPos < MIDILen and ticks <= rightTickLimit do
-            local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
-            ticks = ticks + offset
-            if flags&1 == 1 and msg ~= 0 and msg:byte(1)&0xF0 == 0xF0 and msg:byte(1) ~= 0xFF then
-                if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
-                tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
-                savePos = pos
-                local i = #tGrpT.tT + 1
-                tGrpT.tI[i], tGrpT.tA[i] = #tMIDI, ticks-offset
-                tGrpT.tT[i], tGrpT.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+            -- The data that is stored for Velocity and off-velocity only differ in tV.
+            local tM = laneIsVELOCITY and t.tM or t.tM2
+            local tV = t.tV
+            for i = 1, #tM do
+                tV[i] = tM[i]:byte(3)
             end
-            prevPos = pos
+        elseif laneIsTEXT then
+            local tGrpT = tID.text
+            while prevPos < MIDILen and ticks <= rightTickLimit do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if flags&1 == 1 and msg ~= 0 and msg:byte(1) == 0xFF and msg:byte(2) ~= 0x0F then
+                    if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                    tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
+                    savePos = pos
+                    local i = #tGrpT.tT + 1
+                    tGrpT.tI[i], tGrpT.tA[i] = #tMIDI, ticks-offset
+                    tGrpT.tT[i], tGrpT.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+                end
+                prevPos = pos
+            end
+        elseif laneIsSYSEX then
+            local tGrpT = tID.sysex
+            while prevPos < MIDILen and ticks <= rightTickLimit do
+                local offset, flags, msg, pos = s_unpack("i4Bs4", MIDI, prevPos)
+                ticks = ticks + offset
+                if flags&1 == 1 and msg ~= 0 and msg:byte(1)&0xF0 == 0xF0 and msg:byte(1) ~= 0xFF then
+                    if prevPos > savePos then tMIDI[#tMIDI+1] = MIDI:sub(savePos, prevPos-1) end
+                    tMIDI[#tMIDI+1] = MIDI:sub(prevPos, pos-1)
+                    savePos = pos
+                    local i = #tGrpT.tT + 1
+                    tGrpT.tI[i], tGrpT.tA[i] = #tMIDI, ticks-offset
+                    tGrpT.tT[i], tGrpT.tM[i] = ticks, MIDI:sub(prevPos+4, pos-1)
+                end
+                prevPos = pos
+            end
         end
+        
+        -- Insert all unselected events remaining
+        tMIDI[#tMIDI+1] = MIDI:sub(savePos, nil)    
+        
     end
     
-    -- Insert all unselected events remaining
-    tMIDI[#tMIDI+1] = MIDI:sub(savePos, nil)    
+    tSteps[0] = {tGroups = tGroups}
+    GetAllEdgeValues(tSteps[0])
     
-    --origValueMax, origValueMin = GetMinMaxValues(tGroups)
-    --origTickLeftmost, origValueLeftmost, origTickRightmost, origValueRightmost, origValueMin, origValueMax = GetAllEdgeValues(tGroups, activeChannel)
-    
-    --origPPQleftmost, origPPQrightmost = (tTargets[1] and tTargets[1].ticks) or math.huge, (tTargets[#tTargets] and tTargets[#tTargets].ticks) or -math.huge
-    tSteps[0] =  --[[{globalLeftValue = origValueLeftmost,  globalRightValue  = origValueRightmost, 
-                  globalMinValue  = origValueMin,       globalMaxValue    = origValueMax, 
-                  globalLeftTick  = origTickLeftmost,   globalRightTick   = origTickRightmost,]]
-                  {tGroups = tGroups}
-    GetAllEdgeValues(tSteps[#tSteps])
-    return "NEXT"
+    return "NEXT"    
 end
 
 
@@ -3655,178 +4116,157 @@ end
 ------------------------------
 function CONSTRUCT_MIDI_STRING()
 
-    local s_pack = string.pack   
-    local tMIDI = tMIDI    
+    local s_pack = string.pack
     local spacer = "\0\0\0\0\0"
 
-    for id, t in pairs(tSteps[#tSteps].tGroups) do
-        local tI  = t.tI
-        local tA  = t.tA
-        local tT  = t.tT
-        local tO  = tSteps[0].tGroups[id].tT -- Original tick positions
-        local tV  = t.tV
-        local tOff  = t.tOff
-        local tM  = t.tM
-        local tM2 = t.tM2
-        local tC  = t.tC 
-        local tF  = t.tF
-        local tF2 = t.tF2
-        local tP  = t.tP
-        local tMeta = t.tQ -- Extra REAPER-specific non-MIDI metadata such as notation or Bezier tension.
-        --local tR  = tRanges
-        
-        local step = (tT[1] <= tT[#tT]) and 1 or -1
-        local e    = (tT[1] <= tT[#tT]) and 0 or #tT+1
-       
-        for i = 1, #tI do          
-            e = e + step
-            
-            local ticks = tT[e]
-            if   ticks ~= ticks then error("inf e="..tostring(e).." i="..tostring(i))
-            elseif  ticks < 0 then ticks = 0
-            elseif  ticks > sourceLengthTicks then ticks = sourceLengthTicks
-            else    ticks = (ticks+0.5)//1
-            end
-
-            local offTicks = tOff[e]
-            if offTicks then
-                if      offTicks < 0 then offTicks = 0
-                elseif  offTicks > sourceLengthTicks then offTicks = sourceLengthTicks
-                else    offTicks = (offTicks+0.5)//1
-                end
-            end
-            
-            local value = tV[e]
-            if value then
-                if      value < laneMinValue then value = laneMinValue
-                elseif  value > laneMaxValue then value = laneMaxValue
-                else    value = (value+0.5)//1
-                end
-            end
-                            
-                
-            if laneIsCC7BIT then
-                tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0xB0 | tC[e], mouseOrigCCLane, value) 
-                            .. (tMeta[e] or "") 
-                            .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
-            elseif laneIsPITCH then
-                tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0xE0 | tC[e], value&127, value>>7) 
-                            .. (tMeta[e] or "") 
-                            .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
-            elseif laneIsCHANPRESS then
-                tMIDI[tI[i]] = s_pack("i4BI4BB", ticks-tA[i], tF[e], 2, 0xD0 | tC[e], value) 
-                            .. (tMeta[e] or "") 
-                            .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
-            elseif laneIsCC14BIT then
-                tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0xB0 | tC[e], mouseOrigCCLane-256, value>>7) 
-                            .. (tMeta[e] or "")
-                            .. s_pack("i4BI4BBB", 0, tF2[e], 3, 0xB0 | tC[e], mouseOrigCCLane-224, value&127)
-                            .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
-            elseif laneIsVELOCITY then
-                tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0x90 | tC[e], tP[e], value) 
-                            .. (tMeta[e] or "")
-                            .. s_pack("i4Bs4", offTicks-ticks, tF2[e], tM2[e])
-                            .. s_pack("i4", tO[i]-offTicks) .. spacer
-            elseif laneIsOFFVEL then
-                tMIDI[tI[i]] = s_pack("i4Bs4", ticks-tA[i], tF[e], tM[e]) 
-                            .. (tMeta[e] or "")
-                            .. s_pack("i4BI4BBB", offTicks-ticks, tF2[e], 3, 0x80 | tC[e], tP[e], value)
-                            .. s_pack("i4", tO[i]-offTicks) .. spacer
-            elseif laneIsPROGRAM then
-                tMIDI[tI[i]] = s_pack("i4Bi4BB", ticks-tA[i], tF[e], 2, 0xC0 | tC[e], value) 
-                            .. (tMeta[e] or "") 
-                            .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
-            else -- all lanes that only move horizontally: if laneIsALL or laneIsTEXT or laneIsSYSEX or or laneIsBANKPROG or laneIsONLYHORZ then
-                if id == "notes" then
-                    tMIDI[tI[i]] = s_pack("i4", ticks-tA[i]) .. tM[e] 
-                            .. (tMeta[e] or "")
-                            .. s_pack("i4", offTicks-ticks) .. tM2[e]
-                            .. s_pack("i4", tO[i]-offTicks) .. "\0\0\0\0\0"
-                else
-                    tMIDI[tI[i]] = s_pack("i4", ticks-tA[i]) .. tM[e]
-                            .. (tMeta[e] or "") 
-                            .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
-                end
-            end
-        end
-        
-        -- If changing positions, delete overlapped CCs.  All CCs between original and new boundaries will be deleted -- not only those between new boundaries.
-        if tSteps[#tSteps].isChangingPositions then
-            local tD  = t.tD
-            if tD and #tD > 0 then
-                local left, right         = tT[1], tT[#tT]
-                local origLeft, origRight = tSteps[0].tGroups[id].tT[1], tSteps[0].tGroups[id].tT[#tT] -- step 0 was sorted
-                if left > right then left, right = right, left end
-                if origLeft < left then left = origLeft end
-                if origRight > right then right = origRight end
-                
-                -- Binary search
-                local hi, lo = #tD, 1
-                while hi-lo > 1 do 
-                    local mid = (lo+hi)//2
-                    if tD[mid].ticks < left then
-                        lo = mid
-                    else 
-                        hi = mid
-                    end
-                end
-
-                -- Check each target event until one is reached that is beyond left/right bounds, and also not deleted.
-                --    Since overlapped events are always deleted in a contiguous block, the first non-deleted one is 
-                for i = hi, 1, -1 do
-                    local d = tD[i]
-                    if     right < d.ticks  then tMIDI[d.index] = d.flagsMsg
-                    elseif left <= d.ticks  then tMIDI[d.index] = spacer
-                    elseif tMIDI[d.index] == spacer then tMIDI[d.index] = d.flagsMsg
-                    elseif d.ticks < left   then break
-                    end
-                end
-                
-                for i = hi+1, #tD do
-                    local d = tD[i]
-                    if     d.ticks < left   then tMIDI[d.index] = d.flagsMsg
-                    elseif d.ticks <= right then tMIDI[d.index] = spacer
-                    elseif tMIDI[d.index] == spacer then tMIDI[d.index] = d.flagsMsg
-                    elseif right < d.ticks  then break
-                    end
-                end
-                --[[
-                for i = hi+1, #tD do
-                    local d = tD[i]
-                    if left <= d.ticks and d.ticks <= right then
-                        if not d.deleted then
-                            tMIDI[d.index] = spacer
-                            d.deleted = true
-                        end
-                    elseif d.deleted then
-                        tMIDI[d.index] = d.flagsMsg
-                        d.deleted = false
-                    elseif right < d.ticks then
-                        break
-                    end
-                end]]
-            end
-          
-            --[[for i, d in ipairs(tD) do
-                if left <= d.ticks and d.ticks <= right then
-                    tMIDI[d.index] = "\0\0\0\0\0"
-                else
-                    tMIDI[d.index] = d.flagsMsg
-                end 
-            end]]
-        end
-    end        
+    for take, tID in pairs(tSteps[#tSteps].tGroups) do
     
-    -----------------------------------------------------------
-    -- DRUMROLL... write the edited events into the MIDI chunk!
-    --[[stretchMIDIString = table.concat(tMIDI)
-    reaper.MIDI_SetAllEvts(activeTake, remainMIDILeft 
-                                    .. string.pack("i4Bs4", -remainTicksLeft, 0, "")
-                                    .. stretchMIDIString 
-                                    .. string.pack("i4Bs4", remainTicksLeft-lastPPQPos, 0, "") 
-                                    .. remainMIDIRight)]]
-    reaper.MIDI_SetAllEvts(activeTake, table.concat(tMIDI))
-                                    
+        local tMIDI = tMIDI[take]
+        
+        for id, t in pairs(tID) do
+            local tI  = t.tI
+            local tA  = t.tA
+            local tT  = t.tT
+            local tO  = tSteps[0].tGroups[take][id].tT -- Original tick positions
+            local tV  = t.tV
+            local tOff  = t.tOff
+            local tM  = t.tM
+            local tM2 = t.tM2
+            local tC  = t.tC 
+            local tF  = t.tF
+            local tF2 = t.tF2
+            local tP  = t.tP
+            local tMeta = t.tQ -- Extra REAPER-specific non-MIDI metadata such as notation or Bezier tension.
+            local sourceLengthTicks = tTakeInfo[take].sourceLenTicks
+            --local tR  = tRanges
+            
+            local step = (tT[1] <= tT[#tT]) and 1 or -1
+            local e    = (tT[1] <= tT[#tT]) and 0 or #tT+1
+           
+            for i = 1, #tI do          
+                e = e + step
+                
+                local ticks = (tT[e]+0.5)//1
+                local offTicks = tOff[e] and (tOff[e]+0.5)//1
+                
+                -- If event is out of bounds, delete and replace with spacer
+                if ticks > sourceLengthTicks -- Beyond item bounds
+                or (offTicks and offTicks <= 0) -- Note, and entire note is before item start
+                or (not offTicks and ticks < 0) -- Not note, and before item start
+                then
+                    tMIDI[tI[i]] = s_pack("i4", tO[i]-tA[i]) .. spacer
+                    
+                -- Otherwise
+                else
+                    -- If note is partly inside items, trim to boundaries
+                    if offTicks then 
+                        if ticks < 0 then ticks = 0 end
+                        if offTicks > sourceLengthTicks then offTicks = sourceLengthTicks end
+                    end          
+                
+                    -- Trim values to lane min max values
+                    local value = tV[e]
+                    if value then
+                        if      value < laneMinValue then value = laneMinValue
+                        elseif  value > laneMaxValue then value = laneMaxValue
+                        else    value = (value+0.5)//1
+                        end
+                    end
+                                            
+                    if laneIsCC7BIT then
+                        tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0xB0 | tC[e], mouseOrigCCLane, value) 
+                                    .. (tMeta[e] or "") 
+                                    .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
+                    elseif laneIsPITCH then
+                        tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0xE0 | tC[e], value&127, value>>7) 
+                                    .. (tMeta[e] or "") 
+                                    .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
+                    elseif laneIsCHANPRESS then
+                        tMIDI[tI[i]] = s_pack("i4BI4BB", ticks-tA[i], tF[e], 2, 0xD0 | tC[e], value) 
+                                    .. (tMeta[e] or "") 
+                                    .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
+                    elseif laneIsCC14BIT then
+                        tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0xB0 | tC[e], mouseOrigCCLane-256, value>>7) 
+                                    .. (tMeta[e] or "")
+                                    .. s_pack("i4BI4BBB", 0, tF2[e], 3, 0xB0 | tC[e], mouseOrigCCLane-224, value&127)
+                                    .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
+                    elseif laneIsVELOCITY then
+                        tMIDI[tI[i]] = s_pack("i4BI4BBB", ticks-tA[i], tF[e], 3, 0x90 | tC[e], tP[e], value) 
+                                    .. (tMeta[e] or "")
+                                    .. s_pack("i4Bs4", offTicks-ticks, tF2[e], tM2[e])
+                                    .. s_pack("i4", tO[i]-offTicks) .. spacer
+                    elseif laneIsOFFVEL then
+                        tMIDI[tI[i]] = s_pack("i4Bs4", ticks-tA[i], tF[e], tM[e]) 
+                                    .. (tMeta[e] or "")
+                                    .. s_pack("i4BI4BBB", offTicks-ticks, tF2[e], 3, 0x80 | tC[e], tP[e], value)
+                                    .. s_pack("i4", tO[i]-offTicks) .. spacer
+                    elseif laneIsPROGRAM then
+                        tMIDI[tI[i]] = s_pack("i4Bi4BB", ticks-tA[i], tF[e], 2, 0xC0 | tC[e], value) 
+                                    .. (tMeta[e] or "") 
+                                    .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
+                    else -- all lanes that only move horizontally: if laneIsALL or laneIsTEXT or laneIsSYSEX or or laneIsBANKPROG or laneIsONLYHORZ then
+                        if id == "notes" then
+                            tMIDI[tI[i]] = s_pack("i4", ticks-tA[i]) .. tM[e] 
+                                    .. (tMeta[e] or "")
+                                    .. s_pack("i4", offTicks-ticks) .. tM2[e]
+                                    .. s_pack("i4", tO[i]-offTicks) .. "\0\0\0\0\0"
+                        else
+                            tMIDI[tI[i]] = s_pack("i4", ticks-tA[i]) .. tM[e]
+                                    .. (tMeta[e] or "") 
+                                    .. ((ticks ~= tO[i]) and (s_pack("i4", tO[i]-ticks) .. spacer) or "")
+                        end
+                    end
+                end
+            end -- for i = 1, #tI do 
+            
+            -- If changing positions, delete overlapped CCs.  All CCs between original and new boundaries will be deleted -- not only those between new boundaries.
+            if tSteps[#tSteps].isChangingPositions then
+                local tD  = t.tD
+                if tD and #tD > 0 then
+                    local left, right         = tT[1], tT[#tT]
+                    local origLeft, origRight = tSteps[0].tGroups[take][id].tT[1], tSteps[0].tGroups[take][id].tT[#tT] -- step 0 was sorted
+                    if left > right then left, right = right, left end
+                    if origLeft < left then left = origLeft end
+                    if origRight > right then right = origRight end
+                    
+                    -- Binary search
+                    local hi, lo = #tD, 1
+                    while hi-lo > 1 do 
+                        local mid = (lo+hi)//2
+                        if tD[mid].ticks < left then
+                            lo = mid
+                        else 
+                            hi = mid
+                        end
+                    end
+    
+                    -- Check each target event until one is reached that is beyond left/right bounds, and also not deleted.
+                    --    Since overlapped events are always deleted in a contiguous block, the first non-deleted one is 
+                    for i = hi, 1, -1 do
+                        local d = tD[i]
+                        if     right < d.ticks  then tMIDI[d.index] = d.flagsMsg
+                        elseif left <= d.ticks  then tMIDI[d.index] = spacer
+                        elseif tMIDI[d.index] == spacer then tMIDI[d.index] = d.flagsMsg
+                        elseif d.ticks < left   then break
+                        end
+                    end
+                    
+                    for i = hi+1, #tD do
+                        local d = tD[i]
+                        if     d.ticks < left   then tMIDI[d.index] = d.flagsMsg
+                        elseif d.ticks <= right then tMIDI[d.index] = spacer
+                        elseif tMIDI[d.index] == spacer then tMIDI[d.index] = d.flagsMsg
+                        elseif right < d.ticks  then break
+                        end
+                    end
+                end
+            end -- if tSteps[#tSteps].isChangingPositions then
+        end -- for id, t in pairs(tID) do
+        
+        reaper.MIDI_SetAllEvts(take, table.concat(tMIDI))
+        
+    end -- for take, tID in pairs(tSteps[#tSteps].tGroups) do  
+                  
     if isInline then reaper.UpdateItemInProject(activeItem) end
 end
 
@@ -3845,7 +4285,7 @@ function MAIN()
     if not reaper.MIDI_DisableSort then
         reaper.MB("This script requires REAPER v5.974 or higher.", "ERROR", 0)
         return(false) 
-    elseif not reaper.JS_LICE_WritePNG then
+    elseif not reaper.JS_Window_EnableMetal then
         reaper.ShowConsoleMsg("\n\nURL to add ReaPack repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
         reaper.ShowConsoleMsg("\n\nURL for direct download:\nhttps://github.com/juliansader/ReaExtensions")
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
@@ -3881,13 +4321,14 @@ function MAIN()
     mouseState = reaper.JS_Mouse_GetState(0xFF)    
     mouseOrigX, mouseOrigY = reaper.GetMousePosition()
     startTime = reaper.time_precise()
-    prevMouseTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
+    prevMouseInputTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
     keyState = reaper.JS_VKeys_GetState(-2):sub(VKLow, VKHi)
  
     
     -- CONFLICTING SCRIPTS
     -- Check whether other js_Mouse editing scripts are running
     if reaper.HasExtState("js_Mouse actions", "Status") then
+        reaper.DeleteExtState("js_Mouse actions", "Status", true) -- Force other script to quit, or if previous script did not quit cleanly, clean up.
         return false
     else
         reaper.SetExtState("js_Mouse actions", "Status", "Running", false)
@@ -3897,6 +4338,7 @@ function MAIN()
     -- MOUSE CURSOR AND TOOLBAR BUTTON
     -- To give an impression of quick responsiveness, the script must change the cursor and toolbar button as soon as possible.
     -- (Later, the script will block "WM_SETCURSOR" to prevent REAPER from changing the cursor back after each defer cycle.)
+    -- filename will also later be used to load cursors from the folder path.
     _, filename, sectionID, commandID = reaper.get_action_context()    
     if sectionID ~= nil and commandID ~= nil and sectionID ~= -1 and commandID ~= -1 then
         origToggleState = reaper.GetToggleCommandStateEx(sectionID, commandID)
@@ -3939,18 +4381,21 @@ function MAIN()
                             chunkStuffOK = SetupMIDIEditorInfoFromTakeChunk() 
                             if chunkStuffOK then
                                 
-                                -- Get the part of the MIDI editor that is under the mouse. The lane IDs are slightly different (and more informative) 
-                                --    then those returned by SWS's BR_ functions: -1.5 = ruler, -1 = piano roll, fractions are lane dividers
-                                mouseOrigCCLaneID = GetCCLaneIDFromPoint(mouseOrigX, mouseOrigY)
-                                if mouseOrigCCLaneID then
-                                    
-                                    -- Convert lane ID to the codes returned by reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_lane")
-                                    --    Also set laneMinValue and laneMaxValue, and set the appropriate laneIsXXX to true.
-                                    targetLaneOK, mouseOrigCCLane = SetupTargetLaneForParsing(mouseOrigCCLaneID) 
-                                    if targetLaneOK then                                    
+                                gotEditablesOK = pcall(SetupEditableTakes)
+                                if gotEditablesOK then
+                                
+                                    -- Get the part of the MIDI editor that is under the mouse. The lane IDs are slightly different (and more informative) 
+                                    --    then those returned by SWS's BR_ functions: -1.5 = ruler, -1 = piano roll, fractions are lane dividers
+                                    mouseOrigCCLaneID = GetCCLaneIDFromPoint(mouseOrigX, mouseOrigY)
+                                    if mouseOrigCCLaneID then
                                         
-                                        gotEverythingOK  = true
-                end end end end end end
+                                        -- Convert lane ID to the codes returned by reaper.MIDIEditor_GetSetting_int(editor, "last_clicked_lane")
+                                        --    Also set laneMinValue and laneMaxValue, and set the appropriate laneIsXXX to true.
+                                        targetLaneOK, mouseOrigCCLane = SetupTargetLaneForParsing(mouseOrigCCLaneID) 
+                                        if targetLaneOK then                                    
+                                            
+                                            gotEverythingOK  = true
+                end end end end end end end
 
             -- INLINE EDITOR:
             -- Is the mouse over the arrange view?  And over an inline editor?
@@ -4001,7 +4446,9 @@ function MAIN()
         elseif not activeItemOK then
             reaper.MB("Could not determine the media item to which the MIDI editor's active take belong.", "ERROR", 0)
         elseif not chunkStuffOK then
-            -- The chuck functions give their own detailed error messages if something goes awry.
+            -- The chunk functions give their own detailed error messages if something goes awry.
+        elseif not gotEditablesOK then
+            reaper.MB("Could not determine all editable takes", "ERROR", 0)        
         elseif not targetLaneOK then
             reaper.MB("One or more of the CC lanes are of unknown type, and could not be parsed by this script.", "ERROR", 0)
         end
@@ -4013,7 +4460,7 @@ function MAIN()
     end
     
     
-    -- MOUSE VALUE / PITCH
+    --[[ MOUSE VALUE / PITCH -- Starting mouse value not relevant to the script
     -- The BR_ functions have already retrieved these for the inline editor
     if midiview then
         if (mouseOrigCCLaneID == -1) and ME_TopPitch and ME_PixelsPerPitch then
@@ -4023,35 +4470,9 @@ function MAIN()
             mouseOrigPitch = -1                                        
             mouseOrigCCValue = laneMinValue + (laneMaxValue-laneMinValue) * (mouseOrigY - tME_Lanes[mouseOrigCCLaneID].ME_BottomPixel) / (tME_Lanes[mouseOrigCCLaneID].ME_TopPixel - tME_Lanes[mouseOrigCCLaneID].ME_BottomPixel)
         end
-    end
+    end]]
     
     
-    -- ITEM TICK POSITIONS
-    -- In case the item is looped, mouse PPQ position will be adjusted to equivalent position in first iteration.
-    --    * mouseOrigPPQPos will be contracted to (possibly looped) item visible boundaries
-    --    * Then get tick position relative to start of loop iteration under mouse
-    local mouseOrigPPQPos = nil
-    if isInline then
-        mouseOrigPPQPos = reaper.MIDI_GetPPQPosFromProjTime(activeTake, reaper.BR_GetMouseCursorContext_Position())
-    elseif ME_TimeBase == "beats" then
-        mouseOrigPPQPos = ME_LeftmostTick + mouseOrigX/ME_PixelsPerTick
-    else -- ME_TimeBase == "time"
-        mouseOrigPPQPos  = reaper.MIDI_GetPPQPosFromProjTime(activeTake, ME_LeftmostTime + mouseOrigX/ME_PixelsPerSecond )
-    end
-    local itemStartTimePos = reaper.GetMediaItemInfo_Value(activeItem, "D_POSITION")
-    local itemEndTimePos = itemStartTimePos + reaper.GetMediaItemInfo_Value(activeItem, "D_LENGTH")
-    local itemFirstVisibleTick = math.ceil(reaper.MIDI_GetPPQPosFromProjTime(activeTake, itemStartTimePos)) 
-    local itemLastVisibleTick = math.ceil(reaper.MIDI_GetPPQPosFromProjTime(activeTake, itemEndTimePos)) - 1 -- -1 is important, since this function returns tick that immediately *follows* the time position.
-    if mouseOrigPPQPos > itemLastVisibleTick then mouseOrigPPQPos = itemLastVisibleTick
-    elseif mouseOrigPPQPos < itemFirstVisibleTick then mouseOrigPPQPos = itemFirstVisibleTick 
-    end
-    -- Source length will be used in other context too: When script terminates, check that no inadvertent shifts in PPQ position occurred.
-    if not sourceLengthTicks then sourceLengthTicks = reaper.BR_GetMidiSourceLenPPQ(activeTake) end
-    loopStartPPQPos = (mouseOrigPPQPos // sourceLengthTicks) * sourceLengthTicks
-    minimumTick = math.max(0, itemFirstVisibleTick)
-    maximumTick = math.min(itemLastVisibleTick, sourceLengthTicks-1) -- I prefer not to draw any event on the same PPQ position as the All-Notes-Off
-
-
     -- IS SNAPPING ENABLED?
     -- If snapping is enabled, the PPQ position must be adjusted to nearest grid.
     -- If snapping is not enabled, snappedOrigPPQPos = mouseOrigPPQPos, snapped to nearest tick
@@ -4073,7 +4494,7 @@ function MAIN()
     --    MIDI_InsertCC, since these functions are far too slow when dealing with thousands of events.
     --if not GetAndParseMIDIString() then return false end
     ParseMidi_FirstPass()
-    if not (origTickLeftmost and origTickRightmost) or origTickLeftmost >= origTickRightmost then
+    if not next(tGroups) then
         reaper.MB("Could not find a sufficient number of selected events in the target lane(s)."
                 .. "\n\nNB: If the MIDI editor's filter is set to \"Edit active channel only\", the script will only edit events in the active channel."
                 , "ERROR", 0)
@@ -4082,46 +4503,56 @@ function MAIN()
     selectedEditFunction = ParseMidi_SecondPass
     
         
-    -- 
-    bitmap = reaper.JS_LICE_CreateBitmap(true, ME_midiviewWidth, ME_midiviewHeight)
-        if not bitmap then reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false end 
-    compositeOK = reaper.JS_Composite(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, bitmap, 0, 0, ME_midiviewWidth, ME_midiviewHeight)
-        if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
-
-
-    OS = reaper.GetOS()
+    -- COMPOSITE GRAPHICS
+    -- Display something onscreen as quickly as possible, for better user responsiveness
+    OS = reaper.GetOS() 
     macOS = OS:match("OSX") -- On macOS, mouse events use opposite sign
     winOS = OS:match("Win")
+    bitmap = reaper.JS_LICE_CreateBitmap(true, ME_midiviewWidth, ME_midiviewHeight)
+        if not bitmap then reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false end 
+    -- If Metal, skip compositing
+    if macOS and reaper.JS_Window_EnableMetal(windowUnderMouse)== 0 then
+        if not reaper.HasExtState("js_Multi Tool", "Metal warning") then
+            reaper.MB("On macOS, current versions of REAPER has a bug in its implementation of Metal graphics, which prevents scripts from drawing transparent graphics inside REAPER's windows." 
+                    .. "\n\nTo use this script properly, Metal graphics should be DISabled in Preferences -> General -> Advanced UI/system tweaks."
+                    .. "\n\nWhile Metal is enabled, the script will not draw guidelines and transparent zones, but the mouse cursor will still change to indicate the active zone."
+                    .. "\n\nPlease bump the bug report thread on the Cockos forums: t=230013.", "WARNING", 0)
+            reaper.SetExtState("js_Multi Tool", "Metal warning", "true", true)
+            return false
+        end
+    else
+        compositeOK = reaper.JS_Composite(midiview, 0, 0, ME_midiviewWidth, ME_midiviewHeight, bitmap, 0, 0, ME_midiviewWidth, ME_midiviewHeight)
+        if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
+    end
+    DisplayZones()
+    
+
+    -- LOAD CURSORS
     filename = filename:gsub("\\", "/") -- Change Windows format to cross-platform
     filename = filename:match("^.*/") or "" -- Remove script filename, keeping directory
-    cursorHandTop       = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Scale top.cur") -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
-    if not cursorHandTop then reaper.MB("Could not load the cursorHandTop cursor", "ERROR", 0) return false end
-    cursorHandBottom    = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Scale bottom.cur")
-    if not cursorHandBottom then reaper.MB("Could not load the cursorHandBottom cursor", "ERROR", 0) return false end
-    cursorHandRight     = reaper.JS_Mouse_LoadCursor(431)
-    if not cursorHandRight then reaper.MB("Could not load the cursorHandRight cursor", "ERROR", 0) return false end
-    cursorHandLeft      = reaper.JS_Mouse_LoadCursor(430)
-    if not cursorHandLeft then reaper.MB("Could not load the cursorHandLeft cursor", "ERROR", 0) return false end
-    cursorCompress      = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Multi compress.cur") --reaper.JS_Mouse_LoadCursor(533)
-    if not cursorCompress then reaper.MB("Could not load the cursorCompress cursor", "ERROR", 0) return false end
-    cursorArpeggiateLR  = reaper.JS_Mouse_LoadCursor(502)
-    if not cursorArpeggiateLR then reaper.MB("Could not load the cursorArpeggiateLR cursor", "ERROR", 0) return false end
-    cursorArpeggiateUD  = reaper.JS_Mouse_LoadCursor(503) -- REAPER's own arpeggiate up/down cursor
-    if not cursorArpeggiateUD then reaper.MB("Could not load the cursorArpeggiateUD cursor", "ERROR", 0) return false end
-    cursorTilt          = reaper.JS_Mouse_LoadCursor(189) --reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Arch and Tilt.cur")
-    if not cursorTilt then reaper.MB("Could not load the cursorTilt cursor", "ERROR", 0) return false end
-    cursorNo            = reaper.JS_Mouse_LoadCursor(464) -- Arrow with cross
-    if not cursorNo then reaper.MB("Could not load the cursorNo cursor", "ERROR", 0) return false end
-    cursorArrow         = reaper.JS_Mouse_LoadCursor(32512) -- Standard IDC_ARROW
-    if not cursorArrow then reaper.MB("Could not load the cursorArrow cursor", "ERROR", 0) return false end
-    cursorUndo          = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Undo.cur", true)
-    if not cursorUndo then reaper.MB("Could not load the cursorUndo cursor", "ERROR", 0) return false end
-    cursorRedo          = reaper.JS_Mouse_LoadCursorFromFile(filename.."js_Mouse editing - Redo.cur", true)
-    if not cursorRedo then reaper.MB("Could not load the cursorRedo cursor", "ERROR", 0) return false end 
-    
-    -- Display something onscreen as quickly as possible, for better user responsiveness
-    SetupDisplayZones()
-    
+    tCursors = {HandTop       = "js_Mouse editing - Scale top.cur", -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
+                HandBottom    = "js_Mouse editing - Scale bottom.cur",
+                HandRight     = 431,
+                HandLeft      = 430,
+                Compress      = "js_Mouse editing - Multi compress.cur",
+                ArpeggiateLR  = 502,
+                ArpeggiateUD  = 503, -- REAPER's own arpeggiate up/down cursor
+                Tilt          = 189, --"js_Mouse editing - Arch and Tilt.cur")
+                Cross         = 464, -- Arrow with cross
+                Arrow         = 32512, -- Standard IDC_ARROW
+                Undo          = "js_Mouse editing - Undo.cur",
+                Redo          = "js_Mouse editing - Redo.cur",
+               }
+    for name, source in pairs(tCursors) do
+        if type(source) == "string" then
+            tCursors[name] = reaper.JS_Mouse_LoadCursorFromFile(filename..source, true) -- The first time that the cursor is loaded in the session will be slow, but afterwards the extension will re-use previously loaded cursor
+            if not tCursors[name] then reaper.MB("Could not load the \""..source.."\" cursor file.\n\nPlease ensure that this file is located in the same folder as the Lua script file.", "ERROR", 0) return false end
+        else
+            tCursors[name] = reaper.JS_Mouse_LoadCursor(source)
+            if not tCursors[name] then reaper.MB("Could not load REAPER's native \""..name.."\" cursor, with number "..tostring(source)..".", "ERROR", 0) return false end
+        end
+    end
+
     
     -- INTERCEPT WINDOW MESSAGES:
     -- Do the magic that will allow the script to track mouse button and mousewheel events!
@@ -4167,5 +4598,3 @@ end -- function Main()
 --------------------------------------------------
 mainOK, mainRetval = pcall(MAIN)
 if mainOK and mainRetval then DEFER_pcall() end -- START LOOPING!
-
-
