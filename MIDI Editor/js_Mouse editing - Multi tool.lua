@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.21
+Version: 5.22
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -213,6 +213,8 @@ About:
     + Zone size can be set via right-click context menu.
     + Stretch mode can switch to Move by right-clicking.
     + All editable takes can be edited together -- but only if editability follows item selection.
+  * v5.22 (2020-04-05)
+    + Works even if active take contains no selected events.
 ]]
 
 -- USER AREA 
@@ -381,10 +383,13 @@ local tCursors = {} -- Will be filled with cursor file names in MAIN
 
 local OS, macOS, winOS     
 
-local function M(m) reaper.ShowConsoleMsg("\n"..tostring(m)) end 
-
+-- If active take isn't edited, the MIDI editor doesn't update during defer cycles!  
+-- So get just one little piece of info from active take, that can be written in each cycle without changing anything.
+-- A MIDI take should never be completely empty, since it always has the All-Notes-Off at the end.
+local activeTakeForceUpdateMsg --= ({reaper.MIDI_GetEvt(activeTake, 0, true, false, 0, "")})[5]
 
 -- Memoize: In order to avoid calling MIDI_GetProjTimeFromPPQPos thousands of times, memoize these maps here.
+-- Use metatables to create subtables on the fly.
 local tTimeFromTick = {} 
 local tTickFromTime = {}
 local tPixelFromTime = {}
@@ -4267,7 +4272,9 @@ function CONSTRUCT_MIDI_STRING()
         
     end -- for take, tID in pairs(tSteps[#tSteps].tGroups) do  
                   
-    if isInline then reaper.UpdateItemInProject(activeItem) end
+    if isInline then reaper.UpdateItemInProject(activeItem) 
+    elseif activeTakeForceUpdateMsg then reaper.MIDI_SetEvt(activeTake, 0, nil, nil, nil, activeTakeForceUpdateMsg)
+    end
 end
 
 
@@ -4499,6 +4506,17 @@ function MAIN()
                 .. "\n\nNB: If the MIDI editor's filter is set to \"Edit active channel only\", the script will only edit events in the active channel."
                 , "ERROR", 0)
         return false
+    end
+    -- If active take isn't edited, the MIDI editor doesn't update during defer cycles!  
+    -- So get just one little piece of info from active take, that can be written in each cycle without changing anything.
+    -- A MIDI take should never be completely empty, since it always has the All-Notes-Off at the end.
+    if not tGroups[activeTake] then 
+        activeTakeForceUpdateMsg = ({reaper.MIDI_GetEvt(activeTake, 0, true, false, 0, "")})[5]
+        if not activeTakeForceUpdateMsg then
+            reaper.MB("The active take appears to be completely devoid of any MIDI.\n\nThis is probably an error, since all MIDI takes should contain at least an All-Notes-Off marker."
+                    , "ERROR", 0)
+            return false
+        end
     end
     selectedEditFunction = ParseMidi_SecondPass
     
