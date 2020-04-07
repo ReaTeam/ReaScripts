@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.20
+Version: 5.21
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -208,7 +208,7 @@ About:
     + A few tweaks.
   * v5.12 (2019-12-30)
     + Fixed: Bug when holding keyboard shortcut.
-  * v5.20 (2020-04-03
+  * v5.21 (2020-04-03
     + Warning if used on macOS with Metal.
     + Zone size can be set via right-click context menu.
     + Stretch mode can switch to Move by right-clicking.
@@ -4511,7 +4511,7 @@ function MAIN()
     bitmap = reaper.JS_LICE_CreateBitmap(true, ME_midiviewWidth, ME_midiviewHeight)
         if not bitmap then reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false end 
     -- If Metal, skip compositing
-    if macOS and reaper.JS_Window_EnableMetal(windowUnderMouse)== 0 then
+    if macOS and reaper.JS_Window_EnableMetal(windowUnderMouse) > 0 then
         if not reaper.HasExtState("js_Multi Tool", "Metal warning") then
             reaper.MB("On macOS, current versions of REAPER has a bug in its implementation of Metal graphics, which prevents scripts from drawing transparent graphics inside REAPER's windows." 
                     .. "\n\nTo use this script properly, Metal graphics should be DISabled in Preferences -> General -> Advanced UI/system tweaks."
