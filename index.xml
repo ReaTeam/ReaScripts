@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8e0844b3e48035cd02da8c944ce80ef1d54ed04a" name="ReaTeam Scripts">
+<index version="1" commit="371c3a6ee5d58f0388ac19290d6038ce0299259a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6831,8 +6831,18 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
     are remembered between steps, to avoid rounding errors when rounding to the nearest tick positions or 128-step values ranges. \line
 \line
 * And, of course, the script offers a variety of editing tools such as warping, compressing, stretching and tilting that are not found among REAPER's native actions.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER BUGS:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 On OSX, current versions of REAPER has a bug in its implementation of Metal graphics, which prevents scripts from drawing transparent graphics inside REAPER's windows. To use this scripts, Metal graphics should be DISabled in Preferences -> General -> Advanced UI/system tweaks. Please bump the bug report thread in the Cockos forums: t=230013.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.\line Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable. Please bump the Feature Request thread: t=168563.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 EDITABLE ITEMS:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script can edit selected events in all editable items, but only if the following settings are all enabled:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Preferences -> MIDI editor -> On MIDI editor per project\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: MIDI track list/media item lane selection is linked to visibility\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: MIDI track list/media item lane selection is linked to editability\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: Draw and edit CC events on all tracks\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If these setting are not all enabled, the script can only edit events in the active item.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LANE UNDER MOUSE:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script can either affect 1) all selected MIDI events in the MIDI editor's active take, or 2) only the selected MIDI events in lane under the mouse.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 * To edit only the selected events in a single lane, the mouse must be positioned inside that lane when the script starts.  \line
     (After the script has started, the mouse may move out of the starting lane.)\line
 \line
@@ -6853,7 +6863,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 * Compress lane from bottom / Flip values absolute\line
 * Scale values from top / Flip values relative\line
 * Scale value from bottom / Flip values relative\line
-* Warp left/right or up/down (depending on initial mouse movement)\line
+* Warp left/right or up/down (depending on initial mouse movement) / Reset and evenly space events\line
 * Stretch from left / Reverse positions\line
 * Stretch from right / Reverse positions\line
 * Tilt left side / Snap to chased values on left\line
@@ -6978,6 +6988,14 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/5a09e245a0bc9fbf1b98f6eb233bd5b33155d126/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
         <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/5a09e245a0bc9fbf1b98f6eb233bd5b33155d126/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
         <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/5a09e245a0bc9fbf1b98f6eb233bd5b33155d126/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
+      </version>
+      <version name="5.20" author="juliansader" time="2020-04-07T00:15:29Z">
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/371c3a6ee5d58f0388ac19290d6038ce0299259a/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20tool.lua</source>
+        <source file="js_Mouse editing - Scale bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/371c3a6ee5d58f0388ac19290d6038ce0299259a/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20bottom.cur</source>
+        <source file="js_Mouse editing - Scale top.cur">https://github.com/ReaTeam/ReaScripts/raw/371c3a6ee5d58f0388ac19290d6038ce0299259a/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20top.cur</source>
+        <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/371c3a6ee5d58f0388ac19290d6038ce0299259a/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
+        <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/371c3a6ee5d58f0388ac19290d6038ce0299259a/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
+        <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/371c3a6ee5d58f0388ac19290d6038ce0299259a/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Run script that is armed in toolbar.lua" type="script" desc="js_Mouse editing - Run script that is armed in toolbar.lua">
