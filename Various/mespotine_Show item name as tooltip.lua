@@ -1,10 +1,10 @@
--- @description ShowItemNameAsTooltip
+-- @description Show item name as tooltip
 -- @author Meo-Ada Mespotine
 -- @version 1.0
+-- @about Shows the Item-Takename as tooltip, when hovering above it with the mouse
+-- @donate https://www.paypal.me/mespotine
 
 --[[
- * @about Shows the Item-Takename as tooltip, when hovering above it with the mouse
- * @donate https://www.paypal.me/mespotine
  * Licence: MIT
  * REAPER: 6.0+
  * Extensions: SWS required
