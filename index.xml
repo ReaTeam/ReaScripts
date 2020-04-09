@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8d0595ae8384963e86c1dcee9906df83339778fc" name="ReaTeam Scripts">
+<index version="1" commit="e72e23306701cd290291a62b73af818b8c604c31" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11234,11 +11234,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Creates an impulse response (IR) of the FX Chain of the first selected track.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 You can define:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 the peak value of the normalization,\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 the threshold below which audio in the end of the IR will be discarded,\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 the channels of the IR (mono or stereo),\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 the maximum IR length (if sampling reverbs better to set it to a high value like 10)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can define:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the peak value of the normalization,\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the number of channels of the IR (mono or stereo),\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)\sa180\par}
 }
 ]]></description>
       </metadata>
@@ -11249,6 +11248,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[# Fix possible crash if Hard Disk too slow, or IR too long
 # Ending silence trimming for stereo files still broken]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3a9e6e276adc9788a8ddab0d84de6a4f1d2a2eff/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="1.30" author="amagalma" time="2020-04-09T15:09:50Z">
+        <changelog><![CDATA[- Big code improvements]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e72e23306701cd290291a62b73af818b8c604c31/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
@@ -14204,6 +14207,21 @@ Will work with ReaScript and custom action IDs now]]></changelog>
         <source main="main" file="Lokasenna_Toolbar button shortcuts/Press MIDI piano roll toolbar button 13.lua">https://github.com/ReaTeam/ReaScripts/raw/31f670f10a34ead0020e727e1e0fd84307689592/Various/Lokasenna_Toolbar%20button%20shortcuts.lua</source>
         <source main="main" file="Lokasenna_Toolbar button shortcuts/Press MIDI piano roll toolbar button 14.lua">https://github.com/ReaTeam/ReaScripts/raw/31f670f10a34ead0020e727e1e0fd84307689592/Various/Lokasenna_Toolbar%20button%20shortcuts.lua</source>
         <source main="main" file="Lokasenna_Toolbar button shortcuts/Press MIDI piano roll toolbar button 15.lua">https://github.com/ReaTeam/ReaScripts/raw/31f670f10a34ead0020e727e1e0fd84307689592/Various/Lokasenna_Toolbar%20button%20shortcuts.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mespotine_Show item name as tooltip.lua" type="script" desc="Show item name as tooltip">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Shows the Item-Takename as tooltip, when hovering above it with the mouse\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/mespotine</link>
+      </metadata>
+      <version name="1.0" author="Meo-Ada Mespotine" time="2020-04-07T18:39:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d504a759d160ae55efcf8e6ce0be82fff5cd68cf/Various/mespotine_Show%20item%20name%20as%20tooltip.lua</source>
       </version>
     </reapack>
     <reapack name="mschnell_Mute Track X.eel" type="script" desc="Mute or unmute track X (MIDI CC/OSC only)">
