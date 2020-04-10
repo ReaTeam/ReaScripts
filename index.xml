@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e72e23306701cd290291a62b73af818b8c604c31" name="ReaTeam Scripts">
+<index version="1" commit="7886b1c29973093031b3e87646a142a0e5d0ed68" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3767,6 +3767,21 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Maximum audio duration increased to 5 minutes (300s).
 + Many small changes, optimization and code cleaning.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f656382f1a82e04d4b5b14e32ff6e81b2f7e6749/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.4.1" author="cool" time="2020-04-10T19:23:20Z">
+        <changelog><![CDATA[+ Notes in Midi Editor now have short names.
++ The script remembers the window size from the last session.
++ Added menu with User Settings.
++ Fixed incorrect track selection after MIDI Sampler.
++ Improved accuracy of setting / removing markers with a small window size: the capture area is now adaptive to window scale.
++ Simplified zooming in of the start and end of the waveform.
++ Play cursor snaps at the start of the waveform if the click is close to the left edge of the window.
++ Auto scroll view.
++ Better font scaling (Tips on the Start screen).
++ The maximum horizontal zoom on the keys now corresponds to the maximum on the mouse wheel.
++ Now the script can work with the selected area, taking the item(s) from the selected track during initialization or by Get Item button.
++ Items are cut when working with a multi-track if they have a length different from the length of the item on the script start.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7886b1c29973093031b3e87646a142a0e5d0ed68/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
