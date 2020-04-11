@@ -1,14 +1,14 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.10
+-- @version 1.20
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Recommended for a toolbar action
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
 --   - Requires JS_ReaScriptAPI 1.000 and higher
--- @changelog - Improved code drawing (big thanks to juliansader! :) )
---  - Tall guide line is now shown in the focused MIDI Editor too
---  - Requires JS_ReaScriptAPI 1.000 and higher
+-- @changelog - Added helper script that toggles between full arrange line height or item height
+
+-- Many thanks to juliansader :)
 
 -------------------------------------------------------------------
 
@@ -36,14 +36,18 @@ local MainHwnd = reaper.GetMainHwnd()
 local Foreground = reaper.JS_Window_GetForeground()
 local MidiWindow
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 1000)
-local bm_size, prev_x, prev_y, prev_item, track_y, item_h, set_window
+local bm_size, prev_x, prev_y, prev_item, track_y, item_h, set_window, bigLine, trackview_h, trackview_w, _
 local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
 reaper.JS_LICE_Clear(bm, 0xFFFFFFFF)
-
+local toggleCmd = reaper.NamedCommandLookup('_RS723f1ed6da61cd868278d4d78b1c1531edc946f4') -- Script: Toggle guide line size 
+local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
+local start = reaper.time_precise()
 -- Refresh toolbar
 local _, _, section, cmdID = reaper.get_action_context()
 reaper.SetToggleCommandState( section, cmdID, 1 )
 reaper.RefreshToolbar2( section, cmdID )
+
+-------------------------------------------------------------------
 
 function Msg(string)
   if debug then return reaper.ShowConsoleMsg(string) end
@@ -56,8 +60,19 @@ function exit()
   reaper.defer(function() end)
 end
 
+-------------------------------------------------------------------
+
 function main()
-  Foreground = reaper.JS_Window_GetForeground()
+  if reaper.time_precise() - start >= 0.3 then
+    bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
+    Foreground = reaper.JS_Window_GetForeground()
+    _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
+    if bigLine ~= prev_bigLine then
+      Msg("Changed guide line size\n")
+      prev_bigLine = bigLine
+    end
+    start = reaper.time_precise()
+  end
   if Foreground == MainHwnd then
     if set_window ~= 1 then
       if debug then reaper.ClearConsole() end
@@ -80,22 +95,35 @@ function main()
   if x ~= prev_x or y ~= prev_y then
     prev_x, prev_y = x, y
     if set_window == 1 then
-      local item = reaper.GetItemFromPoint( x, y, true )
-      if item then
-        if item ~= prev_item then
-          prev_item = item
-          track_y = reaper.GetMediaTrackInfo_Value( reaper.GetMediaItem_Track( item ), "I_TCPY" )
-                + reaper.GetMediaItemInfo_Value( item, "I_LASTY" ) -- client
-          item_h = reaper.GetMediaItemInfo_Value( item, "I_LASTH" )
-        end
-        Msg("draw line at " .. x .. "\n")
+      if bigLine then
         x, y = reaper.JS_Window_ScreenToClient(trackview, x, y)
-        reaper.JS_Composite(trackview, x, track_y, 1, item_h, bm, 0, 0, 1, 1)
-        bm_size = 1
-      elseif bm_size == 1 then
-        Msg("make line disappear\n")
-        reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
-        bm_size = 0
+        if 0 <= x and x <= trackview_w and 0 <= y and y <= trackview_h then
+          Msg("draw big line at " .. x .. "\n")
+          reaper.JS_Composite(trackview, x, 0, 1, trackview_h, bm, 0, 0, 1, 1)
+          bm_size = 1
+        elseif bm_size == 1 then
+          Msg("make line disappear\n")
+          reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+          bm_size = 0
+        end
+      else
+        local item = reaper.GetItemFromPoint( x, y, true )
+        if item then
+          if item ~= prev_item then
+            prev_item = item
+            track_y = reaper.GetMediaTrackInfo_Value( reaper.GetMediaItem_Track( item ), "I_TCPY" )
+                  + reaper.GetMediaItemInfo_Value( item, "I_LASTY" ) -- client
+            item_h = reaper.GetMediaItemInfo_Value( item, "I_LASTH" )
+          end
+          Msg("draw line at " .. x .. "\n")
+          x, y = reaper.JS_Window_ScreenToClient(trackview, x, y)
+          reaper.JS_Composite(trackview, x, track_y, 1, item_h, bm, 0, 0, 1, 1)
+          bm_size = 1
+        elseif bm_size == 1 then
+          Msg("make line disappear\n")
+          reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+          bm_size = 0
+        end
       end
     elseif set_window == 0 then
       if MidiWindow then
@@ -118,6 +146,8 @@ function main()
   end
   reaper.defer(main)
 end
+
+-------------------------------------------------------------------
 
 reaper.atexit(exit) 
 main()
