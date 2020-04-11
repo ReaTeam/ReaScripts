@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bfe4cf8cc76514f46fff9e79bb3d1c2063359e03" name="ReaTeam Scripts">
+<index version="1" commit="95a7d0d003cda4b113346b82fd39206926e82cfb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3394,6 +3394,40 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a010b044d470df2f7bb41d583c0e20f96648df5/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
       </version>
     </reapack>
+    <reapack name="amagalma_Toggle guide line size between full arrange or item height.lua" type="script" desc="Toggle guide line size between full arrange or item height">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggles the guide line size between full arrange height or item height\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To be used along "amagalma_Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor.lua"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used as a toolbar action\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-04-11T18:48:17Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/95a7d0d003cda4b113346b82fd39206926e82cfb/Items%20Editing/amagalma_Toggle%20guide%20line%20size%20between%20full%20arrange%20or%20item%20height.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor.lua" type="script" desc="Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Recommended for a toolbar action\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When prompted by Reaper, choose to "Terminate instance" and to remember your choice\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI 1.000 and higher\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.20" author="amagalma" time="2020-04-11T18:44:15Z">
+        <changelog><![CDATA[- Added helper script that toggles between full arrange line height or item height]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d4a61eab42e447ce70548fad48cac1b93422def/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+    </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Editing/Argitoth_Select%20items%20with%20color%20of%20selected%20items.eel</source>
@@ -4484,26 +4518,6 @@ here
       </metadata>
       <version name="1.0" author="spk77" time="2016-10-13T23:43:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1f9a91dc1f6d31062e17b2bcd8efabfc8ea9aaa/Items%20Editing/spk77_Split%20selected%20items%20at%20mouse%20cursor.eel</source>
-      </version>
-    </reapack>
-    <reapack name="Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor.lua" type="script" desc="Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Recommended for a toolbar action\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When prompted by Reaper, choose to "Terminate instance" and to remember your choice\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI 1.000 and higher\sa180\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.10" author="amagalma" time="2020-04-10T23:39:20Z">
-        <changelog><![CDATA[- Improved code drawing (big thanks to juliansader! :) )
-- Tall guide line is now shown in the focused MIDI Editor too
-- Requires JS_ReaScriptAPI 1.000 and higher]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bfe4cf8cc76514f46fff9e79bb3d1c2063359e03/Items%20Editing/Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
   </category>
