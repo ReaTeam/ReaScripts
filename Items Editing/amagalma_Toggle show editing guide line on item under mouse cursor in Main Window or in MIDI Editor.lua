@@ -1,14 +1,22 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.20
+-- @version 1.21
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Recommended for a toolbar action
+--   - Set line color inside the script (default is white)
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
 --   - Requires JS_ReaScriptAPI 1.000 and higher
--- @changelog - Added helper script that toggles between full arrange line height or item height
+-- @changelog - Added ability to set the color of the line inside the script
 
 -- Many thanks to juliansader :)
+
+-------------------------------------------------------------------
+
+-- SET LINE COLOR HERE -- (0-255)
+local red = 255
+local green = 255
+local blue = 255
 
 -------------------------------------------------------------------
 
@@ -38,7 +46,10 @@ local MidiWindow
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 1000)
 local bm_size, prev_x, prev_y, prev_item, track_y, item_h, set_window, bigLine, trackview_h, trackview_w, _
 local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
-reaper.JS_LICE_Clear(bm, 0xFFFFFFFF)
+red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
+green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 0
+blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
+reaper.JS_LICE_Clear(bm, reaper.ColorToNative( blue, green, red ))
 local toggleCmd = reaper.NamedCommandLookup('_RS723f1ed6da61cd868278d4d78b1c1531edc946f4') -- Script: Toggle guide line size 
 local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
 local start = reaper.time_precise()
