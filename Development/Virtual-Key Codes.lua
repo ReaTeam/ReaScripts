@@ -1,8 +1,8 @@
+-- NoIndex: true
 -- @description Virtual-Key Codes
 -- @author amagalma
 -- @version 1.00
 -- @link https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
--- @noindex
 -- @about
 -- # For use with JS_ReaScript_API with APIs like: reaper.JS_VKeys_Intercept, reaper.JS_VKeys_GetState, etc
 --[[
