@@ -1,13 +1,13 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.30
+-- @version 1.33
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  - You can define:
 --  - the peak value of the normalization,
 --  - the number of channels of the IR (mono or stereo),
 --  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
--- @changelog - Big code improvements
+-- @changelog - fix problem when IR with same filename already exists
 
 -- Thanks to EUGEN27771, spk77, X-Raym
 
@@ -50,7 +50,7 @@ local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", fals
 if tr_name ~= "" then tr_name = tr_name .. " IR" end
 
 -- Get values
-local ok, retvals = reaper.GetUserInputs( "Impulse Response creation", 5, "IR Name (mandatory): ,Maximum IR Length (sec): ,Mono or Stereo (m or s, 1 or 2): ,Trim silence below (dB, < -60): ,Normalize peak (dBFS, < 0): ,separator=\n", tr_name .. "\n5\nm\n-100\n-0.4" )
+local ok, retvals = reaper.GetUserInputs( "Impulse Response creation", 5, "IR Name (mandatory): ,Maximum IR Length (sec): ,Mono or Stereo (m or s, 1 or 2): ,Trim silence below (dB, < -60): ,Normalize peak (dBFS, < 0): ,separator=\n", tr_name .. "\n5\ns\n-100\n-0.4" )
 local IR_name, IR_len, channels, trim, peak_normalize = string.match(retvals, "(.+)\n(.+)\n(.+)\n(.+)\n(.+)")
 
 local IR_len, peak_normalize, trim = tonumber(IR_len), tonumber(peak_normalize), tonumber(trim)
@@ -71,6 +71,29 @@ then
   reaper.MB( ok and "Invalid values!" or "Action aborted by user...", "Action aborted", 0 )
   return
 end
+local IR_Path = proj_path .. (IR_name:find("%.wav$") and IR_name or IR_name .. ".wav")
+
+-- If file exists...
+if reaper.file_exists( IR_Path ) then
+  ok = reaper.MB( "Please, click OK to enter a new name...", "A file with that name already exists!", 1 )
+  if ok == 1 then
+    ok, IR_Path = reaper.JS_Dialog_BrowseForSaveFile( "Enter a new filename or choose an existing to overwite", proj_path, "", "Wave audio files (.wav)\0*.wav\0\0" )
+    IR_Path = IR_Path:find("%.wav$") and IR_Path or IR_Path .. ".wav"
+  end
+  ok = ok == 1
+end
+if ok then
+  if reaper.file_exists( IR_Path ) then
+    local deleted = os.remove(IR_Path)
+    if not deleted then
+      reaper.MB( "File is in use by an open Reaper Project. Please, run again the script and choose a new filename or one that is not used.", "Aborting...", 0 )
+      ok = false
+    end
+  end
+else 
+  return 
+end
+if not ok then return end
 
 
 --------------------------------------------------------------------------------------------
@@ -318,7 +341,7 @@ reaper.PreventUIRefresh( 1 )
 
 -- Create Dirac
 reaper.SelectAllMediaItems( 0, false )
-local dirac_path = proj_path .. "dirac" .. samplerate .. (channels == 1 and "mono" or "stereo") .. ".wav"
+local dirac_path = proj_path .. string.match(reaper.time_precise()*100, "(%d+)%.") .. ".wav"
 ok = Create_Dirac(dirac_path, channels, IR_len )
 if not ok then return end
 
@@ -351,7 +374,6 @@ os.remove(render_path)
 
 -- Rename resulting IR
 local filename = string.gsub(render_path, ".wav$", "-glued.wav")
-local IR_Path = proj_path .. IR_name .. ".wav"
 for i = 1, huge do
 if reaper.file_exists( filename ) then
   reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
