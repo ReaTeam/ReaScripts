@@ -1,15 +1,13 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.25
+-- @version 1.26
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Recommended for a toolbar action
 --   - Set line color inside the script (default is white)
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
 --   - Requires JS_ReaScriptAPI 1.000 and higher
--- @changelog - Improvement: script starts with the correct line size set by the helper script
--- - Fixed incorrect line size when changing vertical zoom
--- - Immediately show correct line size after toggling size with the helper script
+-- @changelog - fixed line color for Windows
 
 -- Many thanks to juliansader :)
 
@@ -38,6 +36,10 @@ else
   end
 end
 
+function RGB(r,g,b) 
+  return (((b)&0xFF)|(((g)&0xFF)<<8)|(((r)&0xFF)<<16)|(0xFF<<24))
+end
+
 -------------------------------------------------------------------
 
 local reaper = reaper
@@ -48,12 +50,12 @@ local MidiWindow
 local master = reaper.GetMasterTrack(0)
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 1000)
 local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
-local bigLine, prev_x, prev_y, prev_item, track_y, item_h, set_window
+local bm_size, bigLine, prev_x, prev_y, prev_item, track_y, item_h, set_window
 local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
 red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
 green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 0
 blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
-reaper.JS_LICE_Clear(bm, reaper.ColorToNative( blue, green, red ))
+reaper.JS_LICE_Clear(bm, RGB(red, green, blue))
 local toggleCmd = reaper.NamedCommandLookup('_RS723f1ed6da61cd868278d4d78b1c1531edc946f4') -- Script: Toggle guide line size 
 local bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
 local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
@@ -94,6 +96,7 @@ function visibletracksheight()
 end
 local vis_tracks_h = visibletracksheight()
 local prev_vis_tracks_h = vis_tracks_h
+
 
 -------------------------------------------------------------------
 
