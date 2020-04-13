@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f0173a7ad6de85cfdcb127e5c122ab69b608b179" name="ReaTeam Scripts">
+<index version="1" commit="36bbfe911ce33b55236e027bdd80422439b18261" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3417,8 +3417,9 @@ Better error-checking in general]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Recommended for a toolbar action\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set line color inside the script (default is white)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used as a toolbar action or assigned to a key shortcut\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Accompanied by helper script to toggle between full height or item height\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set line color inside the script (rgb values 0-255)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When prompted by Reaper, choose to "Terminate instance" and to remember your choice\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI 1.000 and higher\sa180\par}
 }
@@ -3439,6 +3440,10 @@ Better error-checking in general]]></changelog>
       <version name="1.26" author="amagalma" time="2020-04-12T23:15:10Z">
         <changelog><![CDATA[- fixed line color for Windows]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f0173a7ad6de85cfdcb127e5c122ab69b608b179/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.30" author="amagalma" time="2020-04-13T12:11:37Z">
+        <changelog><![CDATA[- fix for MacOS/Linux]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/36bbfe911ce33b55236e027bdd80422439b18261/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
