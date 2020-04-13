@@ -1,13 +1,14 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.33
+-- @version 1.34
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  - You can define:
 --  - the peak value of the normalization,
 --  - the number of channels of the IR (mono or stereo),
 --  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
--- @changelog - fix problem when IR with same filename already exists
+-- @changelog - possible fix for failure in some systems
+--  - do not change arrange view
 
 -- Thanks to EUGEN27771, spk77, X-Raym
 
@@ -338,6 +339,8 @@ end
 
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
+reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SAVEVIEW'), 0) -- SWS: Save current arrange view, slot 1
+
 
 -- Create Dirac
 reaper.SelectAllMediaItems( 0, false )
@@ -352,13 +355,9 @@ if channels == 1 then
 else
   reaper.Main_OnCommand(40209, 0) -- Item: Apply track/take FX to items
 end
-reaper.Main_OnCommand(40131, 0) -- Take: Crop to active take in items
 local take = reaper.GetActiveTake( item )
 local PCM_source = reaper.GetMediaItemTake_Source( take )
 local render_path = reaper.GetMediaSourceFileName( PCM_source, "" )
-
--- Delete previous file
-os.remove(dirac_path)
 
 -- Normalize to peak
 reaper.Main_OnCommand(40108, 0) -- Item properties: Normalize items
@@ -367,10 +366,9 @@ reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
 -- Trim silence at the end
 trim_silence_below_threshold(item, trim)
 
--- Glue changes, remove previous file
+-- Glue changes
 reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
 item = reaper.GetSelectedMediaItem(0,0)
-os.remove(render_path)
 
 -- Rename resulting IR
 local filename = string.gsub(render_path, ".wav$", "-glued.wav")
@@ -392,7 +390,12 @@ reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
 reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
 reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
 
+-- Delete unneeded files
+os.remove(dirac_path)
+os.remove(render_path)
+
 -- Create Undo
+reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_RESTOREVIEW'), 0) -- SWS: Restore arrange view, slot 1
 reaper.PreventUIRefresh( -1 )
 reaper.Undo_EndBlock( "Create IR of FX Chain of selected track", 4 )
 reaper.UpdateArrange()
