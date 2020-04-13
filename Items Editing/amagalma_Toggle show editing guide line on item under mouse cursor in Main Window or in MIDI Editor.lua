@@ -1,22 +1,22 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.26
+-- @version 1.30
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
---   - Recommended for a toolbar action
---   - Set line color inside the script (default is white)
+--   - Can be used as a toolbar action or assigned to a key shortcut
+--   - Accompanied by helper script to toggle between full height or item height
+--   - Set line color inside the script (rgb values 0-255)
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
 --   - Requires JS_ReaScriptAPI 1.000 and higher
--- @changelog - fixed line color for Windows
+-- @changelog - fix for MacOS/Linux
+-- - Changed default color (just for fun :P)
 
 -- Many thanks to juliansader :)
 
 -------------------------------------------------------------------
 
 -- SET LINE COLOR HERE -- (0-255)
-local red = 255
-local green = 255
-local blue = 255
+local red, green, blue = 234, 254, 67
 
 -------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ local reaper = reaper
 local debug = false
 local MainHwnd = reaper.GetMainHwnd()
 local Foreground = reaper.JS_Window_GetForeground()
-local MidiWindow
+local MidiWindow, midiview
 local master = reaper.GetMasterTrack(0)
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 1000)
 local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
@@ -57,8 +57,8 @@ green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 0
 blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
 reaper.JS_LICE_Clear(bm, RGB(red, green, blue))
 local toggleCmd = reaper.NamedCommandLookup('_RS723f1ed6da61cd868278d4d78b1c1531edc946f4') -- Script: Toggle guide line size 
-local bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
-local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
+local bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
+local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
 local start = reaper.time_precise()
 local prev_vis_tracks_time = start
 local continue = true
@@ -103,7 +103,7 @@ local prev_vis_tracks_h = vis_tracks_h
 function main()
   local now = reaper.time_precise()
   if now - start >= 0.3 then
-    bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1 and true or false
+    bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
     Foreground = reaper.JS_Window_GetForeground()
     _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
     if bigLine ~= prev_bigLine then
@@ -113,7 +113,7 @@ function main()
     end
     start = now
   end
-  if Foreground == MainHwnd then
+  if Foreground == MainHwnd or Foreground == trackview then
     if set_window ~= 1 then
       if debug then reaper.ClearConsole() end
       Msg("Foreground is Main Window\n")
@@ -122,7 +122,8 @@ function main()
     end
   else
     MidiWindow = reaper.MIDIEditor_GetActive()
-    if MidiWindow and Foreground == MidiWindow then
+    midiview = reaper.JS_Window_FindChildByID(MidiWindow, 1001)
+    if MidiWindow and (Foreground == MidiWindow or Foreground == midiview) then
       if set_window ~= 0 then
         if debug then reaper.ClearConsole() end
         Msg("Foreground is MIDI Window\n")
@@ -193,7 +194,7 @@ function main()
     if MidiWindow then
       if x ~= prev_x or y ~= prev_y then
         prev_x, prev_y = x, y
-        local midiview = reaper.JS_Window_FindChildByID(MidiWindow, 1001)
+        midiview = reaper.JS_Window_FindChildByID(MidiWindow, 1001)
         x, y = reaper.JS_Window_ScreenToClient(midiview, x, y)
         local _, mwidth, mheight = reaper.JS_Window_GetClientSize( midiview )
         if x >= 0 and x <= mwidth and y >= 64 and y <= mheight then
