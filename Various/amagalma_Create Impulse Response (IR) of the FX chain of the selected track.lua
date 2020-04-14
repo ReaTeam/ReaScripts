@@ -1,14 +1,13 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.34
+-- @version 1.35
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  - You can define:
 --  - the peak value of the normalization,
 --  - the number of channels of the IR (mono or stereo),
 --  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
--- @changelog - possible fix for failure in some systems
---  - do not change arrange view
+-- @changelog - script now works on systems with enabled auto-fades too
 
 -- Thanks to EUGEN27771, spk77, X-Raym
 
@@ -341,6 +340,11 @@ reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
 reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SAVEVIEW'), 0) -- SWS: Save current arrange view, slot 1
 
+-- Disable automatic fades
+local autofade_state = reaper.GetToggleCommandState( 41194 )
+if autofade_state == 1 then
+  reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
+end
 
 -- Create Dirac
 reaper.SelectAllMediaItems( 0, false )
@@ -393,6 +397,11 @@ reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
 -- Delete unneeded files
 os.remove(dirac_path)
 os.remove(render_path)
+
+-- Re-enable auto-fades if needed
+if autofade_state == 1 then
+  reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
+end
 
 -- Create Undo
 reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_RESTOREVIEW'), 0) -- SWS: Restore arrange view, slot 1
