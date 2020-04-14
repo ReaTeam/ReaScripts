@@ -1,19 +1,14 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.4.1
+-- @version 1.4.2
 -- @changelog
---   + Notes in Midi Editor now have short names.
---   + The script remembers the window size from the last session.
---   + Added menu with User Settings.
---   + Fixed incorrect track selection after MIDI Sampler.
---   + Improved accuracy of setting / removing markers with a small window size: the capture area is now adaptive to window scale.
---   + Simplified zooming in of the start and end of the waveform.
---   + Play cursor snaps at the start of the waveform if the click is close to the left edge of the window.
---   + Auto scroll view.
---   + Better font scaling (Tips on the Start screen).
---   + The maximum horizontal zoom on the keys now corresponds to the maximum on the mouse wheel.
---   + Now the script can work with the selected area, taking the item(s) from the selected track during initialization or by Get Item button.
---   + Items are cut when working with a multi-track if they have a length different from the length of the item on the script start.
+--   + The script now has an on / off toggle status with a change in the state of the button in the toolbar.
+--   + Fixed: in some cases, the action of the Reset button affected the selection of items.
+--   + Fixed: incorrect script behavior if there were no items in the selected area.
+--   + Fixed: MIDI Sampler error if no audio was loaded into the script.
+--   + AutoScroll: Repeated Play returns focus to the Play cursor.
+--   + Changed script behavior with Time Selection (Optional).
+--   + Fixed incorrect copying of Routing in Sampler mode.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -70,7 +65,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.4.1 by Maxim Kokarev 
+MK Slicer v1.4.2 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -116,6 +111,7 @@ Trigg_Status = 0
 Take_Check = 0
 Reset_Status = 0
 MouseUpX = 0
+MIDISampler = 0
 
 ----------------------------Advanced Settings-------------------------------------------
 
@@ -125,7 +121,7 @@ ItemFadesOverride = 1 -- (Override "Item: Toggle enable/disable default fadein/f
 
 ------------------------End of Advanced Settings----------------------------------------
 
------------------------------------States and UA  protection-----------------------------------------
+-----------------------------------States and UA  protection-----------------------------
 
 Docked = tonumber(r.GetExtState('cool_MK Slicer.lua','Docked'))or 0;
 EscToExit = tonumber(r.GetExtState('cool_MK Slicer.lua','EscToExit'))or 1;
@@ -135,6 +131,7 @@ MIDI_Mode = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDI_Mode'))or 0;
 AutoScroll = tonumber(r.GetExtState('cool_MK Slicer.lua','AutoScroll'))or 0;
 SnapToStart = tonumber(r.GetExtState('cool_MK Slicer.lua','SnapToStart'))or 1;
 ObeyingTheSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingTheSelection'))or 1;
+ObeyingItemSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingItemSelection'))or 1;
 
 if AutoXFadesOnSplitOverride == nil then AutoXFadesOnSplitOverride = 1 end 
 if AutoXFadesOnSplitOverride < 0 then AutoXFadesOnSplitOverride = 0 elseif AutoXFadesOnSplitOverride > 1 then AutoXFadesOnSplitOverride = 1 end 
@@ -143,6 +140,40 @@ if ItemFadesOverride < 0 then ItemFadesOverride = 0 elseif ItemFadesOverride > 1
 if RememberLast == nil then RememberLast = 1 end 
 if RememberLast < 0 then RememberLast = 0 elseif RememberLast > 1 then RememberLast = 1 end 
 
+-------------------------------Check time range and unselect-----------------------------
+
+function unselect_if_out_of_time_range()
+
+local j=0; -- unselect if out of time range 
+while(true) do;
+  j=j+1;
+  local track = r.GetSelectedTrack(0,j-1);
+  if track then;
+      start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+      local i=0; 
+      while(true) do;
+        i=i+1;
+        local item = r.GetSelectedMediaItem(0,i-1);
+        if item then;
+               item_pos =  r.GetMediaItemInfo_Value( item, 'D_POSITION' )
+               item_length = r.GetMediaItemInfo_Value( item, 'D_LENGTH' )
+               item_end = item_pos + item_length
+        if item_pos ~= start and item_end ~= ending then
+              r.SetMediaItemSelected(item, false)
+        end
+        if item_pos > start and item_end < ending then
+               r.SetMediaItemSelected(item, true)
+        end
+      else;
+        break;
+    end;
+  end;
+ else;
+   break;
+ end;
+end;
+
+end
 ------------------------------Detect MIDI takes-------------------------------------------
 
 function take_check()
@@ -160,13 +191,11 @@ end;
 
 end
 -------------------------------------------------------------------------------------------
+r.Main_OnCommand(r.NamedCommandLookup('_SWS_SAVESEL'), 0)  -- Save track selection
 -----------------------------------ObeyingTheSelection------------------------------------
 
-start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
-if ObeyingTheSelection == 1 and start ~= ending  then
-              r.Main_OnCommand(40289, 0) -- Item: Unselect all items
-              r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
-end
+    r.Undo_BeginBlock() 
+r.PreventUIRefresh(1)
 
 function collect_param()    -- collect parameters
    selected_tracks_count = r.CountSelectedTracks(0)
@@ -178,10 +207,71 @@ function collect_param()    -- collect parameters
    srate =  r.GetMediaSourceSampleRate(src) -- take samplerate (simple wave/MIDI detection)
  end
 
-if ObeyingTheSelection == 1 and start ~= ending then
+collect_param()
+start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+time_sel_length = ending - start
+if ObeyingTheSelection == 1 and ObeyingItemSelection == 0 and start ~= ending then
+    r.Main_OnCommand(40289, 0) -- Item: Unselect all items
+          if time_sel_length > 0.25 and selected_tracks_count == 1 then
+              r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
+          end
+end
+
+count_itms =  r.CountSelectedMediaItems(0)
+if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel_length > 0.25 then
    take_check()
-   if Take_Check ~= 1 then
-              r.Main_OnCommand(40061, 0) -- Item: Split items at time selection
+   if Take_Check ~= 1 and selected_tracks_count == 1 then
+
+    --------------------------------------------------------
+    local function no_undo() r.defer(function()end)end;
+    --------------------------------------------------------
+    
+    local startTSel,endTSel = r.GetSet_LoopTimeRange(0,0,0,0,0);
+    if startTSel == endTSel then no_undo() return end;
+    
+    local CountSelItem = r.CountSelectedMediaItems(0);
+    if CountSelItem == 0 then no_undo() return end;
+    
+    local TMSL,UNDO;
+    for t = CountSelItem-1,0,-1 do;
+        local item = r.GetSelectedMediaItem(0,t);
+        local posIt = r.GetMediaItemInfo_Value(item,"D_POSITION");
+        local lenIt = r.GetMediaItemInfo_Value(item, "D_LENGTH");
+        if posIt < endTSel and posIt+lenIt > startTSel then;
+            TMSL = true;
+            if not UNDO then;
+                r.Undo_BeginBlock();
+                r.PreventUIRefresh(1);
+                UNDO = true;
+            end;
+        end;
+        if posIt < endTSel and posIt+lenIt > endTSel then;
+            r.SplitMediaItem(item,endTSel);
+        end;
+        if posIt < startTSel and posIt+lenIt > startTSel then;
+            r.SplitMediaItem(item,startTSel);
+        end;
+    end;
+    
+    if TMSL then;
+        for t = r.CountSelectedMediaItems(0)-1,0,-1 do;
+            local item = r.GetSelectedMediaItem(0,t);
+            local posIt = r.GetMediaItemInfo_Value(item,"D_POSITION");
+            local lenIt = r.GetMediaItemInfo_Value(item, "D_LENGTH");
+            if posIt >= endTSel or posIt+lenIt <= startTSel then;
+                r.SetMediaItemInfo_Value(item,'B_UISEL',0);
+            end;
+        end;
+    end;
+    
+    if UNDO then;
+         r.PreventUIRefresh(-1);
+         r.Undo_EndBlock("Split items by time selection,unselect with items outside of time selection if there is selection inside",-1);
+    else;
+        no_undo();
+    end;    
+    r.UpdateArrange();
+
         collect_param()  
         if number_of_takes ~= 1 and srate ~= nil then
            r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
@@ -195,8 +285,6 @@ end
 
 -----------------------------------------------------------------------------------------------------
 
-    r.Undo_BeginBlock() 
-r.PreventUIRefresh(1)
 local cursorpos = r.GetCursorPosition()
 
             r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)
@@ -282,7 +370,8 @@ end
  r.Main_OnCommand(41588, 0) -- glue (если больше одного айтема и не миди айтем, то клей).
   
   end
-
+------------------------------------------------------------------------------------------
+r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track selection
 ----------------------------------Get States from last session-----------------------------
 
 if RememberLast == 1 then
@@ -291,14 +380,14 @@ QuantizeStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','QuantizeStrength
 Offs_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Offs_Slider'))or 0.5;
 HF_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','HF_Slider'))or 0.3312;
 LF_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','LF_Slider'))or 1;
-Sens_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0.31;
+Sens_Slider = tonumber(r.GetExtState('cool_MK Slicer.lua','Sens_Slider'))or 0.375;
 else
 CrossfadeTime = DefaultXFadeTime or 15;
 QuantizeStrength = DefaultQStrength or 100;
 Offs_Slider = DefaultOffset or 0.5;
 HF_Slider = DefaultHP or 0.3312;
 LF_Slider = DefaultLP or 1;
-Sens_Slider = DefaultSens or 0.31;
+Sens_Slider = DefaultSens or 0.375;
 end
 
 ------------------Item;  Remove selected overlapped items (by tracks)----------------------
@@ -367,42 +456,38 @@ function cleanup_slices()
     end;
 
 end
--------------------------------Check time range and unselect-----------------------------
 
-function unselect_if_out_of_time_range()
-
-local j=0; -- unselect if out of time range 
-while(true) do;
-  j=j+1;
-  local track = r.GetSelectedTrack(0,j-1);
-  if track then;
-      start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
-      local i=0; 
-      while(true) do;
-        i=i+1;
-        local item = r.GetSelectedMediaItem(0,i-1);
-        if item then;
-               item_pos =  r.GetMediaItemInfo_Value( item, 'D_POSITION' )
-               item_length = r.GetMediaItemInfo_Value( item, 'D_LENGTH' )
-               item_end = item_pos + item_length
-        if item_pos ~= start and item_end ~= ending then
-              r.SetMediaItemSelected(item, false)
-        end
-        if item_pos > start and item_end < ending then
-               r.SetMediaItemSelected(item, true)
-        end
-      else;
-        break;
+-------------------------Copy/Paste Sends/Returns---------------------------------------
+---------------------------------------------------
+    local function copyReceiveTrack(track,desttrIn,i);
+        if i>r.GetTrackNumSends(track,-1)-1 then return end;
+        local t={'P_SRCTRACK','I_MIDIFLAGS','I_DSTCHAN','I_SRCCHAN','I_AUTOMODE',
+              'I_SENDMODE','D_PANLAW','D_PAN','D_VOL','B_MONO','B_PHASE','B_MUTE'};
+        local t2 = {};
+        for j = 1,#t do;
+            t2[j] = r.GetTrackSendInfo_Value(track,-1,i,t[j]);
+        end;
+        local SendNew = r.CreateTrackSend(t2[1],desttrIn);
+        for j = 2,#t do;
+            r.SetTrackSendInfo_Value(t2[1],0,SendNew,t[j],t2[j]);
+        end;
     end;
-  end;
- else;
-   break;
- end;
-end;
-
-end
-
--------------------------------------------------------------------------------------------
+    ---------------------------------------------------
+    local function copySendTrack(track,desttrIn,i);
+        if i>r.GetTrackNumSends(track,0)-1 then return end;
+        local t={'P_DESTTRACK','I_MIDIFLAGS','I_DSTCHAN','I_SRCCHAN','I_AUTOMODE',
+              'I_SENDMODE','D_PANLAW','D_PAN','D_VOL','B_MONO','B_PHASE','B_MUTE'};
+        local t2 = {};
+        for j = 1,#t do;
+            t2[j] = r.GetTrackSendInfo_Value(track,0,i,t[j]);
+        end;
+        local SendNew = r.CreateTrackSend(desttrIn,t2[1]);
+        for j = 2,#t do;
+            r.SetTrackSendInfo_Value(desttrIn,0,SendNew,t[j],t2[j]);
+        end;
+    end;
+    ---------------------------------------------------
+--------------------------------------------------------------------------------------------
 
 function getsomerms()
 
@@ -929,7 +1014,7 @@ function S_Slider:set_norm_val()
     if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
        else VAL = (gfx.mouse_x-x)/w end
     if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
-    DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.31;
+    DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.375;
     if MCtrl then VAL = DefaultSens end --set default value by Ctrl+LMB
     self.norm_val=VAL
 
@@ -2150,25 +2235,8 @@ Reset_Status = 0
 
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
-local cursorpos = r.GetCursorPosition()
-
-            r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)
-            r.Main_OnCommand(40290, 0) -- Set time selection to item
-            r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME2"),0)
-            r.Main_OnCommand(40635, 0)     -- Remove Selection
-            r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
-
-r.SetEditCurPos(cursorpos,0,0) 
-r.PreventUIRefresh(-1)
-    r.Undo_EndBlock("Init", -1) 
 
 -----------------------------------ObeyingTheSelection------------------------------------
-
-start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
-if ObeyingTheSelection == 1 and start ~= ending  then
-              r.Main_OnCommand(40289, 0) -- Item: Unselect all items
-              r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
-end
 
 function collect_param()    -- collect parameters
    selected_tracks_count = r.CountSelectedTracks(0)
@@ -2180,10 +2248,71 @@ function collect_param()    -- collect parameters
    srate =  r.GetMediaSourceSampleRate(src) -- take samplerate (simple wave/MIDI detection)
  end
 
-if ObeyingTheSelection == 1 and start ~= ending then
+collect_param()
+start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+time_sel_length = ending - start
+if ObeyingTheSelection == 1 and ObeyingItemSelection == 0 and start ~= ending then
+    r.Main_OnCommand(40289, 0) -- Item: Unselect all items
+          if time_sel_length > 0.25 and selected_tracks_count == 1 then
+              r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
+          end
+end
+
+count_itms =  r.CountSelectedMediaItems(0)
+if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel_length > 0.25 then
    take_check()
-   if Take_Check ~= 1 then
-              r.Main_OnCommand(40061, 0) -- Item: Split items at time selection
+   if Take_Check ~= 1 and selected_tracks_count == 1 then
+
+    --------------------------------------------------------
+    local function no_undo() r.defer(function()end)end;
+    --------------------------------------------------------
+    
+    local startTSel,endTSel = r.GetSet_LoopTimeRange(0,0,0,0,0);
+    if startTSel == endTSel then no_undo() return end;
+    
+    local CountSelItem = r.CountSelectedMediaItems(0);
+    if CountSelItem == 0 then no_undo() return end;
+    
+    local TMSL,UNDO;
+    for t = CountSelItem-1,0,-1 do;
+        local item = r.GetSelectedMediaItem(0,t);
+        local posIt = r.GetMediaItemInfo_Value(item,"D_POSITION");
+        local lenIt = r.GetMediaItemInfo_Value(item, "D_LENGTH");
+        if posIt < endTSel and posIt+lenIt > startTSel then;
+            TMSL = true;
+            if not UNDO then;
+                r.Undo_BeginBlock();
+                r.PreventUIRefresh(1);
+                UNDO = true;
+            end;
+        end;
+        if posIt < endTSel and posIt+lenIt > endTSel then;
+            r.SplitMediaItem(item,endTSel);
+        end;
+        if posIt < startTSel and posIt+lenIt > startTSel then;
+            r.SplitMediaItem(item,startTSel);
+        end;
+    end;
+    
+    if TMSL then;
+        for t = r.CountSelectedMediaItems(0)-1,0,-1 do;
+            local item = r.GetSelectedMediaItem(0,t);
+            local posIt = r.GetMediaItemInfo_Value(item,"D_POSITION");
+            local lenIt = r.GetMediaItemInfo_Value(item, "D_LENGTH");
+            if posIt >= endTSel or posIt+lenIt <= startTSel then;
+                r.SetMediaItemInfo_Value(item,'B_UISEL',0);
+            end;
+        end;
+    end;
+    
+    if UNDO then;
+         r.PreventUIRefresh(-1);
+         r.Undo_EndBlock("Split items by time selection,unselect with items outside of time selection if there is selection inside",-1);
+    else;
+        no_undo();
+    end;    
+    r.UpdateArrange();
+
         collect_param()  
         if number_of_takes ~= 1 and srate ~= nil then
            r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
@@ -2194,6 +2323,18 @@ if ObeyingTheSelection == 1 and start ~= ending then
        end
    end
 end
+
+local cursorpos = r.GetCursorPosition()
+
+            r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)
+            r.Main_OnCommand(40290, 0) -- Set time selection to item
+            r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME2"),0)
+            r.Main_OnCommand(40635, 0)     -- Remove Selection
+            r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
+
+r.SetEditCurPos(cursorpos,0,0) 
+r.PreventUIRefresh(-1)
+    r.Undo_EndBlock("Init", -1) 
 
 --------------------------A Bit More Foolproof----------------------------
 
@@ -2349,9 +2490,10 @@ Create_MIDI.onClick =
 
 function()
 
-if MIDISmplr_Status == 0 and Trigg_Status == 0 then
+if Wave.State and MIDISmplr_Status == 0 and Trigg_Status == 0 then
   Slice_Status = 1
   M_Check = 0
+  MIDISampler = 1
 
 sel_tracks_items() 
 selected_tracks_count = r.CountSelectedTracks(0)
@@ -2540,14 +2682,11 @@ end
 -----------------------------------
 local CheckBox_TB = {DrawMode, ViewMode,Guides}
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 ---   Gate  --------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function Gate_Gl:Apply_toFiltered()
-  local start_time = r.time_precise()--time test
-  -----------------------------------------------------
       -------------------------------------------------
       self.State_Points = {}  -- State_Points table 
       -------------------------------------------------
@@ -2653,9 +2792,6 @@ function Gate_Gl:Apply_toFiltered()
     -----------------------------
     collectgarbage("collect") -- collectgarbage(подметает память) 
   -------------------------------
-  --r.ShowConsoleMsg("Gate time = " .. r.time_precise()-start_time .. '\n')--time test
-  -------------------------------
-
 end
 
 ----------------------------------------------------------------------
@@ -3111,12 +3247,18 @@ local cursorpos = r.GetCursorPosition()
             end
 
             cutpos = (next_startppqpos - 0.001)
-
-  if  cutpos - self.sel_start >= 0.04 and self.sel_end - cutpos >= 0.07 then -- if transient too close near item start, do nothing
-            r.SetEditCurPos(cutpos,0,0)          
-            r.Main_OnCommand(40757, 0)  ---split
-       end
-         ----------------------------
+if MIDISampler == 1 then
+          if  cutpos - self.sel_start >= 0.03 and self.sel_end - cutpos >= 0.05 then -- if transient too close near item start, do nothing
+             r.SetEditCurPos(cutpos,0,0)          
+             r.Main_OnCommand(40757, 0)  ---split
+          end
+else
+          if  cutpos - self.sel_start >= 0 and self.sel_end - cutpos >= 0.02 then -- if transient too close near item end, do nothing
+             r.SetEditCurPos(cutpos,0,0)          
+             r.Main_OnCommand(40757, 0)  ---split
+          end
+end
+        ----------------------------
      end        
          
    else
@@ -3574,10 +3716,8 @@ if selected_tracks_count > 1 and count_itms == selected_tracks_count then
   r.Main_OnCommand(41844, 0) -- Remove Markers
 
 else --------------------RESET MULTITRACK---------------------------
-       --        r.Main_OnCommand(40029, 0)  -- Undo
  r.Main_OnCommand(40548, 0)     -- Heal Slices
 end 
-
 
 if  Take_Check == 1 then
 
@@ -3618,16 +3758,7 @@ if count_itms > 1 and selected_tracks_count == count_itms then  -- multitrack
   r.Main_OnCommand(41844, 0) -- Remove Markers
 end
 
-r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)
-r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME2"),0);  -- Restore Selection
-
-sel_tracks_items() 
-
-unselect_if_out_of_time_range()
-
 r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track selection
-r.Main_OnCommand(40635, 0)     -- Remove Selection
-r.Main_OnCommand(r.NamedCommandLookup("_SWS_RESTTIME1"),0)
 
  r.PreventUIRefresh(-1)
     -------------------------------------------
@@ -3651,7 +3782,7 @@ local trim_content_option
     r.Main_OnCommand(41117,0)--Options: Toggle trim behind items when editing
     trim_content_option = 1
   end
-
+MIDISampler = 1
 r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)
 
 ItemState = r.GetExtState('_Slicer_', 'GetItemState')
@@ -3673,9 +3804,7 @@ r.SetTrackSelected( track, 1 )
              mute_ = r.GetMediaTrackInfo_Value(track,"B_MUTE") -- Copy Mute
              pan_ = r.GetMediaTrackInfo_Value(track,"D_PAN") -- Copy Pan
              width_ = r.GetMediaTrackInfo_Value(track,"D_WIDTH") -- Copy Width
-if MIDISamplerCopyRouting == 1 then
-             r.Main_OnCommand(r.NamedCommandLookup("_S&M_COPYSNDRCV2"),0) -- Copy Routing
-end
+
 if MIDISamplerCopyFX == 1 then
              r.Main_OnCommand(r.NamedCommandLookup("_S&M_COPYFXCHAIN5"),0) -- Copy FX
 end
@@ -3813,12 +3942,14 @@ function Load()
                    r.Main_OnCommand(40548,0)--Item: Heal Splits   
                    r.Main_OnCommand(40719,0)--Item: Mute items     
               -- add MIDI
-                if proceed_MIDI then ExportSelItemsToRs5k_AddMIDI(track, MIDI,base_pitch) end        
-
+                if proceed_MIDI then ExportSelItemsToRs5k_AddMIDI(track, MIDI,base_pitch) end  
+      
+        track = r.GetSelectedTrack(0, 0)
         r.Main_OnCommand(40297,0) -- Unselect All Tracks
 	first_track = r.GetTrack(0, 0)
           if first_track then
 	      r.SetTrackSelected(first_track, true)
+
         end
         r.ReorderSelectedTracks(nmb+1, 0)
 
@@ -3847,15 +3978,26 @@ function Load()
             r.SetMediaTrackInfo_Value(track, "D_PAN", pan_) -- Paste Pan
             r.SetMediaTrackInfo_Value(track, "D_WIDTH", width_) -- Paste Width
             r.SetMediaTrackInfo_Value(track, "I_RECMON", 1) -- Set Monitoring
+
 if MIDISamplerCopyRouting == 1 then
-            r.Main_OnCommand(r.NamedCommandLookup("_S&M_PASTSNDRCV2"),0) -- Paste Routing
+    desttrIn = r.GetSelectedTrack(0,0)
+    local CountSend = r.GetTrackNumSends(track,0);
+    for i = 1,CountSend do;
+        copySendTrack(track,desttrIn,i-1);
+    end;
+
+    local CountReceives = r.GetTrackNumSends(track,-1);
+    for i = 1,CountReceives do;
+       copyReceiveTrack(track,desttrIn,i-1);
+    end;
 end
+
 if MIDISamplerCopyFX == 1 then
              r.Main_OnCommand(r.NamedCommandLookup("_S&M_COPYFXCHAIN10"),0) -- Paste FX
 end
 
-             r.Main_OnCommand(r.NamedCommandLookup("_XENAKIOS_SELPREVTRACK"),0) -- Select previous tracks
-
+             r.Main_OnCommand(r.NamedCommandLookup("_XENAKIOS_SELPREVTRACK"),0) -- Select previous track
+    MIDISampler = 0
     MIDISmplr_Status = 1       
     Reset_Status = 0     
     r.PreventUIRefresh(-1)
@@ -3966,13 +4108,18 @@ function Wave:Get_TimeSelection()
 
  local item = r.GetSelectedMediaItem(0,0)
     if item then
-    
+      local start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
+      if start ~= ending then
+          time_sel_length = ending - start
+          else
+          time_sel_length = 1
+      end
+
  local sel_start = r.GetMediaItemInfo_Value(item, "D_POSITION")
          local sel_end = sel_start + r.GetMediaItemInfo_Value(item, "D_LENGTH")
-  
-   
+
     local sel_len = sel_end - sel_start
-    if sel_len<0.25 then return end -- 0.25 minimum
+    if sel_len<0.25 or time_sel_length < 0.25 then return end -- 0.25 minimum
     -------------- 
     self.sel_start, self.sel_end, self.sel_len = sel_start,sel_end,sel_len  -- selection start, end, lenght
     return true
@@ -4137,7 +4284,7 @@ function Wave:Set_Values()
     self.Y_scale    = h/2                              -- Y_scale for waveform drawing
     ---------------------------------
     -- Some other values ------------
-    self.crsx   = block_size/8   -- one side "crossX"  -- use for discard some FFT artefacts(its non-nat, but in this case normally)
+    self.crsx   = block_size/16   -- one side "crossX"  -- use for discard some FFT artefacts(its non-nat, but in this case normally)
     self.Xblock = block_size-self.crsx*2               -- active part of full block(use mid-part of each block)
     -----------
     local max_size = 2^22 - 1    -- Макс. доступно(при создании из таблицы можно больше, но...)
@@ -4155,7 +4302,6 @@ end
 
 -----------------------------------
 function Wave:Processing()
-  local start_time = r.time_precise()--time test
     local info_str = "Processing ."
     -------------------------------
     -- Filter values --------------
@@ -4257,8 +4403,24 @@ function Wave:Get_Cursor()
      end
 
 --------------------Auto-Scroll------------------------------------------------
+
 if AutoScroll == 1 then
+
+if self.Pcx < 0 then mouseAutScrl_status = 1 end
+
+if char==32 and mouseAutScrl_status == 1 then -- cursor focus behavior
+mouseAutScrl_status = 0
+local corr = r.GetCursorPosition() - self.sel_start-0.02 --pos_cor
+      if corr < 0 then corr = 0 end
+      self.Pos =  (corr) * srate * self.X_scale
+      self.Pos = max(self.Pos, 0)
+      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
+      --------------------
+      Wave:Redraw() -- redraw after move view
+end
+
      if self.Pcx > self.w then 
+     mouseAutScrl_status = 1
      self.Pos = self.Pos + self.w/(self.Zoom*Z_w)
      self.Pos = max(self.Pos, 0)
      self.Pos = min(self.Pos, (self.w - self.w/self.Zoom)/Z_w )
@@ -4268,6 +4430,7 @@ end
 ------------------------------------------------------------------------------
   end
 end 
+
 --------------------------
 function Wave:Set_Cursor()
   if SButton == 0 and self:mouseDown() and not(Ctrl or Shift) then  
@@ -4534,7 +4697,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.4.1"
+    local Wnd_Title = "MK Slicer v1.4.2"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -4577,7 +4740,14 @@ function mainloop()
     Shift = gfx.mouse_cap&8==8   -- Shift state
     MCtrl = gfx.mouse_cap&5==5   -- Ctrl+LMB state
     Alt   = gfx.mouse_cap&16==16 -- Alt state
-    
+
+    if gfx.mouse_cap&1==1 then 
+       mouse_oxz = gfx.mouse_x/Z_w
+       mouse_oyz = gfx.mouse_y/Z_h
+          if mouse_oxz <= 1034 and mouse_oyz <= 360 then
+             mouseAutScrl_status = 0
+          end
+    end
     -------------------------
     -- MAIN function --------
     -------------------------
@@ -4639,8 +4809,6 @@ Muted = 1
 end
 
 ----------------------------------------------------------------
-local start_time = r.time_precise()
-   -----------
    Wave:Destroy_Track_Accessor() -- Destroy previos AA(освобождает память etc)
    Wave.State = false -- reset Wave.State
    if Wave:Create_Track_Accessor() then Wave:Processing()
@@ -4659,7 +4827,22 @@ r.PreventUIRefresh(-1)
 
 end
 
---------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+-- Set ToolBar Button ON
+function SetButtonON()
+  local is_new_value, filename, sec, cmd, mode, resolution, val = r.get_action_context()
+  r.SetToggleCommandState( sec, cmd, 1 ) -- Set ON
+  r.RefreshToolbar2( sec, cmd )
+end
+
+-- Set ToolBar Button OFF
+function SetButtonOFF()
+  local is_new_value, filename, sec, cmd, mode, resolution, val = r.get_action_context()
+  r.SetToggleCommandState( sec, cmd, 0 ) -- Set OFF
+  r.RefreshToolbar2( sec, cmd )
+end
+-----------------------------------------------------------------------------------
+SetButtonON()
 
 Init()
 mainloop()
@@ -4692,14 +4875,10 @@ end
 end
 
 
-
 ---------------------------
 -- Create "context" menu --
 ---------------------------
 context_menu = Menu("context_menu")
-
--- Add third menu item (make it "toggleable")
--- "Menu:add_item" also returns the created table and table index in "menu_obj.items"
 
 item1 = context_menu:add_item({label = "Links|", active = false})
 
@@ -4738,7 +4917,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v1.4.1"
+     local Wnd_Title = "MK Slicer v1.4.2"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -4750,7 +4929,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v1.4.1"
+    local Wnd_Title = "MK Slicer v1.4.2"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
@@ -4799,9 +4978,9 @@ end
 
 
 if SnapToStart == 1 then
-item8 = context_menu:add_item({label = "Snap Play Cursor to Waveform Start", toggleable = true, selected = true})
+item8 = context_menu:add_item({label = "Snap Play Cursor to Waveform Start|", toggleable = true, selected = true})
 else
-item8 = context_menu:add_item({label = "Snap Play Cursor to Waveform Start", toggleable = true, selected = false})
+item8 = context_menu:add_item({label = "Snap Play Cursor to Waveform Start|", toggleable = true, selected = false})
 end
 item8.command = function()
                      if item8.selected == true then 
@@ -4811,7 +4990,6 @@ item8.command = function()
                      end
           r.SetExtState('cool_MK Slicer.lua','SnapToStart',SnapToStart,true);
 end
-
 
 
 if MIDISamplerCopyFX == 1 then
@@ -4845,9 +5023,9 @@ end
 
 
 if MIDI_Mode == 1 then
-item11 = context_menu:add_item({label = "Trigger Mode by Default (Restart required)", toggleable = true, selected = true})
+item11 = context_menu:add_item({label = "Trigger Mode by Default (Restart required)|", toggleable = true, selected = true})
 else
-item11 = context_menu:add_item({label = "Trigger Mode by Default (Restart required)", toggleable = true, selected = false})
+item11 = context_menu:add_item({label = "Trigger Mode by Default (Restart required)|", toggleable = true, selected = false})
 end
 item11.command = function()
                      if item11.selected == true then 
@@ -4874,37 +5052,56 @@ item12.command = function()
 end
 
 
-item13 = context_menu:add_item({label = ">User Settings (Advanced)"})
+if ObeyingItemSelection == 1 then
+           item13 = context_menu:add_item({label = "Time Selection Require Item(s) Selection|", toggleable = true, selected = true, active = true})
+           else
+           item13 = context_menu:add_item({label = "Time Selection Require Item(s) Selection|", toggleable = true, selected = false, active = true})
+end
 item13.command = function()
+                     if item13.selected == true then 
+                     ObeyingItemSelection = 1
+                     else
+                     ObeyingItemSelection = 0
+                     end
+          r.SetExtState('cool_MK Slicer.lua','ObeyingItemSelection',ObeyingItemSelection,true);
 
 end
 
-item14 = context_menu:add_item({label = "Set User Defaults", toggleable = false})
-item13.command = function()
+
+item14 = context_menu:add_item({label = ">User Settings (Advanced)"})
+item14.command = function()
+
+end
+
+
+item15 = context_menu:add_item({label = "Set User Defaults", toggleable = false})
+item14.command = function()
 user_defaults()
 end
 
-item15 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
-item14.command = function()
+
+item16 = context_menu:add_item({label = "Reset All Setted User Defaults", toggleable = false})
+item15.command = function()
 
       r.SetExtState('cool_MK Slicer.lua','DefaultXFadeTime',15,true);
       r.SetExtState('cool_MK Slicer.lua','DefaultQStrength',100,true);
       r.SetExtState('cool_MK Slicer.lua','DefaultLP',1,true);
       r.SetExtState('cool_MK Slicer.lua','DefaultHP',0.3312,true);
-      r.SetExtState('cool_MK Slicer.lua','DefaultSens',0.31,true);
+      r.SetExtState('cool_MK Slicer.lua','DefaultSens',0.375,true);
       r.SetExtState('cool_MK Slicer.lua','DefaultOffset',0.5,true);
       r.SetExtState('cool_MK Slicer.lua','MIDI_Base_Oct',2,true);
 
 end
 
-item16 = context_menu:add_item({label = "Reset Sliders to User Defaults (Restart required)|<", toggleable = false})
-item15.command = function()
+
+item17 = context_menu:add_item({label = "|Reset Sliders to User Defaults (Restart required)|<", toggleable = false})
+item16.command = function()
 
       DefaultXFadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultXFadeTime'))or 15;
       DefaultQStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultQStrength'))or 100;
       DefaultHP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultHP'))or 0.3312;
       DefaultLP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultLP'))or 1;
-      DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.31;
+      DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.375;
       DefaultOffset = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultOffset'))or 0.5;
 
       r.SetExtState('cool_MK Slicer.lua','CrossfadeTime',DefaultXFadeTime,true);
@@ -4917,8 +5114,8 @@ item15.command = function()
 end
 
 
-item17 = context_menu:add_item({label = "Reset Window Size", toggleable = false})
-item16.command = function()
+item18 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
+item17.command = function()
 store_window()
            xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
            ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
@@ -4927,7 +5124,8 @@ store_window()
     -- Re-Init window ------
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
                      gfx.update()
-                     end
+
+end
 
 ----------------------------end of context menu--------------------------------
 
@@ -4940,7 +5138,7 @@ DefaultXFadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultXFadeTime
 DefaultQStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultQStrength'))or 100;
 DefaultHP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultHP'))or 0.3312;
 DefaultLP = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultLP'))or 1;
-DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.31;
+DefaultSens = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultSens'))or 0.375;
 DefaultOffset = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultOffset'))or 0.5;
 MIDI_Base_Oct = tonumber(r.GetExtState('cool_MK Slicer.lua','MIDI_Base_Oct'))or 2;
 
@@ -5020,7 +5218,6 @@ end
 end
 -----------------------end of User Defaults form--------------------------------
 
-
 function ClearExState()
 
 r.DeleteExtState('_Slicer_', 'ItemToSlice', 0)
@@ -5028,6 +5225,7 @@ r.DeleteExtState('_Slicer_', 'TrackForSlice', 0)
 r.SetExtState('_Slicer_', 'GetItemState', 'ItemNotLoaded', 0)
 store_settings ()
 store_window()
+SetButtonOFF()
 end
 
 r.atexit(ClearExState)
