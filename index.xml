@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4cf56343279344b4a6829cd92bc0b0c124883eec" name="ReaTeam Scripts">
+<index version="1" commit="f68140007d29ef1d5a791f30d746c1ed00482ed3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11320,6 +11320,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- possible fix for failure in some systems
 - do not change arrange view]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34881026992e6c41f6f9a54f7102d90bda25dcd7/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="1.35" author="amagalma" time="2020-04-14T22:39:54Z">
+        <changelog><![CDATA[- script now works on systems with enabled auto-fades too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f68140007d29ef1d5a791f30d746c1ed00482ed3/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
