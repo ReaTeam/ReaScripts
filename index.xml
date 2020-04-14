@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="34881026992e6c41f6f9a54f7102d90bda25dcd7" name="ReaTeam Scripts">
+<index version="1" commit="4cf56343279344b4a6829cd92bc0b0c124883eec" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3816,6 +3816,16 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Now the script can work with the selected area, taking the item(s) from the selected track during initialization or by Get Item button.
 + Items are cut when working with a multi-track if they have a length different from the length of the item on the script start.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7886b1c29973093031b3e87646a142a0e5d0ed68/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.4.2" author="cool" time="2020-04-14T20:48:54Z">
+        <changelog><![CDATA[+ The script now has an on / off toggle status with a change in the state of the button in the toolbar.
++ Fixed: in some cases, the action of the Reset button affected the selection of items.
++ Fixed: incorrect script behavior if there were no items in the selected area.
++ Fixed: MIDI Sampler error if no audio was loaded into the script.
++ AutoScroll: Repeated Play returns focus to the Play cursor.
++ Changed script behavior with Time Selection (Optional).
++ Fixed incorrect copying of Routing in Sampler mode.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4cf56343279344b4a6829cd92bc0b0c124883eec/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
