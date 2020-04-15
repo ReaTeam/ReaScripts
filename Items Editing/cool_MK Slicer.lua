@@ -1,14 +1,7 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.4.2
--- @changelog
---   + The script now has an on / off toggle status with a change in the state of the button in the toolbar.
---   + Fixed: in some cases, the action of the Reset button affected the selection of items.
---   + Fixed: incorrect script behavior if there were no items in the selected area.
---   + Fixed: MIDI Sampler error if no audio was loaded into the script.
---   + AutoScroll: Repeated Play returns focus to the Play cursor.
---   + Changed script behavior with Time Selection (Optional).
---   + Fixed incorrect copying of Routing in Sampler mode.
+-- @version 1.4.3
+-- @changelog + Fixed: incorrect script behavior if several tracks are selected.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -65,7 +58,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.4.2 by Maxim Kokarev 
+MK Slicer v1.4.3 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -191,11 +184,37 @@ end;
 
 end
 -------------------------------------------------------------------------------------------
-r.Main_OnCommand(r.NamedCommandLookup('_SWS_SAVESEL'), 0)  -- Save track selection
------------------------------------ObeyingTheSelection------------------------------------
+function sel_tracks_items() --Select only tracks of selected items
+
+	UnselectAllTracks()
+	selected_items_count = r.CountSelectedMediaItems(0)
+
+	for i = 0, selected_items_count - 1  do
+		item = r.GetSelectedMediaItem(0, i) -- Get selected item i
+		track = r.GetMediaItem_Track(item)
+		r.SetTrackSelected(track, true)				
+	end 
+end
+
+function UnselectAllTracks()
+	first_track = r.GetTrack(0, 0)
+          if first_track then
+	      r.SetOnlyTrackSelected(first_track)
+	      r.SetTrackSelected(first_track, false)
+          end
+end
 
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
+
+if ObeyingItemSelection == 1 then
+sel_tracks_items()
+end
+-------------------------------------------------------------------------------------------
+r.Main_OnCommand(r.NamedCommandLookup('_SWS_SAVESEL'), 0)  -- Save track selection
+-----------------------------------ObeyingTheSelection------------------------------------
+
+
 
 function collect_param()    -- collect parameters
    selected_tracks_count = r.CountSelectedTracks(0)
@@ -299,25 +318,7 @@ r.PreventUIRefresh(-1)
 
 ------------------------------Prepare Item(s) and Foolproof---------------------------------
 
-function sel_tracks_items() --Select only tracks of selected items
 
-	UnselectAllTracks()
-	selected_items_count = r.CountSelectedMediaItems(0)
-
-	for i = 0, selected_items_count - 1  do
-		item = r.GetSelectedMediaItem(0, i) -- Get selected item i
-		track = r.GetMediaItem_Track(item)
-		r.SetTrackSelected(track, true)				
-	end 
-end
-
-function UnselectAllTracks()
-	first_track = r.GetTrack(0, 0)
-          if first_track then
-	      r.SetOnlyTrackSelected(first_track)
-	      r.SetTrackSelected(first_track, false)
-          end
-end
 
 sel_tracks_items() 
 
@@ -2232,9 +2233,34 @@ MIDISmplr_Status = 0
 Take_Check = 0
 Trigg_Status = 0
 Reset_Status = 0
+------------------------------------------------------------------------------------------------
+function sel_tracks_items() --Select only tracks of selected items
+
+	UnselectAllTracks()
+	selected_items_count = r.CountSelectedMediaItems(0)
+
+	for i = 0, selected_items_count - 1  do
+		item = r.GetSelectedMediaItem(0, i) -- Get selected item i
+		track = r.GetMediaItem_Track(item)
+		r.SetTrackSelected(track, true)				
+	end 
+end
+
+function UnselectAllTracks()
+	first_track = r.GetTrack(0, 0)
+          if first_track then
+	      r.SetOnlyTrackSelected(first_track)
+	      r.SetTrackSelected(first_track, false)
+          end
+end
+
 
     r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
+
+if ObeyingItemSelection == 1 then
+sel_tracks_items()
+end
 
 -----------------------------------ObeyingTheSelection------------------------------------
 
@@ -4697,7 +4723,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.4.2"
+    local Wnd_Title = "MK Slicer v1.4.3"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -4917,7 +4943,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v1.4.2"
+     local Wnd_Title = "MK Slicer v1.4.3"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -4929,7 +4955,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v1.4.2"
+    local Wnd_Title = "MK Slicer v1.4.3"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
