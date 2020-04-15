@@ -1,15 +1,28 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.35
+-- @version 1.37
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  - You can define:
 --  - the peak value of the normalization,
 --  - the number of channels of the IR (mono or stereo),
 --  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
--- @changelog - script now works on systems with enabled auto-fades too
+--  - the default values inside the script
+-- @changelog - Default values can be entered inside the script
+-- - Added option to locate IR in Explorer/Finder or not
 
 -- Thanks to EUGEN27771, spk77, X-Raym
+
+local version = "1.37"
+--------------------------------------------------------------------------------------------
+
+
+-- ENTER HERE DEFAULT VALUES:
+local Max_IR_Lenght = 5 -- Seconds
+local Mono_Or_Stereo = 2 -- (1: mono, 2: stereo)
+local Trim_Silence_Below = -100 -- (must be less than -60)
+local Normalize_Peak = -0.4 -- (must be less than 0)
+local Locate_In_Explorer = "y" -- ("y" for Yes, "n" for No)
 
 
 --------------------------------------------------------------------------------------------
@@ -49,9 +62,14 @@ end
 local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", false )
 if tr_name ~= "" then tr_name = tr_name .. " IR" end
 
+-- Create Default Values
+local Defaults = table.concat({tr_name, Max_IR_Lenght, Mono_Or_Stereo, Trim_Silence_Below, Normalize_Peak, Locate_In_Explorer}, "\n")
+
 -- Get values
-local ok, retvals = reaper.GetUserInputs( "Impulse Response creation", 5, "IR Name (mandatory): ,Maximum IR Length (sec): ,Mono or Stereo (m or s, 1 or 2): ,Trim silence below (dB, < -60): ,Normalize peak (dBFS, < 0): ,separator=\n", tr_name .. "\n5\ns\n-100\n-0.4" )
-local IR_name, IR_len, channels, trim, peak_normalize = string.match(retvals, "(.+)\n(.+)\n(.+)\n(.+)\n(.+)")
+local ok, retvals = reaper.GetUserInputs( "Impulse Response creation - v" .. version, 6,
+"IR Name (mandatory) :,Maximum IR Length (sec) :,Mono or Stereo (m or s, 1 or 2) :,Trim silence below (dB, < -60) :,Normalize peak (dBFS, < 0) :,Locate in Explorer/Finder (y/n) :,separator=\n",
+Defaults )
+local IR_name, IR_len, channels, trim, peak_normalize, locate = string.match(retvals, "(.+)\n(.+)\n(.+)\n(.+)\n(.+)\n(.+)")
 
 local IR_len, peak_normalize, trim = tonumber(IR_len), tonumber(peak_normalize), tonumber(trim)
 if channels and channels:lower() == "m" or tonumber(channels) == 1 then
@@ -67,6 +85,7 @@ end
 if not IR_len or IR_len <= 0 or type(IR_len) ~= "number" or (channels ~= 1 and channels ~= 2)
 or IR_name == "" or IR_name:match('[%"\\/]') or not peak_normalize or peak_normalize > 0
 or type(peak_normalize) ~= "number" or not trim or trim > -60 or type(trim) ~= "number"
+or not locate or (locate:lower() ~= "y" and locate:lower() ~= "n")
 then
   reaper.MB( ok and "Invalid values!" or "Action aborted by user...", "Action aborted", 0 )
   return
@@ -410,4 +429,6 @@ reaper.Undo_EndBlock( "Create IR of FX Chain of selected track", 4 )
 reaper.UpdateArrange()
 
 -- Open in explorer/finder
-reaper.CF_LocateInExplorer( IR_Path )
+if locate:lower() == "y" then
+  reaper.CF_LocateInExplorer( IR_Path )
+end
