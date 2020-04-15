@@ -1,6 +1,6 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.30
+-- @version 1.31
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
@@ -8,8 +8,7 @@
 --   - Set line color inside the script (rgb values 0-255)
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
 --   - Requires JS_ReaScriptAPI 1.000 and higher
--- @changelog - fix for MacOS/Linux
--- - Changed default color (just for fun :P)
+-- @changelog - fix line size when scrolling vertically
 
 -- Many thanks to juliansader :)
 
@@ -51,6 +50,8 @@ local master = reaper.GetMasterTrack(0)
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 1000)
 local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
 local bm_size, bigLine, prev_x, prev_y, prev_item, track_y, item_h, set_window
+local _, scrollpos = reaper.JS_Window_GetScrollInfo( trackview, "v" )
+local prev_scrollpos = scrollpos
 local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
 red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
 green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 0
@@ -61,6 +62,7 @@ local bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
 local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
 local start = reaper.time_precise()
 local prev_vis_tracks_time = start
+local prev_scrollpos_time = start
 local continue = true
 local change = false
 -- Refresh toolbar
@@ -135,6 +137,27 @@ function main()
   local x, y = reaper.GetMousePosition() -- screen
   -- Main Window
   if set_window == 1 then
+    
+    _, scrollpos = reaper.JS_Window_GetScrollInfo( trackview, "v" )
+    if scrollpos ~= prev_scrollpos then
+      prev_scrollpos = scrollpos
+      prev_scrollpos_time = now
+      continue = false
+      if bm_size ~= 3 then
+        Msg("Changing scrollbar position...\n")
+        reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+        bm_size = 3
+        prev_item = nil
+      end
+    elseif scrollpos == prev_scrollpos and now - prev_scrollpos_time >= 0.4 then
+      if bm_size == 3 then
+        Msg("Finished scrolling\n")
+        bm_size = 0
+        continue = true
+        change = true
+      end
+    end 
+    
     vis_tracks_h = visibletracksheight()
     if vis_tracks_h ~= prev_vis_tracks_h then
       prev_vis_tracks_h = vis_tracks_h
@@ -151,12 +174,15 @@ function main()
         Msg("Finished changing zoom\n")
         bm_size = 0
         continue = true
+        change = true
       end
     end
+    
     if continue then
       if change or (x ~= prev_x or y ~= prev_y) then
         prev_x, prev_y = x, y
         change = false
+        
         if bigLine then
           x, y = reaper.JS_Window_ScreenToClient(trackview, x, y)
           if 0 <= x and x <= trackview_w and 0 <= y and y <= trackview_h then
@@ -168,6 +194,7 @@ function main()
             reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
             bm_size = 0
           end
+        
         else
           local item = reaper.GetItemFromPoint( x, y, true )
           if item then
@@ -187,6 +214,7 @@ function main()
             bm_size = 0
           end
         end
+        
       end
     end
   -- MIDI Editor
