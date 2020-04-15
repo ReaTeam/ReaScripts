@@ -1,6 +1,6 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.37
+-- @version 1.38
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  - You can define:
@@ -8,12 +8,11 @@
 --  - the number of channels of the IR (mono or stereo),
 --  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
 --  - the default values inside the script
--- @changelog - Default values can be entered inside the script
--- - Added option to locate IR in Explorer/Finder or not
+-- @changelog - Fix for projects that use different glue/apply fx format than WAV
 
 -- Thanks to EUGEN27771, spk77, X-Raym
 
-local version = "1.37"
+local version = "1.38"
 --------------------------------------------------------------------------------------------
 
 
@@ -355,9 +354,16 @@ end
 
 -- Main Action
 
+
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
 reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SAVEVIEW'), 0) -- SWS: Save current arrange view, slot 1
+
+-- Save current setting for Apply FX/Glue and set to WAV
+local fx_format = reaper.SNM_GetIntConfigVar( "projrecforopencopy", -1 )
+if fx_format ~= 0 then
+  reaper.SNM_SetIntConfigVar( "projrecforopencopy", 0 )
+end
 
 -- Disable automatic fades
 local autofade_state = reaper.GetToggleCommandState( 41194 )
@@ -420,6 +426,11 @@ os.remove(render_path)
 -- Re-enable auto-fades if needed
 if autofade_state == 1 then
   reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
+end
+
+-- Set back format for FX/Glue if changed
+if fx_format ~= 0 then
+  reaper.SNM_SetIntConfigVar( "projrecforopencopy", fx_format )
 end
 
 -- Create Undo
