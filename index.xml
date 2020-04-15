@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f68140007d29ef1d5a791f30d746c1ed00482ed3" name="ReaTeam Scripts">
+<index version="1" commit="34f6e5baf545c57be7dc5d609129cb0ea30d1285" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3826,6 +3826,10 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Changed script behavior with Time Selection (Optional).
 + Fixed incorrect copying of Routing in Sampler mode.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4cf56343279344b4a6829cd92bc0b0c124883eec/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.4.3" author="cool" time="2020-04-15T05:15:27Z">
+        <changelog><![CDATA[+ Fixed: incorrect script behavior if several tracks are selected.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34f6e5baf545c57be7dc5d609129cb0ea30d1285/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
