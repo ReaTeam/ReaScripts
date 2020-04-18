@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.23
+Version: 5.25
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -215,6 +215,8 @@ About:
     + All editable takes can be edited together -- but only if editability follows item selection.
   * v5.23 (2020-04-06)
     + Works even if active take contains no selected events.
+  * v5.25 (2020-04-19)
+    + In notes lane lane, Reset doesn't reset velocity values.
 ]]
 
 -- USER AREA 
@@ -1472,7 +1474,7 @@ function Edit_SpaceEvenly()
     for take, tID in pairs(old.tGroups) do -- ID divides events into separate lanes and channels
         new.tGroups[take] = {}
         for id, t in pairs(tID) do
-            new.tGroups[take][id] = {tT = {}}
+            new.tGroups[take][id] = {tT = {}} -- Ticks aka spacing will be changed.  (If not piano roll, tV values will also be reset.)
             for a, b in pairs(t) do
                 if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
             end
@@ -1486,6 +1488,8 @@ function Edit_SpaceEvenly()
         local range = right-left
         if range ~= 0 then
             for id, t in pairs(tID) do
+        
+                -- Reset spacing
                 if id == "notes" then
                     t.tOff = {}
                     local nT, oT, nO, oO = t.tT, old.tGroups[take][id].tT, t.tOff, old.tGroups[take][id].tOff
@@ -1502,11 +1506,15 @@ function Edit_SpaceEvenly()
                         nT[i] = left + (i-1)*spacing
                     end
                 end
-                local laneMidValue = (laneMinValue and laneMaxValue) and (laneMinValue+laneMaxValue)/2
-                if laneMidValue then
-                    t.tV = {}
-                    for i = 1, #old.tGroups[take][id].tV do
-                        t.tV[i] = laneMidValue
+        
+                -- Reset values -- but if notes area, don't reset velocities
+                if not (laneIsPIANOROLL and id == "notes") then
+                    local laneMidValue = (laneMinValue and laneMaxValue) and (laneMinValue+laneMaxValue)/2
+                    if laneMidValue then
+                        t.tV = {}
+                        for i = 1, #old.tGroups[take][id].tV do
+                            t.tV[i] = laneMidValue
+                        end
                     end
                 end
             end
