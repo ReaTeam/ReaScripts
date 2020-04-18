@@ -1,7 +1,9 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.4.3
--- @changelog + Fixed: incorrect script behavior if several tracks are selected.
+-- @version 1.4.4
+-- @changelog
+--   + Bugfix: now the step of the quantization grid is independent of zoom.
+--   + Added experimental option to disable XFades and Fill Gaps
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -58,7 +60,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.4.3 by Maxim Kokarev 
+MK Slicer v1.4.4 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -125,6 +127,7 @@ AutoScroll = tonumber(r.GetExtState('cool_MK Slicer.lua','AutoScroll'))or 0;
 SnapToStart = tonumber(r.GetExtState('cool_MK Slicer.lua','SnapToStart'))or 1;
 ObeyingTheSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingTheSelection'))or 1;
 ObeyingItemSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingItemSelection'))or 1;
+XFadeOff = tonumber(r.GetExtState('cool_MK Slicer.lua','XFadeOff'))or 0;
 
 if AutoXFadesOnSplitOverride == nil then AutoXFadesOnSplitOverride = 1 end 
 if AutoXFadesOnSplitOverride < 0 then AutoXFadesOnSplitOverride = 0 elseif AutoXFadesOnSplitOverride > 1 then AutoXFadesOnSplitOverride = 1 end 
@@ -788,7 +791,7 @@ local XButton,ZButton, Button, Button_Settings, Slider, Rng_Slider, Knob, CheckB
   extended(ErrMsg,     Element)
   extended(Txt,     Element)
     -- Create Slider Child Classes --
-    local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Rdc_Slider, O_Slider, Q_Slider, X_Slider = {},{},{},{},{},{},{},{},{},{},{},{}
+    local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Rdc_Slider, O_Slider, Q_Slider, X_Slider, X_SliderOff = {},{},{},{},{},{},{},{},{},{},{},{},{}
     extended(H_Slider, Slider)
     extended(V_Slider, Slider)
     extended(T_Slider, Slider)
@@ -801,6 +804,7 @@ local XButton,ZButton, Button, Button_Settings, Slider, Rng_Slider, Knob, CheckB
     extended(O_Slider, Slider)
     extended(Q_Slider, Slider)
     extended(X_Slider, Slider)
+    extended(X_SliderOff, Slider)
     ---------------------------------
   extended(Rng_Slider, Element)
   extended(Frame,      Element)
@@ -1104,6 +1108,13 @@ else
 CrossfadeTime = DefaultXFadeTime
 end
 end
+
+function X_SliderOff:set_norm_val()
+    local x, w = self.x, self.w
+    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+    VAL = 0
+    self.norm_val=VAL
+end
 -----------------------------------------------------------------------------
 function H_Slider:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
@@ -1165,6 +1176,11 @@ end
 function X_Slider:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local val = w * self.norm_val
+    gfx.rect(x,y, val, h, true) -- draw X_Slider body
+end
+function X_SliderOff:draw_body()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = 0
     gfx.rect(x,y, val, h, true) -- draw X_Slider body
 end
 --------------------------------------------------------------
@@ -1240,6 +1256,13 @@ function X_Slider:draw_lbl()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
     gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
+    gfx.drawstr(self.lbl) -- draw X_Slider label
+end
+function X_SliderOff:draw_lbl()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
+    gfx.set(1,1,1,0.45)  -- set body,frame color
     gfx.drawstr(self.lbl) -- draw X_Slider label
 end
 ---------------------------------------------------------------
@@ -1323,6 +1346,13 @@ function Q_Slider:draw_val()
     gfx.drawstr(val) -- draw Q_Slider Value
 end
 function X_Slider:draw_val()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = string.format("%.2f", self.norm_val)
+    local val_w, val_h = gfx.measurestr(val)
+    gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
+    gfx.drawstr(val) -- draw X_Slider Value
+end
+function X_SliderOff:draw_val()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local val = string.format("%.2f", self.norm_val)
     local val_w, val_h = gfx.measurestr(val)
@@ -2167,6 +2197,22 @@ function()
 
 end
 
+-- XFade sliderOff ------------------------------ 
+local XFade_Sld_Off = X_SliderOff:new(503,450,102,18, 0.4,0.4,0.4,0.8, "XFades","Arial",16, 0 )
+function XFade_Sld_Off:draw_val()
+  self.form_val = (self.norm_val)*50       -- form_val
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", self.form_val).." ms"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w+8
+  gfx.set(1,1,1,0.4)  -- set body,frame color
+  gfx.drawstr('Off')--draw Slider Value
+end
+XFade_Sld_Off.onUp =
+function() 
+
+end
+
 -------------------------------------------------------------------------------------
 --- Range Slider --------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -2205,6 +2251,9 @@ local Velocity = Txt:new(698,384,55,18, 0.8,0.8,0.8,0.8, "Velocity:","Arial",22)
 
 local Slider_TB = { HP_Freq,LP_Freq,Fltr_Gain, 
                    Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,XFade_Sld}
+
+local Slider_TB_XFadeOff = { HP_Freq,LP_Freq,Fltr_Gain, 
+                   Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,XFade_Sld_Off}
                    
 local Exception = {Gate_DetVelo}                   
 
@@ -3343,6 +3392,17 @@ if SliceQ_Init_Status == 1 then
                r.Main_OnCommand(40780, 0)  -- Set minimal Grid size (1/2)
     end
 
+
+   local function Arc_GetClosestGridDivision(time_pos);
+        r.PreventUIRefresh(4573);
+        local st_tm, en_tm = r.GetSet_ArrangeView2(0,0,0,0);
+        r.GetSet_ArrangeView2(0,1,0,0,st_tm,st_tm+.1);
+        local Grid = r.SnapToGrid(0,time_pos);
+        r.GetSet_ArrangeView2(0,1,0,0,st_tm,en_tm);
+        r.PreventUIRefresh(-4573);
+        return Grid;
+    end;
+
 function quantize()
 
 local i=0;
@@ -3374,7 +3434,7 @@ if r.GetToggleCommandState(40145) == 1 then
       r.Main_OnCommand(40145, 0)
 end
 
-        r.SetMediaItemInfo_Value(item, "D_POSITION", pos - q_strength / 100 * (pos - ( r.SnapToGrid(0, pos))) - r.GetMediaItemInfo_Value(item, "D_SNAPOFFSET"))
+        r.SetMediaItemInfo_Value(item, "D_POSITION", pos - q_strength / 100 * (pos - ( Arc_GetClosestGridDivision(pos))) - r.GetMediaItemInfo_Value(item, "D_SNAPOFFSET"))
   else
     break
   end
@@ -3391,8 +3451,9 @@ quantize()
 
 cleanup_slices()
 
+if XFadeOff == 0 then
 
-r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
+  r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
 
         CrossfadeT = x_fade
 
@@ -3432,7 +3493,7 @@ r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps
     local Over = Overlap(CrossfadeT);
     r.Undo_EndBlock("Overlap",Over-Over*2);
     r.UpdateArrange();
-
+end
        r.GetSetProjectGrid(proj, true, save_project_grid, save_swing, save_swing_amt) -- restore saved grid settings
 
  r.PreventUIRefresh(-1)
@@ -3649,6 +3710,16 @@ r.PreventUIRefresh(1)
                r.Main_OnCommand(40780, 0)  -- Set minimal Grid size (1/2)
     end
 
+   local function Arc_GetClosestGridDivision(time_pos);
+        r.PreventUIRefresh(4573);
+        local st_tm, en_tm = r.GetSet_ArrangeView2(0,0,0,0);
+        r.GetSet_ArrangeView2(0,1,0,0,st_tm,st_tm+.1);
+        local Grid = r.SnapToGrid(0,time_pos);
+        r.GetSet_ArrangeView2(0,1,0,0,st_tm,en_tm);
+        r.PreventUIRefresh(-4573);
+        return Grid;
+    end;
+
 --------------------Snap Markers to Grid----------------------
 
 local i=0;
@@ -3669,7 +3740,7 @@ while(true) do;
         local countStrMar = r.GetTakeNumStretchMarkers(take);
         for i = 1,countStrMar do;
             local pos = ({r.GetTakeStretchMarker(take,i-1)})[2]/rateIt+posIt;
-            local posGrid = r.SnapToGrid(0,pos);
+            local posGrid = Arc_GetClosestGridDivision(pos);
             if q_force < 0 then q_force = 0 elseif q_force > 100 then q_force = 100 end;
             local new_pos = (((posGrid-pos)/100*q_force)+pos)-posIt; 
             r.SetTakeStretchMarker(take,i-1,new_pos*rateIt);
@@ -4676,6 +4747,7 @@ function Wave:Verify_Project_State() --
           return true 
    end
 end 
+
 --------------------------------------------------------------------------------
 --   Draw controls(buttons,sliders,knobs etc)  ---------------------------------
 --------------------------------------------------------------------------------
@@ -4692,7 +4764,11 @@ function draw_controls()
   for key,sldr   in pairs(Exception)   do sldr:draw()   end
   exept = 0
   end
-  for key,sldr   in pairs(Slider_TB)   do sldr:draw()   end
+       if XFadeOff == 1 then
+         for key,sldr   in pairs(Slider_TB_XFadeOff)   do sldr:draw()   end
+       else
+         for key,sldr   in pairs(Slider_TB)   do sldr:draw()   end
+       end
   end
    
     for key,ch_box in pairs(CheckBox_TB) do ch_box:draw() end
@@ -4723,7 +4799,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.4.3"
+    local Wnd_Title = "MK Slicer v1.4.4"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -4943,7 +5019,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v1.4.3"
+     local Wnd_Title = "MK Slicer v1.4.4"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -4955,7 +5031,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v1.4.3"
+    local Wnd_Title = "MK Slicer v1.4.4"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
@@ -5120,8 +5196,17 @@ item15.command = function()
 end
 
 
-item17 = context_menu:add_item({label = "|Reset Sliders to User Defaults (Restart required)|<", toggleable = false})
+item17 = context_menu:add_item({label = "|XFades and Fill Gaps On/Off (Experimental)", toggleable = false})
 item16.command = function()
+ if XFadeOff == 1 then XFadeOff = 0
+elseif XFadeOff == 0 then XFadeOff = 1
+end
+      r.SetExtState('cool_MK Slicer.lua','XFadeOff',XFadeOff,true);
+end
+
+
+item18 = context_menu:add_item({label = "|Reset Sliders to User Defaults (Restart required)|<", toggleable = false})
+item17.command = function()
 
       DefaultXFadeTime = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultXFadeTime'))or 15;
       DefaultQStrength = tonumber(r.GetExtState('cool_MK Slicer.lua','DefaultQStrength'))or 100;
@@ -5140,8 +5225,8 @@ item16.command = function()
 end
 
 
-item18 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
-item17.command = function()
+item19 = context_menu:add_item({label = "|Reset Window Size", toggleable = false})
+item18.command = function()
 store_window()
            xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
            ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
