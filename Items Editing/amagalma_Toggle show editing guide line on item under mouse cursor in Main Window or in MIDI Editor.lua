@@ -1,16 +1,14 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.40
+-- @version 1.41
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
 --   - Accompanied by helper script to toggle between full height or item height
 --   - Set line color inside the script (rgb values 0-255)
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
---   - Requires JS_ReaScriptAPI 1.000 and higher
--- @changelog - support snap line to grid in arrange view (support is enabled/disabled inside the script)
--- - experimental support snap line to grid in midi view (support is enabled/disabled inside the script)
--- - code improvements
+--   - Requires JS_ReaScriptAPI 1.002 and higher
+-- @changelog - upgraded to JS_ReaScriptAPI 1.002
 
 -- Many thanks to juliansader :)
 
@@ -25,7 +23,7 @@ local MidiEditor_snap_support = 0 -- (experimental)
 
 -------------------------------------------------------------------
 
--- Check if JS_ReaScriptAPI >1.000 is installed
+-- Check if JS_ReaScriptAPI >1.002 is installed
 if not reaper.APIExists("JS_ReaScriptAPI_Version") then
   local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
   if answer == 6 then
@@ -35,7 +33,7 @@ if not reaper.APIExists("JS_ReaScriptAPI_Version") then
   return reaper.defer(function() end)
 else
   local version = reaper.JS_ReaScriptAPI_Version()
-  if version < 1 then
+  if version < 1.002 then
     reaper.MB( "Your JS_ReaScriptAPI version is " .. version .. "\nPlease update to version 1.000 or higher.", "Older version is installed", 0 )
     return reaper.defer(function() end)
   end
@@ -145,7 +143,7 @@ function main()
   else
     MidiWindow = reaper.MIDIEditor_GetActive()
     midiview = reaper.JS_Window_FindChildByID(MidiWindow, 1001)
-    if MidiWindow and (Foreground == MidiWindow or Foreground == midiview) then
+    if MidiWindow and Foreground == MidiWindow then
       if set_window ~= 0 then
         if debug then reaper.ClearConsole() end
         Msg("Foreground is MIDI Window\n")
@@ -167,13 +165,13 @@ function main()
       continue = false
       if bm_size ~= 3 then
         Msg("Changing arrange view...\n")
-        reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+        reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
         bm_size = 3
         prev_item = nil
       end
     elseif scrollposv == prev_scrollposv
     and scrollposh == prev_scrollposh
-    and now - prev_scrollpos_time >= 0.3
+    and now - prev_scrollpos_time >= 0.6
     then
       if bm_size == 3 then
         Msg("Finished changing arrange view\n")
@@ -200,11 +198,11 @@ function main()
             end
             vis_tracks_h = visibletracksheight()
             Msg("draw big line at " .. x .. "\n")
-            reaper.JS_Composite(trackview, x, 0, 1, vis_tracks_h, bm, 0, 0, 1, 1)
+            reaper.JS_Composite(trackview, x, 0, 1, vis_tracks_h, bm, 0, 0, 1, 1, true)
             bm_size = 1
           elseif bm_size == 1 then
             Msg("make line disappear\n")
-            reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+            reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
             bm_size = 0
           end
         
@@ -224,11 +222,11 @@ function main()
               x = x + diff
             end
             Msg("draw line at " .. x .. "\n")
-            reaper.JS_Composite(trackview, x, track_y, 1, item_h, bm, 0, 0, 1, 1)
+            reaper.JS_Composite(trackview, x, track_y, 1, item_h, bm, 0, 0, 1, 1, true)
             bm_size = 1
           elseif bm_size == 1 then
             Msg("make line disappear\n")
-            reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+            reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
             bm_size = 0
           end
         end
@@ -238,36 +236,40 @@ function main()
     
   -- MIDI Editor -----------------------------------------------------------------
   elseif set_window == 0 and MidiWindow then
-  
-    _, scrollposh = reaper.JS_Window_GetScrollInfo( midiview, "h" )
-    _, scrollposv = reaper.JS_Window_GetScrollInfo( midiview, "v" )
-    if scrollposv ~= prev_scrollposv or scrollposh ~= prev_scrollposh then
-      prev_scrollposv = scrollposv
-      prev_scrollposh = scrollposh
-      prev_scrollpos_time = now
-      continue = false
-      if bm_size ~= 4 then
-        Msg("Changing midi view...\n")
-        reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
-        bm_size = 4
-      end
-    elseif scrollposv == prev_scrollposv
-    and scrollposh == prev_scrollposh
-    and now - prev_scrollpos_time >= 0.3
-    then
-      if bm_size == 4 then
-        Msg("Finished changing midi view\n")
-        bm_size = 0
-        continue = true
+
+    snap = MidiEditor_snap_support and reaper.MIDIEditor_GetSetting_int( MidiWindow, "snap_enabled" ) == 1
+    if snap then
+      _, scrollposh = reaper.JS_Window_GetScrollInfo( midiview, "h" )
+      --_, scrollposv = reaper.JS_Window_GetScrollInfo( midiview, "v" )
+      --if scrollposv ~= prev_scrollposv or scrollposh ~= prev_scrollposh then
+      if scrollposh ~= prev_scrollposh then
+        --prev_scrollposv = scrollposv
+        prev_scrollposh = scrollposh
+        prev_scrollpos_time = now
+        continue = false
+        if bm_size ~= 4 then
+          Msg("Changing midi view...\n")
+          reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+          --reaper.JS_Composite_Delay(midiview, 0.1, 0.2, 100)
+          bm_size = 4
+        end
+      --elseif scrollposv == prev_scrollposv and scrollposh == prev_scrollposh
+      elseif scrollposh == prev_scrollposh
+      and now - prev_scrollpos_time >= 0.35
+      then
+        if bm_size == 4 then
+          Msg("Finished changing midi view\n")
+          bm_size = 0
+          continue = true
+        end
       end
     end
   
-    if continue or x ~= prev_x then
+    if (snap and (continue or x ~= prev_x)) or x ~= prev_x then
       prev_x = x
       local _, mwidth, mheight = reaper.JS_Window_GetClientSize( midiview )
       local xcl, ycl = reaper.JS_Window_ScreenToClient(midiview, x, y)
       if xcl >= 0 and xcl <= mwidth and ycl >= 64 and ycl <= mheight then
-        snap = MidiEditor_snap_support and reaper.MIDIEditor_GetSetting_int( MidiWindow, "snap_enabled" ) == 1
         if snap then
           if reaper.JS_Mouse_GetState( 1 ) ~= 1 and reaper.JS_Mouse_GetState( 2 ) ~= 2 then
             local _, left, top, right, bottom = reaper.JS_Window_GetClientRect( midiview )
@@ -300,12 +302,12 @@ function main()
         end
         x, y = reaper.JS_Window_ScreenToClient(midiview, x, 0)
         Msg("draw line in Midi Editor at " ..x .. "\n")
-        reaper.JS_Composite(midiview, x, 64, 1, mheight-64, bm, 0, 0, 1, 1)
+        reaper.JS_Composite(midiview, x, 64, 1, mheight-64, bm, 0, 0, 1, 1, true)
         bm_size = 1
       else
         if bm_size == 1 then
           Msg("make line in Midi Editor disappear\n")
-          reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1)
+          reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
           bm_size = 0
         end
       end
