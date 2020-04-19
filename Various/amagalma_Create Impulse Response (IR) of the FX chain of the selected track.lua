@@ -1,6 +1,6 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.38
+-- @version 1.39
 -- @about
 --  # Creates an impulse response (IR) of the FX Chain of the first selected track.
 --  - You can define:
@@ -8,11 +8,11 @@
 --  - the number of channels of the IR (mono or stereo),
 --  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
 --  - the default values inside the script
--- @changelog - Fix for projects that use different glue/apply fx format than WAV
+-- @changelog - Added option to skip peak normalization (entering "n" or "no") - Improved debugging
 
 -- Thanks to EUGEN27771, spk77, X-Raym
 
-local version = "1.38"
+local version = "1.39"
 --------------------------------------------------------------------------------------------
 
 
@@ -30,6 +30,7 @@ local Locate_In_Explorer = "y" -- ("y" for Yes, "n" for No)
 -- locals for better performance
 local reaper = reaper
 local debug = false
+local problems = 0
 local huge, floor, min, log = math.huge, math.floor, math.min, math.log
 local Win = string.find(reaper.GetOS(), "Win" )
 local sep = Win and "\\" or "/"
@@ -65,12 +66,13 @@ if tr_name ~= "" then tr_name = tr_name .. " IR" end
 local Defaults = table.concat({tr_name, Max_IR_Lenght, Mono_Or_Stereo, Trim_Silence_Below, Normalize_Peak, Locate_In_Explorer}, "\n")
 
 -- Get values
-local ok, retvals = reaper.GetUserInputs( "Impulse Response creation - v" .. version, 6,
-"IR Name (mandatory) :,Maximum IR Length (sec) :,Mono or Stereo (m or s, 1 or 2) :,Trim silence below (dB, < -60) :,Normalize peak (dBFS, < 0) :,Locate in Explorer/Finder (y/n) :,separator=\n",
+local showdebug = debug and " - Debug" or ""
+local ok, retvals = reaper.GetUserInputs( "amagalma IR Creation v" .. version .. showdebug, 6,
+"IR Name (mandatory) :,Maximum IR Length (sec) :,Mono or Stereo (m or s, 1 or 2) :,Trim silence below (dB, < -60) :,Normalize to (dBFS, < 0 or no) :,Locate in Explorer/Finder (y/n) :,separator=\n",
 Defaults )
 local IR_name, IR_len, channels, trim, peak_normalize, locate = string.match(retvals, "(.+)\n(.+)\n(.+)\n(.+)\n(.+)\n(.+)")
-
-local IR_len, peak_normalize, trim = tonumber(IR_len), tonumber(peak_normalize), tonumber(trim)
+IR_len, peak_normalize, trim = tonumber(IR_len) or Max_IR_Lenght, tonumber(peak_normalize) or "no", tonumber(trim) or Trim_Silence_Below
+locate = locate:find("[ynYN]") and locate or Locate_In_Explorer
 if channels and channels:lower() == "m" or tonumber(channels) == 1 then
   channels = 1
 elseif channels and channels:lower() == "s" or tonumber(channels) == 2 then
@@ -82,8 +84,7 @@ if not ok then
   return
 end
 if not IR_len or IR_len <= 0 or type(IR_len) ~= "number" or (channels ~= 1 and channels ~= 2)
-or IR_name == "" or IR_name:match('[%"\\/]') or not peak_normalize or peak_normalize > 0
-or type(peak_normalize) ~= "number" or not trim or trim > -60 or type(trim) ~= "number"
+or IR_name == "" or IR_name:match('[%"\\/]') or not trim or type(trim) ~= "number" or trim > -60 
 or not locate or (locate:lower() ~= "y" and locate:lower() ~= "n")
 then
   reaper.MB( ok and "Invalid values!" or "Action aborted by user...", "Action aborted", 0 )
@@ -345,6 +346,9 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
     reaper.SetEditCurPos( item_pos, true, false )
     local new_item = reaper.SplitMediaItem( item, item_end - position )
     reaper.DeleteTrackMediaItem( reaper.GetMediaItem_Track( new_item ), new_item )
+    return true
+  else
+    return false
   end
 end
 
@@ -375,10 +379,19 @@ end
 reaper.SelectAllMediaItems( 0, false )
 local dirac_path = proj_path .. string.match(reaper.time_precise()*100, "(%d+)%.") .. ".wav"
 ok = Create_Dirac(dirac_path, channels, IR_len )
-if not ok then return end
+if not ok then 
+  Msg("Create Dirac failed. Aborted.\n\n")
+  return 
+end
 
 -- Apply FX
 local item = reaper.GetSelectedMediaItem(0,0)
+if item then
+  Msg("Create Dirac succeded. Item is: ".. tostring(item)  .."\n")
+else
+  Msg("Could not get the item\n")
+  problems = problems+1
+end
 if channels == 1 then
   reaper.Main_OnCommand(40361, 0) -- Item: Apply track/take FX to items (mono output)
 else
@@ -387,24 +400,51 @@ end
 local take = reaper.GetActiveTake( item )
 local PCM_source = reaper.GetMediaItemTake_Source( take )
 local render_path = reaper.GetMediaSourceFileName( PCM_source, "" )
+if render_path then
+  Msg("Applied FX. Render path is: ".. render_path .."\n")
+else
+  Msg("Could not get the render_path\n")
+  problems = problems+1
+end
 
 -- Normalize to peak
-reaper.Main_OnCommand(40108, 0) -- Item properties: Normalize items
-reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
+if peak_normalize ~= "no" then
+  reaper.Main_OnCommand(40108, 0) -- Item properties: Normalize items
+  reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
+  Msg("Normalized to " .. peak_normalize .. " dB\n")
+end
 
 -- Trim silence at the end
-trim_silence_below_threshold(item, trim)
+ok = trim_silence_below_threshold(item, trim)
+if ok then
+  Msg("Trim Silence succeeded\n")
+else
+  Msg("Trim Silence failed\n")
+  problems = problems+1
+end
 
 -- Glue changes
 reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
 item = reaper.GetSelectedMediaItem(0,0)
+if item then
+  Msg("Glued. New item is: ".. tostring(item)  .."\n")
+else
+  Msg("Could not get the item\n")
+  problems = problems+1
+end
 
 -- Rename resulting IR
 local filename = string.gsub(render_path, ".wav$", "-glued.wav")
 for i = 1, huge do
 if reaper.file_exists( filename ) then
   reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
-  os.rename(filename, IR_Path )
+  ok = os.rename(filename, IR_Path )
+  if ok then
+    Msg("Renamed " .. filename .. "  TO  " .. IR_Path .. "\n")
+  else
+    Msg("Failed to rename " .. filename .. " to " .. IR_Path .. "\n")
+    problems = problems+1
+  end
   break
 end
 end
@@ -420,8 +460,21 @@ reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
 reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
 
 -- Delete unneeded files
-os.remove(dirac_path)
-os.remove(render_path)
+ok = os.remove(dirac_path)
+if ok then
+  Msg("Deleted ".. dirac_path .."\n")
+else
+  Msg("Failed to delete ".. dirac_path .."\n")
+  problems = problems+1
+end
+ok = os.remove(render_path)
+if ok then
+  Msg("Deleted ".. render_path .."\n")
+else
+  Msg("Failed to delete ".. render_path .."\n")
+  problems = problems+1
+end
+Msg("Script ended encountering ".. problems .. " problems\n==============================\n\n")
 
 -- Re-enable auto-fades if needed
 if autofade_state == 1 then
