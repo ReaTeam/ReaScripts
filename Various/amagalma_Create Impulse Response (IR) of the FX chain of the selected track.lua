@@ -1,27 +1,43 @@
 -- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 1.39
+-- @version 2.00
+-- @changelog
+--   - Major facelift/redesign. Now uses Lokasenna's GUI Library
+--   - Added ability to browse for file and set path
+--   - Added choice to enable/disable Normalization and Silence Trimming
+--   - Added choice to locate created IR in Explorer/Finder
+--   - Added choice to insert IR in Project
+--   - Added choice to load in Reaverb and bypass FX of track
+--   - Improved debugging mode
+-- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
---  # Creates an impulse response (IR) of the FX Chain of the first selected track.
---  - You can define:
---  - the peak value of the normalization,
---  - the number of channels of the IR (mono or stereo),
---  - the maximum IR length (if sampling reverbs better to set it higher than the reverb tail you expect)
---  - the default values inside the script
--- @changelog - Added option to skip peak normalization (entering "n" or "no") - Improved debugging
+--   # Creates an impulse response (IR) of the FX Chain of the first selected track.
+--   - Mono or Stereo IR creation
+--   - Browse for path and filename
+--   - Normalize to maximum peak value
+--   - Trim trailing silence below set threshold
+--   - Locate file in Explorer/Finder
+--   - Insert file in Project
+--   - Load created IR in Reaverb and bypass the other FX in track
+--   - Set default values inside the script
+--   - Requires JS_ReaScriptAPI extension and Lokasenna GUI v2 libary
 
--- Thanks to EUGEN27771, spk77, X-Raym
+-- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "1.39"
+local version = "2.00"
 --------------------------------------------------------------------------------------------
 
 
 -- ENTER HERE DEFAULT VALUES:
 local Max_IR_Lenght = 5 -- Seconds
-local Mono_Or_Stereo = 2 -- (1: mono, 2: stereo)
-local Trim_Silence_Below = -100 -- (must be less than -60)
 local Normalize_Peak = -0.4 -- (must be less than 0)
-local Locate_In_Explorer = "y" -- ("y" for Yes, "n" for No)
+local Normalize_Enable = 1 -- (1 = enabled, 0 = disabled)
+local Trim_Silence_Below = -100 -- (must be less than -60)
+local Trim_Silence_Enable = 1 -- (1 = enabled, 0 = disabled)
+local Mono_Or_Stereo = 2 -- (1: mono, 2: stereo)
+local Locate_In_Explorer = 1 -- (1 = yes, 0 = no)
+local Insert_In_Project = 0 -- (1 = yes, 0 = no)
+local Load_in_Reaverb = 1 -- (1 = yes, 0 = no)
 
 
 --------------------------------------------------------------------------------------------
@@ -31,13 +47,20 @@ local Locate_In_Explorer = "y" -- ("y" for Yes, "n" for No)
 local reaper = reaper
 local debug = false
 local problems = 0
-local huge, floor, min, log = math.huge, math.floor, math.min, math.log
+local floor, min, log = math.floor, math.min, math.log
 local Win = string.find(reaper.GetOS(), "Win" )
 local sep = Win and "\\" or "/"
 
 -- Get project samplerate and path
 local samplerate = reaper.SNM_GetIntConfigVar( "projsrate", 0 )
 local proj_path = reaper.GetProjectPath("") .. sep
+local IR_Path = proj_path
+
+-- Initialize Variables
+local IR_name = "IR"
+local IR_FullPath = IR_Path .. IR_name
+local IR_len, peak_normalize = Max_IR_Lenght, Normalize_Peak
+local trim, channels = Trim_Silence_Below, Mono_Or_Stereo
 
 
 --------------------------------------------------------------------------------------------
@@ -45,88 +68,68 @@ local proj_path = reaper.GetProjectPath("") .. sep
 
 -- Preliminary tests
 
+-- Check if Lokasenna_GUI library is installed
+local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
+if not lib_path or lib_path == "" or (not reaper.file_exists(lib_path .. "Core.lua")) then
+  reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Exiting...", 0)
+  return reaper.defer(function() end)
+end
+loadfile(lib_path .. "Core.lua")()
+GUI.req("Classes/Class - Menubox.lua")()
+GUI.req("Classes/Class - Options.lua")()
+GUI.req("Classes/Class - Textbox.lua")()
+GUI.req("Classes/Class - Button.lua")()
+GUI.req("Classes/Class - Label.lua")()
+if missing_lib then 
+  reaper.MB("Please re-install 'Lokasenna's GUI library v2 for Lua' from ReaPack and run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Missing libraries!", 0)
+  return reaper.defer(function() end)
+end
+
+-- Check if JS_ReaScriptAPI is installed
+if not reaper.APIExists("JS_ReaScriptAPI_Version") then
+  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
+  if answer == 6 then
+    local url = "https://forum.cockos.com/showthread.php?t=212174"
+     reaper.CF_ShellExecute( url )
+  end
+  return reaper.defer(function() end)
+end
+
+
 -- Test if a track is selected
 local track = reaper.GetSelectedTrack( 0, 0 )
 local msg = "Please, select one track with enabled TrackFX Chain, for which you want the IR to be created."
 if not track then
   reaper.MB( msg, "No track selected!", 0 )
-  return
+  return reaper.defer(function() end)
 end
 local fx_cnt = reaper.TrackFX_GetCount( track )
 local fx_enabled = reaper.GetMediaTrackInfo_Value( track, "I_FXEN" )
 if fx_cnt < 1 or fx_enabled == 0 then
   reaper.MB( msg, "No FX loaded or FX Chain is bypassed!", 0 )
-  return
+  return reaper.defer(function() end)
 end
 
 local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", false )
-if tr_name ~= "" then tr_name = tr_name .. " IR" end
-
--- Create Default Values
-local Defaults = table.concat({tr_name, Max_IR_Lenght, Mono_Or_Stereo, Trim_Silence_Below, Normalize_Peak, Locate_In_Explorer}, "\n")
-
--- Get values
-local showdebug = debug and " - Debug" or ""
-local ok, retvals = reaper.GetUserInputs( "amagalma IR Creation v" .. version .. showdebug, 6,
-"IR Name (mandatory) :,Maximum IR Length (sec) :,Mono or Stereo (m or s, 1 or 2) :,Trim silence below (dB, < -60) :,Normalize to (dBFS, < 0 or no) :,Locate in Explorer/Finder (y/n) :,separator=\n",
-Defaults )
-local IR_name, IR_len, channels, trim, peak_normalize, locate = string.match(retvals, "(.+)\n(.+)\n(.+)\n(.+)\n(.+)\n(.+)")
-IR_len, peak_normalize, trim = tonumber(IR_len) or Max_IR_Lenght, tonumber(peak_normalize) or "no", tonumber(trim) or Trim_Silence_Below
-locate = locate:find("[ynYN]") and locate or Locate_In_Explorer
-if channels and channels:lower() == "m" or tonumber(channels) == 1 then
-  channels = 1
-elseif channels and channels:lower() == "s" or tonumber(channels) == 2 then
-  channels = 2
-end
-
--- Test validity of values
-if not ok then
-  return
-end
-if not IR_len or IR_len <= 0 or type(IR_len) ~= "number" or (channels ~= 1 and channels ~= 2)
-or IR_name == "" or IR_name:match('[%"\\/]') or not trim or type(trim) ~= "number" or trim > -60 
-or not locate or (locate:lower() ~= "y" and locate:lower() ~= "n")
-then
-  reaper.MB( ok and "Invalid values!" or "Action aborted by user...", "Action aborted", 0 )
-  return
-end
-local IR_Path = proj_path .. (IR_name:find("%.wav$") and IR_name or IR_name .. ".wav")
-
--- If file exists...
-if reaper.file_exists( IR_Path ) then
-  ok = reaper.MB( "Please, click OK to enter a new name...", "A file with that name already exists!", 1 )
-  if ok == 1 then
-    ok, IR_Path = reaper.JS_Dialog_BrowseForSaveFile( "Enter a new filename or choose an existing to overwite", proj_path, "", "Wave audio files (.wav)\0*.wav\0\0" )
-    IR_Path = IR_Path:find("%.wav$") and IR_Path or IR_Path .. ".wav"
-  end
-  ok = ok == 1
-end
-if ok then
-  if reaper.file_exists( IR_Path ) then
-    local deleted = os.remove(IR_Path)
-    if not deleted then
-      reaper.MB( "File is in use by an open Reaper Project. Please, run again the script and choose a new filename or one that is not used.", "Aborting...", 0 )
-      ok = false
-    end
-  end
-else 
-  return 
-end
-if not ok then return end
+tr_name = tr_name ~= "" and tr_name .. " IR" or "IR"
 
 
 --------------------------------------------------------------------------------------------
 
 
-function Msg(string)
+-- FUNCTIONS
+
+
+local function Msg(string)
+  if not string then return end
   if debug then
-    reaper.ShowConsoleMsg(tostring(string))
+    reaper.ShowConsoleMsg(tostring(string) .. "\n")
   end
 end
 
 -- X-Raym conversion functions
-function dBFromVal(val) return 20*log(val, 10) end
-function ValFromdB(dB_val) return 10^(dB_val/20) end
+local function dBFromVal(val) return 20*log(val, 10) end
+local function ValFromdB(dB_val) return 10^(dB_val/20) end
 
 function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wave Generator
   local val_out
@@ -197,11 +200,8 @@ function Create_Dirac(FilePath, channels, item_len) -- based on EUGEN27771's Wav
   -- Write Data to file
   file:write(RIFF_Chunk,fmt_Chunk,data_Chunk, table.concat(Data_buf) )
   file:close()
-  for i = 1, huge do
-    if reaper.file_exists( FilePath ) then
-      reaper.InsertMedia( FilePath, 0 )
-      break
-    end
+  if reaper.file_exists( FilePath ) then
+    reaper.InsertMedia( FilePath, 0 )
   end
   return true
 end
@@ -263,12 +263,12 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
     if audio_end_reached then
       break
     end
-    -- Fix for last buffer
+    --[[ Fix for last buffer
     if total_samples - samples_cnt < samples_per_channel then
       samples_per_channel = total_samples - samples_cnt
       buffer.clear()
       buffer.resize(samples_per_channel*take_source_num_channels)
-    end
+    end--]]
     -- Get a block of samples. Samples are returned interleaved
     local aa_ret = 
     reaper.GetAudioAccessorSamples(
@@ -319,7 +319,7 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
     end
     -- if a position was found, then break
     if position then
-      --Msg("position found: " .. position .. "\n")
+      --Msg("position found: " .. position)
       break
     end
     -- Find position end ----------------------------------------------------------
@@ -341,9 +341,9 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
     -- do not let impulse smaller than 20ms
     if item_len-position < 0.02 then
       position = item_len - 0.02
-      --Msg("new position : " .. position .. "\n")
+      --Msg("new position : " .. position)
     end
-    reaper.SetEditCurPos( item_pos, true, false )
+    --reaper.SetEditCurPos( item_pos, true, false )
     local new_item = reaper.SplitMediaItem( item, item_end - position )
     reaper.DeleteTrackMediaItem( reaper.GetMediaItem_Track( new_item ), new_item )
     return true
@@ -352,147 +352,567 @@ function trim_silence_below_threshold(item, threshold) -- threshold in dB
   end
 end
 
-
-----------------------------------------------------------------------------------------
-
-
--- Main Action
-
-
-reaper.Undo_BeginBlock()
-reaper.PreventUIRefresh( 1 )
-reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SAVEVIEW'), 0) -- SWS: Save current arrange view, slot 1
-
--- Save current setting for Apply FX/Glue and set to WAV
-local fx_format = reaper.SNM_GetIntConfigVar( "projrecforopencopy", -1 )
-if fx_format ~= 0 then
-  reaper.SNM_SetIntConfigVar( "projrecforopencopy", 0 )
-end
-
--- Disable automatic fades
-local autofade_state = reaper.GetToggleCommandState( 41194 )
-if autofade_state == 1 then
-  reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
-end
-
--- Create Dirac
-reaper.SelectAllMediaItems( 0, false )
-local dirac_path = proj_path .. string.match(reaper.time_precise()*100, "(%d+)%.") .. ".wav"
-ok = Create_Dirac(dirac_path, channels, IR_len )
-if not ok then 
-  Msg("Create Dirac failed. Aborted.\n\n")
-  return 
-end
-
--- Apply FX
-local item = reaper.GetSelectedMediaItem(0,0)
-if item then
-  Msg("Create Dirac succeded. Item is: ".. tostring(item)  .."\n")
-else
-  Msg("Could not get the item\n")
-  problems = problems+1
-end
-if channels == 1 then
-  reaper.Main_OnCommand(40361, 0) -- Item: Apply track/take FX to items (mono output)
-else
-  reaper.Main_OnCommand(40209, 0) -- Item: Apply track/take FX to items
-end
-local take = reaper.GetActiveTake( item )
-local PCM_source = reaper.GetMediaItemTake_Source( take )
-local render_path = reaper.GetMediaSourceFileName( PCM_source, "" )
-if render_path then
-  Msg("Applied FX. Render path is: ".. render_path .."\n")
-else
-  Msg("Could not get the render_path\n")
-  problems = problems+1
-end
-
--- Normalize to peak
-if peak_normalize ~= "no" then
-  reaper.Main_OnCommand(40108, 0) -- Item properties: Normalize items
-  reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
-  Msg("Normalized to " .. peak_normalize .. " dB\n")
-end
-
--- Trim silence at the end
-ok = trim_silence_below_threshold(item, trim)
-if ok then
-  Msg("Trim Silence succeeded\n")
-else
-  Msg("Trim Silence failed\n")
-  problems = problems+1
-end
-
--- Glue changes
-reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
-item = reaper.GetSelectedMediaItem(0,0)
-if item then
-  Msg("Glued. New item is: ".. tostring(item)  .."\n")
-else
-  Msg("Could not get the item\n")
-  problems = problems+1
-end
-
--- Rename resulting IR
-local filename = string.gsub(render_path, ".wav$", "-glued.wav")
-for i = 1, huge do
-if reaper.file_exists( filename ) then
-  reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
-  ok = os.rename(filename, IR_Path )
-  if ok then
-    Msg("Renamed " .. filename .. "  TO  " .. IR_Path .. "\n")
+function CreateIR()
+  gfx.quit()
+  -- Test validity of values
+  IR_name = GUI.Val("Name")
+  if not IR_name or IR_name == "" then
+    Msg("Entered name was not valid. Auto-created from current date and time.")
+    IR_name = os.date("IR_%d-%m-%Y_%H-%M-%S")
+  end
+  IR_name = IR_name:find("%.wav$") and IR_name or IR_name .. ".wav"
+  IR_FullPath = IR_Path .. IR_name
+  
+  IR_len = tonumber(GUI.Val("Length"))
+  if not IR_len or IR_len <= 0 then
+    Msg("Length value must be above 0. Using default value: " .. Max_IR_Lenght)
+    IR_len = Max_IR_Lenght
+  end
+  
+  peak_normalize = tonumber(GUI.Val("Normalize"))
+  if not peak_normalize or peak_normalize >= 0 then
+    Msg("Peak normalize value must be below 0. Using default value: " .. Normalize_Peak)
+    peak_normalize = Normalize_Peak
+  end
+  
+  trim = tonumber(GUI.Val("Trim"))
+  if not trim or trim > -60 then
+    Msg("Trim silence value must be below -60. Using default value: " .. Trim_Silence_Below)
+    trim = Trim_Silence_Below
+  end
+  
+  Normalize_Enable, Trim_Silence_Enable = table.unpack(GUI.Val("NormTrim"))
+  channels = GUI.Val("Channels") 
+  Locate_In_Explorer, Insert_In_Project, Load_in_Reaverb = table.unpack(GUI.Val("Options"))  
+  
+  -- Debug messages for validity of values
+  Msg("IR full path will be: " .. IR_FullPath)
+  Msg("Maximum length of IR will be " .. IR_len)
+  if Normalize_Enable then 
+    Msg("Normalize Peak to " .. peak_normalize)
+  end
+  if Trim_Silence_Enable then
+    Msg("Trim Silence Below " .. trim)
+  end
+  Msg("Channels: " .. (channels == 1 and "Mono" or "Stereo"))
+  if Locate_In_Explorer then Msg("Locate in Explorer enabled") end
+  if Insert_In_Project then Msg("Insert in Project enabled") end
+  if Load_in_Reaverb then Msg("Load in Reaverb enabled") end
+  Msg("========================\n")
+  
+  -- Start IR Creation
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh( 1 )
+  reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_SAVEVIEW'), 0) -- SWS: Save current arrange view, slot 1
+  
+  -- Save current setting for Apply FX/Glue and set to WAV
+  local fx_format = reaper.SNM_GetIntConfigVar( "projrecforopencopy", -1 )
+  if fx_format ~= 0 then
+    reaper.SNM_SetIntConfigVar( "projrecforopencopy", 0 )
+  end
+  
+  -- Disable automatic fades
+  local autofade_state = reaper.GetToggleCommandState( 41194 )
+  if autofade_state == 1 then
+    reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
+  end
+  
+  -- Create Dirac
+  reaper.SelectAllMediaItems( 0, false )
+  local dirac_path = IR_Path .. string.match(reaper.time_precise()*100, "(%d+)%.") .. ".wav"
+  local ok = Create_Dirac(dirac_path, channels, IR_len )
+  if not ok then 
+    Msg("Create Dirac failed. Aborted.\n\n")
+    return
+  end
+  
+  -- Apply FX
+  local item = reaper.GetSelectedMediaItem(0,0)
+  if item then
+    Msg("Create Dirac succeded. Item is: ".. tostring(item))
   else
-    Msg("Failed to rename " .. filename .. " to " .. IR_Path .. "\n")
     problems = problems+1
+    Msg(problems .. ") Could not get the item")
   end
-  break
+  if channels == 1 then
+    reaper.Main_OnCommand(40361, 0) -- Item: Apply track/take FX to items (mono output)
+  else
+    reaper.Main_OnCommand(40209, 0) -- Item: Apply track/take FX to items
+  end
+  local take = reaper.GetActiveTake( item )
+  local PCM_source = reaper.GetMediaItemTake_Source( take )
+  local render_path = reaper.GetMediaSourceFileName( PCM_source, "" )
+  if render_path then
+    Msg("Applied FX. Render path is: ".. render_path)
+  else
+    problems = problems+1
+    Msg(problems .. ") Could not get the render_path")
+  end
+  
+  -- Normalize to peak
+  if Normalize_Enable then
+    reaper.Main_OnCommand(40108, 0) -- Item properties: Normalize items
+    reaper.SetMediaItemInfo_Value( item, "D_VOL", ValFromdB(peak_normalize) )
+    Msg("Normalized to " .. peak_normalize .. " dB")
+  end
+  
+  -- Trim silence at the end
+  if Trim_Silence_Enable then
+    local ok = trim_silence_below_threshold(item, trim)
+    if ok then
+      Msg("Trim Silence succeeded")
+    else
+      problems = problems+1
+      Msg(problems .. ") Trim Silence failed")
+    end
+  end
+  
+  -- Glue changes
+  reaper.Main_OnCommand(40362, 0) -- Item: Glue items, ignoring time selection
+  item = reaper.GetSelectedMediaItem(0,0)
+  if item then
+    Msg("Glued. New item is: ".. tostring(item))
+  else
+    problems = problems+1
+    Msg(problems .. ") Could not get the item")
+  end
+
+  -- Rename resulting IR
+  local filename = string.gsub(render_path, ".wav$", "-glued.wav")
+  if reaper.file_exists( filename ) then
+    reaper.Main_OnCommand(40440, 0) -- Item: Set selected media offline
+    if reaper.file_exists(IR_FullPath) then
+      -- There is already a file with the same filename and path
+      local ok = os.remove(IR_FullPath)
+      if ok then
+        -- File removed to be replaced
+        local ok2 = os.rename(filename, IR_FullPath )
+        if ok2 then
+          Msg("Renamed " .. filename .. "  TO  " .. IR_FullPath)
+        else
+          problems = problems+1
+          Msg(problems .. ") Failed to rename " .. filename .. " TO " .. IR_FullPath)
+        end
+      else
+        -- Didn't manage to remove. Change the name
+        IR_FullPath = IR_Path .. os.date("%H-%M-%S ") .. IR_name
+        os.rename(filename, IR_FullPath)
+        problems = problems+1
+        Msg(problems .. ") Specified file is in use by Reaper. Renamed " .. filename .. " TO " .. IR_FullPath)
+      end
+    else
+      -- No same file. Proceed with the renaming
+      local ok = os.rename(filename, IR_FullPath )
+      if ok then
+        Msg("Renamed " .. filename .. "  TO  " .. IR_FullPath)
+      else
+        problems = problems+1
+        Msg(problems .. ") Failed to rename " .. filename .. " TO " .. IR_FullPath)
+      end
+    end
+  else
+    problems = problems+1
+    Msg(problems .. ") Failed to locate the glued file")
+  end
+  
+  -- Delete unneeded files
+  ok = os.remove(dirac_path)
+  if ok then
+    Msg("Deleted ".. dirac_path)
+  else
+    problems = problems+1
+    Msg(problems .. ") Failed to delete ".. dirac_path)
+  end
+  ok = os.remove(render_path)
+  if ok then
+    Msg("Deleted ".. render_path)
+  else
+    problems = problems+1
+    Msg(problems .. ") Failed to delete ".. render_path)
+  end
+  
+  -- Re-enable auto-fades if needed
+  if autofade_state == 1 then
+    reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
+  end
+  
+  -- Set back format for FX/Glue if changed
+  if fx_format ~= 0 then
+    reaper.SNM_SetIntConfigVar( "projrecforopencopy", fx_format )
+  end  
+  
+  if Insert_In_Project then
+    if reaper.file_exists( IR_FullPath ) then
+      local take = reaper.GetActiveTake( item )
+      reaper.BR_SetTakeSourceFromFile( take, IR_FullPath, false )
+    end
+    reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
+    reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
+    reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
+    Msg("IR was inserted in Project")
+  else
+    local ok = reaper.DeleteTrackMediaItem( track, item )
+    if not ok then Msg("Failed to remove the item from the Project") end
+  end
+  
+  if Load_in_Reaverb then
+    -- Bypass all FX
+    track = reaper.GetSelectedTrack(0,0)
+    local fx_cnt = reaper.TrackFX_GetCount( track )
+    for i = 0, fx_cnt-1 do
+      reaper.TrackFX_SetEnabled( track, i, false )
+    end
+    local pos = reaper.TrackFX_AddByName( track, "ReaVerb", false, -1 )
+    reaper.TrackFX_Show( track, pos, 3 )
+    local fxhwnd = reaper.JS_Window_Find( "ReaVerb (Cockos)", false )
+    local _, list = reaper.JS_Window_ListAllChild( fxhwnd )
+    local addbutton
+    for address in list:gmatch("[^,]+") do
+      local hwnd = reaper.JS_Window_HandleFromAddress( address )
+      local title = reaper.JS_Window_GetTitle( hwnd )
+      local class = reaper.JS_Window_GetClassName( hwnd )
+      if title == "Add" and class == "Button" then
+        addbutton = hwnd
+      end
+    end
+    local _, left, top, right, bottom = reaper.BR_Win32_GetWindowRect( addbutton )
+    -- click
+    reaper.JS_WindowMessage_Post(addbutton, "WM_LBUTTONDOWN", 0x0001, 0, 10, 10)
+    reaper.JS_WindowMessage_Post(addbutton, "WM_LBUTTONUP", 0x0000, 0, 10, 10)
+    -- two times down arrow
+    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
+    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x28, 0, 0, 0)
+    -- return
+    reaper.JS_WindowMessage_Post(addbutton, "WM_KEYDOWN", 0x0D, 0, 0, 0)
+    local start = reaper.time_precise()
+    function waitdialog()
+      if reaper.time_precise() - start >= 0.5 then
+        local openfile = reaper.JS_Window_Find( "Open media file:", true )
+        local _, list = reaper.JS_Window_ListAllChild( openfile )
+        for address in list:gmatch("[^,]+") do
+          local hwnd = reaper.JS_Window_HandleFromAddress( address )
+          local class = reaper.JS_Window_GetClassName( hwnd )
+          if class == "ComboBox" then
+            local editwindow = reaper.JS_Window_FindChildByID( hwnd, 1148 )
+            if editwindow then 
+              reaper.JS_Window_SetTitle( editwindow, IR_FullPath )
+              -- return
+              reaper.JS_WindowMessage_Post(editwindow, "WM_KEYDOWN", 0x0D, 0, 0, 0)
+              break
+            end
+          end
+        end
+        return
+      end
+      reaper.defer(waitdialog)
+    end
+    waitdialog()
+  end
+  
+  -- Create Undo
+  reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_RESTOREVIEW'), 0) -- SWS: Restore arrange view, slot 1
+  reaper.PreventUIRefresh( -1 )
+  reaper.Undo_EndBlock( "Create IR of FX Chain of selected track", 2|4 )
+  reaper.UpdateArrange()
+  
+  if Locate_In_Explorer then
+    reaper.CF_LocateInExplorer( IR_FullPath )
+  end
+  
+  -- Give debug message
+  if problems > 0 then
+    Msg("Script ended encountering ".. problems .. " problem" .. (problems > 1 and "s" or "") .. 
+        "\n==============================\n")
+  else
+    Msg("\n\nCreated IR:\n-- " .. IR_FullPath .. " --\n\n")
+    Msg("Script ended with no problems\n==============================\n")
+  end
+  
 end
-end
-for i = 1, huge do
-  if reaper.file_exists( IR_Path ) then
-    local take = reaper.GetActiveTake( item )
-    reaper.BR_SetTakeSourceFromFile( take, IR_Path, false )
-    break
+
+
+--------------------------------------------------------------------------------------------
+
+
+-- GUI Functions
+
+-- Modified function to display tooltip centered and without flickering
+local showtooltip, last_tooltip, showtooltip_time, time_to_read = false, "-"
+function GUI.settooltip(str)
+  if not str or str == "" then return end
+  if not showtooltip then
+    local x, y = gfx.clienttoscreen(GUI.mouse.x, GUI.mouse.y )
+    reaper.TrackCtl_SetToolTip(str, x, y + 20, true)
+    local hwnd = reaper.GetTooltipWindow()
+    local ok, width = reaper.JS_Window_GetClientSize( hwnd )
+    width = ok and math.floor(width/2) or 146
+    if hwnd then reaper.JS_Window_Move( hwnd, x - width, y + 22 ) end
+    GUI.tooltip = str
+    showtooltip = true
+    showtooltip_time = reaper.time_precise()
+    last_tooltip = GUI.mouseover_elm.name
+    time_to_read = #str * 0.065 + 0.25
   end
 end
-reaper.Main_OnCommand(40439, 0) -- Item: Set selected media online
-reaper.Main_OnCommand(41858, 0) -- Item: Set item name from active take filename
-reaper.Main_OnCommand(40441, 0) -- Peaks: Rebuild peaks for selected items
 
--- Delete unneeded files
-ok = os.remove(dirac_path)
-if ok then
-  Msg("Deleted ".. dirac_path .."\n")
-else
-  Msg("Failed to delete ".. dirac_path .."\n")
-  problems = problems+1
-end
-ok = os.remove(render_path)
-if ok then
-  Msg("Deleted ".. render_path .."\n")
-else
-  Msg("Failed to delete ".. render_path .."\n")
-  problems = problems+1
-end
-Msg("Script ended encountering ".. problems .. " problems\n==============================\n\n")
-
--- Re-enable auto-fades if needed
-if autofade_state == 1 then
-  reaper.Main_OnCommand(41194, 0) -- Item: Toggle enable/disable default fadein/fadeout
+function BrowseForFile()
+  local ok, retval = reaper.JS_Dialog_BrowseForSaveFile( 
+  "Save Impulse Response as :", IR_Path, GUI.Val("Name"), "Wave Audio files (*.WAV)\0*.wav\0\0" )
+  if ok == 1 then
+    IR_Path, IR_name = retval:match("(.+[\\/])(.+)")
+    IR_name = IR_name:find("%.wav$") and IR_name or IR_name .. ".wav"
+    Msg("Path from function: " .. retval)
+    Msg("IR_path: " .. IR_Path )
+    Msg("IR_name: " .. IR_name )
+    IR_FullPath = IR_Path .. IR_name
+    GUI.Val("Name", IR_name )
+    Msg("========================\n\n")
+  end
 end
 
--- Set back format for FX/Glue if changed
-if fx_format ~= 0 then
-  reaper.SNM_SetIntConfigVar( "projrecforopencopy", fx_format )
+function MyFunction()
+  -- Tooltip code
+  if showtooltip then
+    if GUI.mouseover_elm and GUI.mouseover_elm.name ~= last_tooltip then
+      showtooltip = false
+      last_tooltip = "-"
+      showtooltip_time = nil
+    elseif reaper.time_precise() - showtooltip_time > (time_to_read or 7) then
+      reaper.TrackCtl_SetToolTip("", 0, 0, true)
+    end
+  end
 end
 
--- Create Undo
-reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_RESTOREVIEW'), 0) -- SWS: Restore arrange view, slot 1
-reaper.PreventUIRefresh( -1 )
-reaper.Undo_EndBlock( "Create IR of FX Chain of selected track", 4 )
-reaper.UpdateArrange()
-
--- Open in explorer/finder
-if locate:lower() == "y" then
-  reaper.CF_LocateInExplorer( IR_Path )
+function force_size()
+  gfx.quit()
+  gfx.init(GUI.name, GUI.w, GUI.h, GUI.dock, GUI.x, GUI.y)
+  GUI.cur_w, GUI.cur_h = GUI.w, GUI.h
 end
+
+GUI.Draw_Version = function ()
+  local str = "Script by amagalma   -   using Lokasenna_GUI "..GUI.version
+  GUI.font("version")
+  GUI.color("white")
+  local str_w, str_h = gfx.measurestr(str)
+  gfx.x = gfx.w - str_w - 10
+  gfx.y = gfx.h - str_h - 4
+  gfx.drawstr(str)
+end
+
+--------------------------------------------------------------------------------------------
+
+
+-- GUI
+
+local showdebug = debug and "  -  Debug" or ""
+GUI.name = "Easy Impulse Response Creation  -  v" .. version .. showdebug
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 330, 345
+GUI.anchor, GUI.corner = "screen", "C"
+GUI.colors.white = { 230, 230, 230, 255 }
+GUI.tooltip_time = 0.4
+
+-- GUI constants
+
+local left_align = 145
+local top_align = 15
+local space = 40
+local text_w = 240
+
+-- Elements
+
+GUI.New("Name", "Textbox", {
+    z = 1,
+    x = left_align - 70,
+    y = top_align,
+    w = text_w,
+    h = 20,
+    caption = "IR Name",
+    cap_pos = "left",
+    font_a = 2,
+    font_b = "monospace",
+    color = "white",
+    bg = "wnd_bg",
+    shadow = true,
+    pad = 5,
+    undo_limit = 20,
+    tooltip = "Enter IR name. The current path is:\n" .. IR_Path .. "\nUse the 'Browse for File' button to change path."
+})
+
+GUI.New("Length", "Textbox", {
+    z = 1,
+    x = left_align,
+    y = top_align + space,
+    w = text_w *0.45,
+    h = 20,
+    caption = "Max IR Length",
+    cap_pos = "left",
+    font_a = 2,
+    font_b = "monospace",
+    color = "white",
+    bg = "wnd_bg",
+    shadow = true,
+    pad = 5,
+    undo_limit = 20,
+    tooltip = "The maximum length of the IR. When sampling reverbs it is best to specify a length longer than the tail you expect"
+})
+
+GUI.New("LengthL", "Label", {
+    z = 1,
+    x = left_align + text_w * 0.49,
+    y = top_align + space,
+    caption = "seconds",
+    font = 2,
+    color = "white",
+    bg = "wnd_bg",
+    shadow = true
+})
+
+GUI.New("Normalize", "Textbox", {
+    z = 1,
+    x = left_align,
+    y = top_align + space*2,
+    w = text_w * 0.45,
+    h = 20,
+    caption = "Normalize Peak to",
+    cap_pos = "left",
+    font_a = 2,
+    font_b = "monospace",
+    color = "white",
+    bg = "wnd_bg",
+    shadow = true,
+    pad = 5,
+    undo_limit = 20,
+    tooltip = "Set maximum peak value (number). Must be less than 0dBFS"
+})
+
+GUI.New("Trim", "Textbox", {
+    z = 1,
+    x = left_align,
+    y = top_align + space*3,
+    w = text_w * 0.45,
+    h = 20,
+    caption = "Trim Silence Below",
+    cap_pos = "left",
+    font_a = 2,
+    font_b = "monospace",
+    color = "white",
+    bg = "wnd_bg",
+    shadow = true,
+    pad = 5,
+    undo_limit = 20,
+    tooltip = "Trim IR length when volume falls under the threshold (number). Enter values below -60dB"
+})
+
+GUI.New("NormTrim", "Checklist", {
+    z = 1,
+    x = left_align + text_w * 0.6,
+    y = top_align + space + 11,
+    w = 50,
+    h = 100,
+    caption = "",
+    optarray = {"dBFS", "dB   "},
+    dir = "v",
+    pad = 20,
+    font_a = 2,
+    font_b = 2,
+    col_txt = "white",
+    col_fill = "elm_fill",
+    bg = "wnd_bg",
+    frame = false,
+    shadow = true,
+    swap = true,
+    opt_size = 20,
+    tooltip = "Enable/Disable Normalize and Trim Silence"
+})
+
+GUI.New("Channels", "Menubox", {
+    z = 1,
+    x = left_align,
+    y = top_align + space*4,
+    w = 127,
+    h = 20,
+    caption = "Number of Channels",
+    optarray = {"Mono", "Stereo"},
+    retval = 2,
+    font_a = 2,
+    font_b = 2,
+    col_txt = "white",
+    col_cap = "white",
+    bg = "wnd_bg",
+    pad = 5,
+    noarrow = false,
+    align = 1,
+    tooltip = "Choose to create Mono or Stereo IR"
+})
+
+GUI.New("Options", "Checklist", {
+    z = 1,
+    x = left_align - 59,
+    y = top_align + space*4.25,
+    w = 100,
+    h = 140,
+    caption = "",
+    optarray = {"Locate in Explorer", "Insert in Project", "Load in Reaverb"},
+    dir = "v",
+    pad = 20,
+    font_a = 2,
+    font_b = 2,
+    col_txt = "white",
+    col_fill = "elm_fill",
+    bg = "wnd_bg",
+    frame = false,
+    shadow = true,
+    swap = true,
+    opt_size = 20,
+    tooltip = "Choose what to do with the created IR file"
+})
+
+GUI.New("Browse", "Button", {
+    z = 1,
+    x = GUI.w - 120 - 20,
+    y = top_align + space*5.5 - 6,
+    w = 120,
+    h = 25,
+    caption = "Browse for File",
+    font = 2,
+    col_txt = "white",
+    col_fill = "elm_frame",
+    tooltip = "Click to browse for exact filename and path",
+    func = BrowseForFile
+})
+
+GUI.New("Create", "Button", {
+    z = 1,
+    x = GUI.w - 120 - 20,
+    y = top_align + space*6.5,
+    w = 120,
+    h = 25,
+    caption = "CREATE IR",
+    font = 2,
+    col_txt = "white",
+    col_fill = "green",
+    tooltip = "Click to create IR file",
+    func = CreateIR
+})
+
+-- Set default values
+IR_FullPath = proj_path .. tr_name
+IR_Path, IR_name = proj_path, tr_name
+GUI.Val("Name", tr_name)
+GUI.Val("Length", Max_IR_Lenght)
+GUI.Val("Normalize", Normalize_Peak)
+GUI.Val("Trim", Trim_Silence_Below)
+GUI.Val("NormTrim", {Normalize_Enable == 1, Trim_Silence_Enable == 1} )
+GUI.Val("Channels", Mono_Or_Stereo)
+GUI.Val("Options", {Locate_In_Explorer == 1, Insert_In_Project == 1, Load_in_Reaverb == 1})
+GUI.onresize = force_size
+GUI.func = MyFunction
+
+-- Start GUI
+if debug then
+  reaper.ClearConsole()
+  Msg("=== Script is in debug mode ===\n")
+end
+
+GUI.Init()
+GUI.Main()
