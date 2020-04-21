@@ -1,14 +1,15 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.50
+-- @version 1.55
+-- @changelog
+--   - Several code improvements
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
---   - Accompanied by helper script to toggle between full height or item height
+--   - Accompanied by helper script to toggle between full height or item height in the arrange view
 --   - Set line color inside the script (rgb values 0-255)
 --   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
---   - Requires JS_ReaScriptAPI 1.002 and higher
--- @changelog - Greatly improved snap support for Midi Editor (now on by default)
+--   - Requires JS_ReaScriptAPI 1.002 or higher
 
 -- Many thanks to juliansader :)
 
@@ -49,10 +50,19 @@ local reaper = reaper
 local debug = false
 Arrange_snap_support = Arrange_snap_support == 1
 MidiEditor_snap_support = MidiEditor_snap_support == 1
-local floor, huge = math.floor, math.huge
+local floor = math.floor
 local MainHwnd = reaper.GetMainHwnd()
+local CurrentWindow
+local set_window
+local MidiWindow = reaper.MIDIEditor_GetActive()
+local midiview = MidiWindow and reaper.JS_Window_FindChildByID(MidiWindow, 0x3E9)
 local Foreground = reaper.JS_Window_GetForeground()
-local MidiWindow, midiview
+if Foreground == MainHwnd then
+  set_window = 1
+elseif Foreground == MidiWindow then
+  set_window = 0
+end
+local prev_set_window = set_window
 local master = reaper.GetMasterTrack(0)
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 0x3E8)
 local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
@@ -60,9 +70,12 @@ local snap = reaper.GetToggleCommandState( 1157 ) == 1
 local zoom, vis_tracks_h
 local left_button_down, direction_right = false
 local midiview_time = 2
-local bm_size, bigLine, prev_x, prev_y, prev_item, track_y, item_h, set_window
-local _, scrollposv = reaper.JS_Window_GetScrollInfo( trackview, "v" )
-local _, scrollposh = reaper.JS_Window_GetScrollInfo( trackview, "h" )
+local bigLine, prev_x, prev_y, prev_item, track_y, item_h
+local bm_size = 0
+local cur_view = set_window == 0 and midiview or trackview
+local _, scrollposv = reaper.JS_Window_GetScrollInfo( cur_view, "v" )
+local _, scrollposh = reaper.JS_Window_GetScrollInfo( cur_view, "h" )
+local checkscroll = false
 local prev_scrollposv, prev_scrollposh = scrollposv, scrollposh
 local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
 red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
@@ -158,67 +171,94 @@ end
 function main()
   local now = reaper.time_precise()
   local x, y = reaper.GetMousePosition() -- screen
-  
-  if now - start >= 0.3 then
-    snap = Arrange_snap_support and reaper.GetToggleCommandState( 1157 ) == 1
-    bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
-    Foreground = reaper.JS_Window_GetForeground()
-    if bigLine ~= prev_bigLine then
-      Msg("Changed guide line size\n")
-      prev_bigLine = bigLine
-      change = true
+
+  CurrentWindow = reaper.JS_Window_FromPoint( x, y )
+  MidiWindow = reaper.MIDIEditor_GetActive()
+  midiview = MidiWindow and reaper.JS_Window_FindChildByID(MidiWindow, 0x3E9)
+  if CurrentWindow == trackview then
+    
+    if now - start >= 0.3 then
+      snap = Arrange_snap_support and reaper.GetToggleCommandState( 1157 ) == 1
+      bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
+      if bigLine ~= prev_bigLine then
+        Msg("Changed guide line size\n")
+        prev_bigLine = bigLine
+        change = true
+      end
+      start = now
     end
-    start = now
-  end
-  
-  if Foreground == MainHwnd or Foreground == trackview then
+    
     if set_window ~= 1 then
+      checkscroll = false
       if debug then reaper.ClearConsole() end
-      Msg("Foreground is Main Window\n")
+      Msg("Current window is Main Window\n")
+      prev_set_window = set_window
       set_window = 1 -- 1 is Main
       bm_size = 0
-    end
-  else
-    MidiWindow = reaper.MIDIEditor_GetActive()
-    midiview = reaper.JS_Window_FindChildByID(MidiWindow, 0x3E9)
-    if MidiWindow and Foreground == MidiWindow then
-      if set_window ~= 0 then
-        if debug then reaper.ClearConsole() end
-        Msg("Foreground is MIDI Window\n")
-        set_window = 0 -- 0 is MIDI
-        bm_size = -1
+      if midiview and prev_set_window == 0 then
+        reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+        continue = true
       end
+    else  
+      checkscroll = true
     end
+  
+  elseif CurrentWindow == midiview then
+    
+    if now - start >= 0.3 then
+      snap = MidiEditor_snap_support and reaper.MIDIEditor_GetSetting_int( MidiWindow, "snap_enabled" ) == 1
+      start = now
+    end
+  
+    if set_window ~= 0 then
+      checkscroll = false
+      if debug then reaper.ClearConsole() end
+      Msg("Current window is MIDI Window\n")
+      prev_set_window = set_window
+      set_window = 0 -- 0 is MIDI
+      bm_size = 0
+      if prev_set_window == 1 then 
+        reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+      end
+    else
+      checkscroll = true
+    end
+  
   end
   
   -- Main Window -----------------------------------------------------------
   if set_window == 1 then
-  
+    
     _, scrollposh = reaper.JS_Window_GetScrollInfo( trackview, "h" )
-    _, scrollposv = reaper.JS_Window_GetScrollInfo( trackview, "v" )
-    if scrollposv ~= prev_scrollposv or scrollposh ~= prev_scrollposh then
-      prev_scrollposv = scrollposv
-      prev_scrollposh = scrollposh
-      prev_scrollpos_time = now
-      continue = false
-      if bm_size ~= 3 then
+    _, scrollposv = reaper.JS_Window_GetScrollInfo( trackview, "v" ) 
+    if checkscroll then
+      if scrollposv ~= prev_scrollposv or scrollposh ~= prev_scrollposh then
+      
+        prev_scrollposv = scrollposv
+        prev_scrollposh = scrollposh
+        prev_scrollpos_time = now
+        continue = false
         Msg("Changing arrange view...\n")
         reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
-        bm_size = 3
+        bm_size = -1
         prev_item = nil
+  
+      elseif scrollposv == prev_scrollposv
+      and scrollposh == prev_scrollposh
+      and now - prev_scrollpos_time >= 0.5
+      then
+        if bm_size == -1 then
+          Msg("Finished changing arrange view\n")
+          bm_size = 0
+          continue = true
+          change = true
+        end
       end
-    elseif scrollposv == prev_scrollposv
-    and scrollposh == prev_scrollposh
-    and now - prev_scrollpos_time >= 0.6
-    then
-      if bm_size == 3 then
-        Msg("Finished changing arrange view\n")
-        bm_size = 0
-        continue = true
-        change = true
-      end
+    else
+      prev_scrollposv = scrollposv
+      prev_scrollposh = scrollposh
     end
-    
+
     if continue then
       if change or (x ~= prev_x or y ~= prev_y) then
         prev_x, prev_y = x, y
@@ -273,38 +313,40 @@ function main()
     end
     
   -- MIDI Editor -----------------------------------------------------------------
-  elseif set_window == 0 and MidiWindow then
+  elseif set_window == 0 then
 
-    snap = MidiEditor_snap_support and reaper.MIDIEditor_GetSetting_int( MidiWindow, "snap_enabled" ) == 1
-    if snap then
-      _, scrollposh = reaper.JS_Window_GetScrollInfo( midiview, "h" )
-      if scrollposh ~= prev_scrollposh then
+    _, scrollposh = reaper.JS_Window_GetScrollInfo( midiview, "h" )
+    if snap and checkscroll then
+      if prev_scrollposh and scrollposh ~= prev_scrollposh then
         prev_scrollposh = scrollposh
         prev_scrollpos_time = now
         continue = false
-        if bm_size ~= 4 then
-          Msg("Changing midi view...\n")
-          reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
-          bm_size = 4
-        end
+        Msg("Changing midi view...\n")
+        reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+        bm_size = -1
       elseif scrollposh == prev_scrollposh
       and now - prev_scrollpos_time >= 0.35
       then
-        if bm_size == 4 then
+        if bm_size == -1 then
           Msg("Finished changing midi view\n")
           bm_size = 0
           continue = true
         end
       end
+    else
+      prev_scrollposv = scrollposv
+      prev_scrollposh = scrollposh
     end
-  
-    if (snap and (continue or x ~= prev_x)) or x ~= prev_x then
-      local prev_mouse_pos = prev_x
-      local current_mouse_pos = x
-      prev_x = x
-      local _, mwidth, mheight = reaper.JS_Window_GetClientSize( midiview )
-      local xcl, ycl = reaper.JS_Window_ScreenToClient(midiview, x, y)
-      if xcl >= 0 and xcl <= mwidth and ycl >= 64 and ycl <= mheight then
+    
+    local _, mwidth, mheight = reaper.JS_Window_GetClientSize( midiview )
+    local xcl, ycl = reaper.JS_Window_ScreenToClient(midiview, x, y)
+    if ycl >= 64 and ycl <= mheight then --and xcl >= 0 and xcl < mwidth then
+      if x ~= prev_x or continue then
+        
+        continue = false
+        local prev_mouse_pos = prev_x
+        local current_mouse_pos = x
+        prev_x = x
         
         if snap then
           local nosnap, _, activetempo = false
@@ -345,16 +387,17 @@ function main()
         x, y = reaper.JS_Window_ScreenToClient(midiview, x, 0)
         Msg("draw line in Midi Editor at " ..x .. "\n")
         reaper.JS_Composite(midiview, x, 64, 1, mheight-64, bm, 0, 0, 1, 1, true)
-        bm_size = 1
-      else
-        if bm_size == 1 then
-          Msg("make line in Midi Editor disappear\n")
-          reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
-          bm_size = 0
-        end
-      end  
+        bm_size = 1      
+      end
+      
+    else
+      if bm_size == 1 then
+        Msg("make line in Midi Editor disappear\n")
+        reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+        bm_size = 0
+      end
+        
     end
-  
   end
   reaper.defer(main)
 end
