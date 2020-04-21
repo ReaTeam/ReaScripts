@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d9e1f7cea8f7e8a92bdce2d22df34dfb8d497e8a" name="ReaTeam Scripts">
+<index version="1" commit="cb3375645185b3e1d9b958aa9bdeb25301427580" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11311,6 +11311,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="2.09" author="amagalma" time="2020-04-03T21:53:38Z">
         <changelog><![CDATA[- Fixed failing extraction when Reaper path contains spaces]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5cf2d6d3c61f73b49c3c634906e726dbd3b7257e/Various/amagalma_Adjust%20theme%20colors.lua</source>
+        <source platform="windows" type="extension" file="7za.exe">https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1</source>
+      </version>
+      <version name="2.10" author="amagalma" time="2020-04-21T11:21:31Z">
+        <changelog><![CDATA[- Improved check for valid Lokasenna GUI library installation]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cb3375645185b3e1d9b958aa9bdeb25301427580/Various/amagalma_Adjust%20theme%20colors.lua</source>
         <source platform="windows" type="extension" file="7za.exe">https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1</source>
       </version>
     </reapack>
