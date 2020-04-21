@@ -1,6 +1,6 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.09
+-- @version 2.10
 -- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
@@ -22,13 +22,13 @@
 --   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
--- @changelog - Fixed failing extraction when Reaper path contains spaces
+-- @changelog - Improved check for valid Lokasenna GUI library installation
 
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.09"
+local version = "2.10"
 local reaper = reaper
 local math = math
 
@@ -74,7 +74,7 @@ end
 
 -- Check Lokasenna_GUI library availability --
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
-if not lib_path or lib_path == "" then
+if not lib_path or lib_path == "" or not reaper.file_exists(lib_path .. "Core.lua") then
   reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
   return
 end
