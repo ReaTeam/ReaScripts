@@ -1,6 +1,8 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.10
+-- @version 2.15
+-- @changelog
+--   - Fix for sometimes breaking (related to a possible Reaper's GetLastColorThemeFile API bug)
 -- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
@@ -22,13 +24,13 @@
 --   - If user changes theme while the script is running, script automatically closes and prompts user to save if there were any changes
 --   - The new saved adjusted theme inherits the old theme's "Default_6.0 theme adjuster" settings, if any
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
--- @changelog - Improved check for valid Lokasenna GUI library installation
+
 
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.10"
+local version = "2.15"
 local reaper = reaper
 local math = math
 
@@ -94,12 +96,12 @@ local GUI = GUI
 
 -- Function to extract theme --
 function UnzipReaperTheme(ReaperThemeZip)
-  ReaperThemeName = ReaperThemeZip:match([[.*[\/]([^\/]-)Zip$]])
+  ReaperThemeName = ReaperThemeZip:match([[.*[\/]([^\/]-)[zZ][iI][pP]$]])
   local TempFolder = string.match(reaper.time_precise()*100, "(%d+)%.") -- will be a random number in the same dir as the ReaperThemeZip
   local FullTempFolder = (Win and ReaperThemeZip:match("(.*\\)") or ReaperThemeZip:match("(.*/)")) .. TempFolder
   local ColorthemePath = ResourcePath .. sep .. "ColorThemes" .. sep
   local cmd, script_path
-  if Win then -- (use PowerShell .NET methods)
+  if Win then
     local exepath = ResourcePath .. sep .. "UserPlugins" .. sep .. "7za.exe"
     if not reaper.file_exists(exepath) then
       reaper.MB( "7za.exe is needed for the extraction.\n" .. exepath, "Quitting...", 0 )
@@ -139,6 +141,10 @@ end
 
 -- Load theme --
 theme = reaper.GetLastColorThemeFile()
+-- fix for native function's erratic behavior of sometimes returning the actual .ReaperThemeZip ---
+theme = theme:gsub("([zZ][iI][pP])$", "")                                                        --
+---------------------------------------------------------------------------------------------------
+--reaper.ShowConsoleMsg(theme .. "\n")
 if not reaper.file_exists(theme) then
   if reaper.file_exists(theme .. "Zip") then
     -- do not change order!
@@ -293,7 +299,7 @@ function GetThemeColors()
     end
     if reap then
       -- point to zip file if zipped
-      if zipped and line:find("^ui_img=") then
+      if zipped and line:find("^[uU][iI]_[iI][mM][gG]%s*=") then
         line = "ui_img=" .. ReaperThemeName .. "Zip"
       end
       fon[#fon+1] = line
@@ -410,7 +416,7 @@ function InheritSettings(SectionName)
   if not reaper.file_exists(themeconfig) then return end
   file = io.open(themeconfig, "a+")
   -- locate settings to inherit
-  local section = ReaperThemeName:match("(.*)%.ReaperTheme$")
+  local section = ReaperThemeName:match("(.*)%.[rR][eE][aA][pP][eE][rR][tT][hH][eE][mM][eE]$")
   local section_settings = {}
   for line in file:lines() do
     if line == "[" .. section .. "]" then copy = true
@@ -1036,10 +1042,10 @@ function exit()
       local ok, filename = reaper.JS_Dialog_BrowseForSaveFile( "Save theme as:", path, theme, "Color Theme files (*.ReaperTheme)\0*.ReaperTheme\0\0" )
       if ok == 1 and filename ~= "" then
         -- make sure that extension exists
-        if not string.find(filename, ".ReaperTheme$") then
+        if not string.find(filename, "%.[rR][eE][aA][pP][eE][rR][tT][hH][eE][mM][eE]$") then
           filename = filename .. ".ReaperTheme"
         end
-        local SectionName = filename:match[[.*[\/]([^\/]+).ReaperTheme]]
+        local SectionName = filename:match(".*[\\/]([^\\/]+)%.[rR][eE][aA][pP][eE][rR][tT][hH][eE][mM][eE]")
         if file then file:close() end -- unprotect
         -- in case we want to overwrite a file
         if reaper.file_exists( filename ) then
