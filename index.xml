@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6d5430b098a385f4c042f717b4eb539f98a1d97f" name="ReaTeam Scripts">
+<index version="1" commit="3707b8b6c98d627d6dcd14baf85f5c5a6cfce5bc" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3851,6 +3851,11 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
         <changelog><![CDATA[+ Fixed: incorrect script behavior if several tracks are selected.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34f6e5baf545c57be7dc5d609129cb0ea30d1285/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
+      <version name="1.4.4" author="cool" time="2020-04-22T04:20:12Z">
+        <changelog><![CDATA[+ Bugfix: now the step of the quantization grid is independent of zoom.
++ Added experimental option to disable XFades and Fill Gaps]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7409dfce8434312d5ecae3555af730dd71e74a20/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
       <metadata>
@@ -4815,6 +4820,21 @@ selection.]]></changelog>
       </version>
       <version name="1.0" author="spk77" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Items%20Properties/spk77_Trim%20item%20volumes.eel</source>
+      </version>
+    </reapack>
+    <reapack name="tagirijus_Toggle loop source on item under cursor in selected track.lua" type="script" desc="Toggle loop source on item under cursor in selected track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a Reaper script which toggles "loop source" for the item in the selected track and under the edit cursor uniformly. It also will de-select the items, which have loop source enabled and enable selection on items which will have it disabled.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Tagirijus" time="2020-04-22T04:20:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44295df3c231fea90592aacf21733681c7624d26/Items%20Properties/tagirijus_Toggle%20loop%20source%20on%20item%20under%20cursor%20in%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="willdevelop_Pitch scale generator.lua" type="script" desc="Pitch scale generator">
@@ -15035,17 +15055,20 @@ uc_note_min_seconds = 1\par}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This is a Reaper script which prevents the item extending on record.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is a Reaper script which prevents the item extending on record, when it's not selected.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Problem\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In my workflow I like to place the play cursor one measure in front of the passage I want to record to have a pre-count. The Reaper pre-count is not able to record an upbeat, AFAIK. And when the cursors is on an media item an record starts (MIDI overdub + Tape Mode active), the media item will be extended. I want to have a new media item after such a recording situation, though.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In my workflow I like to place the play cursor one measure in front of the passage I want to record to have a pre-count. The Reaper pre-count is not able to record an upbeat, AFAIK. And when the cursors is on an media item an record starts ("MIDI overdub" + "Tape Mode" active), the media item will be extended. I want to have a new media item after such a recording situation, though.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Solution\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script looks which tracks are selected (I am using "Auto arm on select") and looks which media items are underneath the play cursors. Then the script shortens these media items to the cursor. Recording will start. After recording the script restores the lengths of the media items. Now there are the "old" media items basically untouched and the new recorded ones separately.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script looks which tracks are selected (I am using "Auto arm on select") and looks which media items are underneath the play cursors. Then the script shortens these media items to the cursor, if these items are not selected. Recording will start. After recording the script restores the lengths of the media items. Now there are the "old" media items basically untouched and the new recorded ones separately.\par}
 }
 ]]></description>
-        <link rel="website" href="https://www.tagirijus.de">Website</link>
       </metadata>
       <version name="1.0" author="Tagirijus" time="2020-03-30T17:38:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af74e513cd2d2622b555c5952b3009b337746ce2/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
+      </version>
+      <version name="1.2" author="Tagirijus" time="2020-04-22T04:21:41Z">
+        <changelog><![CDATA[Fixed a bug, in which, in some situations, the shortened item will be extended ahead of the play cursors.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3707b8b6c98d627d6dcd14baf85f5c5a6cfce5bc/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
