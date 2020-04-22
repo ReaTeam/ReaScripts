@@ -1,62 +1,42 @@
 -- @description Prevent item extend on record
 -- @author Tagirijus
--- @version 1.0
--- @link Website https://www.tagirijus.de
+-- @version 1.2
+-- @changelog Fixed a bug, in which, in some situations, the shortened item will be extended ahead of the play cursors.
 -- @about
 --   # Description
 --
---   This is a Reaper script which prevents the item extending on record.
+--   This is a Reaper script which prevents the item extending on record, when it's not selected.
 --
 --
 --   # Problem
 --
---   In my workflow I like to place the play cursor one measure in front of the passage I want to record to have a pre-count. The Reaper pre-count is not able to record an upbeat, AFAIK. And when the cursors is on an media item an record starts (MIDI overdub + Tape Mode active), the media item will be extended. I want to have a new media item after such a recording situation, though.
+--   In my workflow I like to place the play cursor one measure in front of the passage I want to record to have a pre-count. The Reaper pre-count is not able to record an upbeat, AFAIK. And when the cursors is on an media item an record starts ("MIDI overdub" + "Tape Mode" active), the media item will be extended. I want to have a new media item after such a recording situation, though.
 --
 --
 --   # Solution
 --
---   This script looks which tracks are selected (I am using "Auto arm on select") and looks which media items are underneath the play cursors. Then the script shortens these media items to the cursor. Recording will start. After recording the script restores the lengths of the media items. Now there are the "old" media items basically untouched and the new recorded ones separately.
+--   This script looks which tracks are selected (I am using "Auto arm on select") and looks which media items are underneath the play cursors. Then the script shortens these media items to the cursor, if these items are not selected. Recording will start. After recording the script restores the lengths of the media items. Now there are the "old" media items basically untouched and the new recorded ones separately.
 
 --[[
  * ReaScript Name: tagirijus_Prevent item extend on record.lua
  * Author: Manuel Senfft (Tagirijus)
  * Licence: MIT
- * REAPER: 6.05
+ * REAPER: 6.08
  * Extensions: None
- * Version: 1.0
+ * Version: 1.2
 --]]
 
 
 local scriptTitle = 'Tagirijus: Prevent item extend on record'
+local selectedTrackCount = reaper.CountSelectedTracks(0)
+local firstStart = false
 local itemHeal = {}
 
 
-function main()
 
-    -- check for selected tracks
-	local selectedTrackCount = reaper.CountSelectedTracks(0)
-	if selectedTrackCount == 0 then
-        reaper.ShowMessageBox('No tracks selected', scriptTitle, 0)
-		return
-    end
+--===== SOME FUNCTIONS =====--
 
-    -- record!
-    reaper.PreventUIRefresh(1)
-    reaper.Undo_BeginBlock()
-
-    shortenItemsUnderCursor(selectedTrackCount, reaper.GetCursorPosition())
-
-    reaper.CSurf_OnRecord()
-
-    healItemsLengths()
-
-    reaper.Undo_EndBlock(scriptTitle, -1)
-    reaper.PreventUIRefresh(-1)
-
-end
-
-
-function shortenItemsUnderCursor(selectedTrackCount, playCursorPosition)
+function ShortenItemsUnderCursor(playCursorPosition)
 
     -- iter through the selected tracks to find their items under the play cursor
     for i = 0, selectedTrackCount - 1 do
@@ -76,13 +56,15 @@ function shortenItemsUnderCursor(selectedTrackCount, playCursorPosition)
             local itemStartsBeforeCursor = itemPosition <= playCursorPosition
             local itemReachesIntoCursor = itemPosition + itemLength > playCursorPosition
 
-            if itemStartsBeforeCursor and itemReachesIntoCursor then
+            local itemSelected = reaper.IsMediaItemSelected(item)
+
+            if itemStartsBeforeCursor and itemReachesIntoCursor and not itemSelected then
 
                 -- store the original length for later "healing"
                 itemHeal[reaper.BR_GetMediaItemGUID(item)] = itemLength
 
                 -- shorten the item here
-                local newLength = playCursorPosition - itemPosition
+                local newLength = playCursorPosition - itemPosition - 0.01 -- 0.01 due to an unknown bug, which happens otherwise
                 reaper.SetMediaItemInfo_Value(item, 'D_LENGTH', newLength)
 
             end
@@ -93,8 +75,7 @@ function shortenItemsUnderCursor(selectedTrackCount, playCursorPosition)
 
 end
 
-
-function healItemsLengths()
+function HealItemsLengths()
     for itemGUID, itemLength in pairs(itemHeal) do
         local item = reaper.BR_GetMediaItemByGUID(0, itemGUID)
         reaper.SetMediaItemInfo_Value(item, 'D_LENGTH', itemLength)
@@ -102,4 +83,45 @@ function healItemsLengths()
 end
 
 
+
+
+--===== RECORDING STATES =====--
+
+function OnStartRecording()
+    -- apparently the undo block will not work in defer scripts
+    -- reaper.Undo_BeginBlock()
+    ShortenItemsUnderCursor(reaper.GetCursorPosition())
+end
+
+function OnRecord()
+    -- for future features
+end
+
+function OnStopRecording()
+
+    HealItemsLengths()
+    -- apparently the undo block will not work in defer scripts
+    -- reaper.Undo_EndBlock(scriptTitle, -1)
+    return
+end
+
+
+
+
+--===== MAIN =====--
+local lastPlayState = -1
+function main()
+    local playState = reaper.GetPlayState()
+    if lastPlayState == 5 and playState ~= lastPlayState then
+        return OnStopRecording()
+    else
+        lastPlayState = playState
+        OnRecord()
+        reaper.defer(main)
+    end
+end
+
+---------
+OnStartRecording()
+reaper.Main_OnCommand(1013, -1) --start recording
 main()
