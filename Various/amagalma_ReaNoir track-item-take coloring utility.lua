@@ -1,6 +1,6 @@
--- @description amagalma_ReaNoir - Track/Item/Take coloring utility
+-- @description ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.12
+-- @version 2.13
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -31,16 +31,11 @@
 
 -- @link http://forum.cockos.com/showthread.php?t=189602
 
---[[
- * Changelog:
- * v2.12 (2018-12-08)
-  + fix for Linux font size
---]]
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.12"
+version = "v2.13"
 
 
 
