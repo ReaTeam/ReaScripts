@@ -1,14 +1,8 @@
--- @description amagalma_Create Impulse Response (IR) of the FX Chain of the selected Track
+-- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.00
+-- @version 2.01
 -- @changelog
---   - Major facelift/redesign. Now uses Lokasenna's GUI Library
---   - Added ability to browse for file and set path
---   - Added choice to enable/disable Normalization and Silence Trimming
---   - Added choice to locate created IR in Explorer/Finder
---   - Added choice to insert IR in Project
---   - Added choice to load in Reaverb and bypass FX of track
---   - Improved debugging mode
+--   - Help to install Lokasenna GUI Library v2 and JS_ReaScriptAPI for people who don't have them
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
 --   # Creates an impulse response (IR) of the FX Chain of the first selected track.
@@ -24,7 +18,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.00"
+local version = "2.01"
 --------------------------------------------------------------------------------------------
 
 
@@ -68,11 +62,45 @@ local trim, channels = Trim_Silence_Below, Mono_Or_Stereo
 
 -- Preliminary tests
 
--- Check if Lokasenna_GUI library is installed
-local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
-if not lib_path or lib_path == "" or (not reaper.file_exists(lib_path .. "Core.lua")) then
-  reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Exiting...", 0)
+
+-- Check if JS_ReaScriptAPI is installed
+if not reaper.APIExists("JS_Window_Find") then
+  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "JS_ReaScriptAPI Installation", 0 )
+  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
+  if ok then
+    reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+  else
+    reaper.MB( err, "Something went wrong...", 0)
+  end
   return reaper.defer(function() end)
+end
+
+
+-- Check Lokasenna_GUI library availability --
+local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
+if not lib_path or lib_path == "" or not reaper.file_exists(lib_path .. "Core.lua") then
+  local not_installed = false
+  local Core_library = {reaper.GetResourcePath(), "Scripts", "ReaTeam Scripts", "Development", "Lokasenna_GUI v2", "Library", "Core.lua"}
+  local sep = reaper.GetOS():find("Win") and "\\" or "/"
+  Core_library = table.concat(Core_library, sep)
+  if reaper.file_exists(Core_library) then
+    local cmdID = reaper.NamedCommandLookup( "_RS1c6ad1164e1d29bb4b1f2c1acf82f5853ce77875" )
+    if cmdID > 0 then
+          reaper.MB("Lokasenna's GUI path will be set now. Please, re-run the script", "Lokasenna GUI v2 Installation", 0)
+      -- Set Lokasenna_GUI v2 library path.lua
+      reaper.Main_OnCommand(cmdID, 0)
+      return reaper.defer(function() end)
+    else
+      not_installed = true
+    end
+  else
+    not_installed = true
+  end
+  if not_installed then
+    reaper.MB("Please, right-click and install 'Lokasenna's GUI library v2 for Lua' in the next window. Then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List. After all is set, you can run this script again. Thanks!", "Install Lokasenna GUI v2", 0)
+    reaper.ReaPack_BrowsePackages( "Lokasenna GUI library v2 for Lua" )
+    return reaper.defer(function() end)
+  end
 end
 loadfile(lib_path .. "Core.lua")()
 GUI.req("Classes/Class - Menubox.lua")()
@@ -82,16 +110,6 @@ GUI.req("Classes/Class - Button.lua")()
 GUI.req("Classes/Class - Label.lua")()
 if missing_lib then 
   reaper.MB("Please re-install 'Lokasenna's GUI library v2 for Lua' from ReaPack and run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Missing libraries!", 0)
-  return reaper.defer(function() end)
-end
-
--- Check if JS_ReaScriptAPI is installed
-if not reaper.APIExists("JS_ReaScriptAPI_Version") then
-  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
-  if answer == 6 then
-    local url = "https://forum.cockos.com/showthread.php?t=212174"
-     reaper.CF_ShellExecute( url )
-  end
   return reaper.defer(function() end)
 end
 
