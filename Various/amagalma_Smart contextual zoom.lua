@@ -1,6 +1,6 @@
--- @description amagalma_Smart contextual zoom
+-- @description Smart contextual zoom
 -- @author amagalma
--- @version 1.54
+-- @version 1.55
 -- @link https://forum.cockos.com/showthread.php?t=215575
 -- @about
 --  # Toggles zoom to objects under mouse (if 0 or 1 is selected), or to selected objects (if 2+ are selected)
