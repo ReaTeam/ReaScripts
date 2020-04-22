@@ -1,6 +1,6 @@
--- @description amagalma_Set envelope segment under mouse cursor to 0 dB or center
+-- @description Set envelope segment under mouse cursor to 0 dB or center
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
 -- @about
 --   # Resets the envelope segment under the mouse cursor to 0 dB for Volume, or to the center for all other envelopes
 --   - Recommended to be used as an Envelope segment mouse modifier for double click
