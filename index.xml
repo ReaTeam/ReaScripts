@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3ecefa8bc396ca363b164bccb3c836e1d190ad7b" name="ReaTeam Scripts">
+<index version="1" commit="3987335ab04ba178a3a49dd8a6d11969e72d5f9d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -1822,7 +1822,7 @@ Refactored/reorganized the code for readability]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes">
-    <reapack name="amagalma_Set envelope segment under mouse cursor to 0 dB or center.lua" type="script" desc="amagalma_Set envelope segment under mouse cursor to 0 dB or center">
+    <reapack name="amagalma_Set envelope segment under mouse cursor to 0 dB or center.lua" type="script" desc="Set envelope segment under mouse cursor to 0 dB or center">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -1837,6 +1837,9 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2020-02-02T20:21:05Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/99e5244c8b3dca29c0e7bdbd8445c924d7830a51/Envelopes/amagalma_Set%20envelope%20segment%20under%20mouse%20cursor%20to%200%20dB%20or%20center.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-04-22T14:30:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3987335ab04ba178a3a49dd8a6d11969e72d5f9d/Envelopes/amagalma_Set%20envelope%20segment%20under%20mouse%20cursor%20to%200%20dB%20or%20center.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua" type="script" desc="amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua">
@@ -3372,7 +3375,7 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2d2a30cb92e3021e5f47a2d36ebf7ffaafa40681/Items%20Editing/amagalma_Snap%20MIDI%20item(s)%20edges%20to%20grid%20without%20changing%20content%20position.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Split items under mouse with selection option (selected items get priority over grouped).lua" type="script" desc="amagalma_Split items under mouse with selection option (selected items get priority over grouped)">
+    <reapack name="amagalma_Split items under mouse with selection option (selected items get priority over grouped).lua" type="script" desc="Split items under mouse with selection option (selected items get priority over grouped)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -3392,6 +3395,10 @@ Better error-checking in general]]></changelog>
       <version name="1.01" author="amagalma" time="2020-04-06T12:04:29Z">
         <changelog><![CDATA[+ option inside the script to always ignore Snap settings for splits under mouse (default is ON)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a010b044d470df2f7bb41d583c0e20f96648df5/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2020-04-22T14:25:25Z">
+        <changelog><![CDATA[+ option inside the script to always ignore Snap settings for splits under mouse (default is ON)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c8774f69db400e3a54210a07f928de4c57c0eb34/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle guide line size between full arrange or item height.lua" type="script" desc="Toggle guide line size between full arrange or item height">
@@ -11839,7 +11846,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4df7dee986b3dcd70b2ae593e014cf0a819bb6dc/Various/amagalma_Smart%20automatic%20record%20mode.eel</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Smart contextual zoom.lua" type="script" desc="amagalma_Smart contextual zoom">
+    <reapack name="amagalma_Smart contextual zoom.lua" type="script" desc="Smart contextual zoom">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -11893,6 +11900,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.54" author="amagalma" time="2019-10-22T17:15:01Z">
         <changelog><![CDATA[# Fix vertical zoom for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b88aff6ddbec34b2c00563d7c4b8a72bc4068a70/Various/amagalma_Smart%20contextual%20zoom.lua</source>
+      </version>
+      <version name="1.55" author="amagalma" time="2020-04-22T14:27:50Z">
+        <changelog><![CDATA[# Fix vertical zoom for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0587d7eec84218a80733a07ff1e97442f7cd39db/Various/amagalma_Smart%20contextual%20zoom.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Smooth scroll view left.eel" type="script" desc="amagalma_Smooth scroll view left">
