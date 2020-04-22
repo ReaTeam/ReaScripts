@@ -1,6 +1,6 @@
--- @description amagalma_Split items under mouse with selection option (selected items get priority over grouped)
+-- @description Split items under mouse with selection option (selected items get priority over grouped)
 -- @author amagalma
--- @version 1.01
+-- @version 1.02
 -- @about
 --   # Splits item(s) under mouse cursor and all relevant grouped items
 --   - If there are selected items, they get priority over grouped items (only the selected ones will be split)
