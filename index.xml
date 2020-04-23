@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0bbb93132dbd9abe2cd0f9697107019ca7766338" name="ReaTeam Scripts">
+<index version="1" commit="991df2db310a81451e66ebad4d88f3c5b5124aa1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3476,6 +3476,10 @@ Better error-checking in general]]></changelog>
         <changelog><![CDATA[- Help to install JS_ReaScriptAPI for those who don't have it or have older version than required
 - Fix bug when changing zoom with only a few tracks visible]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0bbb93132dbd9abe2cd0f9697107019ca7766338/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.58" author="amagalma" time="2020-04-23T15:18:27Z">
+        <changelog><![CDATA[- Fix bug line disappearing when closing MIDI Editor and going to arrange]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/991df2db310a81451e66ebad4d88f3c5b5124aa1/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
