@@ -1,8 +1,9 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.55
+-- @version 1.57
 -- @changelog
---   - Several code improvements
+--   - Help to install JS_ReaScriptAPI for those who don't have it or have older version than required
+--   - Fix bug when changing zoom with only a few tracks visible
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
@@ -26,18 +27,23 @@ local MidiEditor_snap_support = 1 -- (for active midi editor)
 
 -- Check if JS_ReaScriptAPI >1.002 is installed
 if not reaper.APIExists("JS_ReaScriptAPI_Version") then
-  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
-  if answer == 6 then
-    local url = "https://forum.cockos.com/showthread.php?t=212174"
-     reaper.CF_ShellExecute( url )
+  noAPI = true
+elseif reaper.JS_ReaScriptAPI_Version() < 1.002 then
+  oldVersion = true
+end
+if noAPI or oldVersion then
+  if noAPI then
+    reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
+  else
+    reaper.MB( "Please, right-click and install the latest version of 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "Older JS_ReaScriptAPI version is installed", 0 )
+  end
+  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
+  if ok then
+    reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+  else
+    reaper.MB( err, "Something went wrong...", 0)
   end
   return reaper.defer(function() end)
-else
-  local version = reaper.JS_ReaScriptAPI_Version()
-  if version < 1.002 then
-    reaper.MB( "Your JS_ReaScriptAPI version is " .. version .. "\nPlease update to version 1.000 or higher.", "Older version is installed", 0 )
-    return reaper.defer(function() end)
-  end
 end
 
 local function RGB(r,g,b) 
@@ -67,7 +73,7 @@ local master = reaper.GetMasterTrack(0)
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 0x3E8)
 local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
 local snap = reaper.GetToggleCommandState( 1157 ) == 1
-local zoom, vis_tracks_h
+local zoom
 local left_button_down, direction_right = false
 local midiview_time = 2
 local bigLine, prev_x, prev_y, prev_item, track_y, item_h
@@ -111,15 +117,18 @@ function visibletracksheight()
   local tr_cnt = reaper.CountTracks( 0 )
   if tr_cnt < 1 then return 0 end
   local last_track = 0
-  for i = 0, tr_cnt-1 do
+  for i = tr_cnt-1, 0, -1 do
     local track = reaper.GetTrack( 0, i )
     if reaper.IsTrackVisible(track, false) then
       last_track = track
+      break
     end
   end
-  local max = reaper.GetMediaTrackInfo_Value(last_track, "I_WNDH") + reaper.GetMediaTrackInfo_Value(last_track, "I_TCPY")
-  return max <= trackview_h and max or trackview_h
+  return reaper.GetMediaTrackInfo_Value(last_track, "I_WNDH") + reaper.GetMediaTrackInfo_Value(last_track, "I_TCPY")
 end
+
+local vis_tracks_h = visibletracksheight()
+local prev_vis_tracks_h = vis_tracks_h
 
 function GetMidiViewMousePositionAndHZoom(MidiEditor, width, x)
   -- x, y must be to client
@@ -230,10 +239,13 @@ function main()
   if set_window == 1 then
     
     _, scrollposh = reaper.JS_Window_GetScrollInfo( trackview, "h" )
-    _, scrollposv = reaper.JS_Window_GetScrollInfo( trackview, "v" ) 
+    _, scrollposv = reaper.JS_Window_GetScrollInfo( trackview, "v" )
+    vis_tracks_h = visibletracksheight()
     if checkscroll then
-      if scrollposv ~= prev_scrollposv or scrollposh ~= prev_scrollposh then
-      
+      if scrollposv ~= prev_scrollposv or scrollposh ~= prev_scrollposh 
+      or vis_tracks_h ~= prev_vis_tracks_h
+      then
+        prev_vis_tracks_h = vis_tracks_h
         prev_scrollposv = scrollposv
         prev_scrollposh = scrollposh
         prev_scrollpos_time = now
@@ -274,9 +286,8 @@ function main()
               local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
               x = x + diff
             end
-            vis_tracks_h = visibletracksheight()
             Msg("draw big line at " .. x .. "\n")
-            reaper.JS_Composite(trackview, x, 0, 1, vis_tracks_h, bm, 0, 0, 1, 1, true)
+            reaper.JS_Composite(trackview, x, 0, 1, (vis_tracks_h < trackview_h and vis_tracks_h or trackview_h), bm, 0, 0, 1, 1, true)
             bm_size = 1
           elseif bm_size == 1 then
             Msg("make line disappear\n")
