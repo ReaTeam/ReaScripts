@@ -1,9 +1,8 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.57
+-- @version 1.58
 -- @changelog
---   - Help to install JS_ReaScriptAPI for those who don't have it or have older version than required
---   - Fix bug when changing zoom with only a few tracks visible
+--   - Fix bug line disappearing when closing MIDI Editor and going to arrange
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
@@ -17,7 +16,7 @@
 -------------------------------------------------------------------
 
 -- SET LINE COLOR HERE -- (0-255)
-local red, green, blue = 239, 255, 72
+local red, green, blue = 255, 255, 33
 
 -- SET "SNAP GUIDE LINE TO GRID" SUPPORT HERE -- (1 = enabled, 0 = disabled)
 local Arrange_snap_support = 1 -- (for arrange view)
@@ -207,6 +206,8 @@ function main()
       if midiview and prev_set_window == 0 then
         reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
         continue = true
+      elseif prev_set_window == 0 then
+        continue = true
       end
     else  
       checkscroll = true
@@ -228,6 +229,7 @@ function main()
       bm_size = 0
       if prev_set_window == 1 then 
         reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+        continue = true
       end
     else
       checkscroll = true
