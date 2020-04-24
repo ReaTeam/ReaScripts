@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="991df2db310a81451e66ebad4d88f3c5b5124aa1" name="ReaTeam Scripts">
+<index version="1" commit="ca2efb2f72a1e73b03f3babb528c57800cc07f88" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7491,78 +7491,6 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="1.12" author="juliansader" time="2018-05-30T17:01:16Z">
         <changelog><![CDATA[+ Return focus to MIDI editor after arming button in floating toolbar.]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b8c6dd563d0b5773614a06b954d49d29029f36a8/MIDI%20Editor/js_Move%20all%20selected%20events%20in%20active%20take%20together%20with%20mouse.lua</source>
-      </version>
-    </reapack>
-    <reapack name="js_Navigate - Select next note in same channel.lua" type="script" desc="js_Navigate - Select next note in same channel.lua">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select next note", but only selects notes within same channel as currently selected note.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
-        <link rel="donation">https://www.paypal.me/juliansader</link>
-      </metadata>
-      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
-        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/63f17c31ad8f9015f4ccf20b29546fee4d38d16a/MIDI%20Editor/js_Navigate%20-%20Select%20next%20note%20in%20same%20channel.lua</source>
-      </version>
-    </reapack>
-    <reapack name="js_Navigate - Select next note in same voice.lua" type="script" desc="js_Navigate - Select next note in same voice.lua">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select next note", but only selects notes within same voice as currently selected note.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
-        <link rel="donation">https://www.paypal.me/juliansader</link>
-      </metadata>
-      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
-        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/fea3a03ff2ae678493cd21bd02951902ae8c467c/MIDI%20Editor/js_Navigate%20-%20Select%20next%20note%20in%20same%20voice.lua</source>
-      </version>
-    </reapack>
-    <reapack name="js_Navigate - Select previous note in same channel.lua" type="script" desc="js_Navigate - Select previous note in same channel.lua">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select previous note", but only selects notes within same channel as currently selected note.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
-        <link rel="donation">https://www.paypal.me/juliansader</link>
-      </metadata>
-      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
-        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/55d7e0fc8268ff8197123a88eee4e421b7076d2a/MIDI%20Editor/js_Navigate%20-%20Select%20previous%20note%20in%20same%20channel.lua</source>
-      </version>
-    </reapack>
-    <reapack name="js_Navigate - Select previous note in same voice.lua" type="script" desc="js_Navigate - Select previous note in same voice.lua">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Similar to REAPER's native action "Navigate: Select previous note", but only selects notes within same voice as currently selected note.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=191780</link>
-        <link rel="donation">https://www.paypal.me/juliansader</link>
-      </metadata>
-      <version name="0.90" author="juliansader" time="2017-05-29T22:53:19Z">
-        <changelog><![CDATA[+ Initial beta release    ]]></changelog>
-        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/c5f7da2d30e560a10c2d5e6f6be8999d9b8be33c/MIDI%20Editor/js_Navigate%20-%20Select%20previous%20note%20in%20same%20voice.lua</source>
       </version>
     </reapack>
     <reapack name="js_Notation - Select all notes that have customized display lengths or positions.lua" type="script" desc="js_Notation - Select all notes that have customized display lengths or positions.lua">
