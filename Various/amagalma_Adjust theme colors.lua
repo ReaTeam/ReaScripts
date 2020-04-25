@@ -1,8 +1,8 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.17
+-- @version 2.18
 -- @changelog
---   - Fix breaking with some other themes
+--   - Fix for script immediately closing sometimes when run (due to native API GetLastColorThemeFile bug)
 -- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
@@ -26,7 +26,7 @@
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
 
 
-local version = "2.17"
+local version = "2.18"
 -----------------------------------------------------------------------
 
 
@@ -110,7 +110,7 @@ GUI.req("Classes/Class - Options.lua")()
 GUI.req("Classes/Class - Tabs.lua")()
 if missing_lib then 
   reaper.MB("Please re-install 'Lokasenna's GUI library v2 for Lua'", "Missing library!", 0)
-  return
+  return reaper.defer(function() end)
 end
 GUI.colors.dark = {76,76,76,255} -- color for inactive buttons
 local GUI = GUI
@@ -175,7 +175,7 @@ if not reaper.file_exists(theme) then
     theme = UnzipReaperTheme(theme)
   else
     reaper.MB( "The file of the currently loaded theme does no longer exist.", "Quitting...", 0 )
-    return
+    return reaper.defer(function() end)
   end
 end
 if theme then
@@ -185,7 +185,7 @@ if theme then
     path, theme = theme:match("(.*/)(.+)")
   end
 else
-  return
+  return reaper.defer(function() end)
 end
 ReaperThemeName = theme
 
@@ -1034,6 +1034,8 @@ function Additional()
   if GUI.last_time >= Start + 1 then
     Start = GUI.last_time
     loaded = reaper.GetLastColorThemeFile()
+    -- fix for native function's erratic behavior of sometimes returning the actual .ReaperThemeZip ---
+    loaded = loaded:gsub("([zZ][iI][pP])$", "")   
     local loaded2 = loaded:match(".*[\\/](.+)")
     --reaper.ShowConsoleMsg(theme .. "\n" .. loaded .. "\n\n")
     if loaded2 ~= theme and loaded2 ~= "adjusted__" .. theme then
