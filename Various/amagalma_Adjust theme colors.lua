@@ -1,8 +1,8 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.16
+-- @version 2.17
 -- @changelog
---   - Help to install Lokasenna's GUI Library v2 and JS_ReaScriptAPI for people who don't have them
+--   - Fix breaking with some other themes
 -- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
@@ -26,11 +26,11 @@
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
 
 
+local version = "2.17"
 -----------------------------------------------------------------------
 
 
 -- Global variables
-local version = "2.16"
 local reaper = reaper
 local math = math
 
@@ -321,10 +321,14 @@ function GetThemeColors()
     end
     if reap then
       -- point to zip file if zipped
-      if zipped and line:find("^[uU][iI]_[iI][mM][gG]%s*=") then
-        line = "ui_img=" .. ReaperThemeName .. "Zip"
+      if zipped then 
+        if line:find("^[uU][iI]_[iI][mM][gG]%s*=") then
+          line = "ui_img=" .. ReaperThemeName .. "Zip"
+        elseif line:find("^[uU][iI]_[iI][mM][gG]_[pP][aA][tT][hH]%s*=") then
+          line = nil
+        end
       end
-      fon[#fon+1] = line
+      if line then fon[#fon+1] = line end
     end
   end
   io.close(file)
