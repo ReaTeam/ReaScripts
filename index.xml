@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="44922eec269789aa34b888bc1d620b5083f0d815" name="ReaTeam Scripts">
+<index version="1" commit="19b9b7b8a0cb6935d3e79c4136e6e5a9c4ca9888" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11303,6 +11303,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="2.17" author="amagalma" time="2020-04-25T10:48:57Z">
         <changelog><![CDATA[- Fix breaking with some other themes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/52abb5c2cfd95368ade98ee1b4969117d20b6e3f/Various/amagalma_Adjust%20theme%20colors.lua</source>
+        <source platform="windows" type="extension" file="7za.exe">https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1</source>
+      </version>
+      <version name="2.18" author="amagalma" time="2020-04-25T19:13:01Z">
+        <changelog><![CDATA[- Fix for script immediately closing sometimes when run (due to native API GetLastColorThemeFile bug)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/19b9b7b8a0cb6935d3e79c4136e6e5a9c4ca9888/Various/amagalma_Adjust%20theme%20colors.lua</source>
         <source platform="windows" type="extension" file="7za.exe">https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1</source>
       </version>
     </reapack>
