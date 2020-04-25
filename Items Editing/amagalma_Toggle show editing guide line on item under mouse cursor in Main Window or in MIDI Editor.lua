@@ -1,8 +1,8 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.58
+-- @version 1.59
 -- @changelog
---   - Fix bug line disappearing when closing MIDI Editor and going to arrange
+--   - Fixed bug: line drawn at wrong position when dragging items
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
@@ -75,7 +75,7 @@ local snap = reaper.GetToggleCommandState( 1157 ) == 1
 local zoom
 local left_button_down, direction_right = false
 local midiview_time = 2
-local bigLine, prev_x, prev_y, prev_item, track_y, item_h
+local bigLine, prev_x, prev_y, prev_item, prev_track, track_y, item_h
 local bm_size = 0
 local cur_view = set_window == 0 and midiview or trackview
 local _, scrollposv = reaper.JS_Window_GetScrollInfo( cur_view, "v" )
@@ -256,6 +256,7 @@ function main()
         reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
         bm_size = -1
         prev_item = nil
+        prev_track = nil
   
       elseif scrollposv == prev_scrollposv
       and scrollposh == prev_scrollposh
@@ -300,9 +301,11 @@ function main()
         else
           local item = reaper.GetItemFromPoint( x, y, true )
           if item then
-            if item ~= prev_item then
+            local par_track = reaper.GetMediaItem_Track( item )
+            if item ~= prev_item or par_track ~= prev_track then
               prev_item = item
-              track_y = reaper.GetMediaTrackInfo_Value( reaper.GetMediaItem_Track( item ), "I_TCPY" )
+              prev_track = par_track
+              track_y = reaper.GetMediaTrackInfo_Value( par_track, "I_TCPY" )
                     + reaper.GetMediaItemInfo_Value( item, "I_LASTY" ) -- client
               item_h = reaper.GetMediaItemInfo_Value( item, "I_LASTH" )
             end
