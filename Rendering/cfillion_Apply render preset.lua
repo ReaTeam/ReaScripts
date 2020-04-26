@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.7
--- @changelog Fix action creation on drives not using NTFS on Windows [p=2240471]
+-- @version 1.0.8
+-- @changelog Add support for presets using v6.05's new secondary output format feature
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -97,12 +97,29 @@ function parseDefault(presets, line)
 
   if tokens[1] == '<RENDERPRESET' then
     return parseFormatPreset(presets, tokens)
+  elseif tokens[1] == '<RENDERPRESET2' then
+    return parseFormatPreset2(presets, tokens)
   elseif tokens[1] == 'RENDERPRESET_OUTPUT' then
     return parseOutputPreset(presets, tokens)
   end
 
   return nil, string.format(
     'reaper-render.ini: found unknown preset type: %s', tokens[1])
+end
+
+function nodeContentExtractor(preset, key)
+  local function parser(_, line)
+    if line:sub(1, 1) == '>' then
+      -- reached the end of the RENDERPRESET tag
+      return parseDefault
+    end
+
+    preset[key] = (preset[key] or '') .. line:match('[^%s]+')
+
+    return parser
+  end
+  
+  return parser
 end
 
 function parseFormatPreset(presets, tokens)
@@ -116,7 +133,7 @@ function parseFormatPreset(presets, tokens)
   preset._useProjSRate      = tonumber(tokens[6])
   preset.projrenderresample = tonumber(tokens[7])
   preset.RENDER_DITHER      = tonumber(tokens[8])
-  preset.RENDER_FORMAT      = '' -- filled below
+  preset.RENDER_FORMAT2     = '' -- reset when no <RENDERPRESET2 node exists
 
   -- Added in v5.984+dev1106:
   -- "Tracks with only mono media to mono files" and
@@ -127,18 +144,15 @@ function parseFormatPreset(presets, tokens)
       | (preset.RENDER_SETTINGS or 0)
   end
 
-  local function parseFormat(_, line)
-    if line:sub(1, 1) == '>' then
-      -- reached the end of the RENDERPRESET tag
-      return parseDefault
-    end
+  return nodeContentExtractor(preset, 'RENDER_FORMAT')
+end
 
-    preset.RENDER_FORMAT = preset.RENDER_FORMAT .. line:match('[^%s]+')
+function parseFormatPreset2(presets, tokens)
+  local ok, err = checkTokenCount(tokens, 1)
+  if not ok then return nil, err end
 
-    return parseFormat
-  end
-
-  return parseFormat
+  local preset = insertPreset(presets, tokens[2])
+  return nodeContentExtractor(preset, 'RENDER_FORMAT2')
 end
 
 function parseOutputPreset(presets, tokens)
