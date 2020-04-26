@@ -1020,7 +1020,7 @@ function Defer_Warp()
             -- Pre-calculate some warp 2-sided stuff for this cycle (for all groups)
             if warp2SIDED then
                 local ME_TargetMidPixel = (ME_TargetBottomPixel+ME_TargetTopPixel)/2
-                local mouseUpDownMove = (mouseY-ME_TargetMidPixel)/(math.max(100, ME_TargetBottomPixel-ME_TargetTopPixel))
+                local mouseUpDownMove = (mouseY-ME_TargetMidPixel)/(math.max(200, ME_TargetBottomPixel-ME_TargetTopPixel))
                 local temp =  0.5 + math.abs(mouseUpDownMove) --/laneMaxValue
                 -- Prevent warping too much, so that all CCs don't end up in a solid block
                 if temp > 0.99 then temp = 0.99
