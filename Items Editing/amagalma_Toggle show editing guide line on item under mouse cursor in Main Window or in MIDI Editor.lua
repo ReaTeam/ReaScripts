@@ -1,8 +1,8 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.59
+-- @version 1.60
 -- @changelog
---   - Fixed bug: line drawn at wrong position when dragging items
+--   - Snap to swing grid support in Midi Editor
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
@@ -16,7 +16,7 @@
 -------------------------------------------------------------------
 
 -- SET LINE COLOR HERE -- (0-255)
-local red, green, blue = 255, 255, 33
+local red, green, blue = 245, 245, 33
 
 -- SET "SNAP GUIDE LINE TO GRID" SUPPORT HERE -- (1 = enabled, 0 = disabled)
 local Arrange_snap_support = 1 -- (for arrange view)
@@ -55,7 +55,7 @@ local reaper = reaper
 local debug = false
 Arrange_snap_support = Arrange_snap_support == 1
 MidiEditor_snap_support = MidiEditor_snap_support == 1
-local floor = math.floor
+local floor, ceil, abs = math.floor, math.ceil, math.abs
 local MainHwnd = reaper.GetMainHwnd()
 local CurrentWindow
 local set_window
@@ -103,6 +103,12 @@ reaper.RefreshToolbar2( section, cmdID )
 
 function Msg(string)
   if debug then return reaper.ShowConsoleMsg(string) end
+end
+
+local function round(num)
+  if num >= 0 then return floor(num + 0.5)
+  else return ceil(num - 0.5)
+  end
 end
 
 function exit()
@@ -365,6 +371,7 @@ function main()
         prev_x = x
         
         if snap then
+          local closest_division, diff = 0, 0
           local nosnap, _, activetempo = false
           local zoom, mouse_pos = GetMidiViewMousePositionAndHZoom(MidiWindow, mwidth, xcl)
           local mgrid, swing, notelen = reaper.MIDI_GetGrid( reaper.MIDIEditor_GetTake( MidiWindow ) )
@@ -372,11 +379,7 @@ function main()
           _, _, _, _, activetempo = reaper.GetTempoTimeSigMarker( 0, reaper.FindTempoTimeSigMarker( 0, mouse_pos ) )
           activetempo = activetempo == 0 and reaper.GetProjectTimeSignature2( 0 ) or activetempo
           local note_duration = notelen *( 60 / activetempo )
-          local _, pgrid = reaper.GetSetProjectGrid( 0, false, 0, 0, 0 )
-          mgrid = mgrid/4
-          if mgrid ~= pgrid then
-            reaper.SetProjectGrid( 0, mgrid )
-          end
+ 
           local mouse_state = reaper.JS_Mouse_GetState( 255 )
           if mouse_state == 9 then
             nosnap = true
@@ -392,11 +395,34 @@ function main()
           else
             left_button_down = false
             direction_right = nil
-          end 
-          local closest_division = reaper.BR_GetClosestGridDivision(mouse_pos)
-          local diff = direction_right and
-                     ( closest_division - mouse_pos + note_duration ) * zoom
-                  or ( closest_division - mouse_pos ) * zoom
+          end
+
+          if swing == 0 then
+            
+            local _, pgrid = reaper.GetSetProjectGrid( 0, false, 0, 0, 0 )
+            mgrid = mgrid/4
+            if mgrid ~= pgrid then
+              reaper.SetProjectGrid( 0, mgrid )
+            end
+            closest_division = reaper.BR_GetClosestGridDivision(mouse_pos)
+            diff = direction_right and
+                                 ( closest_division - mouse_pos + note_duration ) * zoom
+                              or ( closest_division - mouse_pos ) * zoom
+          else
+          
+            local QN = reaper.TimeMap_timeToQN_abs( 0, mouse_pos )
+            QN = direction_right and QN + mgrid or QN
+            local QN_grid = floor( QN / mgrid )
+            if QN_grid % 2 ~= 0 then QN_grid = QN_grid - 1 end
+            local swing_pos = QN_grid * mgrid + mgrid * ( 0.5 * swing + 1)
+            if abs( round( QN ) - QN ) > abs( QN - swing_pos ) then
+              closest_division = reaper.TimeMap_QNToTime_abs(0, swing_pos)
+            else
+              closest_division = reaper.TimeMap_QNToTime_abs(0, round(QN))
+            end
+            diff = ( closest_division - mouse_pos ) * zoom
+          end
+
           x = nosnap and x or floor(x + diff + 0.5)
         end
         
