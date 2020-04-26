@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.8
--- @changelog Add support for presets using v6.05's new secondary output format feature
+-- @version 1.0.9
+-- @changelog Fix parsing of presets using secondary render formats when the preset name contains spaces
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -71,15 +71,22 @@ local function tokenize(line)
   local pos, tokens = 1, {}
 
   while pos do
-    local tail, eat
+    local tail, eat = nil, 1
 
     if line:sub(pos, pos) == '"' then
       pos = pos + 1 -- eat the opening quote
-      tail = assert(line:find('"%s', pos), 'missing closing quote')
+      tail = line:find('"%s', pos)
       eat = 2
+
+      if not tail then
+        if line:sub(-1) == '"' then
+          tail = line:len()
+        else
+          error('missing closing quote')
+        end
+      end
     else
       tail = line:find('%s', pos)
-      eat = 1
     end
 
     if pos <= line:len() then
