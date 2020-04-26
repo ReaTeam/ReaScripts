@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.31
+Version: 5.35
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -216,9 +216,10 @@ About:
     + Works even if active take contains no selected events.
   * v5.25 (2020-04-19)
     + In notes lane lane, Reset doesn't reset velocity values.
-  * v5.31 (2020-04-26)
+  * v5.35 (2020-04-26)
     + Works in inline editor (and automatically installs in inline editor section).
-    + 2-sided warp implemented (toggle with right-click while warping). 
+    + Implement 2-sided warp (toggle with right-click while warping). 
+    + Fixed: Notes that extend beyond right edge of editor.
 ]]
 
 -- USER AREA 
@@ -613,6 +614,7 @@ function Defer_Stretch_Left()
         stretchMOVE = not stretchMOVE
         prevMouseInputTime = time
         mustCalculate = true
+        Tooltip(stretchMOVE and "Move" or "Stretch")
     end   
     
     if mustCalculate then
@@ -708,6 +710,7 @@ function Defer_Stretch_Right()
         stretchMOVE = not stretchMOVE
         prevMouseInputTime = time
         mustCalculate = true
+        Tooltip(stretchMOVE and "Move" or "Stretch")
     end
     
     local mouseTime = SnapTime(tTimeFromPixel[mouseX]) 
@@ -3351,7 +3354,7 @@ function ParseMidi_FirstPass()
         
         local t = {} -- Each distinct lane/channel that is used in this take, will get a table entry in t, which will later be stored in tGroups.
         local i = - 1 -- Starting index for enumeration of events 
-         takeMinValue, takeMaxValue, takeLeftmostTick, takeRightmostTick, takeNoteOffTick, takeLeftmostValue, takeRightmostValue = math.huge, -math.huge, nil, nil, -math.huge, nil, nil
+        local takeMinValue, takeMaxValue, takeLeftmostTick, takeRightmostTick, takeNoteOffTick, takeLeftmostValue, takeRightmostValue = math.huge, -math.huge, nil, nil, -math.huge, nil, nil
         
         if laneIsALL then
         
@@ -3379,43 +3382,6 @@ function ParseMidi_FirstPass()
                     goto getNextEvt
                 end
             ::gotAllEvts:: end
-            
-            --[[ Quickly check if there are any selected notes and text/sysex
-            if reaper.MIDI_EnumSelNotes(take, -1) ~= -1 then t.notes = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-            if reaper.MIDI_EnumSelTextSysexEvts(take, -1) ~= -1 then t.text = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-            
-            -- Must iterate through all selected CCs, since they are separated into groups
-            do ::getNextCC::
-                i = reaper.MIDI_EnumSelCC(take, i)
-                if i == -1 then 
-                    goto gotAllCCs
-                else
-                    local OK, selected, muted, ppqpos, chanmsg, chan, msg2, msg3 = reaper.MIDI_GetCC(take, i)
-                    local group = (chanmsg == 0xB0) and string.char(chanmsg|chan, msg2) or (chanmsg|chan)
-                    if not t[group] then t[group] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} end
-                    goto getNextCC
-                end
-            ::gotAllCCs:: end
-            
-            -- Get first and last selected event (which may, for example, be a note's note-off)
-            local firstEvt = reaper.MIDI_EnumSelEvts(take, -1)
-            local lastEvt  = firstEvt
-            do ::getNextEvt::
-                local i = reaper.MIDI_EnumSelEvts(take, lastEvt)
-                if i ~= -1 then 
-                    lastEvt = i 
-                    goto getNextEvt
-                else
-                    goto gotAllEvts
-                end
-            ::gotAllEvts:: end
-            
-            -- laneIsALL only needs orig left and right positions, not any orig values
-            local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, firstEvt, true, false, 0, "")
-            if ok then takeLeftmostTick = ppqpos end
-            local ok, selected, muted, ppqpos, msg = reaper.MIDI_GetEvt(take, lastEvt, true, false, 0, "")
-            if ok then takeRightmostTick = ppqpos end
-            ]]
     
         elseif laneIsNOTES then
         
@@ -3456,23 +3422,6 @@ function ParseMidi_FirstPass()
                         takeRightmostTick   = ppqpos
                         if msg3 > takeMaxValue then takeMaxValue = msg3 end
                         if msg3 < takeMinValue then takeMinValue = msg3 end
-                        
-                        --[[if not takeLeftmostValue or (ppqpos == takeLeftmostTick and chan == activeChan) then
-                            takeLeftmostValue   = msg3
-                            takeLeftmostTick    = ppqpos
-                        end
-                        if (chan == activeChan or ppqpos ~= takeRightmostTick) then
-                            takeRightmostValue  = msg3
-                            takeRightmostTick   = ppqpos
-                        end
-                        ]]
-                        --[[if t[chan] then 
-                            t[chan].right = ppqpos 
-                        else 
-                            --t[chan] = {left = ppqpos, right = ppqpos, tTicks = {}, tPrevTicks = {}, tIndices = {}, tMsg = {}, tMsg2 = {}, tValues = {}, tTicks = {}, tChannels = {}, tFlags = {}, tFlags2 = {}, tPitches = {}, tLengths = {}, tMeta = {}, tDelete = {}} 
-                            t[chan] = {left = ppqpos, right = ppqpos, tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tT = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}} 
-                            
-                        end]]
                     end
                     goto getNextCC
                 end
@@ -3622,6 +3571,7 @@ function ParseMidi_FirstPass()
             if takeMinValue < origMinValue then origMinValue = takeMinValue end
             tInfo.origLeftmostTick = takeLeftmostTick
             tInfo.origRightmostTick = takeRightmostTick
+            tInfo.origNoteOffTick = takeNoteOffTick
 
             tGroups[take] = t
         else
@@ -3676,9 +3626,9 @@ function ParseMidi_SecondPass()
         local e = 0]]
         
         -- This script does not scroll the MIDI editor if the mouse moves out of the client area, so the only CCs that
-        --    may need to be deleted, are those visible in the editor. Only those will be separated into entries in tMIDI.
+        --    may need to be deleted, are those visible in the editor, or within the range of the selected events. Only those will be separated into entries in tMIDI.
         local leftTickLimit  = math.min(tTakeInfo[take].origLeftmostTick,  tTickFromTime[take][ME_LeftmostTime]) -- tTakeInfo[take].loopStartTick)
-        local rightTickLimit = math.max(tTakeInfo[take].origRightmostTick, tTickFromTime[take][ME_RightmostTime]) -- tTakeInfo[take].loopStartTick) -- !!!!!!!!!!!!!!!!! length 
+        local rightTickLimit = math.max(tTakeInfo[take].origNoteOffTick, tTickFromTime[take][ME_RightmostTime]) -- tTakeInfo[take].loopStartTick) -- !!!!!!!!!!!!!!!!! length 
         tTakeInfo[take].leftTickLimit  = leftTickLimit
         tTakeInfo[take].rightTickLimit = rightTickLimit
         
@@ -4301,7 +4251,7 @@ function Tooltip(text)
         local x, y = reaper.GetMousePosition()
         reaper.TrackCtl_SetToolTip(tooltipText, x+10, y+10, true)
         reaper.defer(Tooltip)
-    elseif pcallOK and continue and reaper.time_precise() < tooltipTime+0.5 then -- if not (pcallOK and pcallRetval), then script is quitting, so don't defer
+    elseif pcallOK and continue and reaper.time_precise() < tooltipTime+1 then -- if not (pcallOK and pcallRetval), then script is quitting, so don't defer
         local x, y = reaper.GetMousePosition()
         reaper.TrackCtl_SetToolTip(tooltipText, x+10, y+10, true)
         reaper.defer(Tooltip)
