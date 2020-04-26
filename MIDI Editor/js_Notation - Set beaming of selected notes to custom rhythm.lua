@@ -1,20 +1,18 @@
 --[[
-ReaScript name: js_Notation - Set beaming of selected notes to custom rhythm (using grid as margin).lua
-Version: 1.20
+ReaScript name: js_Notation - Set beaming of selected notes to custom rhythm.lua
+Version: 1.25
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=172782&page=25
-REAPER version: v5.24
-Extensions required: -
 About:
   # Description
   This script allows the user to easily change the beaming of syncopated measures where the rhythm
   does not follow the prevailing time signature.
   
   # Instructions
-  The script can correctly beam notes that are played slightly ahead of the beat.  To do so, 
-  the user should set the MIDI editor's grid to reflect the amount of leeway:  A note that
-  starts within one grid length ahead of the next beat will be beamed together with the 
-  next beat -- but only if the larger part of the note's length falls in the next beat.
+  The script can correctly beam notes that are played slightly ahead of the beat.  The user can 
+  set the margin of leeway in the dialog box:  A note that starts within one margin length ahead 
+  of the next beat will be beamed together with the next beat -- but only if the larger part of 
+  the note's length falls in the next beat.
   
   NOTE: To properly format the notes, the user may to wish run the "Minimize ties" action 
   after this script.
@@ -31,7 +29,7 @@ About:
   * v1.01 (2016-09-04)
     + Added "using grid as margin" in title to inform users of this option
     + (More details can be found in the script itself.)
-  * v1.20 (2020-04-21)
+  * v1.25 (2020-04-26)
     + Faster execution (though not yet optimal).
     + Applies to all editable takes, if editability follows selection.
     + Margin can be set in dialog box.
@@ -52,8 +50,8 @@ defaultRhythm = "3-3-2"
 -- Skip undo point if the script doesn't create one itself
 reaper.defer()
 
-tableDivs = {}
-tTakeNotes = {}
+local tableDivs = {}
+local tTakeNotes = {}
 
 --------------------------------------------------------------------------------------------
 -- REAPER remembers individualized grid settings for each take.  Therefore, to 
