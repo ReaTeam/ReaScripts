@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.30
+Version: 5.31
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -216,9 +216,9 @@ About:
     + Works even if active take contains no selected events.
   * v5.25 (2020-04-19)
     + In notes lane lane, Reset doesn't reset velocity values.
-  * v5.30 (2020-04-22)
+  * v5.31 (2020-04-26)
     + Works in inline editor (and automatically installs in inline editor section).
-    * 2-sided warp implemented (toggle with right-click while warping). 
+    + 2-sided warp implemented (toggle with right-click while warping). 
 ]]
 
 -- USER AREA 
