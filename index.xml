@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a42bae28583846e6e7a1597d27f9080eee0c972" name="ReaTeam Scripts">
+<index version="1" commit="3fa80b3c241a5ab09e1a5cf59af41d7b2d70ce71" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3484,6 +3484,10 @@ Better error-checking in general]]></changelog>
       <version name="1.59" author="amagalma" time="2020-04-25T18:50:34Z">
         <changelog><![CDATA[- Fixed bug: line drawn at wrong position when dragging items]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/44922eec269789aa34b888bc1d620b5083f0d815/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.60" author="amagalma" time="2020-04-26T13:37:51Z">
+        <changelog><![CDATA[- Snap to swing grid support in Midi Editor]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3fa80b3c241a5ab09e1a5cf59af41d7b2d70ce71/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
