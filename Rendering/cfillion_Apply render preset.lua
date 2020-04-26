@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
 -- @version 1.0.9
--- @changelog Fix parsing of presets using secondary render formats when the preset name contains spaces
+-- @changelog Fix parsing of presets using secondary output formats when the preset name contains spaces
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
