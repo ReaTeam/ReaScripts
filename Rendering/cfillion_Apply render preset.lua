@@ -1,6 +1,6 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.1
+-- @version 1.0.8
 -- @changelog Add support for presets using v6.05's new secondary output format feature
 -- @provides
 --   .
