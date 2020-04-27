@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.35
+Version: 5.40
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -207,7 +207,7 @@ About:
     + A few tweaks.
   * v5.12 (2019-12-30)
     + Fixed: Bug when holding keyboard shortcut.
-  * v5.21 (2020-04-03
+  * v5.21 (2020-04-03)
     + Warning if used on macOS with Metal.
     + Zone size can be set via right-click context menu.
     + Stretch mode can switch to Move by right-clicking.
@@ -220,6 +220,13 @@ About:
     + Works in inline editor (and automatically installs in inline editor section).
     + Implement 2-sided warp (toggle with right-click while warping). 
     + Fixed: Notes that extend beyond right edge of editor.
+  * v5.40 (2020-04-27)
+    + Fixed changelog.  Cumulative changes include:
+    + Customization: Zone size can be set via right-click context menu (useful for hi-res displays).
+    + New mode: Move without stretching (toggle with right-click while stretching).
+    + New mode: 2-sided warp (toggle with right-click while warping).
+    + All editable takes can be edited together (if editability follows item selection).
+    + Works in inline editor (and automatically installs in inline editor section).
 ]]
 
 -- USER AREA 
