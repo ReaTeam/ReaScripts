@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Deselect all MIDI except in active channel of active take.lua
-Version: 2.00
+Version: 2.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -31,6 +31,8 @@ About:
     + Faster execution, using REAPER v5.30's new API functions.
   * v2.00 (2020-04-29)
     + Works in inline editor under mouse (and automatically installs in inline editor context).
+  * v2.01 (2020-04-29)
+    + Small improvement.
 ]]
 
 ----------------------------------------------------------------------------
@@ -174,13 +176,11 @@ else
     -- Finally, going to make changes to the project, so create undo block.
     reaper.Undo_BeginBlock2(0)
     -- Deselect all MIDI in editable takes
-    if isInline then 
-        reaper.UpdateItemInProject(activeItem)
-    else
-        reaper.MIDIEditor_OnCommand(editor, 40214) -- Edit: Unselect all
-    end
+    if editor then reaper.MIDIEditor_OnCommand(editor, 40214) end -- Edit: Unselect all
     -- Upload new MIDI string into active take
     reaper.MIDI_SetAllEvts(activeTake, table.concat(tableEvents))
+    -- Make sure inline editor is redrawn on screen
+    if isInline then reaper.UpdateItemInProject(activeItem) end
     -- Use flag=4 to limit undo to items, which is much faster than unnecessarily including everything
     reaper.Undo_EndBlock2(0, "Deselect all MIDI except in active channel of active take", 4)
     
