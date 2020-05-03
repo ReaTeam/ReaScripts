@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="454b4649bcbb1d373f786ce1337c7776120b7e81" name="ReaTeam Scripts">
+<index version="1" commit="29427167a4c6c00fee2179b6b9616137cf61a7c8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11831,6 +11831,27 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </version>
       <version name="2.13" author="amagalma" time="2020-04-22T14:38:16Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/558d736e3ac0a87aacb6a91f07af8eecfcf90ef0/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Reaper GUI color controls XL.lua" type="script" desc="Reaper GUI color controls XL">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Similar to native Theme Color Controls, with extra features\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Additional preset support\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Additional A/B function to compare current settings to untweaked ones\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab "Tie to current theme" button is used to relate the current settings to the current theme. So that each time the theme loads, the settings are recalled\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The above is the default and only method of the native implementation. This version can set temporary settings that won't be recalled if one wishes to\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The "Tie to current theme" lits green if a setting for Theme Color Controls is found in the reaperhemeconfig.ini, which means that there is a tie for the current theme.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script requires Lokasenna GUI v2 and at least Reaper v6.09+dev0502 to run\sa180\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?p=2281705#post2281705</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-05-03T15:21:40Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/29427167a4c6c00fee2179b6b9616137cf61a7c8/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
