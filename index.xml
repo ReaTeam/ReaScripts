@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cd91d2eba1849b4857e1fed3724dfb3dafb01d44" name="ReaTeam Scripts">
+<index version="1" commit="785f05239d4b0c531edad88e309bbf63db8418a1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12063,9 +12063,9 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically checks if AB_LM VST2, VST3 or JSFX are present in your system\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX) [defaults to VST3]\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
 }
 ]]></description>
         <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
@@ -12073,6 +12073,13 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.27" author="amagalma" time="2018-12-29T13:32:41Z">
         <changelog><![CDATA[# hopefully, first-time-run error-checking should be fixed now for x64 platforms]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+      </version>
+      <version name="1.35" author="amagalma" time="2020-05-04T22:57:47Z">
+        <changelog><![CDATA[- fixed not inserting AB_LM when RME Totalmix window was open
+- improved saved undo state
+- added check for JS_ReaScriptAPI's presence
+- improved/made faster the checks for presence of the selected format of AB_LM]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/785f05239d4b0c531edad88e309bbf63db8418a1/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
