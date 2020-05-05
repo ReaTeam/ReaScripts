@@ -1,14 +1,11 @@
 -- @description amagalma_Move edit cursor to previous visible grid line
 -- @author amagalma
--- @version 1.02
+-- @version 1.03
+-- @changelog
+--   - Support grid lines of extra small duration
 -- @about
 --   # Moves the edit cursor to the previous grid line that is visible
 
---[[
- * Changelog:
- * v1.02 (2018-05-28)
-  + fix Reaper crash when no visible grid at the start of the project
---]]
 
 function NoUndoPoint() end 
 reaper.Main_OnCommand(40755, 0) -- Snapping: Save snap state
@@ -17,8 +14,8 @@ local cursorpos = reaper.GetCursorPosition()
 if cursorpos > 0 then
   local grid = cursorpos
   while (grid >= cursorpos) do
-      cursorpos = cursorpos - 0.05
-      if cursorpos >= 0.05 then
+      cursorpos = cursorpos - 0.02
+      if cursorpos >= 0.02 then
         grid = reaper.SnapToGrid(0, cursorpos)
       else
         grid = 0
