@@ -1,4 +1,4 @@
--- @description JR Snap pitchbend envelope points to semitones positive 24 steps
+-- @description Snap pitchbend envelope points to semitones positive 24 steps
 -- @author J Reverb
 -- @version 1.0
 
