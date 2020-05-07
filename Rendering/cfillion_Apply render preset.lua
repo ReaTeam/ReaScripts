@@ -1,7 +1,7 @@
 -- @description Apply render preset
 -- @author cfillion
--- @version 1.0.9
--- @changelog Fix parsing of presets using secondary output formats when the preset name contains spaces
+-- @version 1.0.10
+-- @changelog Add support for the "Use project sample rate for mixing and FX/synth processing" option
 -- @provides
 --   .
 --   [main] . > cfillion_Apply render preset (create action).lua
@@ -35,9 +35,6 @@
 --
 --   - Render speed
 --   - Resample mode
---
---   These settings are NOT applied:
---
 --   - Use project sample rate for mixing and FX/synth processing
 
 local function insertPreset(presets, name)
@@ -134,13 +131,13 @@ function parseFormatPreset(presets, tokens)
   if not ok then return nil, err end
 
   local preset = insertPreset(presets, tokens[2])
-  preset.RENDER_SRATE       = tonumber(tokens[3])
-  preset.RENDER_CHANNELS    = tonumber(tokens[4])
-  preset.projrenderlimit    = tonumber(tokens[5]) -- render speed
-  preset._useProjSRate      = tonumber(tokens[6])
-  preset.projrenderresample = tonumber(tokens[7])
-  preset.RENDER_DITHER      = tonumber(tokens[8])
-  preset.RENDER_FORMAT2     = '' -- reset when no <RENDERPRESET2 node exists
+  preset.RENDER_SRATE           = tonumber(tokens[3])
+  preset.RENDER_CHANNELS        = tonumber(tokens[4])
+  preset.projrenderlimit        = tonumber(tokens[5]) -- render speed
+  preset.projrenderrateinternal = tonumber(tokens[6])
+  preset.projrenderresample     = tonumber(tokens[7])
+  preset.RENDER_DITHER          = tonumber(tokens[8])
+  preset.RENDER_FORMAT2         = '' -- reset when no <RENDERPRESET2 node exists
 
   -- Added in v5.984+dev1106:
   -- "Tracks with only mono media to mono files" and
