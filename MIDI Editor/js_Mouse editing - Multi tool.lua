@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.40
+Version: 5.50
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -227,6 +227,9 @@ About:
     + New mode: 2-sided warp (toggle with right-click while warping).
     + All editable takes can be edited together (if editability follows item selection).
     + Works in inline editor (and automatically installs in inline editor section).
+  * v5.50 (2020-05-07)
+    + Fixed: Incorrect source length calculation when take play rate is not 1.
+    + Fixed: Tilt right-hand side used sine instead of power curve.
 ]]
 
 -- USER AREA 
@@ -1932,8 +1935,7 @@ function Defer_Tilt()
                         for id, t in pairs(tID) do
                             local tT, tV, tOldV = t.tT, t.tV, old.tGroups[take][id].tV
                             for i = 1, #tT do
-                                local v = 0.5*(1-m_cos(m_pi*(rightTick - tT[i])/range))
-                                v = tOldV[i] + tiltHeight - tiltHeight*(v^inverseWheel)
+                                local v = tOldV[i] + tiltHeight - tiltHeight*(((rightTick - tT[i])/range)^inverseWheel)
                                 if v > laneMaxValue then v = laneMaxValue elseif v < laneMinValue then v = laneMinValue end  
                                 tV[i] = v
                             end
@@ -3319,7 +3321,8 @@ function SetupEditableTakes()
         t.source = reaper.GetMediaItemTake_Source(take)
         local sourceLenQN, isQN = reaper.GetMediaSourceLength(t.source)
         local sourceStartQN = reaper.MIDI_GetProjQNFromPPQPos(take, 0)
-        t.ppq = reaper.MIDI_GetPPQPosFromProjQN(take, sourceStartQN + 1) 
+        local playRate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+        t.ppq = (0.5 + reaper.MIDI_GetPPQPosFromProjQN(take, sourceStartQN + 1)/playRate)//1 -- Playrate is floating point, so must round 
         t.sourceLenTicks = (sourceLenQN*t.ppq)//1
         -- Find loop iteration closest to mouse position
         t.itemStartTimePos = reaper.GetMediaItemInfo_Value(t.item, "D_POSITION")
