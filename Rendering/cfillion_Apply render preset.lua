@@ -122,7 +122,7 @@ function nodeContentExtractor(preset, key)
 
     return parser
   end
-  
+
   return parser
 end
 
