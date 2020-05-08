@@ -1,6 +1,8 @@
 -- @description Reaper GUI color controls XL
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog
+--   - Script will not run if the required API is not available
 -- @link http://forum.cockos.com/showthread.php?p=2281705#post2281705
 -- @about
 --   # Similar to native Theme Color Controls, with extra features
@@ -12,7 +14,7 @@
 --   - The "Tie to current theme" lits green if a setting for Theme Color Controls is found in the reaperhemeconfig.ini, which means that there is a tie for the current theme.
 --   - Script requires Lokasenna GUI v2 and at least Reaper v6.09+dev0502 to run
 
-local version = "1.00"
+local version = "1.01"
 
 ----------------------------------------------------------------------------
 
@@ -34,20 +36,10 @@ local themeconfig = reaper.GetResourcePath().. (string.find(reaper.GetOS(), "Win
 ----------------------------------------------------------------------------
 
 -- Check Reaper version
-local Reav, continue = reaper.GetAppVersion()
-if Reav:match("6%.09%+dev05") then
-  local day = tonumber(Reav:match("6%.09%+dev05(%d%d)"))
-  if day >= 2 then
-    continue = true
-  end
-else
-  Reav = tonumber(Reav:match("%d%.%d+"))
-  if Reav >= 6.1 then
-    continue = true
-  end
-end
-if not continue then
-  reaper.MB("In order to run this script you should have Reaper v6.09+dev0502 or later.", "You don't have the minimum required version installed", 0)
+if not reaper.ThemeLayout_GetParameter( -1000 ) then
+  reaper.MB("This script was made using API that was added in Reaper v6.09+dev0502 but was not" ..
+  " implemented in the oficial version. When the API gets available you will be able to run this script." ..
+  "\n\nHave patience and a good day! :)", "Required API is not available", 0)
   return
 end
 
