@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0dcbc2699fb6de8973d3fd2a0c7f6403e30043e3" name="ReaTeam Scripts">
+<index version="1" commit="217fbd7c6b310632daa283e117e827802914cfb1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11884,6 +11884,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2020-05-03T15:21:40Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/29427167a4c6c00fee2179b6b9616137cf61a7c8/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-05-08T08:08:46Z">
+        <changelog><![CDATA[- Script will not run if the required API is not available]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/217fbd7c6b310632daa283e117e827802914cfb1/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
