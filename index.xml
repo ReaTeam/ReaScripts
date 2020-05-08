@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="217fbd7c6b310632daa283e117e827802914cfb1" name="ReaTeam Scripts">
+<index version="1" commit="f15195149dafef64e58ddc12a56b3815efc4ce30" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10411,6 +10411,24 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2019-01-07T20:48:48Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/amagalma_Fit%20vertically%20all%20tracks%20into%20view%20(if%20possible).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Route selected tracks to new Channel Selector track above them.lua" type="script" desc="Route selected tracks to new Channel Selector track above them">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Routes the selected tracks to a new track above them so you can A/B between them\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A custom JSFX is added with the names of the routed tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smooth audio transition between tracks (code by geraintluff)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If track is deleted or JSFX is removed from the channel, then the initially selected tracks return to their initial state\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If script is run with only the channel selector track selected, then it gets removed and everything gets back to initial state\sa180\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2020-05-08T19:19:16Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f15195149dafef64e58ddc12a56b3815efc4ce30/Tracks%20Properties/amagalma_Route%20selected%20tracks%20to%20new%20Channel%20Selector%20track%20above%20them.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
