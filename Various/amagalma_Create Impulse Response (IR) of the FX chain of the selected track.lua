@@ -1,8 +1,9 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.01
+-- @version 2.02
 -- @changelog
---   - Help to install Lokasenna GUI Library v2 and JS_ReaScriptAPI for people who don't have them
+--   - Ensure no orphan reapeak is left behind
+--   - Ensure that track name does not change
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
 --   # Creates an impulse response (IR) of the FX Chain of the first selected track.
@@ -18,7 +19,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.01"
+local version = "2.02"
 --------------------------------------------------------------------------------------------
 
 
@@ -129,6 +130,7 @@ if fx_cnt < 1 or fx_enabled == 0 then
 end
 
 local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, "P_NAME", "", false )
+local track_name = tr_name
 tr_name = tr_name ~= "" and tr_name .. " IR" or "IR"
 
 
@@ -541,6 +543,16 @@ function CreateIR()
     problems = problems+1
     Msg(problems .. ") Failed to delete ".. dirac_path)
   end
+  local reapeak_file = dirac_path .. ".reapeaks"
+  if reaper.file_exists(reapeak_file) then
+    ok = os.remove(reapeak_file)
+    if ok then
+      Msg("Deleted ".. reapeak_file)
+    else
+      problems = problems+1
+      Msg(problems .. ") Failed to delete ".. reapeak_file)
+    end
+  end
   ok = os.remove(render_path)
   if ok then
     Msg("Deleted ".. render_path)
@@ -558,6 +570,9 @@ function CreateIR()
   if fx_format ~= 0 then
     reaper.SNM_SetIntConfigVar( "projrecforopencopy", fx_format )
   end  
+  
+  -- Set back track name
+  reaper.GetSetMediaTrackInfo_String( track, "P_NAME", track_name, true )
   
   if Insert_In_Project then
     if reaper.file_exists( IR_FullPath ) then
