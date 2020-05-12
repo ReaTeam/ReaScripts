@@ -1,9 +1,8 @@
 -- @description Distinguish visually the ripple editing modes
 -- @author amagalma
--- @version 1.15
+-- @version 1.16
 -- @changelog
---   - Code tidying up
---   - Possible improvement of occasional flickering when having lots of tracks in ripple all-tracks mode
+--   -  Improved check for JS_ReaScriptAPI availability
 -- @link https://forum.cockos.com/showthread.php?t=236201
 -- @about
 --   # Colors the items that will move in ripple editing modes
@@ -26,25 +25,35 @@ local red, green, blue, alpha = 0, 255, 0, 13
 local reaper, floor = reaper, math.floor
 local debug = false
 
--- Check if JS_ReaScriptAPI >= 1.002 is installed
-if not reaper.APIExists("JS_ReaScriptAPI_Version") then
-  noAPI = true
-elseif reaper.JS_ReaScriptAPI_Version() < 1.002 then
-  oldVersion = true
+-- Check JS_ReaScriptAPI availability
+local required_version, ok  = "1.002", false
+local js_api = { "reaper_js_ReaScriptAPI32.dll", "reaper_js_ReaScriptAPI32.dylib", "reaper_js_ReaScriptAPI64.dll", "reaper_js_ReaScriptAPI64.dylib", "reaper_js_ReaScriptAPI64.so" }
+local sep = reaper.GetOS():find("Win") and "\\" or "/"
+local ext_path = reaper.GetResourcePath() .. sep .. "UserPlugins" .. sep
+for i = 1, 5 do
+  if reaper.file_exists( ext_path .. js_api[i] ) then
+    js_api = ext_path .. js_api[i]
+    break
+  end
 end
-if noAPI or oldVersion then
-  if noAPI then
-    reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
-  else
-    reaper.MB( "Please, right-click and install the latest version of 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "Older JS_ReaScriptAPI version is installed", 0 )
+if type(js_api) ~= "table" then
+  local entry = reaper.ReaPack_GetOwner( js_api )
+  js_api = ({reaper.ReaPack_GetEntryInfo( entry )})[7]
+  reaper.ReaPack_FreeEntry( entry )
+  ok = reaper.ReaPack_CompareVersions( js_api, required_version ) >= 0
+  if not ok then
+    reaper.MB( "Your installed version is v" .. js_api .. ".\n\nPlease, right-click and install the latest version of 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "JS_ReaScriptAPI v" .. required_version .. " is required", 0 )
   end
+else
+  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
+end
+if not ok then
   local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
-  if ok then
-    reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
-  else
-    reaper.MB( err, "Something went wrong...", 0)
-  end
+  if ok then reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+  else reaper.MB( err, "Something went wrong...", 0) end
   return reaper.defer(function() end)
+else
+  required_version, ok, js_api, sep, ext_path, entry = nil, nil, nil, nil, nil, nil
 end
 
 local function Msg(str)
