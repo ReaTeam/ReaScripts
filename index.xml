@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="334f1215c172583f1ffd6e0e33722b42d60be4c2" name="ReaTeam Scripts">
+<index version="1" commit="1aa52c4112d137542520d419e1ef70963dc1d84a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11534,13 +11534,15 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Colors the the affected items in ripple editing modes\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Colors the items that will move in ripple editing modes\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Color can be set inside the script\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script reports on/off state so that it can be set to a toolbar button\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI extension >v1.002\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If prompted by Reaper, choose "Terminate instances" and "Remember"\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI extension >= v1.002\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inspired by nikolalkc Colored Rippling extension\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=236201</link>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-05-11T21:40:24Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/61648ad4809079abc73f7f1018291d267323832e/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
@@ -11548,6 +11550,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.10" author="amagalma" time="2020-05-11T22:39:57Z">
         <changelog><![CDATA[- Changed behavior: In both ripple modes affected items are colored. No change of timeline color]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/334f1215c172583f1ffd6e0e33722b42d60be4c2/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
+      </version>
+      <version name="1.15" author="amagalma" time="2020-05-12T09:33:14Z">
+        <changelog><![CDATA[- Code tidying up
+- Possible improvement of occasional flickering when having lots of tracks in ripple all-tracks mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1aa52c4112d137542520d419e1ef70963dc1d84a/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
