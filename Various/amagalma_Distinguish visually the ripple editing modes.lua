@@ -1,13 +1,16 @@
 -- @description Distinguish visually the ripple editing modes
 -- @author amagalma
--- @version 1.10
+-- @version 1.15
 -- @changelog
---   - Changed behavior: In both ripple modes affected items are colored. No change of timeline color
+--   - Code tidying up
+--   - Possible improvement of occasional flickering when having lots of tracks in ripple all-tracks mode
+-- @link https://forum.cockos.com/showthread.php?t=236201
 -- @about
---   # Colors the the affected items in ripple editing modes
+--   # Colors the items that will move in ripple editing modes
 --   - Color can be set inside the script
 --   - Script reports on/off state so that it can be set to a toolbar button
---   - Requires JS_ReaScriptAPI extension >v1.002
+--   - If prompted by Reaper, choose "Terminate instances" and "Remember"
+--   - Requires JS_ReaScriptAPI extension >= v1.002
 --   - Inspired by nikolalkc Colored Rippling extension
 
 
@@ -23,7 +26,7 @@ local red, green, blue, alpha = 0, 255, 0, 13
 local reaper, floor = reaper, math.floor
 local debug = false
 
--- Check if JS_ReaScriptAPI >1.002 is installed
+-- Check if JS_ReaScriptAPI >= 1.002 is installed
 if not reaper.APIExists("JS_ReaScriptAPI_Version") then
   noAPI = true
 elseif reaper.JS_ReaScriptAPI_Version() < 1.002 then
@@ -52,6 +55,7 @@ end
 
 ------------------------------------------------------
 
+-- Sanitize values
 red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
 green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 255
 blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
@@ -77,20 +81,23 @@ end
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 0x3E8)
 local _, width_trackview, height_trackview = reaper.JS_Window_GetClientSize( trackview )
 width_trackview = width_trackview + 17
-local _, left_trackview, top_trackview, right_trackview, bottom_trackview = reaper.JS_Window_GetRect( trackview )
-
----------------------------------------------------------------
 
 local start = reaper.time_precise()
 local checksizetime = start
 local checkrippletime = start
 local p_item, p_item_cnt = 0, -1
+local huge = math.huge
 local first_pos
+local st, en, arr_duration, track_cnt
+local setDelay, prevMinTime, prevMaxTime, prevBitmaps = reaper.JS_Composite_Delay( trackview, 0.0035, 0.105, 30 )
+
+---------------------------------------------------------------
 
 function main()
   local give_space = false
   local now = reaper.time_precise()
 
+  -- Check ripple mode state
   local r_state
   if now - checkrippletime >= 0.35 then
     if reaper.GetToggleCommandState( 41991 ) == 1 then r_state = 2
@@ -103,7 +110,8 @@ function main()
       Msg(msg)
       ripple = r_state
       for k in pairs(bmps) do
-        reaper.JS_LICE_DestroyBitmap( bmps[k])
+        reaper.JS_LICE_DestroyBitmap( bmps[k] )
+        bmps[k] = nil
       end
       for k in pairs(tracks) do
         tracks[k] = nil
@@ -111,11 +119,23 @@ function main()
     end
   end
   
+  -- If in any ripple mode, get common values
+  if r_state ~= 0 then
+    st, en = reaper.GetSet_ArrangeView2( 0, false, 0, 0 )
+    arr_duration = en - st
+    track_cnt = reaper.CountTracks( 0 )
+    
+    -- Check every now and then if arrange size changed and update values
+    if now - checksizetime >= 1 then
+      _, width_trackview, height_trackview = reaper.JS_Window_GetClientSize( trackview )
+      width_trackview = width_trackview + 17
+      checksizetime = now
+    end
+  end
+  
+  -- Ripple per-track
   if r_state == 1 then
 
-    local st, en = reaper.GetSet_ArrangeView2( 0, false, 0, 0 )
-    local arr_duration = en - st
-    local track_cnt = reaper.CountTracks( 0 )
     for i = 0, track_cnt-1 do
       local track = reaper.GetTrack( 0, i )
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
@@ -142,7 +162,7 @@ function main()
               Msg( string.format("paint track %i : %i, %i", id, x_pos, y_pos) .. "\n")
               give_space = true
               bmps[id] = reaper.JS_LICE_CreateBitmap( true, 1, 1 )
-              reaper.JS_LICE_Clear( bmps[id], color_trackview) -- 0x012F2F2F )
+              reaper.JS_LICE_Clear( bmps[id], color_trackview )
               reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[id], 0, 0, 1, 1, true )
               tracks[id] = x_pos
             elseif x_pos ~= tracks[id] then
@@ -171,14 +191,13 @@ function main()
       end
     end  
     
+  -- Ripple all-tracks
   elseif r_state == 2 then
-     
-    local st, en = reaper.GetSet_ArrangeView2( 0, false, 0, 0 )
-    local arr_duration = en - st
+
     local item_cnt = reaper.CountSelectedMediaItems( 0 )
     local first_item = reaper.GetSelectedMediaItem( 0, 0 )
     if item_cnt ~= p_item_cnt or first_item ~= p_item then
-      first_pos = math.huge
+      first_pos = huge
     end
     for i = 0, item_cnt-1 do
       local item = reaper.GetSelectedMediaItem( 0, i )
@@ -186,7 +205,6 @@ function main()
       if item_pos < first_pos then first_pos = item_pos end
     end
 
-    local track_cnt = reaper.CountTracks( 0 )
     for i = 0, track_cnt-1 do
       local track = reaper.GetTrack( 0, i )
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
@@ -212,7 +230,7 @@ function main()
           if paint then
             if ( not tracks[id] ) then
               bmps[id] = reaper.JS_LICE_CreateBitmap( true, 1, 1 )
-              reaper.JS_LICE_Clear( bmps[id], color_trackview) -- 0x012F2F2F )
+              reaper.JS_LICE_Clear( bmps[id], color_trackview )
               reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[id], 0, 0, 1, 1, true )
               tracks[id] = x_pos
             elseif x_pos ~= tracks[id] then
@@ -249,12 +267,24 @@ end
 
 function Exit()
   for k in pairs(bmps) do
-    reaper.JS_LICE_DestroyBitmap( bmps[k])
+    reaper.JS_LICE_DestroyBitmap( bmps[k] )
   end
   reaper.UpdateArrange()
   reaper.SetToggleCommandState( section, cmdID, 0 )
   reaper.RefreshToolbar2( section, cmdID )
-  Msg("\n== script end ==\n\n")
+  if setDelay then
+    if prevMinTime == -1 or prevMaxTime == -1 then
+      prevMinTime, prevMaxTime, prevBitmaps = 0, 0, 2
+    end
+    local ok, newMinTime, newMaxTime, newBitmaps = reaper.JS_Composite_Delay( trackview, prevMinTime, prevMaxTime, prevBitmaps )
+    if ok then
+      Msg(string.format("\nRestored JS_Composite_Delay values to:\nMinTime %s -> %s\nMaxTime %s -> %s" ..
+      "\nBitmaps %s -> %s", newMinTime, prevMinTime, newMaxTime, prevMaxTime, newBitmaps, prevBitmaps))
+    else
+      Msg("\nCould not restore the JS_Composite_Delay values\n")
+    end
+  end
+  Msg("\n\n== script end ==\n\n")
   return reaper.defer(function() end)
 end
 
