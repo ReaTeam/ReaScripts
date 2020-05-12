@@ -1,8 +1,8 @@
 -- @description Distinguish visually the ripple editing modes
 -- @author amagalma
--- @version 1.16
+-- @version 1.20
 -- @changelog
---   -  Improved check for JS_ReaScriptAPI availability
+--   -   fixed bug: original tracks staying highlighted when dragging items across tracks
 -- @link https://forum.cockos.com/showthread.php?t=236201
 -- @about
 --   # Colors the items that will move in ripple editing modes
@@ -80,6 +80,7 @@ reaper.RefreshToolbar2( section, cmdID )
 local MainHwnd = reaper.GetMainHwnd()
 local tracks = {}
 local bmps = {}
+local p_trackitems_cnt = {}
 
 local ripple
 if reaper.GetToggleCommandState( 41991 ) == 1 then ripple = 2 -- ripple editing all tracks
@@ -147,12 +148,20 @@ function main()
 
     for i = 0, track_cnt-1 do
       local track = reaper.GetTrack( 0, i )
+      local id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
                                                                      
       if reaper.IsTrackVisible( track, false ) and y_pos < height_trackview then
         local item_cnt = reaper.CountTrackMediaItems( track )
+        if p_trackitems_cnt[id] ~= item_cnt then
+          if bmps[id] then
+            reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
+            bmps[id] = nil
+          end
+          tracks[id] = nil
+          p_trackitems_cnt[id] = item_cnt
+        end
         if item_cnt > 0 then
-          local id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
           local paint = false
           local x_pos
           for j = 0, item_cnt-1 do
@@ -189,7 +198,7 @@ function main()
                 reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
                 bmps[id] = nil
               end
-              reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
+              --reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
               tracks[id] = nil
             end
           end
@@ -217,11 +226,19 @@ function main()
     for i = 0, track_cnt-1 do
       local track = reaper.GetTrack( 0, i )
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
+      local id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
                                                                      
       if reaper.IsTrackVisible( track, false ) and y_pos < height_trackview then
         local item_cnt = reaper.CountTrackMediaItems( track )
+        if p_trackitems_cnt[id] ~= item_cnt then
+          if bmps[id] then
+            reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
+            bmps[id] = nil
+          end
+          tracks[id] = nil
+          p_trackitems_cnt[id] = item_cnt
+        end
         if item_cnt > 0 then
-          local id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
           local paint = false
           local x_pos
           for j = 0, item_cnt-1 do
@@ -253,7 +270,7 @@ function main()
                 reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
                 bmps[id] = nil
               end
-              reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
+              --reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
               tracks[id] = nil
             end
           end
