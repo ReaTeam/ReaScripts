@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ae8e16d55911cc562e21f1751e2e0a7b1dd05baa" name="ReaTeam Scripts">
+<index version="1" commit="362e02d01ef8340a07f83dfeb91677e86ed8860b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3900,6 +3900,10 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
         <changelog><![CDATA[+ Bugfix: now the step of the quantization grid is independent of zoom.
 + Added experimental option to disable XFades and Fill Gaps]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7409dfce8434312d5ecae3555af730dd71e74a20/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.4.5" author="cool" time="2020-05-12T17:25:31Z">
+        <changelog><![CDATA[+ Bugfix: now the manual change of transient markers is reflected in the action of the MIDI Sampler/Trigger button]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/362e02d01ef8340a07f83dfeb91677e86ed8860b/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
