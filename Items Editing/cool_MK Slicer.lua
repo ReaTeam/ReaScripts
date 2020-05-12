@@ -1,9 +1,7 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.4.4
--- @changelog
---   + Bugfix: now the step of the quantization grid is independent of zoom.
---   + Added experimental option to disable XFades and Fill Gaps
+-- @version 1.4.5
+-- @changelog + Bugfix: now the manual change of transient markers is reflected in the action of the MIDI Sampler/Trigger button
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -60,7 +58,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.4.4 by Maxim Kokarev 
+MK Slicer v1.4.5 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -2678,7 +2676,6 @@ pitch_and_rate_check()
 
   end
 
-  getitem()
 
   if (Midi_Sampler.norm_val == 1) then  
 
@@ -4799,7 +4796,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.4.4"
+    local Wnd_Title = "MK Slicer v1.4.5"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -5019,7 +5016,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v1.4.4"
+     local Wnd_Title = "MK Slicer v1.4.5"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -5031,7 +5028,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v1.4.4"
+    local Wnd_Title = "MK Slicer v1.4.5"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
