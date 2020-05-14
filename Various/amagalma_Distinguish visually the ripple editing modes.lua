@@ -1,8 +1,8 @@
 -- @description Distinguish visually the ripple editing modes
 -- @author amagalma
--- @version 1.20
+-- @version 1.21
 -- @changelog
---   -   fixed bug: original tracks staying highlighted when dragging items across tracks
+--   -   fixed drawing color for macOS
 -- @link https://forum.cockos.com/showthread.php?t=236201
 -- @about
 --   # Colors the items that will move in ripple editing modes
@@ -24,11 +24,14 @@ local red, green, blue, alpha = 0, 255, 0, 13
 
 local reaper, floor = reaper, math.floor
 local debug = false
+local OS = reaper.GetOS()
+local Win = OS:find("Win")
+local OSX = OS:find("OSX")
 
 -- Check JS_ReaScriptAPI availability
 local required_version, ok  = "1.002", false
 local js_api = { "reaper_js_ReaScriptAPI32.dll", "reaper_js_ReaScriptAPI32.dylib", "reaper_js_ReaScriptAPI64.dll", "reaper_js_ReaScriptAPI64.dylib", "reaper_js_ReaScriptAPI64.so" }
-local sep = reaper.GetOS():find("Win") and "\\" or "/"
+local sep = Win and "\\" or "/"
 local ext_path = reaper.GetResourcePath() .. sep .. "UserPlugins" .. sep
 for i = 1, 5 do
   if reaper.file_exists( ext_path .. js_api[i] ) then
@@ -53,7 +56,7 @@ if not ok then
   else reaper.MB( err, "Something went wrong...", 0) end
   return reaper.defer(function() end)
 else
-  required_version, ok, js_api, sep, ext_path, entry = nil, nil, nil, nil, nil, nil
+  required_version, ok, js_api, sep, ext_path, entry, OS = nil, nil, nil, nil, nil, nil, nil
 end
 
 local function Msg(str)
@@ -68,9 +71,10 @@ end
 red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
 green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 255
 blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
-alpha = alpha and (alpha < 0 and 0 or (alpha > 255 and 1 or alpha/255)) or 0.051
-local color = (((blue)&0xFF)|(((green)&0xFF)<<8)|(((red)&0xFF)<<16)|(0xFF<<24))
-local color_trackview = (((blue*alpha)&0xFF)|(((green*alpha)&0xFF)<<8)|(((red*alpha)&0xFF)<<16)|(0x01<<24))
+alpha = OSX and (alpha and (alpha < 0 and 0 or (alpha > 255 and 255 or alpha)) or 13) or
+        (alpha and (alpha < 0 and 0 or (alpha > 255 and 1 or alpha/255)) or 0.051)
+local color_trackview = OSX and ((blue&0xFF)|((green&0xFF)<<8)|((red&0xFF)<<16)|((alpha&0xFF)<<24)) or
+      (((blue*alpha)&0xFF)|(((green*alpha)&0xFF)<<8)|(((red*alpha)&0xFF)<<16)|(0x01<<24))
 
 -- Refresh toolbar
 local _, _, section, cmdID = reaper.get_action_context()
