@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="916b14f19fb4276ae8d77f1492103b35de9bac05" name="ReaTeam Scripts">
+<index version="1" commit="17641ff7e1026237378e3ad0cfab83d992034b39" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11590,6 +11590,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.20" author="amagalma" time="2020-05-12T18:45:24Z">
         <changelog><![CDATA[-   fixed bug: original tracks staying highlighted when dragging items across tracks]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/03b63d829b6776fb3f594c1f0b55567904831507/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
+      </version>
+      <version name="1.21" author="amagalma" time="2020-05-14T18:49:57Z">
+        <changelog><![CDATA[-   fixed drawing color for macOS]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/17641ff7e1026237378e3ad0cfab83d992034b39/Various/amagalma_Distinguish%20visually%20the%20ripple%20editing%20modes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Edit Group Management Utility.lua" type="script" desc="Edit Group Management Utility_amagalma">
