@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Deselect all MIDI except in active channel of active take.lua
-Version: 2.01
+Version: 2.10
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -33,6 +33,8 @@ About:
     + Works in inline editor under mouse (and automatically installs in inline editor context).
   * v2.01 (2020-04-29)
     + Small improvement.
+  * v2.10 (2020-05-15)
+    + Fix MediaItem_Take expected error.
 ]]
 
 ----------------------------------------------------------------------------
@@ -104,7 +106,7 @@ else
         return
     end
     -- Check whether an active take is available - note the GetTake is buggy and may return a non-nil but invalid pointer, so must check validity.
-    local activeTake = reaper.MIDIEditor_GetTake(editor)
+    activeTake = reaper.MIDIEditor_GetTake(editor)
     if not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then 
         reaper.ShowMessageBox("Could not find any active take for the MIDI editor.", "ERROR", 0)
         return
