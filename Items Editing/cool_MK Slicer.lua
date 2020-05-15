@@ -1,7 +1,10 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.4.5
--- @changelog + Bugfix: now the manual change of transient markers is reflected in the action of the MIDI Sampler/Trigger button
+-- @version 1.4.6
+-- @changelog
+--   + Added an error message if the item or time selection is too short.
+--   + Improved slicer accuracy. Now the location of the cuts corresponds to what is displayed in the script.
+--   + Bugfix: now the script ignores the Time Selection if the option is disabled in the settings.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -58,7 +61,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.4.5 by Maxim Kokarev 
+MK Slicer v1.4.6 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -232,13 +235,13 @@ start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
 time_sel_length = ending - start
 if ObeyingTheSelection == 1 and ObeyingItemSelection == 0 and start ~= ending then
     r.Main_OnCommand(40289, 0) -- Item: Unselect all items
-          if time_sel_length > 0.25 and selected_tracks_count == 1 then
+          if time_sel_length >= 0.25 and selected_tracks_count == 1 then
               r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
           end
 end
 
 count_itms =  r.CountSelectedMediaItems(0)
-if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel_length > 0.25 then
+if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel_length >= 0.25 then
    take_check()
    if Take_Check ~= 1 and selected_tracks_count == 1 then
 
@@ -302,7 +305,6 @@ if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel
        end
    end
 end
-
 -----------------------------------------------------------------------------------------------------
 
 local cursorpos = r.GetCursorPosition()
@@ -2326,13 +2328,13 @@ start, ending = r.GetSet_LoopTimeRange( 0, 0, 0, 0, 0 )
 time_sel_length = ending - start
 if ObeyingTheSelection == 1 and ObeyingItemSelection == 0 and start ~= ending then
     r.Main_OnCommand(40289, 0) -- Item: Unselect all items
-          if time_sel_length > 0.25 and selected_tracks_count == 1 then
+          if time_sel_length >= 0.25 and selected_tracks_count == 1 then
               r.Main_OnCommand(40718, 0) -- Item: Select all items on selected tracks in current time selection
           end
 end
 
 count_itms =  r.CountSelectedMediaItems(0)
-if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel_length > 0.25 then
+if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel_length >= 0.25 then
    take_check()
    if Take_Check ~= 1 and selected_tracks_count == 1 then
 
@@ -2396,7 +2398,27 @@ if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel
        end
    end
 end
-
+-----------------------------------------------------------------------------------------------------
+if ObeyingTheSelection == 1 and time_sel_length < 0.25 and ending ~= start then
+------------------------------------------Error Message-----------------------------------------
+local timer = 2 -- Time in seconds
+local time = os.time()
+local function Msg()
+   local char = gfx.getchar()
+     if char == 27 or char == -1 or (os.time() - time) > timer then return end
+local Get_Sel_ErrMsg = ErrMsg:new(660,450,260,25, 1, 1, 1, 1, "Time Selection is Too Short (<0.25s)",    "Arial", 22)
+local ErrMsg_TB = {Get_Sel_ErrMsg}
+     for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
+   gfx.update()
+  r.defer(Msg)
+end
+end
+Msg()
+--------------------------------------End of Error Message-------------------------------------
+Init()
+ goto zzz
+end
+-----------------------------------------------------------------------------------------------------
 local cursorpos = r.GetCursorPosition()
 
             r.Main_OnCommand(r.NamedCommandLookup("_SWS_SAVETIME1"),0)
@@ -2662,6 +2684,7 @@ while(true) do;
   end;
 end;
 
+
  if number_of_takes ~= 1 and srate ~= nil then
  
 r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
@@ -2672,13 +2695,15 @@ pitch_and_rate_check()
 
    if take_pitch ~= 0 or take_playrate ~= 1.0 or number_of_takes ~= 1 and srate > 0 then
  
-    r.Main_OnCommand(41588, 0) -- glue (если изменены rate, pitch, больше одного айтема и не миди айтем, то клей. Требуется для корректной работы кнопки MIDI).
+r.Main_OnCommand(41588, 0) -- glue (если изменены rate, pitch, больше одного айтема и не миди айтем, то клей. Требуется для корректной работы кнопки MIDI).
 
   end
 
 
   if (Midi_Sampler.norm_val == 1) then  
 
+  Midi_sampler_offs_stat = 1
+  Wave:Create_Track_Accessor() 
   Wave:Just_Slice()   
   Wave:Load_To_Sampler() 
 
@@ -3318,7 +3343,12 @@ local cursorpos = r.GetCursorPosition()
            if i<points_cnt then next_startppqpos = (self.sel_start + Gate_Gl.Res_Points[i]/srate )         
             end
 
-            cutpos = (next_startppqpos - 0.001)
+         if Midi_sampler_offs_stat == 1 then
+            cutpos = next_startppqpos - 0.001
+            else
+            cutpos = next_startppqpos
+         end
+
 if MIDISampler == 1 then
           if  cutpos - self.sel_start >= 0.03 and self.sel_end - cutpos >= 0.05 then -- if transient too close near item start, do nothing
              r.SetEditCurPos(cutpos,0,0)          
@@ -3972,7 +4002,7 @@ function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
   -------------------------------------------------------------------------------    
   function ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch)    
     if not MIDI then return end
-      local new_it = r.CreateNewMIDIItemInProj( track, MIDI.it_pos, self.sel_end --[[MIDI.it_end_pos]] )
+      local new_it = r.CreateNewMIDIItemInProj( track, MIDI.it_pos, self.sel_end )
 new_tk = r.GetActiveTake( new_it )
       for i = 1, #MIDI do
         local startppqpos =  r.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].pos )
@@ -4094,6 +4124,7 @@ end
     MIDISampler = 0
     MIDISmplr_Status = 1       
     Reset_Status = 0     
+    Midi_sampler_offs_stat = 0
     r.PreventUIRefresh(-1)
 
         r.Main_OnCommand(40913,0) -- Track: Vertical scroll selected tracks into view
@@ -4139,7 +4170,7 @@ function Wave:Create_MIDI()
         -- Insert Note ---------
         vel = floor(velo_offset + Gate_Gl.Res_Points[i+1][mode] * velo_scale)
      
-        r.MIDI_InsertNote(take, sel, mute, startppqpos-1, endppqpos-2, chan, pitch, vel, true)
+        r.MIDI_InsertNote(take, sel, mute, startppqpos, endppqpos-1, chan, pitch, vel, true)
     end
     ----------------------------
     r.MIDI_Sort(take)           -- sort notes
@@ -4213,7 +4244,32 @@ function Wave:Get_TimeSelection()
          local sel_end = sel_start + r.GetMediaItemInfo_Value(item, "D_LENGTH")
 
     local sel_len = sel_end - sel_start
+
+-----------------------------------------------------------------------------------------------------
+if sel_len < 0.25 then
+------------------------------------------Error Message-----------------------------------------
+local timer = 2 -- Time in seconds
+local time = os.time()
+local function Msg()
+   local char = gfx.getchar()
+     if char == 27 or char == -1 or (os.time() - time) > timer then return end
+local Get_Sel_ErrMsg = ErrMsg:new(660,450,260,25, 1, 1, 1, 1, "Item is Too Short (<0.25s)",    "Arial", 22)
+local ErrMsg_TB = {Get_Sel_ErrMsg}
+     for key,btn    in pairs(ErrMsg_TB)   do btn:draw()    
+   gfx.update()
+  r.defer(Msg)
+end
+end
+Msg()
+--------------------------------------End of Error Message-------------------------------------
+Init()
+end
+
+if ObeyingTheSelection == 1 then
     if sel_len<0.25 or time_sel_length < 0.25 then return end -- 0.25 minimum
+else
+    if sel_len<0.25 then return end -- 0.25 minimum
+end
     -------------- 
     self.sel_start, self.sel_end, self.sel_len = sel_start,sel_end,sel_len  -- selection start, end, lenght
     return true
@@ -4796,7 +4852,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.4.5"
+    local Wnd_Title = "MK Slicer v1.4.6"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -5016,7 +5072,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v1.4.5"
+     local Wnd_Title = "MK Slicer v1.4.6"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -5028,7 +5084,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v1.4.5"
+    local Wnd_Title = "MK Slicer v1.4.6"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
