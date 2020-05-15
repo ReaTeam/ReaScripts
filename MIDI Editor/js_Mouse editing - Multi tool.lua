@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.50
+Version: 5.51
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -230,6 +230,8 @@ About:
   * v5.50 (2020-05-07)
     + Fixed: Incorrect source length calculation when take play rate is not 1.
     + Fixed: Tilt right-hand side used sine instead of power curve.
+  * v5.51 (2020-05-15)
+    + Fixed: Source length bug (again).
 ]]
 
 -- USER AREA 
@@ -2856,7 +2858,7 @@ function AtExit()
     if pcallOK == true then
         for take in pairs(tGroups) do
             if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
-                if tTakeInfo[take] and tTakeInfo[take].sourceLenTicks and not (tTakeInfo[take].sourceLenTicks == reaper.BR_GetMidiSourceLenPPQ(take)) then
+                if tTakeInfo[take] and tTakeInfo[take].sourceLenTicks and not (tTakeInfo[take].sourceLenTicks == (0.5+reaper.BR_GetMidiSourceLenPPQ(take))//1) then -- BEWARE: BR functioh may return float
                     pcallOK = "shifted MIDI"
                     break
                 end
