@@ -1,47 +1,49 @@
 -- @description Open preferences page
 -- @author cfillion
 -- @version 1.0.1
--- @changelog Fix Editing Behavior > MIDI Editor
+-- @changelog
+--   Add missing action name prefix
+--   Fix Editing Behavior > MIDI Editor
 -- @metapackage
 -- @provides
---   [main] . > Open preferences page - General.lua
---   [main] . > Open preferences page - General - Paths.lua
---   [main] . > Open preferences page - General - Keyboard, Multitouch.lua
---   [main] . > Open preferences page - Project.lua
---   [main] . > Open preferences page - Project - Track, Send Defaults.lua
---   [main] . > Open preferences page - Project - Media Item Defaults.lua
---   [main] . > Open preferences page - Audio.lua
---   [main] . > Open preferences page - Audio - Device.lua
---   [main] . > Open preferences page - Audio - MIDI Devices.lua
---   [main] . > Open preferences page - Audio - Buffering.lua
---   [main] . > Open preferences page - Audio - Mute, Solo.lua
---   [main] . > Open preferences page - Audio - Playback.lua
---   [main] . > Open preferences page - Audio - Seeking.lua
---   [main] . > Open preferences page - Audio - Recording.lua
---   [main] . > Open preferences page - Audio - Loop Recording.lua
---   [main] . > Open preferences page - Audio - Rendering.lua
---   [main] . > Open preferences page - Appearance.lua
---   [main] . > Open preferences page - Appearance - Media.lua
---   [main] . > Open preferences page - Appearance - Peaks, Waveforms.lua
---   [main] . > Open preferences page - Appearance - Fades, Crossfades.lua
---   [main] . > Open preferences page - Appearance - Track Control Panels.lua
---   [main] . > Open preferences page - Editing Behavior.lua
---   [main] . > Open preferences page - Editing Behavior - Envelope Display.lua
---   [main] . > Open preferences page - Editing Behavior - Automation.lua
---   [main] . > Open preferences page - Editing Behavior - Mouse.lua
---   [main] . > Open preferences page - Editing Behavior - Mouse Modifiers.lua
---   [main] . > Open preferences page - Editing Behavior - MIDI Editor.lua
---   [main] . > Open preferences page - Media.lua
---   [main] . > Open preferences page - Media - MIDI.lua
---   [main] . > Open preferences page - Media - Video, REX, Misc.lua
---   [main] . > Open preferences page - Plug-ins.lua
---   [main] . > Open preferences page - Plug-ins - Compatibility.lua
---   [main] . > Open preferences page - Plug-ins - VST.lua
---   [main] . > Open preferences page - Plug-ins - ReWire.lua
---   [main] . > Open preferences page - Plug-ins - ReaScript.lua
---   [main] . > Open preferences page - Plug-ins - ReaMote.lua
---   [main] . > Open preferences page - Control, OSC, web.lua
---   [main] . > Open preferences page - External Editors.lua
+--   [main] . > cfillion_Open preferences page - General.lua
+--   [main] . > cfillion_Open preferences page - General - Paths.lua
+--   [main] . > cfillion_Open preferences page - General - Keyboard, Multitouch.lua
+--   [main] . > cfillion_Open preferences page - Project.lua
+--   [main] . > cfillion_Open preferences page - Project - Track, Send Defaults.lua
+--   [main] . > cfillion_Open preferences page - Project - Media Item Defaults.lua
+--   [main] . > cfillion_Open preferences page - Audio.lua
+--   [main] . > cfillion_Open preferences page - Audio - Device.lua
+--   [main] . > cfillion_Open preferences page - Audio - MIDI Devices.lua
+--   [main] . > cfillion_Open preferences page - Audio - Buffering.lua
+--   [main] . > cfillion_Open preferences page - Audio - Mute, Solo.lua
+--   [main] . > cfillion_Open preferences page - Audio - Playback.lua
+--   [main] . > cfillion_Open preferences page - Audio - Seeking.lua
+--   [main] . > cfillion_Open preferences page - Audio - Recording.lua
+--   [main] . > cfillion_Open preferences page - Audio - Loop Recording.lua
+--   [main] . > cfillion_Open preferences page - Audio - Rendering.lua
+--   [main] . > cfillion_Open preferences page - Appearance.lua
+--   [main] . > cfillion_Open preferences page - Appearance - Media.lua
+--   [main] . > cfillion_Open preferences page - Appearance - Peaks, Waveforms.lua
+--   [main] . > cfillion_Open preferences page - Appearance - Fades, Crossfades.lua
+--   [main] . > cfillion_Open preferences page - Appearance - Track Control Panels.lua
+--   [main] . > cfillion_Open preferences page - Editing Behavior.lua
+--   [main] . > cfillion_Open preferences page - Editing Behavior - Envelope Display.lua
+--   [main] . > cfillion_Open preferences page - Editing Behavior - Automation.lua
+--   [main] . > cfillion_Open preferences page - Editing Behavior - Mouse.lua
+--   [main] . > cfillion_Open preferences page - Editing Behavior - Mouse Modifiers.lua
+--   [main] . > cfillion_Open preferences page - Editing Behavior - MIDI Editor.lua
+--   [main] . > cfillion_Open preferences page - Media.lua
+--   [main] . > cfillion_Open preferences page - Media - MIDI.lua
+--   [main] . > cfillion_Open preferences page - Media - Video, REX, Misc.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins - Compatibility.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins - VST.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins - ReWire.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins - ReaScript.lua
+--   [main] . > cfillion_Open preferences page - Plug-ins - ReaMote.lua
+--   [main] . > cfillion_Open preferences page - Control, OSC, web.lua
+--   [main] . > cfillion_Open preferences page - External Editors.lua
 -- @donation Donate via PayPal https://paypal.me/cfillion
 -- @about
 --   # Open preferences page
