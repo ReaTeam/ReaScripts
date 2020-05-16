@@ -1,6 +1,7 @@
 -- @description Open preferences page
 -- @author cfillion
--- @version 1.0
+-- @version 1.0.1
+-- @changelog Fix Editing Behavior > MIDI Editor
 -- @metapackage
 -- @provides
 --   [main] . > Open preferences page - General.lua
@@ -77,7 +78,7 @@ local pages = {
   [  'Automation'            ] =   0x207  ,
   [  'Mouse'                 ] =   0x0d7  ,
   [  'Mouse Modifiers'       ] =   0x1d2  ,
-  [  'MIDI Editor'           ] =   0x1da },
+  [  'MIDI Editor'           ] =   0x1ea },
   ['Media'                   ] = { 0x08a  ,
   [  'MIDI'                  ] =   0x101  ,
   [  'Video, REX, Misc'      ] =   0x1c1 },
