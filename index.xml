@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d74a061697e71059406663fedb9a4876595d6d1" name="ReaTeam Scripts">
+<index version="1" commit="c2852b1c0fd00b1853d9264cdc72c7ad47c0fa13" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4546,6 +4546,11 @@ here
       <version name="1.0" author="pandabot" time="2018-12-01T11:41:00Z">
         <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Copy rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Copy%20rhythm.lua</source>
         <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Paste rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Paste%20rhythm.lua</source>
+      </version>
+      <version name="1.1" author="pandabot" time="2020-05-19T21:32:39Z">
+        <changelog><![CDATA[+ now using nearest note pitch from the left instead of nearest note pitch in either direction]]></changelog>
+        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Copy rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/c2852b1c0fd00b1853d9264cdc72c7ad47c0fa13/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Copy%20rhythm.lua</source>
+        <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Paste rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/c2852b1c0fd00b1853d9264cdc72c7ad47c0fa13/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Paste%20rhythm.lua</source>
       </version>
     </reapack>
     <reapack name="solger_Smart split MIDI item.lua" type="script" desc="Smart split MIDI item">
