@@ -2,7 +2,8 @@
 Description: Copy and paste rhythm
 Author: pandabot
 License: MIT
-Version: 1.0
+Version: 1.1
+Changelog: + now using nearest note pitch from the left instead of nearest note pitch in either direction
 Donate: https://paypal.me/benjohnson2001
 Links:
   pandabot (Cockos forum) https://forum.cockos.com/member.php?u=127396
