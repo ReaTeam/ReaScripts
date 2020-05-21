@@ -1,6 +1,6 @@
 --[[
-ReaScript name: amagalma_spk77_Adjust envelope point at mouse cursor via mousewheel.lua
-Version: 1.01
+ReaScript name: Adjust envelope point at mouse cursor via mousewheel
+Version: 1.05
 Author: amagalma & spk77
 About:
   # Adjusts any envelope point under mouse cursor via the mousewheel (action must be assigned to modifier key(s) + mousewheel)
@@ -8,14 +8,12 @@ About:
     + Step size can be set inside the script
     + Can work with any envelope under the mouse or with selected envelope only (preference set inside the script)
     + Tooltip that shows current value even if mouse is not over point
-    + Smart Undo point creation (only one undo point is created when the modifier key is released)
-    + Undo points are created per envelope (in case more than one envelopes are changed while modifier key is pressed)
-    + Requires JS_ReaScriptAPI and SWS (if not installed, user is prompted to have a browser opened to the relevant web pages)
-
+    + Smart Undo point creation
+    + Requires JS_ReaScriptAPI and SWS (if not installed, user is prompted to install them)
 Changelog:
- * v1.01(29-01-2020)
-  + improved naming of undo points
-  + worked around ECP not updating the values
+  + changed behavior: in order to change the envelope that is affected, modifier keys must be released
+  + envelope point can still be modified even if the mouse cursor is not any more close to it, as long as modifier keys are being pressed
+  + changed behavior: if user changes the value of another point than the one he was working on, while modifier keys are pressed, then an Undo point is created
 --]]
 
 
@@ -57,18 +55,10 @@ local dbg = false -- Get Debug messages
 ----------------------------------------------------------------------
 
 
-local os_open = 'start "" "'
-if string.match(reaper.GetOS(), "OSX" ) == "OSX" then
-  os_open = 'open "" "'
-end
-
 -- Check if JS_ReaScriptAPI is installed
 if not reaper.APIExists("JS_ReaScriptAPI_Version") then
-  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
-  if answer == 6 then
-    local url = "https://forum.cockos.com/showthread.php?t=212174"
-    os.execute(os_open .. url .. '"')
-  end
+  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Right-click the entry in the next window and choose to install.", "JS_ReaScriptAPI not installed", 0 )
+  reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
   return
 end
 
@@ -76,8 +66,7 @@ end
 if not reaper.APIExists("CF_GetSWSVersion") then
   local answer = reaper.MB( "You have to install SWS extension for this script to work. Would you like to open the relative web page in your browser?", "SWS extension not installed", 4 )
   if answer == 6 then
-    local url = "https://www.sws-extension.org/index.php#download_featured"
-    os.execute(os_open .. url .. '"')
+    reaper.CF_ShellExecute( "https://www.sws-extension.org/index.php#download_featured" )
   end
   return
 end
@@ -144,7 +133,7 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
   local x, y = reaper.GetMousePosition() -- needed for tooltips
   local ToolTip = "Envelope not visible"
   
-  function Range(value) -- keep value inside maximum and minumum value
+  local function Range(value) -- keep value inside maximum and minumum value
     if value < e.min_val then
       value = e.min_val
     elseif value > e.max_val then
@@ -238,7 +227,7 @@ function set_envelope_point(env_prop_table, m_wheel_delta)
     -- Unfortunately, this is needed in order to update the ECP
     local _, chunk = reaper.GetEnvelopeStateChunk( env, "", true )
     reaper.SetEnvelopeStateChunk( env, chunk, true )
-    return true
+    return true, p_index
   else
     return false
   end
@@ -300,95 +289,66 @@ end
 
 
 -- check which modifiers triggered the script, so that it can be checked if they are still being pressed
--- Looks for Cntrl, Shift, Alt and Win keys
-local modifiers
-for i = 60, 0, -4  do
-  modifiers = reaper.JS_Mouse_GetState(i)
-  if init ~= 0 then break end
-end
+-- Looks for Ctrl, Shift, Alt and Win keys
+local modifiers = reaper.JS_Mouse_GetState(60)
 
 -- check for first envelope
 local master = reaper.GetMasterTrack( 0 )
 local window, segment, details = reaper.BR_GetMouseCursorContext()
 msg("window: " .. window .. "  segment" .. segment .. "  details: " .. details)
-local first_env -- This is needed for undo points to be created if you move from one envelope to other while having keys pressed
+local env -- This is needed so that the envelope is not lost if the mouse changes position while modifiers are pressed
 if adj_sel_env then
-  first_env = reaper.GetSelectedEnvelope(0)
+  env = reaper.GetSelectedEnvelope(0)
 else
-  first_env = reaper.BR_GetMouseCursorContext_Envelope()
+  env = reaper.BR_GetMouseCursorContext_Envelope()
 end
-if first_env == nil then -- no envelope found or this can happen if the mouse is not directly over a tempo envelope point
+if env == nil then -- no envelope found or this can happen if the mouse is not directly over a tempo envelope point
   local track, context = reaper.BR_TrackAtMouseCursor()
   if context == 2 and track == master then
-    first_env = reaper.GetTrackEnvelopeByName( master, "Tempo map" )
+    env = reaper.GetTrackEnvelopeByName( master, "Tempo map" )
     -- check if Tempo Map is visible / do not mess with hidden envelope!!
-    local first_br_env = reaper.BR_EnvAlloc(first_env, true)
-    local first_visible = ({reaper.BR_EnvGetProperties(first_br_env, false, false, false, false, 0, 0, 0, 0, 0, 0, false)})[2]
-    reaper.BR_EnvFree(first_br_env, false)
-    if not first_visible then
-      first_env = nil
+    local br_env = reaper.BR_EnvAlloc(env, true)
+    local visible = ({reaper.BR_EnvGetProperties(br_env, false, false, false, false, 0, 0, 0, 0, 0, 0, false)})[2]
+    reaper.BR_EnvFree(br_env, false)
+    if not visible then
+      env = nil
     end
   end
 end
 
-if not first_env then
-  msg("no envelope could be found1 - no undo point")
+if not env then
+  msg("no envelope could be found - no undo point")
   return
   reaper.defer(function() end)
 end
 
+
 -- Do the stuff
-local tr_Name
-local Name = ({reaper.GetEnvelopeName(first_env, "")})[2]
-local UNDO = false
+local Name = ({reaper.GetEnvelopeName(env, "")})[2]
+local UNDO, first_point, cur_point = false
+local Track = reaper.BR_GetMouseCursorContext_Track()
+local tr_Name = ({reaper.GetTrackName( Track )})[2] or "-"
+
+
 function Main()
-  local windowOut, segment, details = reaper.BR_GetMouseCursorContext()
-  local Track = reaper.BR_GetMouseCursorContext_Track()
-  tr_Name = Track and ({reaper.GetTrackName( Track )})[2] or "-"
-  local env
-  if adj_sel_env then
-    env = reaper.GetSelectedEnvelope(0)
-  else
-    env = reaper.BR_GetMouseCursorContext_Envelope()
-  end
-  if env == nil then -- this can happen if the mouse is not directly over a tempo envelope point
-    local track, context = reaper.BR_TrackAtMouseCursor()
-    if context == 2 and track == master then
-      env = reaper.GetTrackEnvelopeByName( master, "Tempo map" )
-    else -- no envelope could be found
-      if UNDO == false then
-        msg("no envelope could be found2 - no undo point")
-        return
-        reaper.defer(function() end)
-      else -- create undo point
-        if UNDO then
-          reaper.Undo_OnStateChangeEx(tr_Name .. ": " .. Name .. " adjust via mousewheel", 1, -1)
-          msg("Undo created for " .. tr_Name .. ": " .. Name .. " envelope (1)" )
-          return
-        end
-      end
-    end
-  end
-  
   -- check if modifier key(s) is/are being pressed down
-  if reaper.JS_Mouse_GetState(modifiers) == modifiers then
-    -- check if we are still on the same env. If not create Undo point
-    if env ~= first_env then
-      reaper.Undo_OnStateChangeEx(tr_Name .. ": " .. Name .. " adjust via mousewheel", 1, -1)
-      msg("Undo created for " .. tr_Name .. ": " .. Name .. " envelope (2)")
-      first_env = env
-    end
+  if reaper.JS_Mouse_GetState(60) == modifiers then
     local m_wheel_delta = ({reaper.get_action_context()})[7]
     if m_wheel_delta ~= 0 then
       env_properties = get_env_properties(env)
-      Name = env_properties.name
-      UNDO = set_envelope_point(env_properties, m_wheel_delta)
+      UNDO, cur_point = set_envelope_point(env_properties, m_wheel_delta)
+      -- Create Undo if we changed envelope point
+      if first_point and first_point ~= cur_point then
+        reaper.Undo_OnStateChangeEx(tr_Name .. ": " .. Name .. " adjust via mousewheel", 1, -1)
+        msg("Undo created for " .. tr_Name .. ": " .. Name .. " envelope (changed point)")
+      end
+      first_point = cur_point
     end
     reaper.defer(Main)
   else -- key has been released
     if UNDO then
       reaper.Undo_OnStateChangeEx(tr_Name .. ": " .. Name .. " adjust via mousewheel", 1, -1)
-      msg("Undo created for " .. tr_Name .. ": " .. Name .. " envelope (3)")
+      msg("Undo created for " .. tr_Name .. ": " .. Name .. " envelope (released modifiers)")
       return
     else
       msg("no changes - no undo point")
