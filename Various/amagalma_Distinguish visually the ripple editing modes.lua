@@ -1,8 +1,10 @@
 -- @description Distinguish visually the ripple editing modes
 -- @author amagalma
--- @version 1.21
+-- @version 1.30
 -- @changelog
---   -   fixed drawing color for macOS
+--   -  fixed crash on Windows with some color values
+--   -  changed default color
+--   -  fixed drawing when changing track order or count
 -- @link https://forum.cockos.com/showthread.php?t=236201
 -- @about
 --   # Colors the items that will move in ripple editing modes
@@ -17,7 +19,7 @@
 
 
 -- SET COLOR HERE -- (0-255)
-local red, green, blue, alpha = 0, 255, 0, 13
+local red, green, blue, alpha = 255, 255, 127, 35
 
 
 ------------------------------------------------------
@@ -74,7 +76,7 @@ blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
 alpha = OSX and (alpha and (alpha < 0 and 0 or (alpha > 255 and 255 or alpha)) or 13) or
         (alpha and (alpha < 0 and 0 or (alpha > 255 and 1 or alpha/255)) or 0.051)
 local color_trackview = OSX and ((blue&0xFF)|((green&0xFF)<<8)|((red&0xFF)<<16)|((alpha&0xFF)<<24)) or
-      (((blue*alpha)&0xFF)|(((green*alpha)&0xFF)<<8)|(((red*alpha)&0xFF)<<16)|(0x01<<24))
+      (((math.floor(blue*alpha))&0xFF)|(((math.floor(green*alpha))&0xFF)<<8)|(((math.floor(red*alpha))&0xFF)<<16)|(0x01<<24))
 
 -- Refresh toolbar
 local _, _, section, cmdID = reaper.get_action_context()
@@ -83,6 +85,7 @@ reaper.RefreshToolbar2( section, cmdID )
 
 local MainHwnd = reaper.GetMainHwnd()
 local tracks = {}
+local track_ids = {}
 local bmps = {}
 local p_trackitems_cnt = {}
 
@@ -102,10 +105,30 @@ local checkrippletime = start
 local p_item, p_item_cnt = 0, -1
 local huge = math.huge
 local first_pos
-local st, en, arr_duration, track_cnt
+local st, en, arr_duration
+local track_cnt = reaper.CountTracks( 0 )
+local p_track_cnt = track_cnt
 local setDelay, prevMinTime, prevMaxTime, prevBitmaps = reaper.JS_Composite_Delay( trackview, 0.0035, 0.105, 30 )
 
 ---------------------------------------------------------------
+
+function getIDs()
+  for i = 0, track_cnt -1 do
+    local track = reaper.GetTrack( 0, i )
+    track_ids[reaper.GetTrackGUID( track )] = reaper.CSurf_TrackToID( track, false )
+  end
+end
+getIDs()
+
+function ClearAllTables()
+  for k in pairs(bmps) do
+    reaper.JS_LICE_DestroyBitmap( bmps[k] )
+    bmps[k] = nil
+  end
+  for k in pairs(tracks) do
+    tracks[k] = nil
+  end
+end
 
 function main()
   local give_space = false
@@ -123,13 +146,7 @@ function main()
       "Ripple per track\n\n" or "Ripple all tracks\n\n" )
       Msg(msg)
       ripple = r_state
-      for k in pairs(bmps) do
-        reaper.JS_LICE_DestroyBitmap( bmps[k] )
-        bmps[k] = nil
-      end
-      for k in pairs(tracks) do
-        tracks[k] = nil
-      end
+      ClearAllTables()
     end
   end
   
@@ -138,6 +155,14 @@ function main()
     st, en = reaper.GetSet_ArrangeView2( 0, false, 0, 0 )
     arr_duration = en - st
     track_cnt = reaper.CountTracks( 0 )
+    
+    -- Check if added/deleted tracks
+    if track_cnt ~= p_track_cnt then
+      ClearAllTables()
+      getIDs()
+      p_track_cnt = track_cnt
+      Msg( "Track count changed!\n" )
+    end
     
     -- Check every now and then if arrange size changed and update values
     if now - checksizetime >= 1 then
@@ -152,18 +177,28 @@ function main()
 
     for i = 0, track_cnt-1 do
       local track = reaper.GetTrack( 0, i )
-      local id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
+      local guid = reaper.GetTrackGUID( track )
+      local id = reaper.CSurf_TrackToID( track, false )
+      
+      -- check if order changed
+      if track_ids[guid] ~= id then
+        ClearAllTables()
+        getIDs()
+        Msg( "Track order changed!\n" )
+        break
+      end
+      
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
                                                                      
       if reaper.IsTrackVisible( track, false ) and y_pos < height_trackview then
         local item_cnt = reaper.CountTrackMediaItems( track )
-        if p_trackitems_cnt[id] ~= item_cnt then
-          if bmps[id] then
-            reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
-            bmps[id] = nil
+        if p_trackitems_cnt[guid] ~= item_cnt then
+          if bmps[guid] then
+            reaper.JS_LICE_DestroyBitmap( bmps[guid] ) 
+            bmps[guid] = nil
           end
-          tracks[id] = nil
-          p_trackitems_cnt[id] = item_cnt
+          tracks[guid] = nil
+          p_trackitems_cnt[guid] = item_cnt
         end
         if item_cnt > 0 then
           local paint = false
@@ -180,30 +215,29 @@ function main()
           local track_h = reaper.GetMediaTrackInfo_Value( track, "I_WNDH" )
           
           if paint then
-            if ( not tracks[id] ) then
+            if ( not tracks[guid] ) then
               Msg( string.format("paint track %i : %i, %i", id, x_pos, y_pos) .. "\n")
               give_space = true
-              bmps[id] = reaper.JS_LICE_CreateBitmap( true, 1, 1 )
-              reaper.JS_LICE_Clear( bmps[id], color_trackview )
-              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[id], 0, 0, 1, 1, true )
-              tracks[id] = x_pos
-            elseif x_pos ~= tracks[id] then
+              bmps[guid] = reaper.JS_LICE_CreateBitmap( true, 1, 1 )
+              reaper.JS_LICE_Clear( bmps[guid], color_trackview )
+              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[guid], 0, 0, 1, 1, true )
+              tracks[guid] = x_pos
+            elseif x_pos ~= tracks[guid] then
               Msg( string.format("re-paint track %i : %i, %i", id, x_pos, y_pos) .. "\n")
               give_space = true
-              reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
-              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[id], 0, 0, 1, 1, true )
-              tracks[id] = x_pos
+              reaper.JS_Window_InvalidateRect( trackview, tracks[guid], y_pos, width_trackview, y_pos + track_h, false )
+              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[guid], 0, 0, 1, 1, true )
+              tracks[guid] = x_pos
             end
           else
-            if tracks[id] then
+            if tracks[guid] then
               Msg( string.format("erase track %i", id) .. "\n" )
               give_space = true
-              if bmps[id] then
-                reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
-                bmps[id] = nil
+              if bmps[guid] then
+                reaper.JS_LICE_DestroyBitmap( bmps[guid] ) 
+                bmps[guid] = nil
               end
-              --reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
-              tracks[id] = nil
+              tracks[guid] = nil
             end
           end
         
@@ -229,18 +263,28 @@ function main()
 
     for i = 0, track_cnt-1 do
       local track = reaper.GetTrack( 0, i )
+      local guid = reaper.GetTrackGUID( track )
+      local id = reaper.CSurf_TrackToID( track, false )
+      
+      -- check if order changed
+      if track_ids[guid] ~= id then
+        ClearAllTables()
+        getIDs()
+        Msg( "Track order changed!\n" )
+        break
+      end
+      
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
-      local id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER" )
                                                                      
       if reaper.IsTrackVisible( track, false ) and y_pos < height_trackview then
         local item_cnt = reaper.CountTrackMediaItems( track )
-        if p_trackitems_cnt[id] ~= item_cnt then
-          if bmps[id] then
-            reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
-            bmps[id] = nil
+        if p_trackitems_cnt[guid] ~= item_cnt then
+          if bmps[guid] then
+            reaper.JS_LICE_DestroyBitmap( bmps[guid] ) 
+            bmps[guid] = nil
           end
-          tracks[id] = nil
-          p_trackitems_cnt[id] = item_cnt
+          tracks[guid] = nil
+          p_trackitems_cnt[guid] = item_cnt
         end
         if item_cnt > 0 then
           local paint = false
@@ -258,24 +302,23 @@ function main()
           local track_h = reaper.GetMediaTrackInfo_Value( track, "I_WNDH" )
           
           if paint then
-            if ( not tracks[id] ) then
-              bmps[id] = reaper.JS_LICE_CreateBitmap( true, 1, 1 )
-              reaper.JS_LICE_Clear( bmps[id], color_trackview )
-              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[id], 0, 0, 1, 1, true )
-              tracks[id] = x_pos
-            elseif x_pos ~= tracks[id] then
-              reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
-              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[id], 0, 0, 1, 1, true )
-              tracks[id] = x_pos
+            if ( not tracks[guid] ) then
+              bmps[guid] = reaper.JS_LICE_CreateBitmap( true, 1, 1 )
+              reaper.JS_LICE_Clear( bmps[guid], color_trackview )
+              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[guid], 0, 0, 1, 1, true )
+              tracks[guid] = x_pos
+            elseif x_pos ~= tracks[guid] then
+              reaper.JS_Window_InvalidateRect( trackview, tracks[guid], y_pos, width_trackview, y_pos + track_h, false )
+              reaper.JS_Composite( trackview, x_pos, y_pos, width_trackview-x_pos, track_h, bmps[guid], 0, 0, 1, 1, true )
+              tracks[guid] = x_pos
             end
           else
-            if tracks[id] then
-              if bmps[id] then
-                reaper.JS_LICE_DestroyBitmap( bmps[id] ) 
-                bmps[id] = nil
+            if tracks[guid] then
+              if bmps[guid] then
+                reaper.JS_LICE_DestroyBitmap( bmps[guid] ) 
+                bmps[guid] = nil
               end
-              --reaper.JS_Window_InvalidateRect( trackview, tracks[id], y_pos, width_trackview, y_pos + track_h, false )
-              tracks[id] = nil
+              tracks[guid] = nil
             end
           end
         
