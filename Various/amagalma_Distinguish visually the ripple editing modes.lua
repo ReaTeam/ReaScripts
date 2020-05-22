@@ -1,10 +1,8 @@
 -- @description Distinguish visually the ripple editing modes
 -- @author amagalma
--- @version 1.30
+-- @version 1.31
 -- @changelog
---   -  fixed crash on Windows with some color values
---   -  changed default color
---   -  fixed drawing when changing track order or count
+--   -  fixed not drawing when having hidden first track (thanks Jason Brian Merrill)
 -- @link https://forum.cockos.com/showthread.php?t=236201
 -- @about
 --   # Colors the items that will move in ripple editing modes
@@ -190,7 +188,7 @@ function main()
       
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
                                                                      
-      if reaper.IsTrackVisible( track, false ) and y_pos < height_trackview then
+      if y_pos < height_trackview then
         local item_cnt = reaper.CountTrackMediaItems( track )
         if p_trackitems_cnt[guid] ~= item_cnt then
           if bmps[guid] then
@@ -276,7 +274,7 @@ function main()
       
       local y_pos = reaper.GetMediaTrackInfo_Value( track, "I_TCPY" )
                                                                      
-      if reaper.IsTrackVisible( track, false ) and y_pos < height_trackview then
+      if y_pos < height_trackview then
         local item_cnt = reaper.CountTrackMediaItems( track )
         if p_trackitems_cnt[guid] ~= item_cnt then
           if bmps[guid] then
