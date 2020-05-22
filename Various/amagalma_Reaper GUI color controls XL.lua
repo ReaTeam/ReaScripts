@@ -1,8 +1,8 @@
 -- @description Reaper GUI color controls XL
 -- @author amagalma
--- @version 1.01
+-- @version 1.05
 -- @changelog
---   - Script will not run if the required API is not available
+--   - Added Apply to Project Colors button
 -- @link http://forum.cockos.com/showthread.php?p=2281705#post2281705
 -- @about
 --   # Similar to native Theme Color Controls, with extra features
@@ -14,7 +14,7 @@
 --   - The "Tie to current theme" lits green if a setting for Theme Color Controls is found in the reaperhemeconfig.ini, which means that there is a tie for the current theme.
 --   - Script requires Lokasenna GUI v2 and at least Reaper v6.09+dev0502 to run
 
-local version = "1.01"
+local version = "1.05"
 
 ----------------------------------------------------------------------------
 
@@ -32,13 +32,13 @@ local active_preset
 local cur_theme = reaper.GetLastColorThemeFile()
 local theme_name = cur_theme:match("^.+[/\\](.+)%.[Rr][Ee][Aa][Pp][Ee][Rr][Tt][Hh][Ee][Mm][Ee][Zz]?[Ii]?[Pp]?")
 local themeconfig = reaper.GetResourcePath().. (string.find(reaper.GetOS(), "Win" ) and "\\" or "/").. [[reaper-themeconfig.ini]]
-
+local check, _, apply_to_proj_colors = reaper.ThemeLayout_GetParameter( -1006 )
 ----------------------------------------------------------------------------
 
 -- Check Reaper version
-if not reaper.ThemeLayout_GetParameter( -1000 ) then
-  reaper.MB("This script was made using API that was added in Reaper v6.09+dev0502 but was not" ..
-  " implemented in the oficial version. When the API gets available you will be able to run this script." ..
+if not check then
+  reaper.MB("This script uses a native API that is not available in this Reaper version." ..
+  " When the API gets available (official support in v6.11) you will be able to run this script." ..
   "\n\nHave patience and a good day! :)", "Required API is not available", 0)
   return
 end
@@ -297,7 +297,6 @@ function SameLiaisonState()
   return same
 end
 
-
 function ResetAll()
   if AB_mode then
     GUI.settooltip( "Exit A/B mode first" )
@@ -306,6 +305,15 @@ function ResetAll()
   for i = 1, 6 do
     GUI.Val(i, GUI.elms[i].defaults[1])
   end
+end
+
+function ApplyToProjColors()
+  _, _, apply_to_proj_colors = reaper.ThemeLayout_GetParameter( -1006 )
+  apply_to_proj_colors = 1 - apply_to_proj_colors
+  reaper.ThemeLayout_SetParameter( -1006, apply_to_proj_colors, false )
+  GUI.elms.Apply.col_fill = apply_to_proj_colors == 1 and "green" or "elm_frame",
+  GUI.elms.Apply:draw()
+  GUI.elms.Apply:init()
 end
 
 function exit()
@@ -332,7 +340,7 @@ local slider_space = 40
 local slider_width = 170
 local slider_pos = 80
 local box_space = 10
-local button_space = 35
+local button_space = 20
 local button_width = 90
 local box_width = 48
 local button_height = 24
@@ -573,7 +581,7 @@ GUI.New(12, "Textbox", {
 
 GUI.New("Presets", "Button", {
     z = 1,
-    x = ( GUI.w - (button_width*2 + button_space*1.3) ) / 2,
+    x = button_space,
     y = top_space + slider_space*6 - 5,
     w = button_width,
     h = button_height,
@@ -586,7 +594,7 @@ GUI.New("Presets", "Button", {
 
 GUI.New("AB", "Button", {
     z = 1,
-    x = ( GUI.w - (button_width*2 + button_space*1.3) ) / 2 + button_width + button_space*1.3,
+    x = (GUI.w - button_width)/2,
     y = top_space + slider_space*6 - 5,
     w = button_width,
     h = button_height,
@@ -597,23 +605,10 @@ GUI.New("AB", "Button", {
     func = ABfunc
 })
 
-GUI.New("Tie", "Button", {
-    z = 1,
-    x = button_space,
-    y = top_space + slider_space*7 - 5,
-    w = button_width * 1.7,
-    h = button_height,
-    caption = "Tie to current theme",
-    font = 2,
-    col_txt = "white",
-    col_fill = "elm_frame",
-    func = TieToTheme
-})
-
 GUI.New("Reset", "Button", {
     z = 1,
     x = GUI.w - button_width - button_space,
-    y = top_space + slider_space*7 - 5,
+    y = top_space + slider_space*6 - 5,
     w = button_width,
     h = button_height,
     caption = "Reset all",
@@ -622,6 +617,33 @@ GUI.New("Reset", "Button", {
     col_fill = "elm_frame",
     func = ResetAll
 })
+
+GUI.New("Tie", "Button", {
+    z = 1,
+    x = button_space+5,
+    y = top_space + slider_space*7 - 5,
+    w = button_width * 1.55,
+    h = button_height,
+    caption = "Tie to current theme",
+    font = 2,
+    col_txt = "white",
+    col_fill = "elm_frame",
+    func = TieToTheme
+})
+
+GUI.New("Apply", "Button", {
+    z = 1,
+    x = GUI.w - button_width*1.5 - button_space - 5,
+    y = top_space + slider_space*7 - 5,
+    w = button_width*1.55,
+    h = button_height,
+    caption = "Apply to proj colors",
+    font = 2,
+    col_txt = "white",
+    col_fill = apply_to_proj_colors == 1 and "green" or "elm_frame",
+    func = ApplyToProjColors
+})
+
 
 ----------------------------------------------------------------------------
 
