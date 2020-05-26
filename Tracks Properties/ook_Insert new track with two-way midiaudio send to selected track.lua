@@ -1,6 +1,7 @@
 -- @description Insert new track with two-way midi/audio send to selected track
 -- @author ook
 -- @version 0.1
+-- @screenshot https://i.imgur.com/yblMNqN.gif
 -- @about
 --   # Insert new track with two-way midi/audio send to selected track
 --
