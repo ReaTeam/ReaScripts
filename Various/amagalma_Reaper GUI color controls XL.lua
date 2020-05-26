@@ -1,8 +1,9 @@
 -- @description Reaper GUI color controls XL
 -- @author amagalma
--- @version 1.05
+-- @version 1.08
 -- @changelog
---   - Added Apply to Project Colors button
+--   - If settings are the default ones then, the tie button does not lit green
+--   - User is not prompted to tie if the values are the default ones (except if there are already other tied values)
 -- @link http://forum.cockos.com/showthread.php?p=2281705#post2281705
 -- @about
 --   # Similar to native Theme Color Controls, with extra features
@@ -14,7 +15,7 @@
 --   - The "Tie to current theme" lits green if a setting for Theme Color Controls is found in the reaperhemeconfig.ini, which means that there is a tie for the current theme.
 --   - Script requires Lokasenna GUI v2 and at least Reaper v6.09+dev0502 to run
 
-local version = "1.05"
+local version = "1.08"
 
 ----------------------------------------------------------------------------
 
@@ -37,9 +38,7 @@ local check, _, apply_to_proj_colors = reaper.ThemeLayout_GetParameter( -1006 )
 
 -- Check Reaper version
 if not check then
-  reaper.MB("This script uses a native API that is not available in this Reaper version." ..
-  " When the API gets available (official support in v6.11) you will be able to run this script." ..
-  "\n\nHave patience and a good day! :)", "Required API is not available", 0)
+  reaper.MB("This script uses a native API that is available from Reaper v6.11 onwards.", "Required API is not available", 0)
   return
 end
 
@@ -118,11 +117,24 @@ function ABfunc()
   end
 end
 
+function CurrentValuesAreDefault()
+  -- check if the current values are the default ones
+  local default = true
+  for i = 1, 6 do
+    if cur_ParmValues[i].v ~= default_ParmValues[i] then
+      default = false
+      break
+    end
+  end
+  return default
+end
+
 function TieToTheme()
   if AB_mode then
     GUI.settooltip( "Exit A/B mode first" )
     return
   end
+  --if not CurrentValuesAreDefault() then tied = true end
   tied = true
   SetParmValues(cur_ParmValues, true)
   GetLiaison()
@@ -260,6 +272,7 @@ function Presetsfunc()
 end
 
 function GetLiaison()
+  -- check if there is an entry for this theme in theconfig.ini
   if not reaper.file_exists(themeconfig) then return end
   local file = io.open(themeconfig)
   local found, liaison = false, false
@@ -287,6 +300,7 @@ function GetLiaison()
 end
 
 function SameLiaisonState()
+  -- check if the current values are the same with the ones in the themeconfig.ini
   local same = true
   for i = 1, 6 do
     if cur_ParmValues[i].v ~= cur_Theme_ParmValues[i] then
@@ -317,7 +331,9 @@ function ApplyToProjColors()
 end
 
 function exit()
-  if not tied or not SameLiaisonState() then
+  if (CurrentValuesAreDefault() and GetLiaison() == false) or SameLiaisonState() then
+    -- do not prompt to save
+  else
     local ok = reaper.MB( "This means that the next time you will load this theme, these settings won't be recalled.\n\nWould you like to tie these settings to the current theme, so that they load each time you load it?", "Current settings are not tied to the current theme", 4 )
     if ok == 6 then
       SetParmValues(cur_ParmValues, true)
@@ -713,7 +729,7 @@ function SetSliders()
 end
 
 function extra()
-  local theme = reaper.GetLastColorThemeFile()
+ local theme = reaper.GetLastColorThemeFile() 
   if theme ~= cur_theme then
     cur_theme = theme
     theme_name = cur_theme:match("^.+[/\\](.+)%.[Rr][Ee][Aa][Pp][Ee][Rr][Tt][Hh][Ee][Mm][Ee][Zz]?[Ii]?[Pp]?")
@@ -723,7 +739,7 @@ function extra()
   end
   if prev_tied ~= tied then
     prev_tied = tied
-    GUI.elms.Tie.col_fill = tied and "green" or "elm_frame"
+    GUI.elms.Tie.col_fill = (tied and (not CurrentValuesAreDefault())) and "green" or "elm_frame"
     GUI.elms.Tie:init()
   end
   if AB_mode then
