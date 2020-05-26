@@ -1,6 +1,7 @@
 -- @description Find and Replace in Marker Region Names
 -- @author Aaron Cendan
--- @version 1.0
+-- @version 1.1
+-- @changelog Added field for toggling search case-sensitivity.
 -- @metapackage
 -- @provides
 --   [main] . > acendan_Find and Replace in Region Names.lua
@@ -32,24 +33,28 @@ function findReplace()
 
 	if num_items > 0 then
 
-		ret, search_string, replace_string, search_field = getSearchInfo(mode_name)
+		ret, search_string, replace_string, search_field, case_sens = getSearchInfo(mode_name)
 		if not ret then return end
 
 		-- Confirm is valid search, search info not blank
-		if search_string and replace_string and search_field then
+		if search_string and replace_string and search_field and case_sens then
+			if case_sens == "/c" or case_sens == "/i" then
+				if search_field == "/p" then
+					searchFullProject(num_total, search_string, replace_string, mode_name, case_sens)
 
-			if search_field == "/p" then
-				searchFullProject(num_total, search_string, replace_string, mode_name)
+				elseif search_field == "/t" then
+					searchTimeSelection(num_total, search_string, replace_string, mode_name, case_sens)
 
-			elseif search_field == "/t" then
-				searchTimeSelection(num_total, search_string, replace_string, mode_name)
+				--Ideally it would be possible to find/replace in render matrix, see function below:
+				--elseif search_field == "/m" then
+					--searchSelectedMarkersRegions(num_total, search_string, replace_string, mode_name)
 
-			--Ideally it would be possible to find/replace in render matrix, see function below:
-			--elseif search_field == "/m" then
-				--searchSelectedMarkersRegions(num_total, search_string, replace_string, mode_name)
-
+				else
+					reaper.ShowMessageBox("Search field must be exactly /p or /t","Find/Replace", 0)
+					findReplace()
+				end
 			else
-				reaper.ShowMessageBox("Search field must be exactly /p or /t","Find/Replace", 0)
+				reaper.ShowMessageBox("Case sensitivity must be exactly /c or /i","Find/Replace", 0)
 				findReplace()
 			end
 		else
@@ -67,29 +72,71 @@ end
 function getSearchInfo(mode_name)
 	-- Check for previous search field
 	local ret, prev_field =  reaper.GetProjExtState(0, "FindReplaceStorage", "PrevSearchField")
+	-- Check for previous search sensitivity
+	local ret2, prev_sens =  reaper.GetProjExtState(0, "FindReplaceStorage", "PrevCaseSens")
 
 	if ret == 1 and prev_field == "/p" or prev_field == "/t" then --or prev_field == "/m" then 	-- If valid search field used previously, use as default
-		-- Store user input for search and replace strings
-		ret,user_input = reaper.GetUserInputs(string.format("Find & Replace in %s Names", mode_name),  3,
-						   "Text to Search For,Text to Replace With,Project /p or Time Selection /t,extrawidth=100",",,"..prev_field)
-		search_string, replace_string, search_field = user_input:match("([^,]+),([^,]+),([^,]+)")
-		-- Save new search field
-		if search_field then
-			reaper.SetProjExtState(0, "FindReplaceStorage", "PrevSearchField",search_field)
+		if ret2 == 1 and prev_sens == "/c" or prev_sens == "/i" then
+			-- Store user input for search and replace strings
+			ret,user_input = reaper.GetUserInputs(string.format("Find & Replace in %s Names", mode_name),  4,
+							   "Text to Search For,Text to Replace With,Project /p or Time Selection /t,Case-Sensitive /c or Insensitive /i,extrawidth=100",",,"..prev_field..","..prev_sens)
+			search_string, replace_string, search_field, case_sens = user_input:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+			-- Save new search field
+			if search_field then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevSearchField",search_field)
+			end
+			-- Save new case sensitivity
+			if case_sens then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevCaseSens",case_sens)
+			end
+		else
+			-- Store user input for search and replace strings
+			ret,user_input = reaper.GetUserInputs(string.format("Find & Replace in %s Names", mode_name),  4,
+							   "Text to Search For,Text to Replace With,Project /p or Time Selection /t,Case-Sensitive /c or Insensitive /i,extrawidth=100",",,"..prev_field..",/c")
+			search_string, replace_string, search_field, case_sens = user_input:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+			-- Save new search field
+			if search_field then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevSearchField",search_field)
+			end
+			-- Save new case sensitivity
+			if case_sens then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevCaseSens",case_sens)
+			end
 		end
 	else				-- Search not used yet in this project, use Project (/p) field as default
-		ret,user_input = reaper.GetUserInputs(string.format("Find & Replace in %s Names", mode_name),  3,
-						   "Text to Search For,Text to Replace With,Project /p or Time Selection /t,extrawidth=100",",,/p")
-		search_string, replace_string, search_field = user_input:match("([^,]+),([^,]+),([^,]+)")
-		if search_field then
-			reaper.SetProjExtState(0, "FindReplaceStorage", "PrevSearchField",search_field)
+		if ret2 == 1 and prev_sens == "/c" or prev_sens == "/i" then
+			-- Store user input for search and replace strings
+			ret,user_input = reaper.GetUserInputs(string.format("Find & Replace in %s Names", mode_name),  4,
+							   "Text to Search For,Text to Replace With,Project /p or Time Selection /t,Case-Sensitive /c or Insensitive /i,extrawidth=100",",,/p,"..prev_sens)
+			search_string, replace_string, search_field, case_sens = user_input:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+			-- Save new search field
+			if search_field then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevSearchField",search_field)
+			end
+			-- Save new case sensitivity
+			if case_sens then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevCaseSens",case_sens)
+			end
+		else
+			-- Store user input for search and replace strings
+			ret,user_input = reaper.GetUserInputs(string.format("Find & Replace in %s Names", mode_name),  4,
+							   "Text to Search For,Text to Replace With,Project /p or Time Selection /t,Case-Sensitive /c or Insensitive /i,extrawidth=100",",,/p,/c")
+			search_string, replace_string, search_field, case_sens = user_input:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+			-- Save new search field
+			if search_field then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevSearchField",search_field)
+			end
+			-- Save new case sensitivity
+			if case_sens then
+				reaper.SetProjExtState(0, "FindReplaceStorage", "PrevCaseSens",case_sens)
+			end
 		end
 	end
 
-	return ret, search_string, replace_string, search_field
+	return ret, search_string, replace_string, search_field, case_sens
 end
 
-function searchFullProject(num_total, search_string, replace_string, mode_name)
+function searchFullProject(num_total, search_string, replace_string, mode_name, case_sens)
 	-- Loop through all markers/regions in project
 	if mode_name == "Region" then
 		local i = 0
@@ -97,13 +144,28 @@ function searchFullProject(num_total, search_string, replace_string, mode_name)
 			local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i )
 			if isrgn then
 				if search_string ~= "/blank" then
-					if string.find(name, search_string) then
-						if replace_string ~= "/blank" then
-							local new_name = string.gsub( name, search_string, replace_string)
-							reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-						else
-							reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-							reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+					if case_sens == "/c" then
+						if string.find(name, search_string) then
+							if replace_string ~= "/blank" then
+								local new_name = string.gsub( name, search_string, replace_string)
+								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+							else
+								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+							end
+						end
+					elseif case_sens == "/i" then
+						local lower_name = string.lower(name)
+						local lower_search_string = string.lower(search_string)
+						local j, k = string.find(lower_name, lower_search_string)
+						if j and k then
+							if replace_string ~= "/blank" then
+								local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
+								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+							else
+								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+							end
 						end
 					end
 				else
@@ -123,13 +185,28 @@ function searchFullProject(num_total, search_string, replace_string, mode_name)
 			local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i )
 			if not isrgn then
 				if search_string ~= "/blank" then
-					if string.find(name, search_string) then
-						if replace_string ~= "/blank" then
-							local new_name = string.gsub( name, search_string, replace_string)
-							reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-						else
-							reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-							reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+					if case_sens == "/c" then
+						if string.find(name, search_string) then
+							if replace_string ~= "/blank" then
+								local new_name = string.gsub( name, search_string, replace_string)
+								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+							else
+								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+							end
+						end
+					elseif case_sens == "/i" then
+						local lower_name = string.lower(name)
+						local lower_search_string = string.lower(search_string)
+						local j, k = string.find(lower_name, lower_search_string)
+						if j and k then
+							if replace_string ~= "/blank" then
+								local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
+								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+							else
+								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+							end
 						end
 					end
 				else
@@ -146,7 +223,7 @@ function searchFullProject(num_total, search_string, replace_string, mode_name)
 	end
 end
 
-function searchTimeSelection(num_total, search_string, replace_string, mode_name)
+function searchTimeSelection(num_total, search_string, replace_string, mode_name, case_sens)
 	-- Loop through all markers/regions in time selection
 	StartTimeSel, EndTimeSel = reaper.GetSet_LoopTimeRange(0,0,0,0,0);
 	-- Confirm valid time selection
@@ -158,13 +235,28 @@ function searchTimeSelection(num_total, search_string, replace_string, mode_name
 				if isrgn then
 					if pos >= StartTimeSel and rgnend <= EndTimeSel then
 						if search_string ~= "/blank" then
-							if string.find(name, search_string) then
-								if replace_string ~= "/blank" then
-									local new_name = string.gsub( name, search_string, replace_string)
-									reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-								else
-									reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-									reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+							if case_sens == "/c" then
+								if string.find(name, search_string) then
+									if replace_string ~= "/blank" then
+										local new_name = string.gsub( name, search_string, replace_string)
+										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+									else
+										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+									end
+								end
+							elseif case_sens == "/i" then
+								local lower_name = string.lower(name)
+								local lower_search_string = string.lower(search_string)
+								local j, k = string.find(lower_name, lower_search_string)
+								if j and k then
+									if replace_string ~= "/blank" then
+										local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
+										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+									else
+										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+									end
 								end
 							end
 						else
@@ -186,13 +278,28 @@ function searchTimeSelection(num_total, search_string, replace_string, mode_name
 				if not isrgn then
 					if pos >= StartTimeSel and pos <= EndTimeSel then
 						if search_string ~= "/blank" then
-							if string.find(name, search_string) then
-								if replace_string ~= "/blank" then
-									local new_name = string.gsub( name, search_string, replace_string)
-									reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-								else
-									reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-									reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+							if case_sens == "/c" then
+								if string.find(name, search_string) then
+									if replace_string ~= "/blank" then
+										local new_name = string.gsub( name, search_string, replace_string)
+										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+									else
+										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+									end
+								end
+							elseif case_sens == "/i" then
+								local lower_name = string.lower(name)
+								local lower_search_string = string.lower(search_string)
+								local j, k = string.find(lower_name, lower_search_string)
+								if j and k then
+									if replace_string ~= "/blank" then
+										local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
+										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+									else
+										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+									end
 								end
 							end
 						else
