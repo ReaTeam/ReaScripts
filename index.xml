@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="860bdc85cd6a227f7b776f0431e0201f09d05fc9" name="ReaTeam Scripts">
+<index version="1" commit="88bd0f5406aa582816da82f2dc57eda5081555d1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -11167,6 +11167,28 @@ Fix: More descriptive error message if valid settings aren't found]]></changelog
       </metadata>
       <version name="1.0" author="Mordi" time="2019-05-03T18:10:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af241d05f01be02d07d9f55e576556e38cb16dcd/Tracks%20Properties/Mordi_Insert%20new%20track%20(inherit%20color%20from%20parent).lua</source>
+      </version>
+    </reapack>
+    <reapack name="ook_Insert new track with two-way midiaudio send to selected track.lua" type="script" desc="Insert new track with two-way midi/audio send to selected track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Insert new track with two-way midi/audio send to selected track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Mostly helpful to users of multi-instrument VSTs like Kontakt or EW PLAY.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b For this to work, you need to enable Project Settings -> "Allow feedback in routing"}. Personally, I also disable {\i Master Send} on the multi-instrument track.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Select your Kontakt/multi-instrument track and execute this action.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab A new track is created\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab New track gets a new MIDI send to your multi-instrument\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Multi-instrument track gets a new audio send to your new track\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Except a few edge cases, now your new track will behave like it's actually hosting the instrument! You can put effects on it, create sends, etc. One limitation: you cannot folder these new tracks beneath the multi-instrument track due to the way feedback works in Reaper.\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.imgur.com/yblMNqN.gif</link>
+      </metadata>
+      <version name="0.1" author="ook" time="2020-05-26T21:26:45Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/88bd0f5406aa582816da82f2dc57eda5081555d1/Tracks%20Properties/ook_Insert%20new%20track%20with%20two-way%20midiaudio%20send%20to%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="patrickmartin_Setup Multi-Out VST.lua" type="script" desc="Setup Multi-Out VST">
