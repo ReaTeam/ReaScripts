@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1f74a30c545972d5a8e79719a4a85cc7f9007991" name="ReaTeam Scripts">
+<index version="1" commit="860bdc85cd6a227f7b776f0431e0201f09d05fc9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -12047,6 +12047,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.05" author="amagalma" time="2020-05-22T15:09:25Z">
         <changelog><![CDATA[- Added Apply to Project Colors button]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/00a6bf5bac88480891a21c178c7104a1c13ae7bd/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
+      </version>
+      <version name="1.08" author="amagalma" time="2020-05-26T18:06:06Z">
+        <changelog><![CDATA[- If settings are the default ones then, the tie button does not lit green
+- User is not prompted to tie if the values are the default ones (except if there are already other tied values)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/860bdc85cd6a227f7b776f0431e0201f09d05fc9/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
