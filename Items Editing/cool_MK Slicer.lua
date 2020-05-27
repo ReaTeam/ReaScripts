@@ -1,64 +1,65 @@
--- @description MK Slicer
--- @author cool
--- @version 1.4.6
--- @changelog
---   + Added an error message if the item or time selection is too short.
---   + Improved slicer accuracy. Now the location of the cuts corresponds to what is displayed in the script.
---   + Bugfix: now the script ignores the Time Selection if the option is disabled in the settings.
--- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
--- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
--- @donation
---   Donate via PayPal https://www.paypal.me/MKokarev
---   Donate via Yandex https://money.yandex.ru/to/41001256406969
--- @about
---   # MK Slicer
---
---   This is a lua script for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
---
---   Key features:
---
---    - Advanced detector. Thanks to filters and good visualization, you can precisely cut even material in which transients are not initially visualized.
---    - Quick Slicing or placing Markers (by Transients or by Grid).
---    - One click Quantize by Grid. Without gaps, clicks and artificial duplication of items.
---    - Ability to work with multitracks. Slices and quantizes your multitrack drums phase-accurate, quickly and without pain. Items in the multitrack will be automatically grouped.
---    - Re-Quantizing. When quantizing with a grid larger than the step of the transients, you can re-quantize your loops to get unique material. 
---    - One click sampling and exporting into RS5k.
---    - Good old Trigger. Easy conversion of rhythmic parts to midi patterns with accurate velocity reproduction.
---    - Advanced interface. Intuitive controls. Resetting values to defaults by Ctrl+Click. Change operations on-the-fly without the need of Undo.
---    - Adaptive initial settings. Upon initialization, the script sets the View Gain, Threshold, and Retrig settings depending on the material and tempo of the project.
---
---   Instructions for use:
---
---   1. Select an item or several items on the same track. The script will not run if items are placed on different tracks.
---   2. Run the script.
---   3. Do your work.
---   4. To cancel an actions, use Reset or just Ctrl + Z. Reset sliders to default: Ctrl + Click. Fine tune: Shift + Drag. Exit the script: Esc, Space - Play. 
---
---     On Waveform Area:
---     Mouswheel or Left/Right keys - Horizontal Zoom,
---     Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom,
---     Middle Drag - Move View (Scroll),
---     Left Click - Set Edit Cursor,
---     Shift+Left Drag - Move Marker,
---     Ctrl+Left Drag - Change Velocity,
---     Shift+Ctrl+Left Drag - Move Marker and Change Velocity,
---     Right Click on Marker - Delete Marker,
---     Right Click on Empty Space - Insert Marker.
---
---   Working with multitrack:
---
---   0. Before starting the work, I recommend you to create a guide track - usually a mixdown kick, snare and toms tracks together in one track. This track will be used as a “lead” for the detector to operate more accurately After the work is completed, you can delete it.
---   1. Select one (guide) item. The script will not run if items are placed on different tracks.
---   2. Run the script.
---   3. Select the rest items in the multitrack - you can do it with the help of Marque Selection or even Ctrl+A - it will make no difference. Your workspace will be set equal to the length of an item selected at the moment you start the script. 
---   4. Do your work. When a slicing or placing markers occurs on a multitrack, items will be automatically added to Groups.
---
---
---   Important.
---
---   For the machanism Reset to operate correctly and for the operations on-the-fly to follow each other smoothly, it is OBLIGATORY for the items to start from the beginning of the bar. It's the condition which ensures comfortable work without surprises like a sudden move of the items after the following quantization. Additionaly, I don't recommend to change selection manually or do anything with the items while the script is working. Also, do not forget to save your project regularly. Just in case.
---
---   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
+@description MK Slicer
+@author cool
+@version 1.4.6
+@changelog
+  + Added an error message if the item or time selection is too short.
+  + Improved slicer accuracy. Now the location of the cuts corresponds to what is displayed in the script.
+  + Bugfix: now the script ignores the Time Selection if the option is disabled in the settings.
+@provides [darwin64 main=main,midi_editor,midi_inlineeditor,midi_eventlisteditor,mediaexplorer] . > cool_MK Slicer
+@link Forum Thread https://forum.cockos.com/showthread.php?t=232672
+@screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
+@donation
+  Donate via PayPal https://www.paypal.me/MKokarev
+  Donate via Yandex https://money.yandex.ru/to/41001256406969
+@about
+  # MK Slicer
+
+  This is a lua script for quick slicing, quantizing by grid, re-quantizing, triggering or sampling audio.
+
+  Key features:
+
+   - Advanced detector. Thanks to filters and good visualization, you can precisely cut even material in which transients are not initially visualized.
+   - Quick Slicing or placing Markers (by Transients or by Grid).
+   - One click Quantize by Grid. Without gaps, clicks and artificial duplication of items.
+   - Ability to work with multitracks. Slices and quantizes your multitrack drums phase-accurate, quickly and without pain. Items in the multitrack will be automatically grouped.
+   - Re-Quantizing. When quantizing with a grid larger than the step of the transients, you can re-quantize your loops to get unique material. 
+   - One click sampling and exporting into RS5k.
+   - Good old Trigger. Easy conversion of rhythmic parts to midi patterns with accurate velocity reproduction.
+   - Advanced interface. Intuitive controls. Resetting values to defaults by Ctrl+Click. Change operations on-the-fly without the need of Undo.
+   - Adaptive initial settings. Upon initialization, the script sets the View Gain, Threshold, and Retrig settings depending on the material and tempo of the project.
+
+  Instructions for use:
+
+  1. Select an item or several items on the same track. The script will not run if items are placed on different tracks.
+  2. Run the script.
+  3. Do your work.
+  4. To cancel an actions, use Reset or just Ctrl + Z. Reset sliders to default: Ctrl + Click. Fine tune: Shift + Drag. Exit the script: Esc, Space - Play. 
+
+    On Waveform Area:
+    Mouswheel or Left/Right keys - Horizontal Zoom,
+    Ctrl(Shift)+Mouswheel or Up/Down keys - Vertical Zoom,
+    Middle Drag - Move View (Scroll),
+    Left Click - Set Edit Cursor,
+    Shift+Left Drag - Move Marker,
+    Ctrl+Left Drag - Change Velocity,
+    Shift+Ctrl+Left Drag - Move Marker and Change Velocity,
+    Right Click on Marker - Delete Marker,
+    Right Click on Empty Space - Insert Marker.
+
+  Working with multitrack:
+
+  0. Before starting the work, I recommend you to create a guide track - usually a mixdown kick, snare and toms tracks together in one track. This track will be used as a “lead” for the detector to operate more accurately After the work is completed, you can delete it.
+  1. Select one (guide) item. The script will not run if items are placed on different tracks.
+  2. Run the script.
+  3. Select the rest items in the multitrack - you can do it with the help of Marque Selection or even Ctrl+A - it will make no difference. Your workspace will be set equal to the length of an item selected at the moment you start the script. 
+  4. Do your work. When a slicing or placing markers occurs on a multitrack, items will be automatically added to Groups.
+
+
+  Important.
+
+  For the machanism Reset to operate correctly and for the operations on-the-fly to follow each other smoothly, it is OBLIGATORY for the items to start from the beginning of the bar. It's the condition which ensures comfortable work without surprises like a sudden move of the items after the following quantization. Additionaly, I don't recommend to change selection manually or do anything with the items while the script is working. Also, do not forget to save your project regularly. Just in case.
+
+  Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
 MK Slicer v1.4.6 by Maxim Kokarev 
