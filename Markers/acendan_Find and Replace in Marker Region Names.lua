@@ -145,6 +145,48 @@ function getSearchInfo(mode_name)
 	return ret, search_string, replace_string, search_field, case_sens
 end
 
+function analyzeMarkerRegion(search_string, replace_string, case_sens, i, isrgn, pos, rgnend, name, markrgnindexnumber, color)
+	if search_string ~= "/blank" and search_string ~= "/clear" then
+		if case_sens == "/c" then
+			if string.find(name, search_string) then
+				if replace_string ~= "/blank" and replace_string ~= "/clear" then
+					local new_name = string.gsub( name, search_string, replace_string)
+					reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+				elseif replace_string == "/blank" then
+					local new_name = string.gsub( name, search_string, "")
+					reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+				elseif replace_string == "/clear" then
+					reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+					reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+				end
+			end
+		elseif case_sens == "/i" then
+			local lower_name = string.lower(name)
+			local lower_search_string = string.lower(search_string)
+			local j, k = string.find(lower_name, lower_search_string)
+			if j and k then
+				if replace_string ~= "/blank" and replace_string ~= "/clear" then
+					local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
+					reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+				elseif replace_string == "/blank" then
+					local new_name = string.sub(name,1,j-1) .. string.sub(name,k+1,string.len(name))
+					reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+				elseif replace_string == "/clear" then
+					reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
+					reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
+				end
+			end
+		end
+	else
+		if name == "" then
+			if replace_string ~= "/blank" and replace_string ~= "/clear" then
+				local new_name = replace_string
+				reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
+			end
+		end
+	end
+end
+
 function searchFullProject(num_total, search_string, replace_string, mode_name, case_sens)
 	-- Loop through all markers/regions in project
 	if mode_name == "Region" then
@@ -152,45 +194,7 @@ function searchFullProject(num_total, search_string, replace_string, mode_name, 
 		while i < num_total do
 			local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i )
 			if isrgn then
-				if search_string ~= "/blank" and search_string ~= "/clear" then
-					if case_sens == "/c" then
-						if string.find(name, search_string) then
-							if replace_string ~= "/blank" and replace_string ~= "/clear" then
-								local new_name = string.gsub( name, search_string, replace_string)
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/blank" then
-								local new_name = string.gsub( name, search_string, "")
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/clear" then
-								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-							end
-						end
-					elseif case_sens == "/i" then
-						local lower_name = string.lower(name)
-						local lower_search_string = string.lower(search_string)
-						local j, k = string.find(lower_name, lower_search_string)
-						if j and k then
-							if replace_string ~= "/blank" and replace_string ~= "/clear" then
-								local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/blank" then
-								local new_name = string.sub(name,1,j-1) .. string.sub(name,k+1,string.len(name))
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/clear" then
-								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-							end
-						end
-					end
-				else
-					if name == "" then
-						if replace_string ~= "/blank" and replace_string ~= "/clear" then
-							local new_name = replace_string
-							reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-						end
-					end
-				end
+				analyzeMarkerRegion(search_string, replace_string, case_sens, i, isrgn, pos, rgnend, name, markrgnindexnumber, color)
 			end
 			i = i + 1
 		end
@@ -199,45 +203,7 @@ function searchFullProject(num_total, search_string, replace_string, mode_name, 
 		while i < num_total do
 			local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i )
 			if not isrgn then
-				if search_string ~= "/blank" and search_string ~= "/clear" then
-					if case_sens == "/c" then
-						if string.find(name, search_string) then
-							if replace_string ~= "/blank" and replace_string ~= "/clear" then
-								local new_name = string.gsub( name, search_string, replace_string)
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/blank" then
-								local new_name = string.gsub( name, search_string, "")
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/clear" then
-								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-							end
-						end
-					elseif case_sens == "/i" then
-						local lower_name = string.lower(name)
-						local lower_search_string = string.lower(search_string)
-						local j, k = string.find(lower_name, lower_search_string)
-						if j and k then
-							if replace_string ~= "/blank" and replace_string ~= "/clear" then
-								local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/blank" then
-								local new_name = string.sub(name,1,j-1) .. string.sub(name,k+1,string.len(name))
-								reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-							elseif replace_string == "/clear" then
-								reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-								reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-							end
-						end
-					end
-				else
-					if name == "" then
-						if replace_string ~= "/blank" and replace_string ~= "/clear" then
-							local new_name = replace_string
-							reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-						end
-					end
-				end
+				analyzeMarkerRegion(search_string, replace_string, case_sens, i, isrgn, pos, rgnend, name, markrgnindexnumber, color)
 			end
 			i = i + 1
 		end
@@ -255,45 +221,7 @@ function searchTimeSelection(num_total, search_string, replace_string, mode_name
 				local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i )
 				if isrgn then
 					if pos >= StartTimeSel and rgnend <= EndTimeSel then
-						if search_string ~= "/blank" and search_string ~= "/clear" then
-							if case_sens == "/c" then
-								if string.find(name, search_string) then
-									if replace_string ~= "/blank" and replace_string ~= "/clear" then
-										local new_name = string.gsub( name, search_string, replace_string)
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/blank" then
-										local new_name = string.gsub( name, search_string, "")
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/clear" then
-										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-									end
-								end
-							elseif case_sens == "/i" then
-								local lower_name = string.lower(name)
-								local lower_search_string = string.lower(search_string)
-								local j, k = string.find(lower_name, lower_search_string)
-								if j and k then
-									if replace_string ~= "/blank" and replace_string ~= "/clear" then
-										local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/blank" then
-										local new_name = string.sub(name,1,j-1) .. string.sub(name,k+1,string.len(name))
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/clear" then
-										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-									end
-								end
-							end
-						else
-							if name == "" then
-								if replace_string ~= "/blank" and replace_string ~= "/clear" then
-									local new_name = replace_string
-									reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-								end
-							end
-						end
+						analyzeMarkerRegion(search_string, replace_string, case_sens, i, isrgn, pos, rgnend, name, markrgnindexnumber, color)
 					end
 				end
 				i = i + 1
@@ -304,45 +232,7 @@ function searchTimeSelection(num_total, search_string, replace_string, mode_name
 				local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i )
 				if not isrgn then
 					if pos >= StartTimeSel and pos <= EndTimeSel then
-						if search_string ~= "/blank" and search_string ~= "/clear" then
-							if case_sens == "/c" then
-								if string.find(name, search_string) then
-									if replace_string ~= "/blank" and replace_string ~= "/clear" then
-										local new_name = string.gsub( name, search_string, replace_string)
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/blank" then
-										local new_name = string.gsub( name, search_string, "")
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/clear" then
-										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-									end
-								end
-							elseif case_sens == "/i" then
-								local lower_name = string.lower(name)
-								local lower_search_string = string.lower(search_string)
-								local j, k = string.find(lower_name, lower_search_string)
-								if j and k then
-									if replace_string ~= "/blank" and replace_string ~= "/clear" then
-										local new_name = string.sub(name,1,j-1) .. replace_string .. string.sub(name,k+1,string.len(name))
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/blank" then
-										local new_name = string.sub(name,1,j-1) .. string.sub(name,k+1,string.len(name))
-										reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-									elseif replace_string == "/clear" then
-										reaper.DeleteProjectMarker( 0, markrgnindexnumber, isrgn )
-										reaper.AddProjectMarker2( 0, isrgn, pos, rgnend, '', markrgnindexnumber, color )
-									end
-								end
-							end
-						else
-							if name == "" then
-								if replace_string ~= "/blank" and replace_string ~= "/clear" then
-									local new_name = replace_string
-									reaper.SetProjectMarkerByIndex( 0, i, isrgn, pos, rgnend, markrgnindexnumber, new_name, color )
-								end
-							end
-						end
+						analyzeMarkerRegion(search_string, replace_string, case_sens, i, isrgn, pos, rgnend, name, markrgnindexnumber, color)
 					end
 				end
 				i = i + 1
