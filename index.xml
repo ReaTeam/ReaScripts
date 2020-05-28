@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d036b4fec465084712eb15edeae60680ebbe0ed7" name="ReaTeam Scripts">
+<index version="1" commit="2b4b5bd30479c4967e596b8f6776b7584b9e8c02" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -15596,6 +15596,56 @@ Added flashing green when clicking on ms or Hz label]]></changelog>
         <changelog><![CDATA[Added UpdateTimeline to make Time Signature show right bpm after session on Windows
 Added a check for time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/275bb961de47173381394f3333640905ffaabb8b/Various/tompad_Practice%20coach.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Video">
+    <reapack name="js_Video - Automatically adjust size of thumbnail items when zooming.lua" type="script" desc="js_Video - Automatically adjust size of thumbnail items when zooming">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not currently offer the option of displaying thumbnails in video items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Moreover, if thumbnails are extracted and displayed in static empty items, zooming in will result in messy tiling when the items' pixel widths become longer than the width of the thumbnails, while zooming out will result in tiny, barely visible images when the item widths become shorter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script offers a workaround: It runs in the background, and automatically adjusts the width of items containing thumbnail images to the approximate width of the images.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All calculations are performed when zooming, not when scrolling, so the script doesn't interfere with playback or recording.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will try to detect the optimal W/H ratio from the image in the first thumbnail item in each track. Otherwise, a default 16:9 will be applied.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Before running, select all the items that must be auto-adjusted. These may be enpty items, MIDI items, or dedicated video processor items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can be linked to a toolbar button, which will light up while the script is running.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=237293</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2020-05-28T20:24:34Z">
+        <changelog><![CDATA[+ Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b4b5bd30479c4967e596b8f6776b7584b9e8c02/Video/js_Video%20-%20Automatically%20adjust%20size%20of%20thumbnail%20items%20when%20zooming.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items.lua" type="script" desc="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script extracts thumbnail images from selected video items, and displays the thumbnails in selected empty items, MIDI items or dedicated video processor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If multiple selected video items overlap a thumbnail item, a video item on the same track takes precedence, followed by video items in the closest parent folder, and lastly the video item in the highest (i.e. lowest-numbered) track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thumbnail items can be added manually at hitpoints, or at any desired regular spacing, for example by creating a long empty item across the entire length of the video item and then splitting at the grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alternatively, empty items can be added by the script "mrlimbic_ffprobe scene detect.lua", which creates empty items at scene (or camera/line) cuts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 On Linux, ffmpeg needs to be installed, and on WindowsOS and macOS, an ffmpeg executable is required.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The user can set the default JPEG quality in the script file's USER AREA. If no default value is set, the script will ask the user to enter a custom value each time that the script runs.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=237293</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2020-05-28T20:24:02Z">
+        <changelog><![CDATA[+ Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f65b3180919da14ef86ae3f870b554c27d74545/Video/js_Video%20-%20Extract%20thumbnails%20of%20video%20items%20to%20empty,%20MIDI%20or%20video%20processor%20items.lua</source>
       </version>
     </reapack>
   </category>
