@@ -11,9 +11,9 @@ About:
   
   If multiple selected video items overlap a thumbnail item, a video item on the same track takes precedence, followed by video items in the closest parent folder, and lastly the video item in the highest (i.e. lowest-numbered) track.
   
-  Thumbnail items can be added manually at hitpoints, or at any desired regular spacing, for example by creating a long empty item across the entire length of the video item and then splitting at the grid.
+  The empty/MIDI/processor items can be added manually at hitpoints, or at any desired regular spacing, for example by creating a long empty item across the entire length of the video item and then splitting at the grid.
   
-  Alternatively, empty items can be added by the script "mrlimbic_ffprobe scene detect.lua", which creates empty items at scene (or camera/line) cuts.
+  Alternatively, empty items can be added by the script "mrlimbic_ffprobe scene detect.lua", which creates items at scene (or camera/line) cuts.
   
   On Linux, ffmpeg needs to be installed, and on WindowsOS and macOS, an ffmpeg executable is required.
   
