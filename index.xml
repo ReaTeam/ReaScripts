@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="89382eaa8e1fcdb17e8da3a4d793158b7984bbf5" name="ReaTeam Scripts">
+<index version="1" commit="9b7cac955383a54fa6d71ceae6b0be6d9c4d7a60" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -15638,10 +15638,10 @@ Added a check for time selection]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script extracts thumbnail images from selected video items, and displays the thumbnails in selected empty items, MIDI items or dedicated video processor.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If multiple selected video items overlap a thumbnail item, a video item on the same track takes precedence, followed by video items in the closest parent folder, and lastly the video item in the highest (i.e. lowest-numbered) track.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The empty/MIDI/processor items can be added manually at hitpoints, or at any desired regular spacing, for example by creating a long empty item across the entire length of the video item and then splitting at the grid.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Alternatively, empty items can be added by the script "mrlimbic_ffprobe scene detect.lua", which creates items at scene (or camera/line) cuts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thumbnail items can be added manually at hitpoints, or at any desired regular spacing, for example by creating a long empty item across the entire length of the video item and then splitting at the grid.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Alternatively, empty items can be added by the script "mrlimbic_ffprobe scene detect.lua", which creates empty items at scene (or camera/line) cuts.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 On Linux, ffmpeg needs to be installed, and on WindowsOS and macOS, an ffmpeg executable is required.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The user can set the default JPEG quality in the script file's USER AREA. If no default value is set, the script will ask the user to enter a custom value each time that the script runs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 High-resolution thumbnails require huge amounts of RAM, so the script can scale thumbnails down to any custom size. The default size can be specified in the script file's User Area.\line If no default value is set, the script will ask the user to enter a custom value each time that the script runs.\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=237293</link>
@@ -15654,6 +15654,10 @@ Added a check for time selection]]></changelog>
       <version name="0.91" author="juliansader" time="2020-05-29T15:34:36Z">
         <changelog><![CDATA[+ Immediately terminate if image extraction fails once, to avoid hanging with incompatible video sources.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/89382eaa8e1fcdb17e8da3a4d793158b7984bbf5/Video/js_Video%20-%20Extract%20thumbnails%20of%20video%20items%20to%20empty,%20MIDI%20or%20video%20processor%20items.lua</source>
+      </version>
+      <version name="0.92" author="juliansader" time="2020-05-29T23:05:28Z">
+        <changelog><![CDATA[+ Thumbnails use lower resolution, for vastly lower RAM usage.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9b7cac955383a54fa6d71ceae6b0be6d9c4d7a60/Video/js_Video%20-%20Extract%20thumbnails%20of%20video%20items%20to%20empty,%20MIDI%20or%20video%20processor%20items.lua</source>
       </version>
     </reapack>
   </category>
