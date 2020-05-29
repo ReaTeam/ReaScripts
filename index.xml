@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b4b5bd30479c4967e596b8f6776b7584b9e8c02" name="ReaTeam Scripts">
+<index version="1" commit="eda71742ff59f26d7344f0e77b6daa2de9971b18" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -15624,6 +15624,10 @@ Added a check for time selection]]></changelog>
         <changelog><![CDATA[+ Initial beta release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b4b5bd30479c4967e596b8f6776b7584b9e8c02/Video/js_Video%20-%20Automatically%20adjust%20size%20of%20thumbnail%20items%20when%20zooming.lua</source>
       </version>
+      <version name="0.91" author="juliansader" time="2020-05-29T15:34:36Z">
+        <changelog><![CDATA[+ Automatically lock heights of thumbnail tracks.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eda71742ff59f26d7344f0e77b6daa2de9971b18/Video/js_Video%20-%20Automatically%20adjust%20size%20of%20thumbnail%20items%20when%20zooming.lua</source>
+      </version>
     </reapack>
     <reapack name="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items.lua" type="script" desc="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items">
       <metadata>
@@ -15646,6 +15650,10 @@ Added a check for time selection]]></changelog>
       <version name="0.90" author="juliansader" time="2020-05-28T20:24:02Z">
         <changelog><![CDATA[+ Initial beta release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6f65b3180919da14ef86ae3f870b554c27d74545/Video/js_Video%20-%20Extract%20thumbnails%20of%20video%20items%20to%20empty,%20MIDI%20or%20video%20processor%20items.lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2020-05-29T15:34:36Z">
+        <changelog><![CDATA[+ Immediately terminate if image extraction fails once, to avoid hanging with incompatible video sources.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eda71742ff59f26d7344f0e77b6daa2de9971b18/Video/js_Video%20-%20Extract%20thumbnails%20of%20video%20items%20to%20empty,%20MIDI%20or%20video%20processor%20items.lua</source>
       </version>
     </reapack>
   </category>
