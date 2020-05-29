@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Video - Extract thumbnails of video items to empty, MIDI or video processor items
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=237293
 Donation: https://www.paypal.me/juliansader
@@ -24,6 +24,8 @@ About:
   Changelog:
   * v0.90 (2020-05-22)
     + Initial beta release.
+  * v0.91 (2020-05-29)
+    + Immediately terminate if image extraction fails once, to avoid hanging with incompatible video sources.
 ]]
 
 -- USER ARERA
@@ -128,7 +130,7 @@ JPEG_Quality = string.format("%i", math.min(31, math.max(1, JPEG_Quality//1)))
 
 -- LOOP THROUGH ALL EMPTY ITEMS, AND EXTRACT THUMBNAILS
 reaper.ShowConsoleMsg("\n\nProcessing thumbnails:") --..string.format("\n(This may take about %i minutes.)", 1+#tEmpty*0.3//60))
-countFailed = 0
+countSuccess = 0
 countNonOverlapping = 0
 procTime = reaper.time_precise()
 for cnt, e in ipairs(tEmpty) do
@@ -164,10 +166,11 @@ for cnt, e in ipairs(tEmpty) do
     if not vid then
         countNonOverlapping = countNonOverlapping + 1
     else
-        -- If overlapping video item found, remove existing image and try to a new one
-        
+        -- Convert time to useable string formats
+        --    offsetStringForFile: unique ID for image file name: integer
+        --    offsetStringForCommand: ffmpeg requires this format AFAIK: hh:mm:ss.ms
         offset = vid.offset + (e.itemStart-vid.itemStart) -- offset from source video start
-        offsetStringForFile = string.format("%i", (0.5 + offset*1000)//1) -- offsetStringForFile: unique ID for this frame: integer
+        offsetStringForFile = string.format("%i", (0.5 + offset*1000)//1) 
         hours = offset//3600
             offset = offset%3600
         minutes = offset//60
@@ -175,46 +178,38 @@ for cnt, e in ipairs(tEmpty) do
         seconds = offset//1
             offset = offset%1 -- - seconds
         millis = (0.5 + offset*1000)//1
-        offsetStringForCommand = string.format("%i:%i:%i.%i", hours, minutes, seconds, millis) -- offsetStringForCommand: ffmpeg requires this format AFAIK: hh:mm:ss.ms
+        offsetStringForCommand = string.format("%i:%i:%i.%i", hours, minutes, seconds, millis) 
         imagePath = saveFolder .. vid.file .. " - " .. JPEG_Quality .. "q " .. offsetStringForFile .. "ms.jpg"
-        -- Has this thumbnail already been extracted?
-        local gotThumbnail = reaper.file_exists(imagePath)
-        if not gotThumbnail then 
+        -- If thumbnail has already been extracted, don't waste time doing again
+        if not reaper.file_exists(imagePath) then
             command = ffmpegPath .. [[ -ss ]] .. offsetStringForCommand .. [[ -i "]] .. vid.path .. [[" -q:v ]] .. JPEG_Quality .. [[ -frames:v 1 "]] .. imagePath .. [["]] -- q:v range from 2 (best) to 31 (worst)
             commandOK = reaper.ExecProcess(command, 10000) -- Unlike os.execute, this function doesn't open a terminal
-            gotThumbnail = reaper.file_exists(imagePath)
-        end
-        if gotThumbnail then
-            local chunkEntry = "RESOURCEFN \"" .. imagePath .. "\"\nIMGRESOURCEFLAGS 1\n"
-            if not e.chunk:match(chunkEntry) then -- if this is already js_Thumbnail item with correct image, don't need to update
-                e.chunk = e.chunk:gsub("\nRESOURCEFN[^\n]*", "")
-                e.chunk = e.chunk:gsub("\nIMGRESOURCEFLAGS[^\n]*", "")
-                e.chunk = e.chunk:gsub("(\nIID .-\n)", "%1" .. chunkEntry)
-                reaper.SetItemStateChunk(e.item, e.chunk)
-                reaper.GetSetMediaItemInfo_String(e.item, "P_EXT:js_Thumbnails", "js_Thumbnail", true)
-                --reaper.UpdateItemInProject(e.item)
-            end
-        else
-            countFailed = countFailed + 1
-            failedExtractionAtThisPosition = offsetStringForCommand
-            if e.chunk:match("\nRESOURCEFN") then -- If there is an overlapping video item, but image could not be extracted, remove any existing images
-                e.chunk = e.chunk:gsub("\nRESOURCEFN[^\n]*", "")
-                e.chunk = e.chunk:gsub("\nIMGRESOURCEFLAGS[^\n]*", "")
-                reaper.SetItemStateChunk(e.item, e.chunk)
-                --reaper.UpdateItemInProject(e.item)
+            if not reaper.file_exists(imagePath) then
+                failed = true
+                reaper.ApplyNudge(0, 1, 6, 1, e.itemStart, false, 1)
+                break
             end
         end
-    end
-end
-
--- Show results
-countSuccess = #tEmpty - countFailed - countNonOverlapping
---tWords = setmetatable({"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"}, {__index = function(t, e) return string.format("%i", e) end} )
-msg = "\n\nDone!\n\nSuccessfully added: "..string.format("%i", countSuccess)
-      .."\nNon-overlapping with video items: "..string.format("%i", countNonOverlapping)
-      .."\nFailed to extract image: "..string.format("%i", countFailed)..(countFailed > 0 and ("\n(Please check the item at position " .. tostring(failedExtractionAtThisPosition)) or "")
-reaper.ShowConsoleMsg(msg)
+        -- Got file OK
+        local chunkEntry = "RESOURCEFN \"" .. imagePath .. "\"\nIMGRESOURCEFLAGS 1\n"
+        if not e.chunk:match(chunkEntry) then -- if this is already js_Thumbnail item with correct image, don't need to update
+            e.chunk = e.chunk:gsub("\nRESOURCEFN[^\n]*", "") -- Else, remove existing image
+            e.chunk = e.chunk:gsub("\nIMGRESOURCEFLAGS[^\n]*", "")
+            e.chunk = e.chunk:gsub("(\nIID .-\n)", "%1" .. chunkEntry)
+            reaper.SetItemStateChunk(e.item, e.chunk)
+            reaper.GetSetMediaItemInfo_String(e.item, "P_EXT:js_Thumbnails", "js_Thumbnail", true)
+            countSuccess = countSuccess + 1
+end end end
 
 reaper.UpdateTimeline()
+
+
+-- SHOW FINAL RESULTS
+--tWords = setmetatable({"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"}, {__index = function(t, e) return string.format("%i", e) end} )
+msg = (failed and (commandOK .. "\n\nScript terminated by failure to extract thumbnail at position: "..offsetStringForCommand.."\nThe edit cursor has been moved to this position, and the ffmpeg error message is above.") or "\n\nDone!")
+      .."\n\nSuccessfully added: "..string.format("%i", countSuccess)
+      .."\nNon-overlapping with video items: "..string.format("%i", countNonOverlapping)
+
+reaper.ShowConsoleMsg(msg)
 
 reaper.Undo_EndBlock2(0, "Extract thumbnails", -1)

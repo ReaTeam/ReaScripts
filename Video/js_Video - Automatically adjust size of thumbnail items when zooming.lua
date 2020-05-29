@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Video - Automatically adjust size of thumbnail items when zooming
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=237293
 Donation: https://www.paypal.me/juliansader
@@ -30,6 +30,8 @@ About:
   Changelog:
   * v0.90 (2020-05-27)
     + Initial beta release.
+  * v0.91 (2020-05-29)
+    + Automatically lock heights of thumbnail tracks.
 ]]
 
 
@@ -79,9 +81,11 @@ if sectionID ~= nil and commandID ~= nil and sectionID ~= -1 and commandID ~= -1
 end   
 
 
--- Sort items for each track, and enable Free Item Positioning
+-- Sort items for each track, and enable Free Item Positioning and Height lock
+-- NOTE: API help says that I_HEIGHTOVERRIDE must be set before B_HEIGHTLOCK, but I'm not sure why.)
 for track, items in pairs(tItems) do
     reaper.SetMediaTrackInfo_Value(track, "B_FREEMODE", 1)
+    reaper.SetMediaTrackInfo_Value(track, "B_HEIGHTLOCK", 1)
     table.sort(items, function(a, b) return a.itemStart < b.itemStart end)
 end
 reaper.UpdateTimeline() -- Make sure Free Item Positioning is displayed
