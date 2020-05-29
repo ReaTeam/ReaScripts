@@ -1,4 +1,4 @@
--- @description DSG - Render time selection to stem track
+-- @description Render time selection to stem track
 -- @author DSG
 -- @version 1.2
 -- @screenshot Screen https://psv4.userapi.com/c856420/u30743062/docs/d14/7150e661ae54/DSG_-_Render_time_selection_to_stem_track.gif?extra=ljuVcEyZOc3lYguDptge3bNcZbxs_7G28fgtE9zJc6rcDBcHJX9e62PCVuT7VFfz8M1T6sTYw9hGMPFloS0SdSaZ4Z2n5YCfoRWOcF6qwCo6LZbNZ20dY0MCmy_A48-yzxcd0it8ROWDvW5WqckFjg
