@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Video - Create thumbnail items in selected track for selected video items
-Version: 0.90
+Version: 0.91
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=237293
 Donation: https://www.paypal.me/juliansader
@@ -27,6 +27,8 @@ About:
   Changelog:
   * v0.90 (2020-05-30)
     + Initial beta release.
+  * v0.91 (2020-05-30)
+    + Properly detect Linux.
 ]]
 
 -- USER AREA: Default thumbnail size
@@ -66,7 +68,7 @@ end
 
 -- SETUP FFMPEG PATH
 OS = reaper.GetOS()
-if OS:match("Linux") then
+if OS:match("Other") then
     linuxRetval = reaper.ExecProcess([[ffmpeg -version]], 10000)
     if not linuxRetval or linuxRetval:sub(1,1) ~= "0" then
         reaper.MB("This script requires ffmpeg to be installed.", "ERROR", 0)
