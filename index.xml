@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9b7cac955383a54fa6d71ceae6b0be6d9c4d7a60" name="ReaTeam Scripts">
+<index version="1" commit="5e575c9d489e7ce45f0f3b92ccf67944f0c193fd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -15627,6 +15627,30 @@ Added a check for time selection]]></changelog>
       <version name="0.91" author="juliansader" time="2020-05-29T15:34:36Z">
         <changelog><![CDATA[+ Automatically lock heights of thumbnail tracks.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eda71742ff59f26d7344f0e77b6daa2de9971b18/Video/js_Video%20-%20Automatically%20adjust%20size%20of%20thumbnail%20items%20when%20zooming.lua</source>
+      </version>
+    </reapack>
+    <reapack name="js_Video - Create thumbnail items in selected track for selected video items.lua" type="script" desc="js_Video - Create thumbnail items in selected track for selected video items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script creates thumbnail items for selected video items.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The thumbnail items are created inside the selected destintaion track, which may be video items' own track, in which case the thumbnails will be drawn over the video items.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The items are created at regular spacing along the entire lengths of the video items. The script open a dialog window in which the user can specify the spacing.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 On Linux, ffmpeg needs to be installed, and on WindowsOS and macOS, an ffmpeg executable is required.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 High-resolution thumbnails require huge amounts of RAM, so the script can scale thumbnails down to any custom size, which can also be customized in the dialog window.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not currently offer the option of displaying thumbnails in video items. This script is the first in a pair of scripts that are intended to remedy the shortcoming:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The second script in the pair is "js_Video - Automatically adjust size of thumbnail items when zooming", which turns static thumbnails into a repsonsive, auto-zooming thumbnail track.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=237293</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2020-05-30T03:13:24Z">
+        <changelog><![CDATA[+ Initial beta release.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5e575c9d489e7ce45f0f3b92ccf67944f0c193fd/Video/js_Video%20-%20Create%20thumbnail%20items%20in%20selected%20track%20for%20selected%20video%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items.lua" type="script" desc="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items">
