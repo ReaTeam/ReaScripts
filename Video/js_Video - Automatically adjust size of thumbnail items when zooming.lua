@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Video - Automatically adjust size of thumbnail items when zooming
-Version: 0.91
+Version: 0.92
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=237293
 Donation: https://www.paypal.me/juliansader
@@ -32,8 +32,14 @@ About:
     + Initial beta release.
   * v0.91 (2020-05-29)
     + Automatically lock heights of thumbnail tracks.
+  * v0.92 (2020-05-30)
+    + Error message if js_ReaScriptAPI is not installed.
 ]]
 
+if not reaper.JS_LICE_LoadJPG then
+    reaper.MB([[This script requires an up-to-date version of the js_ReaScriptAPI extension, which can be installed via ReaPack]], [[ERROR]], 0)
+    return false
+end
 
 local tItems = {}
 for i = 0, reaper.CountSelectedMediaItems(0)-1 do
