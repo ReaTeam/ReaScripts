@@ -1,4 +1,4 @@
--- @description Render time selection to stem track
+-- @description Render time selection to new track
 -- @author DSG
 -- @version 1.0
 -- @screenshot Screen https://stash.reaper.fm/39352/DSG_-_Render_time_selection_to_new_track.gif
