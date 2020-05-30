@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Video - Extract thumbnails of video items to empty, MIDI or video processor items
-Version: 0.92
+Version: 0.93
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=237293
 Donation: https://www.paypal.me/juliansader
@@ -29,6 +29,8 @@ About:
     + Immediately terminate if image extraction fails once, to avoid hanging with incompatible video sources.
   * v0.92 (2020-05-30)
     + Thumbnails use lower resolution, for vastly lower RAM usage.
+  * v0.93 (2020-05-30)
+    + Properly detect Linux.
 ]]
 
 -- USER AREA: 
@@ -86,7 +88,7 @@ table.sort(tVideo, function(a, b) return a.itemStart < b.itemStart end)
 
 -- SETUP FFMPEG PATH
 OS = reaper.GetOS()
-if OS:match("Linux") then
+if OS:match("Other") then
     linuxRetval = reaper.ExecProcess([[ffmpeg -version]], 10000)
     if not linuxRetval or linuxRetval:sub(1,1) ~= "0" then
         reaper.MB("This script requires ffmpeg to be installed.", "ERROR", 0)
