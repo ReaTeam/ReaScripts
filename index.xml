@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5e575c9d489e7ce45f0f3b92ccf67944f0c193fd" name="ReaTeam Scripts">
+<index version="1" commit="1aa5a8f287f03fc6c8c6f59186f4bb96ee98a124" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9969,6 +9969,25 @@ Don't report an error if no render presets were created yet]]></changelog>
         <changelog><![CDATA[Add support for the "Use project sample rate for mixing and FX/synth processing" option]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0dcbc2699fb6de8973d3fd2a0c7f6403e30043e3/Rendering/cfillion_Apply%20render%20preset.lua</source>
         <source main="main" file="cfillion_Apply render preset (create action).lua">https://github.com/ReaTeam/ReaScripts/raw/0dcbc2699fb6de8973d3fd2a0c7f6403e30043e3/Rendering/cfillion_Apply%20render%20preset.lua</source>
+      </version>
+    </reapack>
+    <reapack name="DSG_Render time selection to new track.lua" type="script" desc="Render time selection to new track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DSG - Render time selection to new track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Quick render selected tracks to new track using the time selection as boundaries\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Key features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Habitual way if you used FL earlier\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Excludes selected folder tracks for prevent multiple render of children track\sa180\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://stash.reaper.fm/39352/DSG_-_Render_time_selection_to_new_track.gif">Screen</link>
+      </metadata>
+      <version name="1.0" author="DSG" time="2020-05-30T09:10:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1aa5a8f287f03fc6c8c6f59186f4bb96ee98a124/Rendering/DSG_Render%20time%20selection%20to%20new%20track.lua</source>
       </version>
     </reapack>
   </category>
