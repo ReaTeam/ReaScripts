@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3e51a36b57878e0420e292c391945f84b5fb3cdc" name="ReaTeam Scripts">
+<index version="1" commit="e5196917add0b4fce3cece104a77328e22ce4d68" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9562,21 +9562,23 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\pard \ql \f0 \sa180 \li0 \fi0 A custom version of the startup prompt window for loading (recent) projects, project/track templates and more with additional features.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Uses 'Lokasenna's GUI library v2 for Lua' as base: https://forum.cockos.com/showthread.php?t=177772. Big thanks to Lokasenna for his work!!\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Main features\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Separate tabs for Recent Projects, (.rpp) Project Templates, (.rtracktemplate) Track Templates, (.rpp) Projects, (.rpl) Project Lists and (.rpp-bak) Backups\line
-- Option to set additional folder paths for Project Templates and Track Templates (which are used in addition to the default template folders)\line
-- Option to set custom folder paths for Projects, Project Lists and Backups tabs\line
-- List-filter in each tab which supports input of multiple search words separated by a 'space' character\line
-- Global section with [New Tab], [New Project] and [Open Project] buttons\line
-- Selection and loading of multiple entries at once (multi-select of listbox entries via mouse is already part of Lokasenna's GUI library)\line
-- File paths can be shown/hidden\line
-- 'Keep open' checkbox to switch the automatic closing behavior of the window\line
-- Scalable and resizeable window\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require SWS Extensions:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - [Recent Projects] tab for listing and managing the recent projects (with functions to remove selected entries and clearing the entire list)\line
-- [Show in Explorer/Finder] button to search for the location of a selected file\line
-- Setup of predefined Reaper Theme Slots and the possibility to switch between them (uses SWS Resources)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require js_ReaScriptAPI:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 - Function to preview attached 'demo' audio files (supported file extensions: .wav, .flac, .mp3 and .ogg)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Separate tabs for [Recent Projects], (.rpp) [Project Templates], (.rtracktemplate) [Track Templates], (.rpp) Projects, (.rpl) [Project Lists], (.rpp-bak) [Backups] and (.pdf) [Docs]\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set additional folder paths for [Project Templates] and [Track Templates] (which are used in addition to the default template folders)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option to set custom folder paths for [Projects], [Project Lists], [Backups] and [Docs] tabs\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab List filter in each tab that supports the use of multiple search words separated by a 'space' character\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Global section with [New Tab], [New Project] and [Open Project] buttons\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Selection and loading of multiple entries at once (multi-select via mouse is already part of Lokasenna's GUI library)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab File paths can be shown/hidden\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 'Keep open' checkbox to switch the automatic closing behavior of the window\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Scalable and resizeable window\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require SWS Extensions (2.9.8 or higher):\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Docs] tab for listing .pdf files\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Recent Projects] tab for listing and managing the recent projects (with functions to remove selected entries and clearing the entire list)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab [Show in Explorer/Finder] button to search for the location of a selected file\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Setup of predefined Reaper Theme Slots and the possibility to switch between them (uses SWS Resources)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Features that require js_ReaScriptAPI (0.991 or higher):\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Function to preview attached 'demo' audio files (supported file extensions: .wav, .flac, .mp3 and .ogg)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Option for adding folder paths in the [Options] tab via a 'Browse' dialog (besides manual copy & paste)\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Discussion thread\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 https://forum.cockos.com/showthread.php?t=208697\par}
 }
@@ -9734,6 +9736,17 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + General: Bugfix for tooltip positioning on macOS
 + Project Lists: Bugfix for not listing < All > entries when loading the tab the first time]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b565d6455f0188588ae72aeb98d51d80aac56f65/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+      <version name="2.3" author="solger" time="2020-06-03T08:34:45Z">
+        <changelog><![CDATA[+ Docs: New [Docs] tab added for listing .PDF document files (folder location is set in the [Options] tab) - opening files requires SWS Extensions installed
++ General: Added support for additional key shortcuts: close (ESC) and confirm (ENTER) dialogs, open Context Menu (M or 0) in [Recent Projects]
++ General: Minor bugfix for SWS version check
++ Options: Added possibility to add folder paths via a 'Browse' dialog (besides manual copy & paste) - requires js_ReaScriptAPI installed
++ Options: Added option for setting a default DOUBLE-CLICK behavior: [Show Prompt | Load | Load in Tab | Audio Preview]
++ Project Lists: Added support for usage of multiple folders (set in the [Options] tab)
++ Project Lists: Duplicate entries are now only listed once
++ Recent Projects: Fix for preventing a 'not responding' bug if no [Recent] entry section exists in the reaper.ini yet]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e5196917add0b4fce3cece104a77328e22ce4d68/Project%20Properties/solger_ReaLauncher.lua</source>
       </version>
     </reapack>
   </category>
