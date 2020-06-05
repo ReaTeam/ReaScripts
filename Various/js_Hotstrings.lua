@@ -4,8 +4,6 @@ Version: 0.90
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
---Provides: 
---  js_Multi-key shortcuts - table.lua
 About:
   # DESCRIPTION
   
