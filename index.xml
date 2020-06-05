@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e5196917add0b4fce3cece104a77328e22ce4d68" name="ReaTeam Scripts">
+<index version="1" commit="bb041d5a94e0d81fd74463b2c7f26bd24e3c1c4c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -13287,6 +13287,30 @@ Web Interface: restore the previous locked state on load]]></changelog>
     <reapack name="JamesHE_gfx and string functions.eel" type="script" desc="gfx and string library">
       <version name="1.0" author="James H Eure" time="2016-10-19T18:12:11Z">
         <source>https://github.com/ReaTeam/ReaScripts/raw/a3ebb21eddc7aa1b73f7c3e5dd07a30b194cf80c/Various/JamesHE_gfx%20and%20string%20functions.eel</source>
+      </version>
+    </reapack>
+    <reapack name="js_Hotstrings.lua" type="script" desc="js_Hotstrings">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 REAPER's native keyboard shortcuts consist of a combination of modifier keys + a {\i single} alphanumeric hotkey. These modifier keys combinations can be difficult to remember.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script enables the use of easy-to-remember {\i sequences} of alphanumeric keys -- aka "hotstrings" -- as shortcuts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For example, instead of holding Ctrl+Alt+Shift+Z to zoom to the entire project, the user can simply type Z and then P.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The hotstrings and their linked Actions can be customized by the users, and must all be saved in a file named "js_Hotstrings - table.lua" in the same folder as the script. (The reason why this data is stored in a separate file, is to prevent it from being overwritten whenever the script file is updated.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the script is run with an alphanumeric hotkey (or a modifier + alphanumeric hotkey), that hotkey will be interpreted as the first character in the hotstring. It is therefore helpful to link the script to multiple hotkeys -- namely the first letter in each hotstring -- in REAPER's Actions list.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The "js_Hotstrings - table.lua" file should be formatted as a standard Lua table, as in this short example:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 tableCommands = \{ -- Zoom zz = reaper.NamedCommandLookup("_SWS_TOGZOOMIONLY"), -- Toggle zoom items zp = 40295, -- Zoom project zt = 40031, -- Zoom time selection \}\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=176878</link>
+        <link rel="donation">https://www.paypal.me/juliansader</link>
+      </metadata>
+      <version name="0.90" author="juliansader" time="2020-06-05T20:07:28Z">
+        <changelog><![CDATA[+ Initial beta release: Hotstrings (i.e. sequences of keys) to replace modifiers+single key shortcuts.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb041d5a94e0d81fd74463b2c7f26bd24e3c1c4c/Various/js_Hotstrings.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Add real-life timestamps.lua" type="script" desc="Add real-life timestamps">
