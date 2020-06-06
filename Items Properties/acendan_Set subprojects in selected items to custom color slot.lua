@@ -1,19 +1,19 @@
--- @description Set Color of Subprojects in Selected Items
+-- @description Set color of subprojects in selected items
 -- @author Aaron Cendan
 -- @version 1.0
 -- @metapackage
 -- @provides
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 1.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 2.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 3.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 4.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 5.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 6.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 7.lua
---   [main] . > acendan_Set Subprojects in Selected Items to Custom Color Slot 8.lua
---   [main] acendan_Set Subprojects in Selected Items to Custom Color Slot/acendan_Set Subprojects in Selected Items to Random Colors.lua
---   [main] acendan_Set Subprojects in Selected Items to Custom Color Slot/acendan_Set Subprojects in Selected Items to Random Custom Colors.lua
---   [main] acendan_Set Subprojects in Selected Items to Custom Color Slot/acendan_Set Subprojects in Selected Items to Color....lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 1.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 2.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 3.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 4.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 5.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 6.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 7.lua
+--   [main] . > acendan_Set subprojects in selected items to custom color slot 8.lua
+--   [main] acendan_Set subprojects in selected items to custom color slot/acendan_Set subprojects in selected items to random colors.lua
+--   [main] acendan_Set subprojects in selected items to custom color slot/acendan_Set subprojects in selected items to random custom colors.lua
+--   [main] acendan_Set subprojects in selected items to custom color slot/acendan_Set subprojects in selected items to color.lua
 -- @link https://aaroncendan.me
 -- @about
 --   # Set Color of Subprojects in Selected Items
