@@ -1,16 +1,24 @@
 -- @description Render time selection to new track
 -- @author DSG
--- @version 1.0
+-- @version 1.1
 -- @screenshot Screen https://stash.reaper.fm/39352/DSG_-_Render_time_selection_to_new_track.gif
 -- @about
 --   # DSG - Render time selection to new track
 --
---   Quick render selected tracks to new track using the time selection as boundaries
+--   Quick render time selection to new track (SWS REAPER Extension required http://www.sws-extension.org/)
 --
 --   Key features:
 --
 --   - Habitual way if you used FL earlier
---   - Excludes selected folder tracks for prevent multiple render of children track
+--   - Script can also render selected tracks only
+--
+--   Topic:
+--   https://forum.cockos.com/showthread.php?t=237319
+--
+--   Change log:
+--   v 1.1 (08.06.2020)
+--   [bugfix] Now script excludes childrens of selected folder tracks (earlier it was the other way around)
+--   [feature] Now script renders all tracks if there are no selected
 
 function hasSelectedTrack()
    return reaper.CountSelectedTracks(0) > 0
@@ -46,12 +54,6 @@ function run()
   -- Check selection
   if(not hasSelection()) then
     reaper.ShowMessageBox("No time selection", "Error", 0)
-    return false
-  end
-
-  -- Check selected tracks
-  if(not hasSelectedTrack()) then
-    reaper.ShowMessageBox("No tracks selected", "Error", 0)
     return false
   end
 
@@ -131,25 +133,12 @@ function run()
   reaper.Undo_EndBlock("Render time selection to stem track", 0)
 end
 
--- Smart exclude folders
-local excludedFolders = {}
-
-for i = 0, reaper.CountSelectedTracks(0) - 1 do
-  local track = reaper.GetSelectedTrack(0, i)
-
-  if(trackHasParent(track)) then
-    local parentTrack = reaper.GetParentTrack(track)
-    table.insert(excludedFolders, parentTrack)
-
-    while trackHasParent(parentTrack) do
-       parentTrack = reaper.GetParentTrack(parentTrack)
-       table.insert(excludedFolders, parentTrack)
-    end
-  end
+-- Check selected tracks
+if(not hasSelectedTrack()) then
+  reaper.Main_OnCommand(40296, 0) -- Track: Select all tracks
 end
 
-for i,track in pairs(excludedFolders) do
-    reaper.SetMediaTrackInfo_Value(track, "I_SELECTED", 0)
-end
+commandID = reaper.NamedCommandLookup("_SWS_UNSELCHILDREN")
+reaper.Main_OnCommand(commandID, 0)
 
 run()
