@@ -14,9 +14,7 @@
 --
 --   Topic:
 --   https://forum.cockos.com/showthread.php?t=237319
---
---   Change log:
---   v 1.1 (08.06.2020)
+-- @changelog
 --   [bugfix] Now script excludes childrens of selected folder tracks (earlier it was the other way around)
 --   [feature] Now script renders all tracks if there are no selected
 
