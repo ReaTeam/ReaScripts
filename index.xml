@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="11b48c5a39edc8f7fd26ef5d096b26e71b6de7a4" name="ReaTeam Scripts">
+<index version="1" commit="8ec9e5351b4d15316b32be91d901ec9f5872e631" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -10022,10 +10022,10 @@ Don't report an error if no render presets were created yet]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DSG - Render time selection to new track\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Quick render time selection to new track (SWS REAPER Extension required http://www.sws-extension.org/)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Quick render of all or selected tracks to stem track using the time selection as boundaries (SWS REAPER Extension required http://www.sws-extension.org/)\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Key features:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Habitual way if you used FL earlier\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Script can also render selected tracks only\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Habitual way if you used FL Studio earlier\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatically prevents multiple rendering of selected tracks\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Topic: https://forum.cockos.com/showthread.php?t=237319\par}
 }
 ]]></description>
@@ -10038,6 +10038,10 @@ Don't report an error if no render presets were created yet]]></changelog>
         <changelog><![CDATA[[bugfix] Now script excludes childrens of selected folder tracks (earlier it was the other way around)
 [feature] Now script renders all tracks if there are no selected]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11b48c5a39edc8f7fd26ef5d096b26e71b6de7a4/Rendering/DSG_Render%20time%20selection%20to%20new%20track.lua</source>
+      </version>
+      <version name="1.2" author="DSG" time="2020-06-11T05:25:13Z">
+        <changelog><![CDATA[[bugfix] Fixed partial script execution without time selection]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec9e5351b4d15316b32be91d901ec9f5872e631/Rendering/DSG_Render%20time%20selection%20to%20new%20track.lua</source>
       </version>
     </reapack>
   </category>
