@@ -1,22 +1,22 @@
 -- @description Render time selection to new track
 -- @author DSG
--- @version 1.1
+-- @version 1.2
 -- @screenshot Screen https://stash.reaper.fm/39352/DSG_-_Render_time_selection_to_new_track.gif
 -- @about
 --   # DSG - Render time selection to new track
 --
---   Quick render time selection to new track (SWS REAPER Extension required http://www.sws-extension.org/)
+--   Quick render of all or selected tracks to stem track using the time selection as boundaries
+--   (SWS REAPER Extension required http://www.sws-extension.org/)
 --
 --   Key features:
 --
---   - Habitual way if you used FL earlier
---   - Script can also render selected tracks only
+--   - Habitual way if you used FL Studio earlier
+--   - Automatically prevents multiple rendering of selected tracks
 --
 --   Topic:
 --   https://forum.cockos.com/showthread.php?t=237319
 -- @changelog
---   [bugfix] Now script excludes childrens of selected folder tracks (earlier it was the other way around)
---   [feature] Now script renders all tracks if there are no selected
+--   [bugfix] Fixed partial script execution without time selection
 
 function hasSelectedTrack()
    return reaper.CountSelectedTracks(0) > 0
@@ -58,7 +58,7 @@ function run()
   reaper.PreventUIRefresh(1)
   reaper.Undo_BeginBlock()
 
-  -- BounceTrack Create
+  -- Bounce track creation
   local trackCount = reaper.CountTracks(0)
 
   reaper.InsertTrackAtIndex(trackCount, 1)
@@ -84,7 +84,7 @@ function run()
   reaper.SetOnlyTrackSelected(bounceTrack, 1)
   reaper.Main_OnCommand(41716, 0) -- Track: Render selected area of tracks to stereo post-fader stem tracks (and mute originals)
 
-  -- Remove Sends and Bounce Track
+  -- Remove sends and bounce track
   for i,track in pairs(selectedTracks) do
     reaper.RemoveTrackSend(track, 0, reaper.GetTrackNumSends(track, 0)-1)
   end
@@ -131,12 +131,16 @@ function run()
   reaper.Undo_EndBlock("Render time selection to stem track", 0)
 end
 
--- Check selected tracks
+if(not hasSelection()) then
+  reaper.ShowMessageBox("No time selection", "Error", 0)
+  return false
+end
+
 if(not hasSelectedTrack()) then
   reaper.Main_OnCommand(40296, 0) -- Track: Select all tracks
 end
 
-commandID = reaper.NamedCommandLookup("_SWS_UNSELCHILDREN")
-reaper.Main_OnCommand(commandID, 0)
+local commandID = reaper.NamedCommandLookup("_SWS_UNSELCHILDREN")
+reaper.Main_OnCommand(commandID, 0) -- SWS: Unselect children of selected folder track(s)
 
 run()
