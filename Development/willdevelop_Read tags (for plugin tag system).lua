@@ -1,4 +1,4 @@
--- @description read tags (for plugin tag system)
+-- @description Read tags (for plugin tag system)
 -- @author Will Develop
 -- @version 1.0
 -- @link
@@ -132,5 +132,3 @@ for _,v in ipairs(allcompare) do
    end
 
 end
-
-
