@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 5.51
+Version: 5.52
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -48,10 +48,6 @@ About:
   
   
   REAPER BUGS:
-  
-  On OSX, current versions of REAPER has a bug in its implementation of Metal graphics, which prevents scripts from drawing transparent graphics inside REAPER's windows.
-  To use this scripts, Metal graphics should be DISabled in Preferences -> General -> Advanced UI/system tweaks.
-  Please bump the bug report thread in the Cockos forums: t=230013.
   
   REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.  
   Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable.
@@ -232,6 +228,10 @@ About:
     + Fixed: Tilt right-hand side used sine instead of power curve.
   * v5.51 (2020-05-15)
     + Fixed: Source length bug (again).
+  * v5.52 (2020-06-15)
+    + Requires REAPER v6.12, which fixed OSX Metal bug.
+    + Remove OSX Metal warning.
+    + Sort MIDI before terminating (p=2289029).
 ]]
 
 -- USER AREA 
@@ -2846,7 +2846,7 @@ function AtExit()
     -- Communicate with the js_Run.. script that this script is exiting
     reaper.DeleteExtState("js_Mouse actions", "Status", true)        
   
-    -- Before getting to errors in MAIN, clean up stuff that could have been changed in MAIN
+    -- Before getting to errors in MAIN, stuff that could have been changed in MAIN was already cleaned up above.
     if not mainOK then
         reaper.MB("The script encountered an error during startup:\n\n"
                 .. "mainretval: "..tostring(mainRetval)
@@ -2855,6 +2855,9 @@ function AtExit()
     end
     
     -- Double-check that nothing went awry, by checking MIDI source lengths.
+    --[[ v5.52: This check sometimes caused problems for some unknown reasons, even after compensating for playrate and rounding. 
+                So rather skip.
+                
     if pcallOK == true then
         for take in pairs(tGroups) do
             if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
@@ -2867,6 +2870,7 @@ function AtExit()
             end
         end
     end
+    
     if pcallOK == "shifted MIDI" then
         reaper.MB("The script has detected inadvertent shifts in the PPQ positions of unedited events."
               .. "\n\nThis may be due to a bug in the script, or in the MIDI API functions."
@@ -2874,20 +2878,35 @@ function AtExit()
               .. "\nhttp://forum.cockos.com/showthread.php?t=176878"
               .. "\n\nThe original MIDI data will be restored to the take."
               , "ERROR", 0)
-    elseif pcallOK == false then
+    else]]if pcallOK == false then
         reaper.MB("The script encountered an error:\n"
               .. "\ncontinueStep: "..tostring(continueStep)
               .. "\ncontinue: "..tostring(continue)
               .. "\npcallRetval: "..tostring(pcallRetval)
               --.."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
-              .."\n\n* The original, unaltered MIDI has been restored to the take."
+              .."\n\n* The original, unaltered MIDI will be restored to the take."
               , "ERROR", 0)
     end
-    if pcallOK == "shifted MIDI" or pcallOK == false then
+    
+    -- Must MIDI be sorted?  Only if positions have changed.
+    local mustSort
+    if tSteps then
+        for i = 1, #tSteps do 
+            if tSteps[i].isChangingPositions then
+                mustSort = true
+                break
+    end end end
+        
+    -- Sorting and restoring (in case of errors) both loop through all takes, so do both in same loop
+    if mustSort or pcallOK == false then
         for take in pairs(tGroups) do
             if tTakeInfo[take] and tTakeInfo[take].origMIDI 
             and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
-                reaper.MIDI_SetAllEvts(take, tTakeInfo[take].origMIDI)
+                if mustSort then
+                    reaper.MIDI_Sort(take)
+                else
+                    reaper.MIDI_SetAllEvts(take, tTakeInfo[take].origMIDI)
+                end
             end
         end
     end        
@@ -2919,12 +2938,18 @@ function AtExit()
     end 
     
     -- Undo_OnStateChange_Item is expected to be the fastest undo function, since it limits the info stored 
-    --    in the undo point to changes in this specific item.  
-    if isInline and reaper.ValidatePtr2(0, activeItem, "MediaItem*") then 
-        reaper.UpdateItemInProject(activeItem)
-        reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
-    else
+    --    in the undo point to changes in this specific item.  However, cannot be used if multiple items were edited.
+    if isInline then
+        if reaper.ValidatePtr2(0, activeItem, "MediaItem*") then 
+            reaper.UpdateItemInProject(activeItem)
+            reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
+        end
+    elseif next(tGroups, next(tGroups, nil)) then -- More than one take?
         reaper.Undo_OnStateChange2(0, undoString)
+    elseif activeItem then
+        if reaper.ValidatePtr2(0, activeItem, "MediaItem*") then
+            reaper.Undo_OnStateChange_Item(0, undoString, activeItem)
+        end
     end
 
 
@@ -4445,10 +4470,10 @@ function MAIN()
     
 
     -- Check whether SWS and my own extension are available, as well as the required version of REAPER
-    if not reaper.MIDI_DisableSort then
-        reaper.MB("This script requires REAPER v5.974 or higher.", "ERROR", 0)
+    if not reaper.PromptForAction then
+        reaper.MB("This script requires REAPER v6.12 or higher.", "ERROR", 0)
         return(false) 
-    elseif not reaper.JS_Window_EnableMetal then
+    elseif not reaper.JS_LICE_LoadJPG then
         reaper.ShowConsoleMsg("\n\nURL to add ReaPack repository:\nhttps://github.com/ReaTeam/Extensions/raw/master/index.xml")
         reaper.ShowConsoleMsg("\n\nURL for direct download:\nhttps://github.com/juliansader/ReaExtensions")
         reaper.MB("This script requires an up-to-date version of the js_ReaScriptAPI extension."
@@ -4463,8 +4488,8 @@ function MAIN()
         return(false)
     -- Older versions of SWS had bugs in BR_GetMouseCursorContext
     elseif not reaper.SN_FocusMIDIEditor then 
-        reaper.MB("This script requires an up-to-date versions of the SWS/S&M extension."
-               .. "\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org."
+        reaper.MB("This script requires an up-to-date version of the SWS/S&M extension, "
+               .. "which can be downloaded from www.sws-extension.org."
                 , "ERROR", 0)
         return(false) 
     end 
@@ -4656,20 +4681,8 @@ function MAIN()
     winOS = OS:match("Win")
     bitmap = reaper.JS_LICE_CreateBitmap(true, ME_Width, ME_Height)
         if not bitmap then reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false end 
-    -- If Metal, skip compositing
-    if macOS and reaper.JS_Window_EnableMetal(windowUnderMouse) > 0 then
-        if not reaper.HasExtState("js_Multi Tool", "Metal warning") then
-            reaper.MB("On macOS, current versions of REAPER has a bug in its implementation of Metal graphics, which prevents scripts from drawing transparent graphics inside REAPER's windows." 
-                    .. "\n\nTo use this script properly, Metal graphics should be DISabled in Preferences -> General -> Advanced UI/system tweaks."
-                    .. "\n\nWhile Metal is enabled, the script will not draw guidelines and transparent zones, but the mouse cursor will still change to indicate the active zone."
-                    .. "\n\nPlease bump the bug report thread on the Cockos forums: t=230013.", "WARNING", 0)
-            reaper.SetExtState("js_Multi Tool", "Metal warning", "true", true)
-            return false
-        end
-    else
-        compositeOK = reaper.JS_Composite(windowUnderMouse, 0, 0, ME_Width, ME_Height, bitmap, 0, 0, ME_Width, ME_Height)
-        if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
-    end
+    compositeOK = reaper.JS_Composite(windowUnderMouse, 0, 0, ME_Width, ME_Height, bitmap, 0, 0, ME_Width, ME_Height)
+    if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
     DisplayZones()
     
 
