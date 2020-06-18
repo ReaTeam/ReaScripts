@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="144c21f7d3561e57d7b7149d5ab427ec24d562a0" name="ReaTeam Scripts">
+<index version="1" commit="fd6edb0c15fd6004f54c74fd1bfed27dccc72923" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -55,6 +55,10 @@
       <version name="1.05" author="amagalma" time="2020-05-05T12:33:47Z">
         <changelog><![CDATA[- Optimized code]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/358f22eebe2430e829bdd39fb71327f9992c7916/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+      <version name="1.06" author="amagalma" time="2020-06-18T13:57:22Z">
+        <changelog><![CDATA[- Improved behavior with framerate grid and lots of frames/sec]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd6edb0c15fd6004f54c74fd1bfed27dccc72923/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
