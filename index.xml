@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4192d1de468a179918afa8415e9be3be6d0a7e61" name="ReaTeam Scripts">
+<index version="1" commit="efd54f473e25d8f7131e063bba2b26327c4adf36" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3107,6 +3107,24 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-11-29T03:22:58Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Items%20Editing/Add%20project%20markers%20as%20cue%20points%20to%20selected%20items%20and%20replace%20source%20files.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Add all completely visible items in arrange viewport to selection (for all completely visible tracks).lua" type="script" desc="Add all completely visible items in arrange viewport to selection (for all completely visible tracks)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Adds all items that are completely visible in the arrange viewport to selection\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Works for all items on all tracks that are completely visible\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?p=2307538#post2307538</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-06-21T10:17:58Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/efd54f473e25d8f7131e063bba2b26327c4adf36/Items%20Editing/amagalma_Add%20all%20completely%20visible%20items%20in%20arrange%20viewport%20to%20selection%20(for%20all%20completely%20visible%20tracks).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Apply track-take FX to items (mono output) and place in new track.lua" type="script" desc="Apply track/take FX to items (mono output) and place in new track">
