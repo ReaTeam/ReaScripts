@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a65d4e37225067f28af3a4247b1300abda06a9f" name="ReaTeam Scripts">
+<index version="1" commit="615c8b90332d984807c51c20245fd26082157170" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -6970,16 +6970,15 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Draw linear or curved ramps of CC and pitchwheel events in real time (without chasing start values).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Works in inline MIDI editors as well as full MIDI editors.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 An improvement over REAPER's built-in "Linear ramp CC events" mouse action:\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SNAP TO GRID: If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab CHASING START VALUES: Right-clicking toggles between chasing existing CC values at the line start position, and starting at the mouse's original vertical position. Chasing ensures that CC values change smoothly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Draw linear, curved or sine ramps of MIDI CCs and automation envelopes events in real time.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Works in automation envelopes as well as inline MIDI editors and full MIDI editors.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script was conceived before REAPER v6 introduced CC envelopes, and was intended as a workaround to quickly draw smooth ramps. Now that REAPER has native CC envelopes, the script is largely deprecated.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SNAP TO GRID: If snap to grid is enabled in the MIDI editor, the endpoints of the ramp will snap to grid, allowing precise positioning of the ramp (allowing, for example, the insertion of a pitch riser at the exact position of a note).\line Holding down Shift will override snap-to-grid.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab CHASING START VALUES: Right-clicking toggles between chasing existing CC values at the line start position, and starting at the mouse's original vertical position. Chasing ensures that CC values change smoothly. In the USER AREA, the user can customize whether chasing should interpolate envelope segments.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab LINEAR OR SINE SHAPES: Clicking the middle button toggles between a linear shape and a sine shape, which can be tweaked into other shapes such as parabolic.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab TWEAK THE CURVE: By using the mousewheel, the shape of the ramp can be tweaked. Linear ramps can be smoothly morphed to parabolic, for example.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab SKIP REDUNDANT CCs: This script (like all other js_ scripts that insert new CCs) can optionally skip redundant CCs (that is, CCs with the same value as the preceding CC). This is controlled by the script "js_Option - Toggle skip redundant events when inserting CCs".\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script inserts new CCs, instead of only editing existing CCs. (CCs are inserted at the density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes".)\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The script does not change or delete existing events until execution ends, so there are no 'overshoot remnants' if the mouse movement overshoots the target endpoint.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab ZOOM-DEPENDENT RESOLUTION: CCs and envelope points are inserted at a maximum density set in Preferences -> MIDI editor -> "Events per quarter note when drawing in CC lanes". Since REAPER v6 now has CC envelopes, a high CC density is not necessary for smooth ramps any more, so in the USER AREA, the user can customize whether the resolution should be zoom dependent.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve. (NB: The longer the mousewheel is kept moving, the faster the curve will change. The curve will also momentarily pause when it reaches the default, middle value.) * Any keystroke: Terminates the script.\par}
@@ -7002,7 +7001,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li0 \fi0 Stopping a script:\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left clicking while the script is running.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Mouse: Left-dragging and lifting the left button after holding the button down for more than one second.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any key while the script is running.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Pressing any key (except Shift) while the script is running.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Keyboard: Releasing the shortcut key after holding it down for more than one second.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 RUNNING THE SCRIPT FROM THE TOOLBAR:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Since the functioning of the script depends on initial mouse position (similar to some of REAPER's own mouse modifier actions, or actions such as "Insert note at mouse cursor"), the script cannot be run from a toolbar button.\line This problem is solved by "arming" toolbar buttons for delayed execution after moving the mouse into position:\par}
@@ -7057,6 +7056,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="4.30" author="juliansader" time="2019-09-22T11:03:37Z">
         <changelog><![CDATA[+ Preliminary compatibility with CC envelopes. (Visual appearance still needs to be improved.)]]></changelog>
         <source main="midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/74ee5daefee87075676c57ee97b01eeabec84339/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+      </version>
+      <version name="4.50" author="juliansader" time="2020-06-21T22:05:19Z">
+        <changelog><![CDATA[+ Works in automation envelopes.
++ Better compatibility with CC envelopes.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/615c8b90332d984807c51c20245fd26082157170/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Extract nodes.lua" type="script" desc="js_Mouse editing - Extract nodes.lua">
