@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="615c8b90332d984807c51c20245fd26082157170" name="ReaTeam Scripts">
+<index version="1" commit="163cfa2028112ce0dc7a9d4cecd82f5d08ac3e81" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9895,7 +9895,7 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/555980fce3a01348fdfddea71aca73687cb1f1c2/Regions/cfillion_Nudge%20start%20or%20end%20of%20regions%20in%20time%20selection.lua</source>
       </version>
     </reapack>
-    <reapack name="epacheco_Create a single region with name and tail length from selected items.lua" type="script" desc="Create a single region with name and tail length from selected items">
+    <reapack name="epacheco_Create a single region with name and tail length from selected items.lua" type="script" desc="Create single region with tail length from selected items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -9911,6 +9911,10 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.0" author="Eddie Pacheco" time="2020-01-27T06:16:52Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/57bdb537f902533ad221efbe6127fb5c980a835b/Regions/epacheco_Create%20a%20single%20region%20with%20name%20and%20tail%20length%20from%20selected%20items.lua</source>
+      </version>
+      <version name="1.1" author="Eddie Pacheco" time="2020-06-23T13:27:42Z">
+        <changelog><![CDATA[Bug fix for region not accounting for first item not having lowest timeline value. Region created will now properly address item positions in selection.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/163cfa2028112ce0dc7a9d4cecd82f5d08ac3e81/Regions/epacheco_Create%20a%20single%20region%20with%20name%20and%20tail%20length%20from%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="HeDa_RegionMatrixAutoTrack.lua" type="script" desc="Automatically assigns a track with a certain name to all Regions in the Region Render Matrix">
