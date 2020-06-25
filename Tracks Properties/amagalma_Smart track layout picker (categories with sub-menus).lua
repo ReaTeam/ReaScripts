@@ -1,6 +1,7 @@
 -- @description Smart track layout picker (categories with sub-menus)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog - Prevent undo creation when closing menu without having made a choice
 -- @link https://forum.cockos.com/showthread.php?t=230114
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -151,4 +152,6 @@ if selection > 0 then
     undo = "Set " .. context:upper() .. " layout to " .. register[selection]
   end
   reaper.Undo_EndBlock( undo, 1 )
+else
+  return reaper.defer(function() end)
 end
