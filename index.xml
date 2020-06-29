@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d66b81cda29433805aef595409cdfacb8116d458" name="ReaTeam Scripts">
+<index version="1" commit="dceb1f8ece72e9907b92c978ab81394bc11b5cab" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3550,6 +3550,10 @@ Better error-checking in general]]></changelog>
       <version name="1.02" author="amagalma" time="2020-04-22T14:25:25Z">
         <changelog><![CDATA[+ option inside the script to always ignore Snap settings for splits under mouse (default is ON)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c8774f69db400e3a54210a07f928de4c57c0eb34/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
+      </version>
+      <version name="1.03" author="amagalma" time="2020-06-29T23:08:22Z">
+        <changelog><![CDATA[- fix for BR_ItemAtMouseCursor() API failing sometimes]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dceb1f8ece72e9907b92c978ab81394bc11b5cab/Items%20Editing/amagalma_Split%20items%20under%20mouse%20with%20selection%20option%20(selected%20items%20get%20priority%20over%20grouped).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle guide line size between full arrange or item height.lua" type="script" desc="Toggle guide line size between full arrange or item height">
