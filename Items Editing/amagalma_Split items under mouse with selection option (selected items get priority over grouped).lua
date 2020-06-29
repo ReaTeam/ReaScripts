@@ -1,13 +1,13 @@
 -- @description Split items under mouse with selection option (selected items get priority over grouped)
 -- @author amagalma
--- @version 1.02
+-- @version 1.03
 -- @about
 --   # Splits item(s) under mouse cursor and all relevant grouped items
 --   - If there are selected items, they get priority over grouped items (only the selected ones will be split)
 --   - You can specify in the script if you want a change of selection by selecting left or right slpit items or not
 --   - You can specify in the script if you want to always ignore Snap settings or not for the splits under the mouse
 --   - Smart undo point creation
--- @changelog + option inside the script to always ignore Snap settings for splits under mouse (default is ON)
+-- @changelog - fix for BR_ItemAtMouseCursor() API failing sometimes
 
 
 -----------------------------------------------------------------------------------------------------
@@ -25,7 +25,11 @@ local ignoreSnap = 1                                                --
 
 local reaper = reaper
 local item, pos = reaper.BR_ItemAtMouseCursor()
-if not item then return reaper.defer(function () end) end
+if not item then
+  local screen_x, screen_y = reaper.GetMousePosition()
+  item = reaper.GetItemFromPoint( screen_x, screen_y, true )
+end
+if not item or not pos then return reaper.defer(function () end) end
 
 -- Load relevant commands to user settings
 local restore_selected = false
