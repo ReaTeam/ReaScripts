@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Draw ramp.lua
-Version: 4.51
+Version: 4.52
 Author: juliansader
 Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -169,7 +169,7 @@ About:
   * v4.50 (2020-05-17)
     + Works in automation envelopes.
     + Better compatibility with CC envelopes.
-  * v4.51 (2020-06-30)
+  * v4.52 (2020-06-30)
     + Fix bug when no automation options.
 ]]
 
@@ -1459,7 +1459,7 @@ function GetEnvelopeContext()
         if activeAI ~= -1 then
             for ai = 0, #tAI do
                 if ai ~= activeAI and tAI[ai].endTime > tAI[activeAI].startTime and tAI[ai].startTime < tAI[activeAI].endTime then
-                    reaper.MB("This script is not yet compatible with overlapping Automation Items..", "ERROR", 0)
+                    reaper.MB("This script is not yet compatible with overlapping Automation Items.", "ERROR", 0)
                     return false
                 end
             end
@@ -1467,14 +1467,15 @@ function GetEnvelopeContext()
     end
     
     local BR_Env = reaper.BR_EnvAlloc(activeEnv, false)
+    if not BR_Env then reaper.MB("Failed running the SWS function BR_EnvAlloc.", "ERROR", 0) return false end
     local active, visible, armed, inLane, laneHeight, defaultShape, minValue, maxValue, centerValue, envType, faderScaling, automationItemsOptions = reaper.BR_EnvGetProperties(BR_Env)
     reaper.BR_EnvFree(BR_Env, false)
     mode = reaper.GetEnvelopeScalingMode(activeEnv)
     minValue, maxValue = reaper.ScaleFromEnvelopeMode(mode, minValue), reaper.ScaleToEnvelopeMode(mode, maxValue)
 
-    if activeAI == -1 and ( (automationItemsOptions and automationItemsOptions ~= -1 and automationItemsOptions&4 == 4)
-                            or reaper.GetToggleCommandState(42213) == 1)
-                      then return false end -- Underlying env is bypassed
+    if not activeTake and activeAI == -1 and ( (automationItemsOptions and automationItemsOptions ~= -1 and automationItemsOptions&4 == 4)
+                                                or reaper.GetToggleCommandState(42213) == 1)
+                                         then return false end -- Underlying track env is bypassed
   
     return isEnvelope, activeEnv, activeAI, activeTake, activeTrack, tAI[activeAI].startTime, tAI[activeAI].endTime, offset, minValue, maxValue, envTopPixel, envBottomPixel, defaultShape
 end                    
