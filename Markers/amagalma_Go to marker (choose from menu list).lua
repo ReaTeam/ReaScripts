@@ -1,6 +1,6 @@
 -- @description Go to marker (choose from menu list)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Displays a menu list at the mouse cursor with all markers in project in a timeline order. Navigates to the chosen marker.
@@ -34,9 +34,9 @@ while true do
   else
     if not isrgn then
       if math.abs(cur_pos - pos) < 0.001 then
-        markers[ok] = {cur = true, name = name, idx = markrgnindexnumber}
+        markers[#markers+1] = {cur = true, name = name, idx = markrgnindexnumber}
       else
-        markers[ok] = {name = name, idx = markrgnindexnumber}
+        markers[#markers+1] = {name = name, idx = markrgnindexnumber}
       end
     end
   end
