@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6eb1d158c3a8a9b75b67099642d275f6828354ea" name="ReaTeam Scripts">
+<index version="1" commit="6485f33a27cf6138bb7c1e2a62a440d0bd3f70af" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -5147,6 +5147,9 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       </metadata>
       <version name="1.00" author="amagalma" time="2020-07-01T14:09:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/28e797ff4362e390e745765f6e6eebb1a0343ec8/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-07-01T15:49:25Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6485f33a27cf6138bb7c1e2a62a440d0bd3f70af/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Write project markers as media cues to selected items active takes source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
