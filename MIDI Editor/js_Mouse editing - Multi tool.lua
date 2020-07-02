@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.01
+Version: 6.02
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -227,12 +227,14 @@ About:
     + All editable takes can be edited together (if editability follows item selection).
     + Works in inline editor (and automatically installs in inline editor section).
   * v5.50 (2020-05-07)
-    + Fixed: Incorrect source length calculation when take play rate is not 1.
+    + Fixed: Incorrect source length calculation when take play ra  te is not 1.
     + Fixed: Tilt right-hand side used sine instead of power curve.
   * v6.00 (2020-06-28)
     + Works with automation envelope (only single envelope under mouse).
   * v6.01 (2020-07-01)
     + Temporarily disable tooltips on automation envelopes.
+  * v6.02 (2020-07-01)
+    + Some fixes for automation envelopes.
 ]]
 
 -- USER AREA 
@@ -250,7 +252,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
-local tTakeInfo = {}
+ tTakeInfo = {}
 local tMIDI = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -1419,8 +1421,11 @@ function Defer_Undo()
             if not tSteps[#tSteps-1].isChangingPositions then
                 for take, tID in pairs(tSteps[#tSteps-1].tGroups) do
                     for id, t in pairs(tID) do
-                        for i = 1, #t.tD do
-                            tMIDI[take][t.tD[i].index] = t.tD[i].flagsMsg
+                        local tD = t.tD
+                        for i = 1, #tD do
+                            if isMIDI then tMIDI[take][tD[i].index] = tD[i].flagsMsg
+                            else tD[i].deleted = false
+                            end
                         end
                     end
                 end
@@ -1458,7 +1463,7 @@ function Edit_ChaseRight()
             local left  = (origLeft < prevLeft)   and origLeft or prevLeft
             local right = (origRight > prevRight) and origRight or prevRight
             
-            local tC = t.tChase
+            local tC = t.tChase or (isEnvelope and t.tD)
             -- If there is nothing to chase, simpy copy previous step's values
             if not tC or #tC == 0 or tC[#tC].ticks <= right or prevLeft == prevRight then
                 new.tGroups[take][id] = {tV = t.tV}
@@ -1526,7 +1531,7 @@ function Edit_ChaseLeft()
             local left  = (origLeft < prevLeft)   and origLeft or prevLeft
             local right = (origRight > prevRight) and origRight or prevRight
             
-            local tC = t.tChase
+            local tC = t.tChase or (isEnvelope and t.tD)
             -- If there is nothing to chase, simpy copy previous step's values
             if not tC or #tC == 0 or tC[1].ticks >= left or prevLeft == prevRight then
                 new.tGroups[take][id] = {tV = t.tV}
@@ -1660,9 +1665,15 @@ function Edit_Reverse()
     end
 
     for take, tID in pairs(new.tGroups) do
-        local left, right = tTickFromTime[take][new.globalLeftmostTime], tTickFromTime[take][new.globalNoteOffTime]
+        --local left, right = tTickFromTime[take][new.globalLeftmostTime], tTickFromTime[take][new.globalNoteOffTime]
         for id, t in pairs(tID) do
             local nT, oT = t.tT, old.tGroups[take][id].tT
+            local left, right 
+            if isMIDI then
+                left, right = tTickFromTime[take][new.globalLeftmostTime], tTickFromTime[take][new.globalNoteOffTime]
+            else
+                left, right = oT[1], oT[#oT]
+            end
             for i = 1, #oT do
                 nT[i] = right - (oT[i] - left)
             end
@@ -3476,11 +3487,11 @@ function ParseAutomation()
     
         tGroups[env] = {}
 
-         isTakeEnv = tInfo.take and true or false
-         startAI   = isTakeEnv and -1 or ((bypassEnvelopes or (tInfo.AIOptions and tInfo.AIOptions ~= -1 and tInfo.AIOptions&4 == 4)) and 0 or -1)
-         endAI     = isTakeEnv and -1 or reaper.CountAutomationItems(env)-1
-         playrate  = tInfo.playrate
-         itemStartTime = tInfo.offset
+        local isTakeEnv = tInfo.take and true or false
+        local startAI   = isTakeEnv and -1 or ((bypassEnvelopes or (tInfo.AIOptions and tInfo.AIOptions ~= -1 and tInfo.AIOptions&4 == 4)) and 0 or -1)
+        local endAI     = isTakeEnv and -1 or reaper.CountAutomationItems(env)-1
+        local playrate  = tInfo.playrate
+        local itemStartTime = tInfo.offset
         local envLeftmostTick, envRightmostTick, envMaxValue, envMinValue = math.huge, -math.huge, -math.huge, math.huge
       
         for ai = startAI, endAI do
@@ -3496,7 +3507,7 @@ function ParseAutomation()
                         if value > envMaxValue then envMaxValue = value end
                         if value < envMinValue then envMinValue = value end
                     elseif #tT ~= 0 or time >= ME_LeftmostTime then
-                        tD[#tD+1] = {time = time, value = value, shape = shape, tension = tension, deleted = false}
+                        tD[#tD+1] = {time = time, ticks = time, value = value, shape = shape, tension = tension, deleted = false} -- Also add ticks, for compatibility with MIDI code
                     end
                 end
             end
@@ -3511,6 +3522,7 @@ function ParseAutomation()
                     end
                 end
                 tGroups[env][ai] = {tT = tT, tV = tV, tF = tF, tQ = tQ, tD = tD}
+                tTakeInfo[env][ai] = {}
                 if tT[1] < envLeftmostTick then envLeftmostTick, envLeftmostValue = tT[1], tV[1] end -- !!!! This implies that each envelope -- and all AIs in it -- use the same time boundaries.  Might not be a good idea...
                 if tT[#tT] > envRightmostTick then envRightmostTick, envRightmostValue = tT[#tT], tV[#tV] end
             end
@@ -4483,11 +4495,12 @@ function CONSTRUCT_AND_UPLOAD_AUTOMATION()
             local tT_Left, tT_Right = tT[1], tT[#tT] -- [1] may be to the right of [#tT] if reversing points
             if tT_Left > tT_Right then tT_Left, tT_Right = tT_Right, tT_Left end
             local deleteStartTimePos, deleteEndTimePos = tT_Left-0.0000001, tT_Right+0.0000001
-            if t.prevDelStart and t.prevDelStart < deleteStartTimePos then deleteStartTimePos = t.prevDelStart end
-            if t.prevDelEnd and t.prevDelEnd > deleteEndTimePos then deleteEndTimePos = t.prevDelEnd end
+            local prevDelStart, prevDelEnd = tTakeInfo[env][ai].prevDelStart,  tTakeInfo[env][ai].prevDelEnd 
+            if prevDelStart and prevDelStart < deleteStartTimePos then deleteStartTimePos = prevDelStart end
+            if prevDelEnd and prevDelEnd > deleteEndTimePos then deleteEndTimePos = prevDelEnd end
             reaper.DeleteEnvelopePointRangeEx(env, ai, playrate*(deleteStartTimePos-offset), playrate*(deleteEndTimePos-offset))
-            t.prevDelStart = deleteStartTimePos
-            t.prevDelEnd   = deleteEndTimePos
+            tTakeInfo[env][ai].prevDelStart = deleteStartTimePos
+            tTakeInfo[env][ai].prevDelEnd   = deleteEndTimePos
             
             local isChangingPositions = tSteps[#tSteps].isChangingPositions
                 
