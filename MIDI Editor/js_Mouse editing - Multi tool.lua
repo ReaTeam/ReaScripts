@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.02
+Version: 6.03
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -47,7 +47,7 @@ About:
       * And, of course, the script offers a variety of editing tools such as warping, compressing, stretching and tilting that are not found among REAPER's native actions.
   
   
-  REAPER BUGS:
+  REAPER LIMITATIONS:
   
   REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.  
   Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable.
@@ -68,6 +68,7 @@ About:
   LANE UNDER MOUSE:
   
   When editing automation envelopes, the script only affects the envelope that is under the mouse when the script starts.
+  
   In the case of MIDI, however, the script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.
   
       * To edit only the selected events in a single lane, the mouse must be positioned inside that lane when the script starts.  
@@ -77,6 +78,13 @@ About:
   
   When editing all selected events, only their tick positions can be edited, using the warp, stretch or reverse functions.  
   When editing a single lane, positions as well as values can be edited.  
+  
+  
+  SELECTED EVENTS vs AUTOMATION ITEMS
+  
+  When editing MIDI, the script will only edit selected events (and may delete non-selected events that are overlapped by the selected events after stretching).
+  
+  When editing automation, the script will also edit selected points -- if any are selected.  However, if no points are selected, the script will edit all points in all selected Automation Items.
   
   
   STARTING THE SCRIPT:
@@ -193,32 +201,6 @@ About:
 
 --[[
   Changelog:
-  * v5.01 (2019-12-03)
-    + BETA version.
-  * v5.05 (2019-12-19)
-    + Fixed: Load custom colors.
-    + Fixed: Display Undo/Redo boxes on macOS.
-    + Fixed: Canceled color selection dialog doesn't change color.
-  * v5.10 (2019-12-28)
-    + Scale top/bottom zones drawn at level of CC max/min values.
-    + Compress bottom zone active behind bottom scroll bar.
-  * v5.11 (2019-12-29)
-    + A few tweaks.
-  * v5.12 (2019-12-30)
-    + Fixed: Bug when holding keyboard shortcut.
-  * v5.21 (2020-04-03)
-    + Warning if used on macOS with Metal.
-    + Zone size can be set via right-click context menu.
-    + Stretch mode can switch to Move by right-clicking.
-    + All editable takes can be edited together -- but only if editability follows item selection.
-  * v5.23 (2020-04-06)
-    + Works even if active take contains no selected events.
-  * v5.25 (2020-04-19)
-    + In notes lane lane, Reset doesn't reset velocity values.
-  * v5.35 (2020-04-26)
-    + Works in inline editor (and automatically installs in inline editor section).
-    + Implement 2-sided warp (toggle with right-click while warping). 
-    + Fixed: Notes that extend beyond right edge of editor.
   * v5.40 (2020-04-27)
     + Fixed changelog.  Cumulative changes include:
     + Customization: Zone size can be set via right-click context menu (useful for hi-res displays).
@@ -235,6 +217,8 @@ About:
     + Temporarily disable tooltips on automation envelopes.
   * v6.02 (2020-07-01)
     + Some fixes for automation envelopes.
+  * v6.03 (2020-07-01)
+    + Automation envelopes: If no selected points, edit selected AIs.
 ]]
 
 -- USER AREA 
@@ -252,7 +236,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
-local tTakeInfo = {}
+ tTakeInfo = {}
 local tMIDI = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -3485,6 +3469,11 @@ function ParseAutomation()
     
     for env, tInfo in pairs(tTakeInfo) do
     
+        -- In first try, attempt to find selected points.  If no selected points found, search for selected AIs.
+        local secondTry = false
+        
+        ::tryAgain::
+        
         tGroups[env] = {}
 
         local isTakeEnv = tInfo.take and true or false
@@ -3495,13 +3484,14 @@ function ParseAutomation()
         local envLeftmostTick, envRightmostTick, envMaxValue, envMinValue = math.huge, -math.huge, -math.huge, math.huge
       
         for ai = startAI, endAI do
+            aiSelected = (reaper.GetSetAutomationItemInfo(env, ai, "D_UISEL", 0, false) == 1)
             reaper.Envelope_SortPointsEx(env, ai)
             local tT, tV, tF, tQ, tD = {}, {}, {}, {}, {}
             for p = 0, reaper.CountEnvelopePointsEx(env, ai)-1 do
                 local pointOK, time, value, shape, tension, selected = reaper.GetEnvelopePointEx(env, ai, p)
                 if pointOK then
                     if isTakeEnv then time = itemStartTime + time/playrate end
-                    if selected then
+                    if selected or (secondTry and aiSelected) then
                         local i = #tT+1
                         tT[i], tV[i], tF[i], tQ[i] = time, value, shape, tension
                         if value > envMaxValue then envMaxValue = value end
@@ -3532,6 +3522,9 @@ function ParseAutomation()
             tInfo.origLeftmostTick  = envLeftmostTick
             tInfo.origRightmostTick = envRightmostTick
             tInfo.origNoteOffTick   = envRightmostTick
+        elseif not secondTry then
+            secondTry = true
+            goto tryAgain
         else
             tGroups[env] = nil 
         end
