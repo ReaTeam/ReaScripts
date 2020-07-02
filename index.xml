@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6485f33a27cf6138bb7c1e2a62a440d0bd3f70af" name="ReaTeam Scripts">
+<index version="1" commit="b2c361447c9f8d440c6c591ccbb05efdfcd59399" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7234,7 +7234,7 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A multifunctional script for stretching, scaling, tilting and warping MIDI events.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A multifunctional script for stretching, scaling, tilting and warping of MIDI and automation envelopes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script is intended to work similar to REAPER's native left-drag mouse modifier functions -- but with more advanced functionality:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 First, recall how to run REAPER's native mouse modifier functions:\par}
@@ -7260,14 +7260,14 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li0 \fi0 REAPER BUGS:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 REAPER does not provide scripts with a list of items that are editable in a MIDI editor, so most scripts can only edit the active item.\line Only in special circumstances, for example when editability follows item selection, can scripts deduce which items are editable. Please bump the Feature Request thread: t=168563.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 EDITABLE ITEMS:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This script can edit selected events in all editable items, but only if the following settings are all enabled:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script can edit selected MIDI events in all editable items, but only if the following settings are all enabled:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Preferences -> MIDI editor -> On MIDI editor per project\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: MIDI track list/media item lane selection is linked to visibility\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: MIDI track list/media item lane selection is linked to editability\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: Draw and edit CC events on all tracks\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If these setting are not all enabled, the script can only edit events in the active item.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 LANE UNDER MOUSE:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When editing automation envelopes, the script only affects the envelope that is under the mouse when the script starts. In the case of MIDI, however, the script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 * To edit only the selected events in a single lane, the mouse must be positioned inside that lane when the script starts.  \line
     (After the script has started, the mouse may move out of the starting lane.)\line
 \line
@@ -7305,6 +7305,8 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       In the case of warping, it switches between slow start and slow end warp shapes.\line
 \line
 * Mousewheel tweaks the steepness of the curves.\line
+  NOTE: The longer the mousewheel movement, the faster the curve is changed.  The curve can therefore be changed from a central position to extreme with a single mousewheel sweep. \line
+        When sweeping from one extreme to the other, the curve will temporarily pause at the central position.  It is therefore easy to return the curve to the central position.\line
 \line
 * Right-clicking switches between one-sided mode and two-sided / symmetrical mode.\line
 \line
@@ -7526,6 +7528,14 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/750e3c0627a7c212eb8176d4f8a913b5816cf7e2/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
         <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/750e3c0627a7c212eb8176d4f8a913b5816cf7e2/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
         <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/750e3c0627a7c212eb8176d4f8a913b5816cf7e2/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
+      </version>
+      <version name="6.00" author="juliansader" time="2020-07-02T12:28:03Z">
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/b2c361447c9f8d440c6c591ccbb05efdfcd59399/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20tool.lua</source>
+        <source file="js_Mouse editing - Scale bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/b2c361447c9f8d440c6c591ccbb05efdfcd59399/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20bottom.cur</source>
+        <source file="js_Mouse editing - Scale top.cur">https://github.com/ReaTeam/ReaScripts/raw/b2c361447c9f8d440c6c591ccbb05efdfcd59399/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20top.cur</source>
+        <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/b2c361447c9f8d440c6c591ccbb05efdfcd59399/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
+        <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/b2c361447c9f8d440c6c591ccbb05efdfcd59399/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
+        <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/b2c361447c9f8d440c6c591ccbb05efdfcd59399/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Run script that is armed in toolbar.lua" type="script" desc="js_Mouse editing - Run script that is armed in toolbar.lua">
