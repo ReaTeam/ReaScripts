@@ -252,7 +252,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
- tTakeInfo = {}
+local tTakeInfo = {}
 local tMIDI = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
