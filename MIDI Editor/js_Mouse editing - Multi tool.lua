@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.00
+Version: 6.01
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -231,6 +231,8 @@ About:
     + Fixed: Tilt right-hand side used sine instead of power curve.
   * v6.00 (2020-06-28)
     + Works with automation envelope (only single envelope under mouse).
+  * v6.01 (2020-07-01)
+    + Temporarily disable tooltips on automation envelopes.
 ]]
 
 -- USER AREA 
@@ -2819,6 +2821,7 @@ function AtExit()
             end
         end
     end
+    if tooltipState == 1 then reaper.Main_OnCommand(41344, 0) end
 
     --[[ Just something to display table with userdata keys in IDE watchlist
     tTT = {}
@@ -4799,6 +4802,8 @@ function MAIN()
                     -- AUTOMATION ENVELOPE:
                     else
                         isEnvelope = Setup_AutomationContext()
+                        tooltipState = reaper.GetToggleCommandState(41344)
+                        if tooltipState == 1 then reaper.Main_OnCommand(41344, 0) end
                         gotEverythingOK = isEnvelope
     end end end end end
     
