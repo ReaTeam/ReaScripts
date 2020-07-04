@@ -1,9 +1,8 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.61
+-- @version 1.62
 -- @changelog
---   - Improved check for JS_ReaScriptAPI availability
---   - Changed default line color
+--   - Fixed crash when hiding all tracks in TCP
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
 --   - Can be used as a toolbar action or assigned to a key shortcut
@@ -132,7 +131,7 @@ end
 function visibletracksheight()
   local tr_cnt = reaper.CountTracks( 0 )
   if tr_cnt < 1 then return 0 end
-  local last_track = 0
+  local last_track
   for i = tr_cnt-1, 0, -1 do
     local track = reaper.GetTrack( 0, i )
     if reaper.IsTrackVisible(track, false) then
@@ -140,7 +139,7 @@ function visibletracksheight()
       break
     end
   end
-  return reaper.GetMediaTrackInfo_Value(last_track, "I_WNDH") + reaper.GetMediaTrackInfo_Value(last_track, "I_TCPY")
+  return ( last_track and reaper.GetMediaTrackInfo_Value(last_track, "I_WNDH") + reaper.GetMediaTrackInfo_Value(last_track, "I_TCPY") or 0 )
 end
 
 local vis_tracks_h = visibletracksheight()
