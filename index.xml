@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a95f324484935fe2bded923c3561f5a8246a5ef3" name="ReaTeam Scripts">
+<index version="1" commit="ebb11e96af23d6d665eb77a78af66642e0bc5499" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -59,6 +59,24 @@
       <version name="1.06" author="amagalma" time="2020-06-18T13:57:22Z">
         <changelog><![CDATA[- Improved behavior with framerate grid and lots of frames/sec]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fd6edb0c15fd6004f54c74fd1bfed27dccc72923/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20visible%20grid%20line.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Transport Play from start of arrange view - Stop at play cursor (editing).lua" type="script" desc="Transport Play from start of arrange view / Stop at play cursor (editing)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Starts playing from start of arrange view (without moving the arrange)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Stops at play cursor position\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab No undo is created\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Useful while editing\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-07-04T12:17:37Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebb11e96af23d6d665eb77a78af66642e0bc5499/Cursor/amagalma_Transport%20Play%20from%20start%20of%20arrange%20view%20-%20Stop%20at%20play%20cursor%20(editing).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Copy current position to clipboard.lua" type="script" desc="Copy current cursor/playback position to clipboard">
