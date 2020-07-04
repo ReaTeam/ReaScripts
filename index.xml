@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ebb11e96af23d6d665eb77a78af66642e0bc5499" name="ReaTeam Scripts">
+<index version="1" commit="112f716457c5be735e6f6b200332a8c05587397a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -3666,6 +3666,10 @@ Better error-checking in general]]></changelog>
         <changelog><![CDATA[- Improved check for JS_ReaScriptAPI availability
 - Changed default line color]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ae8e16d55911cc562e21f1751e2e0a7b1dd05baa/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.62" author="amagalma" time="2020-07-04T15:50:27Z">
+        <changelog><![CDATA[- Fixed crash when hiding all tracks in TCP]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/112f716457c5be735e6f6b200332a8c05587397a/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
