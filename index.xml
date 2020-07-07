@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="112f716457c5be735e6f6b200332a8c05587397a" name="ReaTeam Scripts">
+<index version="1" commit="84fd285853f83f77d8fe3c94e1a2d44fb7b30472" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -7063,6 +7063,10 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The events in the newly inserted ramp are automatically selected and other events in the same lane are deselected, which allows immediate further shaping of the ramp (using, for example, the warping or arching scripts).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 INSTRUCTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 As already mentioned above, the script can be controlled by the mouse while the script is running: * Left click: Terminates the script. * Middle click: Toggles the ramp shape between 1) linear/power curve and 2) sine ("slow start / slow end") curve. * Right click: Toggles between 1) chasing start values and 2) no chasing, use original mouse position. * Mousewheel: Tweaks the ramp curve. (NB: The longer the mousewheel is kept moving, the faster the curve will change. The curve will also momentarily pause when it reaches the default, middle value.) * Any keystroke: Terminates the script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 STARTING AT MINIMUM OR MAXIMUM\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In order to start a ramp at the minimum or maximum value, the starting position of the mouse can be slightly outside the target lane.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the case of MIDI, the mouse can be positioned over a CC lane divider.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the case of automation envelopes, the selected envelope takes precedence (whether take or track): If the mouse starting position is close to the selected envelope, the selected envelope will be edited, even if the starting position was inside another lane.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions (such as "Draw CCs", "Arpeggiate", "Paint notes", etc), in that the scripts follow mouse movement and continue to run until the user stops the script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 However, the scripts are more advanced than the native actions:\par}
@@ -7105,7 +7109,6 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=176878</link>
-        <link rel="screenshot">http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif</link>
         <link rel="donation">https://www.paypal.me/juliansader</link>
       </metadata>
       <version name="4.00" author="juliansader" time="2019-02-10T03:15:06Z">
@@ -7150,6 +7153,11 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
       <version name="4.52" author="juliansader" time="2020-06-30T14:19:15Z">
         <changelog><![CDATA[+ Fix bug when no automation options.]]></changelog>
         <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/780641f59f3eb42bfca1d697d568115db23861d2/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
+      </version>
+      <version name="4.55" author="juliansader" time="2020-07-07T06:57:59Z">
+        <changelog><![CDATA[+ macOS: Fixed jumping mouse cursor.
++ Automation: Edit nearest envelope instead of waiting for mouse to enter lane.]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/84fd285853f83f77d8fe3c94e1a2d44fb7b30472/MIDI%20Editor/js_Mouse%20editing%20-%20Draw%20ramp.lua</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Extract nodes.lua" type="script" desc="js_Mouse editing - Extract nodes.lua">
