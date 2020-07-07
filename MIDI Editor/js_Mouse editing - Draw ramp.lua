@@ -1,8 +1,7 @@
 --[[
 ReaScript name: js_Mouse editing - Draw ramp.lua
-Version: 4.52
+Version: 4.55
 Author: juliansader
-Screenshot: http://stash.reaper.fm/27627/Draw%20linear%20or%20curved%20ramps%20in%20real%20time%2C%20chasing%20start%20values%20-%20Copy.gif
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
 Provides: [main=midi_editor,midi_inlineeditor,main] .
@@ -59,6 +58,16 @@ About:
       * Any keystroke: Terminates the script.
   
   
+  STARTING AT MINIMUM OR MAXIMUM
+  
+  In order to start a ramp at the minimum or maximum value, the starting position of the mouse can be slightly outside the target lane.
+  
+  In the case of MIDI, the mouse can be positioned over a CC lane divider.
+  
+  In the case of automation envelopes, the selected envelope takes precedence (whether take or track): 
+      If the mouse starting position is close to the selected envelope, the selected envelope will be edited, even if the starting position was inside another lane.
+                    
+                    
   MOUSE EDITING SCRIPTS vs REAPER's LEFT-DRAG MOUSE MODIFIER ACTIONS
   
   The "js_Mouse editing" script resemble REAPER's own left-drag mouse modifier actions 
@@ -171,6 +180,9 @@ About:
     + Better compatibility with CC envelopes.
   * v4.52 (2020-06-30)
     + Fix bug when no automation options.
+  * v4.55 (2020-07-05)
+    + macOS: Fixed jumping mouse cursor.
+    + Automation: Edit nearest envelope instead of waiting for mouse to enter lane.
 ]]
 
 ----------------------------------------
@@ -324,8 +336,11 @@ local mousewheel  = (defaultShape == "sine" and 1) or (defaultShape == "fast sta
 local factor = 1.04
 local defaultFlagChar = '\1' -- Square shape | selected. Later, toggle states of shape actions will be queried.
 
-local activeEnv, activeAI, activeTrack, arrStartTime, arrEndTime, envTopPixel envBottomPixel, envHeight, envStartTime, envEndTime, envMinValue, envMaxValue = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
-local winRectLeft, winRectTop, winRectRight, winRectBottom = nil, nil, nil, nil
+ activeEnv, activeAI, activeTrack, arrStartTime, arrEndTime, envTopPixel, envBottomPixel, envHeight, envStartTime, envEndTime, envMinValue, envMaxValue = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
+local winRectHeight, winRectWidth = nil, nil
+local macOS = reaper.GetOS():match("OSX")
+
+
 
 -----------------------------
 function DEFER_DrawEnvelope()
@@ -354,7 +369,6 @@ function DEFER_DrawEnvelope()
     else 
         power = 1/mousewheel 
     end  
-    
     
     reaper.PreventUIRefresh(1)
     
@@ -483,6 +497,7 @@ function DEFER_DrawEnvelope()
         local firstOK, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker(0, 0)
         if firstOK then
             reaper.SetTempoTimeSigMarker(0, 0, timepos, -1, -1, bpm, timesig_num, timesig_denom, lineartempo)
+            --reaper.UpdateTimeline()
         end
     end
     reaper.PreventUIRefresh(-1) 
@@ -733,7 +748,7 @@ end
 -- The Lua script parts of this function - even if it calculates thousands of events per cycle,
 --    make up only a small fraction of the execution time.
 local function DEFER_GetInputs()
-
+    
     -- Must the script terminate?
     -- There are several ways to terminate the script:  Any mouse button, mousewheel movement or modifier key will terminate the script;
     --   except unmodified middle button and unmodified mousewheel, which toggles or scrolls through options, respectively.
@@ -746,7 +761,7 @@ local function DEFER_GetInputs()
     local prevCycleTime = thisCycleTime or startTime
     thisCycleTime = reaper.time_precise()
     dragTimeStarted = dragTimeStarted or (thisCycleTime > startTime + dragTime)  -- No need to call time_precise if dragTimeStarted already true    
- 
+    
     -- TAKE AND EDITOR STILL VALID?
     if editor and reaper.MIDIEditor_GetMode(editor) ~= 0 then return false end
     if isMIDI and not reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then activeTake = nil return false end
@@ -762,20 +777,6 @@ local function DEFER_GetInputs()
     local keyDown = reaper.JS_VKeys_GetDown(prevCycleTime):sub(VKLow, VKHi)
     keyDown = keyDown:sub(1,VKShift-VKLow)..keyDown:sub(VKShift-VKLow+2,nil)
     if keyDown ~= VKState0 then return false end
-    --[[
-    if keyDown ~= prevKeyState and keyDown ~= VKState0 then
-        local p = 0
-        ::checkNextKeyDown:: do
-            p = keyDown:find("\1", p+1)
-            if p then 
-                if prevKeyState:byte(p) == 0 then 
-                    return false 
-                else 
-                    goto checkNextKeyDown 
-                end
-            end
-        end
-    end]]
     
     -- EXTSTATE: Other scripts can communicate with and control the other js_ scripts via ExtStates
     local extState = reaper.GetExtState("js_Mouse actions", "Status") or ""
@@ -791,14 +792,25 @@ local function DEFER_GetInputs()
     end
     
     -- MOUSE POSITION: (New versions of the script don't quit if mouse moves out of CC lane, but will still quit if moves too far out of midiview.
-    mouseX, mouseY = reaper.GetMousePosition()
-    if mouseX < winRectLeft then mouseX = winRectLeft reaper.JS_Mouse_SetPosition(mouseX, mouseY)
-    elseif mouseX >= winRectRight then mouseX = winRectRight-1 reaper.JS_Mouse_SetPosition(mouseX, mouseY)
+    mouseX, mouseY = reaper.JS_Window_ScreenToClient(windowUnderMouse, reaper.GetMousePosition())
+    if mouseX < 0 then mouseX = 0 reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, 0, mouseY))
+    elseif mouseX >= winRectWidth then mouseX = winRectWidth-1 reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX, mouseY))
     end
-    if mouseY < winRectTop then mouseY = winRectTop reaper.JS_Mouse_SetPosition(mouseX, mouseY)
-    elseif mouseY >= winRectBottom then mouseY = winRectBottom-1 reaper.JS_Mouse_SetPosition(mouseX, mouseY)
+    if mouseY < 0 then mouseY = 0 reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX, 0))
+    elseif mouseY >= winRectHeight then mouseY = winRectHeight-1 reaper.JS_Mouse_SetPosition(reaper.JS_Window_ClientToScreen(windowUnderMouse, mouseX, mouseY))
     end
-    mouseX, mouseY = reaper.JS_Window_ScreenToClient(windowUnderMouse, mouseX, mouseY)
+    --[[
+    if macOS then
+        if mouseY > winRectTop then mouseY = winRectTop reaper.JS_Mouse_SetPosition(mouseX, mouseY)
+        elseif mouseY <= winRectBottom then mouseY = winRectBottom+1 reaper.JS_Mouse_SetPosition(mouseX, mouseY)
+        end
+        mouseX, mouseY = mouseX-winRectLeft, winRectTop-mouseY --reaper.JS_Window_ScreenToClient(windowUnderMouse, mouseX, mouseY)
+    else
+        if mouseY < winRectTop then mouseY = winRectTop reaper.JS_Mouse_SetPosition(mouseX, mouseY)
+        elseif mouseY >= winRectBottom then mouseY = winRectBottom-1 reaper.JS_Mouse_SetPosition(mouseX, mouseY)
+        end
+        mouseX, mouseY = mouseX-winRectLeft, mouseY-winRectTop --reaper.JS_Window_ScreenToClient(windowUnderMouse, mouseX, mouseY)
+    end]]
     if mouseX ~= prevMouseX or mouseY ~= prevMouseY then
         prevMouseX, prevMouseY = mouseX, mouseY
         mustCalculate = true
@@ -814,6 +826,7 @@ local function DEFER_GetInputs()
             prevDelta = 0
         else --if time > prevMouseTime+0.25 then
             --if keys&12 ~= 0 then return end
+            if macOS then delta = -delta end -- macOS mousewheel events use opposite sign
             delta = ((delta > 0) and 1) or ((delta < 0) and -1) or 0 -- Standardize delta values so that can compare with previous
             delta = (mouseY >= mouseOrigY) and delta or -delta -- Ensure that moving wheel down/up always moves curve down/up
             --[[
@@ -881,8 +894,6 @@ local function DEFER_GetInputs()
     if skipRedundantCCs ~= prevSkip then
         mustCalculate = true
     end
-        
-   
    
     -- TESTS DONE! DRAW RAMP!
     -- Scripts that extract selected MIDI events and re-concatenate them out of order (usually at the beginning of the MIDI string, for easier editing)
@@ -922,6 +933,7 @@ end
 function AtExit()
       
     -- Remove intercepts, restore original intercepts.  Do this first, because these are most important to restore, in case anything else goes wrong during AtExit.
+    reaper.TrackCtl_SetToolTip("", 0, 0, false)
     if interceptKeysOK ~= nil then pcall(function() reaper.JS_VKeys_Intercept(-1, -1) end) end
     if pcallInterceptWM_OK ~= nil then -- If these are nil, that part of MAIN wasn't reached
         if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then -- Either an exception or some other error
@@ -1335,20 +1347,20 @@ end
 
 
 -----------------------------
-function GetEnvelopeContext()
+function SetupEnvelopeContext()
     
     -- Why not use the SWS function to get the envelope context?  Because selected envelope should be targeted, even if mouse is slightly outside the lane.
     
-    local activeEnv, activeAI, activeTrack, arrH, arrW, trackY, envHeight, envTop, envBottom, isEnvelope
+    local activeEnv, activeAI, activeTrack, arrH, arrW, trackY, envHeight, envTop, envBottom, gotEnvelope = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
     
-    activeEnv = reaper.GetSelectedEnvelope(0)
+    tempoEnv = reaper.GetTrackEnvelopeByName(reaper.GetMasterTrack(0), "Tempo map")
 
-    --[[if activeEnv == tempoEnv then 
-        reaper.MB("This script does not work in the Tempo envelope.", "ERROR", 0)
-        return false
-    end]]
-    
+
+    -- First check if the mouse is close enough to the selected envelope
+    activeEnv = reaper.GetSelectedEnvelope(0)
     if activeEnv then --and reaper.ValidatePtr2(0, activeEnv, "TrackEnvelope*") then -- Does ValidatePtr work with TAKE envelopes?
+        -- Is take envelope?
+        -- Even if take env, must get parent track, since env position is given relative to track
         activeTake = reaper.Envelope_GetParentTake(activeEnv)
         if activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then
             activeItem = reaper.GetMediaItemTake_Item(activeTake)
@@ -1359,6 +1371,7 @@ function GetEnvelopeContext()
             else
                 activeEnv, activeTake = nil, nil
             end
+        -- Track envelope
         else
             activeTrack = reaper.GetEnvelopeInfo_Value(activeEnv, "P_TRACK", activeEnv)
         end 
@@ -1367,75 +1380,136 @@ function GetEnvelopeContext()
             envTop = trackY + reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPY_USED")
             envHeight = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
             envBottom = envTop + envHeight - 1
-            if envHeight > 5 and envTop >= 0 and envBottom <= (winRectBottom-winRectTop) and envTop-50 < mouseOrigY and mouseOrigY < envBottom+50 then -- Is selected envelope visible onscreen, and is mouse nearby?
-                isEnvelope = true 
-            else 
-                activeEnv = nil 
+            if envHeight > 5 and envTop >= 0 and envBottom <= winRectHeight and envTop-50 < mouseOrigY and mouseOrigY < envBottom+50 then -- Is selected envelope visible onscreen, and is mouse nearby?
+                gotEnvelope = true 
             end
         end
     end
   
-    if not activeEnv then 
-        
-        -- If mouse is slightly outside envelope lane, wait for mouse to enter
-        do ::tryFindEnv:: 
-        
-            activeEnv, isEnvelope = nil, false
-            
-            -- TERMINATE script if moves out of track area
-            local newX, newY = reaper.GetMousePosition()
-            activeTrack = reaper.GetTrackFromPoint(newX, newY) -- This function also return isEnvelope, but doesn't work for take envelopes
-            if not (activeTrack 
-                    and reaper.ValidatePtr2(0, activeTrack, "MediaTrack*")
-                    and trackview == reaper.JS_Window_FromPoint(newX, newY)) then
-                        return false
-            end
-            
-            trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
-            local newClientX, newClientY = reaper.JS_Window_ScreenToClient(trackview, newX, newY)
-            
-            -- If mouse is over take, first try to find take envelopes, then track ones (which may be displayed "in media lane")
-            activeItem, activeTake  = reaper.GetItemFromPoint(newX, newY, true)
-            if activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then
+    -- Check if mouse is OVER a TAKE envelope
+    if not gotEnvelope then 
+        -- If mouse is over take, first try to find take envelopes, then track ones (which may be displayed "in media lane")
+        activeItem, activeTake  = reaper.GetItemFromPoint(mouseOrigScreenX, mouseOrigScreenY, true)
+        if activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") then
+            activeTrack = reaper.GetMediaItemTake_Track(activeTake)
+            if activeTrack and reaper.ValidatePtr2(0, activeTrack, "MediaTrack*") then 
+                trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
                 for e = 0, reaper.CountTakeEnvelopes(activeTake)-1 do
                     local env = reaper.GetTakeEnvelope(activeTake, e)
                     local envTop = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
                     local envHeight = reaper.GetEnvelopeInfo_Value(env, "I_TCPH")
                     local envBottom = envTop + envHeight - 1
-                    if envTop <= newClientY and newClientY <= envBottom then 
-                        isEnvelope = true 
+                    if envTop <= mouseOrigY and mouseOrigY <= envBottom then 
+                        gotEnvelope = true 
                         activeEnv = env
                         break
                     end
                 end
+            end
+        end
+    end
+    
+    -- Check if mouse is CLOSE TO a TRACK envelope
+    if not gotEnvelope then
+        prevEnv, prevTrack, prevDistance = nil, nil, math.huge
+        track = reaper.GetTrackFromPoint(reaper.JS_Window_ClientToScreen(trackview, 0, 0))
+        while (track and reaper.ValidatePtr2(0, track, "MediaTrack*")) do
+            t = t or reaper.GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER")
+            trackY = reaper.GetMediaTrackInfo_Value(track, "I_TCPY")
+            for e = 0, reaper.CountTrackEnvelopes(track)-1 do
+                local env = reaper.GetTrackEnvelope(track, e)
+                local envTop = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
+                local envHeight = reaper.GetEnvelopeInfo_Value(env, "I_TCPH")
+                local envBottom = envTop + envHeight
+                distance = ((envTop <= mouseOrigY and mouseOrigY < envBottom) and 0)
+                            or ((mouseOrigY < envTop) and (envTop-mouseOrigY)) 
+                            or (mouseOrigY-envBottom)
+                if distance > prevDistance then
+                    goto goneThroughTrackEnvelopes
+                else
+                    prevEnv = env
+                    prevTrack = track
+                    prevDistance = distance
+                end
+            end
+            t = t + 1
+            track = reaper.GetTrack(0, t)
+        end
+        ::goneThroughTrackEnvelopes::
+        if prevDistance < 50 then
+            activeEnv = prevEnv
+            activeTrack = prevTrack
+            gotEnvelope = true
+        end
+    end
+    
+    if not gotEnvelope then
+        reaper.MB("No automation lane found near to mouse position."
+                  .."\n\nTo edit an unselected take envelope, the mouse cursor must be positioned inside the target envelope lane when the script starts."
+                  .."\n\nTo edit an unselected track envelope, the mouse cursor can either be inside or slighty outside the target lane. "
+                  .."If outside, it will ensure that the ramp starts at the minimum or maximum."
+                  .."\n\nThe selected envelope takes precedence (whether take or track): If the mouse starting position is close to the selected envelope, "
+                  .."the selected envelope will be edited, even if the starting position was inside another lane."
+                  , "ERROR", 0) 
+        return false
+    end
+        --[==[
+        local prevX, prevY = nil, nil
+        
+        -- If mouse is slightly outside envelope lane, wait for mouse to enter
+        do ::tryFindEnv:: 
+        
+            activeEnv, gotEnvelope = nil, false
+            
+            -- TERMINATE script if moves out of track area
+            local newX, newY = reaper.GetMousePosition()
+            local newClientX, newClientY = reaper.JS_Window_ScreenToClient(trackview, newX, newY)
+            if newClientX < 0 or newClientX >= winRectWidth or newClientY < 0 or newClientY >= winRectHeight then
+                return false
             end
             
-            -- No take envs found, so try track envs
-            if not activeEnv then
-                for e = 0, reaper.CountTrackEnvelopes(activeTrack)-1 do
-                    local env = reaper.GetTrackEnvelope(activeTrack, e)
-                    local envTop = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
-                    local envHeight = reaper.GetEnvelopeInfo_Value(env, "I_TCPH")
-                    local envBottom = envTop + envHeight
-                    if envTop <= newClientY and newClientY < envBottom then 
-                        isEnvelope = true 
-                        activeEnv = env
-                        break
+            activeTrack = reaper.GetTrackFromPoint(newX, newY) -- This function also return isEnvelope, but doesn't work for take envelopes
+            if activeTrack and reaper.ValidatePtr2(0, activeTrack, "MediaTrack*") then
+
+                trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
+                
+                
+                -- No take envs found, so try track envs
+                if not activeEnv then
+                    for e = 0, reaper.CountTrackEnvelopes(activeTrack)-1 do
+                        local env = reaper.GetTrackEnvelope(activeTrack, e)
+                        local envTop = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
+                        local envHeight = reaper.GetEnvelopeInfo_Value(env, "I_TCPH")
+                        local envBottom = envTop + envHeight
+                        if envTop <= newClientY and newClientY < envBottom then 
+                            gotEnvelope = true 
+                            activeEnv = env
+                            break
+                        end
                     end
                 end
             end
-    
-            -- No env yet so try again
-            if not (activeEnv and isEnvelope) or (activeEnv == tempoEnv) then goto tryFindEnv end
+                
+            if not (activeEnv and gotEnvelope) then 
+            --[[ If no env yet, try again
+                if not DEFER_GetInputs() then 
+                    return false 
+                else]]if newX ~= prevX or newY ~= prevY then
+                    prevX, prevY = newX, newY
+                    reaper.TrackCtl_SetToolTip("Move mouse into envelope lane", newX+10, newY+(macOS and -10 or 10), true) 
+                end
+                goto tryFindEnv 
+            end
         end
-
+]==]
         --[[
-        reaper.MB("To edit the selected automation envelope, the mouse must either be over the envelope lane, or to ensure that the ramp start at the minimum or maximum value, near the lane."
-                  .. "To edit an unselected envelope, the mouse must be over the lane.", "ERROR", 0) 
         ]]
-    end 
+  
     
-    -- To get the env under mouse, entire lane heigth was used.  To get value at mouse position, only "used" height must be used
+    --reaper.TrackCtl_SetToolTip("", 0, 0, true)
+    
+    -- To get the env under mouse, entire lane height was used.  To get value at mouse position, only "used" height must be used
+    trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
     local envTopPixel    = trackY + reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPY_USED")
     local envHeight      = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
     local envBottomPixel = envTopPixel + envHeight - 1
@@ -1468,7 +1542,7 @@ function GetEnvelopeContext()
     
     local BR_Env = reaper.BR_EnvAlloc(activeEnv, false)
     if not BR_Env then reaper.MB("Failed running the SWS function BR_EnvAlloc.", "ERROR", 0) return false end
-    local active, visible, armed, inLane, laneHeight, defaultShape, minValue, maxValue, centerValue, envType, faderScaling, automationItemsOptions = reaper.BR_EnvGetProperties(BR_Env)
+    local _, _, _, _, _, defaultShape, minValue, maxValue, _, _, _, automationItemsOptions = reaper.BR_EnvGetProperties(BR_Env)
     reaper.BR_EnvFree(BR_Env, false)
     mode = reaper.GetEnvelopeScalingMode(activeEnv)
     minValue, maxValue = reaper.ScaleFromEnvelopeMode(mode, minValue), reaper.ScaleToEnvelopeMode(mode, maxValue)
@@ -1477,7 +1551,7 @@ function GetEnvelopeContext()
                                                 or reaper.GetToggleCommandState(42213) == 1)
                                          then return false end -- Underlying track env is bypassed
   
-    return isEnvelope, activeEnv, activeAI, activeTake, activeTrack, tAI[activeAI].startTime, tAI[activeAI].endTime, offset, minValue, maxValue, envTopPixel, envBottomPixel, defaultShape
+    return gotEnvelope, activeEnv, activeAI, activeTake, activeTrack, tAI[activeAI].startTime, tAI[activeAI].endTime, offset, minValue, maxValue, envTopPixel, envBottomPixel, defaultShape
 end                    
 
 
@@ -1844,11 +1918,7 @@ function MAIN()
     interceptKeysOK = (reaper.JS_VKeys_Intercept(-1, 1) > 0)
         if not interceptKeysOK then reaper.MB("Could not intercept keyboard input.", "ERROR", 0) return false end
     mouseState = reaper.JS_Mouse_GetState(0xFF)    
-    mouseOrigX, mouseOrigY = reaper.GetMousePosition()
-    startTime = reaper.time_precise()
-    prevMouseTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
-    keyState = reaper.JS_VKeys_GetState(-2):sub(VKLow, VKHi)
-    keyState = keyState:sub(1,VKShift-VKLow)..keyState:sub(VKShift-VKLow+2,nil)
+    mouseOrigScreenX, mouseOrigScreenY = reaper.GetMousePosition()
     
     
     -- CONFLICTING SCRIPTS:
@@ -1899,10 +1969,10 @@ function MAIN()
     -- SWS uses Z order to find the midiview. In ReaScriptAPI, the equivalent would be JS_Window_GetRelated(parent, "CHILD"), "NEXT").
     -- But this is also not always reliable!  
     -- It seems to me that Window ID seems to me more cross-platform reliable than title or Z order.
-    windowUnderMouse = reaper.JS_Window_FromPoint(mouseOrigX, mouseOrigY)
+    windowUnderMouse = reaper.JS_Window_FromPoint(mouseOrigScreenX, mouseOrigScreenY)
     if windowUnderMouse then
             
-        winRectOK, winRectLeft, winRectTop, winRectRight, winRectBottom = reaper.JS_Window_GetClientRect(windowUnderMouse)
+        winRectOK, winRectWidth, winRectHeight = reaper.JS_Window_GetClientSize(windowUnderMouse)
         if winRectOK then
         
             parentWindow = reaper.JS_Window_GetParent(windowUnderMouse)
@@ -1917,7 +1987,7 @@ function MAIN()
                     editor = parentWindow
                     if windowUnderMouse == reaper.JS_Window_FindChildByID(parentWindow, 1001) then -- The piano roll child window, titled "midiview" in Windows.
                         midiview = windowUnderMouse
-                        mouseOrigX, mouseOrigY = reaper.JS_Window_ScreenToClient(midiview, mouseOrigX, mouseOrigY) -- Always use client coordinates in MIDI editor                                    
+                        mouseOrigX, mouseOrigY = reaper.JS_Window_ScreenToClient(midiview, mouseOrigScreenX, mouseOrigScreenY) -- Always use client coordinates in MIDI editor                                    
                         
                         activeTake = reaper.MIDIEditor_GetTake(editor)
                         activeTakeOK = activeTake and reaper.ValidatePtr2(0, activeTake, "MediaItem_Take*") and reaper.TakeIsMIDI(activeTake)
@@ -1962,9 +2032,9 @@ function MAIN()
                     
                     trackview = windowUnderMouse
                     ruler     = reaper.JS_Window_FindChildByID(reaper.GetMainHwnd(), 1005)
-                    activeItem, activeTake  = reaper.GetItemFromPoint(mouseOrigX, mouseOrigY, true)
+                    activeItem, activeTake  = reaper.GetItemFromPoint(mouseOrigScreenX, mouseOrigScreenY, true)
                     
-                    mouseOrigX, mouseOrigY = reaper.JS_Window_ScreenToClient(trackview, mouseOrigX, mouseOrigY)
+                    mouseOrigX, mouseOrigY = reaper.JS_Window_ScreenToClient(trackview, mouseOrigScreenX, mouseOrigScreenY)
                     arrStartTime, arrEndTime = reaper.GetSet_ArrangeView2(0, false, 0, 0)
                     pixelsPerSec = reaper.GetHZoomLevel()
                     mouseOrigTimePos = arrStartTime + mouseOrigX/pixelsPerSec
@@ -2007,7 +2077,7 @@ function MAIN()
                       
                     -- ENVELOPE
                     else
-                        isEnvelope, activeEnv, activeAI, activeTake, activeTrack, envStartTime, envEndTime, envOffset, envMinValue, envMaxValue, envTopPixel, envBottomPixel, envDefaultShape = GetEnvelopeContext()
+                        isEnvelope, activeEnv, activeAI, activeTake, activeTrack, envStartTime, envEndTime, envOffset, envMinValue, envMaxValue, envTopPixel, envBottomPixel, envDefaultShape = SetupEnvelopeContext()
                         
                         if isEnvelope then
                             gotEverythingOK = true
@@ -2064,8 +2134,7 @@ function MAIN()
         prevRampLeftTimePos, prevRampRightTimePos = mouseOrigTimePos, mouseOrigTimePos
         prevMouseTimePos, prevMouseValue = nil, nil
         -- Don't try to edit Master track tempo env
-        masterTrack = reaper.GetMasterTrack(0)
-        tempoEnv = reaper.GetTrackEnvelopeByName(masterTrack, "Tempo map")
+        
         
         --[[if activeEnv == tempoEnv then
             local _, gridDividedByFour = reaper.GetSetProjectGrid(0, false) -- Arrange grid and MIDI grid are returned in different units
@@ -2234,6 +2303,16 @@ function MAIN()
         return true
     end)
     if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then return false end
+    
+    
+    -- KEYBOARD STATE:
+    -- DO NOT get keystate immediately.  If startTime = actual start time of script, and if mouse starts outside lane, 
+    --    may take more than dragtime to move into lane, so the script can only check whether key has quickly been released 
+    --    *after* dragtime has already passed.
+    startTime = reaper.time_precise()
+    prevMouseTime = startTime + 0.5 -- In case mousewheel sends multiple messages, don't react to messages sent too closely spaced, so wait till little beyond startTime.
+    keyState = reaper.JS_VKeys_GetState(-2):sub(VKLow, VKHi)
+    keyState = keyState:sub(1,VKShift-VKLow)..keyState:sub(VKShift-VKLow+2,nil)
     
     
     ------------------------------------------------------------
