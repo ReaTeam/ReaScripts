@@ -1,6 +1,9 @@
 -- @description ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.13
+-- @version 2.14
+-- @changelog Fix loading SWS color palettes for macOS
+-- @link http://forum.cockos.com/showthread.php?t=189602
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Track/Item/Take coloring utility - modification of Spacemen Tree's REAchelangelo
 --
@@ -29,13 +32,11 @@
 --   - When in Compact (No Sliders) Mode, Right-click Get Color Button to set Temporary Color Box's color
 --   - Click on "?" on right top corner to display information, Right-Click for manual
 
--- @link http://forum.cockos.com/showthread.php?t=189602
-
 
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.13"
+version = "v2.14"
 
 
 
@@ -47,7 +48,6 @@ version = "v2.13"
 --                                                |
 --------------------------------------------------|
 -------------------------------------------------/
-
 
 
 
@@ -567,20 +567,20 @@ end
     
     function SetSliders(boxID)
         if mode == "rgb" or mode == "compact" then
-              slider_btn_r.val = boxID.r +0.2 
-              slider_btn_g.val = boxID.g +0.2 
-              slider_btn_b.val = boxID.b +0.2 
-              slider_btn_a.val = boxID.a            
+              slider_btn_r.val = boxID.r +0.2
+              slider_btn_g.val = boxID.g +0.2
+              slider_btn_b.val = boxID.b +0.2
+              slider_btn_a.val = boxID.a
         elseif mode == "hsl" then
               local h, s, l = rgbToHsl(boxID.r+0.2, boxID.g+0.2, boxID.b+0.2)
               slider_btn_h.val = h
               slider_btn_s.val = s
-              slider_btn_l.val = l 
+              slider_btn_l.val = l
               slider_btn_a.val = boxID.a
         end
     end
-    
-    function ColorBx_CLICK(boxID)  
+
+    function ColorBx_CLICK(boxID)
         boxID.onClick = function ()
             SetSliders(boxID)
             if what == "tracks" then
@@ -588,21 +588,21 @@ end
                 ApplyColor_Tracks()
             elseif what == "items" then
                 Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
-                ApplyColor_Items()             
+                ApplyColor_Items()
             elseif what == "takes" then
                 Convert_RGB(boxID.r +0.2, boxID.g +0.2, boxID.b +0.2, boxID.a)           
-                ApplyColor_Takes()  
-            end        
+                ApplyColor_Takes()
+            end
         end
         boxID.onRClick = function ()
         local answer = reaper.MB("Save temporary edit color to clicked colorbox?", "Save edit color", 1)
-          if answer == 1 then                 
-            boxID.r = slider_btn_r.val -0.2  
-            boxID.g = slider_btn_g.val -0.2 
-            boxID.b = slider_btn_b.val -0.2 
+          if answer == 1 then
+            boxID.r = slider_btn_r.val -0.2
+            boxID.g = slider_btn_g.val -0.2
+            boxID.b = slider_btn_b.val -0.2
             boxID.a = slider_btn_a.val
             SaveColorFile(last_palette_on_exit)
-          end  
+          end
         end
         boxID.onCtrlClick = function ()
           if what == "tracks" then
@@ -661,7 +661,7 @@ end
             else
                  reaper.MB( "Please select at least three items!", "Cannot create gradient colors!", 0 )
             end
-          
+
           elseif what == "takes" then
             local selitems = reaper.CountSelectedMediaItems(0)
             if selitems < 1 then
@@ -705,16 +705,16 @@ end
    
     function Convert_RGB(ConvertRed,ConvertGreen,ConvertBlue,ConvertAlpha)
         alpha = ConvertAlpha
-        red = math.floor(ConvertRed*255 + 0.5) 
+        red = math.floor(ConvertRed*255 + 0.5)
         green = math.floor(ConvertGreen*255 + .5)
         blue =  math.floor(ConvertBlue*255 + .5)
         ConvertedRGB = reaper.ColorToNative (red, green, blue)    
         return ConvertedRGB, red, green, blue, alpha
-    end 
-    
+    end
+
 -- Emmanuel Oga's rgbToHsl and hslToRgb functions taken from here:
 -- https://github.com/EmmanuelOga/columns/blob/master/utils/color.lua
-   
+
     function rgbToHsl(r, g, b) -- values in-out 0-1
       local max, min = math.max(r, g, b), math.min(r, g, b)
       local h, s, l
@@ -734,8 +734,8 @@ end
       end
       return h, s, l or 1
     end
-    
-    
+
+
     function hslToRgb(h, s, l) -- values in-out 0-1
       local r, g, b
       if s == 0 then
@@ -758,15 +758,15 @@ end
       end
       return r,g,b
     end
-                       
+
     function ApplyColor_Tracks()
-      reaper.Undo_BeginBlock()     
-         local track_count = reaper.CountTracks(0)         
-         for i=0, track_count-1 do 
+      reaper.Undo_BeginBlock()
+         local track_count = reaper.CountTracks(0)
+         for i=0, track_count-1 do
            local cur_track = reaper.GetTrack(0,i)
            local sel_track = reaper.IsTrackSelected(cur_track)
-               if sel_track == true then 
-               reaper.SetTrackColor(cur_track, ConvertedRGB) 
+               if sel_track == true then
+               reaper.SetTrackColor(cur_track, ConvertedRGB)
                end
          end
       reaper.Undo_EndBlock("Color selected track(s)", -1)
@@ -1046,22 +1046,7 @@ end
           SaveAsSWSPalette()
         end
     end
-    
-    function IntToRGB(RGB)
-      local R = RGB & 255
-      local G = (RGB >> 8) & 255
-      local B = (RGB >> 16) & 255
-      return R,G,B
-    end
-    
-    --- gianfini: convert into int format as for SWS files ---
-    function RGBToInt (red, green, blue)
-      if((red < 0 or red > 255 or green < 0 or green > 255 or blue < 0 or blue > 255)) then
-        return 0
-      end      
-      local INTColor = blue*256*256 + green*256 + red
-      return INTColor
-    end
+
     
     function RandomColors_INIT()
       local RandomColors_x = GUI_centerx -72
@@ -1234,12 +1219,12 @@ end
                 swscolors = {}
                 for loadcolor = 1,18 do 
                   swscolors [loadcolor] = tonumber(string.match(file:read("*l"), '%d+$'))
-                  local value_r, value_g, value_b = IntToRGB(swscolors [loadcolor])               
+                  local value_r, value_g, value_b = reaper.ColorFromNative(swscolors [loadcolor])               
                   ColorBoxes[loadcolor]:set_color(value_r/255-0.2, value_g/255-0.2, value_b/255-0.2, 1)
                 end
                 --Create Gradients for the rest of the colorboxes
-                local r1,g1,b1 = IntToRGB(tonumber(swscolors[17]))
-                local r2,g2,b2 = IntToRGB(tonumber(swscolors[18]))       
+                local r1,g1,b1 = reaper.ColorFromNative(tonumber(swscolors[17]))
+                local r2,g2,b2 = reaper.ColorFromNative(tonumber(swscolors[18]))       
                 local r_step = (r2-r1)/7
                 local g_step = (g2-g1)/7
                 local b_step = (b2-b1)/7
@@ -1607,11 +1592,11 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
         end
 
     end
-    
+
     function Sliders_GUI()
         local Sliders_x = GUI_centerx -65
         local Sliders_y = GUI_centery -155
-        gfx.set(0,0,0,1)  
+        gfx.set(0,0,0,1)
         gfx.rect(Sliders_x, Sliders_y - 1,121,17,0)
         gfx.rect(Sliders_x, Sliders_y - 1,20,17,0)
         gfx.rect(Sliders_x, Sliders_y + 19,121,17,0)
@@ -1623,7 +1608,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           slider_btn_r.val, slider_btn_g.val, slider_btn_b.val = r, g, b
         end
     end
-    
+
     function Sliders_INIT()
         local Sliders_initx = GUI_centerx -45
         local Sliders_inity = GUI_centery + (50/2)*-6.2
@@ -1638,9 +1623,9 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           slider_btn_s = Slider(Sliders_initx, Sliders_inity + 20, 100, 15, 0, 0, 1, "S",help, 1, 0.05, 0.05)
           slider_btn_l = Slider(Sliders_initx, Sliders_inity + 40, 100, 15, 0.38824, 0, 1, "L",help, 1, 1, 1)
           slider_btn_a = Slider(Sliders_initx, Sliders_inity + 60, 100, 15, 1, 0, 1, "A","", 0.6, 0.1, 0.5) 
-        end   
+        end
     end
-    
+
     function Change_Mode()
       if gfx.mouse_x >= 34 and gfx.mouse_x <= 152 and gfx.mouse_y >= 195 and gfx.mouse_y <= 250 and last_mouse_state == 0 and gfx.mouse_cap == 2 then
         if lastchange == nil or reaper.time_precise()-lastchange > 0.3 then
@@ -1653,7 +1638,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
               slider_btn_h.val = h
               slider_btn_s.val = s
               slider_btn_l.val = l
-              lastchange = reaper.time_precise() 
+              lastchange = reaper.time_precise()
           elseif mode == "hsl" then
               mode = "rgb"
               local prev_red, prev_green, prev_blue = red, green, blue
@@ -1662,13 +1647,13 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
               slider_btn_r.val = prev_red/255
               slider_btn_g.val = prev_green/255
               slider_btn_b.val = prev_blue/255
-              lastchange = reaper.time_precise()  
-          end                
-        end       
+              lastchange = reaper.time_precise()
+          end
+        end
       end
     end
-    
-    
+
+
     ---  rgbToHex is written by Marcelo Codget ---
     --- https://gist.github.com/marceloCodget/3862929 ---
     function rgbToHex(rgb)
@@ -1689,14 +1674,14 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           end
         return hexadecimal
     end
-    
+
     function hex2rgb(hex)
           hex = hex:gsub("#","")
           hex2rgbR = tonumber("0x"..hex:sub(1,2))
           hex2rgbG = tonumber("0x"..hex:sub(3,4))
           hex2rgbB = tonumber("0x"..hex:sub(5,6))
-    end    
-    
+    end
+
     function HEXinfo_GUI()
           local HEXinfo_x = GUI_centerx -68
           local HEXinfo_y = GUI_centery -187
@@ -1718,10 +1703,10 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           gfx.set(0.4,0.4,0.4,1)
           gfx.rect(HEXinfo_x + 18, HEXinfo_y - 38,94,21,0)
     end
-  
-    function HEXinfo_INIT() 
+
+    function HEXinfo_INIT()
           local HEXinfo_x = GUI_centerx -68
-          local HEXinfo_y = GUI_centery -187     
+          local HEXinfo_y = GUI_centery -187
           local Hex_label = tostring(Hex_display)
           local help = "Lmb->paste | Rmb->copy"
           HEXinfo_btn = Button(HEXinfo_x +20, HEXinfo_y-36, 90,17,2,0,0,"",help,0,1)
@@ -1739,33 +1724,33 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
                     if string.match(answer, "# ") == "# " then answer = answer:sub(3)
                     elseif string.match(answer, "#") == "#" then answer = answer:gsub("#", "")
                     elseif string.match(answer, "0x") == "0x" then answer = answer:gsub("0x", "")
-                    end                
+                    end
                     local R = tonumber("0x"..answer:sub(1,2))
                     local G = tonumber("0x"..answer:sub(3,4))
                     local B = tonumber("0x"..answer:sub(5,6))
                     if mode == "rgb" or mode == "compact" then
-                      slider_btn_r.val = R/255 
-                      slider_btn_g.val = G/255  
+                      slider_btn_r.val = R/255
+                      slider_btn_g.val = G/255
                       slider_btn_b.val = B/255
                     elseif mode == "hsl" then
                       local h, s, l = rgbToHsl(R/255, G/255, B/255)
                       slider_btn_h.val = h
                       slider_btn_s.val = s
-                      slider_btn_l.val = l 
+                      slider_btn_l.val = l
                       slider_btn_a.val = 1
                     end
                   else
                       reaper.ShowMessageBox("This is not a valid number!", "Error!", 0)
-                  end  
+                  end
                 end
               end
     end
-    
-                            
+
+
 
     function RGBToHex(red, green, blue, alpha)
     --https://forum.mtasa.com/viewtopic.php?f=160&t=76355
-        if((red < 0 or red > 255 or green < 0 or green > 255 
+        if((red < 0 or red > 255 or green < 0 or green > 255
             or blue < 0 or blue > 255) or (alpha and (alpha < 0 or alpha > 255))) then
           return nil
         end
@@ -1778,11 +1763,11 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
 
     function LoadColorFile(palette_file)
        if palette_file == nil then Create_Default() else
-        loaded_file = palette_file end             
+        loaded_file = palette_file end
       local palette = io.open(loaded_file,"r")  -- open colorset file for reading
         if palette == nil or string.match(tostring(palette), ".SWSColor$") == ".SWSColor" then 
            Create_Default()
-        else  
+        else
            for loadcolor = 1,24 do       -- read lines, start on line 1 and go up to 56 ( 14 groups x 4 rgba)   
                 local palette_string = palette:read("*l")  -- thisfilestring gets file line value each time for loops     
                 colors [loadcolor] = palette_string   -- value gets stored in table
@@ -1791,30 +1776,30 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
                   if hex2rgbR == nil or hex2rgbG == nil or hex2rgbB == nil then Create_Default()
                     reaper.ShowMessageBox( "This is not a valid palette file!\nIf you were trying to load a SWSColor file, please do it with the Load SWS Button!" , "Error!", 0 )
                   break
-                  else                                             
-                    value_r = hex2rgbR/255-0.2                                     
-                    value_g = hex2rgbG/255-0.2             
+                  else
+                    value_r = hex2rgbR/255-0.2
+                    value_g = hex2rgbG/255-0.2
                     value_b = hex2rgbB/255-0.2
                     ColorBoxes [loadcolor]:set_color(value_r,value_g,value_b,1)
                   end
            end
         Write_Prefs()
-        end   
+        end
     end
-    
+
     function Create_Default()
-      for c, v in ipairs(defcolors) do             
-        value_r = tonumber("0x"..v:sub(1,2))/255-0.2                                     
-        value_g = tonumber("0x"..v:sub(3,4))/255-0.2              
-        value_b = tonumber("0x"..v:sub(5,6))/255-0.2 
-      ColorBoxes[c]:set_color(value_r,value_g,value_b,1)                    
+      for c, v in ipairs(defcolors) do
+        value_r = tonumber("0x"..v:sub(1,2))/255-0.2
+        value_g = tonumber("0x"..v:sub(3,4))/255-0.2
+        value_b = tonumber("0x"..v:sub(5,6))/255-0.2
+      ColorBoxes[c]:set_color(value_r,value_g,value_b,1)
       end
       loaded_file = "Default"
     end
-        
+
     function SaveColorFile(palette_file)
         file = io.open(palette_file,"w+")
-        ---- Collect data ---- 
+        ---- Collect data ----
         local HexColorList = {}
         local RtoHex = {}
         local GtoHex = {}
@@ -1828,17 +1813,17 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
               if HexColorList [save_hex] == nil then HexColorList [save_hex] = "636363" end
             ---- Write to file ----
             file:write(HexColorList [save_hex], "\n")
-        end 
-        file:close()              
+        end
+        file:close()
     end
-    
-    ---- gianfini: added save SWS file ----     
+
+    ---- gianfini: added save SWS file ----
     function SaveSWSColorFile(palette_file)
         file = io.open(palette_file,"w+")
         ---- J Header -----
         file:write("[SWS Color]", "\n")
-        
-        ---- Collect data ---- 
+
+        ---- Collect data ----
         local IntegerColorList = {}
         local RtoInt = {}
         local GtoInt = {}
@@ -1848,20 +1833,20 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
             GtoInt [box_pos] = ColorBoxes [box_pos].g
             BtoInt [box_pos] = ColorBoxes [box_pos].b
             Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
-            IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+            IntegerColorList[box_pos] = reaper.ColorToNative(red,green,blue)
             ---- Write to file ----
             file:write("custcolor")
             file:write(box_pos)
             file:write("=")
             file:write(IntegerColorList [box_pos], "\n")
-        end 
+        end
         ---- Write the two gradient files ----
         box_pos = 17
         RtoInt [box_pos] = ColorBoxes [box_pos].r
         GtoInt [box_pos] = ColorBoxes [box_pos].g
         BtoInt [box_pos] = ColorBoxes [box_pos].b
         Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
-        IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+        IntegerColorList[box_pos] = reaper.ColorToNative(red,green,blue)
         file:write("gradientStart=")
         file:write(IntegerColorList [box_pos], "\n")
         box_pos = 24
@@ -1869,12 +1854,12 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
         GtoInt [box_pos] = ColorBoxes [box_pos].g
         BtoInt [box_pos] = ColorBoxes [box_pos].b
         Convert_RGB(RtoInt [box_pos] +0.2,GtoInt [box_pos] +0.2,BtoInt [box_pos] +0.2)
-        IntegerColorList[box_pos] = RGBToInt(red,green,blue)
+        IntegerColorList[box_pos] = reaper.ColorToNative(red,green,blue)
         file:write("gradientEnd=")
         file:write(IntegerColorList [box_pos], "\n")
-        file:close()              
+        file:close()
     end
-  
+
     function Write_Prefs()
         reaper.SetExtState("ReaNoir", "Dock", tostring(dock), 1)
         if mode ~= "compact" then reaper.SetExtState("ReaNoir", "Mode", mode, 1) end
@@ -1885,7 +1870,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
           reaper.SetExtState("ReaNoir", "Loaded file", loaded_file, 1)
         end
     end
-    
+
     function Read_Prefs()
       local HasState = reaper.HasExtState("ReaNoir", "Dock")
       if HasState == true then dock = tonumber(reaper.GetExtState("ReaNoir", "Dock")) end
@@ -1895,12 +1880,12 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
       end
       local HasState = reaper.HasExtState("ReaNoir", "Loaded file")
       if HasState == true then last = tostring(reaper.GetExtState("ReaNoir", "Loaded file")) end
-      local HasState1 = reaper.HasExtState("ReaNoir", "x") 
-      local HasState2 = reaper.HasExtState("ReaNoir", "y") 
+      local HasState1 = reaper.HasExtState("ReaNoir", "x")
+      local HasState2 = reaper.HasExtState("ReaNoir", "y")
       if HasState1 == true and HasState2 == true then
          lastx = tonumber(reaper.GetExtState("ReaNoir", "x"))
          lasty = tonumber(reaper.GetExtState("ReaNoir", "y"))
-      end    
+      end
     end
 
 ------------------------------------------
@@ -1923,7 +1908,7 @@ function init ()
   end
   Dock_selector_INIT()
   ColorBx_INIT()
-  
+
   if last == nil or last == last_palette_on_exit then
     Create_Default()
   elseif string.match(last, "-sws$") == "-sws" then
@@ -1931,9 +1916,9 @@ function init ()
   else
     LoadColorFile(last)
   end
-   
+
   Sliders_INIT()
-  RGBsquare_INIT() 
+  RGBsquare_INIT()
   SavePalette_INIT()
   LoadPalette_INIT()
   ColorTracks_INIT()
@@ -1948,10 +1933,10 @@ function init ()
   LoadSWS_INIT()
   SetSelected()
   ShowInfo()
-      
+
   -- Initialize focus
   local init_focus = reaper.GetCursorContext2(true)
-  if init_focus < 1 then what = "tracks" else what = "items" end  
+  if init_focus < 1 then what = "tracks" else what = "items" end
   -- Add "pin on top"
   local js_exists = reaper.APIExists( "JS_Window_Find" )
   if js_exists then
@@ -1959,7 +1944,7 @@ function init ()
     if w then reaper.JS_Window_AttachTopmostPin(w) end
   end
   if what == "tracks" then reaper.SetCursorContext(0) else reaper.SetCursorContext(1) end
-  
+
 end
 
 ------------------------------------------
@@ -1968,14 +1953,14 @@ end
 function main()
   GUI()
   GiveFocusBack()
-  gfx.dock(dock) 
+  gfx.dock(dock)
   --wheretodock=gfx.dock(-1)
-  --Msg('wheretodock')                                        
+  --Msg('wheretodock')
   DockselL_btn:draw()
   DockselR_btn:draw()
-  DockselU_btn:draw()  
-  Dock_selector_GUI() 
-  
+  DockselU_btn:draw()
+  Dock_selector_GUI()
+
   RGBsquare_GUI()
   RGBsquare_btn:draw()
   if mode == "rgb" or "hsl" then
@@ -1983,12 +1968,12 @@ function main()
   elseif mode == "compact" then
     RGBsquare_btn:set_color(R/255, G/255, B/255, 1)
   end
-  
+
   HEXinfo_GUI()
   HEXinfo_btn:draw()
-  
+
   if mode == "hsl" then
-    Sliders_GUI() 
+    Sliders_GUI()
     slider_btn_h:draw()
     slider_btn_s:draw()
     slider_btn_l:draw()
