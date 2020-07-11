@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f378bdc936ecec6bf4b153a8a1395b4ab5e35e0d" name="ReaTeam Scripts">
+<index version="1" commit="7257083e9a1b6b1b2e9993683dbe6fc130da891f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2877,6 +2877,11 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </metadata>
       <version name="1.0" author="Edgemeal" time="2020-07-10T20:10:15Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f378bdc936ecec6bf4b153a8a1395b4ab5e35e0d/FX/edgemeal_Copy%20FX%20from%20item%20under%20mouse%20to%20selected%20items.lua</source>
+      </version>
+      <version name="1.01" author="Edgemeal" time="2020-07-11T17:47:49Z">
+        <changelog><![CDATA[Select source FX by name from menu (if more then one).
+Special Thanks to amagalma, https://forum.cockos.com/showthread.php?t=239556]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7257083e9a1b6b1b2e9993683dbe6fc130da891f/FX/edgemeal_Copy%20FX%20from%20item%20under%20mouse%20to%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Display last touched FX parameter.lua" type="script" desc="Display last touched FX parameter">
