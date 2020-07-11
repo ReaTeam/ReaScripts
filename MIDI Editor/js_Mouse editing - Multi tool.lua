@@ -1,6 +1,10 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.03
+Version: 6.04
+Changelog:
+  + Trying to fix ReaPack changelog errors. Cumulative changelog since 5.50:
+  + Works with automation envelope (only single envelope under mouse).
+  + Automation envelopes: If no selected points, edit selected AIs.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -199,27 +203,6 @@ About:
       check for graphics driver incompatibility by disabling graphics acceleration in the plugin.
 ]] 
 
---[[
-  Changelog:
-  * v5.40 (2020-04-27)
-    + Fixed changelog.  Cumulative changes include:
-    + Customization: Zone size can be set via right-click context menu (useful for hi-res displays).
-    + New mode: Move without stretching (toggle with right-click while stretching).
-    + New mode: 2-sided warp (toggle with right-click while warping).
-    + All editable takes can be edited together (if editability follows item selection).
-    + Works in inline editor (and automatically installs in inline editor section).
-  * v5.50 (2020-05-07)
-    + Fixed: Incorrect source length calculation when take play ra  te is not 1.
-    + Fixed: Tilt right-hand side used sine instead of power curve.
-  * v6.00 (2020-06-28)
-    + Works with automation envelope (only single envelope under mouse).
-  * v6.01 (2020-07-01)
-    + Temporarily disable tooltips on automation envelopes.
-  * v6.02 (2020-07-01)
-    + Some fixes for automation envelopes.
-  * v6.03 (2020-07-01)
-    + Automation envelopes: If no selected points, edit selected AIs.
-]]
 
 -- USER AREA 
 -- Settings that the user can customize
@@ -236,7 +219,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
- tTakeInfo = {}
+local tTakeInfo = {}
 local tMIDI = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
