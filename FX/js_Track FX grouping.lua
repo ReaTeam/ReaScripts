@@ -1,6 +1,8 @@
 --[[
 ReaScript name: js_Track FX grouping.lua
-Version: 0.90
+Version: 0.91
+Changelog:
+  + Fix: Error message if changing project while script is running.
 Author: juliansader
 Donation: https://www.paypal.me/juliansader
 Provides: [main=main] .
@@ -32,12 +34,6 @@ About:
   
   Some changes to FX parameters cannot (yet) be detected, for example removal of ReaEQ bands.
 ]] 
-
---[[
-  Changelog:
-  * v0.90 (2020-07-10)
-    + Initial BETA release.
-]]
 
 
 local INF = math.huge
@@ -164,7 +160,7 @@ function loop()
         
         -- Have FX chains been changed?
         local undo = reaper.Undo_CanUndo2(0)
-        if undo ~= prevUndo then
+        if undo and undo ~= prevUndo then
             prevUndo = undo
             local tr = undo:match("FX: Track (%d+)") -- Reaplce FX, Add FX, etc
             if tr then 
