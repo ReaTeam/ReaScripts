@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="48790d2367b96badc5efce63d17898db660a6203" name="ReaTeam Scripts">
+<index version="1" commit="9724c677e134193cc634bc7cf25265b1654552b3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2926,6 +2926,10 @@ Additional checking to identify target window.]]></changelog>
       <version name="0.90" author="juliansader" time="2020-07-11T22:23:53Z">
         <changelog><![CDATA[+ Initial BETA release.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/66e0d5fc858d865e348ca6d09ef62ec28d38e56f/FX/js_Track%20FX%20grouping.lua</source>
+      </version>
+      <version name="0.91" author="juliansader" time="2020-07-12T00:02:44Z">
+        <changelog><![CDATA[+ Fix: Error message if changing project while script is running.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9724c677e134193cc634bc7cf25265b1654552b3/FX/js_Track%20FX%20grouping.lua</source>
       </version>
     </reapack>
     <reapack name="kawa_TrackFXs_Routing_Matrix_DS_KW.lua" type="script" desc="TrackFXs Routing Matrix (Kawa mod)">
