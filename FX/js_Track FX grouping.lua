@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Track FX grouping.lua
-Version: 0.91
+Version: 0.92
 Changelog:
-  + Fix: Error message if changing project while script is running.
+  + Automatically update groups after deleting tracks.
 Author: juliansader
 Donation: https://www.paypal.me/juliansader
 Provides: [main=main] .
@@ -169,14 +169,14 @@ function loop()
                     GetAllTrackFXParams(track, ONLY_NEW)
                     Tooltip("Track FX grouping: UPDATED")
                 end
-            elseif undo == "Move FX" or undo == "Copy FX" or undo:match("Close FX chain") then -- Does not provide track number, unfortunately
+            elseif undo == "Move FX" or undo == "Copy FX" or undo:match("^Close FX chain") then -- Does not provide track number, unfortunately
                 for track, tbl in pairs(tTrackFX) do
                     if tbl.numFX ~= reaper.TrackFX_GetCount(track) then
                         GetAllTrackFXParams(track, ONLY_NEW)
                         Tooltip("Track FX grouping: UPDATED")
                     end
                 end
-            elseif undo:match("Change track group membership") then
+            elseif undo:match("^Change track group membership") or undo:match("^Remove track") then
                 Tooltip("Track FX grouping: UPDATED")
                 LoadGroupedTracks(ONLY_NEW) -- Get new groups, but keep original param ratios
             end
