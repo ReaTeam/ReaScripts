@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a0acedf91b8d12116906afba5a284e0e5e224ad7" name="ReaTeam Scripts">
+<index version="1" commit="3fef6b32adab06aa566a529dad608ff7a0184106" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -2912,13 +2912,15 @@ Additional checking to identify target window.]]></changelog>
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 DESCRIPTION\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Provides grouping of Track FX.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When the script starts, it will detect tracks that are grouped by VCA. It will then continue running in the background, and any changes to the Track FX of grouped tracks will be propagated to similarly named FX in other tracks in the same VCA group.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When the script starts, it will detect tracks that are grouped by VCA (or any other controls, as customized in the script's User Area).\line It will then continue running in the background, and any changes to the Track FX of grouped tracks will be propagated to similarly named FX in other tracks in the same group.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script can detect (and propagate) changes that are made directly in the FX GUI, and also values that are being recorded to track envelopes of FX parameters.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If the envelope of a Track FX parameter is in Read mode, it will override ReaScript-provided values, so changes cannot be propagated to such parameters.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Propagated values are relative to the original values of each FX.\line For example, if a parameter in an FX in track 1 has an original value of 10 when the script starts, and the same parameter in an FX in track 2 has an original value of 5, the script will move the track 2 FX to 2.5 when the users moves the track 1 FX to 5.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The script is only active while REAPER's own Track Grouping is enabled.\line If Track Grouping is disabled and re-enabled, the script will re-load all FX parameters values.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Holding down shift while adjusting an FX fader overrides grouping and sets a new baseline value for that FX instance.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 While the script is running, it will try to detect any changes to track grouping and to FX chains, such as adding FX or copying FX chains. Unfortunately, this is not always reliable. For example, if a track is removed from a group and then added back immediately, the script will not realize that the track has been added back again. When the script does detect changes, it will pop up a tooltip next to the mouse, stating that Track FX grouping has been updated. If no tooltip pops up, the user should restart the script or disable/re-enable Track Grouping.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Some changes to FX parameters cannot (yet) be detected, for example removal of ReaEQ bands.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script can be assigned to a toolbar button, which will light up while the script is running.\par}
 }
 ]]></description>
         <link rel="donation">https://www.paypal.me/juliansader</link>
@@ -2934,6 +2936,13 @@ Additional checking to identify target window.]]></changelog>
       <version name="0.92" author="juliansader" time="2020-07-12T00:46:54Z">
         <changelog><![CDATA[+ Automatically update groups after deleting tracks.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a0acedf91b8d12116906afba5a284e0e5e224ad7/FX/js_Track%20FX%20grouping.lua</source>
+      </version>
+      <version name="0.93" author="juliansader" time="2020-07-13T20:44:38Z">
+        <changelog><![CDATA[+ Holding down shift while adjusting FX fader overrides grouping.
++ In script's User Area, user can customize the Grouping controls that script should follow.
++ Better compatibility with multiple open projects.
++ (Still in BETA, so look out for bugs.)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3fef6b32adab06aa566a529dad608ff7a0184106/FX/js_Track%20FX%20grouping.lua</source>
       </version>
     </reapack>
     <reapack name="kawa_TrackFXs_Routing_Matrix_DS_KW.lua" type="script" desc="TrackFXs Routing Matrix (Kawa mod)">
