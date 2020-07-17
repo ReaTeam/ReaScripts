@@ -1,26 +1,42 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.62
--- @changelog
---   - Fixed crash when hiding all tracks in TCP
+-- @version 1.75
+-- @changelog - Added ability to show an additional guide line on the timeline (settings inside the script)
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
---   - Can be used as a toolbar action or assigned to a key shortcut
---   - Accompanied by helper script to toggle between full height or item height in the arrange view
---   - Set line color inside the script (rgb values 0-255)
---   - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
---   - Requires JS_ReaScriptAPI 1.002 or higher
+--    - Can be used as a toolbar action or assigned to a key shortcut
+--    - Accompanied by helper script to toggle between full height or item height in the arrange view
+--    - Ability to have an additional guide line showing on the timeline (set inside the script)
+--    - Set line colors inside the script (rgb values 0-255)
+--    - Set minimum/maximum additional line height inside the script
+--    - When prompted by Reaper, choose to "Terminate instance" and to remember your choice
+--    - Requires JS_ReaScriptAPI 1.002 or higher
 
 -- Many thanks to juliansader :)
 
 -------------------------------------------------------------------
 
--- SET LINE COLOR HERE -- (0-255)
-local red, green, blue = 240, 240, 180
-
 -- SET "SNAP GUIDE LINE TO GRID" SUPPORT HERE -- (1 = enabled, 0 = disabled)
 local Arrange_snap_support = 1 -- (for arrange view)
 local MidiEditor_snap_support = 1 -- (for active midi editor)
+
+-- SET LINE COLOR HERE -- (0-255)
+local red, green, blue = 240, 240, 180
+
+--------
+
+-- ADDITIONAL GUIDE LINE SHOWING ON THE TIMELINE -- (1 = enabled, 0 = disabled)
+local timeline_guide = 1
+
+-- MINIMUM HEIGHT OF ADDITIONAL LINE
+local timeline_guide_height = 15 -- pixels
+
+-- MAXIMUM HEIGHT OF ADDITIONAL LINE IN RELATION TO TIMELINE HEIGHT
+local timeline_guide_height_max = 0.25 -- (timeline height * timeline_guide_height_max)
+
+-- SET ADDITIONAL LINE COLOR HERE -- (0-255)
+local red2, green2, blue2 = 165, 165, 135
 
 -------------------------------------------------------------------
 
@@ -55,7 +71,7 @@ else
   required_version, ok, js_api, sep, ext_path, entry = nil, nil, nil, nil, nil, nil
 end
 
-local function RGB(r,g,b) 
+local function RGB(r,g,b)
   return (((b)&0xFF)|(((g)&0xFF)<<8)|(((r)&0xFF)<<16)|(0xFF<<24))
 end
 
@@ -65,6 +81,7 @@ local reaper = reaper
 local debug = false
 Arrange_snap_support = Arrange_snap_support == 1
 MidiEditor_snap_support = MidiEditor_snap_support == 1
+timeline_guide = timeline_guide == 1
 local floor, ceil, abs = math.floor, math.ceil, math.abs
 local MainHwnd = reaper.GetMainHwnd()
 local CurrentWindow
@@ -81,6 +98,12 @@ local prev_set_window = set_window
 local master = reaper.GetMasterTrack(0)
 local trackview = reaper.JS_Window_FindChildByID(MainHwnd, 0x3E8)
 local _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
+local timeline = reaper.JS_Window_FindChildByID(MainHwnd, 0x3ED)
+local _, _, timeline_h = reaper.JS_Window_GetClientSize( timeline )
+local timeline_max = math.floor(timeline_h*timeline_guide_height_max)
+if timeline_max > timeline_guide_height then
+  timeline_guide_height = timeline_max
+end
 local snap = reaper.GetToggleCommandState( 1157 ) == 1
 local zoom
 local left_button_down, direction_right = false
@@ -92,11 +115,19 @@ local _, scrollposv = reaper.JS_Window_GetScrollInfo( cur_view, "v" )
 local _, scrollposh = reaper.JS_Window_GetScrollInfo( cur_view, "h" )
 local checkscroll = false
 local prev_scrollposv, prev_scrollposh = scrollposv, scrollposh
-local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
 red = red and (red < 0 and 0 or (red > 255 and 255 or red)) or 0
 green = green and (green < 0 and 0 or (green > 255 and 255 or green)) or 0
 blue = blue and (blue < 0 and 0 or (blue > 255 and 255 or blue)) or 0
+red2 = red2 and (red2 < 0 and 0 or (red2 > 255 and 255 or red2)) or 0
+green2 = green2 and (green2 < 0 and 0 or (green2 > 255 and 255 or green2)) or 0
+blue2 = blue2 and (blue2 < 0 and 0 or (blue2 > 255 and 255 or blue2)) or 0
+local bm = reaper.JS_LICE_CreateBitmap(true, 1, 1)
 reaper.JS_LICE_Clear(bm, RGB(red, green, blue))
+local bm2
+if timeline_guide then
+  bm2 = reaper.JS_LICE_CreateBitmap(true, 1, 1)
+  reaper.JS_LICE_Clear(bm2, RGB(red2, green2, blue2))
+end
 local toggleCmd = reaper.NamedCommandLookup('_RS723f1ed6da61cd868278d4d78b1c1531edc946f4') -- Script: Toggle guide line size 
 local bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
 local prev_bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
@@ -123,6 +154,7 @@ end
 
 function exit()
   if bm then reaper.JS_LICE_DestroyBitmap(bm) end
+  if bm2 then reaper.JS_LICE_DestroyBitmap(bm2) end
   reaper.SetToggleCommandState( section, cmdID, 0 )
   reaper.RefreshToolbar2( section, cmdID )
   reaper.defer(function() end)
@@ -200,7 +232,7 @@ function main()
   MidiWindow = reaper.MIDIEditor_GetActive()
   midiview = MidiWindow and reaper.JS_Window_FindChildByID(MidiWindow, 0x3E9)
   if CurrentWindow == trackview then
-    
+
     if now - start >= 0.3 then
       snap = Arrange_snap_support and reaper.GetToggleCommandState( 1157 ) == 1
       bigLine = reaper.GetToggleCommandState( toggleCmd ) == 1
@@ -210,8 +242,14 @@ function main()
         change = true
       end
       start = now
+      if timeline_guide then
+        _, _, timeline_h = reaper.JS_Window_GetClientSize( timeline )
+      end
+      if bigLine then
+        _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
+      end
     end
-    
+
     if set_window ~= 1 then
       checkscroll = false
       if debug then reaper.ClearConsole() end
@@ -225,17 +263,17 @@ function main()
       elseif prev_set_window == 0 then
         continue = true
       end
-    else  
+    else
       checkscroll = true
     end
-  
+
   elseif CurrentWindow == midiview then
-    
+
     if now - start >= 0.3 then
       snap = MidiEditor_snap_support and reaper.MIDIEditor_GetSetting_int( MidiWindow, "snap_enabled" ) == 1
       start = now
     end
-  
+
     if set_window ~= 0 then
       checkscroll = false
       if debug then reaper.ClearConsole() end
@@ -243,19 +281,19 @@ function main()
       prev_set_window = set_window
       set_window = 0 -- 0 is MIDI
       bm_size = 0
-      if prev_set_window == 1 then 
+      if prev_set_window == 1 then
         reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
         continue = true
       end
     else
       checkscroll = true
     end
-  
+
   end
-  
+
   -- Main Window -----------------------------------------------------------
   if set_window == 1 then
-    
+
     _, scrollposh = reaper.JS_Window_GetScrollInfo( trackview, "h" )
     _, scrollposv = reaper.JS_Window_GetScrollInfo( trackview, "v" )
     vis_tracks_h = visibletracksheight()
@@ -273,7 +311,7 @@ function main()
         bm_size = -1
         prev_item = nil
         prev_track = nil
-  
+
       elseif scrollposv == prev_scrollposv
       and scrollposh == prev_scrollposh
       and now - prev_scrollpos_time >= 0.5
@@ -295,55 +333,56 @@ function main()
         prev_x, prev_y = x, y
         change = false
         zoom = reaper.GetHZoomLevel()
-        
-        if bigLine then
-          _, trackview_w, trackview_h = reaper.JS_Window_GetClientSize( trackview )
-          x, y = reaper.JS_Window_ScreenToClient(trackview, x, y)
-          if 0 <= x and x <= trackview_w and 0 <= y and y <= trackview_h then
-            if snap then
-              local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
-              local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
-              x = x + diff
-            end
-            Msg("draw big line at " .. x .. "\n")
-            reaper.JS_Composite(trackview, x, 0, 1, (vis_tracks_h < trackview_h and vis_tracks_h or trackview_h), bm, 0, 0, 1, 1, true)
-            bm_size = 1
-          elseif bm_size == 1 then
-            Msg("make line disappear\n")
-            reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
-            bm_size = 0
+        local x_cl, y_cl = reaper.JS_Window_ScreenToClient(trackview, x, y)
+
+        if 0 <= x_cl and x_cl < trackview_w and 0 <= y_cl and y_cl <= trackview_h then
+          if snap then
+            local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
+            local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
+            x_cl = x_cl + diff
           end
-        
-        else
-          local item = reaper.GetItemFromPoint( x, y, true )
-          if item then
-            local par_track = reaper.GetMediaItem_Track( item )
-            if item ~= prev_item or par_track ~= prev_track then
-              prev_item = item
-              prev_track = par_track
-              track_y = reaper.GetMediaTrackInfo_Value( par_track, "I_TCPY" )
-                    + reaper.GetMediaItemInfo_Value( item, "I_LASTY" ) -- client
-              item_h = reaper.GetMediaItemInfo_Value( item, "I_LASTH" )
+
+          if bigLine then
+            Msg("draw big line at " .. x_cl .. "\n")
+            reaper.JS_Composite(trackview, x_cl, 0, 1, (vis_tracks_h < trackview_h and vis_tracks_h or trackview_h), bm, 0, 0, 1, 1, true)
+          else
+            local item = reaper.GetItemFromPoint( x, y, true )
+            if item then
+              local par_track = reaper.GetMediaItem_Track( item )
+              if item ~= prev_item or par_track ~= prev_track then
+                prev_item = item
+                prev_track = par_track
+                track_y = reaper.GetMediaTrackInfo_Value( par_track, "I_TCPY" )
+                      + reaper.GetMediaItemInfo_Value( item, "I_LASTY" ) -- client
+                item_h = reaper.GetMediaItemInfo_Value( item, "I_LASTH" )
+              end
+              Msg("draw line at " .. x_cl .. "\n")
+              reaper.JS_Composite(trackview, x_cl, track_y, 1, item_h, bm, 0, 0, 1, 1, true)
+            else
+              Msg("make line disappear\n")
+              reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+              bm_size = 0
             end
-            x, y = reaper.JS_Window_ScreenToClient(trackview, x, y)
-            if snap then
-              local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
-              local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
-              x = x + diff
-            end
-            Msg("draw line at " .. x .. "\n")
-            reaper.JS_Composite(trackview, x, track_y, 1, item_h, bm, 0, 0, 1, 1, true)
-            bm_size = 1
-          elseif bm_size == 1 then
-            Msg("make line disappear\n")
-            reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
-            bm_size = 0
           end
+
+          if timeline_guide then
+            reaper.JS_Composite(timeline, x_cl, timeline_h-timeline_guide_height, 1, timeline_guide_height, bm2, 0, 0, 1, 1, true)
+          end
+
+          bm_size = 1
+
+        elseif bm_size == 1 then
+          Msg("make line disappear\n")
+          reaper.JS_Composite(trackview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
+          if timeline_guide then
+            reaper.JS_Composite(timeline, 0, 0, 0, 0, bm2, 0, 0, 1, 1, true)
+          end
+          bm_size = 0
         end
-        
+
       end
     end
-    
+
   -- MIDI Editor -----------------------------------------------------------------
   elseif set_window == 0 then
 
@@ -369,17 +408,17 @@ function main()
       prev_scrollposv = scrollposv
       prev_scrollposh = scrollposh
     end
-    
+
     local _, mwidth, mheight = reaper.JS_Window_GetClientSize( midiview )
     local xcl, ycl = reaper.JS_Window_ScreenToClient(midiview, x, y)
     if ycl >= 64 and ycl <= mheight then --and xcl >= 0 and xcl < mwidth then
       if x ~= prev_x or continue then
-        
+
         continue = false
         local prev_mouse_pos = prev_x
         local current_mouse_pos = x
         prev_x = x
-        
+
         if snap then
           local closest_division, diff = 0, 0
           local nosnap, _, activetempo = false
@@ -389,7 +428,7 @@ function main()
           _, _, _, _, activetempo = reaper.GetTempoTimeSigMarker( 0, reaper.FindTempoTimeSigMarker( 0, mouse_pos ) )
           activetempo = activetempo == 0 and reaper.GetProjectTimeSignature2( 0 ) or activetempo
           local note_duration = notelen *( 60 / activetempo )
- 
+
           local mouse_state = reaper.JS_Mouse_GetState( 255 )
           if mouse_state == 9 then
             nosnap = true
@@ -408,7 +447,7 @@ function main()
           end
 
           if swing == 0 then
-            
+
             local _, pgrid = reaper.GetSetProjectGrid( 0, false, 0, 0, 0 )
             mgrid = mgrid/4
             if mgrid ~= pgrid then
@@ -419,7 +458,7 @@ function main()
                                  ( closest_division - mouse_pos + note_duration ) * zoom
                               or ( closest_division - mouse_pos ) * zoom
           else
-          
+
             local QN = reaper.TimeMap_timeToQN_abs( 0, mouse_pos )
             QN = direction_right and QN + mgrid or QN
             local QN_grid = floor( QN / mgrid )
@@ -435,20 +474,20 @@ function main()
 
           x = nosnap and x or floor(x + diff + 0.5)
         end
-        
+
         x, y = reaper.JS_Window_ScreenToClient(midiview, x, 0)
         Msg("draw line in Midi Editor at " ..x .. "\n")
         reaper.JS_Composite(midiview, x, 64, 1, mheight-64, bm, 0, 0, 1, 1, true)
-        bm_size = 1      
+        bm_size = 1
       end
-      
+
     else
       if bm_size == 1 then
         Msg("make line in Midi Editor disappear\n")
         reaper.JS_Composite(midiview, 0, 0, 0, 0, bm, 0, 0, 1, 1, true)
         bm_size = 0
       end
-        
+
     end
   end
   reaper.defer(main)
@@ -456,5 +495,5 @@ end
 
 -------------------------------------------------------------------
 
-reaper.atexit(exit) 
+reaper.atexit(exit)
 main()
