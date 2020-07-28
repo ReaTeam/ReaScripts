@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6d9ad31ac4f7a2926c1d0d22a43a0842f1174987" name="ReaTeam Scripts">
+<index version="1" commit="6b8b1c5fe314526da6b4ada6175398766cccee1d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -9756,6 +9756,24 @@ enter or a = Exit and apply changes\par}
     </reapack>
   </category>
   <category name="Project Properties">
+    <reapack name="amagalma_Set project grid (via dropdown menu).lua" type="script" desc="Set project grid (via dropdown menu)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Set project grid (via dropdown menu)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Displays a dropdown menu at mouse cursor position where you can choose a grid setting\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=239556</link>
+        <link rel="donation">https://www.paypal.com/paypalme/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-07-28T06:53:04Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6b8b1c5fe314526da6b4ada6175398766cccee1d/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Set project samplerate to that of the first selected item (if different).lua" type="script" desc="amagalma_Set project samplerate to that of the first selected item (if different)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
