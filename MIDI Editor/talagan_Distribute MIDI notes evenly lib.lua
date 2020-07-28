@@ -1,22 +1,12 @@
 --[[
-@description Distribute MIDI notes evenly
-@version 1.0.0
+@noindex
 @author Talagan
 @license MIT
-@link Forum Thread https://forum.cockos.com/showthread.php?t=240332
-@provides
-  [nomain] .
-  [main=main,midi_editor] talagan_Distribute MIDI notes evenly (grid size).lua
-  [main=main,midi_editor] talagan_Distribute MIDI notes evenly (param).lua
-  [main=main,midi_editor] talagan_Distribute MIDI notes evenly (last param).lua
 @about
-  Redistribute the selected MIDI notes evenly in time, based on notes start, starting from the first note, and given a spacing value. Note lengths are preserved.
-
-  Exists under three versions :
-    - Param : use a param for the spacing value. The param should be in the project time format (Time/Beats/etc). Use an empty value to use the MIDI editor grid size.
-    - Last Param : Same as above, but skip the param dialog and reuse last entered value
-    - Grid size : Same as above,  but skip the param dialog and use the MIDI editor grid size directly. This does not affect the last param, so you can alternate between last param and grid size for a faster workflow.
+  This is the lib file for the Distribute MIDI notes evenly feature.
+  See the companion action file for details.
 --]]
+
 
 DEBUG = false;
 
@@ -26,13 +16,18 @@ function debug(msg)
   end
 end
 
-function performMidiDistribution(spacing_str)
+function performMidiDistribution(spacing_str, should_modify_last_param)
   
   local hwnd = reaper.MIDIEditor_GetActive()
   local take = reaper.MIDIEditor_GetTake(hwnd)
   
   if not take then
     return
+  end
+  
+  -- Sanitize the spacing string to 'grid size' mode
+  if spacing_str == nil then
+    spacing_str = ''
   end
 
   -- Gather selected notes
@@ -59,7 +54,7 @@ function performMidiDistribution(spacing_str)
   local spacing = nil;
   
   -- Deduce spacing value from the current context (first note position and project time options)
-  if spacing_str == nil or spacing_str == '' then
+  if spacing_str == '' then
     -- If no spacing param is given, get the midi grid size
     spacing = reaper.MIDI_GetGrid(take);
   else
@@ -87,8 +82,56 @@ function performMidiDistribution(spacing_str)
   reaper.MIDI_Sort(take);
   
   -- Save last user input
-  if spacing_str ~= nil then
+  if should_modify_last_param == true then
     reaper.SetExtState("talagan_Distribute MIDI notes evenly", "spacing", spacing_str, true);
   end
   
 end
+
+-- Extract the (parameter value) from the lua action script name
+function extractActionParamFromFileName()
+  local _, sfname = reaper.get_action_context()
+  -- Get the file name
+  sfname = string.match(sfname,"/([^/]+)$")
+  -- Get the param inside parenthesis
+  local pname  = sfname.match(sfname,"%((.*)%)")
+  return pname
+end
+
+-- Interprete the lua action parameter
+function translateActionParam(action_param)
+  
+  local param, mplus                    = string.match(action_param,"(.-)(%+?)$");
+  local should_modify_last_saved_param  = (#mplus == 1);
+  local param_is_valid                  = true;
+  
+  -- TODO : potentially do some other conversions (n beats -> 0.n.0, 1/2 bar -> 0.0.5 etc)
+  if param == "grid size" then
+    param = '' -- convention
+  elseif param == "last param" then
+    param = reaper.GetExtState("talagan_Distribute MIDI notes evenly", "spacing");
+  elseif param == "dialog" then
+    param_is_valid, param = reaper.GetUserInputs("Enter a spacing value (No value = grid size)",
+      1,
+      "Spacing (use project time format), extrawidth=100",
+      reaper.GetExtState("talagan_Distribute MIDI notes evenly", 
+      "spacing"
+      ));
+  end  
+  
+  return param_is_valid, param, should_modify_last_saved_param;
+end
+
+function performMidiDistributionDependingOnActionFileName()
+  -- Get action param from the script name
+  local action_param = extractActionParamFromFileName();
+  -- Convert it if possible (some param names may be aliases)
+  local param_is_valid, action_param, should_modify_last_param = translateActionParam(action_param);
+  
+  if not param_is_valid then
+    return
+  end
+  
+  performMidiDistribution(action_param, should_modify_last_param)
+end
+
