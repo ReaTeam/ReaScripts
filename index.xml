@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="53473b40b99ad33f4e4e24857577a8faefb69656" name="ReaTeam Scripts">
+<index version="1" commit="0384a4d739967a390a9e97bc1e3bd92f298d124e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
@@ -4930,6 +4930,10 @@ here
       <version name="1.00" author="amagalma" time="2020-07-08T18:56:34Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fe4c779c85ce7a019d047b13e9a652fc94b6385f/Items%20Properties/amagalma_Choose%20active%20take%20for%20item%20under%20mouse%20(show%20menu).lua</source>
       </version>
+      <version name="1.01" author="amagalma" time="2020-08-04T19:34:38Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/40a0baac1192a65f31f41ce6cf65fbebce2d71ef/Items%20Properties/amagalma_Choose%20active%20take%20for%20item%20under%20mouse%20(show%20menu).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Group selected items vertically.lua" type="script" desc="amagalma_Group selected items vertically">
       <metadata>
@@ -5272,6 +5276,10 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       </version>
       <version name="1.01" author="amagalma" time="2020-07-01T15:49:25Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6485f33a27cf6138bb7c1e2a62a440d0bd3f70af/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2020-08-04T19:34:24Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/25ae655cd471d7d79ffe8ddc8ceabdb956e427f3/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Write project markers as media cues to selected items active takes source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
@@ -9804,6 +9812,10 @@ enter or a = Exit and apply changes\par}
       <version name="1.00" author="amagalma" time="2020-07-28T06:53:04Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6b8b1c5fe314526da6b4ada6175398766cccee1d/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
       </version>
+      <version name="1.01" author="amagalma" time="2020-08-04T19:41:06Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0384a4d739967a390a9e97bc1e3bd92f298d124e/Project%20Properties/amagalma_Set%20project%20grid%20(via%20dropdown%20menu).lua</source>
+      </version>
     </reapack>
     <reapack name="amagalma_Set project samplerate to that of the first selected item (if different).lua" type="script" desc="amagalma_Set project samplerate to that of the first selected item (if different)">
       <metadata>
@@ -10170,14 +10182,18 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 -- Displays a menu list at the mouse cursor with all region markers in project in a timeline order. Navigates to the chosen region marker.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 -- - Requires JS_ReascriptAPI\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Displays a menu list at the mouse cursor with all region markers in project in a timeline order. Navigates to the chosen region marker.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReascriptAPI\sa180\par}
 }
 ]]></description>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-07-01T15:02:10Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6eb1d158c3a8a9b75b67099642d275f6828354ea/Regions/amagalma_Go%20to%20region%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-08-04T19:34:57Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d117be2df8d30715ba0f78a934ee68af435bae22/Regions/amagalma_Go%20to%20region%20marker%20(choose%20from%20menu%20list).lua</source>
       </version>
     </reapack>
     <reapack name="ausbaxter_Save and Load region render matrix.lua" type="script" desc="Save and Load region render matrix (9 actions)">
@@ -11025,6 +11041,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       <version name="1.01" author="amagalma" time="2020-06-25T21:38:32Z">
         <changelog><![CDATA[- Prevent undo creation when closing menu without having made a choice]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3286586b0bd294cb8ad07eea832fc61f898ef84c/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
+      </version>
+      <version name="1.02" author="amagalma" time="2020-08-04T19:40:47Z">
+        <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0cee14a9a7af04df667a598a22e7095e7a951d90/Tracks%20Properties/amagalma_Smart%20track%20layout%20picker%20(categories%20with%20sub-menus).lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Set number of channels for selected tracks.eel" type="script" desc="Set number of channels for selected tracks">
