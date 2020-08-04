@@ -1,6 +1,7 @@
 -- @description Set project grid (via dropdown menu)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Fix menu placement for OSX
 -- @link https://forum.cockos.com/showthread.php?t=239556
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
@@ -74,8 +75,8 @@ if hwnd then
   out = 7000
   reaper.JS_Window_Move( hwnd, -out, -out )
 end
-local x, y = reaper.GetMousePosition()
-gfx.x, gfx.y = x-40+out, y-40+out
+out = reaper.GetOS():find("OSX") and 0 or out
+gfx.x, gfx.y = gfx.mouse_x-40+out, gfx.mouse_y-40+out
 local selection = gfx.showmenu(menu)
 gfx.quit()
 
