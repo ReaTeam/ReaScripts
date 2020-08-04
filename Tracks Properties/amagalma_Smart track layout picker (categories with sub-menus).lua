@@ -1,7 +1,7 @@
 -- @description Smart track layout picker (categories with sub-menus)
 -- @author amagalma
--- @version 1.01
--- @changelog - Prevent undo creation when closing menu without having made a choice
+-- @version 1.02
+-- @changelog Fix menu placement for OSX
 -- @link https://forum.cockos.com/showthread.php?t=230114
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -134,8 +134,8 @@ if hwnd then
   out = 7000
   reaper.JS_Window_Move( hwnd, -out, -out )
 end
-local x, y = reaper.GetMousePosition()
-gfx.x, gfx.y = x-40+out, y-40+out
+out = reaper.GetOS():find("OSX") and 0 or out
+gfx.x, gfx.y = gfx.mouse_x-40+out, gfx.mouse_y-40+out
 local selection = gfx.showmenu(menu)
 gfx.quit()
 
