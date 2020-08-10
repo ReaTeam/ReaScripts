@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0384a4d739967a390a9e97bc1e3bd92f298d124e" name="ReaTeam Scripts">
+<index version="1" commit="98feb92e5d90189d8c80e72f1ea7c8cf191cf977" name="ReaTeam Scripts">
   <category name="Cursor">
+    <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Moves the edit cursor to the next possible bad or missing crossfade between two items on the selected tracks. A possible bad crossfade is considered one whose duration is not the same as the overlap between the two items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You can set inside the script the maximum space duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.com/paypalme/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-08-10T19:31:47Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/98feb92e5d90189d8c80e72f1ea7c8cf191cf977/Cursor/amagalma_Move%20edit%20cursor%20to%20next%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Move edit cursor to next visible grid line.lua" type="script" desc="amagalma_Move edit cursor to next visible grid line">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
