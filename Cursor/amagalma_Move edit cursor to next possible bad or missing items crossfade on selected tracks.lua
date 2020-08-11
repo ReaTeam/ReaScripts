@@ -1,7 +1,7 @@
 -- @description Move edit cursor to next possible bad or missing items crossfade on selected tracks
 -- @author amagalma
--- @version 1.01
--- @changelog Added messages when there is no track selected, or not enough items, or no problematic/missing crossfades.
+-- @version 1.05
+-- @changelog Fixed: correctly taking into account automatic crossfades.
 -- @link https://forum.cockos.com/showthread.php?t=241010
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
@@ -16,9 +16,6 @@
 local max_space = 0.1
 
 ---------------------------------------------------------------
-
-local track_cnt = reaper.CountSelectedTracks( 0 )
-if track_cnt == 0 then return reaper.defer(function () end) end
 
 local track_cnt = reaper.CountSelectedTracks( 0 )
 if track_cnt == 0 then 
@@ -54,7 +51,11 @@ for tr = 0, track_cnt-1 do
       elseif overlap > 0 then
       -- items overlap
         local next_item_fadein = GetVal( next_item, "D_FADEINLEN" )
+        next_item_fadein = next_item_fadein ~= 0 and next_item_fadein or
+              reaper.GetMediaItemInfo_Value( next_item, "D_FADEINLEN_AUTO" )
         local item_fadeout = GetVal( item, "D_FADEOUTLEN" )
+        item_fadeout = item_fadeout ~= 0 and item_fadeout or
+              reaper.GetMediaItemInfo_Value( item, "D_FADEOUTLEN_AUTO" )
         if (not eq(next_item_fadein, overlap)) or (not eq(item_fadeout, overlap)) then
           bf = bf + 1
           bad_fade[bf] = next_item_start
