@@ -1,12 +1,14 @@
 -- @description Move edit cursor to next possible bad or missing items crossfade on selected tracks
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Added messages when there is no track selected, or not enough items, or no problematic/missing crossfades.
+-- @link https://forum.cockos.com/showthread.php?t=241010
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
---   Moves the edit cursor to the next possible bad or missing crossfade between two items on the selected tracks.
---   A possible bad crossfade is considered one whose duration is not the same as the overlap between the two items.
---
---   You can set inside the script the maximum space duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.
+--   - Moves the edit cursor to the next possible bad or missing crossfade between two items on the selected tracks.
+--   - A possible bad crossfade is considered one whose duration is not the same as the overlap between the two items.
+--   - A crossfade is considered missing if two items are adjacent or there is a very small gap between them and they do not crossfade.
+--   -You can set inside the script the maximum gap duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.
 
 ---------------------------------------------------------------
 
@@ -17,6 +19,12 @@ local max_space = 0.1
 
 local track_cnt = reaper.CountSelectedTracks( 0 )
 if track_cnt == 0 then return reaper.defer(function () end) end
+
+local track_cnt = reaper.CountSelectedTracks( 0 )
+if track_cnt == 0 then 
+  reaper.MB("Please, select a track.", "No track is selected!", 0)
+  return reaper.defer(function () end)
+end
 
 local function eq( a, b )
   if math.abs(a - b) < 0.00001 then return true end
@@ -53,6 +61,9 @@ for tr = 0, track_cnt-1 do
         end
       end
     end
+  else
+    reaper.MB("Please, select a track with more than one item.", "Not enough items!", 0)
+    return reaper.defer(function () end)
   end
 end
 
@@ -65,5 +76,7 @@ if #bad_fade > 0 then
       break
     end
   end
+else
+  reaper.MB("No problematic or missing crossfades.", "All OK!", 0)
 end
 reaper.defer(function () end)
