@@ -1,7 +1,7 @@
 -- @description Move edit cursor to previous possible bad or missing items crossfade on selected tracks
 -- @author amagalma
--- @version 1.05
--- @changelog Fixed: correctly taking into account automatic crossfades.
+-- @version 1.06
+-- @changelog Automatic crossfades should get priority over manual ones
 -- @link https://forum.cockos.com/showthread.php?t=241010
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
@@ -50,12 +50,14 @@ for tr = 0, track_cnt-1 do
         bad_fade[bf] = previous_item_end
       elseif overlap > 0 then
       -- items overlap
-        local previous_item_fadeout = GetVal( previous_item, "D_FADEOUTLEN" )
-        previous_item_fadeout = previous_item_fadeout ~= 0 and previous_item_fadeout or
-              GetVal( previous_item, "D_FADEOUTLEN_AUTO" )
-        local item_fadein = GetVal( item, "D_FADEINLEN" )
-        item_fadein = item_fadein ~= 0 and item_fadein or
-              GetVal( item, "D_FADEINLEN_AUTO" )
+        local previous_item_fadeout = GetVal( previous_item, "D_FADEOUTLEN_AUTO" )
+        if eq(previous_item_fadeout, 0) then
+          previous_item_fadeout = GetVal( previous_item, "D_FADEOUTLEN" )
+        end
+        local item_fadein = GetVal( item, "D_FADEINLEN_AUTO" )
+        if eq(item_fadein, 0) then
+          item_fadein = GetVal( item, "D_FADEINLEN" )
+        end
         if (not eq(previous_item_fadeout, overlap)) or (not eq(item_fadein, overlap)) then
           bf = bf + 1
           bad_fade[bf] = item_start
