@@ -1,14 +1,14 @@
 -- @description Move edit cursor to next possible bad or missing items crossfade on selected tracks
 -- @author amagalma
--- @version 1.05
--- @changelog Fixed: correctly taking into account automatic crossfades.
+-- @version 1.06
+-- @changelog Automatic crossfades should get priority over manual ones
 -- @link https://forum.cockos.com/showthread.php?t=241010
 -- @donation https://www.paypal.com/paypalme/amagalma
 -- @about
 --   - Moves the edit cursor to the next possible bad or missing crossfade between two items on the selected tracks.
 --   - A possible bad crossfade is considered one whose duration is not the same as the overlap between the two items.
 --   - A crossfade is considered missing if two items are adjacent or there is a very small gap between them and they do not crossfade.
---   -You can set inside the script the maximum gap duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.
+--   - You can set inside the script the maximum gap duration between two "adjacent" items for them to be considered as requiring a crossfade. Default value is 100ms.
 
 ---------------------------------------------------------------
 
@@ -50,12 +50,14 @@ for tr = 0, track_cnt-1 do
         bad_fade[bf] = item_end
       elseif overlap > 0 then
       -- items overlap
-        local next_item_fadein = GetVal( next_item, "D_FADEINLEN" )
-        next_item_fadein = next_item_fadein ~= 0 and next_item_fadein or
-              reaper.GetMediaItemInfo_Value( next_item, "D_FADEINLEN_AUTO" )
-        local item_fadeout = GetVal( item, "D_FADEOUTLEN" )
-        item_fadeout = item_fadeout ~= 0 and item_fadeout or
-              reaper.GetMediaItemInfo_Value( item, "D_FADEOUTLEN_AUTO" )
+        local next_item_fadein = GetVal( next_item, "D_FADEINLEN_AUTO" )
+        if eq(next_item_fadein, 0) then
+          next_item_fadein = GetVal( next_item, "D_FADEINLEN" )
+        end
+        local item_fadeout = GetVal( item, "D_FADEOUTLEN_AUTO" )
+        if eq(item_fadeout, 0) then
+          item_fadeout = GetVal( item, "D_FADEOUTLEN" )
+        end
         if (not eq(next_item_fadein, overlap)) or (not eq(item_fadeout, overlap)) then
           bf = bf + 1
           bad_fade[bf] = next_item_start
