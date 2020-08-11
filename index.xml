@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d103c6907cf0c87314864c3b9ebdc65a3e03b16b" name="ReaTeam Scripts">
+<index version="1" commit="1423e0007c25bf597ff849409ab5cec61c4c964f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -83,6 +83,10 @@
       <version name="1.05" author="amagalma" time="2020-08-11T13:11:19Z">
         <changelog><![CDATA[Fixed: correctly taking into account automatic crossfades.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9e2f37ede08e262a44d651d8fb646b8a42acdc44/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.06" author="amagalma" time="2020-08-11T13:50:43Z">
+        <changelog><![CDATA[Automatic crossfades should get priority over manual ones]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1423e0007c25bf597ff849409ab5cec61c4c964f/Cursor/amagalma_Move%20edit%20cursor%20to%20previous%20possible%20bad%20or%20missing%20items%20crossfade%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Move edit cursor to previous visible grid line.lua" type="script" desc="amagalma_Move edit cursor to previous visible grid line">
