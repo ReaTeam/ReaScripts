@@ -1,31 +1,23 @@
---[[
-ReaScript Name: Float centered exclusively the next FX for the current track
-Version: 1.0
-Author: amagalma
-About:
-  Closes all open floating FX and FX chains and floats centered in the screen the next FX for the current track (first selected or last touched)
-
-  - works similarly to "SWS/S&M: Float next FX (and close others) for selected tracks" but centers correctly the Master FX and works with last touched track too
-  - requires JS_ReaScriptAPI
---]] 
---------------------------------------------------------------------------------------
-
-
-local reaper = reaper
+-- @description Float centered exclusively the next FX for the current track
+-- @author amagalma
+-- @version 1.1
+-- @changelog skip offline FX
+-- @donation https://www.paypal.me/amagalma
+-- @about
+--   Closes all open floating FX and FX chains and floats centered in the screen the next FX for the current track (first selected or last touched)
+--
+--   - works similarly to "SWS/S&M: Float next FX (and close others) for selected tracks" but centers correctly the Master FX and works with last touched track too
+--   - FX that are offline are skipped
+--   - requires JS_ReaScriptAPI
 
 
--- Check if JS_ReaScriptAPI is installed
-if not reaper.APIExists("JS_ReaScriptAPI_Version") then
-  local answer = reaper.MB( "You have to install JS_ReaScriptAPI for this script to work. Would you like to open the relative web page in your browser?", "JS_ReaScriptAPI not installed", 4 )
-  if answer == 6 then
-    local url = "https://forum.cockos.com/showthread.php?t=212174"
-    if string.match(reaper.GetOS(), "OSX" ) == "OSX" then
-      os.execute('open "" "' .. url .. '"')
-    else
-      os.execute('start "" "' .. url .. '"')
-    end
+if not reaper.APIExists( "JS_Window_Find" ) then
+  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "You need to install the JS_ReaScriptAPI", 0 )
+  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
+  if ok then reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+  else reaper.MB( err, "Something went wrong...", 0)
   end
-  return
+  return reaper.defer(function() end)
 end
 
 
@@ -78,8 +70,23 @@ function next_fx(tr)
       current = i
     end
   end
-  if current == fx_cnt-1 then current = -1 end
-  reaper.TrackFX_Show( tr, current+1, 3 )
+  current = current == fx_cnt-1 and 0 or current + 1
+  local times = 0
+  while reaper.TrackFX_GetOffline( tr, current ) do
+    times = times + 1
+    current = current == fx_cnt-1 and 0 or current + 1
+    if times == fx_cnt then
+      current = -1
+      break
+    end
+  end
+  if current == -1 then
+    reaper.TrackFX_Show( tr, 0, 1 )
+    return false
+  else
+    reaper.TrackFX_Show( tr, current, 3 )
+    return true
+  end
 end
 
 
@@ -88,14 +95,15 @@ end
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh( 1 )
 local fx_cnt = reaper.TrackFX_GetCount( track )
+local success
 if fx_cnt > 0 then -- Do the thing
   local tracks = reaper.CountTracks()
-  for i = 0, tracks-1 do
-    local tr = reaper.GetTrack(0,i)
-    if tr ~= track then    
+  for i = 0, tracks do
+    local tr =  reaper.CSurf_TrackFromID( i, false )
+    if tr ~= track then
       close_tr_fx(tr)
     else
-      next_fx(tr)
+      success = next_fx(tr)
     end
     local tr_items = reaper.CountTrackMediaItems(tr)
     for j = 0, tr_items-1 do
@@ -108,17 +116,28 @@ if fx_cnt > 0 then -- Do the thing
   end
   -- Center floating FX
   local hwnd
-  if track == reaper.GetMasterTrack( 0 ) then
-    hwnd = reaper.JS_Window_Find( " - Master Track [", false )
+  if not success then
+    if track == reaper.GetMasterTrack( 0 ) then
+      hwnd = reaper.JS_Window_Find( "FX: Master Track", true )
+    else
+      hwnd = reaper.JS_Window_Find( "FX: Track " ..  reaper.CSurf_TrackToID( track, false ), true )
+    end
   else
-    for i = 0, fx_cnt-1 do
-      hwnd = reaper.TrackFX_GetFloatingWindow( track, i )
-      if hwnd then break end
+    if track == reaper.GetMasterTrack( 0 ) then
+      hwnd = reaper.JS_Window_Find( " - Master Track [", false )
+    else
+      for i = 0, fx_cnt-1 do
+        hwnd = reaper.TrackFX_GetFloatingWindow( track, i )
+        if hwnd then break end
+      end
     end
   end
   local _, width, height = reaper.JS_Window_GetClientSize( hwnd ) -- Get floating FX size
   local _, _, scrw, scrh = reaper.my_getViewport(0, 0, 0, 0, 0, 0, 0, 0, 0) -- Get screen size
   reaper.JS_Window_Move( hwnd, math.floor((scrw-width)/2), math.floor((scrh-height)/2) )
+  if not success then
+    reaper.MB( "All FX are offline for this track.", "Cannot navigate to next FX!", 0 )
+  end
 else -- open FX Chain to add FX
   reaper.Main_OnCommand(40291, 0) -- Track: View FX chain for current/last touched track
 end
