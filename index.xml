@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bde8248c13b15226d2b4593127d6f6f785f845da" name="ReaTeam Scripts">
+<index version="1" commit="d43075b9b0b349ece9dbf5762cdef6c6b27a1002" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -3381,6 +3381,10 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-08-12T21:08:42Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cfa2babebdb215ed3ab967e3f6629f7d341cef08/Items%20Editing/amagalma_Crossfade%20any%20overlapping%20items%20(even%20on%20different%20tracks).lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2020-08-14T05:48:20Z">
+        <changelog><![CDATA[fixed corner cases]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d43075b9b0b349ece9dbf5762cdef6c6b27a1002/Items%20Editing/amagalma_Crossfade%20any%20overlapping%20items%20(even%20on%20different%20tracks).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua">
