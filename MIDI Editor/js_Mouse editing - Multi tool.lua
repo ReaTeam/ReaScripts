@@ -1,9 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.05
+Version: 6.06
 Changelog:
-  + Fixed: MIDI notes do not play after warping.
-  + Fixed: Crash during 2-sided warp.
+  + Fixed: MIDI notes not playing after tilting, scaling, etc.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -219,7 +218,7 @@ About:
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
 local tTakeInfo = {}
-local tMIDI = {}
+local tMIDI = {} -- Each take or envelope or AI gets its own subtable: tMIDI[take] = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
     For example, when deleting overlapping CCs, only CCs in the same take, lane and channel as the selected CCs must be deleted.
@@ -227,20 +226,21 @@ local tMIDI = {}
     The CCs events in different lanes and different channels will therefore be separated into distinct tables, which will be stored in tGroups.
         Notes, sysex and text also get separate groups.
     Each group will itself consist of multiple tables, which store the info if the events: tick positions, flags, values, pitch etc:
-        tGroups[group] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}}
+        tGroups[take][group] = {tT = {}, tA = {}, tI = {}, tM = {}, tM2 = {}, tV = {}, tC = {}, tF = {}, tF2 = {}, tP = {}, tOff = {}, tQ = {}, tD = {}}
     These are shorthand for these names: 
-        tTicks = {}
-        tPrevTicks = {}
-        tIndices = {}
-        tMsg = {} 
-        tMsg2 = {} -- Msf of secondary events such as note-offs
-        tValues = {} -- CC values, 14bit CC combined values, note velocities
-        tChannels = {} 
-        tFlags = {} 
-        tFlags2 = {} -- Flags of secondary events such as note-offs in the case of notes, or LSB in the case of 14bit CCs
-        tPitches = {} -- This table will only be filled if laneIsNOTES (laneIsVELOCITY, laneIsOFFVEL, or laneIsPIANOROLL)
-        tLengths = {} 
-        tMeta = {} -- Extra REAPER-specific non-MIDI metadata such as notation or Bezier tension.
+        tT = current tick position
+        tA = original tick position
+        tI = index in tMIDI[take]
+        tM = original message
+        tM2 = msg of secondary events such as note-offs
+        tV = CC values, 14bit CC combined values, note velocities
+        tC = channel 
+        tF = flags 
+        tF2 = flags of secondary events such as note-offs in the case of notes, or LSB in the case of 14bit CCs
+        tP = pitches. This table will only be filled if laneIsNOTES (laneIsVELOCITY, laneIsOFFVEL, or laneIsPIANOROLL)
+        tOff = this used to be the length if notes, but is now the actual tick position if note-offs 
+        tQ = extra REAPER-specific non-MIDI metadata such as notation or Bezier tension.
+        tD = info of events that may need to be deleted when selected CCs are stretched. Each entry is a table with info such as original msg and index inside tMIDI[take]
 ]]
 local tGroups = {}
 
@@ -2877,16 +2877,12 @@ function AtExit()
                     reaper.MIDI_SetAllEvts(take, tTakeInfo[take].origMIDI)
                 end
             end
-        elseif mainOK and pcallOK then
-            -- If positions were changed, must sort, since unsorted MIDI will not play back correctly.
-            for s = 1, #tSteps do
-                if tSteps[s].isChangingPositions then changedPositions = true break end
-            end
-            if changedPositions then
-                for take in pairs(tGroups) do
-                    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
-                        reaper.MIDI_Sort(take)
-                    end
+        elseif mainOK == true and pcallOK == true then
+            -- CCs were edited in correct order, but note-offs were inserted directly after their note-ons in the MIDI stream. 
+            -- Notes must therefore be sorted before REAPER can properly play the MIDI.
+            for take, tID in pairs(tGroups) do
+                if tID.notes and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
+                    reaper.MIDI_Sort(take)
                 end
             end
         end
