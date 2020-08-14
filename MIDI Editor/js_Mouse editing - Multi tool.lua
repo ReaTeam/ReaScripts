@@ -1,10 +1,9 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.04
+Version: 6.05
 Changelog:
-  + Trying to fix ReaPack changelog errors. Cumulative changelog since 5.50:
-  + Works with automation envelope (only single envelope under mouse).
-  + Automation envelopes: If no selected points, edit selected AIs.
+  + Fixed: MIDI notes do not play after warping.
+  + Fixed: Crash during 2-sided warp.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -820,16 +819,16 @@ function Defer_Warp()
     if not tWarpPreCalc then
         tWarpPreCalc = {}
         
-        local function binarySearchEventJustLeftOfMouseTick(tbl, mouseTick)
-            if tbl[1] >= mouseTick then
+        local function binarySearchEventJustLeftOfMouseTick(tbl, tck)
+            if tbl[1] >= tck then
                 return 0
-            elseif tbl[#tbl] <= mouseTick then
+            elseif tbl[#tbl] <= tck then
                 return #tbl
             else -- binary search
                 local left, right = 1, #tbl
                 while right-left > 1 do
                     local m = (left+right)//2
-                    if tbl[m] >= mouseTick then right = m else left = m end
+                    if tbl[m] >= tck then right = m else left = m end
                 end
                 return left
             end
@@ -1010,8 +1009,14 @@ function Defer_Warp()
                 warp2MouseAbove = (mouseUpDownMove > 0)
             end
             
+            -- If the mouse moves out of range, it may mess up 2-sided warp, moving points out of range and messing up sequence.  
             local mouseTime = tTimeFromPixel[mouseX]
-        
+            if mouseTime > tSteps[#tSteps].globalNoteOffTime then 
+                mouseTime = tSteps[#tSteps].globalNoteOffTime
+            elseif mouseTime < tSteps[#tSteps].globalLeftmostTime then
+                mouseTime = tSteps[#tSteps].globalLeftmostTime
+            end
+            
             for take, tID in pairs(tSteps[#tSteps-1].tGroups) do 
             
                 -- APPLY 1-SIDED WARP
@@ -1070,34 +1075,29 @@ function Defer_Warp()
                     
                     for id, t in pairs(tID) do 
                         local tT = tSteps[#tSteps].tGroups[take][id].tT
-                        local index = tWarpPreCalc[take][id].eventJustLeftOfMouse
+                        --local index = tWarpPreCalc[take][id].eventJustLeftOfMouse
+                        
                         ::RepeatForNoteOff::
                         if warp2MouseAbove then
-                            if rangeL ~= 0 then
-                                for i = 1, index do
+                            for i = 1, #tT do
+                                if tT[i] < mouseTick then
                                     tT[i] = left + (((tT[i] - left)/rangeL)^warp2Power)*rangeL
-                                end
-                            end
-                            if rangeR ~= 0 then
-                                for i = index+1, #tT do
+                                elseif tT[i] > mouseTick then
                                     tT[i] = right - (((right - tT[i])/rangeR)^warp2Power)*rangeR
                                 end
                             end
                         else
-                            if rangeL ~= 0 then
-                                for i = 1, index do
+                            for i = 1, #tT do
+                                if tT[i] < mouseTick then
                                     tT[i] = mouseTick - (((mouseTick - tT[i])/rangeL)^warp2Power)*rangeL
-                                end
-                            end
-                            if rangeR ~= 0 then
-                                for i = index+1, #tT do
+                                elseif tT[i] > mouseTick then
                                     tT[i] = mouseTick + (((tT[i] - mouseTick)/rangeR)^warp2Power)*rangeR
                                 end
                             end
                         end
                         if id == "notes" and not (tT == tSteps[#tSteps].tGroups[take][id].tOff) then 
                             tT = tSteps[#tSteps].tGroups[take][id].tOff 
-                            index = tWarpPreCalc[take][id].noteOffJustLeftOfMouse
+                            --index = tWarpPreCalc[take][id].noteOffJustLeftOfMouse
                             goto RepeatForNoteOff 
                         end
                     end
@@ -1571,13 +1571,15 @@ function Edit_SpaceEvenly()
         if range ~= 0 then
             for id, t in pairs(tID) do
                 local nT, oT = t.tT, old.tGroups[take][id].tT
-                local left, right = oT[1], oT[#oT]
-                if left > right then left, right = right, left end
-                local range = right-left
                 -- Reset spacing
                 if id == "notes" then
                     t.tOff = {}
                     local nO, oO = t.tOff, old.tGroups[take][id].tOff
+                    if not t.noteWithLastNoteOff then error("noteWithLastNoteOff not found") end
+                    local reversed = (oT[#oT] < oT[1]) or (oT[t.noteWithLastNoteOff] < oT[1]) -- !!!!! Not reliable
+                    local left, right = (reversed and oT[t.noteWithLastNoteOff] or oT[1]), (reversed and oO[1] or oO[t.noteWithLastNoteOff])
+                    if left > right then left, right = right, left end
+                    local range = right-left
                     local spacing = range/#oT
                     for i = 1, #oT do
                         nT[i] = left + (i-1)*spacing
@@ -1585,6 +1587,9 @@ function Edit_SpaceEvenly()
                     end
                     t.noteWithLastNoteOff = #oT
                 else
+                    local left, right = oT[1], oT[#oT]
+                    if left > right then left, right = right, left end
+                    local range = right-left
                     local spacing = range/(#oT-1)
                     for i = 1, #oT do
                         nT[i] = left + (i-1)*spacing
@@ -2862,17 +2867,30 @@ function AtExit()
               .. "\ncontinue: "..tostring(continue)
               .. "\npcallRetval: "..tostring(pcallRetval)
               --.."\n\nPlease report these details in the \"MIDI Editor Tools\" thread in the REAPER forums."
-              .."\n\n* The original, unaltered MIDI has been restored to the take."
+              .. (isMIDI and "\n\n* The original, unaltered MIDI has been restored to the take." or "")
               , "ERROR", 0)
     end
-    if pcallOK == "shifted MIDI" or pcallOK == false then
-        for take in pairs(tGroups) do
-            if tTakeInfo[take] and tTakeInfo[take].origMIDI 
-            and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
-                reaper.MIDI_SetAllEvts(take, tTakeInfo[take].origMIDI)
+    if isMIDI then
+        if pcallOK == "shifted MIDI" or pcallOK == false then
+            for take in pairs(tGroups) do
+                if tTakeInfo[take] and tTakeInfo[take].origMIDI and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
+                    reaper.MIDI_SetAllEvts(take, tTakeInfo[take].origMIDI)
+                end
+            end
+        elseif mainOK and pcallOK then
+            -- If positions were changed, must sort, since unsorted MIDI will not play back correctly.
+            for s = 1, #tSteps do
+                if tSteps[s].isChangingPositions then changedPositions = true break end
+            end
+            if changedPositions then
+                for take in pairs(tGroups) do
+                    if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
+                        reaper.MIDI_Sort(take)
+                    end
+                end
             end
         end
-    end        
+    end
                   
     -- Write nice, informative Undo strings
     if laneIsCC7BIT then
@@ -3939,7 +3957,8 @@ function ParseMidi_SecondPass()
                                 --t.tF2[saved]  = flags
                                 tGrpN.tM2[saved]  = MIDI:sub(prevPos+4, pos-1) --msg
                             end
-                            if ticks >= origNoteOffTick then tGrpN.noteWithLastNoteOff = saved end
+                            --if ticks >= origNoteOffTick then tGrpN.noteWithLastNoteOff = saved end
+                            tGrpN.noteWithLastNoteOff = saved
                             tNotes[id] = nil
                         end
                     -- CCs
