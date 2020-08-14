@@ -1,6 +1,7 @@
 -- @description Crossfade any overlapping items (even on different tracks)
 -- @author amagalma
--- @version 1.00
+-- @version 1.1
+-- @changelog fixed corner cases
 -- @link https://forum.cockos.com/showthread.php?t=241104
 -- @screenshot https://i.ibb.co/D7vyWhP/amagalma-Crossfade-any-overlapping-items-even-on-different-tracks.gif
 -- @donation https://www.paypal.me/amagalma
@@ -14,8 +15,6 @@ local function eq( a, b )
   if math.abs(a - b) < 0.00001 then return true end
   return false
 end
-
-reaper.PreventUIRefresh( 1 )
 
 local items = {}
 local item_cnt = reaper.CountSelectedMediaItems(0)
@@ -36,24 +35,49 @@ for i = 0, item_cnt-1 do
   }
 end
 
-table.sort(items, function(a,b) 
+local undo = false
+reaper.PreventUIRefresh( 1 )
+
+table.sort(items, function(a,b)
   if eq(a.st, b.st) then
-    return a.en < b.en  
+    return a.en < b.en
   else
     return a.st < b.st
   end
 end)
 
-local undo = false
 for i = 1, #items-1 do
   local n = i + 1
   local overlap = items[i].en - items[n].st
-  if overlap > 0 then
+  local enclosed = items[i].en - items[n].en
+  if overlap > 0 and enclosed < 0 then
     local dif_track = items[i].tr ~= items[n].tr
     local fadein = dif_track and "D_FADEINLEN" or "D_FADEINLEN_AUTO"
     local fadeout = dif_track and "D_FADEOUTLEN" or "D_FADEOUTLEN_AUTO"
     reaper.SetMediaItemInfo_Value( items[i].it, fadeout, overlap )
     reaper.SetMediaItemInfo_Value( items[n].it, fadein, overlap )
+    undo = true
+  end
+end
+
+table.sort(items, function(a,b)
+  if eq(a.en, b.en) then
+    return a.st > b.st
+  else
+    return a.en > b.en
+  end
+end)
+
+for i = 1, #items-1 do
+  local n = i + 1
+  local overlap = items[n].en - items[i].st
+  local enclosed = items[n].st - items[i].st
+  if overlap > 0 and enclosed < 0 then
+    local dif_track = items[i].tr ~= items[n].tr
+    local fadein = dif_track and "D_FADEINLEN" or "D_FADEINLEN_AUTO"
+    local fadeout = dif_track and "D_FADEOUTLEN" or "D_FADEOUTLEN_AUTO"
+    reaper.SetMediaItemInfo_Value( items[i].it, fadein, overlap )
+    reaper.SetMediaItemInfo_Value( items[n].it, fadeout, overlap )
     undo = true
   end
 end
