@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d43075b9b0b349ece9dbf5762cdef6c6b27a1002" name="ReaTeam Scripts">
+<index version="1" commit="6dfd191019b30c1c19aac400aa705a822a07f2af" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -2840,6 +2840,23 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-06-25T09:25:37Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7cb7ba19b458af141843b8e176107635967e06bd/FX/amagalma_List%20parameters%20ID%20numbers%20and%20names%20for%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Re-open and float the last touched and closed FX.lua" type="script" desc="Re-open and float the last touched and closed FX">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Re-opens and floats the last FX that was touched and closed.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 *Note: not the last focused FX but the last touched!\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showpost.php?p=2332348&amp;postcount=22</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-08-14T07:03:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6dfd191019b30c1c19aac400aa705a822a07f2af/FX/amagalma_Re-open%20and%20float%20the%20last%20touched%20and%20closed%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle wet 0-100% (or current value) for focused FX.lua" type="script" desc="amagalma_Toggle wet 0-100% (or current value) for focused FX">
