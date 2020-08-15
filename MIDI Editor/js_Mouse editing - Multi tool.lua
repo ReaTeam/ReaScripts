@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.06
+Version: 6.07
 Changelog:
-  + Fixed: MIDI notes not playing after tilting, scaling, etc.
+  + Fixed: MIDI notes not playing after tilting, scaling, etc (again...)
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -2881,7 +2881,7 @@ function AtExit()
             -- CCs were edited in correct order, but note-offs were inserted directly after their note-ons in the MIDI stream. 
             -- Notes must therefore be sorted before REAPER can properly play the MIDI.
             for take, tID in pairs(tGroups) do
-                if tID.notes and reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
+                if reaper.ValidatePtr2(0, take, "MediaItem_Take*") and reaper.TakeIsMIDI(take) then
                     reaper.MIDI_Sort(take)
                 end
             end
