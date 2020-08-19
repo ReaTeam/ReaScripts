@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.60
+Version: 1.61
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -61,16 +61,6 @@ About:
   If the Inspector is docked in the marker/region lanes:
   
     * Right-click on the Inspector to open a context menu.
-    
-  
-  FLICKERING ON WINDOWS OS
-  
-  On WindowsOS, graphics that are drawn inside REAPER's windows by scripts (for example by the Multi Tool, or when the MIDI Inspector is docked)
-  may occasionally flicker.  This flickering can be reduced by limiting the refresh rate of the window, but the optimal setting is specific to each DAW 
-  and may depend on factors such as CPU speed and monitor refresh rate.
-  
-  In the right-click context menu, the user can enable or disable flickering reduction, and select a refresh rate.  
-  0.05 seconds is the default, and should work fine on most systems.
   
   
   WARNING: 
@@ -156,6 +146,8 @@ About:
     + On WindowOS, automatic alpha-premultiplication of font color when docked in MIDI editor.
   * v1.60 (2020-07-18)
     + On WindowsOS, setting in right-click menu to reduce flickering.
+  * v1.61 (2020-08-20)
+    + Redraw docked inspector while playing or recording.
 ]]
 
 -- USER AREA
@@ -1004,6 +996,7 @@ function loopMIDIInspector()
                     jsComposite(midiview, 0, 0, 1200, 26, LICE_Bitmap, 0, 0, 1200, 26)
                 end
             else
+                midiview = nil
                 reaper.MB("Could not determine the midiview child window of the active MIDI editor.", "ERROR", 0)
                 return false
             end
@@ -1218,7 +1211,7 @@ function loopMIDIInspector()
                         reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
                     elseif userInput == 7 then -- "No", so call properties without deselecting
                         reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
-                    end
+                    end  
                 else -- no selected notes and/or sysex found
                     reaper.MIDIEditor_OnCommand(editor, 40004) -- Call Event Properties
                 end
@@ -1230,12 +1223,19 @@ function loopMIDIInspector()
         
         -- If paused, GUI size will update and mouseclicks will be intercepted, but no MIDI updates.
         -- Also automatically pause while playing or recording, or if a js_Mouse editing script is running.
-        
         if reaper.time_precise() > prevTime + updateTime then
             -- prevTime will be update *after* all the analyses
-    
-            local curPaused = paused or reaper.GetPlayState()&5 ~= 0 or reaper.GetExtState("js_Mouse actions", "Status") == "Running" -- playState: &1=playing,&2=pause,&=4 is recording
-            if not curPaused then     
+            
+            -- Moving playhead does not trigger window updates, so overwrites docked inspector. This code forces updates.
+            local curPlaying = (reaper.GetPlayState()&5 ~= 0) -- playState: &1=playing,&2=pause,&=4 is recording
+            if curPlaying then
+                if dockedMidiview and midiview then
+                    reaper.JS_Window_InvalidateRect(midiview, 0, 0, 1200, 26, false)
+                end
+            end
+            
+            local mustPause = paused or curPlaying or reaper.GetExtState("js_Mouse actions", "Status") == "Running" 
+            if not mustPause then     
                 
                 -- (GetTake is buggy and sometimes returns an invalid, deleted take, so must validate take.)
                 local take = reaper.MIDIEditor_GetTake(editor)
@@ -1499,7 +1499,7 @@ function loopMIDIInspector()
                         end -- if gotAllOK
                     end -- if takeHash ~= prevHash: get new note and CC info           
                 end -- if take ~= nil: get new default channel and velocity
-            end -- if curPaused == false       
+            end -- if mustPause == false       
             
             prevTime = reaper.time_precise()
             
@@ -1518,7 +1518,7 @@ function loopMIDIInspector()
         
         -- COMMUNICATE with the script "js_Option - Selecting single note or CC in active take sets channel for new events.lua"
         local extStateSetChannel = ""
-        if curPaused then
+        if mustPause then
             extStateSetChannel = "Paused"
         elseif countSelNotes == 1 then
             extStateSetChannel = noteChannel
