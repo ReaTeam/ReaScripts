@@ -143,7 +143,7 @@ numberOfSelectedMediaItems = CountSelectedMediaItems();
 
 i = 0;
 loop(numberOfSelectedMediaItems,
-  selectedMediaItems[i] = item = GetSelectedMediaItem(0, i);
+  selectedMediaItems[i] = GetSelectedMediaItem(0, i);
   i += 1;
 );
 
