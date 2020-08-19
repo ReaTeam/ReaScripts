@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_MIDI Inspector.lua
-Version: 1.61
+Version: 1.62
 Author: juliansader
 Screenshot: http://stash.reaper.fm/28295/js_MIDI%20Inspector.jpeg
 Website: http://forum.cockos.com/showthread.php?t=176878
@@ -36,8 +36,7 @@ About:
   Font options are BLUR, SHADOW, INVERT, NATIVE, BOTTOMUP, MONO, VERTICAL and OUTLINE.
   NOTE: On Windows, small LICE text is not properly antialiased.  The "BLUR" option may achieve a similar effect by slightly blurring the text.
   
-  
-  
+
   # TERMINATION
   
   If all MIDI editors are closed, the script will continue running in the background (with negligible CPU usage),
@@ -63,7 +62,17 @@ About:
     * Right-click on the Inspector to open a context menu.
   
   
-  WARNING: 
+  # FLICKERING ON WINDOWS OS
+  
+  On WindowsOS, graphics that are drawn inside REAPER's windows by scripts (for example by the Multi Tool, or when the MIDI Inspector is docked)
+  may occasionally flicker.  This flickering can be reduced by limiting the refresh rate of the window, but the optimal setting is specific to each DAW 
+  and may depend on factors such as CPU speed and monitor refresh rate.
+  
+  In the right-click context menu, the user can enable or disable flickering reduction, and select a refresh rate.  
+  0.05 seconds is the default, and should work fine on most systems.
+
+  
+  # WARNING: 
   
   Updating MIDI information in realtime can take a toll on the responsiveness of the MIDI editor, 
       particularly if the take contains many thousands of MIDI events.  The GUI therefore provides a
@@ -148,6 +157,8 @@ About:
     + On WindowsOS, setting in right-click menu to reduce flickering.
   * v1.61 (2020-08-20)
     + Redraw docked inspector while playing or recording.
+  * v1.62 (2020-08-29)
+    + A bit more About info.
 ]]
 
 -- USER AREA
