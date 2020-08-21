@@ -1,7 +1,7 @@
 -- @description ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.14
--- @changelog Fix loading SWS color palettes for macOS
+-- @version 2.15
+-- @changelog fix: coloring a range of tracks/items/takes with a gradient (thanks to juliansader)
 -- @link http://forum.cockos.com/showthread.php?t=189602
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -36,7 +36,7 @@
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.14"
+version = "v2.15"
 
 
 
@@ -620,7 +620,7 @@ end
                     local g_step = (green-firstcolor_g)/(seltracks-1)
                     local b_step = (blue-firstcolor_b)/(seltracks-1)
                     for i=1,seltracks-1 do
-                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local value_r,value_g,value_b = math.floor(0.5+firstcolor_r+r_step*i), math.floor(0.5+firstcolor_g+g_step*i), math.floor(0.5+firstcolor_b+b_step*i)
                       local track = reaper.GetSelectedTrack(0, i)
                       reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
                     end
@@ -645,7 +645,7 @@ end
                    local g_step = (green-firstcolor_g)/(selitems-1)
                    local b_step = (blue-firstcolor_b)/(selitems-1)
                    for i=1,selitems-1 do
-                     local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                     local value_r,value_g,value_b = math.floor(0.5+firstcolor_r+r_step*i), math.floor(0.5+firstcolor_g+g_step*i), math.floor(0.5+firstcolor_b+b_step*i)
                      local item = reaper.GetSelectedMediaItem(0, i)
                      local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
                      local active_take = reaper.GetActiveTake(item)
@@ -896,7 +896,7 @@ end
                     local g_step = (lastcolor_g*255-firstcolor_g)/(seltracks-1)
                     local b_step = (lastcolor_b*255-firstcolor_b)/(seltracks-1)
                     for i=1,seltracks-1 do
-                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local value_r,value_g,value_b = math.floor(0.5+firstcolor_r+r_step*i), math.floor(0.5+firstcolor_g+g_step*i), math.floor(0.5+firstcolor_b+b_step*i)
                       local track = reaper.GetSelectedTrack(0, i)
                       reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
                     end
@@ -925,7 +925,7 @@ end
                   local g_step = (lastcolor_g*255-firstcolor_g)/(selitems-1)
                   local b_step = (lastcolor_b*255-firstcolor_b)/(selitems-1)
                   for i=1,selitems-1 do
-                    local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                    local value_r,value_g,value_b = math.floor(0.5+firstcolor_r+r_step*i), math.floor(0.5+firstcolor_g+g_step*i), math.floor(0.5+firstcolor_b+b_step*i)
                     local item = reaper.GetSelectedMediaItem(0, i)
                     local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
                     local active_take = reaper.GetActiveTake(item)
@@ -1507,7 +1507,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
                     local g_step = (green-firstcolor_g)/(seltracks-1)
                     local b_step = (blue-firstcolor_b)/(seltracks-1)
                     for i=1,seltracks-1 do
-                      local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                      local value_r,value_g,value_b = math.floor(0.5+firstcolor_r+r_step*i), math.floor(0.5+firstcolor_g+g_step*i), math.floor(0.5+firstcolor_b+b_step*i)
                       local track = reaper.GetSelectedTrack(0, i)
                       reaper.SetTrackColor(track, reaper.ColorToNative(value_r, value_g, value_b))
                     end
@@ -1531,7 +1531,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
                    local g_step = (green-firstcolor_g)/(selitems-1)
                    local b_step = (blue-firstcolor_b)/(selitems-1)
                    for i=1,selitems-1 do
-                     local value_r,value_g,value_b = math.floor(firstcolor_r+r_step*i), math.floor(firstcolor_g+g_step*i), math.floor(firstcolor_b+b_step*i)
+                     local value_r,value_g,value_b = math.floor(0.5+firstcolor_r+r_step*i), math.floor(0.5+firstcolor_g+g_step*i), math.floor(0.5+firstcolor_b+b_step*i)
                      local item = reaper.GetSelectedMediaItem(0, i)
                      local color = reaper.ColorToNative(value_r, value_g, value_b)|0x1000000
                      local active_take = reaper.GetActiveTake(item)
