@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c5b81d9b616d488cf01b8fe7d1ba6c2e82323517" name="ReaTeam Scripts">
+<index version="1" commit="336f1b1a47c5089ed2af588816d7a3bde659fdf7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -11523,6 +11523,15 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/edgemeal_Disable%20multichannel%20metering%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="edgemeal_Remove muted track sends.lua" type="script" desc="Remove muted track sends">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=239747">Forum Thread</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2020-08-29T14:27:13Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/336f1b1a47c5089ed2af588816d7a3bde659fdf7/Tracks%20Properties/edgemeal_Remove%20muted%20track%20sends.lua</source>
+      </version>
+    </reapack>
     <reapack name="edgemeal_Select tracks with locked items.lua" type="script" desc="Select tracks with locked items">
       <metadata>
         <link rel="website" href="https://forum.cockos.com/showthread.php?p=2209858">Forum</link>
@@ -11530,6 +11539,15 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-12-03T18:05:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/de67e1712fbe9ff48a6a91836143f007f1500f2c/Tracks%20Properties/edgemeal_Select%20tracks%20with%20locked%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Unselect last (bottom) selected track.lua" type="script" desc="Unselect last (bottom) selected track">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showpost.php?p=2337148&amp;postcount=2108">Forum Thread</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2020-08-29T14:26:23Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bb3800d3bca81afff1a69635583324535306d8d2/Tracks%20Properties/edgemeal_Unselect%20last%20(bottom)%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="jmieszkowski_Create folders from selected tracks based on their names and color them.lua" type="script" desc="Create folders from selected tracks based on their names and color them">
