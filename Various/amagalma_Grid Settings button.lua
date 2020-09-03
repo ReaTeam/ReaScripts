@@ -1,8 +1,9 @@
 -- @description Grid Settings button
 -- @author amagalma
--- @version 1.0
+-- @version 1.01
+-- @changelog Fixed wrong installation path in ReaPack
 -- @provides
---   . > Grid Settings button/amagalma_Grid Settings button.lua
+--   . > amagalma_Grid Settings button/amagalma_Grid Settings button.lua
 --   amagalma_Grid Settings button/amagalma_triplet.png
 --   amagalma_Grid Settings button/amagalma_sixtyfourth_note.png
 --   amagalma_Grid Settings button/amagalma_thirtysecond_note.png
@@ -15,6 +16,7 @@
 --   amagalma_Grid Settings button/amagalma_grid_button.png
 -- @screenshot https://i.ibb.co/C5Mrc4G/amagalma-Grid-Settings-button.gif
 -- @donation https://www.paypal.me/amagalma
+-- @link https://forum.cockos.com/showthread.php?t=241918
 -- @about
 --   Displays a window/button with the active grid settings.
 --
