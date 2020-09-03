@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4e68dea5c08d3dd638fbfcd49ec6aa15cb9276d8" name="ReaTeam Scripts">
+<index version="1" commit="fc107a19cfdf00f9d9714a81b223713d5af65c99" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -12611,6 +12611,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires SWS Extension\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=241918</link>
         <link rel="screenshot">https://i.ibb.co/C5Mrc4G/amagalma-Grid-Settings-button.gif</link>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
@@ -12626,6 +12627,20 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source file="amagalma_Grid Settings button/amagalma_eighth_note.png">https://github.com/ReaTeam/ReaScripts/raw/4e68dea5c08d3dd638fbfcd49ec6aa15cb9276d8/Various/amagalma_Grid%20Settings%20button/amagalma_eighth_note.png</source>
         <source file="amagalma_Grid Settings button/amagalma_quarter_note.png">https://github.com/ReaTeam/ReaScripts/raw/4e68dea5c08d3dd638fbfcd49ec6aa15cb9276d8/Various/amagalma_Grid%20Settings%20button/amagalma_quarter_note.png</source>
         <source file="amagalma_Grid Settings button/amagalma_grid_button.png">https://github.com/ReaTeam/ReaScripts/raw/4e68dea5c08d3dd638fbfcd49ec6aa15cb9276d8/Various/amagalma_Grid%20Settings%20button/amagalma_grid_button.png</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-09-03T21:45:31Z">
+        <changelog><![CDATA[Fixed wrong installation path in ReaPack]]></changelog>
+        <source main="main" file="amagalma_Grid Settings button/amagalma_Grid Settings button.lua">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button.lua</source>
+        <source file="amagalma_Grid Settings button/amagalma_triplet.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_triplet.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_sixtyfourth_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_sixtyfourth_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_thirtysecond_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_thirtysecond_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_sixteenth_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_sixteenth_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_dot.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_dot.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_half_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_half_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_whole_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_whole_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_eighth_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_eighth_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_quarter_note.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_quarter_note.png</source>
+        <source file="amagalma_Grid Settings button/amagalma_grid_button.png">https://github.com/ReaTeam/ReaScripts/raw/fc107a19cfdf00f9d9714a81b223713d5af65c99/Various/amagalma_Grid%20Settings%20button/amagalma_grid_button.png</source>
       </version>
     </reapack>
     <reapack name="amagalma_Implode items across tracks into takes (remove empty tracks).lua" type="script" desc="amagalma_Script: Implode items across tracks into takes (remove empty tracks)">
