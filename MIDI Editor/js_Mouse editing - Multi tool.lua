@@ -80,16 +80,18 @@ About:
   When editing all selected events, only their tick positions can be edited, using the warp, stretch or reverse functions.  
   When editing a single lane, positions as well as values can be edited.  
   
-  In the case of automation, the script can edit multiple envelopes together, if either 
+  In the case of track automation -- but not take envelopes -- the script can edit multiple envelope lanes together, if either 
       * a razor selection has been made across multiple lanes, or
       * automation items have been selected in multiple lanes.
       
-  There are multiple ways to select automation envelopes, and the order of precedence is razors > AIs > points:
+  There are multiple ways to select track automation envelopes, and the order of precedence is razors > AIs > points:
       * If any razor selections are active, these will override any AI selections and point selections.
       * If no razor selections are active, all points within selected AIs will be edited.
       * If no razor areas and no AIs are selected, only selected points in the envelope lane under the mouse will be edited.
   
+  NOTE: This script regards razor selections as simply another way of selecting points. Unlike automation items, each razor selection is not a separate envelope.
   
+
   STARTING THE SCRIPT:
   
       * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.
