@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fc107a19cfdf00f9d9714a81b223713d5af65c99" name="ReaTeam Scripts">
+<index version="1" commit="0ff416f5dbc451df37ab6e700c11747e554afadb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -7542,17 +7542,15 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: MIDI track list/media item lane selection is linked to editability\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Options: Draw and edit CC events on all tracks\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If these setting are not all enabled, the script can only edit events in the active item.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 LANE UNDER MOUSE:\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When editing automation envelopes, the script only affects the envelope that is under the mouse when the script starts.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 In the case of MIDI, however, the script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 LANE UNDER MOUSE vs MULTIPLE LANES:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the case of MIDI, the script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 * To edit only the selected events in a single lane, the mouse must be positioned inside that lane when the script starts.  \line
     (After the script has started, the mouse may move out of the starting lane.)\line
 \line
 * To edit all selected events together, the mouse must be positioned over a lane divider, or over the ruler -- i.e., outside any lane.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 When editing all selected events, only their tick positions can be edited, using the warp, stretch or reverse functions.\line When editing a single lane, positions as well as values can be edited.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 SELECTED EVENTS vs AUTOMATION ITEMS\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When editing MIDI, the script will only edit selected events (and may delete non-selected events that are overlapped by the selected events after stretching).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 When editing automation, the script will also edit selected points -- if any are selected. However, if no points are selected, the script will edit all points in all selected Automation Items.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In the case of automation, the script can edit multiple envelopes together, if either * a razor selection has been made across multiple lanes, or * automation items have been selected in multiple lanes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are multiple ways to select automation envelopes, and the order of precedence is razors > AIs > points: * If any razor selections are active, these will override any AI selections and point selections. * If no razor selections are active, all points within selected AIs will be edited. * If no razor areas and no AIs are selected, only selected points in the envelope lane under the mouse will be edited.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 STARTING THE SCRIPT:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.\line
   (NOTE: To run the script, the shortcut key can either be held down for as long as the script must run, similar to REAPER's native mouse modifier functions,\line
@@ -7879,6 +7877,16 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/945a163257cad0a71785ab6bfaf48f95ea0a38fe/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
         <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/945a163257cad0a71785ab6bfaf48f95ea0a38fe/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
         <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/945a163257cad0a71785ab6bfaf48f95ea0a38fe/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
+      </version>
+      <version name="6.10" author="juliansader" time="2020-09-07T00:41:47Z">
+        <changelog><![CDATA[+ Compatible with razor selections.
++ Edit multiple envelope lanes together, using either razor selections or AI selections. ]]></changelog>
+        <source main="main midi_inlineeditor midi_editor">https://github.com/ReaTeam/ReaScripts/raw/0ff416f5dbc451df37ab6e700c11747e554afadb/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20tool.lua</source>
+        <source file="js_Mouse editing - Scale bottom.cur">https://github.com/ReaTeam/ReaScripts/raw/0ff416f5dbc451df37ab6e700c11747e554afadb/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20bottom.cur</source>
+        <source file="js_Mouse editing - Scale top.cur">https://github.com/ReaTeam/ReaScripts/raw/0ff416f5dbc451df37ab6e700c11747e554afadb/MIDI%20Editor/js_Mouse%20editing%20-%20Scale%20top.cur</source>
+        <source file="js_Mouse editing - Multi compress.cur">https://github.com/ReaTeam/ReaScripts/raw/0ff416f5dbc451df37ab6e700c11747e554afadb/MIDI%20Editor/js_Mouse%20editing%20-%20Multi%20compress.cur</source>
+        <source file="js_Mouse editing - Undo.cur">https://github.com/ReaTeam/ReaScripts/raw/0ff416f5dbc451df37ab6e700c11747e554afadb/MIDI%20Editor/js_Mouse%20editing%20-%20Undo.cur</source>
+        <source file="js_Mouse editing - Redo.cur">https://github.com/ReaTeam/ReaScripts/raw/0ff416f5dbc451df37ab6e700c11747e554afadb/MIDI%20Editor/js_Mouse%20editing%20-%20Redo.cur</source>
       </version>
     </reapack>
     <reapack name="js_Mouse editing - Run script that is armed in toolbar.lua" type="script" desc="js_Mouse editing - Run script that is armed in toolbar.lua">
