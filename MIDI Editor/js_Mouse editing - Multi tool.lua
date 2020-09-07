@@ -1,9 +1,10 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.10
+Version: 6.11
 Changelog:
-  + Compatible with razor selections.
-  + Edit multiple envelope lanes together, using either razor selections or AI selections. 
+  + New: Compatible with razor selections.
+  + New: Edit multiple envelope lanes together, using either razor selections or AI selections. 
+  + Fixed: Undo deleted points values.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -91,7 +92,7 @@ About:
   
   NOTE: This script regards razor selections as simply another way of selecting points. Unlike automation items, each razor selection is not a separate envelope.
   
-
+  
   STARTING THE SCRIPT:
   
       * Similar to any action in the Actions list, the script can be assigned a keyboard or mousewheel shortcut.
@@ -4618,7 +4619,7 @@ function CONSTRUCT_AND_UPLOAD_AUTOMATION()
                     or (tP.time <= tT_Right and not isChangingPositions and not tP.deleted) 
                     or (tT_Right < tP.time)
                     then
-                        reaper.InsertEnvelopePointEx(env, ai, playrate*(tP.time-offset), tP.value, tP.shape, tP.tension, false, true)
+                        reaper.InsertEnvelopePointEx(env, ai, playrate*(tP.time-offset), laneMinValue+laneValueRange*tP.value, tP.shape, tP.tension, false, true)
                         tP.deleted = false
                     else
                         tP.deleted = true
