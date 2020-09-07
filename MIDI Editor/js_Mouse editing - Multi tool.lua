@@ -1,8 +1,9 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.07
+Version: 6.10
 Changelog:
-  + Fixed: MIDI notes not playing after tilting, scaling, etc (again...)
+  + Compatible with razor selections.
+  + Edit multiple envelope lanes together, using either razor selections or AI selections. 
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -67,11 +68,9 @@ About:
   If these setting are not all enabled, the script can only edit events in the active item.
   
   
-  LANE UNDER MOUSE:
+  LANE UNDER MOUSE vs MULTIPLE LANES:
   
-  When editing automation envelopes, the script only affects the envelope that is under the mouse when the script starts.
-  
-  In the case of MIDI, however, the script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.
+  In the case of MIDI, the script can either affect 1) all selected MIDI events, or 2) only the selected MIDI events in lane under the mouse.
   
       * To edit only the selected events in a single lane, the mouse must be positioned inside that lane when the script starts.  
           (After the script has started, the mouse may move out of the starting lane.)
@@ -81,12 +80,14 @@ About:
   When editing all selected events, only their tick positions can be edited, using the warp, stretch or reverse functions.  
   When editing a single lane, positions as well as values can be edited.  
   
-  
-  SELECTED EVENTS vs AUTOMATION ITEMS
-  
-  When editing MIDI, the script will only edit selected events (and may delete non-selected events that are overlapped by the selected events after stretching).
-  
-  When editing automation, the script will also edit selected points -- if any are selected.  However, if no points are selected, the script will edit all points in all selected Automation Items.
+  In the case of automation, the script can edit multiple envelopes together, if either 
+      * a razor selection has been made across multiple lanes, or
+      * automation items have been selected in multiple lanes.
+      
+  There are multiple ways to select automation envelopes, and the order of precedence is razors > AIs > points:
+      * If any razor selections are active, these will override any AI selections and point selections.
+      * If no razor selections are active, all points within selected AIs will be edited.
+      * If no razor areas and no AIs are selected, only selected points in the envelope lane under the mouse will be edited.
   
   
   STARTING THE SCRIPT:
@@ -217,7 +218,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
-local tTakeInfo = {}
+ tTakeInfo = {}
 local tMIDI = {} -- Each take or envelope or AI gets its own subtable: tMIDI[take] = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -978,6 +979,7 @@ function Defer_Warp()
             else
                 local newValue
                 for take, tID in pairs(tSteps[#tSteps-1].tGroups) do  
+                    local laneMinValue, laneMaxValue = tID.laneMinValue or laneMinValue, tID.laneMaxValue or laneMaxValue
                     for id, t in pairs(tID) do  
                         local tV, tOldV = tSteps[#tSteps].tGroups[take][id].tV, t.tV
                         for i = 1, #tOldV do                             
@@ -1641,7 +1643,11 @@ function Edit_Reverse()
         for id, t in pairs(tID) do
             local nT, oT = t.tT, old.tGroups[take][id].tT
             local left, right 
-            if isMIDI then
+            -- Reversing relative to global time boundaries is a problem when more than AIs are next to each other in the same envelop lane, 
+            --    since points move out of their AIs.
+            -- But reversing relative to local edges mis-align points in different lanes.
+            -- Which is the less bad option?
+            if true then --isMIDI then
                 left, right = tTickFromTime[take][new.globalLeftmostTime], tTickFromTime[take][new.globalNoteOffTime]
             else
                 left, right = oT[1], oT[#oT]
@@ -1829,7 +1835,7 @@ function Defer_Tilt()
         
         local new = tSteps[#tSteps]
         local old = tSteps[#tSteps-1]        
-         mouseNewCCValue = GetMouseValue("LIMIT")
+         mouseNewCCValue = GetMouseValue() --("LIMIT")
         tiltHeight      = tiltLEFT and (mouseNewCCValue - old.globalLeftmostValue) or (mouseNewCCValue - old.globalRightmostValue)
         
         for take, tID in pairs(new.tGroups) do
@@ -2684,13 +2690,24 @@ function DisplayZones()
 end
 
 
+----------------------------------
+local hasPreventedUIRefresh = false
+function PreventUIRefresh(prevent)
+    if prevent then
+        if not hasPreventedUIRefresh then reaper.PreventUIRefresh(1) end
+    else
+        if hasPreventedUIRefresh then reaper.PreventUIRefresh(-1) end
+    end
+end
+
+
 --local zone, prevZone
 --####################
 ----------------------
 function Defer_Zones()
 
     -- continueStep = true means that a deferred function is already running, so no need for GUI setup
-    if not (continueStep == "CONTINUE") then
+    if not (continueStep == "CONTINUE") then  
         DisplayZones()
         stepStartTime = thisDeferTime
     end
@@ -2776,6 +2793,7 @@ function DEFER_pcall()
         pcallOK, continueStep, nextFunction = pcall(selectedEditFunction or Defer_Zones)
         if pcallOK and not (continueStep == "QUIT") then
             selectedEditFunction = (continueStep == "CONTINUE") and selectedEditFunction or nextFunction or Defer_Zones
+            --if selectedEditFunction == Defer_Zones then PreventUIRefresh(true) else PreventUIRefresh(false) end
             reaper.defer(DEFER_pcall)
         end
     end
@@ -2790,6 +2808,7 @@ function AtExit()
     if interceptKeysOK ~= nil then pcall(function() reaper.JS_VKeys_Intercept(-1, -1) end) end
     --if compositeOK and windowUnderMouse and bitmap then pcall(function() reaper.JS_Composite_Unlink(windowUnderMouse, bitmap) end) end
     if bitmap then reaper.JS_LICE_DestroyBitmap(bitmap) end -- Destroying bitmap automatically unlinks and invalidates
+    if compositeDelayOK and prevDelayMin and prevDelayMax and prevDelayBitmaps then reaper.JS_Composite_Delay(windowUnderMouse, prevDelayMin, prevDelayMax, prevDelayBitmaps) end
     if pcallInterceptWM_OK ~= nil then -- If these are nil, that part of MAIN wasn't reached
         if not (pcallInterceptWM_OK and pcallInterceptWM_Retval) then -- Either an exception or some other error
             reaper.JS_WindowMessage_ReleaseWindow(windowUnderMouse) 
@@ -3312,54 +3331,120 @@ function Setup_AutomationContext()
                                 break
     end end end end end end end
         
-    -- No env found!
+    -- No env under mouse!  QUIT!
     if not activeEnv or activeEnv == tempoEnv then 
         --reaper.MB("This script does not work in the Tempo envelope.", "ERROR", 0)
         return false
-        
+    end
     
+    ME_TargetHeight   = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
+    ME_TargetBottomPixel  = ME_TargetTopPixel + ME_TargetHeight - 1
+    
+    -- Razor selections take precedence over AI and point selections.
+    -- Now check if there are any Razor Areas
+    if activeTake then
+        useSelectedAIs = false
+        tTakeInfo[activeEnv] = {track = activeTrack, tSelectedAIs = {}, tRazors = {}}
+        local razorsOK, razors = reaper.GetSetMediaTrackInfo_String(activeTrack, "P_RAZOREDITS", "", false)
+        if razorsOK and razors then
+            for startTime, endTime, razorGUID in razors:gmatch([[(%S+) (%S+) "([^"]*)"]]) do
+                if razorGUID and #razorGUID == 0 then
+                    local startTime = startTime and tonumber(startTime)
+                    local endTime   = endTime and tonumber(endTime)
+                    if startTime and endTime then
+                        tTakeInfo[activeEnv].tRazors[#tTakeInfo[activeEnv].tRazors+1] = {startTime = startTime, endTime = endTime}
+                        useRazors = true
+        end end end end
     else
-        ME_TargetHeight   = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
-        ME_TargetBottomPixel  = ME_TargetTopPixel + ME_TargetHeight - 1
-
-        -- The only way that I know of to get the min and max values of the envelope is via SWS (and then Scaling)
-        local BR_Env = reaper.BR_EnvAlloc(activeEnv, false)
+        for t = 0, reaper.CountTracks(0)-1 do
+            local track = reaper.GetTrack(0, t)
+            if reaper.ValidatePtr2(0, track, "MediaTrack*") then
+                local tEnvGUIDs = {}
+                for e = 0, reaper.CountTrackEnvelopes(track)-1 do
+                    local env = reaper.GetTrackEnvelope(track, e)
+                    local guidOK, envGUID = reaper.GetSetEnvelopeInfo_String(env, "GUID", "", false)
+                    if guidOK then 
+                        tEnvGUIDs[envGUID] = env 
+                    end
+                    for ai = 0, reaper.CountAutomationItems(env)-1 do
+                        if reaper.GetSetAutomationItemInfo(env, ai, "D_UISEL", 0, false) == 1 then
+                            useSelectedAIs = true
+                            if not tTakeInfo[env] then tTakeInfo[env] = {track = track, tSelectedAIs = {}, tRazors = {}} end
+                            tTakeInfo[env].tSelectedAIs[ai] = true
+                        end
+                    end
+                end
+                local razorsOK, razors = reaper.GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", "", false)
+                if razorsOK and razors then
+                    for startTime, endTime, razorGUID in razors:gmatch([[(%S+) (%S+) "([^"]*)"]]) do
+                        if razorGUID and #razorGUID ~= 0 then
+                            local startTime = startTime and tonumber(startTime)
+                            local endTime   = endTime and tonumber(endTime)
+                            if startTime and endTime then
+                                local env = tEnvGUIDs[razorGUID]
+                                if env then
+                                    if not tTakeInfo[env] then tTakeInfo[env] = {track = track, tSelectedAIs = {}, tRazors = {}} end
+                                    tTakeInfo[env].tRazors[#tTakeInfo[env].tRazors+1] = {startTime = startTime, endTime = endTime}
+                                    useRazors = true -- if any razors areas, will override all point selections
+                                    useSelectedAIs = false
+        end end end end end end end 
+    end
+    
+    -- If no razor selections, check for AI selections
+    --
+    
+    -- The only way that I know of to get the min and max values of the envelope is via SWS (and then Scaling)
+    local function GetEnvMinMaxAI(env)
+        local BR_Env = reaper.BR_EnvAlloc(env, false)
         if not BR_Env then 
             reaper.MB("Failed running SWS function BR_EnvAlloc.", "ERROR", 0) 
             return false 
         else
             local _, _, _, _, _, _, minValue, maxValue, _, _, _, automationItemsOptions = reaper.BR_EnvGetProperties(BR_Env)
             reaper.BR_EnvFree(BR_Env, false)
-            local mode = reaper.GetEnvelopeScalingMode(activeEnv)
+            local mode = reaper.GetEnvelopeScalingMode(env)
             local minValue, maxValue = reaper.ScaleFromEnvelopeMode(mode, minValue), reaper.ScaleToEnvelopeMode(mode, maxValue)
-            
-            -- Playrate and offset only relevant to take envelopes, which use time positions relative to item start, and stretch together with item's playrate
-            -- Automation Items also have playrates, but these don't seem to affect the time positions of env points when reading or writing
-            if activeTake then
-                local activeItem = reaper.GetMediaItemTake_Item(activeTake)
-                local itemStartTimePos = reaper.GetMediaItemInfo_Value(activeItem, "D_POSITION")
-                local itemLength = reaper.GetMediaItemInfo_Value(activeItem, "D_LENGTH")
-                local playrate = reaper.GetMediaItemTakeInfo_Value(activeTake, "D_PLAYRATE")
-                local offset   = reaper.GetMediaItemInfo_Value(activeItem, "D_POSITION")
-                local itemEndTimePos = itemStartTimePos + itemLength
-                --local minimumTick = itemStartTimePos --0 --!!!!! All envelope points -- even from take envs -- will be stored with their *absolute* time positions
-                --local maximumTick = itemEndTimePos -- itemLength*playrate
-                
-                tTakeInfo[activeEnv] = {take = activeTake, item = activeItem, track = activeTrack, playrate = playrate, offset = offset, AIOptions = automationItemsOptions,
-                                        minimumTick = itemStartTimePos, maximumTick = itemEndTimePos, minValue = minValue, maxValue = maxValue}
-                globalLeftmostItemStartTimePos = itemStartTimePos
-                globalRightmostItemEndTimePos  = itemEndTimePos
-                
-            else
-                tTakeInfo[activeEnv] = {take = activeTake, item = activeItem, track = activeTrack, playrate = 1, offset = 0, AIOptions = automationItemsOptions, 
-                                        minimumTick = 0, maximumTick = math.huge}
-                globalLeftmostItemStartTimePos = 0
-                globalRightmostItemEndTimePos  = math.huge
-            end
-            laneMinValue, laneMaxValue = minValue, maxValue -- !!!!! This function is only set up to work with a single target envelope -- can easily be expanded to multiple envelopes
-            return true, activeEnv, activeItem, activeTrack, minValue, maxValue, envBottomPixel, envTopPixel
+            return minValue, maxValue, automationItemsOptions
         end
     end
+    
+    
+    -- Playrate and offset are only relevant to take envelopes, which use time positions relative to item start, and stretch together with item's playrate
+    -- Automation Items also have playrates, but these don't seem to affect the time positions of env points when reading or writing
+    if activeTake then
+        local activeItem = reaper.GetMediaItemTake_Item(activeTake)
+        local itemStartTimePos = reaper.GetMediaItemInfo_Value(activeItem, "D_POSITION")
+        local itemLength = reaper.GetMediaItemInfo_Value(activeItem, "D_LENGTH")
+        local playrate = reaper.GetMediaItemTakeInfo_Value(activeTake, "D_PLAYRATE")
+        local offset   = reaper.GetMediaItemInfo_Value(activeItem, "D_POSITION")
+        local itemEndTimePos = itemStartTimePos + itemLength
+        --local minimumTick = itemStartTimePos --0 --!!!!! All envelope points -- even from take envs -- will be stored with their *absolute* time positions
+        --local maximumTick = itemEndTimePos -- itemLength*playrate
+        local laneMinValue, laneMaxValue, AIOptions = GetEnvMinMaxAI(env)
+        tTakeInfo[activeEnv] = {tRazors = tTakeInfo[activeEnv].tRazors, -- just copy from existing table
+                                take = activeTake, item = activeItem, track = activeTrack, playrate = playrate, offset = offset, AIOptions = AIOptions,
+                                minimumTick = itemStartTimePos, maximumTick = itemEndTimePos, laneMinValue = laneMinValue, laneMaxValue = laneMaxValue}
+        globalLeftmostItemStartTimePos = itemStartTimePos
+        globalRightmostItemEndTimePos  = itemEndTimePos
+      
+    else
+        for env, t in pairs(tTakeInfo) do
+            local laneMinValue, laneMaxValue, AIOptions = GetEnvMinMaxAI(env)
+            tTakeInfo[env] = {tRazors = t.tRazors, -- just copy from existing table
+                              tSelectedAIs = t.tSelectedAIs,
+                              take = activeTake, item = activeItem, track = t.track, playrate = 1, offset = 0, AIOptions = AIOptions, 
+                              minimumTick = 0, maximumTick = math.huge, laneMinValue = laneMinValue, laneMaxValue = laneMaxValue}
+            --laneMinValue, laneMaxValue = minValue, maxValue -- !!!!! This function is only set up to work with a single target envelope -- can easily be expanded to multiple envelopes
+        end
+        
+        globalLeftmostItemStartTimePos = 0
+        globalRightmostItemEndTimePos  = math.huge
+    end
+    
+    -- Automation envelopes always use normalized values
+    laneMinValue, laneMaxValue = 0, 1 --tTakeInfo[activeEnv].laneMinValue, tTakeInfo[activeEnv].laneMaxValue
+    
+    return true, activeEnv, activeItem, activeTrack, envBottomPixel, envTopPixel
 end  
 
 
@@ -3463,7 +3548,7 @@ function ParseAutomation()
     --local globalLeftmostTime, globalRightmostTime, globalMaxValue, globalMinValue, globalLeftmostValue, globalRightmostValue = math.huge, -math.huge, -math.huge, math.huge
     
     local bypassEnvelopes = (reaper.GetToggleCommandState(42213) == 1)
-    
+    AA = 0
     for env, tInfo in pairs(tTakeInfo) do
     
         -- In first try, attempt to find selected points.  If no selected points found, search for selected AIs.
@@ -3479,39 +3564,64 @@ function ParseAutomation()
         local playrate  = tInfo.playrate
         local itemStartTime = tInfo.offset
         local envLeftmostTick, envRightmostTick, envMaxValue, envMinValue = math.huge, -math.huge, -math.huge, math.huge
+        local laneMinValue, laneMaxValue = tInfo.laneMinValue, tInfo.laneMaxValue
+        local laneValueRange = laneMaxValue-laneMinValue
       
         for ai = startAI, endAI do
-            aiSelected = (reaper.GetSetAutomationItemInfo(env, ai, "D_UISEL", 0, false) == 1)
-            reaper.Envelope_SortPointsEx(env, ai)
-            local tT, tV, tF, tQ, tD = {}, {}, {}, {}, {}
-            for p = 0, reaper.CountEnvelopePointsEx(env, ai)-1 do
-                local pointOK, time, value, shape, tension, selected = reaper.GetEnvelopePointEx(env, ai, p)
-                if pointOK then
-                    if isTakeEnv then time = itemStartTime + time/playrate end
-                    if selected or (secondTry and aiSelected) then
-                        local i = #tT+1
-                        tT[i], tV[i], tF[i], tQ[i] = time, value, shape, tension
-                        if value > envMaxValue then envMaxValue = value end
-                        if value < envMinValue then envMinValue = value end
-                    elseif #tT ~= 0 or time >= ME_LeftmostTime then
-                        tD[#tD+1] = {time = time, ticks = time, value = value, shape = shape, tension = tension, deleted = false} -- Also add ticks, for compatibility with MIDI code
+            tAA = tInfo
+            -- If using AIs, skip underlying envelope and non-selected AIs
+            if not useSelectedAIs or (tInfo.tSelectedAIs and tInfo.tSelectedAIs[ai]) then
+                --aiSelected = (reaper.GetSetAutomationItemInfo(env, ai, "D_UISEL", 0, false) == 1)
+                reaper.Envelope_SortPointsEx(env, ai)
+                local tT, tV, tF, tQ, tD = {}, {}, {}, {}, {}
+                for p = 0, reaper.CountEnvelopePointsEx(env, ai)-1 do
+                    local pointOK, time, value, shape, tension, selected = reaper.GetEnvelopePointEx(env, ai, p)
+                    if pointOK then
+                        if isTakeEnv then time = itemStartTime + time/playrate end
+                        value = (value-laneMinValue)/laneValueRange
+                        
+                        -- If using selected AIs, ALL points inside will be edited, irrespective of whether they are selected
+                        if useSelectedAIs then
+                            selected = true
+                            
+                        -- If using Razor areas, these areas override point selection
+                        elseif useRazors then 
+                            selected = false
+                            if tInfo.tRazors then
+                                for r = 1, #tInfo.tRazors do
+                                    if tInfo.tRazors[r].startTime <= time and time <= tInfo.tRazors[r].endTime then
+                                        selected = true
+                                    end
+                                end
+                            end
+                        end
+                            
+                        if selected then --or (secondTry and aiSelected) then
+                            local i = #tT+1
+                            tT[i], tV[i], tF[i], tQ[i] = time, value, shape, tension
+                            if value > envMaxValue then envMaxValue = value end
+                            if value < envMinValue then envMinValue = value end
+                        elseif #tT ~= 0 or time >= ME_LeftmostTime then
+                            tD[#tD+1] = {time = time, ticks = time, value = value, shape = shape, tension = tension, deleted = false} -- Also add ticks, for compatibility with MIDI code
+                        end
                     end
                 end
-            end
-            -- Found any selected points in AI?
-            if #tT > 0 then
-                local rightCutoffTime = tT[#tT] > ME_RightmostTime and tT[#tT]+0.00001 or ME_RightmostTime+0.00001
-                for d = #tD, 1, -1 do
-                    if tD[d].time > rightCutoffTime then
-                        tD[d] = nil
-                    else
-                        break
+                -- Found any selected points in AI? Do further 
+                if #tT > 0 then
+                    -- Unselected poits that fall outside boundaries of both screen and selected points will not be deleted, so remove from tD 
+                    local rightCutoffTime = (tT[#tT] > ME_RightmostTime) and tT[#tT]+0.00001 or ME_RightmostTime+0.00001
+                    for d = #tD, 1, -1 do
+                        if tD[d].time > rightCutoffTime then
+                            tD[d] = nil
+                        else
+                            break
+                        end
                     end
+                    tGroups[env][ai] = {tT = tT, tV = tV, tF = tF, tQ = tQ, tD = tD}
+                    tTakeInfo[env][ai] = {}
+                    if tT[1] < envLeftmostTick then envLeftmostTick, envLeftmostValue = tT[1], tV[1] end -- !!!! This implies that each envelope -- and all AIs in it -- use the same time boundaries.  Might not be a good idea...
+                    if tT[#tT] > envRightmostTick then envRightmostTick, envRightmostValue = tT[#tT], tV[#tV] end
                 end
-                tGroups[env][ai] = {tT = tT, tV = tV, tF = tF, tQ = tQ, tD = tD}
-                tTakeInfo[env][ai] = {}
-                if tT[1] < envLeftmostTick then envLeftmostTick, envLeftmostValue = tT[1], tV[1] end -- !!!! This implies that each envelope -- and all AIs in it -- use the same time boundaries.  Might not be a good idea...
-                if tT[#tT] > envRightmostTick then envRightmostTick, envRightmostValue = tT[#tT], tV[#tV] end
             end
         end
         -- Found no selected points in underlying or any AI?  Delete group.
@@ -3519,9 +3629,10 @@ function ParseAutomation()
             tInfo.origLeftmostTick  = envLeftmostTick
             tInfo.origRightmostTick = envRightmostTick
             tInfo.origNoteOffTick   = envRightmostTick
+        --[[ If no selected points found in first try, search for selected AIs.
         elseif not secondTry then
             secondTry = true
-            goto tryAgain
+            goto tryAgain]]
         else
             tGroups[env] = nil 
         end
@@ -4475,7 +4586,9 @@ function CONSTRUCT_AND_UPLOAD_AUTOMATION()
     reaper.PreventUIRefresh(1)
     
     for env, tAI in pairs(tSteps[#tSteps].tGroups) do
-        playrate, offset = tTakeInfo[env].playrate, tTakeInfo[env].offset
+        local playrate, offset = tTakeInfo[env].playrate, tTakeInfo[env].offset
+        local laneMinValue, laneMaxValue = tTakeInfo[env].laneMinValue, tTakeInfo[env].laneMaxValue
+        local laneValueRange = laneMaxValue-laneMinValue
         
         for ai, t in pairs(tAI) do
             
@@ -4512,7 +4625,7 @@ function CONSTRUCT_AND_UPLOAD_AUTOMATION()
             end
             
             for p = 1, #tT do
-                reaper.InsertEnvelopePointEx(env, ai, playrate*(tT[p]-offset), tV[p], tF[p], tQ[p], true, true)
+                reaper.InsertEnvelopePointEx(env, ai, playrate*(tT[p]-offset), laneMinValue+laneValueRange*tV[p], tF[p], tQ[p], true, true)
             end
             reaper.Envelope_SortPointsEx(env, ai)
         end
@@ -4931,6 +5044,7 @@ function MAIN()
         if not bitmap then reaper.MB("Could not create LICE bitmap", "ERROR", 0) return false end 
     compositeOK = reaper.JS_Composite(windowUnderMouse, 0, 0, ME_Width, ME_Height, bitmap, 0, 0, ME_Width, ME_Height)
         if compositeOK ~= 1 then reaper.MB("Cannot draw guidelines.\n\nCompositing error: "..tostring(compositeOK), "ERROR", 0) return false end
+    if useRazors then compositeDelayOK, prevDelayMin, prevDelayMax, prevDelayBitmaps = reaper.JS_Composite_Delay(windowUnderMouse, 0.1, 0.2, 10) end
     DisplayZones()
     
 
