@@ -1,0 +1,38 @@
+-- @description AccessiChords
+-- @author Timtam
+-- @version 1.0
+-- @changelog First version released
+-- @provides
+--   [main=main] .
+--   timtam_AccessiChords/timtam_AccessiChords.lua
+--   [main] timtam_AccessiChords/timtam_AccessiChords insert selected chord for pitch cursor.lua
+--   [main] timtam_AccessiChords/timtam_AccessiChords select next chord for pitch cursor.lua
+--   [main] timtam_AccessiChords/timtam_AccessiChords select previous chord for pitch cursor.lua
+-- @link Documentation https://github.com/Timtam/AccessiChords
+-- @donation Donate via PayPal https://paypal.me/ToniRonaldBarth
+-- @about
+--   # AccessiChords
+--
+--   An accessible way to insert chords for the currently selected pitch cursor note into the MIDI editor.
+--
+--   See the documentation for more information: https://github.com/Timtam/AccessiChords
+
+-- @description AccessiChords
+-- @author Timtam
+-- @version 1.0
+-- @changelog First version released
+-- @provides
+--   [main=main] .
+--   timtam_AccessiChords/timtam_AccessiChords.lua
+--   [main] timtam_AccessiChords/timtam_AccessiChords insert selected chord for pitch cursor.lua
+--   [main] timtam_AccessiChords/timtam_AccessiChords select next chord for pitch cursor.lua
+--   [main] timtam_AccessiChords/timtam_AccessiChords select previous chord for pitch cursor.lua
+-- @link Documentation https://github.com/Timtam/AccessiChords
+-- @donation Donate via PayPal https://paypal.me/ToniRonaldBarth
+-- @about
+--   # AccessiChords
+--
+--   An accessible way to insert chords for the currently selected pitch cursor note into the MIDI editor.
+--
+--   See the documentation for more information: https://github.com/Timtam/AccessiChords
+
