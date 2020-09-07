@@ -1,10 +1,9 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.11
+Version: 6.12
 Changelog:
   + New: Compatible with razor selections.
   + New: Edit multiple envelope lanes together, using either razor selections or AI selections. 
-  + Fixed: Undo deleted points values.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -221,7 +220,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
- tTakeInfo = {}
+local tTakeInfo = {}
 local tMIDI = {} -- Each take or envelope or AI gets its own subtable: tMIDI[take] = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -3282,8 +3281,7 @@ end -- function Setup_MIDIEditorInfoFromTakeChunk
 
 -----------------------------
 function Setup_AutomationContext()
-    -- !!!!! This function is only set up to work with a single target envelope -- can easily be expanded to multiple envelopes
-           
+
     -- BR_GetMouseCursorContet_Envelope doesn't work properly any more !!!!!  So must find env myself.
     --reaper.BR_GetMouseCursorContext()
     --activeEnv, isTakeEnv = reaper.BR_GetMouseCursorContext_Envelope()
@@ -3297,6 +3295,7 @@ function Setup_AutomationContext()
     
     activeEnv = nil
     -- Search take envelopes
+    -- NOTE: Track envelopes can also be displayed inside Media Items lanes, so even if activeTake under mouse, activeEnv may turn out to be a track envelope.
     if activeTake then
         activeTrack = reaper.GetMediaItemTake_Track(activeTake)
         if activeTrack and reaper.ValidatePtr2(0, activeTrack, "MediaTrack*") then
@@ -3367,7 +3366,7 @@ function Setup_AutomationContext()
                     local env = reaper.GetTrackEnvelope(track, e)
                     local guidOK, envGUID = reaper.GetSetEnvelopeInfo_String(env, "GUID", "", false)
                     if guidOK then 
-                        tEnvGUIDs[envGUID] = env 
+                        tEnvGUIDs[envGUID] = env -- While we're going through all envs, store GUID for later use with razors
                     end
                     for ai = 0, reaper.CountAutomationItems(env)-1 do
                         if reaper.GetSetAutomationItemInfo(env, ai, "D_UISEL", 0, false) == 1 then
@@ -3393,8 +3392,10 @@ function Setup_AutomationContext()
         end end end end end end end 
     end
     
-    -- If no razor selections, check for AI selections
-    --
+    -- No razors and no selected AIs? Use envelope under mouse.
+    if not useRazors and not useSelectedAIs then 
+        tTakeInfo[activeEnv] = {track = activeTrack, tSelectedAIs = {}, tRazors = {}}
+    end
     
     -- The only way that I know of to get the min and max values of the envelope is via SWS (and then Scaling)
     local function GetEnvMinMaxAI(env)
@@ -3551,14 +3552,9 @@ function ParseAutomation()
     --local globalLeftmostTime, globalRightmostTime, globalMaxValue, globalMinValue, globalLeftmostValue, globalRightmostValue = math.huge, -math.huge, -math.huge, math.huge
     
     local bypassEnvelopes = (reaper.GetToggleCommandState(42213) == 1)
-    AA = 0
+  
     for env, tInfo in pairs(tTakeInfo) do
     
-        -- In first try, attempt to find selected points.  If no selected points found, search for selected AIs.
-        local secondTry = false
-        
-        ::tryAgain::
-        
         tGroups[env] = {}
 
         local isTakeEnv = tInfo.take and true or false
@@ -3571,7 +3567,7 @@ function ParseAutomation()
         local laneValueRange = laneMaxValue-laneMinValue
       
         for ai = startAI, endAI do
-            tAA = tInfo
+           
             -- If using AIs, skip underlying envelope and non-selected AIs
             if not useSelectedAIs or (tInfo.tSelectedAIs and tInfo.tSelectedAIs[ai]) then
                 --aiSelected = (reaper.GetSetAutomationItemInfo(env, ai, "D_UISEL", 0, false) == 1)
