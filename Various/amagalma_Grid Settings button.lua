@@ -1,7 +1,7 @@
 -- @description Grid Settings button
 -- @author amagalma
--- @version 1.01
--- @changelog Fixed wrong installation path in ReaPack
+-- @version 1.02
+-- @changelog Improvement: keep position when changing size
 -- @provides
 --   . > amagalma_Grid Settings button/amagalma_Grid Settings button.lua
 --   amagalma_Grid Settings button/amagalma_triplet.png
@@ -113,6 +113,7 @@ local size = reaper.GetExtState("amagalma_Grid Settings", "size")
 local show_x = reaper.GetExtState( "amagalma_Grid Settings", "x" )
 local show_y = reaper.GetExtState( "amagalma_Grid Settings", "y" )
 local dock = reaper.GetExtState( "amagalma_Grid Settings", "dock" )
+local cx, cy
 dock = Str2Num(dock, 0)
 size = Str2Num(size, 50)
 local size_w = size*1.8 -- (9/5)
@@ -298,13 +299,13 @@ function main()
   if now - time > 0.5 then
     time = now
     get_grid()
-    dock = gfx.dock(-1)
+    dock, cx, cy = gfx.dock(-1, 0, 0, 0, 0 )
     if gfx.w ~= oldw or gfx.h ~= oldh then
       size = gfx.w ~= oldw and 5/9*gfx.w or gfx.h
       size = size > 150 and 150 or (size < 50 and 50 or size)
       size_w = size*1.8
       gfx.quit()
-      gfx.init("Current grid setting",size_w,size,dock,show_x,show_y)
+      gfx.init("Current grid setting",size_w,size,dock,cx,cy)
       draw_grid()
       oldw, oldh = gfx.w, gfx.h
     end
