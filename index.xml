@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b8951f61da03bccdb5525c57d94896bd5c5acf8b" name="ReaTeam Scripts">
+<index version="1" commit="979a6ef08ea1c47c141917187d8f0bc1183a234b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -9827,6 +9827,29 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="main midi_editor" file="talagan_Distribute MIDI notes evenly (dialog).lua">https://github.com/ReaTeam/ReaScripts/raw/53473b40b99ad33f4e4e24857577a8faefb69656/MIDI%20Editor/talagan_Distribute%20MIDI%20notes%20evenly%20action.lua</source>
         <source main="main midi_editor" file="talagan_Distribute MIDI notes evenly (dialog+).lua">https://github.com/ReaTeam/ReaScripts/raw/53473b40b99ad33f4e4e24857577a8faefb69656/MIDI%20Editor/talagan_Distribute%20MIDI%20notes%20evenly%20action.lua</source>
         <source main="main midi_editor" file="talagan_Distribute MIDI notes evenly (last param).lua">https://github.com/ReaTeam/ReaScripts/raw/53473b40b99ad33f4e4e24857577a8faefb69656/MIDI%20Editor/talagan_Distribute%20MIDI%20notes%20evenly%20action.lua</source>
+      </version>
+    </reapack>
+    <reapack name="timtam_AccessiChords.lua" type="script" desc="AccessiChords">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 AccessiChords\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An accessible way to insert chords for the currently selected pitch cursor note into the MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the documentation for more information: https://github.com/Timtam/AccessiChords\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/Timtam/AccessiChords">Documentation</link>
+        <link rel="donation" href="https://paypal.me/ToniRonaldBarth">Donate via PayPal</link>
+      </metadata>
+      <version name="1.0" author="Timtam" time="2020-09-10T02:44:04Z">
+        <changelog><![CDATA[First version released]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords.lua</source>
+        <source file="timtam_AccessiChords/timtam_AccessiChords.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords insert selected chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20insert%20selected%20chord%20for%20pitch%20cursor.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select next chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20next%20chord%20for%20pitch%20cursor.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select previous chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20previous%20chord%20for%20pitch%20cursor.lua</source>
       </version>
     </reapack>
   </category>
