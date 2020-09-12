@@ -57,6 +57,7 @@ startUndoBlock()
 
 			reaper.SetMediaItemInfo_Value(selectedItem, "D_POSITION", selectedItemPosition-selectedItemPosition)
 			reaper.SetMediaItemInfo_Value(selectedItem, "D_LENGTH", selectedItemLength + selectedItemPosition + noteLength)
+			reaper.SetMediaItemInfo_Value(selectedItem, "D_SNAPOFFSET", selectedItemPosition)
 			reaper.SetMediaItemTakeInfo_Value(selectedItemTake, "D_STARTOFFS", selectedItemTakeStartOffset-selectedItemPosition)
 			
 			reaper.SetMediaItemInfo_Value(selectedItem, "D_FADEINLEN", selectedItemPosition)
@@ -66,6 +67,7 @@ startUndoBlock()
 
 			reaper.SetMediaItemInfo_Value(selectedItem, "D_POSITION", selectedItemPosition-noteLength)
 			reaper.SetMediaItemInfo_Value(selectedItem, "D_LENGTH", selectedItemLength + 2*noteLength)
+			reaper.SetMediaItemInfo_Value(selectedItem, "D_SNAPOFFSET", noteLength)
 			reaper.SetMediaItemTakeInfo_Value(selectedItemTake, "D_STARTOFFS", selectedItemTakeStartOffset-noteLength)
 
 			reaper.SetMediaItemInfo_Value(selectedItem, "D_FADEINLEN", noteLength)
