@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="606b20440cdbf018c4b93e0a5f0f133e2c0e5824" name="ReaTeam Scripts">
+<index version="1" commit="ff535c7a9cd507048d5936a0470c2540d9ed0df0" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -4891,6 +4891,35 @@ here
         <changelog><![CDATA[+ now using nearest note pitch from the left instead of nearest note pitch in either direction]]></changelog>
         <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Copy rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/c2852b1c0fd00b1853d9264cdc72c7ad47c0fa13/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Copy%20rhythm.lua</source>
         <source main="main" file="pandabot_Copy and paste rhythm/pandabot_Paste rhythm.lua">https://github.com/ReaTeam/ReaScripts/raw/c2852b1c0fd00b1853d9264cdc72c7ad47c0fa13/Items%20Editing/pandabot_Copy%20and%20paste%20rhythm/pandabot_Paste%20rhythm.lua</source>
+      </version>
+    </reapack>
+    <reapack name="pandabot_Extend items by note divisions.lua" type="script" desc="Extend items by note divisions">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Extend items by note divisions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 What is this?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Extend items by note division lengths with fade-in/fade-outs and snap offset, useful for comping\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 How do I use it?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There is an instructional gif {\field{\*\fldinst{HYPERLINK "https://github.com/benjohnson2001/ExtendItemsByNoteDivisions/raw/master/extendItemsByNoteDivision.gif"}}{\fldrslt{\ul
+here
+}}}
+\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/member.php?u=127396">pandabot (Cockos forum)</link>
+        <link rel="website" href="https://github.com/benjohnson2001/ExtendItemsByNoteDivisions">Source repository (GitHub)</link>
+        <link rel="donation">https://paypal.me/benjohnson2001</link>
+      </metadata>
+      <version name="1.0" author="pandabot" time="2020-09-12T19:06:41Z">
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by eighth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ff535c7a9cd507048d5936a0470c2540d9ed0df0/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20eighth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by hundred twenty eighth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ff535c7a9cd507048d5936a0470c2540d9ed0df0/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20hundred%20twenty%20eighth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by quarter note.lua">https://github.com/ReaTeam/ReaScripts/raw/ff535c7a9cd507048d5936a0470c2540d9ed0df0/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20quarter%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by sixteenth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ff535c7a9cd507048d5936a0470c2540d9ed0df0/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20sixteenth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by sixty fourth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ff535c7a9cd507048d5936a0470c2540d9ed0df0/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20sixty%20fourth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by thirty second note.lua">https://github.com/ReaTeam/ReaScripts/raw/ff535c7a9cd507048d5936a0470c2540d9ed0df0/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20thirty%20second%20note.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_Select every N items within selection.eel" type="script" desc="Select every N items within selection">
