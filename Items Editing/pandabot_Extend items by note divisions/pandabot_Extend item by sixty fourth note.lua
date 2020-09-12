@@ -1,3 +1,5 @@
+-- @noindex
+
 local activeProjectIndex = 0
 
 function print(arg)
