@@ -11,7 +11,7 @@ function startUndoBlock()
 end
 
 function endUndoBlock()
-	local actionDescription = "pandabot_Extend item by sixty fourth note"
+	local actionDescription = "pandabot_Extend items by hundred twenty eighth note"
 	reaper.Undo_OnStateChange(actionDescription)
 	reaper.Undo_EndBlock(actionDescription, -1)
 end
@@ -41,6 +41,10 @@ function lengthOfSixtyFourthNote()
 	return lengthOfThirtySecondNote()/2
 end
 
+function lengthOfHundredTwentyEighthNote()
+	return lengthOfSixtyFourthNote()/2
+end
+
 startUndoBlock()
 
 	local numberOfSelectedItems = reaper.CountSelectedMediaItems(activeProjectIndex)
@@ -55,7 +59,7 @@ startUndoBlock()
 		local selectedItemTake = reaper.GetTake(selectedItem, takeIndex)
 		local selectedItemTakeStartOffset = reaper.GetMediaItemTakeInfo_Value(selectedItemTake, "D_STARTOFFS")
 
-		local noteLength = lengthOfSixtyFourthNote()
+		local noteLength = lengthOfHundredTwentyEighthNote()
 
 		if selectedItemPosition < noteLength then
 

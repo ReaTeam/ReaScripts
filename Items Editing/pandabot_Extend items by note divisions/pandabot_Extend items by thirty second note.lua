@@ -11,7 +11,7 @@ function startUndoBlock()
 end
 
 function endUndoBlock()
-	local actionDescription = "pandabot_Extend item by thirty second note"
+	local actionDescription = "pandabot_Extend items by thirty second note"
 	reaper.Undo_OnStateChange(actionDescription)
 	reaper.Undo_EndBlock(actionDescription, -1)
 end
