@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ff535c7a9cd507048d5936a0470c2540d9ed0df0" name="ReaTeam Scripts">
+<index version="1" commit="614fcb49241c2d410b4759ae881c217b603b0791" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -9864,12 +9864,147 @@ Made by Mordi, Jan 2016]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 AccessiChords\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 An accessible way to insert chords for the currently selected pitch cursor note into the MIDI editor.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 See the documentation for more information: https://github.com/Timtam/AccessiChords\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/repo/graphs/contributors"}}{\fldrslt{\ul
+{\cf1 [image: https://img.shields.io/github/contributors/Timtam/repo.svg?style=flat-square]\cf0}
+}}}
+ {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/repo/network/members"}}{\fldrslt{\ul
+{\cf1 [image: https://img.shields.io/github/forks/Timtam/repo.svg?style=flat-square]\cf0}
+}}}
+ {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/repo/stargazers"}}{\fldrslt{\ul
+{\cf1 [image: https://img.shields.io/github/stars/Timtam/repo.svg?style=flat-square]\cf0}
+}}}
+ {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/repo/issues"}}{\fldrslt{\ul
+{\cf1 [image: https://img.shields.io/github/issues/Timtam/repo.svg?style=flat-square]\cf0}
+}}}
+ {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/AccessiChords/blob/master/LICENSE"}}{\fldrslt{\ul
+{\cf1 [image: https://img.shields.io/github/license/Timtam/repo.svg?style=flat-square]\cf0}
+}}}
+\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Table of Contents\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#about-the-project"}}{\fldrslt{\ul
+About the Project
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\field{\*\fldinst{HYPERLINK "#built-with"}}{\fldrslt{\ul
+Built With
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#getting-started"}}{\fldrslt{\ul
+Getting Started
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#usage"}}{\fldrslt{\ul
+Usage
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#roadmap"}}{\fldrslt{\ul
+Roadmap
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#contributing"}}{\fldrslt{\ul
+Contributing
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#license"}}{\fldrslt{\ul
+License
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "#contact"}}{\fldrslt{\ul
+Contact
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 About The Project\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Chords are an important, if not the most important part of music. As soon as you're composing a piece of music in REAPER, you'll come across chords and will have to insert them into your MIDI editor. No problem if you are able to play them with your favourite MIDI controller, but more of a hassle when programming your music manually via keyboard, or if you are unable to play an instrument.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Thats probably the reason why the {\field{\*\fldinst{HYPERLINK "https://github.com/benjohnson2001/ChordGun"}}{\fldrslt{\ul
+ChordGun scripts
+}}}
+ where invented. Those were ment to provide a nice-looking interface and the ability to get a quick overview over all chords available and the possibility to quickly shoot them into your project whenever you need them.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Unfortunately though, those ChordGun scripts are not accessible for visually impaired users. The interface is not accessible at all, neither with JAWS nor NVDA, not under Mac nor Windows. Thats why I started this project. Let AccessiChords be the successor of ChordGun - at least for VI people.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As such, AccessiChords provides a way to quickly access all chords related to a note selected with the pitch cursor and inject them into your MIDI editor at the current position and with the given grid size. See {\field{\*\fldinst{HYPERLINK "#usage"}}{\fldrslt{\ul
+Usage
+}}}
+ for more information.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Built With\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://www.lua.org/manual/5.3/"}}{\fldrslt{\ul
+Lua 5.3
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://reaper.fm"}}{\fldrslt{\ul
+REAPER 6.13 and above (older versions might run as well)
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://osara.reaperaccessibility.com/snapshots/"}}{\fldrslt{\ul
+OSARA nightly build as of Sep 4 or later
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Getting Started\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Installation\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 ReaPack\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It is recommended to get the latest stable version from ReaPack by synchronizing your repositories and searching for AccessiChords in the package list. This will make sure to add all the available actions to your actions list as well.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs24 Building from source\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs20 Clone\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you thus instead want to test the bleeding edge build of this package, clone this repository locally:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 git clone https://github.com/Timtam/AccessiChords.git\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Copy the timtam_AccessiChords folder into your REAPER's scripts folder afterwards.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 note: make sure to copy the folder directly into your Scripts folder, not in some other sub-folder or a totally different directory to make sure that the scripts work directly.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs20 Adding actions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Open an empty project within REAPER and open the actions list (shortcut: F4). Make sure to filter for MIDI Editor so that the actions will not be accessible from outside that one. Now select New Action and Load ReaScript. Make sure to load every timtam_AccessiChords file from within the timtam_AccessiChords folder, except the one that is called timtam_AccessiChords.lua. That one only contains dependencies and doesn't contain any action. Also do not load the smallfolk.lua file, that one is not required as an action.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Assigning shortcuts\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After installing the scripts in either of the ways above, you will have the actions provided by AccessiChords available in your actions list to be used. I however recommend to assign shortcuts to them to speed up the workflow and productivity with this toolset. Therefore, open the actions list again and search for AccessiChords in the filter input. I'd recommend the following shortcuts for the corresponding actions, although that's up to personal preference and you can assign them as you see fit:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab timtam_AccessiChords insert selected chord for pitch cursor.lua: Shift + i (CAUTION: this one seems to be assigned already, so you might need to overwrite it. It seems to be the same one as plain i though, so you shouldn't have any disadvantages in overwriting the original one)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab timtam_AccessiChords select next chord for pitch cursor.lua: CTRL + ALT + Up\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab timtam_AccessiChords select previous chord for pitch cursor.lua: CTRL + ALT + DOWN\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab timtam_AccessiChords select next chord inversion.lua: CTRL + ALT + RIGHT\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab timtam_AccessiChords select previous chord inversion.lua: CTRL + ALT + LEFT\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab timtam_AccessiChords stop notes.lua: no shortcut required\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Note: when using MacOS, control is command and alt is option. Shift remains the same.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The script will be entirely keyboard-controllable afterwards.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Usage\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 All the functionalities below can and should only be executed from within the MIDI editor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 note: all speech announcements will only work if you've got an OSARA version installed which was released Sep 4 2020 or later. If your installed OSARA version is older than that, you won't get any speech announcements by these scripts.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Cycling through available chords\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After you've selected a note using the pitch cursor (ALT + UP or DOWN arrow within the OSARA keymap), you can use the actions "timtam_AccessiChords select next chord for pitch cursor.lua" and "timtam_AccessiChords select previous chord for pitch cursor.lua" to cycle through all chords available for that note. When doing so, the chord will be played on the note channel selected for the virtual MIDI keyboard with the default velocity of the same. The name of the chord will also be announced by your screen reader. The scripts will also announce if the selected chord is not available for the given note.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Cycling through available chord inversions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 After selecting a note with the pitch cursor and a chord using the above actions, you can use the actions "timtam_AccessiChords select next chord inversion.lua" and "timtam_AccessiChords select previous chord inversion.lua" to cycle through the available chord inversions. Those will be announced with speech and remember as well, so that you can use the above actions to change chords while the inversion will be maintained and can be inserted as usual (see below).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Inserting a selected chord\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When having a chord selected, you can use the action "timtam_AccessiChords insert selected chord for pitch cursor.lua" to insert this chord at the current position into the MIDI editor. The notes will have the length of the current grid size or, if the length of the next inserted note is set using the appropriate reaper-native actions, they will have the appropriate length as well. The chord will be played again and the edit cursor will automatically be moved along the track by the size of the inserted notes. Note though that in contradiction to reaper-native note insertion, there currently is no speech when the cursor is moved that way. This will be considered a feature later to be implemented though.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Roadmap\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See the {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/AccessiChords/issues"}}{\fldrslt{\ul
+open issues
+}}}
+ for a list of proposed features (and known issues).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are {\b greatly appreciated}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Contribute by coding\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Fork the Project\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create your Feature Branch ({\f1 git checkout -b feature/AmazingFeature})\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Commit your Changes ({\f1 git commit -m 'Add some AmazingFeature'})\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Push to the Branch ({\f1 git push origin feature/AmazingFeature})\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Open a Pull Request\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Contribute by testing\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Feel free to give these scripts a go and see if they fit your workflow. Do you like those scripts, but can think of a way they might become even more useful to you? Feel free to let me know by opening an issue or contacting me via email at {\field{\*\fldinst{HYPERLINK "mailto:software@satoprogs.de"}}{\fldrslt{\ul
+software@satoprogs.de
+}}}
+. Same goes for bugs you might have encountered or new features you'd like to see.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs28 Contribute by paying me a coffee\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Developing takes time and effort and since those scripts are free to use and open-source, I don't get anything out of it except appreciation. Appreciation doesn't pay monthly bills though. If you think those scripts greatly improved your life by helping you with your productivity and workflow, or you simply want to give something back, i'd greatly appreciate a small donation via PayPal to the following link: {\field{\*\fldinst{HYPERLINK "https://paypal.me/ToniRonaldBarth"}}{\fldrslt{\ul
+https://paypal.me/ToniRonaldBarth
+}}}
+ Don't feel obligated though.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 License\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Distributed under the GNU GPL v3 License. See {\f1 LICENSE} for more information.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contact\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Toni Barth - {\field{\*\fldinst{HYPERLINK "https://twitter.com/GixGax95"}}{\fldrslt{\ul
+@GixGax95
+}}}
+ - software@satoprogs.de\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Project Link: {\field{\*\fldinst{HYPERLINK "https://github.com/Timtam/AccessiChords"}}{\fldrslt{\ul
+https://github.com/Timtam/AccessiChords
+}}}
+\par}
 }
 ]]></description>
-        <link rel="website" href="https://github.com/Timtam/AccessiChords">Documentation</link>
+        <link rel="website" href="https://github.com/Timtam/AccessiChords">GitHub</link>
         <link rel="donation" href="https://paypal.me/ToniRonaldBarth">Donate via PayPal</link>
       </metadata>
       <version name="1.0" author="Timtam" time="2020-09-10T02:44:04Z">
@@ -9879,6 +10014,21 @@ Made by Mordi, Jan 2016]]></changelog>
         <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords insert selected chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20insert%20selected%20chord%20for%20pitch%20cursor.lua</source>
         <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select next chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20next%20chord%20for%20pitch%20cursor.lua</source>
         <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select previous chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/979a6ef08ea1c47c141917187d8f0bc1183a234b/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20previous%20chord%20for%20pitch%20cursor.lua</source>
+      </version>
+      <version name="1.1" author="Timtam" time="2020-09-15T20:46:08Z">
+        <changelog><![CDATA[added support for chord inversions by adding two new actions to switch between those
+fixed flat fifth chord actually being a natural fifth chord
+fixed scripts not working with real-time generated sounds (e.g. ReaSynth)
+fixed chords being too long when "set length of next inserted note" was used]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords.lua</source>
+        <source file="timtam_AccessiChords/smallfolk.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/smallfolk.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords insert selected chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20insert%20selected%20chord%20for%20pitch%20cursor.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select next chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20next%20chord%20for%20pitch%20cursor.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select next chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20next%20chord%20inversion.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select previous chord for pitch cursor.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20previous%20chord%20for%20pitch%20cursor.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords select previous chord inversion.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20select%20previous%20chord%20inversion.lua</source>
+        <source main="midi_editor" file="timtam_AccessiChords/timtam_AccessiChords stop notes.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords%20stop%20notes.lua</source>
+        <source file="timtam_AccessiChords/timtam_AccessiChords.lua">https://github.com/ReaTeam/ReaScripts/raw/614fcb49241c2d410b4759ae881c217b603b0791/MIDI%20Editor/timtam_AccessiChords/timtam_AccessiChords.lua</source>
       </version>
     </reapack>
   </category>
