@@ -7,28 +7,30 @@ package.path = path .. "?.lua"
 local AccessiChords = require('timtam_AccessiChords')
 
 local note = AccessiChords.getCurrentPitchCursorNote()
-local lastNote = tonumber(AccessiChords.getValue('last_pitch_cursor_position', note))
-local chordIndex = tonumber(AccessiChords.getValue('last_chord_position', 0))
+local chordIndex = tonumber(AccessiChords.getValue('last_chord_position', 1))
+local chordInversion = tonumber(AccessiChords.getValue('last_chord_inversion', 0))
 
 chordIndex = chordIndex - 1
 
-if note ~= lastNote then
-  AccessiChords.setValue('last_pitch_cursor_position', note)
-end
+local chords = AccessiChords.getChordsForNote(note, chordInversion)
+local chordNames = AccessiChords.getChordNamesForNote(note, chordInversion)
 
-local chords = AccessiChords.getChordsForNote(note)
-local chordNames = AccessiChords.getChordNamesForNote(note)
-
-if chords[chordIndex] == nil then
+if chordIndex < 1 then
   chordIndex = 1
 end
 
 AccessiChords.setValue('last_chord_position', chordIndex)
 
-AccessiChords.stopNotes()
+if #chords[chordIndex] == 0 then
+
+  AccessiChords.speak(chordNames[chordIndex].." does not exist")
+
+  return
+
+end
 
 AccessiChords.playNotes(table.unpack(chords[chordIndex]))
 
 AccessiChords.speak(chordNames[chordIndex])
 
-AccessiChords.stopNotes()	
+AccessiChords.stopNotesDeferred(10, table.unpack(chords[chordIndex]))

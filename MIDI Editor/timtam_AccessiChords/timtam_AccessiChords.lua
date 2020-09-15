@@ -3,14 +3,26 @@
 -- module requirements for all actions
 -- doesn't provide any action by itself, so don't map any shortcut to it or run this action
 
+-- fixing script path for correct require calls
+local path = ({reaper.get_action_context()})[2]:match('^.+[\\//]')
+package.path = path .. "?.lua"
+
+-- other packages
+local smallfolk = require('smallfolk')
+
 -- constants
 
 local activeProjectIndex = 0
 local sectionName = "com.timtam.AccessiChord"
 
--- variables
-local deferCount = 0
-local deferTarget = 0
+-- stop notes action command ids
+local stopNotesCommandIDs = {
+  '_RS7d3c_eea8511e7be6bbe2f32752deed9710fd3727426b', -- installed in ReaPack MIDI Editor folder
+  '_RS7d3c_8e7e4131efe8a66c41c249ba98c117ae8d9a61e2', -- installed directly into scripts folder
+}
+
+local deserializeTable = smallfolk.loads
+local serializeTable = smallfolk.dumps
 
 local function setValuePersist(key, value)
   reaper.SetProjExtState(activeProjectIndex, sectionName, key, value)
@@ -47,7 +59,12 @@ local function getValue(key, defaultValue)
 end
 
 local function print(message)
-  reaper.ShowConsoleMsg("AccessiChords: "..message)
+
+  if type(message) == "table" then
+    message = serializeTable(message)
+  end
+
+  reaper.ShowConsoleMsg("AccessiChords: "..tostring(message))
 end
 
 local function getCurrentPitchCursorNote()
@@ -95,23 +112,35 @@ local function playNotes(...)
   end
 
   local noteOnCommand = 0x90 + noteChannel
-  local velocity = getCurrentVelocity()
 
   for _, note in pairs({...}) do
 
-    reaper.StuffMIDIMessage(0, noteOnCommand, note, velocity)
+    reaper.StuffMIDIMessage(0, noteOnCommand, note, 96)
   end
 
 end
 
-local function stopNotes()
+local function stopNotes(...)
 
+  local notes = {...}
   local noteChannel = getCurrentNoteChannel()
   local noteOffCommand = 0x80 + noteChannel
+  local _, midiNote
 
-  for midiNote = 0, 127 do
+  if #notes == 0 then
 
-    reaper.StuffMIDIMessage(0, noteOffCommand, midiNote, 0)
+    for midiNote = 0, 127 do
+
+      reaper.StuffMIDIMessage(0, noteOffCommand, midiNote, 0)
+
+    end
+  else
+  
+    for _, midiNote in pairs(notes) do
+
+      reaper.StuffMIDIMessage(0, noteOffCommand, midiNote, 0)
+
+    end
 
   end
 end
@@ -248,7 +277,7 @@ local function getAllChords()
       create = function(note)
         return {
           note,
-          note + 7
+          note + 6
         }
       end
     }
@@ -272,8 +301,26 @@ local function notesAreValid(...)
 
 end
 
-local function getChordsForNote(note)
+local function getChordInversion(step, ...)
 
+  local notes = {...}
+
+  if step >= #notes then
+    return nil
+  end
+  
+  local i
+
+  for i = 1, step do
+    notes[i] = notes[i] + 12
+  end
+
+  return notes
+end
+
+local function getChordsForNote(note, inversion)
+
+  inversion = inversion or 0
   local chordGenerators = getAllChords()
   
   local chords = {}
@@ -284,8 +331,28 @@ local function getChordsForNote(note)
 
     notes = gen.create(note)
 
-    if notesAreValid(table.unpack(notes)) == true then
+    if notesAreValid(table.unpack(notes)) == false then
+      notes = {}
+    else
+
+      if inversion > 0 then
+
+        notes = getChordInversion(inversion, table.unpack(notes))
+
+        if notes == nil then
+          notes = {}
+        else
+
+          if notesAreValid(table.unpack(notes)) == false then
+            notes = {}
+          end
+
+        end
+
+      end
+
       table.insert(chords, notes)
+
     end
 
   end
@@ -329,15 +396,26 @@ local function getNoteName(note)
   return getAllNoteNames()[noteIndex].." "..tostring(octave)
 end
 
-local function getChordNamesForNote(note)
+local function getChordNamesForNote(note, inversion)
+
+  inversion = inversion or 0
 
   local chordGenerators = getAllChords()
   
   local names = {}
+  local name
 
   for _, gen in pairs(chordGenerators) do
 
-    table.insert(names, getNoteName(note).." "..gen.name)
+    name = getNoteName(note).." "..gen.name
+
+    if inversion > 0 then
+
+      name = name.. " inversion "..tostring(inversion)
+
+    end
+
+    table.insert(names, name)
 
   end
 
@@ -392,7 +470,9 @@ local function getNextNoteLength()
     return 0
   end
   
-  return reaper.MIDIEditor_GetSetting_int(activeMidiEditor, "default_note_len")
+  local noteLen = reaper.MIDIEditor_GetSetting_int(activeMidiEditor, "default_note_len")
+
+  return reaper.MIDI_GetProjTimeFromPPQPos(getActiveMidiTake(), noteLen)
 end
 
 local function getMidiEndPositionPPQ()
@@ -430,17 +510,95 @@ local function insertMidiNotes(...)
   reaper.SetEditCurPos(endPosition, true, false)
 end
 
+-- delay in defer ticks (ca 33 msec)
+local function stopNotesDeferred(delay, ...)
+
+  local notes = {...}
+  local noteTable = deserializeTable(getValue('playing_notes', serializeTable({})))
+  local deferCount = tonumber(getValue('playing_notes_defer_count', 0))
+
+  local _, i, note, found, noteIndex
+  
+  for _, note in pairs(notes) do
+
+    found = false
+
+    for i = 1, #noteTable do
+
+      if noteTable[i]['note'] == note then
+        found = true
+        noteIndex = i
+        break
+      end
+    end
+
+    if found == true then
+      -- note is already in the list
+      -- hence we will set the time to the current defer count + delay
+      noteTable[noteIndex]['time'] = deferCount + delay
+    else
+
+      -- add the note to the list
+      table.insert(noteTable, {
+        time = deferCount + delay + 1,
+        note = note
+      })
+  
+    end
+  end
+
+  setValue('playing_notes', serializeTable(noteTable))
+    
+  if deferCount == 0 then
+
+    -- we have to manually launch the action
+    local commandID
+    
+    for i = 1, #stopNotesCommandIDs do
+
+      found = false
+
+      commandID = reaper.NamedCommandLookup(stopNotesCommandIDs[i])
+
+      if commandID ~= 0 then
+        found = true
+        break
+      end
+      
+    end
+
+    if found == true then
+
+      -- to prevent many calls before even the first defer in the action fires, we'll have to set defer count to 1 already
+      setValue('playing_notes_defer_count', 1)
+
+      reaper.MIDIEditor_OnCommand(reaper.MIDIEditor_GetActive(), commandID)
+
+    else
+      -- message box informing about missing action
+      stopNotes(table.unpack(notes))
+      reaper.MB('The action to stop playing notes could not be found. That will cause issues with real-time generated samples. Please make sure to follow the installation instructions which can be found in the documentation', 'AccessiChords - Error', 0)
+    end
+
+  end
+end
+
 return {
+  deserializeTable = deserializeTable,
+  getChordInversion = getChordInversion,
   getChordNamesForNote = getChordNamesForNote,
   getChordsForNote = getChordsForNote,
   getCurrentPitchCursorNote = getCurrentPitchCursorNote,
+  getNoteName = getNoteName,
   getValue = getValue,
   getValuePersist = getValuePersist,
   insertMidiNotes = insertMidiNotes,
   playNotes = playNotes,
   print = print,
+  serializeTable = serializeTable,
   setValue = setValue,
   setValuePersist = setValuePersist,
   speak = speak,
-  stopNotes = stopNotes
+  stopNotes = stopNotes,
+  stopNotesDeferred = stopNotesDeferred
 }
