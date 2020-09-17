@@ -6,6 +6,9 @@ function print(arg)
   reaper.ShowConsoleMsg(tostring(arg) .. "\n")
 end
 
+function emptyFunctionToPreventAutomaticCreationOfUndoPoint()
+end
+
 function startUndoBlock()
 	reaper.Undo_BeginBlock()
 end
@@ -41,9 +44,16 @@ function lengthOfSixtyFourthNote()
 	return lengthOfThirtySecondNote()/2
 end
 
-startUndoBlock()
+-----
 
-	local numberOfSelectedItems = reaper.CountSelectedMediaItems(activeProjectIndex)
+local numberOfSelectedItems = reaper.CountSelectedMediaItems(activeProjectIndex)
+
+if numberOfSelectedItems == 0 then
+	reaper.defer(emptyFunctionToPreventAutomaticCreationOfUndoPoint)
+	return
+end
+
+startUndoBlock()
 
 	for i = 0, numberOfSelectedItems - 1 do
 
