@@ -14,7 +14,7 @@ About:
     ### Isolate items by note divisions
     
     #### What is this?
-    Isolate items by note division lengths with fade-in and fade-outs, useful for comping vst output
+    Isolate items by note division lengths with fade-in and fade-outs
     
     #### How do I use it?
     There is an instructional gif [here](https://raw.githubusercontent.com/benjohnson2001/IsolateItemsByNoteDivisions/master/isolateItemsByNoteDivisions.gif)

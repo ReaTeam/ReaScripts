@@ -14,7 +14,7 @@ About:
     ### Isolate time selection by note divisions
     
     #### What is this?
-    Isolate time selection of selected tracks by note division lengths with fade-in and fade-outs, useful for comping vst output
+    Isolate time selection of selected tracks by note division lengths with fade-in and fade-outs
     
     #### How do I use it?
     There is an instructional gif [here](https://raw.githubusercontent.com/benjohnson2001/IsolateTimeSelectionByNoteDivisions/master/isolateTimeSelectionByNoteDivisions.gif)
