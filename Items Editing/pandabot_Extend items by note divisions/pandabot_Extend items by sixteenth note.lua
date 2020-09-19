@@ -85,4 +85,6 @@ startUndoBlock()
 		reaper.SetMediaItemInfo_Value(selectedItem, "C_FADEOUTSHAPE", fadeOutShape)
 	end
 
+	reaper.UpdateArrange()
+
 endUndoBlock()
