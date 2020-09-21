@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e4aab26cd9f77f82fb49b9b4437eaab01ae8bc00" name="ReaTeam Scripts">
+<index version="1" commit="8e9c5a7cd44e091bf98718c1ca4154841504f397" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -2628,6 +2628,26 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
     </reapack>
   </category>
   <category name="Envelopes/Takes">
+    <reapack name="amagalma_Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (down).lua" type="script" desc="Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (down)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Lowers the Take Volume for selected items (or selected take vol env if no items are selected) in time selection by a set amount.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inserts 4 envelope points if needed\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Shows Take Volume envelope if not already visible\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Lowers all existing envelope points in time selection by set amount\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Amount of volume change and transition duration can be set with additional Settings script (default values: 3dB and 3ms)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-09-21T20:56:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8e9c5a7cd44e091bf98718c1ca4154841504f397/Envelopes/Takes/amagalma_Change%20Take%20Volume%20(insert%204%20points)%20for%20selected%20items%20(or%20selected%20take%20vol%20env)%20in%20time%20selection%20by%20set%20amount%20(down).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (Settings).lua" type="script" desc="Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (Settings)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
