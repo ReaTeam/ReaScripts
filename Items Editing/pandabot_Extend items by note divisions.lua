@@ -14,7 +14,7 @@ About:
     ### Extend items by note divisions
     
     #### What is this?
-    Extend items by note division lengths with fade-in/fade-outs and snap offset, useful for comping
+    Extend items by note division lengths with fade-in/fade-outs and snap offset, useful for comping vst output
     
     #### How do I use it?
     There is an instructional gif [here](https://github.com/benjohnson2001/ExtendItemsByNoteDivisions/raw/master/extendItemsByNoteDivision.gif)

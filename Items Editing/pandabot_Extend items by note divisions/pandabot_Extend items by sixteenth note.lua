@@ -6,6 +6,9 @@ function print(arg)
   reaper.ShowConsoleMsg(tostring(arg) .. "\n")
 end
 
+function emptyFunctionToPreventAutomaticCreationOfUndoPoint()
+end
+
 function startUndoBlock()
 	reaper.Undo_BeginBlock()
 end
@@ -33,9 +36,16 @@ function lengthOfSixteenthNote()
 	return lengthOfEighthNote()/2
 end
 
-startUndoBlock()
+-----
 
-	local numberOfSelectedItems = reaper.CountSelectedMediaItems(activeProjectIndex)
+local numberOfSelectedItems = reaper.CountSelectedMediaItems(activeProjectIndex)
+
+if numberOfSelectedItems == 0 then
+	reaper.defer(emptyFunctionToPreventAutomaticCreationOfUndoPoint)
+	return
+end
+
+startUndoBlock()
 
 	for i = 0, numberOfSelectedItems - 1 do
 
@@ -74,5 +84,7 @@ startUndoBlock()
 		reaper.SetMediaItemInfo_Value(selectedItem, "C_FADEINSHAPE", fadeOutShape)
 		reaper.SetMediaItemInfo_Value(selectedItem, "C_FADEOUTSHAPE", fadeOutShape)
 	end
+
+	reaper.UpdateArrange()
 
 endUndoBlock()
