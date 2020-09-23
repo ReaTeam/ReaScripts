@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67aeabb827d384f4677bfc3af3a8b8e19d205d1e" name="ReaTeam Scripts">
+<index version="1" commit="183f62303d897d6fa969ac0f6b60f5306ca6d493" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -2642,10 +2642,16 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=242569</link>
+        <link rel="screenshot">https://i.ibb.co/K5qdpZ3/amagalma-Change-Take-Volume-insert-4-points-for-selected-items-or-selected-take-vol-env-in-time-sele.gif</link>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-09-21T20:56:01Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8e9c5a7cd44e091bf98718c1ca4154841504f397/Envelopes/Takes/amagalma_Change%20Take%20Volume%20(insert%204%20points)%20for%20selected%20items%20(or%20selected%20take%20vol%20env)%20in%20time%20selection%20by%20set%20amount%20(down).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-09-23T19:11:54Z">
+        <changelog><![CDATA[Fix: now working with items with multiple takes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/48cb2b304ad5894393414c5ea5e430115189e00c/Envelopes/Takes/amagalma_Change%20Take%20Volume%20(insert%204%20points)%20for%20selected%20items%20(or%20selected%20take%20vol%20env)%20in%20time%20selection%20by%20set%20amount%20(down).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (Settings).lua" type="script" desc="Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (Settings)">
@@ -2678,10 +2684,16 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=242569</link>
+        <link rel="screenshot">https://i.ibb.co/K5qdpZ3/amagalma-Change-Take-Volume-insert-4-points-for-selected-items-or-selected-take-vol-env-in-time-sele.gif</link>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-09-21T21:04:08Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/67aeabb827d384f4677bfc3af3a8b8e19d205d1e/Envelopes/Takes/amagalma_Change%20Take%20Volume%20(insert%204%20points)%20for%20selected%20items%20(or%20selected%20take%20vol%20env)%20in%20time%20selection%20by%20set%20amount%20(up).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-09-23T19:15:17Z">
+        <changelog><![CDATA[Fix: now works with items with multiple takes too]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/183f62303d897d6fa969ac0f6b60f5306ca6d493/Envelopes/Takes/amagalma_Change%20Take%20Volume%20(insert%204%20points)%20for%20selected%20items%20(or%20selected%20take%20vol%20env)%20in%20time%20selection%20by%20set%20amount%20(up).lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Toggle selected items take envelopes.lua" type="script" desc="Toggle selected items take envelopes">
