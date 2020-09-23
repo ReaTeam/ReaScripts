@@ -1,6 +1,9 @@
 -- @description Change Take Volume (insert 4 points) for selected items (or selected take vol env) in time selection by set amount (up)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Fix: now works with items with multiple takes too
+-- @link https://forum.cockos.com/showthread.php?t=242569
+-- @screenshot https://i.ibb.co/K5qdpZ3/amagalma-Change-Take-Volume-insert-4-points-for-selected-items-or-selected-take-vol-env-in-time-sele.gif
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Raises the Take Volume for selected items (or selected take vol env if no items are selected) in time selection by a set amount.
@@ -48,26 +51,38 @@ local vol_env = "\n<VOLENV\nEGUID " .. reaper.genGuid("") ..
 "\nACT 1 -1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 1\nDEFSHAPE 0 -1 -1\nVOLTYPE 1\nPT 0 1 0\n>\n"
 
 local function EnableTakeVol(take, item)
+  local takeGUID = reaper.BR_GetMediaItemTakeGUID( take )
+  local take_cnt = reaper.CountTakes( item )
   local fx_count = reaper.TakeFX_GetCount( take )
   local _, chunk = reaper.GetItemStateChunk( item, "", false )
   local t = {}
   local i = 0
   local insert
+  local foundTake = take_cnt == 1
+  local search_take_end = true
   for line in chunk:gmatch("[^\n]+") do
     i = i + 1
     t[i] = line
-    if not insert and i > 30 then
-      if line:find("^<.-ENV$") then
-        insert = i
-      elseif fx_count > 0 then
-        if line:find("^TAKE_FX_HAVE_") then
-          insert = i + 1
-        end
+    if not foundTake then
+      if line:find(takeGUID:gsub("-", "%%-")) then
+      foundTake = true
       end
     end
-  end
-  if not insert then
-    insert = #t
+    if foundTake then
+      if (not insert) and i > 30 then
+        if line:find("^<.-ENV$") then
+          insert = i
+        elseif fx_count > 0 then
+          if line:find("^TAKE_FX_HAVE_") then
+            insert = i + 1
+          end
+        end
+      end
+      if not insert and search_take_end and line == ">" then
+        search_take_end = false
+        insert = i + 1
+      end
+    end
   end
   chunk = table.concat(t, "\n", 1, insert-1 ) .. vol_env .. table.concat(t, "\n", insert )
   reaper.SetItemStateChunk( item, chunk, true )
