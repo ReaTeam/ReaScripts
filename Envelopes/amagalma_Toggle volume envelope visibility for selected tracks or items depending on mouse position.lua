@@ -1,70 +1,128 @@
--- @description amagalma_Toggle volume envelope visibility for selected tracks/items depending on mouse position
+-- @description Toggle volume envelope visibility for selected tracks or items depending on mouse position or last context
 -- @author amagalma
--- @version 1.002
+-- @version 1.2
+-- @changelog
+--   - Re-design of toggle code
+--   - Fixed: working with MIDI items
+--   - Fixed: working when there are other envelopes
+--   - Added: If mouse is not over Arrange or TCP then it works according to last context
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Toggles volume envelope visibility for the selected tracks or items
 --
 --   - If mouse is over Arrange, then it toggles selected items' volume envelopes' visibility
 --   - If mouse is over TCP, then it toggles selected tracks' volume envelopes' visibility
+--   - If mouse is elsewhere it toggles according to last context
 --   - Undo point is created if needed and is named accordingly
 
---[[
- * Changelog:
- * v1.002 (2018-07-30)
-  + fixed avoiding to create undo when no tracks or no items are selected
---]]
 
-------------------------------------------------------------------------------------------------
 
-local reaper = reaper
 local done
-
-------------------------------------------------------------------------------------------------
 
 local function ToggleVisibility(item)
   local take_cnt = reaper.CountTakes(item)
   if take_cnt > 0 then
     local take = reaper.GetActiveTake(item)
     local act_take_guid = reaper.BR_GetMediaItemTakeGUID(take)
-    local GetChunk = reaper.GetItemStateChunk    
-    local _, chunk = GetChunk(item, "", true)
-    local def_env = {"<VOLENV","ACT 1","VIS 1 1 1","LANEHEIGHT 0 0","ARM 0","DEFSHAPE 0 -1 -1","PT 0 1 0",">"}
+    local _, chunk = reaper.GetItemStateChunk(item, "", true)
+    local def_env = {"<VOLENV","ACT 1 -1","VIS 1 1 1","LANEHEIGHT 0 0","ARM 0","DEFSHAPE 0 -1 -1","PT 0 1 0",">"}
     local t = {}
-    local function helper(line) table.insert(t, line) return "" end
-    helper((chunk:gsub("(.-)\r?\n", helper)))
-    local found = 0
-    for i in pairs(t) do
-      if string.match(t[i], act_take_guid:gsub("-", "%%-")) then
-        found = i ; break
+    local l = 0
+    local equilibrium = 0
+    local activate_equilibrium = false
+    local foundTake = false
+    local record = true
+    local insert = 0
+    local search_source, search_sm, search_takefx, search_newpdc = true, false, false, false
+    local vol_env_found = false
+    local vol_points = 0
+    local vol_end = 0
+    local visLine = 0
+    local defaultEnv = false
+    for line in chunk:gmatch("[^\n]+") do
+      l = l + 1
+      t[l] = line
+      if not foundTake then
+        if line:find(act_take_guid:gsub("-", "%%-") .. "$") then
+          foundTake = l
+        end
       end
-    end
-    local VolEnvStart, defaultexists, VisLine, insert_here = 0, 1, 0, 0
-    for i = found, #t do
-      if t[i]:match("TAKE") or (t[i] == ">" and t[i-1] == ">") then 
-        insert_here = i ; defaultexists = 0 break -- No Volume Envelope exists for the active take
-      end
-      if t[i]:match("<VOLENV") then VolEnvStart = i break end -- Volume Envelope exists
-    end
-    if VolEnvStart > 0 then
-      for j = 1, #def_env do -- Check if existing Volume envelope is the default
-        if def_env[j] ~= (t[VolEnvStart+j-1]) then defaultexists = 0 end
-        if string.match(t[VolEnvStart+j-1], "VIS %d 1 1") then VisLine = VolEnvStart+j-1 end
-      end
-    end
-    if insert_here ~= 0 then -- VolEnv does not exist, so create default
-      for i = #def_env, 1, -1 do
-        table.insert(t, insert_here, def_env[i])
-      end
-    else -- VolEnv exists
-      if defaultexists == 0 then -- Toggle visibility
-        t[VisLine] = t[VisLine]:gsub("(VIS%s)(%d)", function(a,b) return a .. (b~1) end)
-      else -- Remove Default envelope
-        for i = 1, #def_env do
-          table.remove(t, VolEnvStart)
+      if record and foundTake then
+        if search_source and line:find("^<SOURCE") then
+          activate_equilibrium = true
+        end
+        if search_sm and line:find("^SM ") then
+          insert = l
+          search_sm = false
+        end
+        if search_takefx and line:find("^<TAKEFX") then
+          search_sm = false
+          activate_equilibrium = true
+        end
+        if search_newpdc and line:find("^TAKE_FX_") then
+          insert = l
+          search_newpdc = false
+        end
+        if not vol_env_found and not search_source then
+          if line == "<VOLENV" then
+            insert = l - 1
+            search_sm, search_takefx, search_newpdc = false, false, false
+            vol_env_found = true
+            vol_points = reaper.CountEnvelopePoints( reaper.GetTakeEnvelopeByName( take, "Volume" ) )
+            activate_equilibrium = true
+          elseif line == "<PANENV" or line == "<MUTEENV" or line == "<PITCHENV" then
+            insert = l - 1
+            record = false
+          end
+        end
+        if activate_equilibrium then
+          if line:find("^<") then
+            equilibrium = equilibrium + 1
+          elseif line == ">" then
+            equilibrium = equilibrium - 1
+          end
+          if vol_env_found then
+            if visLine == 0 and line:find("^V") then
+              visLine = l
+            elseif vol_points == 1 and not defaultEnv and line == "PT 0 1 0" then
+              defaultEnv = true
+            end
+          end
+          if equilibrium == 0 then
+            activate_equilibrium = false
+            if search_source then
+              search_source = false
+              search_sm, search_takefx = true, true
+              insert = l
+            elseif search_takefx then
+              search_takefx = false
+              search_newpdc = true
+              insert = l
+            elseif vol_env_found then
+              vol_end = l
+              record = false
+            end
+          end
+        end
+        if line == "TAKE" or line == "TAKE SEL" then
+          record = false
         end
       end
     end
-    reaper.SetItemStateChunk(item, table.concat(t, "\n"), true) -- Write table to item chunk
+    if vol_env_found then
+      if defaultEnv then
+        chunk = table.concat(t, "\n", 1, insert) .. "\n" .. table.concat(t, "\n", vol_end+1)
+      else
+        t[visLine] = t[visLine]:gsub("VIS (%d)", function(a) return "VIS " .. (a~1) end)
+        chunk =  table.concat(t, "\n")
+      end
+    else
+      chunk = table.concat(t, "\n", 1, insert) ..
+      "\n<VOLENV\nACT 1\nVIS 1 1 1\nLANEHEIGHT 0 0\nARM 0\nDEFSHAPE 0 -1 -1\nPT 0 1 0\n>\n" ..
+      table.concat(t, "\n", insert+1)
+    end
+    reaper.SetItemStateChunk(item, chunk, true)
+    done = "items"
   end
 end
 
@@ -79,7 +137,6 @@ local function SetItemTakeVolEnvVis()
       ToggleVisibility(item)
     end
     reaper.PreventUIRefresh( -1 )
-    done = "items"
   end
 end
 
@@ -95,6 +152,13 @@ if string.match(window, "tcp") and reaper.CountSelectedTracks2( 0, true) > 0 the
 -- If mouse is over Arrange, toggle volume envelope for selected items
 elseif string.match(window, "arrange") then
   SetItemTakeVolEnvVis()
+else
+  context = reaper.GetCursorContext2( true )
+  if context ~= 1 then
+    reaper.Main_OnCommand(40406, 0) -- Track: Toggle track volume envelope visible
+  else
+    SetItemTakeVolEnvVis()
+  end
 end
 
 -- Undo point creation -------------------------------------------------------------------------
@@ -104,6 +168,5 @@ if done == "tracks" then
 elseif done == "items" then
   reaper.Undo_OnStateChangeEx2( 0, "Toggle sel items volume envelope visibility", 1|4, -1 )
 else
-  local function NoUndoPoint() end 
-  reaper.defer(NoUndoPoint)
+  reaper.defer( function() end )
 end
