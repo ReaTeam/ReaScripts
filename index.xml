@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="781d29bc490a8981e38b0100555e0f3b5da06dd2" name="ReaTeam Scripts">
+<index version="1" commit="a38d64f40d209544da5ed15790ab30fe3af99792" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -12645,14 +12645,15 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Displays/edits the state chunk of the selected track/item/envelope. Intended for use by developers/scripters.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Chunks are automatically indented\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Size of indentation set inside the script in User Settings area (default: 3 spaces)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Size of indentation set inside the script in User Settings area (default: 2 spaces)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When it loads, the last clicked context (track/item/envelope) is automatically set\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatic line numbering\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fully re-sizable\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Remembers last size & position\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When Setting chunk, the appropriate and correctly named undo is created\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires Lokasenna GUI v2\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Lokasenna GUI v2 is automatically installed if it is not already\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Lokasenna GUI v2 is automatically installed if it is not already\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fullscreen/Maximize button, Windows only (requires JS_ReaScriptAPI for the button to show)\sa180\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Inspired by previous works by eugen2777 and sonictim (TJF) *\sa180\par}
 }
 ]]></description>
@@ -12662,6 +12663,15 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2020-09-28T10:16:30Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/781d29bc490a8981e38b0100555e0f3b5da06dd2/Various/amagalma_Chunk%20ViewerEditor.lua</source>
+      </version>
+      <version name="1.06" author="amagalma" time="2020-09-30T14:02:55Z">
+        <changelog><![CDATA[- change: set default number of spaces for indentation to 2
+- change: removed warning when setting chunk
+- fix: selecting by click-dragging
+- fix: caret positioning by clicking
+- add: Fullscreen button, Windows only (requires JS_ReaScriptAPI)
+- add: TopMost Pin]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a38d64f40d209544da5ed15790ab30fe3af99792/Various/amagalma_Chunk%20ViewerEditor.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="Create Impulse Response (IR) of the FX Chain of the selected Track">
