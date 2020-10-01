@@ -1,15 +1,15 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.06
+-- @version 1.20
 -- @changelog
---   - change: set default number of spaces for indentation to 2
---   - change: removed warning when setting chunk
---   - fix: selecting by click-dragging
---   - fix: caret positioning by clicking
---   - add: Fullscreen button, Windows only (requires JS_ReaScriptAPI)
---   - add: TopMost Pin
+--   - fix: Improved Fullscreen (thanks Edgemeal!)
+--   - fix: avoid crashing when loading if last window position was a negative value
+--   - add: Search/Find ability (Ctrl+F)
+--   - add: "Go to next" (F3) and "Go to previous" (F2, not Shift+F3, sorry!)
+--   - change: color of Set Chunk button
+-- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
--- @screenshot https://i.ibb.co/PCkPMzt/amagalma-Chunk-Viewer-Editor.jpg
+-- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Displays/edits the state chunk of the selected track/item/envelope. Intended for use by developers/scripters.
@@ -20,10 +20,13 @@
 --   - Automatic line numbering
 --   - Fully re-sizable
 --   - Remembers last size & position
+--   - Search/Find ability (Ctrl+F)
+--   - "Go to next" (F3 key) and "Go to previous" (F2 key)
 --   - When Setting chunk, the appropriate and correctly named undo is created
---   - Requires Lokasenna GUI v2
+--   - Requires Lokasenna GUI v2 and JS_ReaScriptAPI
 --   - Lokasenna GUI v2 is automatically installed if it is not already
---   - Fullscreen/Maximize button, Windows only (requires JS_ReaScriptAPI for the button to show)
+--   - Prompt to install JS_ReaScriptAPI if not installed
+--   - Fullscreen/Maximize button (Windows only)
 --
 --   * Inspired by previous works by eugen2777 and sonictim (TJF) *
 
@@ -33,7 +36,21 @@ local number_of_spaces = 2 -- used for indentation
 --------------------------------------------------
 
 
-local version = "1.06"
+local version = "1.20"
+
+
+-- Check if JS_ReaScriptAPI is installed
+if not reaper.APIExists("JS_Window_Find") then
+  reaper.MB( "Please, right-click and install 'js_ReaScriptAPI: API functions for ReaScripts'. Then restart Reaper and run the script again. Thanks!", "JS_ReaScriptAPI Installation", 0 )
+  local ok, err = reaper.ReaPack_AddSetRepository( "ReaTeam Extensions", "https://github.com/ReaTeam/Extensions/raw/master/index.xml", true, 1 )
+  if ok then
+    reaper.ReaPack_BrowsePackages( "js_ReaScriptAPI" )
+  else
+    reaper.MB( err, "Something went wrong...", 0)
+  end
+  return reaper.defer(function() end)
+end
+
 
 -- Check Lokasenna_GUI library availability --
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
@@ -187,7 +204,6 @@ local function Checking()
       TextDigits = cur_digits
       TextPad = gfx.measurestr(string.rep("0", TextDigits))
       GUI.elms.TextEditor:init()
-      reaper.ShowConsoleMsg("l")
       GUI.elms.TextEditor:drawtext()
     end
   end
@@ -224,15 +240,133 @@ function GUI.TextEditor:getcaret(x, y)
 end
 
 GUI.TextEditor.keys[6] = function (self) -- Ctrl + F
-  reaper.ShowConsoleMsg"Search to be implemented soon...\n"
+  local find_hwnd = reaper.JS_Window_Find( "Chunk Viewer / Editor Find", true )
+  if find_hwnd then
+    reaper.JS_Window_SetFocus( find_hwnd )
+  else
+    local find_path = GUI.script_path .. "amagalma_Chunk ViewerEditor find.lua"
+    local cmd_id = reaper.AddRemoveReaScript( true, 0, find_path, true )
+    reaper.Main_OnCommand(cmd_id, 0)
+    reaper.AddRemoveReaScript( false, 0, find_path, true )
+  end
 end
 
+local function esc(s)
+  local matches =
+  {
+    ["^"] = "%^";
+    ["$"] = "%$";
+    ["("] = "%(";
+    [")"] = "%)";
+    ["%"] = "%%";
+    ["."] = "%.";
+    ["["] = "%[";
+    ["]"] = "%]";
+    ["*"] = "%*";
+    ["+"] = "%+";
+    ["-"] = "%-";
+    ["?"] = "%?";
+    ["\0"] = "%z";
+  }
+  return (s:gsub(".", matches))
+end
+
+local function GetString()
+  return reaper.GetExtState("amagalma_Chunk Viewer-Editor", "Find"),
+  reaper.GetExtState("amagalma_Chunk Viewer-Editor", "MatchCase") == "1"
+end
+
+
 GUI.TextEditor.keys[GUI.chars.F3] = function (self) -- F3 Find next
-  reaper.ShowConsoleMsg"'Go to next' to be implemented soon...\n"
+  local str, MatchCase = GetString()
+  if #self.retval == 0 or str == "" or not str then return end
+  local name = (#str < 16 and str or str:sub(1, 15) .. "..") .. "'"
+  str = MatchCase and str or str:upper()
+  local line, character = 1, 1
+  if self.caret.x + 1 > #self.retval[self.caret.y] then
+    line, character = self.caret.y + 1, 1
+  else
+    line, character = self.caret.y, self.caret.x + 1
+  end
+  if line <= #self.retval then
+    for i = line, #self.retval do
+      local txt = i ~= line and self.retval[i] or self.retval[line]:sub(character)
+      txt = MatchCase and txt or txt:upper()
+      local pos1, pos2 = txt:find(esc(str))
+      if pos1 and pos2 then
+        --reaper.ShowConsoleMsg(string.format("Found in line %i from %i to %i\n", i, pos1, pos2))
+        pos1 = i ~= line and pos2 or pos2+character-1
+        -- Adjust scroll position
+        if i > self.wnd_pos.y + self.wnd_h then
+          local adjust_scroll = math.floor(self.wnd_h/3)
+          local len = self:getwndlength()
+          if i + self.wnd_h > len then
+            adjust_scroll = i - len + self.wnd_h
+          end
+          self.wnd_pos.y = i - adjust_scroll
+          self:redraw()
+        end
+        -- Place caret
+        self.caret.y, self.caret.x = i, pos1
+        self.blink = 0
+        -- Make selection (not working ?)
+        self.sel_s = {x = pos1 - #str, y = i}
+        self.sel_e = {x = pos1, y = i}
+        self:drawselection()
+        return
+      end
+    end
+  end
+  local focus = reaper.JS_Window_GetFocus()
+  reaper.MB( "No occurences after current position.", "Can't find '" .. name, 0 )
+  reaper.JS_Window_SetFocus( focus )
+  return
 end
 
 GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
-  reaper.ShowConsoleMsg"'Go to previous' to be implemented soon...\n"
+  local str, MatchCase = GetString()
+  if #self.retval == 0 or str == "" or not str then return end
+  local name = (#str < 16 and str or str:sub(1, 15) .. "..") .. "'"
+  str = MatchCase and str or str:upper()
+  str = str:reverse()
+  local line, character = self.caret.y, 1
+  if self.caret.x == 0 then
+    line, character = self.caret.y - 1, #self.retval[self.caret.y - 1]
+  else
+    line, character = self.caret.y, self.caret.x + 1
+  end
+  if line >= 1 then
+    for i = line, 1, -1 do
+      local txt = i ~= line and self.retval[i] or self.retval[line]:sub(1, character)
+      txt = (MatchCase and txt or txt:upper()):reverse()
+      local pos1, pos2 = txt:find(esc(str))
+      if pos1 and pos2 then
+        pos1 = (i ~= line and #txt-pos2 or character-pos2) - 
+                            (self.caret.x == #self.retval[self.caret.y] and 1 or 0)
+        -- Adjust scroll position
+        if i < self.wnd_pos.y then
+          local adjust_scroll = math.floor(self.wnd_h/3)
+          if i - adjust_scroll < 1 then
+            adjust_scroll = 0
+          end
+          self.wnd_pos.y = i - adjust_scroll
+          self:redraw()
+        end
+        -- Place caret
+        self.caret.y, self.caret.x = i, pos1
+        self.blink = 0
+        -- Make selection (not working ?)
+        self.sel_s = {x = pos1 - #str, y = i}
+        self.sel_e = {x = pos1, y = i}
+        self:drawselection()
+        return
+      end
+    end
+  end
+  local focus = reaper.JS_Window_GetFocus()
+  reaper.MB( "No occurences before current position.", "Can't find '" .. name, 0 )
+  reaper.JS_Window_SetFocus( focus )
+  return
 end
 
 local Maximized = false
@@ -248,12 +382,13 @@ local function Fullscreen()
   if Maximized then
     local _, l, t = reaper.JS_Window_GetClientRect( script_hwnd )
     prev_dock, prev_x, prev_y, prev_w, prev_h = GUI.dock or 0 , l, t, gfx.w, gfx.h
-    reaper.JS_Window_SetStyle( script_hwnd, "MAXIMIZE" )
-    reaper.JS_Window_Move( script_hwnd, l <= rright and 0 or rright, 0 )
+    --reaper.JS_Window_SetStyle( script_hwnd, "MAXIMIZE" )
+    --reaper.JS_Window_Move( script_hwnd, l <= rright and 0 or rright, 0 )--]]
+    reaper.JS_WindowMessage_Send(script_hwnd, "WM_SYSCOMMAND", 0xF030, 0, 0, 0)
   else
     reaper.JS_Window_Show( script_hwnd, "RESTORE" )
-    reaper.JS_Window_SetStyle( script_hwnd, "THICKFRAME|CAPTION|SYSMENU" )
-    reaper.JS_Window_Move( script_hwnd, prev_x, prev_y )
+    --reaper.JS_Window_SetStyle( script_hwnd, "THICKFRAME|CAPTION|SYSMENU" )
+    --reaper.JS_Window_Move( script_hwnd, prev_x, prev_y )
   end
 end
 
@@ -264,7 +399,7 @@ local Settings = reaper.GetExtState("amagalma_Chunk Viewer-Editor", "Settings")
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 800, 700
 GUI.anchor, GUI.corner = "screen", "C"
 if Settings and Settings ~= "" then
-  local a,b,c,d,e = Settings:match("(%d-) (%d-) (%d-) (%d-) (%d+)")
+  local a,b,c,d,e = Settings:match("(%d-) (%-?%d-) (%-?%d-) (%d-) (%d+)")
   GUI.dock, GUI.x, GUI.y, GUI.w, GUI.h = a,b,c,d,e
   GUI.anchor, GUI.corner = "screen", "TL"
 end
@@ -317,7 +452,7 @@ GUI.New("SetChunk_", "Button", {
     caption = "Set Chunk",
     font = 2,
     col_txt = "txt",
-    col_fill = "green", --"elm_bg",
+    col_fill = "olive", --"elm_bg",
     func = SetChunk
 })
 
@@ -334,7 +469,7 @@ GUI.New("GetChunk_", "Button", {
     func = GetChunk
 })
 
-if reaper.APIExists("JS_Window_Find") and reaper.GetOS():find"Win" then
+if reaper.GetOS():find("Win") then
   GUI.New("Fullscreen", "Button", {
       z = 2,
       x = 12,
@@ -348,6 +483,7 @@ if reaper.APIExists("JS_Window_Find") and reaper.GetOS():find"Win" then
       func = Fullscreen
   })
 end
+
 
 -- Modified Functions ----------------------------------------------
 
@@ -380,7 +516,8 @@ local fonts = GUI.get_OS_fonts()
 GUI.fonts.monospace = {fonts.mono, 16}
 GUI.colors.txt = {220, 220, 220, 255}
 GUI.colors.black = {30, 30, 30, 255}
-GUI.colors.green = {0, 80, 0, 255}
+GUI.colors.green = {10, 85, 10, 255}
+GUI.colors.olive = {100, 100, 0, 255}
 
 GUI.fonts.version = {fonts.sans, 13, "i"}
 GUI.Draw_Version = function ()
@@ -404,11 +541,17 @@ function Exit()
   end
   reaper.SetToggleCommandState( section, cmdID, 0 )
   reaper.RefreshToolbar2( section, cmdID )
+  local find_hwnd = reaper.JS_Window_Find( "Chunk Viewer / Editor Find", true )
+  if find_hwnd then
+    reaper.JS_WindowMessage_Post(find_hwnd, "WM_KEYDOWN", 0x1B, 0,0,0)
+    reaper.JS_WindowMessage_Post(find_hwnd, "WM_KEYUP", 0x1B, 0,0,0)
+  end
 end
 
 reaper.atexit(Exit)
 
 -- Run -------------------------------------------------------------
+
 
 GUI.Init()
 script_hwnd = reaper.JS_Window_Find( GUI.name, true )
