@@ -1,10 +1,9 @@
 -- @description Interactive ReaScript (iReaScript)
 -- @author cfillion
--- @version 0.8.3
+-- @version 0.8.4
 -- @changelog
---   Fix blinking caret
---   Fix initial blank window on macOS and REAPER 5
---   Print the command name when running actions (SWS v2.10+ only)
+--   Fix autocompletion after an opening parenthesis
+--   Fix display glitch when pasting tab characters
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
@@ -751,11 +750,11 @@ function ireascript.loop()
   if now - ireascript.lastRedraw >= 1 then
     -- let the cursor caret blink
     ireascript.redraw = true
-    ireascript.lastRedraw = now
   end
 
   if ireascript.redraw then
     ireascript.redraw = false
+    ireascript.lastRedraw = now
     ireascript.draw()
   end
 
@@ -812,6 +811,10 @@ function ireascript.nl()
   ireascript.buffer[#ireascript.buffer + 1] = ireascript.SG_NEWLINE
 end
 
+function ireascript.stripTabs(contents)
+  return contents:gsub("\t", string.rep("\x20", ireascript.INDENT))
+end
+
 function ireascript.push(contents)
   if contents == nil then
     error('content is nil')
@@ -827,7 +830,7 @@ function ireascript.push(contents)
       ireascript.buffer[#ireascript.buffer + 1] = {
         font=ireascript.font,
         fg=ireascript.foreground, bg=ireascript.background,
-        text=line:gsub("\t", string.rep("\x20", ireascript.INDENT)),
+        text=ireascript.stripTabs(line),
       }
     end
   end
@@ -1330,6 +1333,7 @@ function ireascript.paste(selection)
     clipboard = ireascript.selectedText()
   else
     clipboard = reaper.CF_GetClipboard('')
+    clipboard = ireascript.stripTabs(clipboard)
   end
 
   for line in ireascript.lines(clipboard) do
@@ -1365,7 +1369,7 @@ function ireascript.complete()
 
   local code = ireascript.prepend .. "\x20" .. before
   local matches, source = {}, _G
-  local prefix, word = code:match("([%a%d_%s%.]*[%a%d_]+)%s*%.%s*([^%s]*)$")
+  local prefix, word = code:match("([%a%d_%s%.]*[%a%d_]+)%s*%.%s*([^(%s]*)$")
 
   if word then
     for key in prefix:gmatch('[^%.%s]+') do
