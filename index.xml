@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b64c3e27068ded4b3be12ec93e098b23ff6c002b" name="ReaTeam Scripts">
+<index version="1" commit="90fda7a8033787a609340739656598c099270431" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -548,6 +548,11 @@ harden against ill-formed UTF-8 sequences in the history file]]></changelog>
 Fix initial blank window on macOS and REAPER 5
 Print the command name when running actions (SWS v2.10+ only)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c58de1f580bea2edad4077b502115cc8957b5c62/Development/cfillion_Interactive%20ReaScript.lua</source>
+      </version>
+      <version name="0.8.4" author="cfillion" time="2020-10-02T16:55:12Z">
+        <changelog><![CDATA[Fix autocompletion after an opening parenthesis
+Fix display glitch when pasting tab characters]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9d7b03cfa766987b637b781a4c3b6b63d1799ca3/Development/cfillion_Interactive%20ReaScript.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Search action by command ID or name.lua" type="script" desc="Search action by command ID or name">
@@ -12684,6 +12689,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - change: color of Set Chunk button]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b64c3e27068ded4b3be12ec93e098b23ff6c002b/Various/amagalma_Chunk%20ViewerEditor.lua</source>
         <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/b64c3e27068ded4b3be12ec93e098b23ff6c002b/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
+      </version>
+      <version name="1.21" author="amagalma" time="2020-10-02T16:58:38Z">
+        <changelog><![CDATA[- Fullscreen mode: real fullscreen mode (instead of previous maximized). Now retains top attach pin when restored]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/90fda7a8033787a609340739656598c099270431/Various/amagalma_Chunk%20ViewerEditor.lua</source>
+        <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/90fda7a8033787a609340739656598c099270431/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="Create Impulse Response (IR) of the FX Chain of the selected Track">
