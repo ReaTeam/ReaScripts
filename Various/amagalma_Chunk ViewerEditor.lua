@@ -1,12 +1,8 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.20
+-- @version 1.21
 -- @changelog
---   - fix: Improved Fullscreen (thanks Edgemeal!)
---   - fix: avoid crashing when loading if last window position was a negative value
---   - add: Search/Find ability (Ctrl+F)
---   - add: "Go to next" (F3) and "Go to previous" (F2, not Shift+F3, sorry!)
---   - change: color of Set Chunk button
+--   - Fullscreen mode: real fullscreen mode (instead of previous maximized). Now retains top attach pin when restored
 -- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
 -- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
@@ -36,7 +32,7 @@ local number_of_spaces = 2 -- used for indentation
 --------------------------------------------------
 
 
-local version = "1.20"
+local version = "1.21"
 
 
 -- Check if JS_ReaScriptAPI is installed
@@ -372,6 +368,7 @@ end
 local Maximized = false
 local prev_dock, prev_x, prev_y, prev_w, prev_h
 local script_hwnd
+local win_style
 
 local function Fullscreen()
   Maximized = not Maximized
@@ -380,15 +377,21 @@ local function Fullscreen()
   GUI.elms.Fullscreen:redraw()
   local _, _, rright = reaper.my_getViewport(0,0,0,0,0,0,0,0, false )
   if Maximized then
+    if not win_style then
+      win_style = reaper.JS_Window_GetLong( script_hwnd, "STYLE" )
+    end
     local _, l, t = reaper.JS_Window_GetClientRect( script_hwnd )
     prev_dock, prev_x, prev_y, prev_w, prev_h = GUI.dock or 0 , l, t, gfx.w, gfx.h
-    --reaper.JS_Window_SetStyle( script_hwnd, "MAXIMIZE" )
-    --reaper.JS_Window_Move( script_hwnd, l <= rright and 0 or rright, 0 )--]]
-    reaper.JS_WindowMessage_Send(script_hwnd, "WM_SYSCOMMAND", 0xF030, 0, 0, 0)
+    reaper.JS_Window_SetStyle( script_hwnd, "MAXIMIZE" )
+    reaper.JS_Window_Move( script_hwnd, l <= rright and 0 or rright, 0 )
+    --reaper.JS_WindowMessage_Send(script_hwnd, "WM_SYSCOMMAND", 0xF030, 0, 0, 0)
   else
     reaper.JS_Window_Show( script_hwnd, "RESTORE" )
     --reaper.JS_Window_SetStyle( script_hwnd, "THICKFRAME|CAPTION|SYSMENU" )
-    --reaper.JS_Window_Move( script_hwnd, prev_x, prev_y )
+    reaper.JS_Window_Move( script_hwnd, prev_x, prev_y )
+    if win_style then
+      reaper.JS_Window_SetLong( script_hwnd, "STYLE", win_style )
+    end
   end
 end
 
