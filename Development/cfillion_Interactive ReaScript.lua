@@ -1,7 +1,9 @@
 -- @description Interactive ReaScript (iReaScript)
 -- @author cfillion
 -- @version 0.8.4
--- @changelog Fix autocompletion after an opening parenthesis
+-- @changelog
+--   Fix autocompletion after an opening parenthesis
+--   Fix display glitch when pasting tab characters
 -- @link
 --   cfillion.ca https://cfillion.ca
 --   Forum Thread https://forum.cockos.com/showthread.php?t=177324
