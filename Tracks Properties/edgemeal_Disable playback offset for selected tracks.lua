@@ -9,7 +9,7 @@ local trackcount = reaper.CountSelectedTracks()
 for i = 0, trackcount-1 do
   local track = reaper.GetSelectedTrack(0, i)
   local val = reaper.GetMediaTrackInfo_Value(track, "I_PLAY_OFFSET_FLAG")
-  if val ~= 1 then
+  if val&1 ~= 1 then
     reaper.SetMediaTrackInfo_Value(track, "I_PLAY_OFFSET_FLAG", val|1)
   end
 end
