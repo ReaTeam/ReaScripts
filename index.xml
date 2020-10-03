@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e2a26ffe01347106b5f1a99ace3072f6f40959e0" name="ReaTeam Scripts">
+<index version="1" commit="f30071183ae07d0f3f2e9bc82031069e6092c814" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -12651,6 +12651,8 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa180 \li0 \fi0 Displays/edits the state chunk of the selected track/item/envelope. Intended for use by developers/scripters.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Chunks are automatically indented\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Size of indentation set inside the script in User Settings area (default: 2 spaces)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default font size set inside the script in User Settings area (default: 16)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ctrl + mousewheel changes font size\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When it loads, the last clicked context (track/item/envelope) is automatically set\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Automatic line numbering\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fully re-sizable\par}
@@ -12702,6 +12704,16 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - fix: Don't stay at the same place when immediately pressing F2 after F3, or F3 after F2]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2a26ffe01347106b5f1a99ace3072f6f40959e0/Various/amagalma_Chunk%20ViewerEditor.lua</source>
         <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/e2a26ffe01347106b5f1a99ace3072f6f40959e0/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
+      </version>
+      <version name="1.31" author="amagalma" time="2020-10-03T20:27:13Z">
+        <changelog><![CDATA[- add: Ctrl + mousewheel changes font size
+- add: default font size can be set inside the script
+- add: if re-getting the chunk of the same object, window and carret will stay at their current position
+- add: set focus to text editor after getting a chunk
+- add: tooltips to show success when getting and setting chunk
+- add: help button]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f30071183ae07d0f3f2e9bc82031069e6092c814/Various/amagalma_Chunk%20ViewerEditor.lua</source>
+        <source file="amagalma_Chunk ViewerEditor find.lua">https://github.com/ReaTeam/ReaScripts/raw/f30071183ae07d0f3f2e9bc82031069e6092c814/Various/amagalma_Chunk%20ViewerEditor%20find.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Create Impulse Response (IR) of the FX chain of the selected track.lua" type="script" desc="Create Impulse Response (IR) of the FX Chain of the selected Track">
