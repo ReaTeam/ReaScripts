@@ -195,4 +195,5 @@ GUI.freq = 0
 reaper.SetExtState("amagalma_Chunk Viewer-Editor", "MatchCase", "0", 0)
 
 GUI.Init()
+GUI.elms.FindWhat.focus = true
 GUI.Main()
