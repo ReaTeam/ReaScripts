@@ -1,4 +1,4 @@
--- @description Enable playback offset for selected tracks
+-- @description Enable track playback offset for selected tracks
 -- @author Edgemeal
 -- @version 1.00
 -- @link Forum https://forum.cockos.com/showthread.php?t=243019
