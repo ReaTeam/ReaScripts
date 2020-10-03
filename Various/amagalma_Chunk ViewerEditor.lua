@@ -1,11 +1,13 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.25
+-- @version 1.31
 -- @changelog
---   - fix: Going to Fullscreen from docked state
---   - fix: Selection now works when searching (thanks solger!)
---   - fix: Correct text selection when "Go to previous"
---   - fix: Don't stay at the same place when immediately pressing F2 after F3, or F3 after F2
+--   - add: Ctrl + mousewheel changes font size
+--   - add: default font size can be set inside the script
+--   - add: if re-getting the chunk of the same object, window and carret will stay at their current position
+--   - add: set focus to text editor after getting a chunk
+--   - add: tooltips to show success when getting and setting chunk
+--   - add: help button
 -- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
 -- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
@@ -15,6 +17,8 @@
 --
 --   - Chunks are automatically indented
 --   - Size of indentation set inside the script in User Settings area (default: 2 spaces)
+--   - Default font size set inside the script in User Settings area (default: 16)
+--   - Ctrl + mousewheel changes font size
 --   - When it loads, the last clicked context (track/item/envelope) is automatically set
 --   - Automatic line numbering
 --   - Fully re-sizable
@@ -32,10 +36,11 @@
 
 -- USER SETTINGS ---------------------------------
 local number_of_spaces = 2 -- used for indentation
+local default_font_size = 16
 --------------------------------------------------
 
 
-local version = "1.25"
+local version = "1.31"
 
 
 -- Check if JS_ReaScriptAPI is installed
@@ -114,29 +119,55 @@ local function IndentChunk(chunk)
   return table.concat(t, "\n")
 end
 
+local last_chunk_obj
+
+local function IfSameObjThenStoreWindow(obj)
+  if obj == last_chunk_obj then
+    return GUI.elms.TextEditor.caret, GUI.elms.TextEditor.wnd_pos
+  end
+end
+
+local function RestoreWindow(caret, wnd_pos)
+  GUI.elms.TextEditor.focus = true
+  if caret and wnd_pos then
+    GUI.elms.TextEditor.wnd_pos = wnd_pos
+    GUI.elms.TextEditor.caret = caret
+  end
+  GUI.settooltip( "Got chunk" )
+end
+
 local function GetChunk()
   local sorry = "Sorry! Could not get chunk..."
   if GUI.Val("ChooseObj") == 1 then
     local track = reaper.GetSelectedTrack(0,0)
     if track then
+      local caret, wnd_pos = IfSameObjThenStoreWindow(track)
+      last_chunk_obj = track
       local _, chunk = reaper.GetTrackStateChunk(track, "", false )
       GUI.Val("TextEditor", IndentChunk(chunk) )
+      RestoreWindow(caret, wnd_pos)
     else
       reaper.MB( "No track is selected!", sorry, 0 )
     end
   elseif GUI.Val("ChooseObj") == 2 then
     local item = reaper.GetSelectedMediaItem(0,0)
     if item then
+      local caret, wnd_pos = IfSameObjThenStoreWindow(item)
+      last_chunk_obj = item
       local _, chunk = reaper.GetItemStateChunk(item, "", false )
       GUI.Val("TextEditor", IndentChunk(chunk) )
+      RestoreWindow(caret, wnd_pos)
     else
       reaper.MB( "No item is selected!", sorry, 0 )
     end
   elseif GUI.Val("ChooseObj") == 3 then
     local env = reaper.GetSelectedEnvelope(0)
     if env then
+      local caret, wnd_pos = IfSameObjThenStoreWindow(env)
+      last_chunk_obj = env
       local _, chunk = reaper.GetEnvelopeStateChunk( env, "", false )
       GUI.Val("TextEditor", IndentChunk(chunk) )
+      RestoreWindow(caret, wnd_pos)
     else
       reaper.MB( "No envelope is selected!", sorry, 0 )
     end
@@ -169,6 +200,7 @@ local function SetChunk()
   local A = GUI.Val("ChooseObj")
   local what = A == 1 and "Track" or (A == 2 and "Item" or "Envelope" )
   if success then
+    GUI.settooltip( "Set chunk" )
     local state = A == 1 and 7 or (A == 2 and 4 or 1 )
     reaper.Undo_OnStateChangeEx2( 0, "Set " .. what .. " Chunk", state, -1 )
   else
@@ -273,6 +305,29 @@ end
 local function GetString()
   return reaper.GetExtState("amagalma_Chunk Viewer-Editor", "Find"),
   reaper.GetExtState("amagalma_Chunk Viewer-Editor", "MatchCase") == "1"
+end
+
+
+function GUI.TextEditor:onwheel(inc)
+  -- Ctrl -- Change font size
+  if GUI.mouse.cap & 4 == 4 then
+    GUI.fonts.monospace[2] = GUI.fonts.monospace[2] + (inc > 0 and 1 or -1)
+  -- Shift -- Horizontal scroll
+  elseif GUI.mouse.cap & 8 == 8 then
+    local len = self:getmaxlength()
+    if len <= self.wnd_w then return end
+    -- Scroll right/left
+    local dir = inc > 0 and 3 or -3
+    self.wnd_pos.x = GUI.clamp(0, self.wnd_pos.x + dir, len - self.wnd_w + 4)
+  -- Vertical scroll
+  else
+    local len = self:getwndlength()
+    if len <= self.wnd_h then return end
+    -- Scroll up/down
+    local dir = inc > 0 and -3 or 3
+    self.wnd_pos.y = GUI.clamp(1, self.wnd_pos.y + dir, len - self.wnd_h + 1)
+  end
+  self:redraw()
 end
 
 
@@ -416,6 +471,45 @@ local function Fullscreen()
   end
 end
 
+local msg = [[========  amagalma Chunk Viewer / Editor help  ========
+
+Click on Get/Set Chunk to get/set the chunk of the first selected object specified in the Menubox.
+  
+Click on, or mousewheel over, the Menubox to change object type.
+  
+Fullscreen toggles between fullscreen or last size. (Windows only)
+  
+When the Text-Editor has focus the following keyboard shortcuts apply :
+
+Ctrl+A    : Select all
+Ctrl+C    : Copy
+Ctrl+X    : Cut
+Ctrl+V    : Paste
+Ctrl+Z    : Undo
+Ctrl+Y    : Redo
+Ctrl+F    : Find (opens new window)
+F2        : Go to previous search occurence
+F3        : Go to next search occurence
+Home      : Go to chunk start
+End       : Go to chunk end
+Page-Up   : self-explanatory
+Page-Down : self-explanatory
+Insert    : Toggles between overwrite text and normal text insertion
+Ctrl + Mousewheel to change font size
+
+Default font size and number of spaces used for identation are set inside the script.
+(current identation is set to ]] ..
+number_of_spaces ..
+[[ spaces)
+
+=======================================================
+
+]]
+local function Help()
+  reaper.ClearConsole()
+  reaper.ShowConsoleMsg(msg)
+end
+
 -- Create GUI ------------------------------------------------------
 
 GUI.name = "Chunk Viewer / Editor   -   v" .. version
@@ -508,6 +602,18 @@ if reaper.GetOS():find("Win") then
   })
 end
 
+GUI.New("Help", "Button", {
+    z = 2,
+    x = 115,
+    y = 2,
+    w = 18,
+    h = 25,
+    caption = "?",
+    font = 2,
+    col_txt = "txt",
+    col_fill = "elm_bg",
+    func = Help
+})
 
 -- Modified Functions ----------------------------------------------
 
@@ -537,7 +643,7 @@ end
 
 
 local fonts = GUI.get_OS_fonts()
-GUI.fonts.monospace = {fonts.mono, 16}
+GUI.fonts.monospace = {fonts.mono, default_font_size or 16}
 GUI.colors.txt = {220, 220, 220, 255}
 GUI.colors.black = {30, 30, 30, 255}
 GUI.colors.green = {10, 85, 10, 255}
