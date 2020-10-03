@@ -1,8 +1,11 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.21
+-- @version 1.25
 -- @changelog
---   - Fullscreen mode: real fullscreen mode (instead of previous maximized). Now retains top attach pin when restored
+--   - fix: Going to Fullscreen from docked state
+--   - fix: Selection now works when searching (thanks solger!)
+--   - fix: Correct text selection when "Go to previous"
+--   - fix: Don't stay at the same place when immediately pressing F2 after F3, or F3 after F2
 -- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
 -- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
@@ -32,7 +35,7 @@ local number_of_spaces = 2 -- used for indentation
 --------------------------------------------------
 
 
-local version = "1.21"
+local version = "1.25"
 
 
 -- Check if JS_ReaScriptAPI is installed
@@ -279,6 +282,11 @@ GUI.TextEditor.keys[GUI.chars.F3] = function (self) -- F3 Find next
   local name = (#str < 16 and str or str:sub(1, 15) .. "..") .. "'"
   str = MatchCase and str or str:upper()
   local line, character = 1, 1
+  if self.sel_s and self.sel_e and self.sel_s.y == self.sel_e.y and self.sel_e.y ==
+     self.caret.y and self.caret.x >= self.sel_s.x and self.caret.x <= self.sel_e.x
+  then
+    self.caret.x = self.sel_e.x
+  end
   if self.caret.x + 1 > #self.retval[self.caret.y] then
     line, character = self.caret.y + 1, 1
   else
@@ -305,11 +313,11 @@ GUI.TextEditor.keys[GUI.chars.F3] = function (self) -- F3 Find next
         -- Place caret
         self.caret.y, self.caret.x = i, pos1
         self.blink = 0
-        -- Make selection (not working ?)
+        -- Make selection
         self.sel_s = {x = pos1 - #str, y = i}
         self.sel_e = {x = pos1, y = i}
         self:drawselection()
-        return
+        return true
       end
     end
   end
@@ -326,6 +334,11 @@ GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
   str = MatchCase and str or str:upper()
   str = str:reverse()
   local line, character = self.caret.y, 1
+  if self.sel_s and self.sel_e and self.sel_s.y == self.sel_e.y and self.sel_e.y ==
+     self.caret.y and self.caret.x >= self.sel_s.x and self.caret.x <= self.sel_e.x
+  then
+    self.caret.x = self.sel_s.x
+  end
   if self.caret.x == 0 then
     line, character = self.caret.y - 1, #self.retval[self.caret.y - 1]
   else
@@ -337,8 +350,8 @@ GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
       txt = (MatchCase and txt or txt:upper()):reverse()
       local pos1, pos2 = txt:find(esc(str))
       if pos1 and pos2 then
-        pos1 = (i ~= line and #txt-pos2 or character-pos2) - 
-                            (self.caret.x == #self.retval[self.caret.y] and 1 or 0)
+        pos1 = (i ~= line and #txt-pos2 or character-pos2 - 
+                              (self.caret.x == #self.retval[self.caret.y] and 1 or 0))
         -- Adjust scroll position
         if i < self.wnd_pos.y then
           local adjust_scroll = math.floor(self.wnd_h/3)
@@ -352,10 +365,10 @@ GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
         self.caret.y, self.caret.x = i, pos1
         self.blink = 0
         -- Make selection (not working ?)
-        self.sel_s = {x = pos1 - #str, y = i}
-        self.sel_e = {x = pos1, y = i}
+        self.sel_s = {x = pos1, y = i}
+        self.sel_e = {x = pos1 + #str, y = i}
         self:drawselection()
-        return
+        return true
       end
     end
   end
@@ -375,6 +388,14 @@ local function Fullscreen()
   GUI.elms.Fullscreen.col_fill = Maximized and "maroon" or "elm_bg"
   GUI.elms.Fullscreen:init()
   GUI.elms.Fullscreen:redraw()
+  if gfx.dock(-1) ~= 0 then
+    GUI.dock = 0
+    gfx.quit()
+    gfx.init(GUI.name, GUI.w, GUI.h, GUI.dock, GUI.x, GUI.y)
+    script_hwnd = reaper.JS_Window_Find( GUI.name, true )
+    reaper.JS_Window_AttachTopmostPin( script_hwnd )
+    win_style = false
+  end
   local _, _, rright = reaper.my_getViewport(0,0,0,0,0,0,0,0, false )
   if Maximized then
     if not win_style then
