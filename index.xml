@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7979865ec661d820f16b28975c9c14da7406bdae" name="ReaTeam Scripts">
+<index version="1" commit="ca1b3e01cd12a94eafc71f510f798809548408f6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -11196,6 +11196,16 @@ Don't report an error if no render presets were created yet]]></changelog>
     </reapack>
   </category>
   <category name="Time Selection">
+    <reapack name="cfillion_Extend time selection to cover selected items.lua" type="script" desc="Extend time selection to cover selected items">
+      <metadata>
+        <link rel="website" href="https://cfillion.ca">cfillion.ca</link>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?p=2349505">Request post</link>
+        <link rel="donation">https://paypal.me/cfillion</link>
+      </metadata>
+      <version name="1.0" author="cfillion" time="2020-10-04T14:06:38Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca1b3e01cd12a94eafc71f510f798809548408f6/Time%20Selection/cfillion_Extend%20time%20selection%20to%20cover%20selected%20items.lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Insert empty space from time selection at edit cursor (moving later items).lua" type="script" desc="Insert empty space from time selection at edit cursor (moving later items)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
