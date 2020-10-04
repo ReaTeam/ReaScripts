@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f30071183ae07d0f3f2e9bc82031069e6092c814" name="ReaTeam Scripts">
+<index version="1" commit="7979865ec661d820f16b28975c9c14da7406bdae" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -11893,6 +11893,24 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-02-03T21:37:02Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Tracks%20Properties/edgemeal_Disable%20multichannel%20metering%20on%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Disable playback offset for selected tracks.lua" type="script" desc="Disable track playback offset for selected tracks">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=243019">Forum</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.00" author="Edgemeal" time="2020-10-04T13:48:43Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/34792dc0608f50ff5da65071e75aad9e3bded679/Tracks%20Properties/edgemeal_Disable%20playback%20offset%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Enable playback offset for selected tracks.lua" type="script" desc="Enable track playback offset for selected tracks">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=243019">Forum</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.00" author="Edgemeal" time="2020-10-04T13:49:03Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7979865ec661d820f16b28975c9c14da7406bdae/Tracks%20Properties/edgemeal_Enable%20playback%20offset%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Remove muted track sends from selected tracks.lua" type="script" desc="Remove muted track sends from selected tracks">
