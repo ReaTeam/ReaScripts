@@ -3,13 +3,13 @@
 -- @version 1.00
 -- @link Forum https://forum.cockos.com/showpost.php?p=2349852&postcount=2196
 -- @donation Donate https://www.paypal.me/Edgemeal
-
 -- @metapackage
 -- @provides
---   [main] . > Save selected tracks floating fx windows to slot 1.lua
---   [main] . > Save selected tracks floating fx windows to slot 2.lua
---   [main] . > Save selected tracks floating fx windows to slot 3.lua
---   [main] . > Save selected tracks floating fx windows to slot 4.lua
+--   [main] . > edgemeal_Save selected tracks floating fx windows to slot 1.lua
+--   [main] . > edgemeal_Save selected tracks floating fx windows to slot 2.lua
+--   [main] . > edgemeal_Save selected tracks floating fx windows to slot 3.lua
+--   [main] . > edgemeal_Save selected tracks floating fx windows to slot 4.lua
+
 function Main()
   local name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
   local slot = tonumber(name:match(" slot (%d+)"))
