@@ -3,13 +3,13 @@
 -- @version 1.00
 -- @link Forum https://forum.cockos.com/showpost.php?p=2349852&postcount=2196
 -- @donation Donate https://www.paypal.me/Edgemeal
-
 -- @metapackage
 -- @provides
---   [main] . > Restore tracks floating fx windows from slot 1.lua
---   [main] . > Restore tracks floating fx windows from slot 2.lua
---   [main] . > Restore tracks floating fx windows from slot 3.lua
---   [main] . > Restore tracks floating fx windows from slot 4.lua
+--   [main] . > edgemeal_Restore tracks floating fx windows from slot 1.lua
+--   [main] . > edgemeal_Restore tracks floating fx windows from slot 2.lua
+--   [main] . > edgemeal_Restore tracks floating fx windows from slot 3.lua
+--   [main] . > edgemeal_Restore tracks floating fx windows from slot 4.lua
+
 local track_count = reaper.CountTracks(0)
 
 function ShowFx(guid)
