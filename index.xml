@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="838a59042fc18d8b102d68145b96912e0962598a" name="ReaTeam Scripts">
+<index version="1" commit="ab4d108b25fb3e21dfa170cecdb05c0ca322c610" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -5016,6 +5016,15 @@ here
         <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by sixteenth note.lua">https://github.com/ReaTeam/ReaScripts/raw/2cdaac11f825e7b0c4d5583a0e4f0875e841217a/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20sixteenth%20note.lua</source>
         <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by sixty fourth note.lua">https://github.com/ReaTeam/ReaScripts/raw/2cdaac11f825e7b0c4d5583a0e4f0875e841217a/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20sixty%20fourth%20note.lua</source>
         <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by thirty second note.lua">https://github.com/ReaTeam/ReaScripts/raw/2cdaac11f825e7b0c4d5583a0e4f0875e841217a/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20thirty%20second%20note.lua</source>
+      </version>
+      <version name="1.1" author="pandabot" time="2020-10-07T18:19:29Z">
+        <changelog><![CDATA[+ fixed bug where scripts were not respecting playrate]]></changelog>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by eighth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ab4d108b25fb3e21dfa170cecdb05c0ca322c610/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20eighth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by hundred twenty eighth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ab4d108b25fb3e21dfa170cecdb05c0ca322c610/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20hundred%20twenty%20eighth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by quarter note.lua">https://github.com/ReaTeam/ReaScripts/raw/ab4d108b25fb3e21dfa170cecdb05c0ca322c610/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20quarter%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by sixteenth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ab4d108b25fb3e21dfa170cecdb05c0ca322c610/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20sixteenth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by sixty fourth note.lua">https://github.com/ReaTeam/ReaScripts/raw/ab4d108b25fb3e21dfa170cecdb05c0ca322c610/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20sixty%20fourth%20note.lua</source>
+        <source main="main" file="pandabot_Extend items by note divisions/pandabot_Extend items by thirty second note.lua">https://github.com/ReaTeam/ReaScripts/raw/ab4d108b25fb3e21dfa170cecdb05c0ca322c610/Items%20Editing/pandabot_Extend%20items%20by%20note%20divisions/pandabot_Extend%20items%20by%20thirty%20second%20note.lua</source>
       </version>
     </reapack>
     <reapack name="pandabot_Isolate items by note divisions.lua" type="script" desc="Isolate items by note divisions">
