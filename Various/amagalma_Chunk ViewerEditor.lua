@@ -1,13 +1,9 @@
 -- @description Chunk Viewer/Editor
 -- @author amagalma
--- @version 1.31
+-- @version 1.50
 -- @changelog
---   - add: Ctrl + mousewheel changes font size
---   - add: default font size can be set inside the script
---   - add: if re-getting the chunk of the same object, window and carret will stay at their current position
---   - add: set focus to text editor after getting a chunk
---   - add: tooltips to show success when getting and setting chunk
---   - add: help button
+--   - fix: F2 / "Go to previous"
+--   - add: Dual mode with two editors (enable Dual mode inside the script (defaults to false))
 -- @provides amagalma_Chunk ViewerEditor find.lua
 -- @link https://forum.cockos.com/showthread.php?t=194369
 -- @screenshot https://i.ibb.co/DfZFx9z/amagalma-Chunk-Viewer-Editor.gif
@@ -15,6 +11,8 @@
 -- @about
 --   Displays/edits the state chunk of the selected track/item/envelope. Intended for use by developers/scripters.
 --
+--   - Dual mode with two editors
+--   - Enable Dual mode inside the script (defaults to false)
 --   - Chunks are automatically indented
 --   - Size of indentation set inside the script in User Settings area (default: 2 spaces)
 --   - Default font size set inside the script in User Settings area (default: 16)
@@ -37,10 +35,11 @@
 -- USER SETTINGS ---------------------------------
 local number_of_spaces = 2 -- used for indentation
 local default_font_size = 16
+local dual_chunk_editor = false -- enable 2 chunk editors (true or false)
 --------------------------------------------------
 
 
-local version = "1.31"
+local version = "1.50"
 
 
 -- Check if JS_ReaScriptAPI is installed
@@ -120,31 +119,35 @@ local function IndentChunk(chunk)
 end
 
 local last_chunk_obj
+local LastEditorFocus = 1
 
 local function IfSameObjThenStoreWindow(obj)
   if obj == last_chunk_obj then
-    return GUI.elms.TextEditor.caret, GUI.elms.TextEditor.wnd_pos
+  local editor = LastEditorFocus == 1 and "TextEditor" or "TextEditor2"
+    return GUI.elms[editor].caret, GUI.elms[editor].wnd_pos
   end
 end
 
 local function RestoreWindow(caret, wnd_pos)
-  GUI.elms.TextEditor.focus = true
-  if caret and wnd_pos then
-    GUI.elms.TextEditor.wnd_pos = wnd_pos
-    GUI.elms.TextEditor.caret = caret
-  end
+  local editor = LastEditorFocus == 1 and "TextEditor" or "TextEditor2"
   GUI.settooltip( "Got chunk" )
+  if caret and wnd_pos then
+    GUI.elms[editor].wnd_pos = wnd_pos
+    GUI.elms[editor].caret = caret
+  end
+  GUI.elms[editor].focus = true -- does not always work
 end
 
 local function GetChunk()
   local sorry = "Sorry! Could not get chunk..."
+  local editor = LastEditorFocus == 1 and "TextEditor" or "TextEditor2"
   if GUI.Val("ChooseObj") == 1 then
     local track = reaper.GetSelectedTrack(0,0)
     if track then
       local caret, wnd_pos = IfSameObjThenStoreWindow(track)
       last_chunk_obj = track
       local _, chunk = reaper.GetTrackStateChunk(track, "", false )
-      GUI.Val("TextEditor", IndentChunk(chunk) )
+      GUI.Val(editor, IndentChunk(chunk) )
       RestoreWindow(caret, wnd_pos)
     else
       reaper.MB( "No track is selected!", sorry, 0 )
@@ -155,7 +158,7 @@ local function GetChunk()
       local caret, wnd_pos = IfSameObjThenStoreWindow(item)
       last_chunk_obj = item
       local _, chunk = reaper.GetItemStateChunk(item, "", false )
-      GUI.Val("TextEditor", IndentChunk(chunk) )
+      GUI.Val(editor, IndentChunk(chunk) )
       RestoreWindow(caret, wnd_pos)
     else
       reaper.MB( "No item is selected!", sorry, 0 )
@@ -166,7 +169,7 @@ local function GetChunk()
       local caret, wnd_pos = IfSameObjThenStoreWindow(env)
       last_chunk_obj = env
       local _, chunk = reaper.GetEnvelopeStateChunk( env, "", false )
-      GUI.Val("TextEditor", IndentChunk(chunk) )
+      GUI.Val(editor, IndentChunk(chunk) )
       RestoreWindow(caret, wnd_pos)
     else
       reaper.MB( "No envelope is selected!", sorry, 0 )
@@ -176,7 +179,8 @@ end
 
 local function SetChunk()
   local ok
-  if GUI.Val("TextEditor") == "" then
+  local editor = LastEditorFocus == 1 and "TextEditor" or "TextEditor2"
+  if GUI.Val(editor) == "" then
     reaper.MB( "Empty chunk...", "Can not set chunk!", 0 )
     return
   end
@@ -184,23 +188,24 @@ local function SetChunk()
   if GUI.Val("ChooseObj") == 1 then
     local track = reaper.GetSelectedTrack(0,0)
     if track then
-      success = reaper.SetTrackStateChunk( track, GUI.Val("TextEditor"), false )
+      success = reaper.SetTrackStateChunk( track, GUI.Val(editor), false )
     end
   elseif GUI.Val("ChooseObj") == 2 then
     local item = reaper.GetSelectedMediaItem(0,0)
     if item then
-      success = reaper.SetItemStateChunk( item, GUI.Val("TextEditor"), false )
+      success = reaper.SetItemStateChunk( item, GUI.Val(editor), false )
     end
   elseif GUI.Val("ChooseObj") == 3 then
     local env = reaper.GetSelectedEnvelope(0)
     if env then
-      success = reaper.SetEnvelopeStateChunk( env, GUI.Val("TextEditor"), false )
+      success = reaper.SetEnvelopeStateChunk( env, GUI.Val(editor), false )
     end
   end
   local A = GUI.Val("ChooseObj")
   local what = A == 1 and "Track" or (A == 2 and "Item" or "Envelope" )
   if success then
-    GUI.settooltip( "Set chunk" )
+    local where = LastEditorFocus == 1 and "left editor)" or "right editor)"
+    GUI.settooltip( "Set chunk (from " .. where )
     local state = A == 1 and 7 or (A == 2 and 4 or 1 )
     reaper.Undo_OnStateChangeEx2( 0, "Set " .. what .. " Chunk", state, -1 )
   else
@@ -208,9 +213,12 @@ local function SetChunk()
   end
 end
 
-local TextDigits, TextPad = 2
-
 local function Checking()
+  if dual_chunk_editor then
+    LastEditorFocus =
+        GUI.elms.TextEditor2.focus and 2 or
+       (GUI.elms.TextEditor.focus and 1 or LastEditorFocus)
+  end
   if gfx.w ~= GUI.w or gfx.h ~= GUI.h then
     GUI.w, GUI.h = gfx.w, gfx.h
     GUI.elms.SetChunk_.x = GUI.w - 344
@@ -219,7 +227,18 @@ local function Checking()
     GUI.elms.GetChunk_.x = GUI.w - 241
     GUI.elms.GetChunk_:init()
     GUI.elms.GetChunk_:redraw()
-    GUI.elms.TextEditor.w = GUI.w - 4
+    if dual_chunk_editor then
+      GUI.elms.TextEditor.w = GUI.w/2 - 4
+      
+      GUI.elms.TextEditor2.x = GUI.w/2 + 2
+      GUI.elms.TextEditor2.w = GUI.w/2 - 4
+      GUI.elms.TextEditor2.h = GUI.h - 46
+      GUI.elms.TextEditor2:init()
+      GUI.elms.TextEditor2:redraw()
+      GUI.elms.TextEditor2:wnd_recalc()
+    else
+      GUI.elms.TextEditor.w = GUI.w - 4
+    end
     GUI.elms.TextEditor.h = GUI.h - 46
     GUI.elms.TextEditor:init()
     GUI.elms.TextEditor:redraw()
@@ -231,11 +250,23 @@ local function Checking()
   if GUI.elms.TextEditor then
     local cur_digits = #(tostring(#GUI.elms.TextEditor.retval))
     cur_digits = cur_digits > 2 and cur_digits or 2
-    if cur_digits ~= TextDigits then
-      TextDigits = cur_digits
-      TextPad = gfx.measurestr(string.rep("0", TextDigits))
+    if cur_digits ~= GUI.elms.TextEditor.digits then
+      GUI.elms.TextEditor.digits = cur_digits
+      GUI.elms.TextEditor.textpad = gfx.measurestr(string.rep("0", cur_digits))
+      GUI.elms.TextEditor.pad = 6 + GUI.elms.TextEditor.textpad
       GUI.elms.TextEditor:init()
       GUI.elms.TextEditor:drawtext()
+    end
+  end
+  if GUI.elms.TextEditor2 then
+    local cur_digits = #(tostring(#GUI.elms.TextEditor2.retval))
+    cur_digits = cur_digits > 2 and cur_digits or 2
+    if cur_digits ~= GUI.elms.TextEditor2.digits then
+      GUI.elms.TextEditor2.digits = cur_digits
+      GUI.elms.TextEditor2.textpad = gfx.measurestr(string.rep("0", cur_digits))
+      GUI.elms.TextEditor2.pad = 6 + GUI.elms.TextEditor2.textpad
+      GUI.elms.TextEditor2:init()
+      GUI.elms.TextEditor2:drawtext()
     end
   end
 end
@@ -256,14 +287,15 @@ function GUI.TextEditor:init()
   gfx.rect(w, 0, w, h, 0)
   gfx.rect(w + 1, 1, w - 2, h - 2, 0)
   local digits = #tostring(#self.retval)
-  digits = digits > 2 and digits or 2
+  self.digits = digits > 2 and digits or 2
   GUI.font(self.font_b)
-  self.pad = 6 + gfx.measurestr(string.rep("0", digits))
+  self.textpad = gfx.measurestr(string.rep("0", digits))
+  self.pad = 6 + self.textpad
 end
 
 function GUI.TextEditor:getcaret(x, y)
   local tmp = {}
-  tmp.x = math.floor(((x - TextPad - self.x) / self.w ) * self.wnd_w) + self.wnd_pos.x
+  tmp.x = math.floor(((x - self.textpad - self.x) / self.w ) * self.wnd_w) + self.wnd_pos.x
   tmp.y = math.floor((y - (self.y + self.pad)) /  self.char_h) + self.wnd_pos.y
   tmp.y = GUI.clamp(1, tmp.y, #self.retval)
   tmp.x = GUI.clamp(0, tmp.x, #(self.retval[tmp.y] or ""))
@@ -394,10 +426,10 @@ GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
   then
     self.caret.x = self.sel_s.x
   end
-  if self.caret.x == 0 then
+  if self.caret.x == 0 and self.caret.y - 1 > 0 then
     line, character = self.caret.y - 1, #self.retval[self.caret.y - 1]
   else
-    line, character = self.caret.y, self.caret.x + 1
+    line, character = self.caret.y, self.caret.x
   end
   if line >= 1 then
     for i = line, 1, -1 do
@@ -419,7 +451,7 @@ GUI.TextEditor.keys[GUI.chars.F2] = function (self) -- F2 Find previous
         -- Place caret
         self.caret.y, self.caret.x = i, pos1
         self.blink = 0
-        -- Make selection (not working ?)
+        -- Make selection
         self.sel_s = {x = pos1, y = i}
         self.sel_e = {x = pos1 + #str, y = i}
         self:drawselection()
@@ -435,8 +467,8 @@ end
 
 local Maximized = false
 local prev_dock, prev_x, prev_y, prev_w, prev_h
-local script_hwnd
 local win_style
+local script_hwnd
 
 local function Fullscreen()
   Maximized = not Maximized
@@ -471,9 +503,10 @@ local function Fullscreen()
   end
 end
 
-local msg = [[========  amagalma Chunk Viewer / Editor help  ========
+local msg = [[=========  amagalma Chunk Viewer / Editor help  =========
 
-Click on Get/Set Chunk to get/set the chunk of the first selected object specified in the Menubox.
+Click on Get/Set Chunk to get/set the chunk of the first selected object
+specified in the Menubox.
   
 Click on, or mousewheel over, the Menubox to change object type.
   
@@ -481,13 +514,13 @@ Fullscreen toggles between fullscreen or last size. (Windows only)
   
 When the Text-Editor has focus the following keyboard shortcuts apply :
 
-Ctrl+A    : Select all
-Ctrl+C    : Copy
-Ctrl+X    : Cut
-Ctrl+V    : Paste
-Ctrl+Z    : Undo
-Ctrl+Y    : Redo
-Ctrl+F    : Find (opens new window)
+Ctrl + A  : Select all
+Ctrl + C  : Copy
+Ctrl + X  : Cut
+Ctrl + V  : Paste
+Ctrl + Z  : Undo
+Ctrl + Y  : Redo
+Ctrl + F  : Find (opens new window)
 F2        : Go to previous search occurence
 F3        : Go to next search occurence
 Home      : Go to chunk start
@@ -497,12 +530,15 @@ Page-Down : self-explanatory
 Insert    : Toggles between overwrite text and normal text insertion
 Ctrl + Mousewheel to change font size
 
-Default font size and number of spaces used for identation are set inside the script.
-(current identation is set to ]] ..
+Default font size and number of spaces used for identation are set
+inside the script. (current identation is set to ]] ..
 number_of_spaces ..
 [[ spaces)
 
-=======================================================
+** Dual mode with two editors is set inside the script **
+
+https://www.paypal.me/amagalma
+=========================================================
 
 ]]
 local function Help()
@@ -514,7 +550,7 @@ end
 
 GUI.name = "Chunk Viewer / Editor   -   v" .. version
 local Settings = reaper.GetExtState("amagalma_Chunk Viewer-Editor", "Settings")
-GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 800, 700
+GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, dual_chunk_editor and 1200 or 800, 700
 GUI.anchor, GUI.corner = "screen", "C"
 if Settings and Settings ~= "" then
   local a,b,c,d,e = Settings:match("(%d-) (%-?%d-) (%-?%d-) (%d-) (%d+)")
@@ -529,7 +565,7 @@ GUI.New("TextEditor", "TextEditor", {
     z = 1,
     x = 2,
     y = 30,
-    w = GUI.w - 4,
+    w = (dual_chunk_editor and GUI.w/2 or GUI.w ) - 4,
     h = GUI.h - 46,
     caption = "",
     font_a = 3,
@@ -541,6 +577,25 @@ GUI.New("TextEditor", "TextEditor", {
     shadow = true,
     undo_limit = 24
 })
+
+if dual_chunk_editor then
+  GUI.New("TextEditor2", "TextEditor", {
+    z = 1,
+    x = GUI.w/2 + 2,
+    y = 30,
+    w = GUI.w/2 - 4,
+    h = GUI.h - 46,
+    caption = "",
+    font_a = 3,
+    font_b = "monospace",
+    color = "txt",
+    col_fill = "elm_frame",
+    cap_bg = "wnd_bg",
+    bg = "black", --"elm_bg",
+    shadow = true,
+    undo_limit = 24
+  })
+end
 
 GUI.New("ChooseObj", "Menubox", {
     z = 1,
@@ -620,21 +675,20 @@ GUI.New("Help", "Button", {
 function GUI.TextEditor:drawtext()
   GUI.font(self.font_b)
   local digits = #tostring(#self.retval)
-  digits = digits > 2 and digits or 2
-  TextDigits = digits
-  TextPad = gfx.measurestr(string.rep("0", digits))
-  self.pad = 6 + TextPad
+  self.digits = digits > 2 and digits or 2
+  self.textpad = gfx.measurestr(string.rep("0", digits))
+  self.pad = 6 + self.textpad
   local tmp = {}
   local numbers = {}
   local n = 0
   for i = self.wnd_pos.y, math.min(self:wnd_bottom() - 1, #self.retval) do
     n = n + 1
     local str = tostring(self.retval[i]) or ""
-    tmp[n] = string.sub(str, self.wnd_pos.x + 1, self:wnd_right() - 1 - TextDigits)
-    numbers[n] = string.format("%" .. TextDigits .. "i", i)
+    tmp[n] = string.sub(str, self.wnd_pos.x + 1, self:wnd_right() - 1 - digits)
+    numbers[n] = string.format("%" .. digits .. "i", i)
   end
   GUI.color("gray")
-  gfx.x, gfx.y = self.x + self.pad - TextPad, self.y + self.pad
+  gfx.x, gfx.y = self.x + self.pad - self.textpad, self.y + self.pad
   gfx.drawstr(table.concat(numbers, "\n"))
   GUI.color(self.color)
   gfx.x, gfx.y = self.x + self.pad, self.y + self.pad
@@ -681,7 +735,6 @@ end
 reaper.atexit(Exit)
 
 -- Run -------------------------------------------------------------
-
 
 GUI.Init()
 script_hwnd = reaper.JS_Window_Find( GUI.name, true )
