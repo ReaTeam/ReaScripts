@@ -2,7 +2,8 @@
 Description: Extend items by note divisions
 Author: pandabot
 License: MIT
-Version: 1.0
+Version: 1.1
+Changelog: + fixed bug where scripts were not respecting playrate
 Donate: https://paypal.me/benjohnson2001
 Links:
   pandabot (Cockos forum) https://forum.cockos.com/member.php?u=127396
