@@ -1,10 +1,9 @@
 -- @description MK Slicer
 -- @author cool
--- @version 1.4.6
+-- @version 1.4.7
 -- @changelog
---   + Added an error message if the item or time selection is too short.
---   + Improved slicer accuracy. Now the location of the cuts corresponds to what is displayed in the script.
---   + Bugfix: now the script ignores the Time Selection if the option is disabled in the settings.
+--   + Bugfix: fixed the error that occurred when launching the plug-in on Mac systems.
+--   + Bugfix: fixed a Trigger bug when notes were created in tempo / ratio that differed from the original.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MK Slicer Main View https://i.imgur.com/5jkmMRL.png
 -- @donation
@@ -61,7 +60,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v1.4.6 by Maxim Kokarev 
+MK Slicer v1.4.7 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -108,6 +107,7 @@ Take_Check = 0
 Reset_Status = 0
 MouseUpX = 0
 MIDISampler = 0
+Midi_sampler_offs_stat = 0
 
 ----------------------------Advanced Settings-------------------------------------------
 
@@ -226,8 +226,6 @@ function collect_param()    -- collect parameters
    if number_of_takes == 0 then return end
    sel_item = r.GetSelectedMediaItem(0, 0)    -- get selected item 
    active_take = r.GetActiveTake(sel_item)  -- active take in item
-   src = r.GetMediaItemTake_Source(active_take)
-   srate =  r.GetMediaSourceSampleRate(src) -- take samplerate (simple wave/MIDI detection)
  end
 
 collect_param()
@@ -296,11 +294,11 @@ if ObeyingTheSelection == 1 and count_itms ~= 0 and start ~= ending and time_sel
     r.UpdateArrange();
 
         collect_param()  
-        if number_of_takes ~= 1 and srate ~= nil then
+        if number_of_takes ~= 1 then
            r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
         end
        collect_param()    
-       if number_of_takes ~= 1 and srate ~= nil then -- проверяем ещё раз. Если не удалось, клеим деструктивно.
+       if number_of_takes ~= 1 then -- проверяем ещё раз. Если не удалось, клеим деструктивно.
            r.Main_OnCommand(41588, 0) -- glue (если больше одного айтема и не миди айтем, то клей).
        end
    end
@@ -548,9 +546,6 @@ end
      
    -- Get the sample rate. MIDI source media will return zero.
    local take_source_sample_rate = r.GetMediaSourceSampleRate(take_pcm_source)
-   if take_source_sample_rate == 0 then
-     return
-   end
  
    -- How many samples are taken from audio accessor and put in the buffer
    local samples_per_channel = take_source_sample_rate/10
@@ -636,19 +631,15 @@ end
 
  ----------------------------------------------------------------------------------
  
+local inf = 1/0
+
  for i=1, #getrms do
  rms = ceil(getrms[i])
  end
 
-if rms == "-1.#INF" then return end
-if srate == nil then rms = -17 end
+if rms == -inf then rms = -17 end
 
 rmsresult = string.sub(rms,1,string.find(rms,'.')+5)
-
-if rmsresult == "-1.#IN" then 
-rmsresult  = -30
-gfx.quit()
- end
 
 readrms = 1-(rmsresult*-0.015)
 out_gain = (rmsresult+12)*-0.03
@@ -768,14 +759,14 @@ end
 function Element:draw_frame()
   local x,y,w,h  = self.x,self.y,self.w,self.h
   gfx.rect(x, y, w, h, false)            -- frame1
-  gfx.roundrect(x, y, w-1, h-1, 3, true) -- frame2         
+--  gfx.roundrect(x, y, w-1, h-1, 3, true) -- frame2         
 end
 
 function Element:draw_rect()
   local x,y,w,h  = self.x,self.y,self.w,self.h
   gfx.set(0.1,0.1,0.1,1) -- цвет фона окна waveform
   gfx.rect(x, y, w, h, true)            -- frame1
-  gfx.roundrect(x, y, w-1, h-1, 3, true) -- frame2         
+--  gfx.roundrect(x, y, w-1, h-1, 3, true) -- frame2         
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1742,7 +1733,7 @@ function Frame:draw()
    self:update_xywh() -- Update xywh(if wind changed)
    local r,g,b,a  = self.r,self.g,self.b,self.a
    if self:mouseIN() then a=a+0.0 end --изменение яркости рамки при наведении мыши
-   gfx.set(0.5,0.5,0.5,a)   -- set frame color -- цвет рамок
+   gfx.set(0.4,0.4,0.4,a)   -- set frame color -- цвет рамок
    self:draw_frame()  -- draw frame
 end
 
@@ -2282,6 +2273,7 @@ MIDISmplr_Status = 0
 Take_Check = 0
 Trigg_Status = 0
 Reset_Status = 0
+Midi_sampler_offs_stat = 0
 ------------------------------------------------------------------------------------------------
 function sel_tracks_items() --Select only tracks of selected items
 
@@ -2666,8 +2658,6 @@ function pitch_and_rate_check()
      active_take = r.GetActiveTake(sel_item)  -- active take in item
      take_pitch = r.GetMediaItemTakeInfo_Value(active_take, "D_PITCH")  -- take pitch
      take_playrate = r.GetMediaItemTakeInfo_Value(active_take, "D_PLAYRATE") -- take playrate 
-     src = r.GetMediaItemTake_Source(active_take)
-     srate =  r.GetMediaSourceSampleRate(src) -- take samplerate (simple wave/MIDI detection)
 end
 pitch_and_rate_check()
   if selected_tracks_count > 1 then return end -- не запускать, если айтемы находятся на разных треках.
@@ -2685,7 +2675,7 @@ while(true) do;
 end;
 
 
- if number_of_takes ~= 1 and srate ~= nil then
+ if number_of_takes ~= 1 then
  
 r.Main_OnCommand(40548, 0)  -- Heal Splits -- (если больше одного айтема и не миди айтем, то клей, попытка не деструктивно склеить).
 
@@ -2693,7 +2683,7 @@ end
 
 pitch_and_rate_check()
 
-   if take_pitch ~= 0 or take_playrate ~= 1.0 or number_of_takes ~= 1 and srate > 0 then
+   if take_pitch ~= 0 or take_playrate ~= 1.0 or number_of_takes ~= 1 then
  
 r.Main_OnCommand(41588, 0) -- glue (если изменены rate, pitch, больше одного айтема и не миди айтем, то клей. Требуется для корректной работы кнопки MIDI).
 
@@ -4852,7 +4842,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v1.4.6"
+    local Wnd_Title = "MK Slicer v1.4.7"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -5072,7 +5062,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v1.4.6"
+     local Wnd_Title = "MK Slicer v1.4.7"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -5084,7 +5074,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v1.4.6"
+    local Wnd_Title = "MK Slicer v1.4.7"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
