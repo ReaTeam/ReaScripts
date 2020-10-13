@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7d329f0e36f389ec83c6c0e9e127856bbfd97514" name="ReaTeam Scripts">
+<index version="1" commit="c0b15e15971ed55833ecc68e2bdb1637679d1376" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -4349,6 +4349,11 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Improved slicer accuracy. Now the location of the cuts corresponds to what is displayed in the script.
 + Bugfix: now the script ignores the Time Selection if the option is disabled in the settings.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec160107a26f0fcd29a99b7f748239ee886d50fa/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="1.4.7" author="cool" time="2020-10-13T03:24:43Z">
+        <changelog><![CDATA[+ Bugfix: fixed the error that occurred when launching the plug-in on Mac systems.
++ Bugfix: fixed a Trigger bug when notes were created in tempo / ratio that differed from the original.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c0b15e15971ed55833ecc68e2bdb1637679d1376/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
