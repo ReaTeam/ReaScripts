@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="986dc775741dcb21485b253f017f1c0894ab3bbf" name="ReaTeam Scripts">
+<index version="1" commit="f60ef5bd1e515491387265c1eb6eeff6096b0f70" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -10448,6 +10448,23 @@ enter or a = Exit and apply changes\par}
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-31T14:35:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4b68451766e7a06b601a4b646b4c077cdf7e8736/Project%20Properties/amagalma_Set%20project%20samplerate%20to%20that%20of%20the%20first%20selected%20item%20(if%20different).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Toggle Project Bay option Automatically retain items when removed from project.lua" type="script" desc="Toggle Project Bay option Automatically retain items when removed from project">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI to run\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If for some reason, it doesn't work well, try increasing the delay value inside the script\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=243487</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-10-16T09:24:38Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f60ef5bd1e515491387265c1eb6eeff6096b0f70/Project%20Properties/amagalma_Toggle%20Project%20Bay%20option%20Automatically%20retain%20items%20when%20removed%20from%20project.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Normalize peaks display gain.lua" type="script" desc="Normalize peaks display gain">
