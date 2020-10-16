@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c0b15e15971ed55833ecc68e2bdb1637679d1376" name="ReaTeam Scripts">
+<index version="1" commit="29f8c755d30e2923a5f6c28709b8d52b760ff6e9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -3498,6 +3498,26 @@ Better error-checking in general]]></changelog>
       <version name="1.1" author="amagalma" time="2020-08-14T05:48:20Z">
         <changelog><![CDATA[fixed corner cases]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d43075b9b0b349ece9dbf5762cdef6c6b27a1002/Items%20Editing/amagalma_Crossfade%20any%20overlapping%20items%20(even%20on%20different%20tracks).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Delete and retain selected items in project.lua" type="script" desc="Delete and retain selected items in project">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Runs action "Item: Remove items" (40006). If Project Bay's setting "Automatically retain items when removed from project" is set to off, the script opens Project Bay, sets the setting to on, then runs action 40006 and sets the setting back to off (in effect deleting but retaining the items if they were removed from the project).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Notes: -The script will Show the Project Bay window if not already open\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI to run\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If for some reason, it doesn't work well, try increasing the delay value inside the script\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the delete action is undone, the items will stay in retained mode\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=243487</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-10-16T08:20:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/29f8c755d30e2923a5f6c28709b8d52b760ff6e9/Items%20Editing/amagalma_Delete%20and%20retain%20selected%20items%20in%20project.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type for selected midi items' active takes.lua">
