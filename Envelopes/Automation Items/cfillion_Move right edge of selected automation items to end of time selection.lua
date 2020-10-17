@@ -1,6 +1,6 @@
 -- @description Move left/right edge of selected automation items to start/end of time selection
 -- @author cfillion
--- @version 1.0
+-- @version 1.1
 -- @changelog Add an action for moving the left edge to the start of the time selection [p=2353888]
 -- @provides
 --   .
