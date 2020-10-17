@@ -18,7 +18,7 @@ reaper.defer(function() end)
 local tstart, tend = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 if tstart == tend then return end
 
-local env = reaper.GetSelectedTrackEnvelope(0)
+local env = reaper.GetSelectedTrackEnvelope(nil)
 if not env then return end
 
 local bucket = {}
