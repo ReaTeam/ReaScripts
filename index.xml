@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0e6d89542ef44d837a35e52284c465ce13b6c78" name="ReaTeam Scripts">
+<index version="1" commit="3545cc354b4075c0881d15b1e52ba880b6770e76" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -3605,6 +3605,23 @@ Better error-checking in general]]></changelog>
         <changelog><![CDATA[+ prevent script crashing if it encounters empty items
 + ensure that last take of enclosed item is the last take of the new item]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93d335f83ad051d9821fa015f273a0aa6f7f7348/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Implode items across tracks into takes.lua" type="script" desc="Implode items across tracks into takes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Improved version of "Take: Implode items across tracks into takes" action that works as it should\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=153354</link>
+        <link rel="screenshot">https://i.ibb.co/NYr9RbQ/Implode-items-across-tracks-into-takes.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-10-19T10:25:35Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3545cc354b4075c0881d15b1e52ba880b6770e76/Items%20Editing/amagalma_Implode%20items%20across%20tracks%20into%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Nudge to source preferred position (used by BWF) for selected items' active takes.lua" type="script" desc="amagalma_Take: Nudge to source preferred position (used by BWF) for selected items' active takes">
