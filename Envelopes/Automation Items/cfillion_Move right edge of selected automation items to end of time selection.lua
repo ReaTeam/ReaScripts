@@ -1,7 +1,7 @@
 -- @description Move left/right edge of selected automation items to start/end of time selection
 -- @author cfillion
--- @version 1.1
--- @changelog Add an action for moving the left edge to the start of the time selection [p=2353888]
+-- @version 1.1.1
+-- @changelog Don't move envelope points along with the left edge
 -- @provides
 --   .
 --   [main] . > cfillion_Move left edge of selected automation items to start of time selection.lua
@@ -32,7 +32,8 @@ for i=0,reaper.CountAutomationItems(env)-1 do
     if right_edge then
       table.insert(bucket, {id=i, len=tend - startTime})
     else
-      table.insert(bucket, {id=i, pos=tstart, len=length + (startTime - tstart)})
+      local offset = startTime - tstart
+      table.insert(bucket, {id=i, pos=tstart, len=length + offset, shift=offset})
     end
   end
 end
@@ -47,6 +48,11 @@ for _,ai in ipairs(bucket) do
   end
 
   reaper.GetSetAutomationItemInfo(env, ai.id, 'D_LENGTH', ai.len, true)
+
+  if ai.shift then
+    local off = reaper.GetSetAutomationItemInfo(env, ai.id, 'D_STARTOFFS', 0, false)
+    reaper.GetSetAutomationItemInfo(env, ai.id, 'D_STARTOFFS', off - ai.shift, true)
+  end
 end
 
 reaper.Undo_EndBlock(script_name, UNDO_STATE_TRACKCFG)
