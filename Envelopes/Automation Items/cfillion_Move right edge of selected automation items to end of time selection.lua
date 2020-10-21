@@ -8,8 +8,6 @@
 -- @link cfillion.ca https://cfillion.ca
 -- @donation https://www.paypal.com/cgi-bin/webscr?business=T3DEWBQJAV7WL&cmd=_donations&currency_code=CAD&item_name=ReaScript%3A+Move+right+edge+of+selected+automation+items+to+end+of+time+selection
 
--- @description Move left/right edge of selected automation items to start/end of time selection
-
 local UNDO_STATE_TRACKCFG = 1
 
 local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
