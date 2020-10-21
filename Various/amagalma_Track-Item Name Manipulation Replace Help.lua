@@ -1,9 +1,4 @@
--- @description amagalma_Track-Item Name Manipulation Replace Help
--- @author amagalma
--- @version 1.03
--- @about
---   # companion to "amagalma_gianfini_Track-Item Name Manipulation - UNDO" v2.7+
--- @noindex true
+-- @noindex
 
 local reaper = reaper
 local change = false
