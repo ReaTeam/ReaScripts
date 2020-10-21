@@ -1,27 +1,24 @@
 -- @description amagalma_gianfini_Track-Item Name Manipulation - UNDO
 -- @author amagalma & gianfini
--- @version 2.88
+-- @version 2.90
+-- @changelog
+--   amagalma changes:
+--   - Track manager is refreshed if open and track names changed (requires SWS and "Mirror track selection" option enabled
+--   - add: You can now specify the number of digits when numbering
+-- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
+-- @link http://forum.cockos.com/showthread.php?t=190534
 -- @about
 --   # Utility to manipulate track or item names
 --   - Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
 --   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History
---
--- @link http://forum.cockos.com/showthread.php?t=194414
--- @link http://forum.cockos.com/showthread.php?t=190534
--- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
 
---[[
- * Changelog:
- * v2.88 (2017-11-14)
-  + fixed Reascript Console left open when using Replace
---]]
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 -----------------------------------------------------------------------------------------------
 
-local version = "2.88"
+local version = "2.90"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -118,7 +115,7 @@ end
 function Button:set_next_state()
   if self.state <= self.state_count - 1 then
     self.state = self.state + 1
-  else self.state = 0 
+  else self.state = 0
   end
 end
 
@@ -151,7 +148,7 @@ function Button:set_color1()
   self.lbl_store_r = self.lbl_r
   self.lbl_store_g = self.lbl_g
   self.lbl_store_b = self.lbl_b
-  self.lbl_a = 1  
+  self.lbl_a = 1
 end
 
 function Button:set_color2()
@@ -313,7 +310,7 @@ function Button:draw_label() -- Draw button label
   if self.label ~= "" then
     gfx.x = self.x1 + math.floor(0.5*self.w - 0.5 * self.label_w) -- center the label
     gfx.y = self.y1 + 0.5*self.h - 0.5*gfx.texth
-    if self.__mouse_state == 1 and self.active == 1 then 
+    if self.__mouse_state == 1 and self.active == 1 then
       gfx.y = gfx.y + 1
       --gfx.a = self.lbl_a*0.5
       temp_lbl_a = self.lbl_a*0.6 -- temp var for transparency
@@ -331,7 +328,7 @@ function Button:draw()
   -- lmb released (and was clicked on element)
   if last_mouse_state == 0 and self.__mouse_state == 1 then self.__mouse_state = 0 end
   -- Mouse is on element -----------------------
-  if self:__is_mouse_on() then 
+  if self:__is_mouse_on() then
     if self:__lmb_down() then -- Left mouse btn is pressed on button
       self.__mouse_state = 1
       if self.__state_changing == false then
@@ -345,7 +342,7 @@ function Button:draw()
       self.lbl_g = 0.6
       self.lbl_r = 1
     elseif self.active == 1 then
-      self.lbl_b = self.lbl_store_b + ((1 - self.lbl_store_b)/2) 
+      self.lbl_b = self.lbl_store_b + ((1 - self.lbl_store_b)/2)
       self.lbl_r = self.lbl_store_r + ((1 - self.lbl_store_r)/2)
       self.lbl_g = self.lbl_store_g + ((1 - self.lbl_store_g)/2)
     end
@@ -423,7 +420,7 @@ local function round(num)
 end
 
 
-local function f() 
+local function f()
   gfx.setfont(1, "Arial", 19)
 end
 
@@ -465,7 +462,7 @@ local function CheckTracks()
   local trackCount = reaper.CountSelectedTracks(0)
   if trackCount < 1 then
     reaper.MB("Please select at least one track!", "", 0)
-  else  
+  else
     return true
   end
 end
@@ -475,7 +472,7 @@ local function CheckItems()
   local itemCount = reaper.CountSelectedMediaItems(0)
   if itemCount < 1 then
     reaper.MB("Please select at least one item!", "", 0)
-  else  
+  else
     return true
   end
 end
@@ -515,7 +512,7 @@ local function AllItemNames()
   for i = 0, allitems-1 do
     local it = reaper.GetMediaItem( 0, i)
     local acttake = reaper.GetActiveTake(it)
-    if acttake then 
+    if acttake then
       local _, name = reaper.GetSetMediaItemTakeInfo_String(acttake, "P_NAME", "", 0)
       table[reaper.BR_GetMediaItemTakeGUID(acttake)] = name
     else
@@ -550,7 +547,7 @@ local function InfoReplacePattern()
 • %x  : represents all hexadecimal digits
 • %z  : represents the character with representation 0
 • %x  : (where x is any non-alphanumeric character) represents the character x
-        
+
 • To escape the magic characters preceed by a %
 
 • For all classes represented by single letters (%a , %c , etc.), the corresponding uppercase letter represents the complement of the class.     
@@ -572,7 +569,7 @@ local function InfoReplacePattern()
 • a single character class followed by + matches 1 or more repetitions of characters in the class (longest sequence)
 • a single character class followed by - is like * but matches the shortest possible sequence
 • a single character class followed by ? matches 0 or 1 occurrence of a character in the class
-  
+
 • ^ anchors the pattern to the beginning of the string
 • $ at the end anchors the match at the end of the subject string.
 ]]
@@ -665,7 +662,7 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
     else
       last_s_line = first_s_line + max_lines - 1
     end
-  
+
   num_displayed_lines = last_s_line - first_s_line + 1  --gianfini this has to stay
     for i = first_s_line, last_s_line do
       local trt = reaper.GetSelectedTrack(0, i)
@@ -727,7 +724,7 @@ function UpdateUndoHelp()
     elseif last_modifier == "trimend" then
       modifier_name = "TRIM END " .. parm1
     elseif last_modifier == "keep" then
-      modifier_name = "KEEP " .. "\'" .. parm1 .. "\'" 
+      modifier_name = "KEEP " .. "\'" .. parm1 .. "\'"
     elseif last_modifier == "replace" then
       modifier_name = "REPLACE " .. "\'" .. tostring(parm1) .. "\'" .. "\nWITH " .. "\'" .. parm2 .. "\'"
     elseif last_modifier == "number" then
@@ -748,7 +745,7 @@ function UpdateUndoHelp()
       modifier_name = "EDIT LINE NO. " .. parm2
   elseif last_modifier == "clear" then
     modifier_name = "CLEAR"
-    end  
+    end
     undo_btn.help_text = "Undo " .. modifier_name
   else
     undo_btn.help_text = "Nothing to undo"
@@ -771,7 +768,7 @@ function UpdateRedoHelp()
     elseif last_modifier == "trimend" then
       modifier_name = "TRIM END " .. parm1
     elseif last_modifier == "keep" then
-      modifier_name = "KEEP " .. "\'" .. parm1 .. "\'" 
+      modifier_name = "KEEP " .. "\'" .. parm1 .. "\'"
     elseif last_modifier == "replace" then
       modifier_name = "REPLACE " .. "\'" .. tostring(parm1) .. "\'" .. "\nWITH " .. "\'" .. parm2 .. "\'"
     elseif last_modifier == "number" then
@@ -792,7 +789,7 @@ function UpdateRedoHelp()
       modifier_name = "EDIT LINE NO. " .. parm2
   elseif last_modifier == "clear" then
     modifier_name = "CLEAR"  -- gianfini added
-    end  
+    end
     redo_btn.help_text = "Redo " .. modifier_name
   else
     redo_btn.help_text = "Nothing to redo" -- gianfini fix
@@ -822,18 +819,18 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
       newName = newName:sub(0, number)
     else
       newName = newName:sub((-1)*number)
-    end 
+    end
   elseif modifier == "replace" then
     if parm1 ~= "" then
       newName = string.gsub(newName, parm1, parm2)
     end
   elseif modifier == "number" then
     if parm1 ~= "" then
-      local mode, number = parm1:match("([psPS])%s?(%d+)")
+      local mode, number, digits = parm1:match("([psPS])%s?(%d+),(%d+)")
       if mode:match("[pP]") then
-        newName = string.format("%02d", math.floor(number+i)) .. " " .. newName
+        newName = string.format("%0" .. digits .. "d", math.floor(number+i)) .. " " .. newName
       else
-        newName = newName .. " " .. string.format("%02d", math.floor(number+i))
+        newName = newName .. " " .. string.format("%0" .. digits .. "d", math.floor(number+i))
       end
     end
   elseif modifier == "upper" then
@@ -859,7 +856,7 @@ end
 function SaveNextRedo()  -- saves next redo data, to restore them in case no modification from a modifier
   local next_redo = undo_stack + 1
   if redo_stack > 0 then
-    next_redo_name = mod_stack_name[next_redo] 
+    next_redo_name = mod_stack_name[next_redo]
     next_redo_parm1 = mod_stack_parm1[next_redo]
     next_redo_parm2 = mod_stack_parm2 [next_redo]
   end
@@ -876,7 +873,7 @@ end
 
 function WriteCurrentModifier() -- write last modifier only to all tracks-items list
   has_changed = 0 -- indicate whether a change in track-items names has occurred or not
-  if what == "tracks" and CheckTracks() then 
+  if what == "tracks" and CheckTracks() then
     for i=0, trackCount-1 do
       local trackId = reaper.GetSelectedTrack(0, i)
       local prevName = ToBeTrackNames[reaper.GetTrackGUID(trackId)]
@@ -891,7 +888,7 @@ function WriteCurrentModifier() -- write last modifier only to all tracks-items 
         ToBeTrackNames[reaper.GetTrackGUID(trackId)] = newName
         has_changed = 1
       end
-    end   
+    end
   elseif what == "items" and CheckItems() then
     for i=0, itemCount-1 do
       local itemId = reaper.GetSelectedMediaItem(0, i)
@@ -908,7 +905,7 @@ function WriteCurrentModifier() -- write last modifier only to all tracks-items 
         local parm1 = mod_stack_parm1[undo_stack]
         local parm2 = mod_stack_parm2[undo_stack]
         newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
-      end  
+      end
       -- Update list
       if prevName ~= newName then
         if acttake then
@@ -918,7 +915,7 @@ function WriteCurrentModifier() -- write last modifier only to all tracks-items 
         end
         has_changed = 1
       end
-    end 
+    end
   end
   if has_changed == 0 and undo_stack > 0 then
     undo_stack = undo_stack - 1
@@ -932,7 +929,7 @@ end
 
 
 function WriteModifiersStack() -- write all modifiers to track-items list (not to actual tracks-items) up to current undo-level
-  if what == "tracks" and CheckTracks() then    
+  if what == "tracks" and CheckTracks() then
     for i=0, trackCount-1 do
       local trackId = reaper.GetSelectedTrack(0, i)
       local newName = OriginalTrackNames[reaper.GetTrackGUID(trackId)]
@@ -948,7 +945,7 @@ function WriteModifiersStack() -- write all modifiers to track-items list (not t
       -- Update list
       ToBeTrackNames[reaper.GetTrackGUID(trackId)] = newName
     end
-  elseif what == "items" and CheckItems() then           
+  elseif what == "items" and CheckItems() then
     for i=0, itemCount-1 do
       local itemId = reaper.GetSelectedMediaItem(0, i)
       local acttake = reaper.GetActiveTake(itemId)
@@ -966,7 +963,7 @@ function WriteModifiersStack() -- write all modifiers to track-items list (not t
           prevName = newName
           newName = ApplyModifier(prevName, modifier, parm1, parm2, i) -- write a single modifier to newName based on prevName
         end
-      end  
+      end
       -- Update list
       if acttake then
         ToBeItemNames[reaper.BR_GetMediaItemTakeGUID(acttake)] = newName
@@ -984,7 +981,7 @@ local function get_line_name(line_num)  -- get the text of line in scroll list a
   if what == "tracks" then
     local trackId = reaper.GetSelectedTrack(0, line_num)
     return ToBeTrackNames[reaper.GetTrackGUID(trackId)], reaper.GetMediaTrackInfo_Value(trackId,"IP_TRACKNUMBER")
-  else  
+  else
     local itemId = reaper.GetSelectedMediaItem(0, line_num)
     local acttake = reaper.GetActiveTake(itemId)
     if acttake then
@@ -1018,13 +1015,13 @@ end
 local function is_mouse_on_list_Down()  --gianfini: this has been reversed to original because the logic is to check mouse over to set help and return mouse button pressed
   fsmall()
   local lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
-  
+
   scroll_line_selected = math.floor((gfx.mouse_y - scroll_list_y + lsth_small) / lsth_small)
   if (gfx.mouse_x > scroll_list_x and gfx.mouse_x < (scroll_list_x + scroll_list_w) and gfx.mouse_y > scroll_list_y and gfx.mouse_y < (scroll_list_y + scroll_list_h) and 
       last_mouse_state == 0) then
     set_list_help_text()
     if (gfx.mouse_cap & 1 == 1 and tonumber(num_displayed_lines) >= scroll_line_selected) then return true end
-  end  
+  end
 end
 
 local function init_tables()
@@ -1082,13 +1079,13 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   if what == "tracks" then
     Tracks_btn:set_color1()
     Items_btn:set_color2()
-  else 
-    Items_btn:set_color1()  
-    Tracks_btn:set_color2() 
+  else
+    Items_btn:set_color1()
+    Tracks_btn:set_color2()
   end
-  
+
   commit_btn:set_color_commit()
-  
+
   if undo_stack > 0 then
     undo_btn:set_color_undo(1)
   reset_btn:set_color_reset(1)
@@ -1100,13 +1097,13 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     reset_btn:set_color_reset(0)
   end
   end
-  
+
   if redo_stack > 0 then
     redo_btn:set_color_undo(1)
   else
     redo_btn:set_color_undo(0)
-  end 
-  
+  end
+
   if (what == "tracks" and indexed_track > 1) or (what == "items" and indexed_item > 1) then 
     UP_btn:set_color_updown_can_move(0)
   else
@@ -1117,10 +1114,10 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   else
     DOWN_btn:set_color_updown()
   end
-  
+
   RefreshTrackItemList(scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h)
   if is_mouse_on_list_Down() then modify_single_line(tonumber(scroll_line_selected)) end  
-  
+
   -- Check left mouse btn state
   if gfx.mouse_cap & 1 == 0 then
     last_mouse_state = 0
@@ -1129,7 +1126,7 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     last_mouse_state = 1
     if not mouse_state_time then mouse_state_time = reaper.time_precise() end
   end
-  
+
   gfx.update()
   if gfx.getchar() >= 0 then reaper.defer(main)
   else
@@ -1137,7 +1134,7 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     reaper.SetExtState("Track-Item Name Manipulation", "x position", x, 1)
     reaper.SetExtState("Track-Item Name Manipulation", "y position", y, 1)
   end
-  
+
 end
 
 local function init() -- INITIALIZATION --------------------------------------------------------------
@@ -1154,7 +1151,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   win_border = math.floor(strh/2)
   win_vert_border = math.floor(win_border*1.6)
   win_double_vert_border = win_border*2
-  -- Remember last screen position 
+  -- Remember last screen position
   local HasState1 = reaper.HasExtState("Track-Item Name Manipulation", "x position")
   local HasState2 = reaper.HasExtState("Track-Item Name Manipulation", "y position")
   if HasState1 and HasState2 then
@@ -1164,9 +1161,9 @@ local function init() -- INITIALIZATION ----------------------------------------
   else
     Window_At_Center(win_w, win_h)
   end
- 
+
   -- parameters: Button(x1,y1,w,h,state_count,state,visual_state,lbl,help_text)
- 
+
   -- 1st raw: Trim, Keep ------------------------------------------------------
   local label, help = "Trim Start", "Removes specified number of\ncharacters from the start"
   local width = math.floor((win_w - 4*win_border)/3)
@@ -1174,11 +1171,11 @@ local function init() -- INITIALIZATION ----------------------------------------
   local x_pos = win_border
   local y_pos = win_vert_border
   trimstart_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Trim end", "Removes specified number of\ncharacters from the end"
   local x_pos = win_border*2 + width
   trimend_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Keep", "Keeps only specified number of \nchars (s-> from start | e-> from end)"
   local x_pos = win_border*3 + width*2
   keep_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
@@ -1189,7 +1186,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
   replace_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Clear", "Clears all names!"
   local x_pos = win_border*2 + width
   clear_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
@@ -1200,7 +1197,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
   prefix_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Suffix", "Appends text to the end"
   local x_pos = win_border*2 + width
   suffix_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
@@ -1218,7 +1215,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
   upper_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Lowercase", "Converts all letters to lowercase"
   local x_pos = win_border*2 + width
   lower_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
@@ -1229,11 +1226,11 @@ local function init() -- INITIALIZATION ----------------------------------------
   local x_pos = win_border
   local y_pos = y_pos + btn_height + math.floor(win_vert_border/2)
   swap_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Capitalize", "Capitalizes the very first letter"
   local x_pos = win_border*2 + width
   capitalize_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "Titlecase", "Capitalizes The First Letter Of\nEach Word"
   local x_pos = win_border*3 + width*2
   title_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
@@ -1252,15 +1249,15 @@ local function init() -- INITIALIZATION ----------------------------------------
   local y_pos = y_pos + btn_height + math.floor(win_vert_border*0.8)
   local height = btn_height*2
   reset_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "UNDO", "Nothing to undo"
   local x_pos = 1.5*win_border + width
   undo_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "REDO", "Nothing to redo"
   local x_pos = 2*win_border + 2*width
   redo_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   local label, help = "COMMIT", "Commit all modifications"
   local x_pos = 2.5*win_border + 3*width
   commit_btn = Button(x_pos, y_pos, width*2, height, 2, 0, 0, label, help)
@@ -1272,11 +1269,11 @@ local function init() -- INITIALIZATION ----------------------------------------
   local x_pos = win_border
   local y_pos = y_pos + height*2 + win_double_vert_border
   Tracks_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help, 2, 0, 0, label, help)
-  
+
   local label, help = "Items", "Click to select Items mode"
   local x_pos = win_border*2 + width
   Items_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-  
+
   --- scroll list measures ----------------------------------------------------
   scroll_list_x = win_border
   scroll_list_y = y_pos + height + win_double_vert_border
@@ -1284,7 +1281,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   scroll_list_h = win_h - scroll_list_y - win_vert_border
   indexed_track = 1
   fsmall()
-  
+
   --- scroll table buttons UP and DOWN ----------------------------------------
   local label, help = "U", "Scrolls Up tracknames"
   local width, height = gfx.measurestr(label)
@@ -1296,7 +1293,22 @@ local function init() -- INITIALIZATION ----------------------------------------
   local label, help = "D", "Scrolls Down tracknames"
   y_pos = y_pos + scroll_list_h - height + win_vert_border/3
   DOWN_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
-    
+
+  function UpdateTrackManager()
+    -- "Mirror track selection must be on" and SWS is required
+    if reaper.APIExists( "BR_Win32_FindWindowEx" ) then
+      if ({reaper.BR_Win32_GetPrivateProfileString( "trackmgr", "flags", "",
+            reaper.get_ini_file() )})[2] & 8 == 8 then
+        local hwnd = reaper.BR_Win32_FindWindowEx( 0, 0, "#32770", "Track Manager", true, true )
+        if hwnd then
+          local focus = reaper.BR_Win32_GetFocus()
+          reaper.BR_Win32_SetFocus( hwnd )
+          reaper.BR_Win32_SetFocus( focus )
+        end
+      end
+    end
+  end
+
 -- BUTTON FUNCTIONS -----------------------------------------------------------
 
   function Tracks_btn.onClick()
@@ -1306,7 +1318,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   redo_btn.help_text = "Nothing to redo"
     has_changed = 0
   end
-  
+
   function Items_btn.onClick()
     what = "items"
     init_tables()
@@ -1344,12 +1356,13 @@ local function init() -- INITIALIZATION ----------------------------------------
       end
     end
   end
-  
+
   function number_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 1, "Specify mode and number:", "")
+      local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 2,
+      "Specify mode and number:,Number of digits:", "p1,2")
       if ok then
-        if text:match("[psPS]%s?%d+") then
+        if text:match("[psPS]%s?%d+,%d+") then
           if text ~= "" then
             undo_stack = undo_stack + 1
             mod_stack_name [undo_stack] = "number"
@@ -1363,7 +1376,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       end
     end
   end
-  
+
   function replace_btn.onRClick()
     local HasState = reaper.HasExtState("Track-Item Name Manipulation", "Replace Help Is open")
     if not HasState or (HasState == true and reaper.GetExtState("Track-Item Name Manipulation", "Replace Help Is open") == "0") then
@@ -1379,7 +1392,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       end
     end
   end
-  
+
   function replace_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
       local ok, retvals = reaper.GetUserInputs("Replace", 2, "Pattern:,Replacement:", ",")
@@ -1392,7 +1405,7 @@ local function init() -- INITIALIZATION ----------------------------------------
             table.insert(words, word)
           end
           local replaceOld = words[1]
-          local replaceWith = words[2] or ""   
+          local replaceWith = words[2] or ""
           if string.sub(retvals, 1, 1) == "," then
             replaceWith = replaceOld
             replaceOld = ""
@@ -1407,12 +1420,12 @@ local function init() -- INITIALIZATION ----------------------------------------
           WriteCurrentModifier()
         end
       end
-    end  
+    end
   end
 
   function upper_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "upper"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
@@ -1422,7 +1435,7 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function lower_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "lower"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
@@ -1432,61 +1445,61 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function swap_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "swap"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
       WriteCurrentModifier()
-    end  
+    end
   end
 
   -- amagalma clear button
   function clear_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then 
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "clear"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
       WriteCurrentModifier()
-    end 
+    end
   end
 
   function capitalize_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "capitalize"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
       WriteCurrentModifier()
-    end  
+    end
   end
 
   function title_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "title"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
       WriteCurrentModifier()
-    end  
+    end
   end
-  
+
   function strip_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
-      undo_stack = undo_stack + 1 
+      undo_stack = undo_stack + 1
       mod_stack_name [undo_stack] = "strip"
       mod_stack_parm1 [undo_stack] = ""
       mod_stack_parm2 [undo_stack] = ""
       WriteCurrentModifier()
-    end  
+    end
   end
-  
+
   function trimstart_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
       local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
       if ok then
         if tonumber(number) ~= nil then
-          undo_stack = undo_stack + 1 
+          undo_stack = undo_stack + 1
           mod_stack_name [undo_stack] = "trimstart"
           mod_stack_parm1 [undo_stack] = number
           mod_stack_parm2 [undo_stack] = ""
@@ -1503,7 +1516,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
       if ok then
         if tonumber(number) ~= nil then
-          undo_stack = undo_stack + 1 
+          undo_stack = undo_stack + 1
           mod_stack_name [undo_stack] = "trimend"
           mod_stack_parm1 [undo_stack] = number
           mod_stack_parm2 [undo_stack] = ""
@@ -1514,24 +1527,24 @@ local function init() -- INITIALIZATION ----------------------------------------
       end
     end
   end
-  
+
   function keep_btn.onClick()
     if (what == "tracks" and CheckTracks()) or (what == "items" and CheckItems()) then
       local ok, text = reaper.GetUserInputs("Keep (s -> from start, e -> end)", 1, "Specify mode and number:", "")
       if ok then
         if text:match("[seSE]%s?%d+") then
-          undo_stack = undo_stack + 1 
+          undo_stack = undo_stack + 1
           mod_stack_name [undo_stack] = "keep"
           mod_stack_parm1 [undo_stack] = text
           mod_stack_parm2 [undo_stack] = ""
-          WriteCurrentModifier()      
+          WriteCurrentModifier()
         else
           reaper.MB("Please type s or e followed by the number of characters you want to keep!\nExamples: s8 , E5 , S03 , e 12", "Not valid input!", 0)        
         end
       end
-    end  
+    end
   end
- 
+
   function UP_btn.onClick()
     if what == "tracks" and CheckTracks() then
       indexed_track = indexed_track - 1
@@ -1541,7 +1554,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       if indexed_item < 1 then indexed_item = 1 end
     end
   end
-  
+
   function DOWN_btn.onClick()
     if what == "tracks" and CheckTracks() then
       indexed_track = indexed_track + 1
@@ -1549,7 +1562,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       indexed_item = indexed_item + 1
     end
   end
-  
+
   function UP_btn.onClickPress()
     if what == "tracks" and CheckTracks() then
       indexed_track = indexed_track - 1
@@ -1559,7 +1572,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       if indexed_item < 1 then indexed_item = 1 end
     end
   end
-    
+
   function DOWN_btn.onClickPress()
     if what == "tracks" and CheckTracks() then
       indexed_track = indexed_track + 1
@@ -1567,13 +1580,13 @@ local function init() -- INITIALIZATION ----------------------------------------
       indexed_item = indexed_item + 1
     end
   end
-  
+
   function reset_btn.onClick()
     init_tables()
     undo_btn.help_text = "Nothing to undo"
   redo_btn.help_text = "Nothing to redo" -- gianfini fix
   end
-  
+
   function undo_btn.onClick()
     if undo_stack > 0 then
       undo_stack = undo_stack - 1
@@ -1582,7 +1595,7 @@ local function init() -- INITIALIZATION ----------------------------------------
     end
     WriteModifiersStack()
   end
-  
+
   function redo_btn.onClick()
     if redo_stack > 0 then
       undo_stack = undo_stack + 1
@@ -1591,18 +1604,20 @@ local function init() -- INITIALIZATION ----------------------------------------
     end
     WriteModifiersStack()
   end
-  
+
   function commit_btn.onClick()
     if undo_stack > 0 then -- gianfini changed to check undo_stack and not has_changed
+      reaper.Undo_BeginBlock()
+      reaper.PreventUIRefresh( 1 )
       if what == "tracks" and CheckTracks() then
-        reaper.Undo_BeginBlock()
         for i=0, trackCount-1 do
           local trackId = reaper.GetSelectedTrack(0, i)
           reaper.GetSetMediaTrackInfo_String(trackId, "P_NAME", tostring(ToBeTrackNames[reaper.GetTrackGUID(trackId)]), 1)
         end
+        reaper.PreventUIRefresh( -1 )
         reaper.Undo_EndBlock("Track name manipulation", 1)
+        UpdateTrackManager()
       elseif what == "items" and CheckItems() then
-        reaper.Undo_BeginBlock()
         for i=0, itemCount-1 do
           local itemId = reaper.GetSelectedMediaItem(0, i)
           local acttake = reaper.GetActiveTake(itemId)
@@ -1612,6 +1627,7 @@ local function init() -- INITIALIZATION ----------------------------------------
             reaper.ULT_SetMediaItemNote(itemId, tostring(ToBeItemNames[reaper.BR_GetMediaItemGUID(itemId)]))
           end
         end
+        reaper.PreventUIRefresh( -1 )
         reaper.UpdateArrange()
         reaper.Undo_EndBlock("Item name manipulation", 4)
       end
@@ -1621,7 +1637,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       has_changed = 0
     end
   end
-  
+
 end -------------------------------- end of init() function ------------------------------------------
 
 
