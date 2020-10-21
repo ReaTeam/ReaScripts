@@ -12,7 +12,6 @@ local UNDO_STATE_TRACKCFG = 1
 
 local script_name = ({reaper.get_action_context()})[2]:match("([^/\\_]+).lua$")
 local right_edge = script_name:match('right edge')
---right_edge = false
 
 reaper.defer(function() end)
 
