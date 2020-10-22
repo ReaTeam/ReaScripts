@@ -1,28 +1,11 @@
--- @description Turn items into midi
+-- @description Turn items into MIDI
 -- @author yatsumehole
 -- @version 1.1
--- @changelog Add more features.
--- @provides [main=main,midi_editor] . > item2midi.lua
+-- @changelog Add more feature when item is overlapped and muted.
+-- @provides [main=main,midi_editor] .
 -- @about
 --   # How to use
 --   Select the track which contains item and run this script. It will make midi item based on item's pitch.
---
---   # History
---   - 2020.10.20: Initial release.
---   - 2020.10.21: Add error message and minor issues.
---   - 2020.10.22: Add more feature when item is overlapped and muted.
-
---[[
-    Script information
-    Script name: Turn item into midi (item2midi)
-    Developer: Webcam (@webcam_ytp)
-    How to use: Select the track which contains item and run this script. It will make midi item based on item's pitch.
-
-    History
-    2020.10.20: Initial release.
-    2020.10.21: Add error message and minor issues.
-    2020.10.22: Add more feature when item is overlapped and muted.
-]]--
 
 R = reaper
 
