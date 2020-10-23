@@ -1,8 +1,7 @@
--- @description Turn items into MIDI
+-- @description Turn item pitch in the selected track into MIDI notes
 -- @author yatsumehole
 -- @version 1.1
 -- @changelog Add more feature when item is overlapped and muted.
--- @provides [main=main,midi_editor] .
 -- @about
 --   # How to use
 --   Select the track which contains item and run this script. It will make midi item based on item's pitch.
