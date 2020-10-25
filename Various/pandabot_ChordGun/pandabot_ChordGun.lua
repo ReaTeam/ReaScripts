@@ -103,6 +103,7 @@ defaultScaleNoteNames = {'C', 'D', 'E', 'F', 'G', 'A', 'B'}
 defaultScaleDegreeHeaders = {'I', 'ii', 'iii', 'IV', 'V', 'vi', 'viio'}
 
 defaultNotesThatArePlaying = {}
+defaultDockState = 0
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
 local activeProjectIndex = 0
@@ -360,11 +361,11 @@ end
 --
 
 function getDockState()
-  return getTableValue(dockStateKey, defaultNotesThatArePlaying)
+  return getValue(dockStateKey, defaultDockState)
 end
 
 function setDockState(arg)
-  setTableValue(dockStateKey, arg)
+  setValue(dockStateKey, arg)
 end
 
 function mouseIsHoveringOver(element)
@@ -3296,8 +3297,8 @@ end
 
 local function dockWindow()
 
-  local windowAtBottom = 0x0201
-  gfx.dock(windowAtBottom)
+  local windowAtRight = 0x0201
+  gfx.dock(windowAtRight)
   guiShouldBeUpdated = true
 end
 
@@ -4538,7 +4539,7 @@ end
 function Interface:addMainWindow()
 
 	gfx.clear = reaper.ColorToNative(36, 36, 36)
-	local dockState = gfx.dock(-1)
+	local dockState = getDockState()
 	gfx.init(self.name, self.width, self.height, dockState, self.x, self.y)
 end
 
@@ -4870,3 +4871,9 @@ local function main()
 end
 
 main()
+
+local function saveDockState()
+  setDockState(gfx.dock(-1))
+end
+
+reaper.atexit(saveDockState)

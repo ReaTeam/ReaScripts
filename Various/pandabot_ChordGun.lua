@@ -2,8 +2,8 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.4
-Changelog: + fixed UI flaw with dropdown icon
+Version: 1.5
+Changelog: + added docking state persistence
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
