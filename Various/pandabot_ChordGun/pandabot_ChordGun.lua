@@ -4636,6 +4636,10 @@ function Interface:update()
 		self:restartGui()
 		guiShouldBeUpdated = false
 	end
+
+  if windowIsDocked() and (getDockState() ~= gfx.dock(-1)) then
+    setDockState(gfx.dock(-1))
+  end
 end
 
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
@@ -4879,9 +4883,3 @@ local function main()
 end
 
 main()
-
-local function saveDockState()
-  setDockState(gfx.dock(-1))
-end
-
-reaper.atexit(saveDockState)
