@@ -1,8 +1,8 @@
 -- @description Cycle item last selected take up-down
 -- @author Edgemeal
 -- @version 1.00
+-- @metapackage
 -- @provides
---   .
 --   [main] . > edgemeal_Cycle item last selected take up.lua
 --   [main] . > edgemeal_Cycle item last selected take down.lua
 -- @donation Donate https://www.paypal.me/Edgemeal
