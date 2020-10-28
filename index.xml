@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8476afd8ccce7b4e601576e3a4a53207104871b8" name="ReaTeam Scripts">
+<index version="1" commit="aad64edc4107ad17b2f6856651c6fd2f786e6c09" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -5594,14 +5594,32 @@ selection.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Introduce\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 As it's name, it turns items' pitch in the selected track into MIDI notes.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 How to use\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Select the track which contains item and run this script. It will make midi item based on item's pitch.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select the track, and run the {\b Turn item pitch in the selected track into MIDI notes.lua}.\line It will generate the midi notes from items.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If you mute the item, script will not recognize the item.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It works on the multiple selected tracks.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 My blog\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Tutorial with picture will upload on these blogs.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://ytpmv-info-en.blogspot.com/"}}{\fldrslt{\ul
+My blog(ENG)
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://hapsung.tistory.com/"}}{\fldrslt{\ul
+My blog(KOR)
+}}}
+\sa180\par}
 }
 ]]></description>
       </metadata>
       <version name="1.1" author="yatsumehole" time="2020-10-23T10:42:09Z">
         <changelog><![CDATA[Add more feature when item is overlapped and muted.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/17b33520ffe9b3f9c78c25466c70541868509f4d/Items%20Properties/yatsumehole_Turn%20item%20pitch%20in%20the%20selected%20track%20into%20MIDI%20notes.lua</source>
+      </version>
+      <version name="1.2" author="yatsumehole" time="2020-10-28T11:11:15Z">
+        <changelog><![CDATA[Made script work on multiple tracks. Added explanation of the script.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aad64edc4107ad17b2f6856651c6fd2f786e6c09/Items%20Properties/yatsumehole_Turn%20item%20pitch%20in%20the%20selected%20track%20into%20MIDI%20notes.lua</source>
       </version>
     </reapack>
   </category>
