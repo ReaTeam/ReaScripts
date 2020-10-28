@@ -1,14 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.00
+-- @version 1.01
 -- @changelog
---   Replaces "amagalma_gianfini_Track-Item Name Manipulation - UNDO"
---   - add: Region name support
---   - fix: crash when clicking on empty list
---   - fix: Down button could be pressed past last list item
---   - fix: changes in number of list items are correctly shown (no more 'nil' names)
---   - change: moved help text to the bottom
---   - change: improved how list items show
+--   - fix: crash when clicking on empty line when in Region mode
 -- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -26,7 +20,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.00"
+local version = "1.01"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -1069,7 +1063,9 @@ local function get_line_name(line_num)  -- get the text of line in scroll list a
       return ToBeTrackNames[reaper.GetTrackGUID(trackId)], reaper.GetMediaTrackInfo_Value(trackId,"IP_TRACKNUMBER")
     end
   elseif what == "regions" then
-    return ToBeRegionNames[RegionNamesIndex[line_num+1]][3], RegionNamesIndex[line_num+1]
+    if RegionNamesIndex[line_num+1] then
+      return ToBeRegionNames[RegionNamesIndex[line_num+1]][3], RegionNamesIndex[line_num+1]
+    end
   else
     local itemId = reaper.GetSelectedMediaItem(0, line_num)
     if not itemId then return end
@@ -1088,14 +1084,14 @@ local function modify_single_line(line_num)
   local obj_name, track_num = get_line_name(line_num - 1)
   if not obj_name or not track_num then return end
   if what == "tracks" then
-    line_object = "TRACK " .. tostring(string.format("%02d",track_num))
+    line_object = string.format("track %i",track_num)
   elseif what == "regions" then
-    line_object = "REGION " .. tostring(string.format("%02d",track_num))
+    line_object = string.format("region %i",track_num)
     line_num = line_num + 1
   else
-    line_object = "ITEM"
+    line_object = "item"
   end
-  local ok, text = reaper.GetUserInputs("Modify " .. line_object, 1, "Name:,extrawidth=" .. tostring(math.floor(scroll_list_w*3/5)), obj_name)
+  local ok, text = reaper.GetUserInputs("Rename " .. line_object, 1, "Name:,extrawidth=" .. tostring(math.floor(scroll_list_w*3/5)), obj_name)
   if ok then
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "single_line_edit"
