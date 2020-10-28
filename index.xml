@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fb9e682b742596881736b1eaaf0bca47bdb00ec0" name="ReaTeam Scripts">
+<index version="1" commit="8476afd8ccce7b4e601576e3a4a53207104871b8" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13138,132 +13138,32 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main" file="Toggle Edit Group 8 (Edit Group Management Utility _ amagalma).lua">https://github.com/ReaTeam/ReaScripts/raw/e55f6e8aaaff27653b831924d0543f0204f7a87e/Various/amagalma_Toggle%20Edit%20Group%20(Edit%20Group%20Management%20Utility).lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_gianfini_Track-Item Name Manipulation - UNDO.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation - UNDO">
+    <reapack name="amagalma_gianfini_ReaNamer (track-item-region renaming utility).lua" type="script" desc="ReaNamer (track-item-region renaming utility)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track, item or region names\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item/region names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items and creates an Undo point in Reaper's Undo History\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History\sa180\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=194414</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
-      <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:44:05Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/346f4d62416b679d65291a0a5df4c354dfb11e31/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-      </version>
-      <version name="2.6" author="amagalma, modified by gianfini" time="2017-08-05T19:51:52Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c7337579a04ec0ff09dc70f5ba74350100e5449b/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-      </version>
-      <version name="2.62" author="amagalma, modified by gianfini" time="2017-08-20T12:19:04Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/416b41f3b2a2b5bdf6494056128aa2d7c8cda1d9/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-      </version>
-      <version name="2.65" author="amagalma, modified by gianfini" time="2017-08-22T02:40:48Z">
-        <changelog><![CDATA[+ Code tidying-up and optimization
-+ Edited the Replace Help. Help opens in the Console so that one can continue using the script when Help is displayed
-+ Pressing the Commit button creates an undo point in Reaper's Undo History]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/878765f7e75b9b0f2df138795e4efa56e5b91b2d/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-      </version>
-      <version name="2.66" author="amagalma, modified by gianfini" time="2017-08-22T10:48:42Z">
-        <changelog><![CDATA[+ Fixed Undo which was broken in v2.65]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/eeaee70c8a4091084546bdd060eb82f9565051ed/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-      </version>
-      <version name="2.7" author="amagalma, modified by gianfini" time="2017-08-22T23:31:20Z">
-        <changelog><![CDATA[+ amagalma additions:
-+ Script remembers last window position
-+ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
-+ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6346bcd46d18772258eca3b06f4134ac5b6c5d0c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-      </version>
-      <version name="2.71" author="amagalma, modified by gianfini" time="2017-08-22T23:44:28Z">
-        <changelog><![CDATA[+ Reapack header correction
-+ amagalma additions:
-+ Script remembers last window position
-+ Replace Help now opens in a new window. You can resize the font and window with the mousewheel. Font/window sizes are remembered
-+ Accompanied by unindexed script "amagalma_Track-Item Name Manipulation Replace Help"]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0b9725a869232bc25c785e425eb9f366afd2ab3c/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.8" author="amagalma &amp; gianfini" time="2017-08-23T16:54:44Z">
-        <changelog><![CDATA[+ amagalma additions:
-+ Added Redo functionality
-+ a lot of code tidying-up & optimization]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/02c931c9d2a50726a5ec96b2493df44a2f8da2ab/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.81" author="amagalma &amp; gianfini" time="2017-08-23T17:08:02Z">
-        <changelog><![CDATA[+ amagalma additions:
-+ Added Redo functionality
-+ a lot of code tidying-up & optimization]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0464787245d0f1c99e42f3dcad34d123562b5439/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/0464787245d0f1c99e42f3dcad34d123562b5439/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.83" author="amagalma &amp; gianfini" time="2017-09-03T21:12:40Z">
-        <changelog><![CDATA[+ gianfini fix:
-+ fixed single line editing clicking on list: help and click on empty line exception]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/fb7214a971c53a0f6495c7e32ed30a6288ee6a91/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.84" author="amagalma &amp; gianfini" time="2017-09-06T22:31:56Z">
-        <changelog><![CDATA[+ amagalma addition:
-+ The script now supports empty items' notes too]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/1e25caed514191ef1a40c1935dcbef233ee7be19/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.85" author="amagalma &amp; gianfini" time="2017-09-07T20:07:31Z">
-        <changelog><![CDATA[+ amagalma addition:
-+ bug fix when dealing with multiline items' notes]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/5c29ffc265e5f0dd8d1b588d9827abde5cbcb898/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.86" author="amagalma &amp; gianfini" time="2017-09-08T20:38:04Z">
-        <changelog><![CDATA[+ gianfini fix:
-+ fixed Commit doing nothing if last modifier didn't modify anything (but previous ones did modify the list)
-+ amagalma quick fix: (may need revision in the future)
-+ script crash when single-line editing a multiline item note]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/d68603c752be75774d22bc883e745cab0c29879e/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.87" author="amagalma &amp; gianfini" time="2017-11-11T05:23:59Z">
-        <changelog><![CDATA[+ amagalma fix: commas can now be used in Replace as long as they are escaped with a ~ (ex. ~,)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1890c4de9bc5c52c9c769b5e8aa5e7ae9e7e1051/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/1890c4de9bc5c52c9c769b5e8aa5e7ae9e7e1051/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.88" author="amagalma &amp; gianfini" time="2017-11-13T23:25:39Z">
-        <changelog><![CDATA[+ fixed Reascript Console left open when using Replace]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ff1621191d4873af6cb1ec7e708b0d7c7e11b7eb/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/ff1621191d4873af6cb1ec7e708b0d7c7e11b7eb/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-      <version name="2.90" author="amagalma &amp; gianfini" time="2020-10-21T13:05:08Z">
-        <changelog><![CDATA[amagalma changes:
-- Track manager is refreshed if open and track names changed (requires SWS and "Mirror track selection" option enabled
-- add: You can now specify the number of digits when numbering]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4afb7610aa7bafc0330b858fb9e6ee4430820370/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation%20-%20UNDO.lua</source>
-        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/4afb7610aa7bafc0330b858fb9e6ee4430820370/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_gianfini_Track-Item Name Manipulation.lua" type="script" desc="amagalma_gianfini_Track-Item Name Manipulation">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=194414</link>
-      </metadata>
-      <version name="2.3" author="amagalma, modified by gianfini" time="2017-07-30T20:29:02Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7be0d60481f498ab3039c145102a3ba565d1cdf9/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
-      </version>
-      <version name="2.4" author="amagalma, modified by gianfini" time="2017-08-05T19:45:47Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b0ecd0265285b1a6aac4bc4c319222529ca1fd52/Various/amagalma_gianfini_Track-Item%20Name%20Manipulation.lua</source>
+      <version name="1.00" author="amagalma &amp; gianfini" time="2020-10-28T06:52:42Z">
+        <changelog><![CDATA[Replaces "amagalma_gianfini_Track-Item Name Manipulation - UNDO"
+- add: Region name support
+- fix: crash when clicking on empty list
+- fix: Down button could be pressed past last list item
+- fix: changes in number of list items are correctly shown (no more 'nil' names)
+- change: moved help text to the bottom
+- change: improved how list items show]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8476afd8ccce7b4e601576e3a4a53207104871b8/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/8476afd8ccce7b4e601576e3a4a53207104871b8/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
@@ -13794,28 +13694,6 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
-      </version>
-    </reapack>
-    <reapack name="amagalma_Track-Item Name Manipulation.lua" type="script" desc="amagalma_Track-Item Name Manipulation">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Utility to manipulate track or item names\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Manipulate track/item names (prefix, suffix, trim start, trim end, uppercase, lowercase, swap case, capitalize, titlecase, replace, strip leading & trailing whitespaces).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Undo points are created only if track/item names have been changed when you close the script or if track/item names have been changed when you change track/item selection.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode is automatically chosen when the script starts. Then to change mode click on appropriate button.\sa180\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
-      </metadata>
-      <version name="1.1" author="amagalma" time="2017-07-30T21:10:21Z">
-        <changelog><![CDATA[- Fixed crash when dealing with empty items
-- Changed color scheme
-- Added Clear button (clears all names)
-- Added Keep button (trims names and keeps only the number of characters defined)]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/77057a6b6839dd24e19b437e9e216a2ee1f82374/Various/amagalma_Track-Item%20Name%20Manipulation.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Transport Play (with memory - no undo).lua" type="script" desc="amagalma_Transport Play (with memory - no undo)">
