@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aad64edc4107ad17b2f6856651c6fd2f786e6c09" name="ReaTeam Scripts">
+<index version="1" commit="24fa1ff46bdae16c11904afb87deb7078d461215" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13182,6 +13182,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - change: improved how list items show]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8476afd8ccce7b4e601576e3a4a53207104871b8/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/8476afd8ccce7b4e601576e3a4a53207104871b8/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.01" author="amagalma &amp; gianfini" time="2020-10-29T06:25:26Z">
+        <changelog><![CDATA[- fix: crash when clicking on empty line when in Region mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/24fa1ff46bdae16c11904afb87deb7078d461215/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/24fa1ff46bdae16c11904afb87deb7078d461215/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
