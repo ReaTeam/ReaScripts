@@ -1,0 +1,157 @@
+/*
+   * ReaScript Name: Select every N notes within selection
+   * EEL script for Cockos REAPER
+   * Author: pandabot
+   * Author URI: http://forum.cockos.com/member.php?u=127396
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+
+
+function highlight_mouse_hover()
+(
+  gfx_r += 0.1;
+  gfx_g += 0.1;
+  gfx_b += 0.1;
+);
+
+function highlight_mouse_on_press()
+(
+  gfx_r += 0.2;
+  gfx_g += 0.2;
+  gfx_b += 0.2;
+);
+
+ function draw_string_step(x, y, r, g, b, a) local (w, h)
+( 
+  gfx_r = r;
+  gfx_g = g;
+  gfx_b = b;
+  gfx_a = a;
+  
+  step_s = sprintf(#, "%d", step);
+  gfx_measurestr(step_s, w, h);
+  // is mouse on string?
+  mouse_x >= x && mouse_x <= x + gfx_w && mouse_y >= y && mouse_y <= y + h ? (
+    highlight_mouse_hover();
+    mouse_wheel != 0 ? (
+      highlight_mouse_on_press();
+      step += (mouse_wheel / abs(mouse_wheel));
+      step < 1 ? step = 1;
+      mouse_wheel = 0;
+    );
+    mouse_cap == 5 ? (
+      step = 1;
+    );
+  );
+
+  gfx_printf("Select every: %d note", step);
+);
+
+ function draw_string_offset(x, y, r, g, b, a) local (w, h)
+( 
+  gfx_r = r;
+  gfx_g = g;
+  gfx_b = b;
+  gfx_a = a;
+  
+  offset_s = sprintf(#, "%d", offset);
+  gfx_measurestr(offset_s, w, h);
+  // is mouse on string?
+  mouse_x >= x && mouse_x <= x + gfx_w && mouse_y >= y && mouse_y <= y + h ? (
+    highlight_mouse_hover();
+    mouse_wheel != 0 ? (
+      highlight_mouse_on_press();
+      offset += (mouse_wheel / abs(mouse_wheel));
+      offset < 0 ? offset = 0;
+      offset > step - 1 ? offset = step - 1;
+      mouse_wheel = 0;
+    );
+    mouse_cap == 5 ? (
+      offset = 0;
+    );
+  );
+  gfx_printf("Offset: ");
+  gfx_printf("%d", offset);
+);
+
+function select_notes()
+(
+  index = 0;
+  k = -offset;
+  loop(lengthOfSelectedNotesArray,
+    MIDI_GetNote(take, selectedNotes[index], isSelected, isMuted, startPpqPos, endPpqPos, channel, note_pitch, velocity) ? (
+
+      k % step == 0 ? (
+        MIDI_SetNote(take, selectedNotes[index], 1, isMuted, startPpqPos, endPpqPos, channel, note_pitch, velocity);
+      ) : (
+        MIDI_SetNote(take, selectedNotes[index], 0, isMuted, startPpqPos, endPpqPos, channel, note_pitch, velocity);
+      );
+
+      k += 1;
+    );
+    index += 1;
+  );
+  last_step = step;
+  last_offset = offset;
+);
+function run()
+(
+  gfx_x = gfx_y = 20;
+  gfx_r = 0.5;
+  gfx_g = 0.8;
+  gfx_b = 0.5;
+  gfx_a = 1; 
+  
+  draw_string_step(gfx_x, gfx_y, 0.5, 0.8, 0.5, 1);
+  gfx_x = 20;
+  gfx_y += 2 * gfx_texth;
+ 
+  draw_string_offset(gfx_x, gfx_y, 0.5, 0.8, 0.5, 1);
+
+  (mouse_x >= 0 && mouse_x <= gfx_w && mouse_y >= 0 && mouse_y <= gfx_h) && (last_step != step || last_offset != offset || need_update == 1) ? (
+    select_notes();
+  );
+  last_step = step;
+  last_offset = offset;
+
+  need_update = 0;
+  mouse_cap == 1 ? lmb_down = 1 : lmb_down = 0;
+  
+  gfx_update();
+  gfx_getchar() >= 0 ? defer("run();");
+);
+
+gfx_init("Note selector", 200, 100);
+gfx_setfont(1, "Arial", 16);
+
+step = 1;
+last_step = -1;
+offset = 0;
+last_offset = -1;
+
+need_update = 0;
+
+lmb_down = 0;
+
+
+
+(take = MIDIEditor_GetTake(MIDIEditor_GetActive())) ? (
+
+  i = MIDI_EnumSelNotes(take, -1);
+  selectedNotesIndex = 0;
+  
+  while (i != -1) (
+
+    selectedNotes[selectedNotesIndex] = i;
+
+    i = MIDI_EnumSelNotes(take, i);
+    selectedNotesIndex = selectedNotesIndex + 1;
+  );
+
+  lengthOfSelectedNotesArray = selectedNotesIndex;
+
+  run();
+);
+
+
