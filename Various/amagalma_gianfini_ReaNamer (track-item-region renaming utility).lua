@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.01
+-- @version 1.02
 -- @changelog
---   - fix: crash when clicking on empty line when in Region mode
+--   - fix: occasional crash when commiting changes in Track mode
 -- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -20,7 +20,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.01"
+local version = "1.02"
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -1441,8 +1441,9 @@ local function init() -- INITIALIZATION ----------------------------------------
   local function UpdateTrackManager()
     -- "Mirror track selection must be on" and SWS is required
     if reaper.APIExists( "BR_Win32_FindWindowEx" ) then
-      if ({reaper.BR_Win32_GetPrivateProfileString( "trackmgr", "flags", "",
-            reaper.get_ini_file() )})[2] & 8 == 8 then
+      local flag = ({reaper.BR_Win32_GetPrivateProfileString( "trackmgr", "flags", "",
+                     reaper.get_ini_file() )})[2]
+      if tonumber(flag) & 8 == 8 then
         local hwnd = reaper.BR_Win32_FindWindowEx( 0, 0, "#32770", "Track Manager", true, true )
         if hwnd then
           local focus = reaper.BR_Win32_GetFocus()
