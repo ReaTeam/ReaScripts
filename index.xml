@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="24fa1ff46bdae16c11904afb87deb7078d461215" name="ReaTeam Scripts">
+<index version="1" commit="ea7487e3d4751b114163710846bf1991edf90260" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -5681,6 +5681,24 @@ Added replacement with /clear; erases entire name of matching markers/regions.]]
       <version name="1.02" author="amagalma" time="2020-08-04T19:34:24Z">
         <changelog><![CDATA[Fix menu placement for OSX]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/25ae655cd471d7d79ffe8ddc8ceabdb956e427f3/Markers/amagalma_Go%20to%20marker%20(choose%20from%20menu%20list).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Rename region at edit cursor after the first selected item.lua" type="script" desc="Rename region at edit cursor after the first selected item">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showpost.php?p=2358410&amp;postcount=20</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-10-29T09:26:52Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea7487e3d4751b114163710846bf1991edf90260/Markers/amagalma_Rename%20region%20at%20edit%20cursor%20after%20the%20first%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Rename region at edit cursor after the first selected track.lua" type="script" desc="Rename region at edit cursor after the first selected track">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showpost.php?p=2358410&amp;postcount=20</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-10-29T08:52:11Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3eb378deebfb9a8e4bb5663de4995a6415c8f57d/Markers/amagalma_Rename%20region%20at%20edit%20cursor%20after%20the%20first%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Write project markers as media cues to selected items active takes source files.lua" type="script" desc="amagalma_Write project markers as media cues to selected items' active takes' source files (WAV only)">
