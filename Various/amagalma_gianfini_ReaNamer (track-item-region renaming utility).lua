@@ -1,8 +1,9 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.02
+-- @version 1.03
 -- @changelog
---   - fix: occasional crash when commiting changes in Track mode
+--   - fix: crash when commiting changes in Track mode for portable installs
+--   - add: show pop-up if SWS is not installed
 -- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -14,13 +15,18 @@
 --   - Manipulate track/item/region names (prefix/suffix, trim start/end, keep, clear, uppercase/lowercase, swap case/capitalize/titlecase, replace, strip leading & trailing whitespaces).
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
 --   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History
-
+--   - SWS / S&M extension is required
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.02"
+local version = "1.03"
+
+if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
+  reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
+  return
+end
 
 -----------------------------------------------------------------------------------------------
 ------------- "class.lua" is copied from http://lua-users.org/wiki/SimpleLuaClasses -----------
@@ -1439,17 +1445,15 @@ local function init() -- INITIALIZATION ----------------------------------------
   DOWN_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
 
   local function UpdateTrackManager()
-    -- "Mirror track selection must be on" and SWS is required
-    if reaper.APIExists( "BR_Win32_FindWindowEx" ) then
-      local flag = ({reaper.BR_Win32_GetPrivateProfileString( "trackmgr", "flags", "",
-                     reaper.get_ini_file() )})[2]
-      if tonumber(flag) & 8 == 8 then
-        local hwnd = reaper.BR_Win32_FindWindowEx( 0, 0, "#32770", "Track Manager", true, true )
-        if hwnd then
-          local focus = reaper.BR_Win32_GetFocus()
-          reaper.BR_Win32_SetFocus( hwnd )
-          reaper.BR_Win32_SetFocus( focus )
-        end
+    -- "Mirror track selection must be on"
+    local flag = ({reaper.BR_Win32_GetPrivateProfileString( "trackmgr", "flags", "",
+                   reaper.get_ini_file() )})[2]
+    if flag and flag ~= "" and tonumber(flag) & 8 == 8 then
+      local hwnd = reaper.BR_Win32_FindWindowEx( 0, 0, "#32770", "Track Manager", true, true )
+      if hwnd then
+        local focus = reaper.BR_Win32_GetFocus()
+        reaper.BR_Win32_SetFocus( hwnd )
+        reaper.BR_Win32_SetFocus( focus )
       end
     end
   end
