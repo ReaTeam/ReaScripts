@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7b43e90979fbd02fac92982f547027f4fd555675" name="ReaTeam Scripts">
+<index version="1" commit="80d8a2f8c1771225a6c3d86839dc2a63405e8ff9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13663,7 +13663,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3e2de70295f1052ecbfb22d31843d44fe07c2843/Various/amagalma_Toggle%20behavior%20of%20Play-Stop%20buttons.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX">
+    <reapack name="amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -13676,6 +13676,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 }
 ]]></description>
         <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2018-12-24T23:55:13Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/46d757c59be7dfd755cc78fd48a94e1e356d1db3/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
@@ -13704,8 +13705,12 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - improved/made faster the checks for presence of the selected format of AB_LM]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd91d2eba1849b4857e1fed3724dfb3dafb01d44/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
+      <version name="1.36" author="amagalma" time="2020-10-31T06:06:33Z">
+        <changelog><![CDATA[- small improvement]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6a5a07df4dc42ad3948d0c223cf1329241471911/Various/amagalma_Toggle%20enclose%20focused%20FX%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+      </version>
     </reapack>
-    <reapack name="amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX">
+    <reapack name="amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST or JSFX.lua" type="script" desc="Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -13718,6 +13723,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 }
 ]]></description>
         <link rel="website">http://www.tb-software.com/TBProAudio/ab_lm.html</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.27" author="amagalma" time="2018-12-29T13:32:41Z">
         <changelog><![CDATA[# hopefully, first-time-run error-checking should be fixed now for x64 platforms]]></changelog>
@@ -13729,6 +13735,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - added check for JS_ReaScriptAPI's presence
 - improved/made faster the checks for presence of the selected format of AB_LM]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/785f05239d4b0c531edad88e309bbf63db8418a1/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
+      </version>
+      <version name="1.36" author="amagalma" time="2020-10-31T06:06:50Z">
+        <changelog><![CDATA[- small improvement]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/80d8a2f8c1771225a6c3d86839dc2a63405e8ff9/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
