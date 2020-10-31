@@ -1,17 +1,14 @@
--- @description amagalma_Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX
+-- @description Toggle enclose selected or focused FX in visible chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.35
--- @changelog
---   - fixed not inserting AB_LM when RME Totalmix window was open
---   - improved saved undo state
---   - added check for JS_ReaScriptAPI's presence
---   - improved/made faster the checks for presence of the selected format of AB_LM
+-- @version 1.36
+-- @changelog - small improvement
+-- @link http://www.tb-software.com/TBProAudio/ab_lm.html
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the selected FXs or the focused FX (if not any selected)
 --   - Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX) [defaults to VST3]
 --   - Smart undo point creation
 --   - Requires JS_ReaScriptAPI
--- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 
 ------------------------------------------------------------------------------------------------
 
@@ -129,8 +126,6 @@ local function GetInfo()
         lastselFX = sel_FX[#sel_FX]
       end
       return fxid, track, what, trackGUID, take, firstselFX, lastselFX, FX_win
-    else
-      return nil
     end
   end
 end
