@@ -1,17 +1,14 @@
--- @description amagalma_Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX
+-- @description Toggle enclose focused FX chain with AB_LM Level Matching VST/JSFX
 -- @author amagalma
--- @version 1.35
--- @changelog
---   - fixed not inserting AB_LM when RME Totalmix window was open
---   - improved saved undo state
---   - added check for JS_ReaScriptAPI's presence
---   - improved/made faster the checks for presence of the selected format of AB_LM
+-- @version 1.36
+-- @changelog - small improvement
+-- @link http://www.tb-software.com/TBProAudio/ab_lm.html
+-- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Inserts or Removes TBProAudio's AB_LM Level Matching VST/JSFX enclosing the focused FX chain
 --   - Ability to set in the script the prefered format of AB_LM (VST2, VST3 or JSFX) [defaults to VST3]
 --   - Smart undo point creation
 --   - Requires JS_ReaScriptAPI
--- @link http://www.tb-software.com/TBProAudio/ab_lm.html
 
 ------------------------------------------------------------------------------------------------
 
@@ -117,8 +114,6 @@ local function GetInfo()
         take = reaper.GetMediaItemTake(item, fxid >> 16)
       end
       return fxid, track, what, trackGUID, take, FX_win
-    else
-      return nil
     end
   end
 end
