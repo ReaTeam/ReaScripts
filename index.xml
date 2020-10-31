@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="80d8a2f8c1771225a6c3d86839dc2a63405e8ff9" name="ReaTeam Scripts">
+<index version="1" commit="8f553a40d79cef2530ecda42c5e8a45b62429675" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13217,6 +13217,15 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - add: show pop-up if SWS is not installed]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7b43e90979fbd02fac92982f547027f4fd555675/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_Track-Item Name Manipulation Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/7b43e90979fbd02fac92982f547027f4fd555675/Various/amagalma_Track-Item%20Name%20Manipulation%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.08" author="amagalma &amp; gianfini" time="2020-10-31T14:40:58Z">
+        <changelog><![CDATA[- add: ability to specify separator when numbering
+- add: ability to match case or not in pattern replacement
+- change: in Replace mode from now on there is no need to escape commas
+- change: name of provided help file for the Replace
+- change: updated help file for the Replace]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f553a40d79cef2530ecda42c5e8a45b62429675/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/8f553a40d79cef2530ecda42c5e8a45b62429675/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
