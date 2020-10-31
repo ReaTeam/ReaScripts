@@ -1,10 +1,13 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.03
+-- @version 1.08
 -- @changelog
---   - fix: crash when commiting changes in Track mode for portable installs
---   - add: show pop-up if SWS is not installed
--- @provides amagalma_Track-Item Name Manipulation Replace Help.lua
+--   - add: ability to specify separator when numbering
+--   - add: ability to match case or not in pattern replacement
+--   - change: in Replace mode from now on there is no need to escape commas
+--   - change: name of provided help file for the Replace
+--   - change: updated help file for the Replace
+-- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
 --   http://forum.cockos.com/showthread.php?t=194414
@@ -21,7 +24,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.03"
+local version = "1.08"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -414,6 +417,7 @@ local undo_stack, ToBeTrackNames, OriginalTrackNames, ToBeItemNames, OriginalIte
 local regionCount, ToBeRegionNames, OriginalRegionNames = 0
 local mod_stack_name, mod_stack_parm1, mod_stack_parm2 = {}, {}, {} -- management of modifiers' undo stack
 local scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h, scroll_line_selected
+local matchCase = "y"
 gfx.setfont(1, "Arial", 19)
 local strw, strh = gfx.measurestr("Strip leading & trailing whitespaces")
 
@@ -436,6 +440,10 @@ local function fsmall()
   gfx.setfont(3, "Courier New", 14)
 end
 
+local function ignoreCase(str)
+  return str:gsub( "(%a)", function(a)
+  return "[" .. a:upper() .. a:lower() .. "]" end )
+end
 
 -- Needed variables
 fsmall()
@@ -554,12 +562,11 @@ local function AllRegionNames() -- in Time Selection
   return table, table2
 end
 
--- Replace button Help if "amagalma_Track-Item Name Manipulation Replace Help.lua" cannot be loaded
+-- Replace button Help if "amagalma_ReaNamer Replace Help.lua" cannot be loaded
 local function InfoReplacePattern()
   local info = [[
 ----- Track/item Name Manipulation: Replace Pattern Help -----
 
-• comma (,) must be escaped with a ~ (~,) otherwise is ignored!
 
 --- SINGLE LETTER CLASSES ------------------------------------
 
@@ -666,7 +673,7 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
   gfx.b = 0.45
   gfx.a = 1
   gfx.rect(tl_x, tl_y - math.floor(lsth_small/3), tl_w, tl_h + math.floor(lsth_small/3))
-  num_displayed_tracks = 0  -- gianfini must stay
+  num_displayed_tracks = 0
   if what == "tracks" and CheckTracks_NM() then
     if (trackCount - indexed_track + 1) < max_lines then
       local btn_DOWN_can_move = 0 -- indicates if list can scroll down further (for graphic indication on btn)
@@ -723,7 +730,7 @@ local function RefreshTrackItemList(tl_x, tl_y, tl_w, tl_h) -- redraws the track
     else
       last_s_line = first_s_line + max_lines - 1
     end
-    num_displayed_lines = last_s_line - first_s_line + 1 -- gianfini: has to stay
+    num_displayed_lines = last_s_line - first_s_line + 1
     local digits = #tostring(itemCount)
     for i = first_s_line, last_s_line do
       local itemId = reaper.GetSelectedMediaItem(0, i)
@@ -838,11 +845,11 @@ function UpdateRedoHelp()
     elseif last_modifier == "single_line_edit" then
       modifier_name = "EDIT LINE NO. " .. parm2
   elseif last_modifier == "clear" then
-    modifier_name = "CLEAR"  -- gianfini added
+    modifier_name = "CLEAR"
     end
     redo_btn.help_text = "Redo " .. modifier_name
   else
-    redo_btn.help_text = "Nothing to redo" -- gianfini fix
+    redo_btn.help_text = "Nothing to redo"
   end
 end
 
@@ -872,16 +879,20 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
     end
   elseif modifier == "replace" then
     if parm1 ~= "" then
-      newName = string.gsub(newName, parm1, parm2)
+      if matchCase:find("[Yy]") then
+        newName = string.gsub(newName, parm1, parm2)
+      else
+        newName = string.gsub(newName, ignoreCase(parm1), parm2)
+      end
     end
   elseif modifier == "number" then
     if parm1 ~= "" then
-      local mode, number, digits = parm1:match("([psPS])%s?(%d+),(%d+)")
+      local mode, number, digits, separator = parm1:match("([psPS])%s?(%d+)\n(%d+)\n(.*)")
       number = what == "regions" and number-1 or number
       if mode:match("[pP]") then
-        newName = string.format("%0" .. digits .. "d", math.floor(number+i)) .. " " .. newName
+        newName = string.format("%0" .. digits .. "d", math.floor(number+i)) .. separator .. newName
       else
-        newName = newName .. " " .. string.format("%0" .. digits .. "d", math.floor(number+i))
+        newName = newName .. separator .. string.format("%0" .. digits .. "d", math.floor(number+i))
       end
     end
   elseif modifier == "upper" then
@@ -1108,7 +1119,7 @@ local function modify_single_line(line_num)
 end
 
 
-local function is_mouse_on_list_Down()  --gianfini: this has been reversed to original because the logic is to check mouse over to set help and return mouse button pressed
+local function is_mouse_on_list_Down()
   fsmall()
   local lstw_small, lsth_small = gfx.measurestr("Strip leading & trailing whitespaces") -- gianfini example string to set width
 
@@ -1289,7 +1300,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   if context == 0 then what = "tracks" else what = "items" end
   init_tables()
   f() -- set font
-  gfx.clear = 3084036
+  gfx.clear = reaper.ColorToNative( 4, 15, 47 )
   -- set of global variables for screen drawing
   win_w = math.floor(strw*1.6)
   win_h = strh+math.floor(11.5*strh*2.5)
@@ -1327,7 +1338,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   keep_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
 
   -- 2nd raw: Replace Clear ---------------------------------------------------
-  local label, help = "Replace", "Replaces all instances of the pattern with replacement\n(RClick -> help)"
+  local label, help = "Replace", "Replaces all instances of the pattern with replacement\n(Right click button for help)"
   local width = math.floor((win_w - 3*win_border)/2)
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
@@ -1511,10 +1522,10 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function number_btn.onClick()
-    local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 2,
-    "Specify mode and number:,Number of digits:", "p1,2")
+    local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 3,
+    "Specify mode and number:,Number of digits:,Separator:,separator=\n", "p1\n2\n ")
     if ok then
-      if text:match("[psPS]%s?%d+,%d+") then
+      if text:match("[psPS]%s?%d+\n%d+\n") then
         if text ~= "" then
           undo_stack = undo_stack + 1
           mod_stack_name [undo_stack] = "number"
@@ -1523,7 +1534,8 @@ local function init() -- INITIALIZATION ----------------------------------------
         end
         WriteCurrentModifier()
       else
-        reaper.MB("Please type p or s followed by the starting number!\n Examples: s02 , P3 , p03 , S 12", "Not valid input!", 0)
+        reaper.MB("Please type p or s followed by the starting number.\nExamples: s02, P3, p03, \z
+        S 12\n\nSeparator can be any character(s) or empty.", "Not valid input!", 0)
       end
     end
   end
@@ -1532,7 +1544,7 @@ local function init() -- INITIALIZATION ----------------------------------------
     local HasState = reaper.HasExtState("Track-Item Name Manipulation", "Replace Help Is open")
     if not HasState or (HasState == true and reaper.GetExtState("Track-Item Name Manipulation", "Replace Help Is open") == "0") then
       local dir = ({reaper.get_action_context()})[2]:match("^(.*[/\\])")
-      local file = ({reaper.get_action_context()})[2]:match("^(.*[/\\])").."amagalma_Track-Item Name Manipulation Replace Help.lua"
+      local file = ({reaper.get_action_context()})[2]:match("^(.*[/\\])").."amagalma_ReaNamer Replace Help.lua"
       local exists = reaper.file_exists(file)
       if exists then -- load the Replace Help script
         local ActionID = reaper.AddRemoveReaScript(true, 0, file, true)
@@ -1545,30 +1557,15 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function replace_btn.onClick()
-    local ok, retvals = reaper.GetUserInputs("Replace", 2, "Pattern:,Replacement:", ",")
-    if ok then
-      if retvals ~= ",," and retvals ~= "," then
-        local words = {}
-        retvals = string.gsub(retvals, "~,", "#@c@#")
-        for word in retvals:gmatch("[^,]+") do
-        word = string.gsub(word, "#@c@#", ",")
-          table.insert(words, word)
-        end
-        local replaceOld = words[1]
-        local replaceWith = words[2] or ""
-        if string.sub(retvals, 1, 1) == "," then
-          replaceWith = replaceOld
-          replaceOld = ""
-        end
-        if replaceOld == "" then return end
-        if text ~= "" then
-          undo_stack = undo_stack + 1
-          mod_stack_name [undo_stack] = "replace"
-          mod_stack_parm1 [undo_stack] = replaceOld
-          mod_stack_parm2 [undo_stack] = replaceWith
-        end
-        WriteCurrentModifier()
-      end
+    local ok, retvals = reaper.GetUserInputs("Replace (read help file!)", 3, "Pattern:,Replacement:,Match case (y/n):,separator=\n", "\n\ny")
+    local replaceOld, replaceWith
+    replaceOld, replaceWith, matchCase = retvals:match("(.+)\n(.*)\n([YyNn])")
+    if ok and replaceOld ~= "" and replaceWith and matchCase and matchCase:find("[YyNn]") then
+      undo_stack = undo_stack + 1
+      mod_stack_name [undo_stack] = "replace"
+      mod_stack_parm1 [undo_stack] = replaceOld
+      mod_stack_parm2 [undo_stack] = replaceWith
+      WriteCurrentModifier()
     end
   end
 
