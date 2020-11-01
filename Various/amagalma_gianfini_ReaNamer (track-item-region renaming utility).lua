@@ -1,12 +1,10 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.08
+-- @version 1.10
 -- @changelog
---   - add: ability to specify separator when numbering
---   - add: ability to match case or not in pattern replacement
---   - change: in Replace mode from now on there is no need to escape commas
---   - change: name of provided help file for the Replace
---   - change: updated help file for the Replace
+--   - add: focus is returned back to script after a GetUserInputs dialog
+--   - add: Ctrl+Enter to Commit
+--   - add: T key for Tracks mode, R key for Regions mode, I key for Items mode
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -24,7 +22,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.08"
+local version = "1.10"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -418,13 +416,22 @@ local regionCount, ToBeRegionNames, OriginalRegionNames = 0
 local mod_stack_name, mod_stack_parm1, mod_stack_parm2 = {}, {}, {} -- management of modifiers' undo stack
 local scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h, scroll_line_selected
 local matchCase = "y"
+local give_back_focus = false
 gfx.setfont(1, "Arial", 19)
 local strw, strh = gfx.measurestr("Strip leading & trailing whitespaces")
+local NAME = "ReaNamer  v"..version.."    -    Track/Item/Region Renaming Utility"
+local script_hwnd
 
 -- last_mouse_state & mouse_state_time must be globals
 
 
 --------------------------------------------------------------------------------------------
+
+local function GiveBackFocus()
+  if reaper.ValidatePtr2( 0, script_hwnd, "HWND" ) then
+    reaper.BR_Win32_SetFocus( script_hwnd )
+  end
+end
 
 local function round(num)
   return math.floor(num * 10 + 0.5) / 10
@@ -457,7 +464,8 @@ local function Window_At_Center(w, h) -- Lokasenna function
   local l, t, r, b = 0, 0, w, h
   local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
   local x, y = (screen_w - w) / 2, (screen_h - h) / 2
-  gfx.init("ReaNamer  v"..version.."    -    Track/Item/Region Renaming Utility", w, h, 0, x, y)
+  gfx.init(NAME, w, h, 0, x, y)
+  script_hwnd =  reaper.BR_Win32_FindWindowEx( 0, 0, 0, NAME, 0, true )
 end
 
 
@@ -477,6 +485,7 @@ local function CheckTracks()
   local trackCount = reaper.CountSelectedTracks(0)
   if trackCount < 1 then
     reaper.MB("Please select at least one track!", "", 0)
+    reaper.BR_Win32_SetFocus( script_hwnd )
   else
     return true
   end
@@ -1109,6 +1118,7 @@ local function modify_single_line(line_num)
     line_object = "item"
   end
   local ok, text = reaper.GetUserInputs("Rename " .. line_object, 1, "Name:,extrawidth=" .. tostring(math.floor(scroll_list_w*3/5)), obj_name)
+  GiveBackFocus()
   if ok then
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "single_line_edit"
@@ -1176,6 +1186,7 @@ local function init_tables()
 end
 
 local prev_st, prev_en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
+local getchar
 local function main() -- MAIN FUNCTION ---------------------------------------------------------------
   -- Draw buttons
   f(); prefix_btn:draw()
@@ -1284,8 +1295,23 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     if not mouse_state_time then mouse_state_time = reaper.time_precise() end
   end
 
+  getchar = gfx.getchar()
+  
+  -- Ctrl & Enter to Commit
+  if gfx.mouse_cap & 4 == 4 and getchar == 13 then
+    commit_btn.onClick()
+  end
+  
+  if getchar == 0x74 then -- T
+    Tracks_btn.onClick()
+  elseif getchar == 0x72 then -- R
+    Regions_btn.onClick()
+  elseif getchar == 0x69 then -- I
+    Items_btn.onClick()
+  end
+  
   gfx.update()
-  if gfx.getchar() >= 0 then reaper.defer(main)
+  if getchar >= 0 then reaper.defer(main)
   else
     local _, x, y, _, _ = gfx.dock(-1, 0, 0, 0, 0)
     reaper.SetExtState("Track-Item Name Manipulation", "x position", x, 1)
@@ -1314,7 +1340,8 @@ local function init() -- INITIALIZATION ----------------------------------------
   if HasState1 and HasState2 then
     local x = tonumber(reaper.GetExtState("Track-Item Name Manipulation", "x position"))
     local y = tonumber(reaper.GetExtState("Track-Item Name Manipulation", "y position"))
-    gfx.init("ReaNamer  v"..version.."    -    Track/Item/Region Renaming Utility", win_w, win_h + 30, 0, x, y)
+    gfx.init(NAME, win_w, win_h + 30, 0, x, y)
+    script_hwnd =  reaper.BR_Win32_FindWindowEx( 0, 0, 0, NAME, 0, true )
   else
     Window_At_Center(win_w, win_h)
   end
@@ -1497,6 +1524,7 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function prefix_btn.onClick()
     local ok, text = reaper.GetUserInputs("Prefix", 1, "Insert text:", "")
+    GiveBackFocus()
     if ok then
       if text ~= "" then
         undo_stack = undo_stack + 1
@@ -1510,6 +1538,7 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function suffix_btn.onClick()
     local ok, text = reaper.GetUserInputs("Prefix", 1, "Insert text:", "")
+    GiveBackFocus()
     if ok then
       if text ~= "" then
         undo_stack = undo_stack + 1
@@ -1524,6 +1553,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   function number_btn.onClick()
     local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 3,
     "Specify mode and number:,Number of digits:,Separator:,separator=\n", "p1\n2\n ")
+    GiveBackFocus()
     if ok then
       if text:match("[psPS]%s?%d+\n%d+\n") then
         if text ~= "" then
@@ -1536,6 +1566,7 @@ local function init() -- INITIALIZATION ----------------------------------------
       else
         reaper.MB("Please type p or s followed by the starting number.\nExamples: s02, P3, p03, \z
         S 12\n\nSeparator can be any character(s) or empty.", "Not valid input!", 0)
+        GiveBackFocus()
       end
     end
   end
@@ -1558,6 +1589,7 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function replace_btn.onClick()
     local ok, retvals = reaper.GetUserInputs("Replace (read help file!)", 3, "Pattern:,Replacement:,Match case (y/n):,separator=\n", "\n\ny")
+    GiveBackFocus()
     local replaceOld, replaceWith
     replaceOld, replaceWith, matchCase = retvals:match("(.+)\n(.*)\n([YyNn])")
     if ok and replaceOld ~= "" and replaceWith and matchCase and matchCase:find("[YyNn]") then
@@ -1628,6 +1660,7 @@ local function init() -- INITIALIZATION ----------------------------------------
 
   function trimstart_btn.onClick()
     local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
+    GiveBackFocus()
     if ok then
       if tonumber(number) ~= nil then
         undo_stack = undo_stack + 1
@@ -1637,12 +1670,14 @@ local function init() -- INITIALIZATION ----------------------------------------
         WriteCurrentModifier()
       else
         reaper.MB("Please, type a number!", "This is not a number!", 0)
+        GiveBackFocus()
       end
     end
   end
 
   function trimend_btn.onClick()
     local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
+    GiveBackFocus()
     if ok then
       if tonumber(number) ~= nil then
         undo_stack = undo_stack + 1
@@ -1652,12 +1687,14 @@ local function init() -- INITIALIZATION ----------------------------------------
         WriteCurrentModifier()
       else
         reaper.MB("Please, type a number!", "This is not a number!", 0)
+        GiveBackFocus()
       end
     end
   end
 
   function keep_btn.onClick()
     local ok, text = reaper.GetUserInputs("Keep (s -> from start, e -> end)", 1, "Specify mode and number:", "")
+    GiveBackFocus()
     if ok then
       if text:match("[seSE]%s?%d+") then
         undo_stack = undo_stack + 1
@@ -1667,6 +1704,7 @@ local function init() -- INITIALIZATION ----------------------------------------
         WriteCurrentModifier()
       else
         reaper.MB("Please type s or e followed by the number of characters you want to keep!\nExamples: s8 , E5 , S03 , e 12", "Not valid input!", 0)        
+        GiveBackFocus()
       end
     end
   end
