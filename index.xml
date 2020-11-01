@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8f553a40d79cef2530ecda42c5e8a45b62429675" name="ReaTeam Scripts">
+<index version="1" commit="c530eba3527e4d00d7fb9292f68f64cd7715a7b3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13226,6 +13226,13 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - change: updated help file for the Replace]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8f553a40d79cef2530ecda42c5e8a45b62429675/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/8f553a40d79cef2530ecda42c5e8a45b62429675/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.10" author="amagalma &amp; gianfini" time="2020-11-01T15:29:36Z">
+        <changelog><![CDATA[- add: focus is returned back to script after a GetUserInputs dialog
+- add: Ctrl+Enter to Commit
+- add: T key for Tracks mode, R key for Regions mode, I key for Items mode]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c530eba3527e4d00d7fb9292f68f64cd7715a7b3/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/c530eba3527e4d00d7fb9292f68f64cd7715a7b3/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
