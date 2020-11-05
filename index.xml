@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c530eba3527e4d00d7fb9292f68f64cd7715a7b3" name="ReaTeam Scripts">
+<index version="1" commit="a53517b34ff2e73644dd260195440980a1e47801" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13185,6 +13185,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS / S&M extension is required\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Key Shortcuts: Esc to close script Ctrl+T for Tracks mode Ctrl+R for Regions mode Ctrl+I for Items mode Ctrl+Enter Commit Ctrl+Z for Undo Ctrl+Shift+Z for Redo Alt+A for swAp case Alt+C for Clear Alt+E for trim End Alt+K for Keep Alt+L for Lowercase Alt+N for Number Alt+P for Prefix Alt+R for Replace Alt+S for trim Start Alt+T for Titlecase Alt+U for Uppercase Alt+W for strip Whitespaces Alt+X for suffiX Alt+Z for capitaliZe\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=190534</link>
@@ -13233,6 +13234,31 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 - add: T key for Tracks mode, R key for Regions mode, I key for Items mode]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c530eba3527e4d00d7fb9292f68f64cd7715a7b3/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/c530eba3527e4d00d7fb9292f68f64cd7715a7b3/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.20" author="amagalma &amp; gianfini" time="2020-11-05T19:42:19Z">
+        <changelog><![CDATA[- fix: some buttons could be pressed even if there were no items/tracks/regions in the list
+- fix: better UNDO/REDO naming when using Replace
+- change: Ctrl+T key for Tracks mode, Ctrl+R key for Regions mode, Ctrl+I key for Items mode
+- add: Key shortcuts (the ones with Alt are clearly shown when Alt is pressed)
+- Esc to close script
+- Ctrl+Z for Undo
+- Ctrl+Shift+Z for Redo
+- Alt+A for swAp case
+- Alt+C for Clear
+- Alt+E for trim End
+- Alt+K for Keep
+- Alt+L for Lowercase
+- Alt+N for Number
+- Alt+P for Prefix
+- Alt+R for Replace
+- Alt+S for trim Start
+- Alt+T for Titlecase
+- Alt+U for Uppercase
+- Alt+W for strip Whitespaces
+- Alt+X for suffiX
+- Alt+Z for capitaliZe ]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a53517b34ff2e73644dd260195440980a1e47801/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/a53517b34ff2e73644dd260195440980a1e47801/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
