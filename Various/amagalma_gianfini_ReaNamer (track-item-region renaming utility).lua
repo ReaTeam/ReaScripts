@@ -1,10 +1,28 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.10
+-- @version 1.20
 -- @changelog
---   - add: focus is returned back to script after a GetUserInputs dialog
---   - add: Ctrl+Enter to Commit
---   - add: T key for Tracks mode, R key for Regions mode, I key for Items mode
+--   - fix: some buttons could be pressed even if there were no items/tracks/regions in the list
+--   - fix: better UNDO/REDO naming when using Replace
+--   - change: Ctrl+T key for Tracks mode, Ctrl+R key for Regions mode, Ctrl+I key for Items mode
+--   - add: Key shortcuts (the ones with Alt are clearly shown when Alt is pressed)
+--   - Esc to close script
+--   - Ctrl+Z for Undo
+--   - Ctrl+Shift+Z for Redo
+--   - Alt+A for swAp case
+--   - Alt+C for Clear
+--   - Alt+E for trim End
+--   - Alt+K for Keep
+--   - Alt+L for Lowercase
+--   - Alt+N for Number
+--   - Alt+P for Prefix
+--   - Alt+R for Replace
+--   - Alt+S for trim Start
+--   - Alt+T for Titlecase
+--   - Alt+U for Uppercase
+--   - Alt+W for strip Whitespaces
+--   - Alt+X for suffiX
+--   - Alt+Z for capitaliZe 
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -17,12 +35,35 @@
 --   - Mode (tracks or items) is automatically chosen when the script starts. Then to change mode click on appropriate button.
 --   - When satisfied with the modifications (which can be previewed in the list), COMMIT button writes the values to tracks/items/regions and creates an Undo point in Reaper's Undo History
 --   - SWS / S&M extension is required
+--
+--   Key Shortcuts:
+--    Esc to close script
+--    Ctrl+T for Tracks mode
+--    Ctrl+R for Regions mode
+--    Ctrl+I for Items mode
+--    Ctrl+Enter Commit
+--    Ctrl+Z for Undo
+--    Ctrl+Shift+Z for Redo
+--    Alt+A for swAp case
+--    Alt+C for Clear
+--    Alt+E for trim End
+--    Alt+K for Keep
+--    Alt+L for Lowercase
+--    Alt+N for Number
+--    Alt+P for Prefix
+--    Alt+R for Replace
+--    Alt+S for trim Start
+--    Alt+T for Titlecase
+--    Alt+U for Uppercase
+--    Alt+W for strip Whitespaces
+--    Alt+X for suffiX
+--    Alt+Z for capitaliZe
 
 -- Many thanks to spk77 and to Lokasenna for their code and help! :)
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.10"
+local version = "1.20"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -87,7 +128,7 @@ local btn_DOWN_can_move, btn_height, win_border, win_double_vert_border, win_h, 
 
 
 local Button = class(
-                      function(btn,x1,y1,w,h,state_count,state,visual_state,lbl,help_text)
+                      function(btn,x1,y1,w,h,state_count,state,visual_state,lbl,help_text, underline)
                         btn.x1 = x1
                         btn.y1 = y1
                         btn.w = w
@@ -115,6 +156,7 @@ local Button = class(
                         btn.lbl_store_b = 0.7
                         btn.fill_status = 0
                         btn.active = 1
+                        btn.underline = underline
                       end
                     )
 
@@ -325,8 +367,17 @@ function Button:draw_label() -- Draw button label
     elseif self.__mouse_state == 0 and self.active == 1 then
       temp_lbl_a = self.lbl_a*0.9
     end
-    gfx.set(self.lbl_r,self.lbl_g,self.lbl_b,temp_lbl_a)   -- temp var
-    gfx.printf(self.label)
+    if self.underline then
+      gfx.set(self.lbl_r,self.lbl_g,self.lbl_b,temp_lbl_a)
+      gfx.printf(self.label:sub(1,self.underline-1))
+      gfx.set(1,1,.75,temp_lbl_a)
+      gfx.printf((self.label:sub(self.underline,self.underline)):upper())
+      gfx.set(self.lbl_r,self.lbl_g,self.lbl_b,temp_lbl_a)
+      gfx.printf(self.label:sub(self.underline+1))
+    else
+      gfx.set(self.lbl_r,self.lbl_g,self.lbl_b,temp_lbl_a)
+      gfx.printf(self.label)
+    end
     if self.__mouse_state == 1 then gfx.y = gfx.y - 1 end
   end
 end
@@ -409,7 +460,7 @@ end
 --------------------------------------------------------------------------------------------
 
 
--- making local as many as possible of the variables, optimizes script
+-- Global variables
 local has_changed, what, trackCount, indexed_track, scroll_line_selected, itemCount, indexed_item
 local undo_stack, ToBeTrackNames, OriginalTrackNames, ToBeItemNames, OriginalItemNames, redo_stack
 local regionCount, ToBeRegionNames, OriginalRegionNames = 0
@@ -465,7 +516,7 @@ local function Window_At_Center(w, h) -- Lokasenna function
   local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)
   local x, y = (screen_w - w) / 2, (screen_h - h) / 2
   gfx.init(NAME, w, h, 0, x, y)
-  script_hwnd =  reaper.BR_Win32_FindWindowEx( 0, 0, 0, NAME, 0, true )
+  script_hwnd = reaper.BR_Win32_FindWindowEx( 0, 0, 0, NAME, 0, true )
 end
 
 
@@ -482,10 +533,9 @@ end
 
 
 local function CheckTracks()
-  local trackCount = reaper.CountSelectedTracks(0)
-  if trackCount < 1 then
-    reaper.MB("Please select at least one track!", "", 0)
-    reaper.BR_Win32_SetFocus( script_hwnd )
+  if reaper.CountSelectedTracks(0) < 1 then
+    reaper.MB("Please select at least one track", "No tracks selected!", 0)
+    GiveBackFocus()
   else
     return true
   end
@@ -493,9 +543,9 @@ end
 
 
 local function CheckItems()
-  local itemCount = reaper.CountSelectedMediaItems(0)
-  if itemCount < 1 then
-    reaper.MB("Please select at least one item!", "", 0)
+  if reaper.CountSelectedMediaItems(0) < 1 then
+    reaper.MB("Please select at least one item", "No items selected!", 0)
+    GiveBackFocus()
   else
     return true
   end
@@ -510,12 +560,28 @@ local function CheckTracks_NM()
   end
 end
 
+
 local function CheckItems_NM()
   itemCount = reaper.CountSelectedMediaItems(0)
   if itemCount > 0 then
     return true
   end
 end
+
+local function Check()
+  if what == "tracks" then return CheckTracks()
+  elseif what == "items" then return CheckItems()
+  elseif what == "regions" then 
+    if regionCount > 0 then
+      return true 
+    else 
+      reaper.MB("Please select at least one region", "No regions selected!", 0)
+      GiveBackFocus()
+      return false
+    end
+  end
+end
+
 
 -- Store all track names in a table
 local function AllTrackNames()
@@ -782,19 +848,23 @@ function UpdateUndoHelp()
     local parm1 = mod_stack_parm1[undo_stack]
     local parm2 = mod_stack_parm2[undo_stack]
     if last_modifier == "prefix" then
-      modifier_name = "PREFIX " .. "\'" .. parm1 .. "\'"
+      modifier_name = "PREFIX '" .. parm1 .. "'"
     elseif last_modifier == "suffix" then
-      modifier_name = "SUFFIX " .. "\'" .. parm1 .. "\'"
+      modifier_name = "SUFFIX '" .. parm1 .. "'"
     elseif last_modifier == "trimstart" then
       modifier_name = "TRIM START " .. parm1
     elseif last_modifier == "trimend" then
       modifier_name = "TRIM END " .. parm1
     elseif last_modifier == "keep" then
-      modifier_name = "KEEP " .. "\'" .. parm1 .. "\'" 
+      modifier_name = "KEEP '" .. parm1 .. "'" 
     elseif last_modifier == "replace" then
-      modifier_name = "REPLACE " .. "\'" .. tostring(parm1) .. "\'" .. "\nWITH " .. "\'" .. parm2 .. "\'"
+      if parm2 ~= "" then
+        modifier_name = "REPLACE '" .. parm1 .. "'\nWITH '" .. parm2 .. "'"
+      else
+        modifier_name = "REPLACE: removed '" .. parm1 .. "'"
+      end
     elseif last_modifier == "number" then
-      modifier_name = "NUMBER " .. "\'" .. parm1 .. "\'"
+      modifier_name = "NUMBER '" .. parm1 .. "'"
     elseif last_modifier == "upper" then
       modifier_name = "UPPERCASE"
     elseif last_modifier == "lower" then
@@ -826,19 +896,23 @@ function UpdateRedoHelp()
     local parm1 = mod_stack_parm1[undo_stack+1]
     local parm2 = mod_stack_parm2[undo_stack+1]
     if last_modifier == "prefix" then
-      modifier_name = "PREFIX " .. "\'" .. parm1 .. "\'"
+      modifier_name = "PREFIX '" .. parm1 .. "'"
     elseif last_modifier == "suffix" then
-      modifier_name = "SUFFIX " .. "\'" .. parm1 .. "\'"
+      modifier_name = "SUFFIX '" .. parm1 .. "'"
     elseif last_modifier == "trimstart" then
       modifier_name = "TRIM START " .. parm1
     elseif last_modifier == "trimend" then
       modifier_name = "TRIM END " .. parm1
     elseif last_modifier == "keep" then
-      modifier_name = "KEEP " .. "\'" .. parm1 .. "\'"
+      modifier_name = "KEEP '" .. parm1 .. "'"
     elseif last_modifier == "replace" then
-      modifier_name = "REPLACE " .. "\'" .. tostring(parm1) .. "\'" .. "\nWITH " .. "\'" .. parm2 .. "\'"
+      if parm2 ~= "" then
+        modifier_name = "REPLACE '" .. parm1 .. "'\nWITH '" .. parm2 .. "'"
+      else
+        modifier_name = "REPLACE: removed '" .. parm1 .. "'"
+      end
     elseif last_modifier == "number" then
-      modifier_name = "NUMBER " .. "\'" .. parm1 .. "\'"
+      modifier_name = "NUMBER '" .. parm1 .. "'"
     elseif last_modifier == "upper" then
       modifier_name = "UPPERCASE"
     elseif last_modifier == "lower" then
@@ -913,7 +987,7 @@ function ApplyModifier(prevName, modifier, parm1, parm2, seq_number) -- apply on
   elseif modifier == "capitalize" then
     newName = (newName:gsub("^%l", string.upper))
   elseif modifier == "title" then
-    newName = string.gsub(" "..newName, "%W%l", string.upper):sub(2)
+   newName = string.gsub(" "..newName, "%W%l", string.upper):sub(2)
   elseif modifier == "strip" then
     newName = newName:match("^%s*(.-)%s*$")
   elseif modifier == "single_line_edit" then
@@ -1185,8 +1259,11 @@ local function init_tables()
   btn_DOWN_can_move = 0
 end
 
+
 local prev_st, prev_en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
 local getchar
+local mousecap
+
 local function main() -- MAIN FUNCTION ---------------------------------------------------------------
   -- Draw buttons
   f(); prefix_btn:draw()
@@ -1278,7 +1355,7 @@ local function main() -- MAIN FUNCTION -----------------------------------------
       init_tables()
     end
   elseif what == "tracks" then
-    if  reaper.CountSelectedTracks( 0 ) ~= trackCount then
+    if reaper.CountSelectedTracks( 0 ) ~= trackCount then
       init_tables()
     end
   end
@@ -1286,8 +1363,11 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   RefreshTrackItemList(scroll_list_x, scroll_list_y, scroll_list_w, scroll_list_h)
   if is_mouse_on_list_Down() then modify_single_line(tonumber(scroll_line_selected)) end
 
+  mousecap = gfx.mouse_cap
+  getchar = gfx.getchar()
+
   -- Check left mouse btn state
-  if gfx.mouse_cap & 1 == 0 then
+  if mousecap & 1 == 0 then
     last_mouse_state = 0
     mouse_state_time = nil
   else
@@ -1295,27 +1375,133 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     if not mouse_state_time then mouse_state_time = reaper.time_precise() end
   end
 
-  getchar = gfx.getchar()
+  -- KEY SHORTCUTS -------------
   
-  -- Ctrl & Enter to Commit
-  if gfx.mouse_cap & 4 == 4 and getchar == 13 then
+  if mousecap & 16 == 16 then
+    swap_btn.underline = 3
+    clear_btn.underline = 1
+    trimend_btn.underline = 6
+    keep_btn.underline = 1
+    lower_btn.underline = 1
+    number_btn.underline = 1
+    prefix_btn.underline = 1
+    replace_btn.underline = 1
+    trimstart_btn.underline = 6
+    title_btn.underline = 1
+    upper_btn.underline = 1
+    strip_btn.underline = 26
+    suffix_btn.underline = 6
+    capitalize_btn.underline = 9
+  else
+    swap_btn.underline = nil
+    clear_btn.underline = nil
+    trimend_btn.underline = nil
+    keep_btn.underline = nil
+    lower_btn.underline = nil
+    number_btn.underline = nil
+    prefix_btn.underline = nil
+    replace_btn.underline = nil
+    trimstart_btn.underline = nil
+    title_btn.underline = nil
+    upper_btn.underline = nil
+    strip_btn.underline = nil
+    suffix_btn.underline = nil
+    capitalize_btn.underline = nil
+  end
+  
+  -- Ctrl+Enter to Commit
+  if getchar == 13 then
     commit_btn.onClick()
-  end
-  
-  if getchar == 0x74 then -- T
+    
+  -- Ctrl+T for Tracks
+  elseif getchar == 20 then
     Tracks_btn.onClick()
-  elseif getchar == 0x72 then -- R
+    
+  -- Ctrl+R for Regions
+  elseif getchar == 18 then
     Regions_btn.onClick()
-  elseif getchar == 0x69 then -- I
+    
+  -- Ctrl+I for Items
+  elseif getchar == 9 then
     Items_btn.onClick()
+    
+  -- Ctrl+Shift+Z Redo
+  elseif mousecap == 12 and getchar == 26 then
+    redo_btn.onClick()
+    
+  -- Ctrl+Z Undo 
+  elseif getchar == 26 then
+    undo_btn.onClick()
+    
+  -- Alt+A --> swAp case
+  elseif getchar == 321 then
+    swap_btn.onClick()
+
+  -- Alt+C --> Clear
+  elseif getchar == 323 then
+    clear_btn.onClick()
+  
+  -- Alt+E --> trim End
+  elseif getchar == 325 then
+    trimend_btn.onClick()
+  
+  -- Alt+K --> Keep
+  elseif getchar == 331 then
+    keep_btn.onClick()
+  
+  -- Alt+L --> Lowercase
+  elseif getchar == 332 then
+    lower_btn.onClick()
+    
+  -- Alt+N --> Number
+  elseif getchar == 334 then
+    number_btn.onClick()
+  
+  -- Alt+P --> Prefix
+  elseif getchar == 336 then
+    prefix_btn.onClick()
+  
+  -- Alt+R --> Replace
+  elseif getchar == 338 then
+    replace_btn.onClick()
+  
+  -- Alt+S --> trim Start
+  elseif getchar == 339 then
+    trimstart_btn.onClick()
+  
+  -- Alt+T --> Titlecase
+  elseif getchar == 340 then
+    title_btn.onClick()
+  
+  -- Alt+U --> Uppercase
+  elseif getchar == 341 then
+    upper_btn.onClick()
+  
+  -- Alt+W --> strip Whitespaces
+  elseif getchar == 343 then
+    strip_btn.onClick()
+  
+  -- Alt+X --> suffiX
+  elseif getchar == 344 then
+    suffix_btn.onClick()
+
+  -- Alt+Z --> capitaliZe 
+  elseif getchar == 346 then
+    capitalize_btn.onClick()
+  
   end
+
+  -- KEY SHORTCUTS -------------
   
   gfx.update()
-  if getchar >= 0 then reaper.defer(main)
-  else
+  if getchar < 0 or getchar == 27 then 
     local _, x, y, _, _ = gfx.dock(-1, 0, 0, 0, 0)
     reaper.SetExtState("Track-Item Name Manipulation", "x position", x, 1)
     reaper.SetExtState("Track-Item Name Manipulation", "y position", y, 1)
+    gfx.quit()
+    return
+  else
+    reaper.defer(main)
   end
 
 end
@@ -1349,118 +1535,115 @@ local function init() -- INITIALIZATION ----------------------------------------
   -- parameters: Button(x1,y1,w,h,state_count,state,visual_state,lbl,help_text)
 
   -- 1st raw: Trim, Keep ------------------------------------------------------
-  local label, help = "Trim Start", "Removes specified number of characters from the start"
   local width = math.floor((win_w - 4*win_border)/3)
   local height = btn_height
   local x_pos = win_border
   local y_pos = win_vert_border
-  trimstart_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  trimstart_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Trim Start",
+                    "Removes specified number of characters from the start")
 
-  local label, help = "Trim end", "Removes specified number of characters from the end"
   local x_pos = win_border*2 + width
-  trimend_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  trimend_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Trim end",
+                  "Removes specified number of characters from the end")
 
-  local label, help = "Keep", "Keeps only specified number of chars\n(s-> from start | e-> from end)"
   local x_pos = win_border*3 + width*2
-  keep_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  keep_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Keep",
+      "Keeps only specified number of chars\n(s-> from start | e-> from end)")
 
   -- 2nd raw: Replace Clear ---------------------------------------------------
-  local label, help = "Replace", "Replaces all instances of the pattern with replacement\n(Right click button for help)"
   local width = math.floor((win_w - 3*win_border)/2)
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
-  replace_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  replace_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Replace",
+  "Replaces all instances of the pattern with replacement\n(Right click button for help)")
 
-  local label, help = "Clear", "Clears all names!"
   local x_pos = win_border*2 + width
-  clear_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  clear_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Clear", "Clears all names!")
 
   -- 3rd raw: Prefix Suffix ---------------------------------------------------
-  local label, help = "Prefix", "Inserts text at the begining"
   local width = math.floor((win_w - 3*win_border)/2)
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
-  prefix_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  prefix_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Prefix",
+                  "Inserts text at the begining")
 
-  local label, help = "Suffix", "Appends text to the end"
   local x_pos = win_border*2 + width
-  suffix_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  suffix_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Suffix", "Appends text to the end")
 
   -- 4th raw: Numbering -------------------------------------------------------
-  local label, help = "Number", "Adds index numbers at the start or end\n(p->prefix | s->suffix, then the starting number)"
   local width = win_w - 2*win_border
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
-  number_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  number_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Number",
+  "Adds index numbers at the start or end\n(p->prefix | s->suffix, then the starting number)")
 
   -- 5th raw: Upper/Lower case ------------------------------------------------
-  local label, help = "Uppercase", "Converts all letters to UPPERCASE"
   local width = math.floor((win_w - 3*win_border)/2)
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
-  upper_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  upper_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Uppercase",
+              "Converts all letters to UPPERCASE")
 
-  local label, help = "Lowercase", "Converts all letters to lowercase"
   local x_pos = win_border*2 + width
-  lower_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  lower_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Lowercase",
+              "Converts all letters to lowercase")
 
   -- 6th raw: Swap case, Capitalize, Titlecase --------------------------------
-  local label, help = "Swap case", "Inverts the case of each letter\n(eg GuiTar => gUItAR)"
   local width = math.floor((win_w - 4*win_border)/3)
   local x_pos = win_border
   local y_pos = y_pos + btn_height + math.floor(win_vert_border/2)
-  swap_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  swap_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Swap case",
+              "Inverts the case of each letter\n(eg GuiTar => gUItAR)")
 
-  local label, help = "Capitalize", "Capitalizes the very first letter"
   local x_pos = win_border*2 + width
-  capitalize_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  capitalize_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Capitalize",
+                    "Capitalizes the very first letter")
 
-  local label, help = "Titlecase", "Capitalizes The First Letter Of Each Word"
   local x_pos = win_border*3 + width*2
-  title_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  title_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Titlecase",
+                    "Capitalizes The First Letter Of Each Word")
 
   -- 7th raw: Strip whitespaces -----------------------------------------------
-  local label, help = "Strip leading & trailing whitespaces", "Removes all leading and trailing whitespaces"
   local width = win_w - 2*win_border
   local x_pos = win_border
   local y_pos = y_pos + btn_height + win_vert_border
-  strip_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  strip_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, 
+  "Strip leading & trailing whitespaces", "Removes all leading and trailing whitespaces" )
 
   -- 8th raw: Reset, Undo/Redo and Commit -------------------------------------
-  local label, help = "RESET", "Reset all modifiers and redo states"  -- gianfini: description adjusted as per behavior
   local width = (win_w -  3.5*win_border)/5
   local x_pos = win_border
   local y_pos = y_pos + btn_height + math.floor(win_vert_border*0.8)
   local height = btn_height*2
-  reset_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  reset_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "RESET",
+              "Reset all modifiers and redo states")
 
-  local label, help = "UNDO", "Nothing to undo"
   local x_pos = 1.5*win_border + width
-  undo_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  undo_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "UNDO", "Nothing to undo")
 
-  local label, help = "REDO", "Nothing to redo"
   local x_pos = 2*win_border + 2*width
-  redo_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  redo_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "REDO", "Nothing to redo")
 
-  local label, help = "COMMIT", "Commit all modifications"
   local x_pos = 2.5*win_border + 3*width
-  commit_btn = Button(x_pos, y_pos, width*2, height, 2, 0, 0, label, help)
+  commit_btn = Button(x_pos, y_pos, width*2, height, 2, 0, 0, "COMMIT",
+                "Commit all modifications")
 
   -- 9th raw: Tracks/Items/Regions mode --------------------------------------------
-  local label, help = "Tracks", "Click to select Tracks mode"
   local height = btn_height
   local width = math.floor((win_w - 5*win_border)/4)
   local x_pos = win_border
   local y_pos = y_pos + height*2 + win_double_vert_border
-  Tracks_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help, 2, 0, 0, label, help)
+  Tracks_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Tracks",
+              "Click to select Tracks mode      [ Ctrl + T ]")
 
-  local label, help = "Items", "Click to select Items mode"
   local x_pos = win_border*2 + width
-  Items_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  Items_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Items",
+              "Click to select Items mode      [ Ctrl + I ]")
 
-  local label, help = "Regions", "Click to select Regions mode\nIf Time Selection, then only regions touching the TS, else all regions"
   local x_pos = win_border*3 + width*2
-  Regions_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, label, help)
+  Regions_btn = Button(x_pos, y_pos, width, height, 2, 0, 0, "Regions",
+  "Click to select Regions mode      [ Ctrl + R ]\nIf Time Selection, then only regions \z
+  touching the TS, else all regions")
 
   --- scroll list measures ----------------------------------------------------
   scroll_list_x = win_border
@@ -1523,6 +1706,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function prefix_btn.onClick()
+    if not Check() then return end
     local ok, text = reaper.GetUserInputs("Prefix", 1, "Insert text:", "")
     GiveBackFocus()
     if ok then
@@ -1537,7 +1721,8 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function suffix_btn.onClick()
-    local ok, text = reaper.GetUserInputs("Prefix", 1, "Insert text:", "")
+    if not Check() then return end
+    local ok, text = reaper.GetUserInputs("Suffix", 1, "Insert text:", "")
     GiveBackFocus()
     if ok then
       if text ~= "" then
@@ -1551,6 +1736,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function number_btn.onClick()
+    if not Check() then return end
     local ok, text = reaper.GetUserInputs("Numbering (p -> prefix, s -> suffix)", 3,
     "Specify mode and number:,Number of digits:,Separator:,separator=\n", "p1\n2\n ")
     GiveBackFocus()
@@ -1588,6 +1774,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function replace_btn.onClick()
+    if not Check() then return end
     local ok, retvals = reaper.GetUserInputs("Replace (read help file!)", 3, "Pattern:,Replacement:,Match case (y/n):,separator=\n", "\n\ny")
     GiveBackFocus()
     local replaceOld, replaceWith
@@ -1602,6 +1789,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function upper_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "upper"
     mod_stack_parm1 [undo_stack] = ""
@@ -1610,6 +1798,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function lower_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "lower"
     mod_stack_parm1 [undo_stack] = ""
@@ -1618,6 +1807,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function swap_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "swap"
     mod_stack_parm1 [undo_stack] = ""
@@ -1625,8 +1815,8 @@ local function init() -- INITIALIZATION ----------------------------------------
     WriteCurrentModifier()
   end
 
-  -- amagalma clear button
   function clear_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "clear"
     mod_stack_parm1 [undo_stack] = ""
@@ -1635,6 +1825,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function capitalize_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "capitalize"
     mod_stack_parm1 [undo_stack] = ""
@@ -1643,6 +1834,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function title_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "title"
     mod_stack_parm1 [undo_stack] = ""
@@ -1651,6 +1843,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function strip_btn.onClick()
+    if not Check() then return end
     undo_stack = undo_stack + 1
     mod_stack_name [undo_stack] = "strip"
     mod_stack_parm1 [undo_stack] = ""
@@ -1659,6 +1852,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function trimstart_btn.onClick()
+    if not Check() then return end
     local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
     GiveBackFocus()
     if ok then
@@ -1676,6 +1870,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function trimend_btn.onClick()
+    if not Check() then return end
     local ok, number = reaper.GetUserInputs("Trim start", 1, "Insert number of characters:", "")
     GiveBackFocus()
     if ok then
@@ -1693,6 +1888,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   end
 
   function keep_btn.onClick()
+    if not Check() then return end
     local ok, text = reaper.GetUserInputs("Keep (s -> from start, e -> end)", 1, "Specify mode and number:", "")
     GiveBackFocus()
     if ok then
@@ -1760,7 +1956,7 @@ local function init() -- INITIALIZATION ----------------------------------------
   function reset_btn.onClick()
     init_tables()
     undo_btn.help_text = "Nothing to undo"
-    redo_btn.help_text = "Nothing to redo" -- gianfini fix
+    redo_btn.help_text = "Nothing to redo"
   end
 
   function undo_btn.onClick()
@@ -1768,6 +1964,8 @@ local function init() -- INITIALIZATION ----------------------------------------
       undo_stack = undo_stack - 1
       redo_stack = redo_stack + 1
       SaveNextRedo()  -- gianfini: needed to manage cornerstone case of modifier no actually modifying anything without having to reset the redo stack
+    else
+      return
     end
     WriteModifiersStack()
   end
@@ -1776,13 +1974,15 @@ local function init() -- INITIALIZATION ----------------------------------------
     if redo_stack > 0 then
       undo_stack = undo_stack + 1
       redo_stack = redo_stack - 1
-    if redo_stack > 0 then SaveNextRedo() end  -- gianfini: needed to manage cornerstone case of modifier no actually modifying anything without having to reset the redo stack
+      SaveNextRedo() -- gianfini: needed to manage cornerstone case of modifier no actually modifying anything without having to reset the redo stack
+    else
+      return
     end
     WriteModifiersStack()
   end
 
   function commit_btn.onClick()
-    if undo_stack > 0 then -- gianfini changed to check undo_stack and not has_changed
+    if undo_stack > 0 then
       reaper.Undo_BeginBlock()
       reaper.PreventUIRefresh( 1 )
       if what == "tracks" and CheckTracks() then
@@ -1819,6 +2019,8 @@ local function init() -- INITIALIZATION ----------------------------------------
       undo_btn.help_text = "Nothing to undo"
       redo_btn.help_text = "Nothing to redo"
       has_changed = 0
+    else
+      return
     end
   end
 
