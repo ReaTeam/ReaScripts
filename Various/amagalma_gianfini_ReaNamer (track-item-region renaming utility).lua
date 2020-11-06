@@ -1,28 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.20
+-- @version 1.21
 -- @changelog
---   - fix: some buttons could be pressed even if there were no items/tracks/regions in the list
---   - fix: better UNDO/REDO naming when using Replace
---   - change: Ctrl+T key for Tracks mode, Ctrl+R key for Regions mode, Ctrl+I key for Items mode
---   - add: Key shortcuts (the ones with Alt are clearly shown when Alt is pressed)
---   - Esc to close script
---   - Ctrl+Z for Undo
---   - Ctrl+Shift+Z for Redo
---   - Alt+A for swAp case
---   - Alt+C for Clear
---   - Alt+E for trim End
---   - Alt+K for Keep
---   - Alt+L for Lowercase
---   - Alt+N for Number
---   - Alt+P for Prefix
---   - Alt+R for Replace
---   - Alt+S for trim Start
---   - Alt+T for Titlecase
---   - Alt+U for Uppercase
---   - Alt+W for strip Whitespaces
---   - Alt+X for suffiX
---   - Alt+Z for capitaliZe 
+--   - fix: key shortcuts should now work strictly as defined
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -38,10 +18,10 @@
 --
 --   Key Shortcuts:
 --    Esc to close script
+--    Ctrl+Enter to Commit
 --    Ctrl+T for Tracks mode
 --    Ctrl+R for Regions mode
 --    Ctrl+I for Items mode
---    Ctrl+Enter Commit
 --    Ctrl+Z for Undo
 --    Ctrl+Shift+Z for Redo
 --    Alt+A for swAp case
@@ -63,7 +43,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.20"
+local version = "1.21"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
@@ -1377,7 +1357,9 @@ local function main() -- MAIN FUNCTION -----------------------------------------
 
   -- KEY SHORTCUTS -------------
   
-  if mousecap & 16 == 16 then
+  -- Alt
+  if mousecap == 16 then
+  
     swap_btn.underline = 3
     clear_btn.underline = 1
     trimend_btn.underline = 6
@@ -1392,7 +1374,67 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     strip_btn.underline = 26
     suffix_btn.underline = 6
     capitalize_btn.underline = 9
+    
+    -- Alt+A --> swAp case
+    if getchar == 321 then
+     swap_btn.onClick()
+    
+    -- Alt+C --> Clear
+    elseif getchar == 323 then
+     clear_btn.onClick()
+    
+    -- Alt+E --> trim End
+    elseif getchar == 325 then
+     trimend_btn.onClick()
+    
+    -- Alt+K --> Keep
+    elseif getchar == 331 then
+     keep_btn.onClick()
+    
+    -- Alt+L --> Lowercase
+    elseif getchar == 332 then
+     lower_btn.onClick()
+     
+    -- Alt+N --> Number
+    elseif getchar == 334 then
+     number_btn.onClick()
+    
+    -- Alt+P --> Prefix
+    elseif getchar == 336 then
+     prefix_btn.onClick()
+    
+    -- Alt+R --> Replace
+    elseif getchar == 338 then
+     replace_btn.onClick()
+    
+    -- Alt+S --> trim Start
+    elseif getchar == 339 then
+     trimstart_btn.onClick()
+    
+    -- Alt+T --> Titlecase
+    elseif getchar == 340 then
+     title_btn.onClick()
+    
+    -- Alt+U --> Uppercase
+    elseif getchar == 341 then
+     upper_btn.onClick()
+    
+    -- Alt+W --> strip Whitespaces
+    elseif getchar == 343 then
+     strip_btn.onClick()
+    
+    -- Alt+X --> suffiX
+    elseif getchar == 344 then
+     suffix_btn.onClick()
+    
+    -- Alt+Z --> capitaliZe 
+    elseif getchar == 346 then
+     capitalize_btn.onClick()
+    
+    end
+    
   else
+  
     swap_btn.underline = nil
     clear_btn.underline = nil
     trimend_btn.underline = nil
@@ -1407,87 +1449,36 @@ local function main() -- MAIN FUNCTION -----------------------------------------
     strip_btn.underline = nil
     suffix_btn.underline = nil
     capitalize_btn.underline = nil
+    
   end
   
-  -- Ctrl+Enter to Commit
-  if getchar == 13 then
-    commit_btn.onClick()
+  -- Ctrl
+  if mousecap == 4 then
+  
+    -- Ctrl+Enter to Commit
+    if getchar == 13 then
+      commit_btn.onClick()
+      
+    -- Ctrl+T for Tracks
+    elseif getchar == 20 then
+      Tracks_btn.onClick()
+      
+    -- Ctrl+R for Regions
+    elseif getchar == 18 then
+      Regions_btn.onClick()
+      
+    -- Ctrl+I for Items
+    elseif getchar == 9 then
+      Items_btn.onClick()
+      
+    -- Ctrl+Z Undo 
+    elseif getchar == 26 then
+      undo_btn.onClick()
+    end
     
-  -- Ctrl+T for Tracks
-  elseif getchar == 20 then
-    Tracks_btn.onClick()
-    
-  -- Ctrl+R for Regions
-  elseif getchar == 18 then
-    Regions_btn.onClick()
-    
-  -- Ctrl+I for Items
-  elseif getchar == 9 then
-    Items_btn.onClick()
-    
-  -- Ctrl+Shift+Z Redo
+    -- Ctrl+Shift+Z Redo
   elseif mousecap == 12 and getchar == 26 then
     redo_btn.onClick()
-    
-  -- Ctrl+Z Undo 
-  elseif getchar == 26 then
-    undo_btn.onClick()
-    
-  -- Alt+A --> swAp case
-  elseif getchar == 321 then
-    swap_btn.onClick()
-
-  -- Alt+C --> Clear
-  elseif getchar == 323 then
-    clear_btn.onClick()
-  
-  -- Alt+E --> trim End
-  elseif getchar == 325 then
-    trimend_btn.onClick()
-  
-  -- Alt+K --> Keep
-  elseif getchar == 331 then
-    keep_btn.onClick()
-  
-  -- Alt+L --> Lowercase
-  elseif getchar == 332 then
-    lower_btn.onClick()
-    
-  -- Alt+N --> Number
-  elseif getchar == 334 then
-    number_btn.onClick()
-  
-  -- Alt+P --> Prefix
-  elseif getchar == 336 then
-    prefix_btn.onClick()
-  
-  -- Alt+R --> Replace
-  elseif getchar == 338 then
-    replace_btn.onClick()
-  
-  -- Alt+S --> trim Start
-  elseif getchar == 339 then
-    trimstart_btn.onClick()
-  
-  -- Alt+T --> Titlecase
-  elseif getchar == 340 then
-    title_btn.onClick()
-  
-  -- Alt+U --> Uppercase
-  elseif getchar == 341 then
-    upper_btn.onClick()
-  
-  -- Alt+W --> strip Whitespaces
-  elseif getchar == 343 then
-    strip_btn.onClick()
-  
-  -- Alt+X --> suffiX
-  elseif getchar == 344 then
-    suffix_btn.onClick()
-
-  -- Alt+Z --> capitaliZe 
-  elseif getchar == 346 then
-    capitalize_btn.onClick()
   
   end
 
