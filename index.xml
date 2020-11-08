@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="75d4e9bc9c0eadf21c36830ae8e63182d3f620d4" name="ReaTeam Scripts">
+<index version="1" commit="6269126e3795141eaced15e6abcea10c0701cfed" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13585,6 +13585,23 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- If settings are the default ones then, the tie button does not lit green
 - User is not prompted to tie if the values are the default ones (except if there are already other tied values)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/860bdc85cd6a227f7b776f0431e0201f09d05fc9/Various/amagalma_Reaper%20GUI%20color%20controls%20XL.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Ripple recording.lua" type="script" desc="Ripple recording">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 It acts exactly like the normal Record button, but changes behavior according to the ripple mode\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=244437</link>
+        <link rel="screenshot">https://i.ibb.co/7R037Y1/amagalma-Ripple-Recording.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-11-08T11:58:44Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6269126e3795141eaced15e6abcea10c0701cfed/Various/amagalma_Ripple%20recording.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
