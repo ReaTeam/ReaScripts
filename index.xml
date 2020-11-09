@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6269126e3795141eaced15e6abcea10c0701cfed" name="ReaTeam Scripts">
+<index version="1" commit="ca6c10a7cff9288a7663167c21ad8489b8071697" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13602,6 +13602,30 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2020-11-08T11:58:44Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6269126e3795141eaced15e6abcea10c0701cfed/Various/amagalma_Ripple%20recording.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Shows the chosen item's path from the list:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Reaper Resources path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Selected Item path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Project File path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Record path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Secondary Record path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Render path\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI and SWS extensions\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=239556</link>
+        <link rel="screenshot">https://i.ibb.co/vhMDkZn/Show-path-from-list-menu.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2020-11-09T09:33:20Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca6c10a7cff9288a7663167c21ad8489b8071697/Various/amagalma_Show%20path%20from%20list%20menu%20(Resource,%20Selected%20Item,%20Project%20File,%20Record,%20Secondary%20Record,%20Render).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Simulate tempo with playrate.lua" type="script" desc="amagalma_Simulate tempo with playrate">
