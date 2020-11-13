@@ -1,39 +1,12 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.0
+-- @version 2.01
 -- @changelog
---   +Added Play Loop Range feature
---   +Added Slice Randomization feature
---   +Added project Grid Division markers
---   +Added MouseWheel support for loop bar, checkboxes and sliders (some sliders lags on long wavs!)
---   +Huge performance improvement on sample rates greater than 44100 (up to x3 in some cases)
---   +Improved waveform view when resizing the window. Now it is not blurred.
---   +Added Attack and Release presets for Sampler: Percussive and Melodic.
---   +Added triplets to "Guides by Grid"
---   +Added "Slpit at Zero Crossings" feature (can be very imprecise on stereo items!)
---   +Now, the shuffle is visually reflected in "Guides by Grid" lines (experimental, can be removed)
---   +Now, in the "Guides by Grid" mode, it is possible to cut/place markers by shuffle (experimental, can be removed)
---   +Improved Slicing behavior when switching "Guides by Grid" modes
---   +Now that "Guides by Grid" is activated, the unused sliders are filled with a semi-transparent color.
---   +Increased the number of notes in the Trigger, added optional names according to the GM standard.
---   +Added "octave shift" defaults option for Trigger
---   +Improved visualization of Range Slider
---   +Trigger note is now saved the next time the script is run
---   +Range Slider settings is now saved the next time the script is run
---   +The "Guides by Grid" state is now saved the next time the script is run
---   +Improved behavior of LFS and HFS sliders: when frequencies overlap, a bandpass filter will be created
---   +Now Ctrl+Middle Mouse Button resets horizontal zoom
---   +Fixed: now Range Slider resets both values by Ctrl+Click
---   +Fixed: rescaled fonts for Retina displays (Mac)
---   +Bugfix: now Sampler copy track settings (vol, pan, solo, etc.)
---   +Bugfix: now simultaneous pressing of two mouse buttons does not cause the script to crash
---   +Bugfix: now pressing of right mouse button in the Guides mode does not cause the script to crash
---   +Bugfix: now the script does not reset the Reaper settings "Create automatic fade/in fade/out for new items" and "Overlap and autocrossfade when splitting"
---   +Bugfix: now, during initialization, the script correctly processes items with FX
---   +Revised behavior of elements when scaling the main window.
---   +Updated graphical interface, added colored indicators.
---   +Minor changes and code optimizations
---   +Updated User Manual (forum topic)
+--   +Now Random Position does not affect the first item
+--   +Fixed a bug that occurred when alternating Random and Get Item buttons
+--   +Fixed: now Random Volume does not flip the item phase
+--   +Fixed: now script can work with phase inverted items
+--   +Fixed: now the Reset can work correctly with reversed items (on initialization they will be automatic glued, if need)
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -91,7 +64,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.0 by Maxim Kokarev 
+MK Slicer v2.01 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -884,10 +857,11 @@ end
    r.DestroyAudioAccessor(aa)
     
    -- Calculate corrections for take/item volume
-   local adjust_vol = 1
+   adjust_vol = 1
    
    if adj_for_take_vol then
      adjust_vol = adjust_vol * r.GetMediaItemTakeInfo_Value(take, "D_VOL")
+     if adjust_vol < 0 then adjust_vol = (adjust_vol * -1) end -- if phase is inverted
    end
    
    if adj_for_item_vol then
@@ -3678,7 +3652,7 @@ Take_Check = 0
 Trigg_Status = 0
 Reset_Status = 0
 Midi_sampler_offs_stat = 0
---Random_Status = 0
+Random_Status = 0
 SliceQ_Status_Rand = 0
 
  loopcheck = 0
@@ -4247,11 +4221,7 @@ function random_numbers_less_than(x)
 end
 
 local items = r.CountSelectedMediaItems()
-
-local items = r.CountSelectedMediaItems()
 if items == 0 then return end
-
-
 
 for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
     item = r.GetSelectedMediaItem(0, i)
@@ -4265,14 +4235,20 @@ for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
                   end
         
                   if Random_Vol == 1 then
-                   local random_vol = (random()*(RandVval/100))+(1/(RandVval+2))-1
-                     r.SetMediaItemTakeInfo_Value(item_take, 'D_VOL', random_vol)
+                   local random_vol = (random()*(RandVval/100))+(1/(RandVval/2)) -- +0.1
+                    if RandVval <= 2 then random_vol = 1 end
+                    if RandVval >= 3 and RandVval <= 10 then random_vol = (random_vol+0.45) end
+                    if RandVval >= 11 and RandVval <= 45 then random_vol = (random_vol+0.55) end
+                    if RandVval >= 46 and RandVval <= 70 then random_vol = (random_vol+0.4) end
+                    if RandVval >= 71 and RandVval <= 80 then random_vol = (random_vol+0.2) end
+                    if RandVval >= 81 and RandVval <= 100 then random_vol = (random_vol+0.1) end
+                   r.SetMediaItemTakeInfo_Value(item_take, 'D_VOL', random_vol)
                   end
 
                   if Random_Pitch == 1 then
                      local random_polarity = random()*2 - 1
                      local random_pitch
-
+                     local random_pitch2                   
                                  if RandPtchval <= 1.3 then --slider = 10
                                     random_pitch = random() * (RandPtchval*random_polarity) -- by cents
                                     else
@@ -4298,15 +4274,6 @@ for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
                      r.SetMediaItemTakeInfo_Value(item_take, 'D_PITCH', random_pitch2)
                  end
         
-                  if Random_Position == 1 then
-                      local random_position = random(ceil((RandPosval/10)+1))-1
-                      local random_polarity2 = random()*2 - 1
-                      local it_start = r.GetMediaItemInfo_Value(item, "D_POSITION")
-                      local tempo_corr = 1/(r.Master_GetTempo()/120)
-                      local random_pos = it_start+((random_position/300)*random_polarity2)*tempo_corr
-                      r.SetMediaItemInfo_Value(item, "D_POSITION", random_pos)
-                 end
-  
            local Numb1 = 39 ------ RandMval+2
            local Numb2 = Numb1+1
            if Numb2 >= 90 then Numb2 = 90; Numb1 = 89 end
@@ -4331,6 +4298,21 @@ for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
      end
 end
 
+for i = 1, items - 1 do --RANDOMIZE Position instead first item
+    item = r.GetSelectedMediaItem(0, i)
+       if item then
+                  item_take = r.GetActiveTake(item)   
+                  if Random_Position == 1 then
+                      local random_position = random(ceil((RandPosval/10)+1))-1
+                      local random_polarity2 = random()*2 - 1
+                      local it_start = r.GetMediaItemInfo_Value(item, "D_POSITION")
+                      local tempo_corr = 1/(r.Master_GetTempo()/120)
+                      local random_pos = it_start+((random_position/300)*random_polarity2)*tempo_corr
+                      r.SetMediaItemInfo_Value(item, "D_POSITION", random_pos)
+                 end
+     end
+end
+
 SaveSelItems()
 for i = 0, items-1 do
   local it = r.GetSelectedMediaItem(0,i)
@@ -4344,9 +4326,9 @@ r.Undo_BeginBlock(); r.PreventUIRefresh(1)
 r.SelectAllMediaItems(0, 0) -- unselect all items
 for i = 1, #t_nums-1 do
   local it = t[t_nums[i]]
-if it and IsEven(i) == true then
-  r.SetMediaItemSelected(it,1)
-end
+  if it and IsEven(i) == true then
+     r.SetMediaItemSelected(it,1)
+  end
 end
         if Random_Reverse == 1 then
              r.Main_OnCommand(41051,0) --Item properties: Toggle take reverse
@@ -5257,9 +5239,29 @@ sel_tracks_items() -- select for a multitrack check
 selected_tracks_count = r.CountSelectedTracks(0)
 count_itms =  r.CountSelectedMediaItems(0)
 
+   if count_itms == 0 then return end -- take reverse check
+   for i = 0, count_itms-1 do -- take fx check
+   local item = r.GetSelectedMediaItem(0, i)
+   local take_count = r.CountTakes(item)
+     for j = 0, take_count-1 do
+     local take = r.GetMediaItemTake(item, j) 
+     local   _, _, _, _, _, reverse = r.BR_GetMediaSourceProperties(take)
+       if reverse == true then 
+         tkrev = 1
+          else
+         tkrev = 0
+       end
+     end
+   end
+
 if SliceQ_Status == 1 and count_itms > selected_tracks_count  then
  r.Main_OnCommand(40029, 0)  -- Undo
- r.Main_OnCommand(40548, 0)  -- Heal Splits
+    if tkrev == 0 then  -- if reversed item, then glue
+       r.Main_OnCommand(40548, 0)  -- Heal Splits
+    elseif tkrev == 1 then
+      r.Main_OnCommand(41588, 0)  -- Glue
+      getitem()
+    end
 end
 
 SliceQ_Status = 0
@@ -5331,7 +5333,12 @@ unselect_if_out_of_time_range()
 
 end
 
- r.Main_OnCommand(40548, 0)     -- Heal Slices
+    if tkrev == 0 then -- if reversed item, then glue
+       r.Main_OnCommand(40548, 0)  -- Heal Splits
+    elseif tkrev == 1 then
+      r.Main_OnCommand(41588, 0)  -- Glue
+      getitem()
+    end
 
 sel_tracks_items() -- select for a multitrack check
 selected_tracks_count = r.CountSelectedTracks(0)
@@ -7187,7 +7194,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.0"
+    local Wnd_Title = "MK Slicer v2.01"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -7466,7 +7473,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.0"
+     local Wnd_Title = "MK Slicer v2.01"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -7478,7 +7485,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.0"
+    local Wnd_Title = "MK Slicer v2.01"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
