@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6e9753b3259ae8734dd500011fc1246b5198820f" name="ReaTeam Scripts">
+<index version="1" commit="5894a5bce2ca4ff4d0bb99bbfd0fc95c0cec3e61" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -4446,6 +4446,14 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 +Minor changes and code optimizations
 +Updated User Manual (forum topic)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6e9753b3259ae8734dd500011fc1246b5198820f/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.01" author="cool" time="2020-11-13T16:35:21Z">
+        <changelog><![CDATA[+Now Random Position does not affect the first item
++Fixed a bug that occurred when alternating Random and Get Item buttons
++Fixed: now Random Volume does not flip the item phase
++Fixed: now script can work with phase inverted items
++Fixed: now the Reset can work correctly with reversed items (on initialization they will be automatic glued, if need)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5894a5bce2ca4ff4d0bb99bbfd0fc95c0cec3e61/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
