@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5894a5bce2ca4ff4d0bb99bbfd0fc95c0cec3e61" name="ReaTeam Scripts">
+<index version="1" commit="050f09b7417a446ebdc39384b334910163400c1f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -4034,6 +4034,24 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1b7d7b29bea3e6f351e98c140dfea2863f223f83/Items%20Editing/beaunus_Name%20item%20takes%20by%20last%20marker%20to%20cut%20item.lua</source>
       </version>
     </reapack>
+    <reapack name="bfut_Extract loop section under mouse cursor to new item.lua" type="script" desc="Extract loop section under mouse cursor to new item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Hover mouse over looped media item.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v6.12c or later\sa180\par}
+}
+]]></description>
+        <link rel="website">https://github.com/bfut</link>
+      </metadata>
+      <version name="1.1" author="bfut" time="2020-11-17T04:41:32Z">
+        <changelog><![CDATA[+ support time signature markers]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/050f09b7417a446ebdc39384b334910163400c1f/Items%20Editing/bfut_Extract%20loop%20section%20under%20mouse%20cursor%20to%20new%20item.lua</source>
+      </version>
+    </reapack>
     <reapack name="bfut_MIDI note row controls items pitch.lua" type="script" desc="MIDI note row controls items pitch">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4061,13 +4079,18 @@ Better error-checking in general]]></changelog>
 
 {\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select media item(s).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v5.70 or later\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v6.12c or later\sa180\par}
 }
 ]]></description>
         <link rel="website">https://github.com/bfut</link>
       </metadata>
       <version name="1.0" author="bfut" time="2018-01-31T22:48:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_Split%20looped%20item%20into%20separate%20items.lua</source>
+      </version>
+      <version name="1.3" author="bfut" time="2020-11-17T04:41:32Z">
+        <changelog><![CDATA[+ support time signature markers
+# Fix: no more infinite loop for empty items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/050f09b7417a446ebdc39384b334910163400c1f/Items%20Editing/bfut_Split%20looped%20item%20into%20separate%20items.lua</source>
       </version>
     </reapack>
     <reapack name="bfut_Trim to source media lengths (limit items lengths).lua" type="script" desc="Trim to source media lengths (limit items lengths)">
@@ -4078,13 +4101,17 @@ Better error-checking in general]]></changelog>
 
 {\pard \ql \f0 \sa180 \li0 \fi0 HOW TO USE:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1)\tx360\tab Select media item(s).\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v5.70 or later\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2)\tx360\tab Run the script. REQUIRES: Reaper v5.99 or later\sa180\par}
 }
 ]]></description>
         <link rel="website">https://github.com/bfut</link>
       </metadata>
       <version name="1.0" author="bfut" time="2018-01-31T22:48:31Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/65da99c45697771717d2ecd10c9444e9a8348a18/Items%20Editing/bfut_Trim%20to%20source%20media%20lengths%20(limit%20items%20lengths).lua</source>
+      </version>
+      <version name="1.1" author="bfut" time="2020-11-17T04:41:32Z">
+        <changelog><![CDATA[+ ignore locked items]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/050f09b7417a446ebdc39384b334910163400c1f/Items%20Editing/bfut_Trim%20to%20source%20media%20lengths%20(limit%20items%20lengths).lua</source>
       </version>
     </reapack>
     <reapack name="boringcactus_BeatPermute.lua" type="script" desc="Beat Permute (swap/delete/duplicate)">
