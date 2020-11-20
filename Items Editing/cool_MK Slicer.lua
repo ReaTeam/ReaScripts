@@ -1,12 +1,11 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.01
+-- @version 2.02
 -- @changelog
---   +Now Random Position does not affect the first item
---   +Fixed a bug that occurred when alternating Random and Get Item buttons
---   +Fixed: now Random Volume does not flip the item phase
---   +Fixed: now script can work with phase inverted items
---   +Fixed: now the Reset can work correctly with reversed items (on initialization they will be automatic glued, if need)
+--   +Small perfomance improvements (tables code optimization)
+--   +Now Sampler don't open FX windows after processing (ignore "Auto-float newly created FX windows" option)
+--   +The Random Reverse function now has an intensity slider
+--   +Improved Random Mute pattern creation
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -64,7 +63,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.01 by Maxim Kokarev 
+MK Slicer v2.02 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -171,7 +170,7 @@ RandV = tonumber(r.GetExtState('cool_MK Slicer.lua','RandV_Sld.norm_val'))or 0.5
 RandPan = tonumber(r.GetExtState('cool_MK Slicer.lua','RandPan_Sld.norm_val'))or 1;
 RandPtch = tonumber(r.GetExtState('cool_MK Slicer.lua','RandPtch_Sld.norm_val'))or 0.5;
 RandPos = tonumber(r.GetExtState('cool_MK Slicer.lua','RandPos_Sld.norm_val'))or 0.2;
-RandMute = tonumber(r.GetExtState('cool_MK Slicer.lua','RandMute_Sld.norm_val'))or 0.5;
+RandMute = tonumber(r.GetExtState('cool_MK Slicer.lua','RandRev_Sld.norm_val'))or 0.5;
 
 if AutoXFadesOnSplitOverride == nil then AutoXFadesOnSplitOverride = 1 end 
 if AutoXFadesOnSplitOverride <= 0 then AutoXFadesOnSplitOverride = 0 elseif AutoXFadesOnSplitOverride >= 1 then AutoXFadesOnSplitOverride = 1 end 
@@ -669,13 +668,14 @@ function cleanup_slices()
     local t = {};
     local tblTrack = {};
     local UNDO;
-    
+    local b = 0
     for i = 1, CountSelItem do;
         local item = r.GetSelectedMediaItem(0,i-1);
         local track = r.GetMediaItem_Track(item);
         if not t[tostring(track)]then;
             t[tostring(track)] = track;
-            tblTrack[#tblTrack+1] = track;
+            b = b + 1
+            tblTrack[b] = track;
         end;
     end;
        
@@ -683,7 +683,7 @@ function cleanup_slices()
         
         local t = {};
         local rem = {};
-        
+        local c = 0
         local CountTrItem = r.CountTrackMediaItems(tblTrack[iTr]);
         for iIt = 1, CountTrItem do;
             local itemTr = r.GetTrackMediaItem(tblTrack[iTr],iIt-1);
@@ -696,7 +696,8 @@ function cleanup_slices()
                 if not t[posIt] then;
                     t[posIt] = posIt;
                 else;
-                    rem[#rem+1] = {};
+                    c = c +1
+                    rem[c] = {};
                     rem[#rem].track = tblTrack[iTr];
                     rem[#rem].item = itemTr;
                 end;
@@ -3486,9 +3487,9 @@ end
 
 if RandPosval == nil then RandPosval = RandPos*100 end
 
--- RandMute_Sld ------------------------------ 
-local RandMute_Sld = H_Slider:new(737,452+corrY2,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandMute )
-function RandMute_Sld:draw_val()
+-- RandRev_Sld ------------------------------ 
+local RandRev_Sld = H_Slider:new(737,452+corrY2,75,14, 0.28,0.4,0.7,0.8, "","Arial",16, RandMute )
+function RandRev_Sld:draw_val()
   self.form_val = (self.norm_val)*100       -- form_val
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.0f", self.form_val).."%"
@@ -3496,13 +3497,15 @@ function RandMute_Sld:draw_val()
   gfx.x = x+w-val_w-3
   gfx.y = y+(h-val_h)/2
   gfx.drawstr(val)--draw Slider Value
-  RandMval =  ceil(RandMute_Sld.form_val)
+
+  revsld =       (logx(RandRev_Sld.form_val+1))*21.63          --(RandRev_Sld.form_val/1.75)+40
+  RandRevVal =  ceil(revsld*-1)+100
 end
-RandMute_Sld.onUp =
+RandRev_Sld.onUp =
 function() 
 
 end
-if RandMval == nil then RandMval = RandMute*100 end
+if RandRevVal == nil then RandRevVal = RandMute*100 end
 
 -------------------------------------------------------------------------------------
 --- Range Slider --------------------------------------------------------------------
@@ -3610,7 +3613,7 @@ local SliderRandV_TB = {RandV_Sld}
 local SliderRandPan_TB = {RandPan_Sld}
 local SliderRandPtch_TB = {RandPtch_Sld}
 local SliderRand_TBPos = {RandPos_Sld}
-local SliderRand_TBM = {RandMute_Sld}
+local SliderRand_TBM = {RandRev_Sld}
 
 
 local Preset = Txt:new(788,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Preset","Arial",22)
@@ -4174,7 +4177,7 @@ function()
 end 
 
 ----------------------------------------------------
---------------RANDOMIZE---------------------------
+--------------RANDOMIZE-----------------------
 ----------------------------------------------------
 function Randomizer()
 
@@ -4213,10 +4216,18 @@ end
 
 function random_numbers_less_than(x)
   local t, t_res = {},{}
-  for i = 1, x do t[#t+1] = i end
+  local e = 0
+  local d = 0
+  for i = 1, x do 
+     e = e + 1
+     t[e] = i 
+  end
   shuffle(t)
-  local max = random(x)
-  for i = 1, max do t_res[#t_res+1] = t[i] end
+  local max = floor(x/((RandRevVal/10)+1))
+  for i = 1, max do 
+    d = d + 1
+    t_res[d] = t[i] 
+  end
   return t_res
 end
 
@@ -4255,7 +4266,7 @@ for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
                                     random_pitch = ceil(random() * (RandPtchval*random_polarity)) -- by semitones
                                  end
 
-                              if RandPtchval >= 10.7 then  -----by intervals,  slider = 90
+                              if RandPtchval >= 10.7 then  ----- by intervals,  slider = 90
                                     if random_pitch == 0  then random_pitch2 = 0 end
                                 
                                     if random_pitch >= 1 and random_pitch <= 2  then random_pitch2 = 3 end
@@ -4273,28 +4284,7 @@ for i = 0, items - 1 do --RANDOMIZE PAN AND PITCH and other
 
                      r.SetMediaItemTakeInfo_Value(item_take, 'D_PITCH', random_pitch2)
                  end
-        
-           local Numb1 = 39 ------ RandMval+2
-           local Numb2 = Numb1+1
-           if Numb2 >= 90 then Numb2 = 90; Numb1 = 89 end
 
-           if   IsEven(i) == true   then
-                  if Random_Mute == 1 then
-                      local random_mute = random(100)-1 
-                      if random_mute <= Numb1 then random_mute = 1 end
-                      if random_mute >= Numb2 then random_mute = 0 end
-                      r.SetMediaItemInfo_Value(item, "B_MUTE", random_mute)
-                  r.UpdateItemInProject(item)
-                 end
-            else
-                  if Random_Mute == 1 then
-                      local random_mute = random(100)-1 
-                      if random_mute <= Numb1 then random_mute = 1 end
-                      if random_mute >= Numb2  then random_mute = 0 end
-                      r.SetMediaItemInfo_Value(item, "B_MUTE", random_mute)
-                  r.UpdateItemInProject(item)
-                 end
-            end
      end
 end
 
@@ -4314,9 +4304,11 @@ for i = 1, items - 1 do --RANDOMIZE Position instead first item
 end
 
 SaveSelItems()
+local f = 0
 for i = 0, items-1 do
   local it = r.GetSelectedMediaItem(0,i)
-  t[#t+1] = it
+  f = f + 1
+  t[f] = it
 end
 
 local t_nums = random_numbers_less_than(items)
@@ -4335,6 +4327,80 @@ end
         end
 
 RestoreSelItems()
+
+----------------------------------------------------------------------------------------
+local t = {}
+local sel_items = {}
+local function SaveSelItems()
+  for i = 0, r.CountSelectedMediaItems(0)-1 do
+    sel_items[i+1] = r.GetSelectedMediaItem(0, i)
+  end
+end
+
+local function RestoreSelItems()
+  r.SelectAllMediaItems(0, 0) -- unselect all items
+  for _, item in ipairs(sel_items) do
+    if item then r.SetMediaItemSelected(item, 1) end
+  end
+end
+
+function swap(array, index1, index2)
+  array[index1], array[index2] = array[index2], array[index1]
+end
+
+function shuffle(array)
+  local counter = #array
+  while counter > 1 do
+    local index = random(counter)
+    swap(array, index, counter)
+    counter = counter - 1
+  end
+end
+
+function random_numbers_less_than(x)
+  local t, t_res = {},{}
+  local e = 0
+  local d = 0
+  for i = 1, x do 
+     e = e + 1
+     t[e] = i 
+  end
+  shuffle(t)
+  local max = (x)
+  for i = 1, max do 
+    d = d + 1
+    t_res[d] = t[i] 
+  end
+  return t_res
+end
+
+local items = r.CountSelectedMediaItems()
+if items == 0 then return end
+
+SaveSelItems()
+local f = 0
+for i = 0, items-1 do
+  local it = r.GetSelectedMediaItem(0,i)
+  f = f + 1
+  t[f] = it
+end
+
+local t_nums = random_numbers_less_than(items)
+
+
+r.SelectAllMediaItems(0, 0) -- unselect all items
+for i = 1, #t_nums-1 do
+  local it = t[t_nums[i]]
+  if it and IsEven(i) == true then
+     r.SetMediaItemSelected(it,1)
+  end
+end
+        if Random_Mute == 1 then
+            r.Main_OnCommand(40719,0) -- Item properties: Mute
+        end
+
+RestoreSelItems()
+----------------------------------------------------------------------------------------------
 
         if Random_Position == 1 then
             r.Main_OnCommand(r.NamedCommandLookup("_SWS_AWFILLGAPSQUICK"),0) -- fill gaps 
@@ -4437,20 +4503,8 @@ function()
           r.SetExtState('cool_MK Slicer.lua','Random_Position',Random_Position,true);
 end
 
--- Random_Mute Button ----------------------------
-local Random_MuteB = Button_small:new(675,452+corrY2,60,14, 0.3,0.3,0.3,1, "Mute",    "Arial",5 )
-Random_MuteB.onClick = 
-function()
-     if Random_Mute ~= 1 then
-            Random_Mute = 1 
-        else
-            Random_Mute = 0 
-     end
-          r.SetExtState('cool_MK Slicer.lua','Random_Mute',Random_Mute,true);
-end
-
 -- Random_Reverse Button ----------------------------
-local Random_ReverseB = Button_small:new(675,467+corrY2,60,14, 0.3,0.3,0.3,1, "Reverse",    "Arial",5 )
+local Random_ReverseB = Button_small:new(675,452+corrY2,60,14, 0.3,0.3,0.3,1, "Reverse",    "Arial",5 )
 Random_ReverseB.onClick = 
 function()
      if Random_Reverse ~= 1 then
@@ -4459,6 +4513,18 @@ function()
             Random_Reverse = 0 
      end
           r.SetExtState('cool_MK Slicer.lua','Random_Reverse',Random_Reverse,true);
+end
+
+-- Random_Mute Button ----------------------------
+local Random_MuteB = Button_small:new(675,467+corrY2,60,14, 0.3,0.3,0.3,1, "Mute",    "Arial",5 )
+Random_MuteB.onClick = 
+function()
+     if Random_Mute ~= 1 then
+            Random_Mute = 1 
+        else
+            Random_Mute = 0 
+     end
+          r.SetExtState('cool_MK Slicer.lua','Random_Mute',Random_Mute,true);
 end
 
 -- Random Button ----------------------------
@@ -4771,7 +4837,7 @@ function Gate_Gl:Apply_toFiltered()
       -- Threshold, Sensitivity ----------
       local gain_fltr  = 10^(Fltr_Gain.form_val/20)      -- Gain from Fltr_Gain slider(need for scaling gate Thresh!)
       local Thresh     = 10^(Gate_Thresh.form_val/20)/gain_fltr -- Threshold regard gain_fltr
-               Thresh     = Thresh / (0.5/ block_size)      -- Threshold regard fft_real scale and gain_fltr
+              Thresh     = Thresh / (0.5/ block_size)      -- Threshold regard fft_real scale and gain_fltr
       local Sensitivity  = 10^(Gate_Sensitivity.form_val/20) -- Gate "Sensitivity", diff between - fast and slow envelopes(in dB)
       -- Attack, Release Time -----------
       -- Эти параметры нужно либо выносить в доп. настройки, либо подбирать тщательнее...
@@ -4944,24 +5010,24 @@ elseif Guides.norm_val == 12 then r.Main_OnCommand(40774, 0)
 end
  Grid_Points_r ={}
  Grid_Points = {}
+local p = 0
+local b = 0
 local blueline = loop_start 
    while (blueline <= loop_end) do
---    blueline = r.BR_GetNextGridDivision(blueline)
 
 function beatc(beatpos)
-retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
-_, division, _, _ = r.GetSetProjectGrid(0,false)
-beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
-  return beatpos
+   local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
+   local _, division, _, _ = r.GetSetProjectGrid(0,false)
+   beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
+   return beatpos
 end
 blueline = beatc(blueline)
     
-    local pop = #Grid_Points+1
-    Grid_Points[pop] = floor(blueline*srate)+(Offset_Sld.form_val/1000*srate)
+    p = p + 1
+    Grid_Points[p] = floor(blueline*srate)+(Offset_Sld.form_val/1000*srate)
     
-    local rock = #Grid_Points_r+1
-    local offset_pop = (blueline - loop_start)
-        Grid_Points_r[rock] = floor(offset_pop*srate)+(Offset_Sld.form_val/1000*srate)
+        b = b + 1
+        Grid_Points_r[b] = floor((blueline - loop_start)*srate)+(Offset_Sld.form_val/1000*srate)
    end 
  end 
 ------------------------------------RESTORE GRID----------------------------
@@ -4986,21 +5052,20 @@ local lastitem = r.GetExtState('_Slicer_', 'ItemToSlice')
  local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
 ---------------------------SET NEWGRID-------------------------------
 Grid_Points_Ruler ={}
+local d = 0
 local grinline2 = loop_start 
    while (grinline2 <= loop_end) do
- --  grinline2 = r.BR_GetNextGridDivision(grinline2)
 
 function beatc(beatpos)
-retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
-_, division, _, _ = r.GetSetProjectGrid(0,false)
-beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
-  return beatpos
+   local retval, measures, cml, fullbeats, cdenom = r.TimeMap2_timeToBeats(0, beatpos)
+   local _, division, _, _ = r.GetSetProjectGrid(0,false)
+   beatpos = r.TimeMap2_beatsToTime(0, fullbeats +(division*4))
+   return beatpos
 end
 grinline2 = beatc(grinline2)
-     
-  local rock2 = #Grid_Points_Ruler+1
-  local  offset_pop2 = (grinline2 - loop_start)
-        Grid_Points_Ruler[rock2] = floor(offset_pop2*srate)
+
+        d = d + 1
+        Grid_Points_Ruler[d] = floor((grinline2 - loop_start)*srate)
    end 
  end 
 --------------------------------RESTORE GRID-------------------------
@@ -5067,7 +5132,7 @@ local Grid_Points_r = Grid_Points_r or {};
 local _, division, swingmode, swingamt = r.GetSetProjectGrid(0, 0)
 local tempo_corr = 1/(r.Master_GetTempo()/120)
 local lnt_corr = (loop_length/tempo_corr)/8
- for i=1, #Grid_Points_r  do
+   for i=1, #Grid_Points_r  do
 
          sw_shift = swingamt*(1-abs(division-1))
          if IsEven(i) == false and swingmode == 1 then 
@@ -5078,15 +5143,13 @@ local lnt_corr = (loop_length/tempo_corr)/8
 
          local line_x  = Wave.x+sw_shift + (Grid_Points_r[i] - self.start_smpl) * self.Xsc  -- line x coord
 
-  
-     --------------------
+         --------------------
          -- draw line 8 -----
          ----------------------
        
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
             gfx.line(line_x, Wave.y, line_x, Wave.y+Wave.h-1)  -- Draw Trig Line
-
-end
+         end
 
           ------------------------
           -- Get mouse -----------
@@ -5116,7 +5179,7 @@ local lnt_corr = (loop_length/tempo_corr)/8
          end
 
          local line_x  = Wave.x+sw_shift + (Grid_Points_Ruler[i] - self.start_smpl) * self.Xsc  -- line x coord
-     --------------------
+         --------------------
          -- draw line -----
          ----------------------      
          if line_x>=Wave.x and line_x<=Wave.x+Wave.w then -- Verify line range
@@ -6113,6 +6176,7 @@ RS_Rel = RS_Rel/2000
 
 function ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
     local rs5k_pos = r.TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
+                               r.TrackFX_Show( track, rs5k_pos, 2) -- Hide Plugins Windows
     r.TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', filepath)
     r.TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
     r.TrackFX_SetParamNormalized( track, rs5k_pos, 0, 0.63) -- gain for min vel
@@ -6151,11 +6215,13 @@ function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
       MIDI.it_end_pos = MIDI.it_pos + 0.1
       local proceed_MIDI = true
       local it_tr0 = r.GetMediaItemTrack( item )
+      local c = 0
       for i = 1, r.CountSelectedMediaItems(0) do
         local item = r.GetSelectedMediaItem(0,i-1)
         local it_pos = r.GetMediaItemInfo_Value( item, 'D_POSITION' )
         local it_len = r.GetMediaItemInfo_Value( item, 'D_LENGTH' )
-        MIDI[#MIDI+1] = {pos=it_pos, end_pos = it_pos+it_len}
+        c = c +1
+        MIDI[c] = {pos=it_pos, end_pos = it_pos+it_len}
         MIDI.it_end_pos = it_pos + it_len
         local it_tr = r.GetMediaItemTrack( item )
         if it_tr ~= it_tr0 then proceed_MIDI = false break end
@@ -6548,6 +6614,7 @@ function Wave:Create_Peaks(mode) -- mode = 1 for original, mode = 2 for filtered
     local w = self.def_xywh[3] -- 1024 = def width 
     local pix_dens = self.pix_dens
     local smpl_inpix = (self.selSamples/w) /self.max_Zoom  -- кол-во семплов на один пик(при макс. зуме!)
+    local a = 0
     -- норм --------------------
     local curr = 1
     for i=1, w * self.max_Zoom do
@@ -6558,7 +6625,8 @@ function Wave:Create_Peaks(mode) -- mode = 1 for original, mode = 2 for filtered
               min_smpl = min(min_smpl, smpl)
               max_smpl = max(max_smpl, smpl)
         end
-        Peak_TB[#Peak_TB+1] = {min_smpl, max_smpl} -- min, max val to table
+        a = a +1
+        Peak_TB[a] = {min_smpl, max_smpl} -- min, max val to table
         curr = ceil(next) 
     end
     ----------------------------
@@ -6993,13 +7061,13 @@ function MAIN()
          for key,frame  in pairs(Rand_Button_Color4_TB)    do frame:draw()  end 
      end
       if Random_Mute == 1 then
-         for key,frame  in pairs(Rand_Button_Color5_TB)    do frame:draw()  end 
+         for key,frame  in pairs(Rand_Button_Color7_TB)    do frame:draw()  end 
      end
       if Random_Position == 1 then
          for key,frame  in pairs(Rand_Button_Color6_TB)    do frame:draw()  end 
      end
       if Random_Reverse == 1 then
-         for key,frame  in pairs(Rand_Button_Color7_TB)    do frame:draw()  end 
+         for key,frame  in pairs(Rand_Button_Color5_TB)    do frame:draw()  end 
      end
 
 if  Random_Setup ~= 1 then
@@ -7060,15 +7128,15 @@ end
          for key,sldr   in pairs(SliderRandPtch_TB)   do sldr:draw()   end
      end
       if Random_Mute == 1 then
-         for key,frame  in pairs(Rand_Mode_Color5_TB)    do frame:draw()  end 
-  --       for key,sldr   in pairs(SliderRand_TBM)   do sldr:draw()   end
+         for key,frame  in pairs(Rand_Mode_Color7_TB)    do frame:draw()  end 
      end
       if Random_Position == 1 then
          for key,frame  in pairs(Rand_Mode_Color6_TB)    do frame:draw()  end 
          for key,sldr   in pairs(SliderRand_TBPos)   do sldr:draw()   end
      end
       if Random_Reverse == 1 then
-         for key,frame  in pairs(Rand_Mode_Color7_TB)    do frame:draw()  end 
+         for key,frame  in pairs(Rand_Mode_Color5_TB)    do frame:draw()  end 
+         for key,sldr   in pairs(SliderRand_TBM)   do sldr:draw()   end
      end
 
          for key,frame  in pairs(RandText_TB)    do frame:draw()  end 
@@ -7170,7 +7238,7 @@ function store_settings2() --store sliders/checkboxes
         r.SetExtState('cool_MK Slicer.lua','RandPan_Sld.norm_val',RandPan_Sld.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','RandPtch_Sld.norm_val',RandPtch_Sld.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','RandPos_Sld.norm_val',RandPos_Sld.norm_val,true);
-        r.SetExtState('cool_MK Slicer.lua','RandMute_Sld.norm_val',RandMute_Sld.norm_val,true);
+        r.SetExtState('cool_MK Slicer.lua','RandRev_Sld.norm_val',RandRev_Sld.norm_val,true);
 
      end
 end
@@ -7194,7 +7262,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.01"
+    local Wnd_Title = "MK Slicer v2.02"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -7220,7 +7288,7 @@ function Info_Line()
        gfx.set(1,1,1,0.4)    -- set body color
        gfx.x = gfx.x+(Z_w*64)
        gfx.y = gfx.y+3
-   local _, division, swing, swingamt = reaper.GetSetProjectGrid(0,false)
+   local _, division, swing, swingamt = r.GetSetProjectGrid(0,false)
    if swingamt then
        swngamt = math_round((swingamt*100),0)
        swngamt = string.format("%d", swngamt)
@@ -7473,7 +7541,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.01"
+     local Wnd_Title = "MK Slicer v2.02"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -7485,7 +7553,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.01"
+    local Wnd_Title = "MK Slicer v2.02"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
