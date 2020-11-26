@@ -1,7 +1,7 @@
--- @description Select all midi notes that share midi channel with selection
+-- @description Select all MIDI notes that share MIDI channel with selection
 -- @author Erik Landskov
 -- @version 1.0
--- @about Simple script that selects all notes that share a midi channel with your selection. For example, if you have a note on midi channel 4 selected, then it will select all other notes on midi channel 4. This is handy if you like to use midi channels to organize groups of notes. With multiple notes selected, it will use the first note's channel.
+-- @about Simple script that selects all notes that share a MIDI channel with your selection. For example, if you have a note on MIDI channel 4 selected, then it will select all other notes on MIDI channel 4. This is handy if you like to use MIDI channels to organize groups of notes. With multiple notes selected, it will use the first note's channel.
 
 -- used this thread for lots of help: https://forum.cockos.com/showthread.php?t=171015
 
