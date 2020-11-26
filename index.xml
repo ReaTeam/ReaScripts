@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c13fdbc900f102f331077de6d9c5a757ff33a69f" name="ReaTeam Scripts">
+<index version="1" commit="97c55d80f6b1dd8770424051ef3ebe1f7dfd6870" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -6110,6 +6110,20 @@ support removal of the helper JSFX across project tabs]]></changelog>
     <reapack name="edgemeal_Close all floating MIDI windows.lua" type="script" desc="Close all floating MIDI windows">
       <version name="1.0" author="Edgemeal" time="2019-04-09T22:51:44Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/90df8aa7f984473ef3c114b27cec7c49145ada21/MIDI%20Editor/edgemeal_Close%20all%20floating%20MIDI%20windows.lua</source>
+      </version>
+    </reapack>
+    <reapack name="eriklandskov_Select all MIDI notes that share MIDI channel with selection.lua" type="script" desc="Select all MIDI notes that share MIDI channel with selection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Simple script that selects all notes that share a MIDI channel with your selection. For example, if you have a note on MIDI channel 4 selected, then it will select all other notes on MIDI channel 4. This is handy if you like to use MIDI channels to organize groups of notes. With multiple notes selected, it will use the first note's channel.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Erik Landskov" time="2020-11-26T17:45:21Z">
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/97c55d80f6b1dd8770424051ef3ebe1f7dfd6870/MIDI%20Editor/eriklandskov_Select%20all%20MIDI%20notes%20that%20share%20MIDI%20channel%20with%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="FnA_Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions.lua" type="script" desc="Join selected overlapping and consecutive notes with spacing below threshold - input and no input versions">
