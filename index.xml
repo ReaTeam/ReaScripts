@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="97c55d80f6b1dd8770424051ef3ebe1f7dfd6870" name="ReaTeam Scripts">
+<index version="1" commit="af1a8e81fb7052bc3ad11c8a5bc7e3ae4c9bf774" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13508,6 +13508,16 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[+ takes now inherit their previous displayed color
 + you can set in the script if you want the resulting track to inherit all removed tracks' heights combined or not]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2324df14fbab73a3ffb480bb9c1acca4091b0da9/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_mespotine_Create MIDI Morse Message Item at edit cursor position, grid length duration, first selectedlast touched or first track.lua" type="script" desc="Create MIDI Morse Message Item at edit cursor position, grid length duration, first selected/last touched/ or first track">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=245504</link>
+        <link rel="website">https://mespotin.uber.space/Mespotine/</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma_mespotine" time="2020-11-28T09:20:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af1a8e81fb7052bc3ad11c8a5bc7e3ae4c9bf774/Various/amagalma_mespotine_Create%20MIDI%20Morse%20Message%20Item%20at%20edit%20cursor%20position,%20grid%20length%20duration,%20first%20selectedlast%20touched%20or%20first%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="ReaNoir - Track/Item/Take coloring utility">
