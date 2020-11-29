@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d4619a0b71ac0c93b0582fcbd50a9f593fd52bf6" name="ReaTeam Scripts">
+<index version="1" commit="b1fbc09c7a4fe7aff0ab9695578e6bc596ab4043" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13524,6 +13524,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Added: Greek and Cyrillic character support (but unfortunately do not work due to a Reaper bug)
 - updated ReaPack info]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d4619a0b71ac0c93b0582fcbd50a9f593fd52bf6/Various/amagalma_mespotine_Create%20MIDI%20Morse%20Message%20Item%20at%20edit%20cursor%20position,%20grid%20length%20duration,%20first%20selectedlast%20touched%20or%20first%20track.lua</source>
+      </version>
+      <version name="1.5" author="amagalma_mespotine" time="2020-11-29T11:09:29Z">
+        <changelog><![CDATA[- Full automatic Latin/Greek/Cyrillic character support!
+- Take markers for every character]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b1fbc09c7a4fe7aff0ab9695578e6bc596ab4043/Various/amagalma_mespotine_Create%20MIDI%20Morse%20Message%20Item%20at%20edit%20cursor%20position,%20grid%20length%20duration,%20first%20selectedlast%20touched%20or%20first%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_ReaNoir track-item-take coloring utility.lua" type="script" desc="ReaNoir - Track/Item/Take coloring utility">
