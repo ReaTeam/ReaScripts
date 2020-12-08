@@ -1,9 +1,9 @@
 -- @description Create Impulse Response (IR) of the FX Chain of the selected Track
 -- @author amagalma
--- @version 2.02
+-- @version 2.03
 -- @changelog
---   - Ensure no orphan reapeak is left behind
---   - Ensure that track name does not change
+--   - Support custom ReaVerb name
+-- @donation https://www.paypal.me/amagalma
 -- @link https://forum.cockos.com/showthread.php?t=234517
 -- @about
 --   # Creates an impulse response (IR) of the FX Chain of the first selected track.
@@ -19,7 +19,7 @@
 
 -- Thanks to EUGEN27771, spk77, X-Raym, Lokasenna
 
-local version = "2.02"
+local version = "2.03"
 --------------------------------------------------------------------------------------------
 
 
@@ -597,7 +597,9 @@ function CreateIR()
     end
     local pos = reaper.TrackFX_AddByName( track, "ReaVerb", false, -1 )
     reaper.TrackFX_Show( track, pos, 3 )
-    local fxhwnd = reaper.JS_Window_Find( "ReaVerb (Cockos)", false )
+    local rv, window_name = reaper.TrackFX_GetFXName( track, pos, "" )
+    local window_name = rv and window_name or "ReaVerb (Cockos)"
+    local fxhwnd = reaper.JS_Window_Find( window_name, false )
     local _, list = reaper.JS_Window_ListAllChild( fxhwnd )
     local addbutton
     for address in list:gmatch("[^,]+") do
