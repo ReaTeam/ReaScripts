@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b1fbc09c7a4fe7aff0ab9695578e6bc596ab4043" name="ReaTeam Scripts">
+<index version="1" commit="ef280069c0f364b191f84acf18cd8d3962211de4" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13152,6 +13152,7 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=234517</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2019-04-07T18:51:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/11142bee6b070fc8cba50317dc09fd9980d932a3/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
@@ -13208,6 +13209,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- Ensure no orphan reapeak is left behind
 - Ensure that track name does not change]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8cd0d965b3e75902552d855b0e05e81939c2b136/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
+      </version>
+      <version name="2.03" author="amagalma" time="2020-12-08T11:34:58Z">
+        <changelog><![CDATA[- Support custom ReaVerb name]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ef280069c0f364b191f84acf18cd8d3962211de4/Various/amagalma_Create%20Impulse%20Response%20(IR)%20of%20the%20FX%20chain%20of%20the%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Distinguish visually the ripple editing modes.lua" type="script" desc="Distinguish visually the ripple editing modes">
