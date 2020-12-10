@@ -1,7 +1,6 @@
--- @description unsolo track with its number
+-- @description Unsolo track by its number
 -- @author mena Awad
 -- @version 1.0
-
 
  num_of_tracks = reaper.CountTracks(0)
     if num_of_tracks  == 0 then  return end;
