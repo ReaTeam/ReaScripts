@@ -1,6 +1,8 @@
 --[[
 ReaScript name: js_Select CC lanes to show in MIDI item under mouse.lua
-Version: 0.98
+Version: 1.00
+Changelog:
+  + Recall last-used GUI position.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Screenshot: https://stash.reaper.fm/32685/js_Select%20CC%20lanes%20to%20show%20-%20screenshot.png
@@ -40,28 +42,6 @@ About:
       esc = Exit without applying changes
       enter or a = Exit and apply changes
 ]] 
-
---[[
-  Changelog:
-  * v0.90 (2018-01-13)
-    + Initial Release
-  * v0.91 (2018-01-13)
-    + Fix: item under mouse is not open in inline editor
-  * v0.92 (2018-01-13)
-    + Show startup tips
-  * v0.93 (2018-01-13)
-    + Recall last-used GUI dimensions
-  * v0.94 (2018-01-14)
-    + Script automatically installed in Main, MIDI editor and Inline Editor sections
-  * v0.95 (2018-01-14)
-    + If called from main MIDI editor, re-focus editor after exit
-  * v0.96 (2018-01-25)
-    + Automatically load customized CC names if all items are in single track
-  * v0.97 (2018-02-09)
-    + Minimum lane height in MIDI editor
-  * v0.98 (2018-02-10)
-    + Distinguish notation and text events more accurately
-]]
 
 
 -- USER AREA
@@ -574,8 +554,11 @@ end
 ---------------
 function exit()
     -- Find and store the last-used dimensions of the GUI window, so that it can be re-opened at the same position
-    if type(prevW) == "number" and type(prevH) == "number" then
-        reaper.SetExtState("Select CC lanes to show", "Last dimensions", string.format("%i", math.floor(prevW+0.5)) .. "," .. string.format("%i", math.floor(prevH+0.5)), true)
+    local docked, x, y, w, h = gfx.dock(-1, 0, 0, 0, 0)
+    -- xPos and yPos should already be integers, but use math.floor just to make absolutely sure
+    if docked and x and y and w and h then
+        docked, x, y, w, h = math.floor(docked+0.5), math.floor(x+0.5), math.floor(y+0.5), math.floor(w+0.5), math.floor(h+0.5)
+        reaper.SetExtState("Select CC lanes to show", "Last dimensions", string.format("%i,%i,%i,%i,%i", w, h, x, y, docked), true)
     end
   
     gfx.quit()
@@ -618,14 +601,16 @@ if lastTipVersion < 0.92 then
 end
 
 -- Start the GUI!
-lastWidth, lastHeight = (reaper.GetExtState("Select CC lanes to show", "Last dimensions")):match("(%d+),(%d+)")
-if lastWidth and lastHeight then
-    GUIWidth, GUIHeight = tonumber(lastWidth), tonumber(lastHeight)
-else
-    GUIWidth, GUIHeight = 960, 504
+do
+  local lastWidth, lastHeight, lastX, lastY, docked = (reaper.GetExtState("Select CC lanes to show", "Last dimensions")):match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
+  lastWidth  = lastWidth and tonumber(lastWidth) or 960
+  lastHeight = lastHeight and tonumber(lastHeight) or 504
+  lastX = lastX and tonumber(lastX) or 50
+  lastY = lastY and tonumber(lastY) or 50
+  docked = docked and tonumber(docked) or 0
+  gfx.init("Select CC lanes to show", lastWidth, lastHeight, docked, lastX, lastY)
+  drawGUI()
 end
-gfx.init("Select CC lanes to show", GUIWidth, GUIHeight, 0)
-drawGUI()
 
 reaper.atexit(exit)
 loop()
