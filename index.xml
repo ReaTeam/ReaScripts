@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="07b065eb14ac1710ff4ee7d9cec3560897ebce06" name="ReaTeam Scripts">
+<index version="1" commit="26c5655a28a28bfb40908fa7fdbd5873438d1366" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13536,6 +13536,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2020-12-15T13:08:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/07b065eb14ac1710ff4ee7d9cec3560897ebce06/Various/amagalma_Insert%20or%20remove%20space%20at%20project%20start%20(moving%20everything%20and%20optionally%20keep%20same%20arrange%20view%20position).lua</source>
+      </version>
+      <version name="1.01" author="amagalma" time="2020-12-15T19:10:00Z">
+        <changelog><![CDATA[Fix crash when choosing cancel]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/26c5655a28a28bfb40908fa7fdbd5873438d1366/Various/amagalma_Insert%20or%20remove%20space%20at%20project%20start%20(moving%20everything%20and%20optionally%20keep%20same%20arrange%20view%20position).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_mespotine_Create MIDI Morse Message Item at edit cursor position, grid length duration, first selectedlast touched or first track.lua" type="script" desc="Create MIDI Morse Message Item at edit cursor position, grid length duration, first selected/last touched/ or first track">
