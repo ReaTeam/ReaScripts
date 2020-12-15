@@ -1,15 +1,18 @@
 -- @description Insert or remove space at project start (moving everything and optionally keep same arrange view position)
 -- @author amagalma
--- @version 1.00
+-- @version 1.01
+-- @changelog Fix crash when choosing cancel
 -- @donation https://www.paypal.me/amagalma
 -- @about Inserts or removes user specified amount of space at the start of the project
 
 local ok, retval = reaper.GetUserInputs( "Insert/remove space at start of project", 2, "Seconds: (>0 insert | <0 remove),\z
                    Keep same arrange view: (y/n),extrawidth=20", "10,y" )
 local space, keepView = retval:match("([-%.%d]+),([yYnN])")
+if not ok or not space or not keepView then return end
+
 space, keepView = tonumber(space), keepView:upper()
 
-if ok and space and keepView and space ~= 0 then
+if space and space ~= 0 then
   reaper.Undo_BeginBlock()
   reaper.PreventUIRefresh( 1 )
   
