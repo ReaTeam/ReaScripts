@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0c69ba0ae60b6d300d2348dd7dd283e3e3c02fcc" name="ReaTeam Scripts">
+<index version="1" commit="07b065eb14ac1710ff4ee7d9cec3560897ebce06" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13523,19 +13523,19 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2324df14fbab73a3ffb480bb9c1acca4091b0da9/Various/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(remove%20empty%20tracks).lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Insert empty space at project start (moving everything).lua" type="script" desc="Insert empty space at project start (moving everything)">
+    <reapack name="amagalma_Insert or remove space at project start (moving everything and optionally keep same arrange view position).lua" type="script" desc="Insert or remove space at project start (moving everything and optionally keep same arrange view position)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Inserts user specified amount of empty space at the start of the project.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inserts or removes user specified amount of space at the start of the project\par}
 }
 ]]></description>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
-      <version name="1.00" author="amagalma" time="2020-12-15T00:24:45Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c69ba0ae60b6d300d2348dd7dd283e3e3c02fcc/Various/amagalma_Insert%20empty%20space%20at%20project%20start%20(moving%20everything).lua</source>
+      <version name="1.00" author="amagalma" time="2020-12-15T13:08:56Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/07b065eb14ac1710ff4ee7d9cec3560897ebce06/Various/amagalma_Insert%20or%20remove%20space%20at%20project%20start%20(moving%20everything%20and%20optionally%20keep%20same%20arrange%20view%20position).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_mespotine_Create MIDI Morse Message Item at edit cursor position, grid length duration, first selectedlast touched or first track.lua" type="script" desc="Create MIDI Morse Message Item at edit cursor position, grid length duration, first selected/last touched/ or first track">
