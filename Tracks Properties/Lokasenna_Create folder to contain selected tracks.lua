@@ -41,7 +41,7 @@ reaper.SetMediaTrackInfo_Value( parent, "I_FOLDERDEPTH", 1, true )
 local lastSel = reaper.GetSelectedTrack(0, reaper.CountSelectedTracks(0) - 1)
 
 local curDepth = reaper.GetMediaTrackInfo_Value( lastSel, "I_FOLDERDEPTH" )
-local newDepth = (curDepth == 0) and (curDepth - 1) or -1
+local newDepth = curDepth - 1
 
 reaper.SetMediaTrackInfo_Value( lastSel, "I_FOLDERDEPTH", newDepth, true )
 
