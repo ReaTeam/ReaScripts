@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="26c5655a28a28bfb40908fa7fdbd5873438d1366" name="ReaTeam Scripts">
+<index version="1" commit="63ea732e207062c05c66d5c99827c315a943748e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -3763,23 +3763,26 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ebb4ef8a5726d15ff6013306838886685233eb6/Items%20Editing/amagalma_Set%20items'%20rate%20according%20to%20their%20BPM%20metadata%20tag,%20if%20present.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Smart Crossfade.lua" type="script" desc="amagalma_Smart Crossfade">
+    <reapack name="amagalma_Smart Crossfade.lua" type="script" desc="Smart Crossfade">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades selected items\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items are adjacent then it creates a crossfade (length defined by user) on the left side of the items' touch point\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If any two items are adjacent then it creates a crossfade on the left side of the items' touch point\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If any two items are almost adjacent and their gap is less or equal to the default crossfade time then a crossfade is created\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items overlap then it creates a crossfade at the overlapping area\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area (items do not have to touch necessarily)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a time selection covering part of both items, then it crossfades at the time selection area (items do not have to touch - closes the gap)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can be used with as many items in different tracks as you like\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one change)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep the time selection or remove it\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep selected the previously selected items or not\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default crossfade length is set inside the script\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep the time selection or remove it (default: remove)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep selected the previously selected items or not (default: keep selected)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default crossfade length and type are gotten automatically from Reaper Preferences ("Overlap and crossfade items when splitting, length" and "Default crossfade shape")\sa180\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=195490</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-08-28T09:41:41Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ce3a1b7280f16bdc2833f0d9ad6e461d4579ab7/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
@@ -3853,6 +3856,12 @@ Better error-checking in general]]></changelog>
       <version name="1.37" author="amagalma" time="2018-04-01T22:00:21Z">
         <changelog><![CDATA[+ fix when dealing with items that are overlapping less than the default crossfade time]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ec2be1d32b5494bc9df5c0978e2573899b7605f7/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.50" author="amagalma" time="2020-12-17T12:11:09Z">
+        <changelog><![CDATA[- fixed one bug, improved code in many places
+- from now on the setting for the crossfade length and shape is gotten automatically from Reaper Preferences ("Overlap and crossfade items when splitting, length" and "Default crossfade shape")
+- updated ReaPack info]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/63ea732e207062c05c66d5c99827c315a943748e/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
