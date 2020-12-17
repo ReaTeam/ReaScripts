@@ -1,8 +1,10 @@
 -- @description Select destination tracks of selected tracks sends recursively
 -- @author cfillion
--- @version 1.2.1
--- @changelog Fix crash when encountering feedback routings
--- @provides [main] . > cfillion_Select destination tracks of selected tracks sends recursively (background).lua
+-- @version 1.2.1.1
+-- @changelog Fix missing non-background script [p=2379175]
+-- @provides
+--   .
+--   [main] . > cfillion_Select destination tracks of selected tracks sends recursively (background).lua
 -- @link Forum thread https://forum.cockos.com/showthread.php?t=183638
 -- @donation https://www.paypal.me/cfillion
 
