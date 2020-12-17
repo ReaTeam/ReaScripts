@@ -1,7 +1,7 @@
 -- @description Select destination tracks of selected tracks sends recursively
 -- @author cfillion
 -- @version 1.2.1.1
--- @changelog Fix missing non-background script [p=2379175]
+-- @changelog Fix missing non-background action since v1.2.1 [p=2379175]
 -- @provides
 --   .
 --   [main] . > cfillion_Select destination tracks of selected tracks sends recursively (background).lua
