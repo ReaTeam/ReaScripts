@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="63ea732e207062c05c66d5c99827c315a943748e" name="ReaTeam Scripts">
+<index version="1" commit="5bb806e4dfca957fc3e4df18843c03f737cc6706" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -12101,6 +12101,11 @@ Select tracks up the folder hierarchy (obeying parent send)]]></changelog>
       <version name="1.2.1" author="cfillion" time="2019-05-19T19:54:14Z">
         <changelog><![CDATA[Fix crash when encountering feedback routings]]></changelog>
         <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/4305c7510c7d34822b9ac187e3b4db39b8bd099d/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+      </version>
+      <version name="1.2.1.1" author="cfillion" time="2020-12-17T13:49:55Z">
+        <changelog><![CDATA[Fix missing non-background action since v1.2.1 [p=2379175]]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5bb806e4dfca957fc3e4df18843c03f737cc6706/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
+        <source main="main" file="cfillion_Select destination tracks of selected tracks sends recursively (background).lua">https://github.com/ReaTeam/ReaScripts/raw/5bb806e4dfca957fc3e4df18843c03f737cc6706/Tracks%20Properties/cfillion_Select%20destination%20tracks%20of%20selected%20tracks%20sends%20recursively.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Select source tracks of selected tracks receives recursively.lua" type="script" desc="Select source tracks of selected tracks receives recursively">
