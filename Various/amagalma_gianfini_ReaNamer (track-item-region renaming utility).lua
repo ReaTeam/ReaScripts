@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.21
+-- @version 1.22
 -- @changelog
---   - fix: key shortcuts should now work strictly as defined
+--   - change: items mode is automatically selected when launching the script, only if there are selected items and last mouse click was in the arrange view but not on an envelope
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -1500,7 +1500,7 @@ end
 local function init() -- INITIALIZATION --------------------------------------------------------------
   -- Get current context (tracks or items)
   local context = reaper.GetCursorContext2(true)
-  if context == 0 then what = "tracks" else what = "items" end
+  if (context == 1 and reaper.CountSelectedMediaItems(0) > 0) then what = "items" else what = "tracks" end
   init_tables()
   f() -- set font
   gfx.clear = reaper.ColorToNative( 4, 15, 47 )
