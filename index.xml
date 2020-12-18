@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2ca5d85345c46a020f72b8e4a6f47f59b3c1986c" name="ReaTeam Scripts">
+<index version="1" commit="ce73bd97f5031e7c28dd61b440035db9a8ef1d63" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -13454,6 +13454,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <changelog><![CDATA[- fix: key shortcuts should now work strictly as defined]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9a9f38a94d1e08cc9e328ff7ae871561973aaba1/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
         <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/9a9f38a94d1e08cc9e328ff7ae871561973aaba1/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+      </version>
+      <version name="1.22" author="amagalma &amp; gianfini" time="2020-12-18T11:54:45Z">
+        <changelog><![CDATA[- change: items mode is automatically selected when launching the script, only if there are selected items and last mouse click was in the arrange view but not on an envelope]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ce73bd97f5031e7c28dd61b440035db9a8ef1d63/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/ce73bd97f5031e7c28dd61b440035db9a8ef1d63/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
