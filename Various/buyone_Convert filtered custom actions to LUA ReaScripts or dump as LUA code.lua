@@ -16,12 +16,12 @@
 * Extensions: SWS/S&M
 * Changelog:
 	+ v1.1 	Correction of typos in comments
-			Removal of redundant info from Help
-			Added support for ancillary actions often used within custom action:
-			Action: Wait X seconds before next action
-			Action: Prompt to continue (only valid within custom actions)
-			Action: Set action loop start (only valid within custom actions)
-			Action: Prompt to go to action loop start (only valid within custom actions)
+		Removal of redundant info from Help
+		Added support for ancillary actions often used within custom action:
+		Action: Wait X seconds before next action
+		Action: Prompt to continue (only valid within custom actions)
+		Action: Set action loop start (only valid within custom actions)
+		Action: Prompt to go to action loop start (only valid within custom actions)
 	+ v1.0 	Initial release
 
 ]]
