@@ -1,8 +1,3 @@
--- @description Convert custom action to LUA ReaScript
--- @author BuyOne
--- @version 1.0
--- @about Converts a custom action by its command ID to LUA ReaScript
-
 --[[
 
 * ReaScript Name: BuyOne_Convert custom action to LUA ReaScript.lua
@@ -11,10 +6,17 @@
 * Author: Buy One
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
-* Forum Thread: 
+* Forum Thread:
 * Version: 1.0
 * REAPER: at least v5.962
 * Extensions: SWS/S&M
+* Changelog:
+	+ v1.1 	Added support for ancillary actions often used within custom action:
+		Action: Wait X seconds before next action
+		Action: Prompt to continue (only valid within custom actions)
+		Action: Set action loop start (only valid within custom actions)
+		Action: Prompt to go to action loop start (only valid within custom actions)
+	+ v1.0 	Initial release
 
 ]]
 
@@ -82,7 +84,9 @@ local input = input:match('([^,]+),')
 		if resp == 4 then goto RETRY else return end
 	end
 
--- Get custom action code as it appears in reaper-kb.ini file
+-- Get custom action code as it appears in the target file
+
+-- Concatenate OS specific path separators
 local input = input:gsub('_','')
 local path = r.GetResourcePath()
 	if r.GetOS() == 'Win32' or r.GetOS() == 'Win64' then sep = '\\'
@@ -104,10 +108,12 @@ local targ_file = 'reaper-kb.ini'
 	end
 
 
-	for line in io.lines(path..sep..'reaper-kb.ini') do
+	for line in io.lines(path..sep..targ_file) do
 		if line:match('\"('..input..')\"') then
 		code = line	break end
 	end
+
+	if not code then r.MB('The specified command ID wasn\'t found.','ERROR',0) return end
 
 	if code:match('%s(32062)%s') then r.MB('This is an Inline MIDI Editor custom action.\n\n  These are unfortunately not supported.\n\n                          ¯\\_(ツ)_/¯','ERROR',0) return end
 
@@ -161,7 +167,7 @@ local actions_t = {}
 		if w:match('_S&M_CYCLACTION_') then cycle_action = true inset2 = 'The custom action uses SWS cycle actions.\n\n' end
 		-- Nested custom action
 		if w:match('^(_[%d%l]+)') and not w:match('_S&M_CYCLACTION_') then
-			for line in io.lines(path..sep..'reaper-kb.ini') do
+			for line in io.lines(path..sep..targ_file) do
 			local w = w:gsub('_','')
 				if line:match('\"('..w..')\"') then
 				nest_code = line break end
@@ -177,6 +183,21 @@ local actions_t = {}
 	if reascript or cycle_action then r.MB(inset1..inset2..'             If they become unavailable\n\n      the exported script will malfunction.','WARNING',0) end
 
 
+-- Initialize code for ancillary actions
+local cont_action = '\nr.PreventUIRefresh(-1)\n\tlocal resp = r.MB(\'Continue running the script?\',\'Script paused\',1)\n\tif resp == 2 then return end\n\nr.PreventUIRefresh(1)\n' -- 2000 Action: Prompt to continue (only valid within custom actions)
+local set_loop_start = '\nr.PreventUIRefresh(-1)\n\n\trepeat\n\nr.PreventUIRefresh(1)\n' -- 2001 Action: Set action loop start (only valid within custom actions)
+local go_loop_start = '\nr.PreventUIRefresh(-1)\n\n\tlocal resp = r.MB(\'Loop the script from step 1?\',\'Script paused\',1)\n\tuntil resp == 2\n\nr.PreventUIRefresh(1)\n' -- 2002 Action: Prompt to go to action loop start (only valid within custom actions)
+local function wait(v) -- 2008 - 2012 Action: Wait X seconds before next action
+	if v == '2008' then sec = '0.1'
+	elseif v == '2009' then sec = '0.5'
+	elseif v == '2010' then sec = '1'
+	elseif v == '2011' then sec = '5'
+	elseif v == '2012' then sec = '10' end
+	local wait = '\nr.PreventUIRefresh(-1)\n\nlocal time_stamp = r.time_precise()\n\n\trepeat\n\tlocal cur_time = r.time_precise()\n\tuntil cur_time - time_stamp == '..sec..'\n\nr.PreventUIRefresh(1)'
+	return wait
+end
+
+
 -- Concatenate actions code
 local code_t = {}
 	for _,v in next, actions_t do
@@ -184,8 +205,23 @@ local code_t = {}
 	local id = r.NamedCommandLookup(v) -- works for native actions as well
 	local sect_midi = code:match('%s(3206[01])%s')
 	local sect_media_main = code:match('%s(32063)%s') or '0'
-		if sect_midi then str = 'r.MIDIEditor_OnCommand(hwnd,'..func..') -- '..r.CF_GetCommandText(tonumber(sect_midi), id) -- thanks to cfillion https://forum.cockos.com/showthread.php?t=186732
-		else str = 'r.Main_OnCommand('..func..',0) -- '..r.CF_GetCommandText(tonumber(sect_media_main), id) end
+		if sect_midi then
+			if v == "2000" then str = cont_action
+			elseif v == "2001" then str = set_loop_start; repeat_loop = v -- any value so it's not nil
+			elseif v == "2002" then str = go_loop_start;
+				-- Insert repeat at the very start of action sequence if loop start wasn't set explicitly by 2001
+				if not repeat_loop then table.insert(code_t, 1, set_loop_start) end
+			else str = 'r.MIDIEditor_OnCommand(hwnd,'..func..') -- '..r.CF_GetCommandText(tonumber(sect_midi), id) -- thanks to cfillion https://forum.cockos.com/showthread.php?t=186732
+			end
+		else
+			if v == "2000" then str = cont_action
+			elseif v == "2001" then str = set_loop_start; repeat_loop = v -- any value so it's not nil
+			elseif v == "2002" then str = go_loop_start;
+				-- Insert repeat at the very start of action sequence if loop start wasn't set explicitly by 2001
+				if not repeat_loop then table.insert(code_t, 1, set_loop_start) end
+			elseif tonumber(v) > 2007 and tonumber(v) < 2013 and sect_media_main == '0' then str = wait(v)
+			else str = 'r.Main_OnCommand('..func..',0) -- '..r.CF_GetCommandText(tonumber(sect_media_main), id) end
+		end
 	code_t[#code_t+1] = str
 	end
 
@@ -224,4 +260,5 @@ local resp = r.MB(mess,head,mode)
 local command = sep == '\\' and 'explorer ' or 'open '
 
 	if resp == 6 then os.execute(command..f_path) end
+
 
