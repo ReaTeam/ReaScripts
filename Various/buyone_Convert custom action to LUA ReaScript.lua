@@ -1,3 +1,8 @@
+-- @description Convert custom action to LUA ReaScript
+-- @author BuyOne
+-- @version 1.0
+-- @about Converts a custom action by its command ID to LUA ReaScript
+
 --[[
 
 * ReaScript Name: BuyOne_Convert custom action to LUA ReaScript.lua
