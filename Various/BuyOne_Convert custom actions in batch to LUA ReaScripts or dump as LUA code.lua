@@ -1,7 +1,7 @@
 @@ -0,0 +1,347 @@
 -- @description Convert custom actions in batch to LUA ReaScripts or dump as LUA code
 -- @author BuyOne
--- @version 1.0
+-- @version 1.1
 
 --[[
 
