@@ -1,9 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.20
+Version: 6.21
 Changelog:
-  + NEW: In envelope mode, automatically add edge points when using razor areas.
-  + FIXED: In MIDI mode, calculation of source length when set to "Ignore project tempo".
+  + FIXED: Razor edge points in take envelopes.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -3285,8 +3284,8 @@ end -- function Setup_MIDIEditorInfoFromTakeChunk
 function Setup_AddRazorEdgePoints()
     local samplerate = reaper.GetSetProjectInfo(0, "PROJECT_SRATE", 0, false)
     if samplerate < 44100 then samplerate = 192000 end
-    local edge = 1/samplerate
-    local margin = 0.00051 -- REAPER's own edge points are 0.5ms away -- 10*edge 
+    local sample = 1/samplerate
+    local margin = 0.001 -- REAPER's own edge points are 0.5ms away
     for env, tInfo in pairs(tTakeInfo) do
         for r, tR in ipairs(tInfo.tRazors) do 
             for ai, tAI in pairs(tInfo.tAIs) do 
@@ -3295,69 +3294,75 @@ function Setup_AddRazorEdgePoints()
                 
                 -- Razor rightmost edge:
                 if tAI.startTime < tR.endTime and tR.endTime+margin < tAI.endTime then
-                    local pL, pR, p0, rightEdgeVal -- point at or to left of edge, point to right of edge, prior point (just to get shape)
+                    local pL, pR, p0, rightEdgeVal -- If edge points are found: point at or to left of edge, point to right of edge, prior point (just to get shape)
                     for p = numPoints-1, 0, -1 do --(reaper.GetEnvelopePointByTimeEx(env, ai, tR.endTime+margin) or -1), 0, -1 do
                         local tP = {reaper.GetEnvelopePointEx(env, ai, p)}
-                        if tP[1] and tP[2] < tR.endTime+margin then
-                            --[[if tR.endTime-0.000000001 < tP[2] and tP[2] < tR.endTime+0.000000001 and tP[2] ~= tR.endTime then 
-                                tP[2] = tR.endTime
-                                reaper.SetEnvelopePointEx(env, ai, p, tR.endTime, tP[3], tP[4], tP[5], tP[6], true)
-                            end]]
-                            if tR.endTime+0.000000001 <= tP[2] then 
-                                pR = tP
-                            elseif tP[2] > tR.endTime-margin then
-                                if not pR and tR.endTime-0.000000001 < tP[2] and tP[2] < tR.endTime+0.000000001 then
-                                    rightEdgeVal = tP[3]
-                                    reaper.SetEnvelopePointEx(env, ai, p, tR.endTime+edge, tP[3], tP[4], tP[5], false, true)
+                        if tP[1] then
+                            tP[2] = tInfo.offset + tP[2]/tInfo.playrate -- Adjust for stretched takes
+                            if tP[2] > tR.endTime+sample then 
+                                if tP[2] < tR.endTime+margin then
                                     pR = tP
-                                else
-                                    pL = tP
-                                    break
                                 end
+                            elseif tP[2] > tR.endTime-sample then
+                                rightEdgeVal = tP[3] -- So that don't need to call Envelope_Evaluate later.
+                                if not pR then 
+                                    pR = tP 
+                                    reaper.SetEnvelopePointEx(env, ai, p, ((tR.endTime+sample)-tInfo.offset)*tInfo.playrate, tP[3], tP[4], tP[5], false, true)
+                                else 
+                                    pL = tP 
+                                    reaper.SetEnvelopePointEx(env, ai, p, (tR.endTime-tInfo.offset)*tInfo.playrate, tP[3], tP[4], tP[5], false, true)
+                                    break 
+                                end
+                            elseif tP[2] > tR.endTime-margin then
+                                pL = tP
+                                break
                             else
-                                p0 = tP
                                 break
                             end
+                        else
+                            break
                         end
                     end
+                    
                     if not pR then
-                        tAdd[#tAdd+1] = {time = tR.endTime+edge, sel = false,
-                                         val     = ({reaper.Envelope_Evaluate(env, tR.endTime+edge, samplerate, 1)})[2],
+                        tAdd[#tAdd+1] = {time = tR.endTime+sample, sel = false,
+                                         val     = ({reaper.Envelope_Evaluate(env, (tR.endTime+sample-tInfo.offset)*tInfo.playrate, samplerate, 1)})[2],
                                          shape   = (pL and pL[4]) or (p0 and p0[4]) or tInfo.defaultShape, 
                                          tension = (pL and pL[5]) or (p0 and p0[5]) or 0}
                     end
                     if not pL then
                         tAdd[#tAdd+1] = {time = tR.endTime, sel = true,
-                                         val     = rightEdgeVal or ({reaper.Envelope_Evaluate(env, tR.endTime, samplerate, 1)})[2],
+                                         val     = rightEdgeVal or ({reaper.Envelope_Evaluate(env, (tR.endTime-tInfo.offset)*tInfo.playrate, samplerate, 1)})[2],
                                          shape   = 0, --(got0 and got0[4]) or tInfo.defaultShape, 
                                          tension = (p0 and p0[5]) or 0}
                     end
                 end
-                
+
                 -- Razor leftmost edge:
                 if tAI.startTime < tR.startTime-margin and tR.startTime < tAI.endTime then
                     local pL, pR, p0, leftEdgeVal
                     for p = 0, numPoints-1 do --math.huge do
                         local tP = {reaper.GetEnvelopePointEx(env, ai, p)} --=pOK, pTime, pVal, pShape, pTension, pSel
                         if tP[1] then -- pOK
-                            --[[if tR.startTime-0.000000001 < tP[2] and tP[2] < tR.startTime+0.000000001 and tP[2] ~= tR.startTime then 
-                                tP[2] = tR.startTime
-                                reaper.SetEnvelopePointEx(env, ai, p, tR.startTime, tP[3], tP[4], tP[5], tP[6], true)
-                            end]]
-                            if tP[2] < tR.startTime then -- pTime
-                                p0 = tP
+                            tP[2] = tInfo.offset + tP[2]/tInfo.playrate
+                            if tP[2] < tR.startTime-sample then -- t[2] is pTime
+                                p0 = tP 
                                 if tR.startTime-margin < tP[2] then
                                     pL = tP
                                 end 
-                            elseif tP[2] < tR.startTime+margin then
-                                if not pL and tR.startTime-0.000000001 < tP[2] and tP[2] < tR.startTime+0.000000001 then
-                                    leftEdgeVal = tP[3]
-                                    reaper.SetEnvelopePointEx(env, ai, p, tR.startTime-edge, tP[3], tP[4], tP[5], false, true)
+                            elseif tP[2] < tR.startTime+sample then
+                                leftEdgeVal = tP[3] -- So that don't need to call Envelope_Evaluate later.
+                                if not pL then 
                                     pL = tP
-                                else
+                                    reaper.SetEnvelopePointEx(env, ai, p, ((tR.startTime-sample)-tInfo.offset)*tInfo.playrate, tP[3], tP[4], tP[5], false, true)
+                                else 
                                     pR = tP
-                                    break
+                                    reaper.SetEnvelopePointEx(env, ai, p, (tR.startTime-tInfo.offset)*tInfo.playrate, tP[3], tP[4], tP[5], false, true)
+                                    break 
                                 end
+                            elseif tP[2] < tR.startTime+margin then
+                                pR = tP
+                                break
                             else
                                 break
                             end
@@ -3365,128 +3370,26 @@ function Setup_AddRazorEdgePoints()
                             break
                         end
                     end
+                    
                     if not pL then
-                        tAdd[#tAdd+1] = {time = tR.startTime-edge, sel = false, 
-                                         val     = ({reaper.Envelope_Evaluate(env, tR.startTime-edge, samplerate, 1)})[2],
+                        tAdd[#tAdd+1] = {time = tR.startTime-sample, sel = false, 
+                                         val     = ({reaper.Envelope_Evaluate(env, (tR.startTime-sample-tInfo.offset)*tInfo.playrate, samplerate, 1)})[2],
                                          shape   = 0, --(p0 and p0[4]) or tInfo.defaultShape, 
                                          tension = (p0 and p0[5]) or 0}
                     end
                     if not pR then
                         tAdd[#tAdd+1] = {time = tR.startTime, sel = true,
-                                         val     = leftEdgeVal or ({reaper.Envelope_Evaluate(env, tR.startTime, samplerate, 1)})[2],
+                                         val     = leftEdgeVal or ({reaper.Envelope_Evaluate(env, (tR.startTime-tInfo.offset)*tInfo.playrate, samplerate, 1)})[2],
                                          shape   = (pL and pL[4]) or (p0 and p0[4]) or tInfo.defaultShape,
                                          tension = (pL and pL[5]) or (p0 and p0[5]) or 0}
                     end
                 end
-                   --[[ 
-                    
-                            edgeVal = pVal
-                            if not gotR then
-                        elseif tP[2] == tR.endTime then
-                            edgeVal = pVal
-                            if not gotR then
-                                reaper.SetEnvelopePointEx(env, ai, p, tR.endTime+0.00000001, pVal, pShape, pTension, false, true)
-                                gotR = tP
-                            else
-                                gotL = tP
-                                break
-                            end
-                        elseif tP[2] > tR.endTime-margin then
-                            gotL = tP
-                            break
-                        else
-                            t0 = tP
-                            break
-                        end
-                    end
-                end
-                
-                
-                local gotA, gotB, gotC, gotX, gotY, gotZ
-                if tAI.startTime < tR.endTime and tR.endTime+margin < tAI.endTime then
-                    local pOK, pTime, pVal, pShape, pTension, pSel, rightVal, leftVal -- = true, -math.huge, 0, tInfo.defaultShape, 0, false
-                    -- Any edge points to right of Razor area?
-                    local p = reaper.GetEnvelopePointByTimeEx(env, ai, tR.endTime+margin)
-                    if p and p >= 0 then
-                        pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p)
-                    end
-                    if pOK and tR.endTime < pTime then
-                        gotZ = true
-                        pOK = nil
-                        p = reaper.GetEnvelopePointByTimeEx(env, ai, tR.endTime)
-                        if p and p >= 0 then
-                            pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p)
-                        end
-                    end
-                    -- Any points precisely at Razor edge?
-                    ::checkYagain::
-                    if pOK and tR.endTime == pTime then
-                        if not gotZ then
-                            rightVal = pVal
-                            reaper.SetEnvelopePointEx(env, ai, p, tR.endTime+0.00000001, pVal, pShape, pTension, false, true)
-                            gotZ = true
-                            pOK = nil
-                            if p > 0 then
-                                pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p-1)
-                            end
-                            goto checkYagain
-                        else
-                            gotY = true
-                            pOK = nil
-                            if not (gotY and gotZ) then
-                                p = reaper.GetEnvelopePointByTimeEx(env, ai, tR.endTime-0.00000001)
-                                if p and p >= 0 then
-                                    pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p)
-                                end
-                            end
-                        end
-                    end
-                    -- Any edge points just inside Razor area?
-                    if pOK and tR.endTime-margin < pTime then
-                        gotX = true
-                    end
-                    
-                    
-                    if not (pOK and tR.endTime < pTime) then -- NOT edge point just OUTSIDE Razor area
-                        local _, val = reaper.Envelope_Evaluate(env, tR.endTime+edge, samplerate, 1)
-                        tP[#tP+1] = {tR.endTime+edge, val, pOK and pShape or tInfo.defaultShape, pOK and pTension or 0, false, true}
-                    else
-                        -- If there was an edge point outside Razor area, must search again for point inside
-                        p = reaper.GetEnvelopePointByTimeEx(env, ai, tR.endTime)
-                        if p and p >= 0 then
-                            pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p)
-                        end
-                    end
-                    if not (pOK and tR.endTime-margin < pTime) then -- NOT edge point just INSIDE Razor area
-                        local _, val = reaper.Envelope_Evaluate(env, tR.endTime-edge, samplerate, 1)
-                        tP[#tP+1] = {tR.endTime-edge, val, pOK and pShape or tInfo.defaultShape, pOK and pTension or 0, true, true}
-                    end
-                end
-                
-                if tAI.startTime < tR.startTime-margin and tR.startTime < tAI.endTime then
-                    local pOK, pTime, pVal, pShape, pTension, pSel -- = true, -math.huge, 0, tInfo.defaultShape, 0, false
-                    local p = reaper.GetEnvelopePointByTimeEx(env, ai, tR.startTime+margin)
-                    if p and p >= 0 then
-                        pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p)
-                    end
-                    if not (pOK and tR.startTime <= pTime) then -- NOT edge point just INSIDE or AT Razor area
-                        local _, val = reaper.Envelope_Evaluate(env, tR.startTime+edge, samplerate, 1)
-                        tP[#tP+1] = {tR.startTime+edge, val, pOK and pShape or tInfo.defaultShape, pOK and pTension or 0, true, true}
-                    else
-                        p = reaper.GetEnvelopePointByTimeEx(env, ai, tR.startTime)
-                        if p and p >= 0 then
-                            pOK, pTime, pVal, pShape, pTension, pSel = reaper.GetEnvelopePointEx(env, ai, p)
-                        end
-                    end
-                    if not (pOK and tR.startTime-margin < pTime) then -- NOT edge point just OUTSIDE Razor area
-                        local _, val = reaper.Envelope_Evaluate(env, tR.startTime-edge, samplerate, 1)
-                        tP[#tP+1] = {tR.startTime-edge, val, pOK and pShape or tInfo.defaultShape, pOK and pTension or 0, false, true}
-                    end
-                end
-                ]]
+
+
                 if #tAdd > 0 then
                     for i, t in ipairs(tAdd) do
-                        reaper.InsertEnvelopePointEx(env, ai, t.time, t.val, t.shape, t.tension, t.sel, true)
+                        p1, p2, p3 = t.time, tInfo.offset, tInfo.playrate
+                        reaper.InsertEnvelopePointEx(env, ai, (t.time-tInfo.offset)*tInfo.playrate, t.val, t.shape, t.tension, t.sel, true)
                     end
                     reaper.Envelope_SortPointsEx(env, ai)
                 end
@@ -3521,7 +3424,7 @@ function Setup_AutomationContext()
             local trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
             if trackY then
                 for e = reaper.CountTakeEnvelopes(activeTake)-1, 0, -1 do
-                    env = reaper.GetTakeEnvelope(activeTake, e)
+                    local env = reaper.GetTakeEnvelope(activeTake, e)
                     if env then -- I don't think ValidatePtr2 works on TAKE envelopes
                         local top = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
                         if top <= mouseOrigY then
@@ -3540,12 +3443,12 @@ function Setup_AutomationContext()
             local trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
             if trackY then
                 for e = reaper.CountTrackEnvelopes(activeTrack)-1, 0, -1 do
-                    env = reaper.GetTrackEnvelope(activeTrack, e)
+                    local env = reaper.GetTrackEnvelope(activeTrack, e)
                     if env and reaper.ValidatePtr2(0, env, "TrackEnvelope*") then
-                         top = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
+                        local top = trackY + reaper.GetEnvelopeInfo_Value(env, "I_TCPY")
                         if top <= mouseOrigY then
-                             height   = reaper.GetEnvelopeInfo_Value(env, "I_TCPH")
-                             bottom  = top + height - 1
+                            local height   = reaper.GetEnvelopeInfo_Value(env, "I_TCPH")
+                            local bottom  = top + height - 1
                             if mouseOrigY <= bottom then
                                 activeEnv = env
                                 ME_TargetTopPixel = trackY + reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPY_USED")
@@ -3563,7 +3466,7 @@ function Setup_AutomationContext()
     
     -- Razor selections take precedence over AI and point selections.
     -- Now check if there are any Razor Areas
-    if activeTake then
+    if activeTake then -- Is mouse over an item?
         useSelectedAIs = false
         tTakeInfo[activeEnv] = {track = activeTrack, tSelectedAIs = {}, tRazors = {}}
         local razorsOK, razors = reaper.GetSetMediaTrackInfo_String(activeTrack, "P_RAZOREDITS", "", false)
@@ -3576,7 +3479,7 @@ function Setup_AutomationContext()
                         tTakeInfo[activeEnv].tRazors[#tTakeInfo[activeEnv].tRazors+1] = {startTime = startTime, endTime = endTime}
                         useRazors = true
         end end end end
-    else
+    else -- Mouse is over envelopes
         for t = 0, reaper.CountTracks(0)-1 do
             local track = reaper.GetTrack(0, t)
             if reaper.ValidatePtr2(0, track, "MediaTrack*") then
@@ -3620,7 +3523,7 @@ function Setup_AutomationContext()
     local function GetEnvMinMaxAI(env)
         local BR_Env = reaper.BR_EnvAlloc(env, false)
         if not BR_Env then 
-            reaper.MB("Failed running SWS function BR_EnvAlloc.", "ERROR", 0) 
+            reaper.MB("Failed while running SWS function BR_EnvAlloc.", "ERROR", 0) 
             return false 
         else
             local _, _, _, _, _, defaultShape, minValue, maxValue, _, _, _, automationItemsOptions = reaper.BR_EnvGetProperties(BR_Env)
@@ -3643,11 +3546,11 @@ function Setup_AutomationContext()
         local itemEndTimePos = itemStartTimePos + itemLength
         --local minimumTick = itemStartTimePos --0 --!!!!! All envelope points -- even from take envs -- will be stored with their *absolute* time positions
         --local maximumTick = itemEndTimePos -- itemLength*playrate
-        local laneMinValue, laneMaxValue, AIOptions, defaultShape = GetEnvMinMaxAI(env)
+        local laneMinValue, laneMaxValue, AIOptions, defaultShape = GetEnvMinMaxAI(activeEnv)
         tTakeInfo[activeEnv] = {tRazors = tTakeInfo[activeEnv].tRazors, -- just copy from existing table
                                 take = activeTake, item = activeItem, track = activeTrack, playrate = playrate, offset = offset, AIOptions = AIOptions, defaultShape = defaultShape,
                                 minimumTick = itemStartTimePos, maximumTick = itemEndTimePos, laneMinValue = laneMinValue, laneMaxValue = laneMaxValue,
-                                tAIs = {[-1] = {left = -math.huge, right = math.huge}}, startAI = -1, endAI = -1 }
+                                tAIs = {[-1] = {startTime = -math.huge, endTime = math.huge}}, startAI = -1, endAI = -1 }
         globalLeftmostItemStartTimePos = itemStartTimePos
         globalRightmostItemEndTimePos  = itemEndTimePos
       
