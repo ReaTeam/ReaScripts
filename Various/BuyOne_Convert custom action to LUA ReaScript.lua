@@ -12,7 +12,7 @@
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
 * Forum Thread:
-* Version: 1.0
+* Version: 1.1
 * REAPER: at least v5.962
 * Extensions: SWS/S&M
 * Changelog:
