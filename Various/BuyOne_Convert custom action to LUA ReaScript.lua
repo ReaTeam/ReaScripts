@@ -1,6 +1,6 @@
 -- @description Convert custom action to LUA ReaScript
 -- @author BuyOne
--- @version 1.1
+-- @version 1.2
 -- @about Converts a custom action by its command ID to LUA ReaScript
 
 --[[
@@ -12,15 +12,18 @@
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
 * Forum Thread:
-* Version: 1.1
+* Version: 1.2
 * REAPER: at least v5.962
 * Extensions: SWS/S&M
 * Changelog:
+	+ v1.2	As a safety measure added option to select specific Action list section, might be superfluous;
+			Help updated accordingly;
+			Other minor usability tweaks and error proofing;
 	+ v1.1 	Added support for ancillary actions often used within custom action:
-		Action: Wait X seconds before next action
-		Action: Prompt to continue (only valid within custom actions)
-		Action: Set action loop start (only valid within custom actions)
-		Action: Prompt to go to action loop start (only valid within custom actions)
+			Action: Wait X seconds before next action;
+			Action: Prompt to continue (only valid within custom actions);
+			Action: Set action loop start (only valid within custom actions);
+			Action: Prompt to go to action loop start (only valid within custom actions);
 	+ v1.0 	Initial release
 
 ]]
@@ -29,7 +32,7 @@
 
 -- To use a .ReaperKeyMap file for parsing insert its name with extension in between the quotes, e.g. myFile.ReaperKeyMap.
 -- It MUST reside in the \KeMaps subdirectory of the REAPER program directory (aka resource path)
--- Read HELP for further details
+-- See HELP for further details
 
 local ReaperKeyMap = ""
 
@@ -45,7 +48,18 @@ Limitations:
 
 The exported script will malfunction if such nested custom or SWS cycle actions or ReaScripts become anavilable.
 
+3. Inline MIDI Editor custom actions are not supported.
+
 ***********************************
+
+Specifying section might be needed since custom actions in different sections can have the same command ID. It's an extremely rare case but in theory it's not impossible. If you're sure that no command ID is shared between different Action list sections, ignore this setting leaving the field blank or containing the default comment. After export you can check if the actions listed in the resulting script do correspond to those which feature in the custom action.
+
+Action list Section codes for field 2 of the dialogue
+
+Main section (including Main (alt recording)) = 1
+MIDI Editor section = 2
+MIDI Event list editor section = 3
+Media Explorer section = 4
 
 The default location for export is Scripts sub-directory in the REAPER project directory unless another folder is specified. If the specified folder doesn't exist it will be created. The last specified folder name is remembered and will be displayed in the corresponding field of the dialogue on the next script run during REAPER session.
 
@@ -60,39 +74,57 @@ local r = reaper
 	r.ShowConsoleMsg("Get the SWS/S&M extension at\nhttps://www.sws-extension.org/")
 	r.MB("This script requires the SWS/S&M extension.\n\n If it's installed then it needs to be updated.","API CHECK", 0)
 	return end
+	
+local script_name = select(2,r.get_action_context()):match('[^\\/]+%.%w+')
 
 ::RETRY::
 
-local comment = 'to run the exported script from Arrange view'
-local subdir = r.GetExtState(select(2,r.get_action_context()):match('[^\\/]+%.%w+'), 'dir_field')
+local comment1 = 'type h in the 1st field for help'
+local comment2 = 'to run the exported script from Arrange view'
+local subdir = r.GetExtState(script_name, 'dir_field')
 	if subdir == '' then subdir = 'existing or new; or leave as it is or empty' end
+local comm_id = r.GetExtState(script_name, 'comm_id')
 
-local retval, input = r.GetUserInputs('Submit custom action (type h in the 1st field for help)',3,'Custom action command ID:,For MIDI Editor (type char. a):,Specify folder under \\Scripts:,extrawidth=150',','..comment..','..subdir)
+local retval, input = r.GetUserInputs('Submit custom action (type h in the 1st field for help)',4,'Custom action command ID:,Acton list section:,For MIDI Editor (type char. a):,Specify folder under \\Scripts:,extrawidth=150',''..comm_id..','..comment1..','..comment2..','..subdir)
+
+r.DeleteExtState(script_name, 'comm_id', true)
 
 	if retval == false or input == input:match('^(,.+)') -- empty 1st field
 	then return end
 
-local midi_from_arrange = input:match(',([^,]+),')
+local comm_id = input:match('^([^,]+),')
+
+	if comm_id:match('(h)') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
+	
+local section, midi_from_arrange = input:match(',([^,]*),([^,]*),')
+
+	if section == '1' then section = '0'
+	elseif section == '2' then section = '32060'
+	elseif section == '3' then section = '32061'
+	elseif section == '4' then section = '32063'
+	elseif section == comment1 then section = ''
+	elseif section ~= '' then resp = reaper.MB('Incorrect section selection. If unsure, click Retry\n\n         and type \'h\' in the 1st field for help.','ERROR... '..section,5)
+		if resp == 4 then r.SetExtState(script_name, 'comm_id', comm_id, false) goto RETRY 
+		else return end
+	end
+
 local subdir = input:match(',([^,]+)$')
 	if not subdir then subdir = '' end
-r.SetExtState(select(2,r.get_action_context()):match('[^\\/]+%.%w+'), 'dir_field', subdir, false)
-local input = input:match('([^,]+),')
+r.SetExtState(script_name, 'dir_field', subdir, false)
 
-	if input:match('(h)') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
-	if input:len() < 32 then mess = 'Doesn\'t look like a custom action command ID.'
-	elseif input:match('(_?RS[%w]+)') then mess = 'The command ID belongs to a ReaScript.'
+	if comm_id:len() < 32 then mess = 'Doesn\'t look like a custom action command ID.'
+	elseif comm_id:match('(_?RS[%w]+)') then mess = 'The command ID belongs to a ReaScript.'
 	else mess = nil end
-
-	if mess then
-	resp = r.MB(mess,'ERROR',5)
+	if mess then resp = r.MB(mess,'ERROR... '..comm_id,5)
 		if resp == 4 then goto RETRY else return end
 	end
 
+
 -- Get custom action code as it appears in the target file
+local input = input:gsub('_','')
 
 -- Concatenate OS specific path separators
-local input = input:gsub('_','')
 local path = r.GetResourcePath()
 	if r.GetOS() == 'Win32' or r.GetOS() == 'Win64' then sep = '\\'
 	else sep = '/' end -- OS evaluation is nicked from X-Raym
@@ -110,20 +142,30 @@ local targ_file = 'reaper-kb.ini'
 		if not f then resp = r.MB('    '..ReaperKeyMap..' file\n\n            was\'t found.\n\n   Switching to '..targ_file,'WARNING',1)
 			if resp == 2 then return end
 		else targ_file = 'KeyMaps'..sep..ReaperKeyMap end
-	end
-
+	end	
 
 	for line in io.lines(path..sep..targ_file) do
-		if line:match('\"('..input..')\"') then
-		code = line	break end
+		if section == '' then cond = line:match('\"('..comm_id..')\"')
+		else cond = line:match('%s('..section..'%s\"'..comm_id..'\")%s') end
+		if cond then code = line break end
 	end
 
-	if not code then r.MB('The specified command ID wasn\'t found.','ERROR',0) return end
+	if not code then
+	local t = {[0] = '1',[32060] = '2',[32061] = '3',[32063] = '4'} -- back convert just to display in the error message
+	local caption = section ~= '' and t[tonumber(section)] or ''
+	local inset = section ~= '' and '\n\n       in the specified Action list section.' or '.'
+	local resp = r.MB('The submitted command ID wasn\'t found'..inset,'ERROR... '..caption,5) 
+		if resp == 4 then 
+			if section ~= '' then r.SetExtState(script_name, 'comm_id', comm_id, false) end
+			goto RETRY
+		else return end
+	end
 
-	if code:match('%s(32062)%s') then r.MB('This is an Inline MIDI Editor custom action.\n\n  These are unfortunately not supported.\n\n                          ¯\\_(ツ)_/¯','ERROR',0) return end
+
+	if code:match('%s(32062)%s\"'..comm_id..'') then r.MB('This is an Inline MIDI Editor custom action.\n\n  These are unfortunately not supported.\n\n                          ¯\\_(ツ)_/¯','ERROR',0) return end
 
 
-	-- Concatenate the path
+-- Concatenate the path
 	if subdir ~= '' and subdir ~= 'existing or new; or leave as it is or empty' then
 	subdir = string.gsub(subdir:gsub('[\\/:*?\"<>|]', ''), '([%s]+)', ' ') -- remove illegal characters \/:*?"<>|, then remove extra spaces left behind
 	-- check if such directory already exists and if not, create
@@ -151,11 +193,11 @@ local f_name = cust_act_name
 		end
 
 	f_name = ''
-		for i = 1, 237 do -- reassemble accounting for additional file name elements 255 - 18
+		for i = 1, 230 do -- reassemble accounting for additional file name elements 255 - 25
 		f_name = f_name..trunc_t[i]
 		end
 
-	r.MB('The name of the custom action has been\n\ntruncated to conform to OS limitations\n\n                 on file name length.','WARNING',0)
+	reaper.MB('The name of the custom action has been\n\ntruncated to conform to OS limitations\n\n                 on file name length.','WARNING',0)
 	end
 
 -- Separate custom action individual action IDs from its name
@@ -171,12 +213,14 @@ local actions_t = {}
 		if w:match('^(_RS%w+)') then reascript = true inset1 = '      The custom action uses ReaScripts.\n\n' end
 		if w:match('_S&M_CYCLACTION_') then cycle_action = true inset2 = 'The custom action uses SWS cycle actions.\n\n' end
 		-- Nested custom action
-		if w:match('^(_[%d%l]+)') and not w:match('_S&M_CYCLACTION_') then
+		if w:match('^(_[%d%l]+)') and not w:match('_S&M_CYCLACTION_') then --('([^_%u%-%.&]%d+%l+)')
 			for line in io.lines(path..sep..targ_file) do
 			local w = w:gsub('_','')
 				if line:match('\"('..w..')\"') then
 				nest_code = line break end
 			end
+			reaper.MB(w:match('(_[%d%l]+)'),"",0)
+		Msg("\n\nLine = "..w.."\n\nCode = "..nest_code.."\n\n")
 		local _, end_idx, cust_act_name = nest_code:find(':%s*(.+)\"') -- get index of cust. action name end in its code
 		local _, _, actions = nest_code:find('([_%d%a&%s%.%-]+)',end_idx+2) -- separate custom action individual action IDs from its name: pos = name end index + quotation mark + space
 			for w in actions:gmatch('([^%s]+)') do
@@ -185,7 +229,7 @@ local actions_t = {}
 		else actions_t[#actions_t+1] = w end
 	end
 
-	if reascript or cycle_action then r.MB(inset1..inset2..'             If they become unavailable\n\n      the exported script will malfunction.','WARNING',0) end
+	if reascript or cycle_action then r.MB(inset1..inset2..'            If they become unavailable\n\n      the exported script will malfunction.','WARNING',0) end
 
 
 -- Initialize code for ancillary actions
@@ -208,8 +252,8 @@ local code_t = {}
 	for _,v in next, actions_t do
 	local func = v:match('(_.+)') and 'r.NamedCommandLookup(\"'..v..'\")' or v	-- either SWS/S&M or native
 	local id = r.NamedCommandLookup(v) -- works for native actions as well
-	local sect_midi = code:match('%s(3206[01])%s')
-	local sect_media_main = code:match('%s(32063)%s') or '0'
+	local sect_midi = code:match('%s(3206[01])%s\"'..comm_id..'')
+	local sect_media_main = code:match('%s(32063)%s\"'..comm_id..'') or '0' -- 0 covers Main (alt rec) as well since it contains the same actions as the Main
 		if sect_midi then
 			if v == "2000" then str = cont_action
 			elseif v == "2001" then str = set_loop_start; repeat_loop = v -- any value so it's not nil
@@ -233,7 +277,7 @@ local code_t = {}
 
 -- Concatenate prefix, comments and addiditional code
 local pref, inset1, inset2, inset3 = '','','',''
-local sect_code = code:match('%s(3206%d)%s')
+local sect_code = code:match('%s(3206%d)%s\"'..comm_id..'')
 	if sect_code == '32060' then pref = 'MIDI Ed_'
 	elseif sect_code == '32061' then pref = 'MIDI EvL_'
 	elseif sect_code == '32063' then pref = 'Media Ex_'
@@ -245,7 +289,7 @@ local sect_code = code:match('%s(3206%d)%s')
 		if sect_code == '32060' then inset2, sect_name = 'local hwnd = r.MIDIEditor_GetActive()\n\n', 'MIDI Editor and/or MIDI Event list editor'; loc = 'inside '..sect_name -- loc is separate because it uses previously initialized variable
 		elseif sect_code == '32061' then inset2, sect_name = 'local hwnd = r.MIDIEditor_GetActive()\n\n', 'MIDI Event list editor and/or MIDI Editor'; loc = 'inside '..sect_name
 		elseif sect_code == '32063' then sect_name = 'Media Explorer'; loc = 'inside '..sect_name
-		else sect_name = 'Main'; loc = 'Arrange'
+		else sect_name = 'Main / Main (alt recording)'; loc = 'Arrange'
 		end
 	inset1 = '\n-- Import into the '..sect_name..' section of the Action list and run from '..loc..'.'
 	end
@@ -262,7 +306,7 @@ local mess, head, mode = table.unpack(result and {'       File has been created 
 
 local resp = r.MB(mess,head,mode)
 
-local command = sep == '\\' and 'explorer ' or 'open '
+local command = sep == '\\' and 'explorer ' or 'open ' -- Win or Mac
 
 	if resp == 6 then os.execute(command..f_path) end
 
