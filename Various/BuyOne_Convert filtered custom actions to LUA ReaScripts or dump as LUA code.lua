@@ -409,7 +409,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 				elseif v == "2002" then str = go_loop_start;
 					-- Insert repeat at the very start of action sequence if loop start wasn't set explicitly by 2001
 					if not repeat_loop then table.insert(code_t, 1, set_loop_start) end
-				elseif tonumber(v) > 2007 and tonumber(v) < 2013 and sect_media_main == '0' then str = wait(v)
+				elseif tonumber(v) and (tonumber(v) > 2007 and tonumber(v) < 2013) and sect_media_main == '0' then str = wait(v)
 				else str = 'r.Main_OnCommand('..func..',0) -- '..r.CF_GetCommandText(tonumber(sect_media_main), id) end
 			end
 		code_t[#code_t+1] = str
