@@ -78,7 +78,7 @@ local subdir = input:match(',([^,]+)$')
 r.SetExtState(select(2,r.get_action_context()):match('[^\\/]+%.%w+'), 'dir_field', subdir, false)
 local input = input:match('([^,]+),')
 
-	if input:match('(h)') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of q
+	if input:match('(h)') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 	if input:len() < 32 then mess = 'Doesn\'t look like a custom action command ID.'
 	elseif input:match('(_?RS[%w]+)') then mess = 'The command ID belongs to a ReaScript.'
