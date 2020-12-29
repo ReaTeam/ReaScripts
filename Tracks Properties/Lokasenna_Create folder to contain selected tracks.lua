@@ -1,12 +1,10 @@
 --[[
 Description: Create folder to contain selected tracks
-Version: 1.0.0
+Version: 1.1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
-Changelog:
-	Initial release
-Links:
-	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
+Changelog: Fix folder creating when last selected track is last in folder or a folder itself.
+Links: Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
   Creates a new track to serve as a folder parent for the selected tracks,
   prompting the user for a name. The selected tracks must be contiguous and at
@@ -40,10 +38,17 @@ reaper.SetMediaTrackInfo_Value( parent, "I_FOLDERDEPTH", 1, true )
 
 local lastSel = reaper.GetSelectedTrack(0, reaper.CountSelectedTracks(0) - 1)
 
-local curDepth = reaper.GetMediaTrackInfo_Value( lastSel, "I_FOLDERDEPTH" )
-local newDepth = (curDepth == 0) and (curDepth - 1) or -1
-
-reaper.SetMediaTrackInfo_Value( lastSel, "I_FOLDERDEPTH", newDepth, true )
+local lastSelIdx = reaper.GetMediaTrackInfo_Value(lastSel, "IP_TRACKNUMBER") - 1
+local curDepth = 0
+for trackIdx = lastSelIdx, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, trackIdx)
+    local trackDepth = reaper.GetMediaTrackInfo_Value( track, "I_FOLDERDEPTH" )
+    curDepth = curDepth + trackDepth
+    if curDepth <= 0 then
+        reaper.SetMediaTrackInfo_Value( track, "I_FOLDERDEPTH", trackDepth - 1, true )
+        break
+    end
+end
 
 reaper.PreventUIRefresh( -1 )
 
