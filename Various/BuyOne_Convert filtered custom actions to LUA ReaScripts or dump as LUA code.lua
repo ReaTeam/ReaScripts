@@ -1,6 +1,6 @@
 -- @description Convert filtered custom actions to LUA ReaScripts or dump as LUA code
 -- @author BuyOne
--- @version 1.1
+-- @version 1.2
 
 --[[
 
@@ -10,18 +10,20 @@
 * Author: Buy One
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
-* Forum Thread: 
-* Version: 1.1
+* Forum Thread:
+* Version: 1.2
 * REAPER: at least v5.962
 * Extensions: SWS/S&M
 * Changelog:
-	+ v1.1 	Correction of typos in comments
-		Removal of redundant info from Help
+	+ v1.2	Added support for Main (alt recording) section;
+		Minor error proofing;
+	+ v1.1 	Correction of typos in comments;
+		Removal of redundant info from Help;
 		Added support for ancillary actions often used within custom action:
-		Action: Wait X seconds before next action
-		Action: Prompt to continue (only valid within custom actions)
-		Action: Set action loop start (only valid within custom actions)
-		Action: Prompt to go to action loop start (only valid within custom actions)
+		Action: Wait X seconds before next action;
+		Action: Prompt to continue (only valid within custom actions);
+		Action: Set action loop start (only valid within custom actions);
+		Action: Prompt to go to action loop start (only valid within custom actions);
 	+ v1.0 	Initial release
 
 ]]
@@ -30,7 +32,7 @@
 
 -- To use a .ReaperKeyMap file for parsing insert its name with extension in between the quotes, e.g. myFile.ReaperKeyMap.
 -- It MUST reside in the \KeMaps subdirectory of the REAPER program directory (aka resource path)
--- Read HELP for further details
+-- See HELP for further details
 
 local ReaperKeyMap = ""
 
@@ -91,7 +93,7 @@ III. SPECS
 
 Main flag includes Media Explorer custom actions. MIDI flag includes both MIDI Editor and MIDI Event list custom actions.
 
-Custom actions are only parsed (unpacked) one nested custom action deep. Anything deeper is saved as a command ID, meaning the resulting script will malfunction if that custom action becomes anavilable. If all custom actions are converted their command IDs can be substituted manually with the corresponding code.
+Custom actions are only parsed (unpacked) one nested custom action deep. Anything deeper is saved as a command ID, meaning the resulting script will malfunction if that custom action becomes unavilable. If all custom actions are converted their command IDs can be substituted manually with the corresponding code.
 
 Other scripts and SWS cycle actions included in custom actions are also only saved as their command IDs so their subsequent removal will affect the script functionality.
 
@@ -123,21 +125,27 @@ local err_mess = '           Malformed code.\n\n      If not sure, click Retry\n
 local search_terms_inset = r.GetExtState(script_name, 'search_field')
 	if search_terms_inset == '' then search_terms_inset = 'if as is or empty then flags in the next field decide' end
 
+local flags = r.GetExtState(script_name, 'flags_field')
+
 local subdir = r.GetExtState(script_name, 'dir_field')
 	if subdir == '' then subdir = 'existing or new; or leave as it is or empty' end
+	--subdir = subdir == '' and 'existing or new; or leave as it is or empty' or subdir
 
 local legend = '3 - LUA scripts; 4 - 1 txt file; 5 - MIDI from Arrange'
 
-local retval, input = r.GetUserInputs('Filter & convert or dump custom actions (type h in the 1st field for help)',4,'Search terms (delimited by ; ):,Type digits from legend below:,Specify folder under \\Scripts:,Legend: 1 - Main; 2 - MIDI;  -->,extrawidth=190', search_terms_inset..',,'..subdir..','..legend..'')
+local retval, input = r.GetUserInputs('Filter & convert or dump custom actions (type h in the 1st field for help)',4,'Search terms (delimited by ; ):,Type digits from legend below:,Specify folder under \\Scripts:,Legend: 1 - Main; 2 - MIDI;  -->,extrawidth=190', search_terms_inset..','..flags..','..subdir..','..legend..'')
 
-reaper.DeleteExtState(script_name, 'search_field', true) -- delete so that the same search terms aren't autofill the dialogue on next run
+-- delete so that the same search terms aren't autofill the dialogue on next run
+reaper.DeleteExtState(script_name, 'search_field', true)
+reaper.DeleteExtState(script_name, 'flags_field', true)
 
 local search_terms, flags, subdir = input:match('([^,]*),([^,]*),([^,]*)') -- supports empty fields
 	if search_terms == search_terms_inset then search_terms = '' end
 
 	if retval == false then return end -- Cancel
-
-	if search_terms:match('^[%sHh]-$') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
+	
+	if search_terms:match('^[Hh]-$') and search_terms ~= '' then
+	r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 local flags = flags:match('.*')
 	if flags == '' then return end -- if OK with empty field
@@ -147,22 +155,29 @@ local flags = flags:match('.*')
 		else return end
 	end
 
+local subdir = subdir:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
+
 r.SetExtState(select(2,r.get_action_context()):match('[^\\/]+%.%w+'), 'dir_field', subdir, false) -- will be either empty or user specified
 
 -- Construct search terms table
 local s_terms_t = {}
 	if search_terms ~= '' then
-		for w in search_terms:gmatch('([^;][%w%p%s][^;]*)') do --([^;][%w%p%+%-][^;]*)
+		for w in search_terms:gmatch('[^;][%w%p%s][^;]*') do
 		s_terms_t[#s_terms_t+1] = w
 		end
 	end
 
 	-- Present user with their search terms for confirmation or correction
 	if #s_terms_t ~= 0 then resp = r.MB('Your search terms are:\n\n'..table.concat(s_terms_t,'\n')..'\n\n\"NO\" to go back and emend.','PROMPT',3)
-		if resp == 7 then r.SetExtState(script_name, 'search_field', table.concat(s_terms_t,';'), false) goto RETRY
+		if resp == 7 then r.SetExtState(script_name, 'search_field', table.concat(s_terms_t,';'), false) 
+		r.SetExtState(script_name, 'flags_field', flags, false)
+		goto RETRY
 		elseif resp == 2 then return end
-	else resp = r.MB('Invalid symbols or language in the search.\n\n                 If not sure, click Retry\n\n          and type \'h\' in the upper field.','ERROR... '..search_terms,5)
-		if resp == 4 then r.SetExtState(script_name, 'search_field', search_terms, false) goto RETRY
+	elseif search_terms ~= '' then resp = r.MB('Invalid search term or language in the search.\n\n                 If not sure, click Retry\n\n          and type \'h\' in the upper field.','ERROR... '..search_terms,5)
+		if resp == 4 then 
+		r.SetExtState(script_name, 'search_field', search_terms, false)
+		r.SetExtState(script_name, 'flags_field', flags, false)
+		goto RETRY
 		else return end
 	end
 
@@ -210,12 +225,13 @@ local targ_file = 'reaper-kb.ini'
 local lines_t = {}
 	for line in io.lines(path..sep..targ_file) do
 		if line:match('^ACT') then -- exclude categories besides actions
+		-----
 		local name = string.lower(line:match(':%s*(.+)\"')) -- custom action name in lower case
 			if #s_terms_t ~= 0 then t = s_terms_t
 			else t = {''} end -- a dummy table to allow the routine go through if no search terms were specified
 
 			local function OR(src, str) -- for the sake of shorthand in evaluation below
-				local pattern = str:match('+') and str..'[%w%p]*' or '%f[%w]('..str..')%f[%W]' -- semi-fuzzy with + opetator or exact search
+				local pattern = str:match('+') and str..'[%w%p]*' or '%f[%w]('..str..')%f[%W]' --  semi-fuzzy with + opetator or exact search
 				if pattern == '%f[%w]('..str..')%f[%W]' and str:match('=') then -- if boolean 'and' search with '=' operator
 					for w in str:gmatch('%w*') do
 						if w == src:match('%f[%w]('..w..')%f[%W]') then str = true
@@ -225,12 +241,12 @@ local lines_t = {}
 					if #s_terms_t == 0 then str = '' end -- when str is nil since no search terms were specified, not using nil as a condition because it's a valid result when search terms had been supplied but no matches were found
 				end
 				return str
-			end -- func. OR(src, str) end
+			end -- func. end
 
 			for i = 1, #t do
 			local v = t[i]:lower() -- search term in lower case
-				if flags_t[1] and OR(name,v) and (line:match('%s(0)%s') or line:match('%s(32063)%s')) then lines_t[#lines_t+1] = line
-				elseif flags_t[2] and OR(name,v) and line:match('%s(3206[01])%s') then lines_t[#lines_t+1] = line
+				if flags_t[1] and OR(name,v) and (line:match('%s(0)%s\"') or line:match('%s(100)%s\"') or line:match('%s(32063)%s\"')) then lines_t[#lines_t+1] = line
+				elseif flags_t[2] and OR(name,v) and line:match('%s(3206[01])%s\"') then lines_t[#lines_t+1] = line
 				end
 			end
 		end
@@ -244,7 +260,6 @@ local lines_t = {}
 			if v2 == v1 and k1 ~= k2 then table.remove(lines_t,k2) end
 		end
 	end
-
 
 	-- Sort custom action strings numerically and alphabetically by the first character in the custom action name
 	-- 1. Split each code string in two so that the 2nd one starts with the custom action name, and construct a temp. table where each nested table contains two parts of the custom action string
@@ -265,17 +280,18 @@ local lines_t = {}
 -- Re-order the table by sections: Main, Media Explorer, MIDI Editor, MIDI Events list
 
 -- Construct a temp. table in the pre-defined order of the Action list section codes
-local captures_t = {'0','32063','32060','32061'}
+local captures_t = {'0','100','32063','32060','32061'}
 local tmp_t = {}
 	for _, sect in ipairs(captures_t) do
 		-- Bring custom actions from the same section together, moving their table values in a predefined order of section codes to a temporary table
 		for _,str in next, lines_t do
-		if str:match('%s('..sect..')%s') then tmp_t[#tmp_t+1] = str end
+		if str:match('%s('..sect..')%s\"') then tmp_t[#tmp_t+1] = str end
 		end
 	end
 
 local lines_t = tmp_t
 local tmp_t = nil
+
 
 	--if converting to individual LUA files
 local resp = flags_t[3] and r.MB('There\'re '..tostring(#lines_t)..' custom actions to export.','INFO',1)
@@ -328,11 +344,12 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 	-- OR
 	-- local actions = select(3,code:find('([_%d%a&%s%.%-]+)',end_idx+2))
 
+
 	-- Concatenate a LUA file prefix, name and extension
 	if flags_t[3] then -- if converting to individual LUA files
-	f_name = string.gsub(cust_act_name:gsub('[\\/:*?\"<>|]', ''), '([%s]+)', ' ') -- remove illegal characters \/:*?"<>|, then remove extra spaces left behind
+	f_name = cust_act_name:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
 	pref, ext = 'CA_', '.lua'
-	local sect_code = line:match('%s(3206%d)%s')
+	local sect_code = line:match('%s(3206%d)%s\"')
 		if sect_code == '32060' then
 			if flags_t[5] then pref = 'MIDI Ed.from Arr_'..pref
 			else pref = 'MIDI Ed_'..pref end
@@ -342,14 +359,14 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 		elseif sect_code == '32063' then pref = 'Media Ex_'..pref
 		else pref = 'Main_'..pref end
 		-- Truncate cust. action name if exceeds the OS limit for file name
-		if cust_act_name:len() > 255 then
+		if f_name:len() > 255 then
 		local trunc_t = {}
-			for w in cust_act_name:gmatch('(.)') do -- split name by characters
+			for w in f_name:gmatch('(.)') do -- split name by characters
 			trunc_t[#trunc_t+1] = w
 			end
 		f_name = ''
 			for i = 1, 230 do -- reassemble accounting for additional file name elements 255 - 25
-			f_name = f_name..trunc_t[i]
+			f_name = f_name..trunc_t[i] -- character by character
 			end
 		end
 	end
@@ -372,7 +389,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 			else actions_t[#actions_t+1] = w end
 		end
 
-		
+
 	-- Initialize code for ancillary actions
 	local cont_action = '\nr.PreventUIRefresh(-1)\n\tlocal resp = r.MB(\'Continue running the script?\',\'Script paused\',1)\n\tif resp == 2 then return end\n\nr.PreventUIRefresh(1)\n' -- 2000 Action: Prompt to continue (only valid within custom actions)
 	local set_loop_start = '\nr.PreventUIRefresh(-1)\n\n\trepeat\n\nr.PreventUIRefresh(1)\n' -- 2001 Action: Set action loop start (only valid within custom actions)
@@ -386,15 +403,15 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 		local wait = '\nr.PreventUIRefresh(-1)\n\nlocal time_stamp = r.time_precise()\n\n\trepeat\n\tlocal cur_time = r.time_precise()\n\tuntil cur_time - time_stamp == '..sec..'\n\nr.PreventUIRefresh(1)'
 		return wait
 	end
-	
+
 
 	-- Concatenate actions code
 	local code_t = {}
 		for _,v in next, actions_t do
 		local func = v:match('(_.+)') and 'r.NamedCommandLookup(\"'..v..'\")' or v	-- either SWS/S&M or native
 		local id = r.NamedCommandLookup(v) -- works for native actions as well
-		local sect_midi = line:match('%s(3206[01])%s')
-		local sect_media_main = line:match('%s(32063)%s') or '0'
+		local sect_midi = line:match('%s(3206[01])%s\"')
+		local sect_media_main = line:match('%s(32063)%s\"') or '0' -- 0 covers Main (alt rec) as well since it contains the same actions as the Main
 			if sect_midi then 
 				if v == "2000" then str = cont_action
 				elseif v == "2001" then str = set_loop_start; repeat_loop = v -- any value so it's not nil
@@ -418,14 +435,14 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	-- Concatenate comments and addiditional code
 	local inset1, inset2, inset3 = '','',''
-	local sect_code = line:match('%s(3206%d)%s')
+	local sect_code = line:match('%s(3206%d)%s\"')
 
 		if flags_t[5] and (sect_code == '32060' or sect_code == '32061') then inset1, inset2, inset3 = '\n-- Import into the Main section of the Action list and run from Arrange.', 'r.Main_OnCommand(40153, 0) -- Item: Open in built-in MIDI editor\n\nlocal hwnd = r.MIDIEditor_GetActive()\n\n','\n\nr.MIDIEditor_OnCommand(hwnd,2) -- File: Close window'
 		else
 			if sect_code == '32060' then inset2, sect_name = 'local hwnd = r.MIDIEditor_GetActive()\n\n', 'MIDI Editor and/or MIDI Event list editor'; loc = 'inside '..sect_name -- loc is separate because it uses previously initialized variable
 			elseif sect_code == '32061' then inset2, sect_name = 'local hwnd = r.MIDIEditor_GetActive()\n\n', 'MIDI Event list editor and/or MIDI Editor'; loc = 'inside '..sect_name
 			elseif sect_code == '32063' then sect_name = 'Media Explorer'; loc = 'inside '..sect_name
-			else sect_name = 'Main'; loc = 'Arrange'
+			else sect_name = 'Main / Main (alt recording)'; loc = 'Arrange'
 			end
 		inset1 = '\n-- Import into the '..sect_name..' section of the Action list and run from '..loc..'.'
 		end
@@ -433,6 +450,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	-- Concatenate one LUA file code
 	local output = '-- Converted from a custom action \"Custom: '..cust_act_name..'\"'..inset1..'\n\n\nlocal r = reaper\n\nreaper.PreventUIRefresh(1)\nreaper.Undo_BeginBlock();\n\n'..inset2..table.concat(code_t,'\n')..inset3..'\n\nreaper.Undo_EndBlock(\"'..cust_act_name..'\",-1)\nreaper.PreventUIRefresh(-1)\n\n\n'
+
 
 	-- Write having selected mode
 	local mode = flags_t[3] and 'w' or 'a' -- 'a' alone would suffice but this is a safety measure to avoid appending code to already exported LUA files with the same name, so LUA files are overwritten, TXT files are appended to during the loop, identically named TXT files are dealt with in the 'Check if there's already a txt dump file..' routine above
@@ -442,6 +460,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	end -- end of MAIN LOOP
 
+
 local inset = flags_t[3] and  '     Files have ' or  '       File has ' -- individual LUA files or dump txt file
 
 local resp = r.MB(inset..'been created successfully\n\n      and placed in the \\Scripts'..subdir_txt..'  folder\n\n       of the REAPER program directory.\n\nWould you like to open the subfolder now?', "SUCCESS", 4)
@@ -449,8 +468,6 @@ local resp = r.MB(inset..'been created successfully\n\n      and placed in the \
 local command = sep == '\\' and 'explorer ' or 'open ' -- Win or Mac
 
 	if resp == 6 then os.execute(command..f_path) end
-
-
 
 
 
