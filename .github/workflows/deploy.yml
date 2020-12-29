@@ -1,0 +1,28 @@
+name: deploy
+on:
+  push:
+    branches: [master]
+jobs:
+  reapack-index:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Configure git
+      run: |-
+        git config user.name  'ReaTeam Bot'
+        git config user.email 'reateam-bot@cfillion.ca'
+    - name: Install Pandoc
+      run:  sudo apt-get install -yy pandoc
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
+    - name: Install reapack-index
+      run:  gem install reapack-index --pre
+    - name: Update index.xml
+      run:  reapack-index --commit
+    - name: Push changes
+      run:  git push

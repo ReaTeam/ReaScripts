@@ -1,6 +1,6 @@
 # ReaTeam Scripts Repository
 
-[![Build status](https://travis-ci.org/ReaTeam/ReaScripts.svg?branch=master)](https://travis-ci.org/ReaTeam/ReaScripts)
+![check](https://github.com/ReaTeam/ReaScripts/workflows/check/badge.svg)
 
 Community-maintained collection of scripts for REAPER.
 
