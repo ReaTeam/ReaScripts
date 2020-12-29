@@ -1,7 +1,7 @@
 @@ -0,0 +1,347 @@
 -- @description Convert custom actions in batch to LUA ReaScripts or dump as LUA code
 -- @author BuyOne
--- @version 1.1
+-- @version 1.2
 
 --[[
 
@@ -12,16 +12,18 @@
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
 * Forum Thread: 
-* Version: 1.1
+* Version: 1.2
 * REAPER: at least v5.962
 * Extensions: SWS/S&M
 * Changelog:
-	+ v1.1 	Correction of typos in comments
+	+ v1.2	Added support for Main (alt recording) section;
+			Minor error proofing;
+	+ v1.1 	Correction of typos in comments;			
 		Added support for ancillary actions often used within custom action:
-		Action: Wait X seconds before next action
-		Action: Prompt to continue (only valid within custom actions)
-		Action: Set action loop start (only valid within custom actions)
-		Action: Prompt to go to action loop start (only valid within custom actions)
+		Action: Wait X seconds before next action;
+		Action: Prompt to continue (only valid within custom actions);
+		Action: Set action loop start (only valid within custom actions);
+		Action: Prompt to go to action loop start (only valid within custom actions);
 	+ v1.0 	Initial release
 
 ]]
@@ -30,7 +32,7 @@
 
 -- To use a .ReaperKeyMap file for parsing insert its name with extension in between the quotes, e.g. myFile.ReaperKeyMap.
 -- It MUST reside in the \KeMaps subdirectory of the REAPER program directory (aka resource path)
--- Read HELP for further details
+-- See HELP for further details
 
 local ReaperKeyMap = ""
 
@@ -70,7 +72,7 @@ II. SPECS
 
 Main flag includes Media Explorer custom actions. MIDI flag includes both MIDI Editor and MIDI Event list custom actions.
 
-Custom actions are only parsed (unpacked) one nested custom action deep. Anything deeper is saved as a command ID, meaning the resulting script will malfunction if that custom action becomes anavilable. But since all custom actions are converted their command IDs can be substituted manually with the corresponding code.
+Custom actions are only parsed (unpacked) one nested custom action deep. Anything deeper is saved as a command ID, meaning the resulting script will malfunction if that custom action becomes unavilable. But since all custom actions are converted their command IDs can be substituted manually with the corresponding code.
 
 Other scripts and SWS cycle actions included in custom actions are also only saved as their command IDs so their subsequent removal will affect the script functionality.
 
@@ -83,8 +85,8 @@ The default location for export is Scripts sub-directory in the REAPER project d
 If you wish to only batch convert specific actions, you can either use another script 'Convert filtered custom actions to LUA ReaScripts or dump as LUA code.lua' or use REAPER's Action list filter to find them, export them as a .ReaperKeyMap file into the \KeyMap sub-directory of the REAPER project directory, specify its name in the USER SETTINGS of this script and run it.
 Mind that in this case the caveat of lost nested custom actions mentioned above applies.
 
-
 ]=]
+
 
 local r = reaper
 
@@ -107,22 +109,23 @@ local legend = '3 - LUA scripts; 4 - 1 txt file; 5 - MIDI from Arrange'
 
 local retval, input = r.GetUserInputs('Convert or dump custom actions (type h in the 1st field for help)',3,'Type digits (type h for help):,Specify folder under \\Scripts:,Legend: 1 - Main; 2 - MIDI;  -->,extrawidth=170',','..subdir..','..legend..'')
 
-	if retval == false or input:match('^([1-5]*),') == '' then return end -- Cancel or OK with empty field
+	if retval == false or input:match('^([1-5]*),') == '' -- Cancel or OK with empty field
+	then return end
 
-	if input:match('(h),') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
+	if input:match('[Hh],') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 local subdir = input:match(',(.+),')
 	if not subdir then subdir = '' end
+local subdir = subdir:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
 r.SetExtState(script_name, 'dir_field', subdir, false)
 
 local input = input:match('^([1-5]*),')
 	if not input then input = '' end -- to avoid error in concatenating message below
 
-	if input == '' or input:len() < 2 or input:len() > 4 then resp = r.MB(err_mess,'ERROR...'..input,5) -- displays entered flags if they fall within the range but are too few or too numerous than needed
+	if input == '' or input:len() < 2 or input:len() > 4 then resp = r.MB(err_mess,'ERROR...'..input or '',5) -- displays entered flags if they fall within the range but are too few or too numerous than needed
 		if resp == 4 then goto RETRY
 		else return end
 	end
-
 
 -- Construct user entered flags table, making sure that there're at least 1 or 2
 local flags_t = {}
@@ -153,7 +156,7 @@ local path = r.GetResourcePath()
 local targ_file = 'reaper-kb.ini'
 
 	if ReaperKeyMap and ReaperKeyMap ~= '' then -- check if the file exists
-		for f in io.popen('dir \"'..path..sep..'KeyMaps'..sep..ReaperKeyMap..'\" /b'):lines() do -- r.MB(f,'',0)
+		for f in io.popen('dir \"'..path..sep..'KeyMaps'..sep..ReaperKeyMap..'\" /b'):lines() do
 			if f == ReaperKeyMap then break end
 		end
 		if not f then resp = r.MB('    '..ReaperKeyMap..' file\n\n            was\'t found.\n\n   Switching to '..targ_file,'WARNING',1)
@@ -166,8 +169,8 @@ local targ_file = 'reaper-kb.ini'
 local lines_t = {}
 	for line in io.lines(path..sep..targ_file) do
 		if line:match('^ACT') then -- exclude categories besides actions
-			if flags_t[1] and (line:match('%s(0)%s') or line:match('%s(32063)%s')) then lines_t[#lines_t+1] = line
-			elseif flags_t[2] and line:match('%s(3206[01])%s') then lines_t[#lines_t+1] = line end
+			if flags_t[1] and (line:match('%s(0)%s\"') or line:match('%s(100)%s\"') or line:match('%s(32063)%s\"')) then lines_t[#lines_t+1] = line
+			elseif flags_t[2] and line:match('%s(3206[01])%s\"') then lines_t[#lines_t+1] = line end
 		end
 	end
 
@@ -190,19 +193,18 @@ local lines_t = {}
 -- Re-order the table by sections: Main, Media Explorer, MIDI Editor, MIDI Events list
 
 -- Construct a temp. table in the pre-define order of the Action list section codes
-local captures_t = {'0','32063','32060','32061'}
+local captures_t = {'0','100','32063','32060','32061'}
 local tmp_t = {}
 	for _, sect in ipairs(captures_t) do
 		-- Bring custom actions from the same section together, moving their table values in a predefined order of section codes to a temporary table
 		for _,str in next, lines_t do
-		if str:match('%s('..sect..')%s') then tmp_t[#tmp_t+1] = str end
+		if str:match('%s('..sect..')%s\"') then tmp_t[#tmp_t+1] = str end
 		end
 	end
 
 
 local lines_t = tmp_t
 local tmp_t = nil
-
 
 	--if converting to individual LUA files
 local resp = flags_t[3] and r.MB('There\'re '..tostring(#lines_t)..' custom actions to export.','INFO',1)
@@ -212,7 +214,7 @@ local resp = flags_t[3] and r.MB('There\'re '..tostring(#lines_t)..' custom acti
 -- Concatenate the path
 	if subdir ~= '' and subdir ~= 'existing or new; or leave as it is or empty' then
 	-- check if such directory already exists and if not, create
-		for dir in io.popen('dir \"'..path..sep..'Scripts\" /b'):lines() do
+		for dir in io.popen('dir \"'..path..sep..'Scripts\" /ad'):lines() do
 			if dir == subdir then exists = true break end
 		end
 		if not exists then os.execute('mkdir \"'..path..sep..'Scripts'..sep..subdir..'\"')
@@ -234,7 +236,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 -- Check if there's already a txt dump file in the target directory and ovewrite if confirmed by the user
 	if flags_t[4] then
-		for f in io.popen('dir \"'..f_path..'\" /b'):lines() do
+		for f in io.popen('dir \"'..f_path..sep..'\" /b'):lines() do
 			if f == f_name..ext then resp = r.MB('    The \\Scripts'..subdir_txt..'  folder already contains\n\n   a dump file for selected custom actions.\n\n    \"OK\" to overwrite     \"Cancel\" to abort.','PROMPT',1)
 				if resp == 1 then
 				local file = io.open(f_path..sep..f, 'w')
@@ -252,9 +254,9 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	-- Concatenate a LUA file prefix, name and extension
 	if flags_t[3] then -- if converting to individual LUA files
-	cust_act_name = string.gsub(cust_act_name:gsub('[\\/:*?\"<>|]', ''), '([%s]+)', ' ') -- remove illegal characters \/:*?"<>|, then remove extra spaces left behind
-	pref, f_name, ext = 'CA_', cust_act_name, '.lua'
-	local sect_code = line:match('%s(3206%d)%s')
+	f_name = cust_act_name:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
+	pref, ext = 'CA_', '.lua'
+	local sect_code = line:match('%s(3206%d)%s\"')
 		if sect_code == '32060' then
 			if flags_t[5] then pref = 'MIDI Ed.from Arr_'..pref
 			else pref = 'MIDI Ed_'..pref end
@@ -264,14 +266,14 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 		elseif sect_code == '32063' then pref = 'Media Ex_'..pref
 		else pref = 'Main_'..pref end
 		-- Truncate cust. action name if exceeds the OS limit for file name
-		if cust_act_name:len() > 255 then
+		if f_name:len() > 255 then
 		local trunc_t = {}
-			for w in cust_act_name:gmatch('(.)') do -- split name by characters
+			for w in f_name:gmatch('(.)') do -- split name by characters
 			trunc_t[#trunc_t+1] = w
 			end
 		f_name = ''
 			for i = 1, 230 do -- reassemble accounting for additional file name elements 255 - 25
-			f_name = f_name..trunc_t[i]
+			f_name = f_name..trunc_t[i] -- character by character
 			end
 		end
 	end
@@ -315,15 +317,15 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 		local wait = '\nr.PreventUIRefresh(-1)\n\nlocal time_stamp = r.time_precise()\n\n\trepeat\n\tlocal cur_time = r.time_precise()\n\tuntil cur_time - time_stamp == '..sec..'\n\nr.PreventUIRefresh(1)'
 		return wait
 	end
-	
-		
+
+
 	-- Concatenate actions code
 	local code_t = {}
 		for _,v in next, actions_t do
 		local func = v:match('(_.+)') and 'r.NamedCommandLookup(\"'..v..'\")' or v	-- either SWS/S&M or native
 		local id = r.NamedCommandLookup(v) -- works for native actions as well
-		local sect_midi = line:match('%s(3206[01])%s')
-		local sect_media_main = line:match('%s(32063)%s') or '0'
+		local sect_midi = line:match('%s(3206[01])%s\"')
+		local sect_media_main = line:match('%s(32063)%s\"') or '0' -- 0 covers Main (alt rec) as well since it contains the same actions as the Main
 			if sect_midi then 
 				if v == "2000" then str = cont_action
 				elseif v == "2001" then str = set_loop_start; repeat_loop = v -- any value so it's not nil
@@ -347,14 +349,14 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	-- Concatenate comments and addiditional code
 	local inset1, inset2, inset3 = '','',''
-	local sect_code = line:match('%s(3206%d)%s')
+	local sect_code = line:match('%s(3206%d)%s\"')
 
 		if flags_t[5] and (sect_code == '32060' or sect_code == '32061') then inset1, inset2, inset3 = '\n-- Import into the Main section of the Action list and run from Arrange.', 'r.Main_OnCommand(40153, 0) -- Item: Open in built-in MIDI editor\n\nlocal hwnd = r.MIDIEditor_GetActive()\n\n','\n\nr.MIDIEditor_OnCommand(hwnd,2) -- File: Close window'
 		else
 			if sect_code == '32060' then inset2, sect_name = 'local hwnd = r.MIDIEditor_GetActive()\n\n', 'MIDI Editor and/or MIDI Event list editor'; loc = 'inside '..sect_name -- loc is separate because it uses previously initialized variable
 			elseif sect_code == '32061' then inset2, sect_name = 'local hwnd = r.MIDIEditor_GetActive()\n\n', 'MIDI Event list editor and/or MIDI Editor'; loc = 'inside '..sect_name
 			elseif sect_code == '32063' then sect_name = 'Media Explorer'; loc = 'inside '..sect_name
-			else sect_name = 'Main'; loc = 'Arrange'
+			else sect_name = 'Main / Main (alt recording)'; loc = 'Arrange'
 			end
 		inset1 = '\n-- Import into the '..sect_name..' section of the Action list and run from '..loc..'.'
 		end
@@ -362,6 +364,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	-- Concatenate one LUA file code
 	local output = '-- Converted from a custom action \"Custom: '..cust_act_name..'\"'..inset1..'\n\n\nlocal r = reaper\n\nreaper.PreventUIRefresh(1)\nreaper.Undo_BeginBlock();\n\n'..inset2..table.concat(code_t,'\n')..inset3..'\n\nreaper.Undo_EndBlock(\"'..cust_act_name..'\",-1)\nreaper.PreventUIRefresh(-1)\n\n\n'
+
 
 	-- Write having selected mode
 	local mode = flags_t[3] and 'w' or 'a' -- 'a' alone would suffice but this is a safety measure to avoid appending code to already exported LUA files with the same name, so LUA files are overwritten, TXT files are appended to during the loop, identically named TXT files are dealt with in the 'Check if there's already a txt dump file..' routine above
@@ -371,6 +374,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 	end -- end of MAIN LOOP
 
+
 local inset = flags_t[3] and  '     Files have ' or  '       File has ' -- individual LUA files or dump txt file
 
 local resp = r.MB(inset..'been created successfully\n\n      and placed in the \\Scripts'..subdir_txt..'  folder\n\n       of the REAPER program directory.\n\nWould you like to open the subfolder now?', "SUCCESS", 4)
@@ -378,8 +382,6 @@ local resp = r.MB(inset..'been created successfully\n\n      and placed in the \
 local command = sep == '\\' and 'explorer ' or 'open ' -- Win or Mac
 
 	if resp == 6 then os.execute(command..f_path) end
-
-
 
 
 
