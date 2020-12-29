@@ -3,13 +3,8 @@ Description: Create folder to contain selected tracks
 Version: 1.1.0
 Author: Lokasenna
 Donation: https://paypal.me/Lokasenna
-Changelog:
-* v1.0.0
-   + Initial release
-* v1.1.0 (2020-12-23)
-  + Fix folder creating when last selected track is last in folder or a folder itself.
-Links:
-	Lokasenna's Website http://forum.cockos.com/member.php?u=10417
+Changelog: Fix folder creating when last selected track is last in folder or a folder itself.
+Links: Lokasenna's Website http://forum.cockos.com/member.php?u=10417
 About:
   Creates a new track to serve as a folder parent for the selected tracks,
   prompting the user for a name. The selected tracks must be contiguous and at
