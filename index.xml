@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3169f5a8ce9af8bf3366fea4b58b6a17b1000124" name="ReaTeam Scripts">
+<index version="1" commit="8501ef6cebd462e3a71279f81ee2959ac72a104f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
@@ -12546,6 +12546,10 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       <version name="1.0.0" author="Lokasenna" time="2019-10-13T03:13:17Z">
         <changelog><![CDATA[Initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2249119752f12ccee0b5aafe7f07f1232c225d81/Tracks%20Properties/Lokasenna_Create%20folder%20to%20contain%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.1.0" author="Lokasenna" time="2020-12-29T23:38:39Z">
+        <changelog><![CDATA[Fix folder creating when last selected track is last in folder or a folder itself.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8501ef6cebd462e3a71279f81ee2959ac72a104f/Tracks%20Properties/Lokasenna_Create%20folder%20to%20contain%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Create send from selected tracks.lua" type="script" desc="Create send from selected tracks">
