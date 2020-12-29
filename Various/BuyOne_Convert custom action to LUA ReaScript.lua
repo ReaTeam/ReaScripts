@@ -17,13 +17,13 @@
 * Extensions: SWS/S&M
 * Changelog:
 	+ v1.2	As a safety measure added option to select specific Action list section, might be superfluous;
-		Help updated accordingly;
-		Other minor usability tweaks and error proofing;
+			Help updated accordingly;
+			Other minor usability tweaks and error proofing;
 	+ v1.1 	Added support for ancillary actions often used within custom action:
-		Action: Wait X seconds before next action;
-		Action: Prompt to continue (only valid within custom actions);
-		Action: Set action loop start (only valid within custom actions);
-		Action: Prompt to go to action loop start (only valid within custom actions);
+			Action: Wait X seconds before next action;
+			Action: Prompt to continue (only valid within custom actions);
+			Action: Set action loop start (only valid within custom actions);
+			Action: Prompt to go to action loop start (only valid within custom actions);
 	+ v1.0 	Initial release
 
 ]]
@@ -74,7 +74,7 @@ local r = reaper
 	r.ShowConsoleMsg("Get the SWS/S&M extension at\nhttps://www.sws-extension.org/")
 	r.MB("This script requires the SWS/S&M extension.\n\n If it's installed then it needs to be updated.","API CHECK", 0)
 	return end
-	
+
 local script_name = select(2,r.get_action_context()):match('[^\\/]+%.%w+')
 
 ::RETRY::
@@ -95,7 +95,7 @@ r.DeleteExtState(script_name, 'comm_id', true)
 local comm_id = input:match('^([^,]+),')
 
 	if comm_id:match('(h)') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
-	
+
 local section, midi_from_arrange = input:match(',([^,]*),([^,]*),')
 
 	if section == '1' then section = '0'
@@ -104,12 +104,13 @@ local section, midi_from_arrange = input:match(',([^,]*),([^,]*),')
 	elseif section == '4' then section = '32063'
 	elseif section == comment1 then section = ''
 	elseif section ~= '' then resp = reaper.MB('Incorrect section selection. If unsure, click Retry\n\n         and type \'h\' in the 1st field for help.','ERROR... '..section,5)
-		if resp == 4 then r.SetExtState(script_name, 'comm_id', comm_id, false) goto RETRY 
+		if resp == 4 then r.SetExtState(script_name, 'comm_id', comm_id, false) goto RETRY
 		else return end
 	end
 
 local subdir = input:match(',([^,]+)$')
 	if not subdir then subdir = '' end
+local subdir = subdir:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
 r.SetExtState(script_name, 'dir_field', subdir, false)
 
 
@@ -142,7 +143,7 @@ local targ_file = 'reaper-kb.ini'
 		if not f then resp = r.MB('    '..ReaperKeyMap..' file\n\n            was\'t found.\n\n   Switching to '..targ_file,'WARNING',1)
 			if resp == 2 then return end
 		else targ_file = 'KeyMaps'..sep..ReaperKeyMap end
-	end	
+	end
 
 	for line in io.lines(path..sep..targ_file) do
 		if section == '' then cond = line:match('\"('..comm_id..')\"')
@@ -154,8 +155,8 @@ local targ_file = 'reaper-kb.ini'
 	local t = {[0] = '1',[32060] = '2',[32061] = '3',[32063] = '4'} -- back convert just to display in the error message
 	local caption = section ~= '' and t[tonumber(section)] or ''
 	local inset = section ~= '' and '\n\n       in the specified Action list section.' or '.'
-	local resp = r.MB('The submitted command ID wasn\'t found'..inset,'ERROR... '..caption,5) 
-		if resp == 4 then 
+	local resp = r.MB('The submitted command ID wasn\'t found'..inset,'ERROR... '..caption,5)
+		if resp == 4 then
 			if section ~= '' then r.SetExtState(script_name, 'comm_id', comm_id, false) end
 			goto RETRY
 		else return end
@@ -167,7 +168,6 @@ local targ_file = 'reaper-kb.ini'
 
 -- Concatenate the path
 	if subdir ~= '' and subdir ~= 'existing or new; or leave as it is or empty' then
-	subdir = string.gsub(subdir:gsub('[\\/:*?\"<>|]', ''), '([%s]+)', ' ') -- remove illegal characters \/:*?"<>|, then remove extra spaces left behind
 	-- check if such directory already exists and if not, create
 		for dir in io.popen('dir \"'..path..sep..'Scripts\" /b'):lines() do
 			if dir == subdir then exists = true break end
@@ -181,20 +181,17 @@ local targ_file = 'reaper-kb.ini'
 
 local _, end_idx, cust_act_name = code:find(':%s*(.+)\"') -- get end index of cust. action name end in its code
 
-local cust_act_name = string.gsub(cust_act_name:gsub('[\\/:*?\"<>|]', ''), '([%s]+)', ' ') -- first remove illegal characters \/:*?"<>|, then remove extra spaces left behind
-
-local f_name = cust_act_name
+local f_name = cust_act_name:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
 
 	-- Truncate cust. action name if exceeds the OS limit for file name
-	if cust_act_name:len() > 255 then
+	if f_name:len() > 255 then
 	local trunc_t = {}
-		for w in cust_act_name:gmatch('(.)') do -- split name by characters
+		for w in f_name:gmatch('(.)') do -- split name by characters
 		trunc_t[#trunc_t+1] = w
 		end
-
 	f_name = ''
 		for i = 1, 230 do -- reassemble accounting for additional file name elements 255 - 25
-		f_name = f_name..trunc_t[i]
+		f_name = f_name..trunc_t[i] -- character by character
 		end
 
 	reaper.MB('The name of the custom action has been\n\ntruncated to conform to OS limitations\n\n                 on file name length.','WARNING',0)
@@ -309,5 +306,8 @@ local resp = r.MB(mess,head,mode)
 local command = sep == '\\' and 'explorer ' or 'open ' -- Win or Mac
 
 	if resp == 6 then os.execute(command..f_path) end
+
+
+
 
 
