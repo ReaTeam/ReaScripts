@@ -58,7 +58,7 @@ function get_items()
     if item == nil then
       goto continue_item
     end
-    local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetProjectTimeOffset(tr, false)
     local take = reaper.GetActiveTake(item)
     if take ~= nil then
       t[#t+1] = {}
