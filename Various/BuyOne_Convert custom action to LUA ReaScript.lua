@@ -89,12 +89,14 @@ local retval, input = r.GetUserInputs('Submit custom action (type h in the 1st f
 
 r.DeleteExtState(script_name, 'comm_id', true)
 
-	if retval == false or input == input:match('^(,.+)') -- empty 1st field
+local input = input:gsub('^[%s]*','') -- remove leading spaces from the 1st field
+
+	if retval == false or input == input:match('^(,.+)') -- empty 1st field or only containing spaces
 	then return end
 
 local comm_id = input:match('^([^,]+),')
 
-	if comm_id:match('^([%sHh]*)$') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
+	if comm_id:match('^%s*[Hh]+%s*$') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 local section, midi_from_arrange = input:match(',([^,]*),([^,]*),')
 
