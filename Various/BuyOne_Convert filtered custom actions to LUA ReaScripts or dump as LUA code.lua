@@ -144,11 +144,11 @@ local search_terms, flags, subdir = input:match('([^,]*),([^,]*),([^,]*)') -- su
 
 	if retval == false then return end -- Cancel
 	
-	if search_terms:match('^[Hh]-$') and search_terms ~= '' then
+	if search_terms:match('^%s*[Hh]+%s*$') then
 	r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
-local flags = flags:match('.*')
-	if flags == '' then return end -- if OK with empty field
+local flags = flags:gsub('^[%s]*',''):match('.*')
+	if flags == '' then return end -- if OK with empty field or only containing spaces
 
 	if (flags ~= '' and flags ~= flags:match('([1-5]*)')) or flags:len() < 2 or flags:len() > 4 then resp = r.MB(err_mess,'ERROR...'..flags,5)
 		if resp == 4 then goto RETRY
