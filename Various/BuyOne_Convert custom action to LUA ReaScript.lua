@@ -217,7 +217,6 @@ local actions_t = {}
 				nest_code = line break end
 			end
 			reaper.MB(w:match('(_[%d%l]+)'),"",0)
-		Msg("\n\nLine = "..w.."\n\nCode = "..nest_code.."\n\n")
 		local _, end_idx, cust_act_name = nest_code:find(':%s*(.+)\"') -- get index of cust. action name end in its code
 		local _, _, actions = nest_code:find('([_%d%a&%s%.%-]+)',end_idx+2) -- separate custom action individual action IDs from its name: pos = name end index + quotation mark + space
 			for w in actions:gmatch('([^%s]+)') do
