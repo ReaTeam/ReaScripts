@@ -109,9 +109,11 @@ local legend = '3 - LUA scripts; 4 - 1 txt file; 5 - MIDI from Arrange'
 
 local retval, input = r.GetUserInputs('Convert or dump custom actions (type h in the 1st field for help)',3,'Type digits (type h for help):,Specify folder under \\Scripts:,Legend: 1 - Main; 2 - MIDI;  -->,extrawidth=170',','..subdir..','..legend..'')
 
-	if retval == false or input:match('^([1-5]*),') == '' -- Cancel or OK with empty field
-	then return end
+local input = input:gsub('^[%s]*','') -- remove leading spaces from the 1st field
 
+	if retval == false or input:match('^([1-5]*),') == '' -- Cancel or OK with empty field or only containing spaces
+	then return end
+	
 	if input:match('^([%sHh]*),') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 local subdir = input:match(',(.+),')
