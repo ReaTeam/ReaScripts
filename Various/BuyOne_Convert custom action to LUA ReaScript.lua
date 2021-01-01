@@ -94,7 +94,7 @@ r.DeleteExtState(script_name, 'comm_id', true)
 
 local comm_id = input:match('^([^,]+),')
 
-	if comm_id:match('(h)') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
+	if comm_id:match('^([%sHh]*)$') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 local section, midi_from_arrange = input:match(',([^,]*),([^,]*),')
 
