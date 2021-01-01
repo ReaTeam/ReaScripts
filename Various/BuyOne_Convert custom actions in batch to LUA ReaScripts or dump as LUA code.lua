@@ -112,7 +112,7 @@ local retval, input = r.GetUserInputs('Convert or dump custom actions (type h in
 	if retval == false or input:match('^([1-5]*),') == '' -- Cancel or OK with empty field
 	then return end
 
-	if input:match('[Hh],') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
+	if input:match('^([%sHh]*),') then r.ClearConsole() r.ShowConsoleMsg(HELP) goto RETRY end -- clear console to prevent adding up text on repeated submission of h
 
 local subdir = input:match(',(.+),')
 	if not subdir then subdir = '' end
