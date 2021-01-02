@@ -1,11 +1,11 @@
 @@ -0,0 +1,347 @@
--- @description Convert custom actions in batch to LUA ReaScripts or dump as LUA code
+-- @description Convert custom actions in batch to Lua ReaScripts or dump as LUA code
 -- @author BuyOne
 -- @version 1.2
 
 --[[
 
-* ReaScript Name: BuyOne_Convert custom actions in batch to LUA ReaScripts or dump as LUA code.lua
+* ReaScript Name: BuyOne_Convert custom actions in batch to LUA ReaScripts or dump as Lua code.lua
 * Description: in the name
 * Instructions: included
 * Author: Buy One
