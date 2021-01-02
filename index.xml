@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8501ef6cebd462e3a71279f81ee2959ac72a104f" name="ReaTeam Scripts">
+<index version="1" commit="cf5f076f6a2a208d0d36325c7432f29a67ee6757" name="ReaTeam Scripts">
   <category name="Cursor">
+    <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
+      <metadata>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-01-02T10:05:42Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cf5f076f6a2a208d0d36325c7432f29a67ee6757/Cursor/amagalma_Move%20edit%20cursor%20to%20closest%20item%20edge%20(among%20the%20selected%20items).lua</source>
+      </version>
+    </reapack>
     <reapack name="amagalma_Move edit cursor to next possible bad or missing items crossfade on selected tracks.lua" type="script" desc="Move edit cursor to next possible bad or missing items crossfade on selected tracks">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
