@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0ab2c60f579aeb8809bd4ae3be8d26a4c767e913" name="ReaTeam Scripts">
+<index version="1" commit="1a7eeeaf125a6f3969fd9e3eb6fd64bf3e281fd6" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5708,6 +5708,10 @@ selection.]]></changelog>
       <version name="0.1" author="spk77" time="2016-08-07T16:35:40Z">
         <changelog><![CDATA[initial release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/236b858e6d4d55b197ddb462f7849a384074f072/Items%20Properties/spk77_Export%20item%20names%20and%20time%20stamps%20to%20text%20file.lua</source>
+      </version>
+      <version name="0.2" author="spk77" time="2021-01-02T23:25:21Z">
+        <changelog><![CDATA[Script now accounts for projects with a time offset]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1a7eeeaf125a6f3969fd9e3eb6fd64bf3e281fd6/Items%20Properties/spk77_Export%20item%20names%20and%20time%20stamps%20to%20text%20file.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Normalize selected items to given range.eel" type="script" desc="Normalize selected items to given range">
