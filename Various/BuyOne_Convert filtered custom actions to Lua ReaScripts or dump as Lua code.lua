@@ -1,10 +1,10 @@
--- @description Convert filtered custom actions to LUA ReaScripts or dump as LUA code
+-- @description Convert filtered custom actions to Lua ReaScripts or dump as Lua code.lua
 -- @author BuyOne
 -- @version 1.2
 
 --[[
 
-* ReaScript Name: BuyOne_Convert filtered custom actions to LUA ReaScripts or dump as LUA code.lua
+* ReaScript Name: BuyOne_Convert filtered custom actions to Lua ReaScripts or dump as Lua code.lua
 * Description: in the name
 * Instructions: included
 * Author: Buy One
