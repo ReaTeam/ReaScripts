@@ -1,7 +1,7 @@
--- @version 0.1
+-- @version 0.2
 -- @author spk77
 -- @changelog
---   initial release
+--   Script now accounts for projects with a time offset
 -- @description Export item names and time stamps to a text file
 -- @website
 --   Forum Thread http://forum.cockos.com/showthread.php?t=180003
