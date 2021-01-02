@@ -1,22 +1,9 @@
 -- @description Swap 2 items (select both)
 -- @author BuyOne
 -- @version 1.0
+-- @website https://forum.cockos.com/member.php?u=134058
 
---[[
-
-* ReaScript Name: BuyOne_Swap 2 items (select both).lua
-* Description: in the name
-* Instructions:
-* Author: Buy One
-* Author URL: https://forum.cockos.com/member.php?u=134058
-* Licence: WTFPL
-* Forum Thread:
-* Version: 1.0
-* REAPER: at least v5.962
-* Extensions: SWS/S&M
-
-]]
-
+-- Licence: WTFPL
 
 val = reaper.NamedCommandLookup("_BR_SAVE_CURSOR_POS_SLOT_1") -- SWS/BR: Save edit cursor position, slot 01
 	if val == 0 then reaper.MB("SWS/S&M extension is not installed.","ERROR",0) return end
