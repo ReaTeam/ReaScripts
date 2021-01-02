@@ -1,4 +1,4 @@
--- @description Set Track Playback Offset
+-- @description Set track playback offset
 -- @author Daniel Philistin
 -- @version 1
 -- @screenshot https://imgur.com/a/ZOpZQkU
