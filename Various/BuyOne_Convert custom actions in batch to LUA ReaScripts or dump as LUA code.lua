@@ -42,7 +42,7 @@ local HELP = [=[
 
 I. FLAGS SUMMARY
 
-1 - To convert/dump Main and Media Explorer sections custom actions
+1 - To convert/dump Main (incl. Main (alt recording)) and Media Explorer sections custom actions
 
 2 - To convert/dump MIDI Editor and MIDI Event List Editor sections custom actions
 
