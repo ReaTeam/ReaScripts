@@ -1,22 +1,12 @@
 -- @description Split selected MIDI item by notes
 -- @author BuyOne
 -- @version 1.0
+-- @about To be run from Arrange. The notes must not overlap, or they will be corrected if confirmed by the user.
+-- @website
+--    Author Profile https://forum.cockos.com/member.php?u=134058
+--    Idea source    https://reddit.com/r/Reaper/comments/js4ipe/split_midi_items_into_their_individual_notes/
 
---[[
-
-* ReaScript Name: BuyOne_Split selected MIDI item by notes.lua
-* Description: in the name
-* Instructions: To be run from Arrange. The notes must not overlap, or they will be corrected if confirmed by the user.
-* Author: Buy One
-* Author URL: https://forum.cockos.com/member.php?u=134058
-* Idea source: https://reddit.com/r/Reaper/comments/js4ipe/split_midi_items_into_their_individual_notes/
-* Licence: WTFPL
-* Forum Thread:
-* Version: 1.0
-* REAPER: at least v5.962
-* Extensions: SWS/S&M
-
-]]
+-- Licence: WTFPL
 
 reaper.PreventUIRefresh(1)
 reaper.Undo_BeginBlock()
