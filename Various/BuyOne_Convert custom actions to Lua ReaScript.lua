@@ -1,5 +1,6 @@
 -- @description Convert custom actions to Lua ReaScript
 -- @author BuyOne
+-- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.2
 -- @metapackage
 -- @provides
