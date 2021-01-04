@@ -16,7 +16,7 @@
 	+ v1.2	As a safety measure added option to select specific Action list section, might be superfluous;
 		Help updated accordingly;
 		Other minor usability tweaks and error proofing;
-	+ v1.1 	Added support for ancillary actions often used within custom action:
+	+ v1.1 	Added support for ancillary actions often used within custom actions:
 		Action: Wait X seconds before next action;
 		Action: Prompt to continue (only valid within custom actions);
 		Action: Set action loop start (only valid within custom actions);
