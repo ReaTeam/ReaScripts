@@ -191,16 +191,7 @@ local _, end_idx, cust_act_name = code:find(':%s*(.+)\"') -- get end index of cu
 local f_name = cust_act_name:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
 
 	-- Truncate cust. action name if exceeds the OS limit for file name
-	if f_name:len() > 255 then
-	local trunc_t = {}
-		for w in f_name:gmatch('(.)') do -- split name by characters
-		trunc_t[#trunc_t+1] = w
-		end
-	f_name = ''
-		for i = 1, 230 do -- reassemble accounting for additional file name elements 255 - 25
-		f_name = f_name..trunc_t[i] -- character by character
-		end
-
+	if #f_name > 255 then f_name = f_name:sub(1, 230) -- accounting for additional file name elements 255 - 25
 	reaper.MB('The name of the custom action has been\n\ntruncated to conform to OS limitations\n\n                 on file name length.','WARNING',0)
 	end
 
