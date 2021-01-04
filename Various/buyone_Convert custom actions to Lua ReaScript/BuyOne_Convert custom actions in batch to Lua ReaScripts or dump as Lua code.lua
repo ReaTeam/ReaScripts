@@ -257,8 +257,8 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 	for k,line in next, lines_t do
 	local _, end_idx, cust_act_name = line:find(':%s*(.+)\"') -- get end index of cust. action name end in its code
 
-	-- Concatenate a LUA file prefix, name and extension
-	if flags_t[3] then -- if converting to individual LUA files
+	-- Concatenate a Lua file prefix, name and extension
+	if flags_t[3] then -- if converting to individual Lua files
 	f_name = cust_act_name:gsub('[\\/:*?\"<>|]', '') -- remove illegal characters \/:*?"<>|
 	pref, ext = 'CA_', '.lua'
 	local sect_code = line:match('%s(3206%d)%s\"')
@@ -271,16 +271,7 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 		elseif sect_code == '32063' then pref = 'Media Ex_'..pref
 		else pref = 'Main_'..pref end
 		-- Truncate cust. action name if exceeds the OS limit for file name
-		if f_name:len() > 255 then
-		local trunc_t = {}
-			for w in f_name:gmatch('(.)') do -- split name by characters
-			trunc_t[#trunc_t+1] = w
-			end
-		f_name = ''
-			for i = 1, 230 do -- reassemble accounting for additional file name elements 255 - 25
-			f_name = f_name..trunc_t[i] -- character by character
-			end
-		end
+		if #f_name > 255 then f_name = f_name:sub(1, 230) end -- accounting for additional file name elements 255 - 25
 	end
 
 
