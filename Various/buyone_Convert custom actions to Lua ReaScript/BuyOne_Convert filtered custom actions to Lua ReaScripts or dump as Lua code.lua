@@ -17,7 +17,7 @@
 		Minor error proofing;
 	+ v1.1 	Correction of typos in comments;
 		Removal of redundant info from Help;
-		Added support for ancillary actions often used within custom action:
+		Added support for ancillary actions often used within custom actions:
 		Action: Wait X seconds before next action;
 		Action: Prompt to continue (only valid within custom actions);
 		Action: Set action loop start (only valid within custom actions);
