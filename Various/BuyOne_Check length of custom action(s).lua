@@ -2,24 +2,7 @@
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.0
--- @about Monitors custom actions for excessive length to warn the user of the risk of truncation if not reduced.
-
---[[
-
-* ReaScript Name: BuyOne_Check length of custom action(s).lua
-* Description: monitors specified or all custom actions length for exceeding the limit of 1023 bytes which results in their truncaction
-* Instructions: included
-* Author: Buy One
-* Author URL: https://forum.cockos.com/member.php?u=134058
-* Licence: WTFPL
-* Forum Thread:
-* Version: 1.0
-* REAPER: at least v5.962
-* Extensions: SWS/S&M
-* Changelog:
-	+ v1.0 	Initial release
-
-]]
+-- @about Monitors specified or all custom actions length for exceeding the limit of 1023 bytes which results in their truncaction.
 
 ---------------- USER SETTINGS SECTION -----------------
 
