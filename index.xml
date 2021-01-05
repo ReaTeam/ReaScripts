@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1a7eeeaf125a6f3969fd9e3eb6fd64bf3e281fd6" name="ReaTeam Scripts">
+<index version="1" commit="b13653253749ac131ff1d714dd830ef62ff63c21" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14507,6 +14507,21 @@ SILENCE   |                                      |-  Empty Media Item (length 2s
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Import_clip_splicer_specification_json.py</source>
         <source file="beaunus_Clip_Splicer/example/example.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/example/example.json</source>
         <source file="beaunus_Clip_Splicer/schema/ClipSplicerSchema.json">https://github.com/ReaTeam/ReaScripts/raw/f1460f9c230d0725352272270abeb2cae71293b6/Various/beaunus_Clip_Splicer/schema/ClipSplicerSchema.json</source>
+      </version>
+    </reapack>
+    <reapack name="BuyOne_Check length of custom action(s).lua" type="script" desc="Check length of custom action(s)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Monitors specified or all custom actions length for exceeding the limit of 1023 bytes which results in their truncaction.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-01-05T22:03:04Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b13653253749ac131ff1d714dd830ef62ff63c21/Various/BuyOne_Check%20length%20of%20custom%20action(s).lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_Big Repeat Button.lua" type="script" desc="Big Repeat Button">
