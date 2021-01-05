@@ -206,7 +206,7 @@ local tmp_t = {}
 local lines_t = tmp_t
 local tmp_t = nil
 
-	--if converting to individual LUA files
+--if converting to individual Lua files
 local resp = flags_t[3] and r.MB('There\'re '..tostring(#lines_t)..' custom actions to export.','INFO',1)
 		if resp == 2 then return end
 
