@@ -1,5 +1,6 @@
 -- @description Check length of custom action(s)
 -- @author BuyOne
+-- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.0
 -- @about Monitors custom actions for excessive length to warn the user of the risk of truncation if not reduced.
 
