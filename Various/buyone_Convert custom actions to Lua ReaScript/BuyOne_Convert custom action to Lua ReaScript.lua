@@ -137,10 +137,12 @@ local path = r.GetResourcePath()
 local targ_file = 'reaper-kb.ini'
 
 	if ReaperKeyMap and ReaperKeyMap ~= '' then -- check if the file exists
-		for f in io.popen('dir \"'..path..sep..'KeyMaps'..sep..ReaperKeyMap..'\" /b'):lines() do -- r.MB(f,'',0)
+	local i = 0
+		repeat f = r.EnumerateFiles(path..sep..'KeyMaps'..sep, i)
 			if f == ReaperKeyMap then break end
-		end
-		if not f then resp = r.MB('    '..ReaperKeyMap..' file\n\n            was\'t found.\n\n   Switching to '..targ_file,'WARNING',1)
+		i = i + 1
+		until not f
+		if not f then resp = r.MB('    '..ReaperKeyMap..' file\n\n            was\'t found.\n\n      Switching to '..targ_file,'WARNING',1)
 			if resp == 2 then return end
 		else targ_file = 'KeyMaps'..sep..ReaperKeyMap end
 	end
@@ -156,29 +158,33 @@ local targ_file = 'reaper-kb.ini'
 	local caption = section ~= '' and t[tonumber(section)] or ''
 	local inset = section ~= '' and '\n\n       in the specified Action list section.' or '.'
 	local resp = r.MB('The submitted command ID wasn\'t found'..inset,'ERROR... '..caption,5)
-		if resp == 4 then
-			if section ~= '' then r.SetExtState(script_name, 'comm_id', comm_id, false) end
-			goto RETRY
+		if resp == 4 then r.SetExtState(script_name, 'comm_id', comm_id, false) goto RETRY
 		else return end
 	end
 
 
-	if code:match('%s(32062)%s\"'..comm_id..'') then r.MB('This is an Inline MIDI Editor custom action.\n\n  These are unfortunately not supported.\n\n                          ВЇ\\_(гѓ„)_/ВЇ','ERROR',0) return end
+	if code:match('%s(32062)%s\"'..comm_id..'') then r.MB('This is an Inline MIDI Editor custom action.\n\n  These are unfortunately not supported.\n\n                          ¯\\_(ツ)_/¯','ERROR',0) return end
 
 
 -- Concatenate the path
 	if subdir ~= '' and subdir ~= 'existing or new; or leave as it is or empty' then
 	-- check if such directory already exists and if not, create
-		for dir in io.popen('dir \"'..path..sep..'Scripts\" /b'):lines() do
-			if dir == subdir then exists = true break end
+		local i = 0
+			repeat dir = r.EnumerateSubdirectories(path..sep..'Scripts'..sep, i)
+				if dir == subdir then break end
+			i = i + 1
+			until not dir
+		if not dir then r.RecursiveCreateDirectory(path..sep..'Scripts'..sep..subdir, 0) -- should return 0 on failure but i prefer explicit confirmation below
+		-- check if the directory has been created
+		local t_point = r.time_precise() -- wait for .5 a sec until the function cache is cleared, otherwise the created dir isn't registered
+		repeat until r.time_precise() - t_point > 0.5
+		local i = 0
+			repeat dir = r.EnumerateSubdirectories(path..sep..'Scripts'..sep, i)
+				if dir == subdir then break end
+			i = i + 1
+			until not dir
 		end
-		if not exists then os.execute('mkdir \"'..path..sep..'Scripts'..sep..subdir..'\"')
-		-- check if the directory has been created 
-			for dir in io.popen('dir \"'..path..sep..'Scripts\" /b'):lines() do
-				if dir == subdir then exists = true break end
-			end
-		end
-		if exists then f_path = path..sep..'Scripts'..sep..subdir
+		if dir then f_path = path..sep..'Scripts'..sep..subdir
 		subdir_txt = '\\'..subdir -- for the concluding message in the end
 		else f_path = path..sep..'Scripts'; subdir_txt = ''
 		r.MB('      Folder creation has failed.\n\nThe exported files will be placed\n\n       in the\\Scripts  directory.','WARNING',0)
