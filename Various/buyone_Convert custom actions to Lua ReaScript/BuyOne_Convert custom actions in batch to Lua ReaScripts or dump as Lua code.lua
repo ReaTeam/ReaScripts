@@ -249,13 +249,16 @@ local pref, f_name, ext = '', inset..tostring(#lines_t)..' custom actions LUA du
 
 -- Check if there's already a txt dump file in the target directory and ovewrite if confirmed by the user
 	if flags_t[4] then
-		for f in io.popen('dir \"'..f_path..sep..'\" /b'):lines() do
-			if f == f_name..ext then resp = r.MB('    The \\Scripts'..subdir_txt..'  folder already contains\n\n   a dump file for selected custom actions.\n\n    \"OK\" to overwrite     \"Cancel\" to abort.','PROMPT',1)
-				if resp == 1 then
-				local file = io.open(f_path..sep..f, 'w')
-				file:write(''); file:close()
-				else return end
-			end
+	local i = 0
+		repeat f = r.EnumerateFiles(f_path..sep, i)
+			if f == f_name..ext then break end
+		i = i + 1
+		until not f
+		if f == f_name..ext then resp = r.MB('    The \\Scripts'..subdir_txt..'  folder already contains\n\n   a dump file for selected custom actions.\n\n    \"OK\" to overwrite     \"Cancel\" to abort.','PROMPT',1)
+			if resp == 1 then
+			local file = io.open(f_path..sep..f, 'w')
+			file:write(''); file:close()
+			else return end
 		end
 	end
 
