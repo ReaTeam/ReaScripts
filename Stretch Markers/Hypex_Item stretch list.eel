@@ -1,8 +1,7 @@
-// @description Item Stretch List
-// @author Damien Stewart (Hypex).
+// @description Item stretch list
+// @author Damien Stewart (Hypex)
 // @version 1.0
-// @provides . > Hypex_StretchList.eel
-// @screenshot Example https://raw.githubusercontent.com/Hypexed/Reaper-Scripts/main/StretchList.png
+// @screenshot Example https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList.png
 // @about
 //   # Item Stretch List
 //
