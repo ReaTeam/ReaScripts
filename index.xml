@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dc7e7c53faf3407e822cf03809cfc8440379b7f7" name="ReaTeam Scripts">
+<index version="1" commit="c5826559d32f15b45a177d926200ee7069d0da95" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11414,6 +11414,24 @@ Don't report an error if no render presets were created yet]]></changelog>
     <reapack name="Argitoth_Split selected items at stretch markers.eel" type="script" desc="Split selected items at stretch markers">
       <version name="1.0" author="Elan Hickler (Argitoth)" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Stretch%20Markers/Argitoth_Split%20selected%20items%20at%20stretch%20markers.eel</source>
+      </version>
+    </reapack>
+    <reapack name="Hypex_Item stretch list.eel" type="script" desc="Item stretch list">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Item Stretch List\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Displays a list of stretch markers in active take of selected item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Will show table with Marker, Time, Position, Source-Offset and Slope.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Marker: Index in list. Time: On timeline. Position: In take. Source-Offset: In source media. Slope: Value if any.\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://github.com/Hypexed/Reaper-Scripts/raw/main/StretchList.png">Example</link>
+      </metadata>
+      <version name="1.0" author="Damien Stewart (Hypex)" time="2021-01-07T10:12:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5826559d32f15b45a177d926200ee7069d0da95/Stretch%20Markers/Hypex_Item%20stretch%20list.eel</source>
       </version>
     </reapack>
     <reapack name="js_Adjust audio items to tempo changes using stretch markers.lua" type="script" desc="js_Adjust audio items to tempo changes using stretch markers.lua">
