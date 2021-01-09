@@ -1,8 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.21
+Version: 6.30
 Changelog:
-  + FIXED: Razor edge points in take envelopes.
+  + NEW: Move function.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -770,13 +770,247 @@ function Defer_Stretch_Right()
 end
 
 
+local moveLEFTRIGHT, moveUPDOWN, move2SIDED, mouseStartTick = false, false, false, nil
+local mouseMovementResolution, moveCurve = 5, 1
+local moveMouseStartFraction = nil
+local hasConstructedNewMoveStep = false
+local tMovePreCalc = nil
+local stepStartMouseX, stepStartMouseY = nil, nil -- To decide between L/R and U/D, must compare initial mouse movement with initial position.
+--#########################
+---------------------------
+function Defer_Move()
+    -- Initialization of the Move step is a bit more copmlicated than for other steps, since 
+    --    1) the step must wait for initial mouse movement in order to decide between U/D and L/R (EXCEPT in lanes where can only move left/right), but 
+    --    2) the Zones must be cleared as quickly as possible in order to seem responsive.
+    -- The script solves this problem but dividing initialization into two parts that is spread over two defer cycles: first clear the zones, then do the waiting. 
+
+    -- CYCLE 1: First time this function runs in this step:
+    if not (continueStep == "CONTINUE") then
+        reaper.JS_LICE_Clear(bitmap, 0)
+        stepStartTime = thisDeferTime
+        stepStartMouseX = mouseX
+        stepStartMouseY = mouseY
+        mouseStateAtStepDragTime = mouseState
+        hasConstructedNewMoveStep = false
+        tMovePreCalc = nil
+        move2SIDED   = false
+        -- DIRECTION: Determine the direction of moveing.
+        -- Notes, sysex and text can only be moveed left/right
+        -- (To move note pitches, use the built-in Arpeggiate mouse modifiers)
+        -- For other lanes, move direction depends on mouse movement, similar
+        --    to the "move in one direction only" mouse modifiers.
+        if laneIsALL or laneIsPIANOROLL or laneIsSYSEX or laneIsTEXT or laneIsBANKPROG 
+        or (tSteps[#tSteps].globalMaxValue == tSteps[#tSteps].globalMinValue)
+        then
+            moveLEFTRIGHT, moveUPDOWN = true, false
+            canMoveBothDirections = false
+        else 
+            canMoveBothDirections = true
+            moveLEFTRIGHT, moveUPDOWN = false, false
+            reaper.JS_Window_InvalidateRect(windowUnderMouse, 0, 0, ME_Width, ME_Height, false) -- To appear more responsive, immediately clear graphics and go to new defer cycle, even before knowing whether l/r or u/d.
+            if Check_MouseLeftButtonSinceLastDefer() then return "NEXT" else return "CONTINUE" end
+        end
+    end
+    
+    -- CYCLE 2: Second time this function runs in current step:
+    
+    -- Because we need to wait a little while, can do some slow calculations here:  
+    --    * Pre-caculate some tick positions for each take
+    --    * For 2-sided move, events to left and right of mouse are moveed oppositely, so to avoid testing < for every event en every cycle, find the event just to left of mouse
+    if not tMovePreCalc then
+        tMovePreCalc = {}
+        local mouseStartTime = tTimeFromPixel[stepStartMouseX] 
+        for take, tID in pairs(tSteps[#tSteps].tGroups) do
+            tMovePreCalc[take] = {mouseStartTick = tTickFromTime[take][mouseStartTime],
+                                  leftmostTick = tTickFromTime[take][tSteps[#tSteps].globalLeftmostTime],
+                                  rightmostTick = tTickFromTime[take][tSteps[#tSteps].globalNoteOffTime],
+                                  curAddValue = 0, prevAddValue = 0,
+                                  curAddTicks = 0, prevAddTicks = 0,
+                                  }
+        end
+    end
+    
+    -- DETECT MOUSE MOVEMENT L/R vs U/D
+    if not (moveLEFTRIGHT or moveUPDOWN) then
+        local mouseXmove, mouseYmove, timeWaited = 0, 0, 0
+        repeat
+            local x, y = reaper.GetMousePosition()
+            x, y = reaper.JS_Window_ScreenToClient(windowUnderMouse, x, y)
+            mouseXmove = math.abs(x - stepStartMouseX)
+            mouseYmove = math.abs(y - stepStartMouseY)
+            timeWaited = reaper.time_precise() - stepStartTime 
+        until timeWaited > 3 or ((mouseXmove > mouseMovementResolution or mouseYmove > mouseMovementResolution) and mouseXmove ~= mouseYmove)
+        if timeWaited > 3 then
+            return "NEXT"
+        elseif mouseXmove > mouseYmove then 
+            moveLEFTRIGHT, moveUPDOWN = true, false 
+        else 
+            moveLEFTRIGHT, moveUPDOWN = false, true
+        end
+    end
+    
+    -- SETUP tSteps TABLES FOR NEW STEP
+    if not hasConstructedNewMoveStep then
+        mouseStartY = mouseY
+        -- CURSOR: Defer_Zones has already set the cursor to left/right 
+        cursor = moveUPDOWN and tCursors.ArrowNS or tCursors.ArrowWE
+        if cursor then reaper.JS_Mouse_SetCursor(cursor) end
+        
+        -- CONSTRUCT NEW STEP: by copying previous - except those tables/values that will be newly contructed
+        local old = tSteps[#tSteps]
+        local new = {tGroups = {}, isChangingPositions = moveLEFTRIGHT}
+        tSteps[#tSteps+1] = new
+        for key, entry in pairs(old) do
+            if not new[key] then new[key] = entry end
+        end
+        for take, tID in pairs(old.tGroups) do
+            new.tGroups[take] = {}
+            for id, t in pairs(tID) do
+                new.tGroups[take][id] = {}
+                --[[if moveUPDOWN then 
+                    new.tGroups[take][id] = {tV = {}}
+                else
+                    new.tGroups[take][id] = {tT = {}, tOff = {}}
+                end]]
+                for a, b in pairs(t) do
+                    if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
+                end
+            end
+        end        
+        
+        hasConstructedNewMoveStep = true
+        mustCalculate = true -- Always start step with re-calculation 
+    end -- if not (continueStep == "CONTINUE") ... elseif not (moveLEFTRIGHT or moveUPDOWN)
+    
+    -- RIGHT CLICK: Right click changes script mode
+    if canMoveBothDirections then
+        peekOK, pass, time = reaper.JS_WindowMessage_Peek(windowUnderMouse, "WM_RBUTTONDOWN")
+        if peekOK and time > prevDeferTime then
+            move2SIDED = not move2SIDED
+            if move2SIDED then
+                -- Update new starting positions for relative movement
+                if moveLEFTRIGHT then
+                    mouseStartY = mouseY
+                    for take, tID in pairs(tSteps[#tSteps].tGroups) do
+                        tMovePreCalc[take].prevAddValue = tMovePreCalc[take].curAddValue
+                    end
+                else
+                    local mouseStartTime = tTimeFromPixel[mouseX] 
+                    for take, tID in pairs(tSteps[#tSteps].tGroups) do
+                        tMovePreCalc[take].mouseStartTick = tTickFromTime[take][mouseStartTime]
+                        tMovePreCalc[take].prevAddTicks = tMovePreCalc[take].curAddTicks
+                    end
+                end
+            end
+            prevMouseInputTime = time
+            mustCalculate = true
+        end
+    end
+ 
+    -- MOUSE MOVEMENT:
+    if moveLEFTRIGHT or move2SIDED then
+        if mouseX ~= prevMouseX then mustCalculate = true end 
+    end
+    if moveUPDOWN or move2SIDED then
+        if mouseY ~= prevMouseY then mustCalculate = true end
+    end
+    
+    
+    -- CALCULATE MIDI STUFF!
+    
+    -- Scripts that extract selected MIDI events and re-concatenate them out of order (usually at the beginning of the MIDI string, for easier editing)
+    --    cannot be auditioned in real-time while events are out of order, since such events are not played.
+    -- If the mouse is held still, no editing is done, and instead the take is sorted, thereby temporarily allowing playback.
+    -- NO NEED TO CALCULATE:
+    if mustCalculate then 
+
+        -- CALCULATE NEW MIDI DATA! and write the tMoveMIDI!
+        -- The moveing uses a power function, and the power variable is determined
+        --     by calculating to what power 0.5 must be raised to reach the 
+        --     mouse's deviation to the left or right from its starting PPQ position. 
+        -- The reason why 0.5 was chosen, was so that the CC in the middle of the range
+        --     would follow the mouse position.
+        -- The PPQ range of the selected events is used as reference to calculate
+        --     magnitude of mouse movement.
+        
+        local newValue, power, mouseRelativeMovement
+        if moveUPDOWN or move2SIDED then
+        
+            local mouseUpDownMove = (mouseStartY-mouseY) / (ME_TargetBottomPixel-ME_TargetTopPixel) --ME_TargetGetMouseValue()-mouseStartCCValue)/(laneMaxValue-laneMinValue) -- Positive if moved to right, negative if moved to left
+            local newValue
+            for take, tID in pairs(tSteps[#tSteps-1].tGroups) do  
+                local laneMinValue, laneMaxValue = tID.laneMinValue or laneMinValue, tID.laneMaxValue or laneMaxValue
+                local addValue = mouseUpDownMove*(laneMaxValue-laneMinValue) + tMovePreCalc[take].prevAddValue
+                tMovePreCalc[take].curAddValue = addValue
+                for id, t in pairs(tID) do
+                    if tSteps[#tSteps].tGroups[take][id].tV == t.tV then
+                        tSteps[#tSteps].tGroups[take][id].tV ={}
+                    end
+                    local tV, tOldV = tSteps[#tSteps].tGroups[take][id].tV, t.tV
+                    for i = 1, #tOldV do                             
+                        newValue = tOldV[i]+addValue           
+                        if     newValue > laneMaxValue then tV[i] = laneMaxValue
+                        elseif newValue < laneMinValue then tV[i] = laneMinValue
+                        else tV[i] = newValue
+                        end       
+                    end
+                end
+            end
+        end
+        
+        if moveLEFTRIGHT or move2SIDED then
+            
+            -- If the mouse moves out of range, it may mess up 2-sided move, moving points out of range and messing up sequence.  
+            local mouseTime = tTimeFromPixel[mouseX]
+            
+            for take, tID in pairs(tSteps[#tSteps-1].tGroups) do 
+                local mouseTick = tTickFromTime[take][mouseTime]
+                local addTicks  = mouseTick-tMovePreCalc[take].mouseStartTick + tMovePreCalc[take].prevAddTicks
+                tMovePreCalc[take].curAddTicks = addTicks
+                for id, t in pairs(tID) do  
+                    if tSteps[#tSteps].tGroups[take][id].tT == t.tT then
+                        tSteps[#tSteps].tGroups[take][id].tT ={}
+                    end
+                    local tT, tOldT = tSteps[#tSteps].tGroups[take][id].tT, t.tT
+                    for i = 1, #tOldT do
+                        tT[i] = tOldT[i]+addTicks
+                    end    
+                    if id == "notes" then
+                        if tSteps[#tSteps].tGroups[take][id].tOff == t.tOff then
+                            tSteps[#tSteps].tGroups[take][id].tOff ={}
+                        end
+                        local tOff, tOldOff = tSteps[#tSteps].tGroups[take][id].tOff, t.tOff                            
+                        for i = 1, #tOldOff do
+                            tOff[i] = tOldOff[i]+addTicks
+                        end    
+                    end
+                end
+            end
+        end
+      
+        CONSTRUCT_AND_UPLOAD()
+        
+    end -- mustCalculate stuff
+
+
+    -- GO TO NEXT STEP?
+    if Check_MouseLeftButtonSinceLastDefer() then
+        GetAllEdgeValues(tSteps[#tSteps])
+        return "NEXT"
+    else
+        return "CONTINUE"
+    end
+    
+end -- Defer_Move
+
+
 local warpLEFTRIGHT, warpUPDOWN, mouseStartTick = false, false, nil
 local mouseMovementResolution, warpCurve = 5, 1
 local warpMouseStartFraction = nil
 local hasConstructedNewWarpStep = false
 local warp2SIDED, warp2Power, warp2MouseAbove = false, 1, nil
 local tWarpPreCalc = nil
-local stepStartMouseX, stepStartMouseY = nil, nil -- To decide between L/R and U/D, mosu compare initial mouse movement with initial position.
+local stepStartMouseX, stepStartMouseY = nil, nil -- To decide between L/R and U/D, must compare initial mouse movement with initial position.
 --#################################
 -----------------------------------
 function Defer_Warp()
@@ -881,7 +1115,7 @@ function Defer_Warp()
             warpMouseStartFraction = (mouseTick-left)/range
             --warpMouseStartFraction = (mouseStartTick-tSteps[#tSteps].globalLeftmostTick) / (tSteps[#tSteps].globalNoteOffTick - tSteps[#tSteps].globalLeftmostTick)   
         else -- warpUPDOWN
-            mouseStartCCValue = GetMouseValue()
+            --mouseStartCCValue = GetMouseValue()
             mouseStartY = mouseY
             -- CURSOR: Defer_Zones has already set the cursor to left/right 
             cursor = reaper.JS_Mouse_LoadCursor(503) -- REAPER's own arpeggiate up/down cursor
@@ -1265,7 +1499,7 @@ end -- Defer_Scale
 --#######################
 -------------------------
 -- Default colors:
-local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK = 0xFFAA2200, 0xFFFF0000, 0xFF00BB00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFFFF8800, 0xFF000000
+local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK, WHITE = 0xFFAA2200, 0xFFFF0000, 0xFF00BB00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFFFF8800, 0xFF000000, 0xFFFFFFFF
 function LoadZoneColors()
     
     local extState = reaper.GetExtState("js_Multi Tool", "Settings") or ""
@@ -1276,6 +1510,7 @@ function LoadZoneColors()
     local colorWarp     = extState:match("warp.-(%d+)")
     local colorUndo     = extState:match("undo.-(%d+)")
     local colorRedo     = extState:match("redo.-(%d+)")
+    local colorMove     = extState:match("move.-(%d+)")
 
     tColors = {compress = (colorCompress  and tonumber(colorCompress) or YELLOW),
                scale    = (colorScale     and tonumber(colorScale)    or ORANGE),
@@ -1284,6 +1519,7 @@ function LoadZoneColors()
                warp     = (colorWarp      and tonumber(colorWarp)     or GREEN),
                undo     = (colorUndo      and tonumber(colorUndo)     or RED),
                redo     = (colorRedo      and tonumber(colorRedo)     or GREEN),
+               move     = (colorMove      and tonumber(colorMove)     or WHITE),
                black    = BLACK
               }
 
@@ -1315,6 +1551,7 @@ function ChooseZoneColor()
                             .." warp="..string.format("%i", tColors.warp)
                             .." undo="..string.format("%i", tColors.undo)
                             .." redo="..string.format("%i", tColors.redo)
+                            .." move="..string.format("%i", tColors.move)
                             .." zoneWidth=" .. tostring(zoneWidth)
             reaper.SetExtState("js_Multi Tool", "Settings", extState, true)
             DisplayZones()
@@ -2596,8 +2833,8 @@ function DisplayZones()
                              left = undoLeft+zoneWidth,      right = undoLeft+2*zoneWidth-1,  top = ME_TargetTopPixel-2*zoneWidth-2,  bottom = ME_TargetTopPixel-zoneWidth-2}                  
         
         -- Scale
-        local left, right = GUI_LeftPixel+2*zoneWidth, GUI_RightPixel-2*zoneWidth
-        if right-left < 2*zoneWidth then left, right = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
+        local scaleLeft, scaleRight = GUI_LeftPixel+2*zoneWidth, GUI_RightPixel-2*zoneWidth
+        if scaleRight-scaleLeft < 2*zoneWidth then scaleLeft, scaleRight = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
         
         local minValuePixel, maxValuePixel = ME_TargetBottomPixel, ME_TargetTopPixel
         if t.globalMaxValue and t.globalMinValue then 
@@ -2611,10 +2848,10 @@ function DisplayZones()
             minValuePixel, maxValuePixel = minValuePixel//1, maxValuePixel//1
         end
         tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale top",      cursor = tCursors.HandTop,     color = "scale", 
-                             left = left,     right = right, top = maxValuePixel,    bottom = maxValuePixel+zoneWidth-1,
+                             left = scaleLeft,     right = scaleRight, top = maxValuePixel,    bottom = maxValuePixel+zoneWidth-1,
                              activeTop = ME_TargetTopPixel, activeLeft = -1/0, activeRight = 1/0}
         tZones[#tZones+1] = {func = Defer_Scale,          wheel = Edit_FlipValuesRelative,     tooltip = "Scale bottom",   cursor = tCursors.HandBottom,  color = "scale", 
-                              left = left,    right = right, top = minValuePixel-zoneWidth+1, bottom = minValuePixel,
+                              left = scaleLeft,    right = scaleRight, top = minValuePixel-zoneWidth+1, bottom = minValuePixel,
                               activeBottom = ME_TargetBottomPixel, activeLeft = -1/0, activeRight = 1/0}    
         
         -- Stretch
@@ -2634,6 +2871,12 @@ function DisplayZones()
                              --activeTop = ME_TargetTopPixel, activeBottom = ME_TargetBottomPixel, 
                              activeRight = 1/0}         
         
+        -- Move
+        tZones[#tZones+1] = {func = Defer_Move,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Move",   cursor = tCursors.ArrowFour,    color = "move", 
+                              left  = (scaleLeft+scaleRight-zoneWidth)//2,  right = (scaleLeft+scaleRight+zoneWidth)//2,  
+                              top   = (stretchBottomPixel+stretchTopPixel-zoneWidth)//2, bottom = (stretchBottomPixel+stretchTopPixel+zoneWidth)//2,
+                            } 
+                            
         -- Warp
         if (GUI_RightPixel - GUI_LeftPixel) > zoneWidth*4 then
             tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_SpaceEvenly,   tooltip = "Warp",           cursor = tCursors.ArpeggiateLR,color = "warp", 
@@ -2641,14 +2884,16 @@ function DisplayZones()
         end  
         
         -- Compress top/bottom
-        left, right = GUI_LeftPixel+3*zoneWidth, GUI_RightPixel-3*zoneWidth
-        if right-left < 2*zoneWidth then left, right = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
+        local compressLeft, compressRight = GUI_LeftPixel+3*zoneWidth, GUI_RightPixel-3*zoneWidth
+        if compressRight-compressLeft < 2*zoneWidth then compressLeft, compressRight = GUI_MidPixel-zoneWidth, GUI_MidPixel+zoneWidth end
         tZones[#tZones+1] = {func = Defer_Compress,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Scale top",      cursor = tCursors.Compress,    color = "compress", 
-                              left = left,  right = right,  top = ME_TargetTopPixel-zoneWidth-1, bottom = ME_TargetTopPixel-1,
+                              left = compressLeft,  right = compressRight,  top = ME_TargetTopPixel-zoneWidth-1, bottom = ME_TargetTopPixel-1,
                               activeLeft = -1/0, activeRight = 1/0}
         tZones[#tZones+1] = {func = Defer_Compress,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Scale bottom",   cursor = tCursors.Compress,    color = "compress", 
-                              left = left,  right = right,  top = ME_TargetBottomPixel+1, bottom = ME_TargetBottomPixel+zoneWidth+1,
+                              left = compressLeft,  right = compressRight,  top = ME_TargetBottomPixel+1, bottom = ME_TargetBottomPixel+zoneWidth+1,
                               activeLeft = -1/0, activeRight = 1/0}  
+                              
+ 
                         
     -- Events don't have values, or lane is too narrow, so only edit positions 
     else
@@ -2674,12 +2919,18 @@ function DisplayZones()
         tZones[#tZones+1] = {func = Defer_Stretch_Right,  wheel = Edit_Reverse,   tooltip = "Stretch right",  cursor = tCursors.HandRight,   color = "stretch", 
                               left = GUI_RightPixel-zoneWidth*2+1,    right = GUI_RightPixel-zoneWidth,   top = top, bottom = bottom,
                               activeRight = 1/0}
+        -- Move
+        tZones[#tZones+1] = {func = Defer_Move,   wheel = Edit_FlipValuesAbsolute,   tooltip = "Move",   cursor = tCursors.ArrowFour,    color = "move", 
+                              left  = (GUI_LeftPixel+GUI_RightPixel-zoneWidth)//2,  right = (GUI_LeftPixel+GUI_RightPixel+zoneWidth)//2,  
+                              top   = (bottom+top-zoneWidth)//2, bottom = (bottom+top+zoneWidth)//2,
+                            } 
         -- Warp
         tZones[#tZones+1] = {func = Defer_Warp,           wheel = Edit_SpaceEvenly,   tooltip = "Warp",           cursor = tCursors.ArpeggiateLR,color = "warp", 
                               left = GUI_LeftPixel+zoneWidth*2, right = GUI_RightPixel-zoneWidth*2, top = top, bottom = bottom}
     end    
     reaper.JS_LICE_Clear(bitmap, 0)
-    for _, z in ipairs(tZones) do
+    for i = #tZones, 1, -1 do -- Zones that are defined first, take precedence when overlapping, and must be drawn last, i.e. on top
+        local z = tZones[i]
         local color = tColors[z.color]
         reaper.JS_LICE_FillRect(bitmap, z.left//1, z.top//1, (z.right-z.left)//1, (z.bottom-z.top)//1, color, 1, "COPY")
         color = winOS and ((color>>3)&0x1F1F1F1F) or (color&0x1FFFFFFF)
@@ -2730,7 +2981,7 @@ function Defer_Zones()
             --Tooltip(zone.tooltip) -- tooltips seem to flicker when compositing is used
             cursor = zone.cursor
         else
-            cursor = tCursors.Cross
+            cursor = tCursors.Wrong
         end
         if cursor then reaper.JS_Mouse_SetCursor(cursor) end
     end
@@ -5200,10 +5451,13 @@ function MAIN()
                 ArpeggiateLR  = 502,
                 ArpeggiateUD  = 503, -- REAPER's own arpeggiate up/down cursor
                 Tilt          = 189, --"js_Mouse editing - Arch and Tilt.cur")
-                Cross         = 464, -- Arrow with cross
+                Wrong         = 464, -- Arrow with cross
                 Arrow         = 32512, -- Standard IDC_ARROW
                 Undo          = "js_Mouse editing - Undo.cur",
                 Redo          = "js_Mouse editing - Redo.cur",
+                ArrowFour     = 32646, 
+                ArrowNS       = 32645, 
+                ArrowWE       = 32644,
                }
     for name, source in pairs(tCursors) do
         if type(source) == "string" then
