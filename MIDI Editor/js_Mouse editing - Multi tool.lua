@@ -1,8 +1,9 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.30
+Version: 6.31
 Changelog:
-  + NEW: Move function.
+  + NEW: "Move" snaps relative (unless Shift is held).
+  + FIXED: In MIDI editor, edit all editable takes even if called from Main context.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -117,6 +118,7 @@ About:
       * Stretch or move from right / Reverse positions
       * Tilt left side / Snap to chased values on left
       * Tilt right side / Snap to chased values on right
+      * Move up/down and left/right / Flip values absolute
       * Undo
       * Redo      
   
@@ -219,7 +221,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
-local tTakeInfo = {}
+ tTakeInfo = {}
 local tMIDI = {} -- Each take or envelope or AI gets its own subtable: tMIDI[take] = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -420,6 +422,7 @@ setmetatable(tTimeFromPixel, {__index = function(t, x)
                                             return time
                                         end })                                                                                                                         
 
+
 --##################################
 ------------------------------------
 local function GetMouseTick(trySnap)
@@ -455,8 +458,11 @@ local function GetMouseTick(trySnap)
     return snappedNewTick
 end
 
-function SnapTime(time)
-    if not isSnapEnabled or (mouseState and mouseState&8 == 8) then -- While shift is held down, don't snap
+
+--################################
+----------------------------------
+function SnapTime(time, forceSnap)
+    if not forceSnap and not isSnapEnabled or (mouseState and mouseState&8 == 8) then -- While shift is held down, don't snap
         return time --snappedNewTick = (mouseNewPPQPos+0.5)//1 
     elseif isInline then
         return reaper.SnapToGrid(0, time) -- If snap-to-grid is not enabled, will return timePos unchanged
@@ -818,15 +824,15 @@ function Defer_Move()
     --    * Pre-caculate some tick positions for each take
     --    * For 2-sided move, events to left and right of mouse are moveed oppositely, so to avoid testing < for every event en every cycle, find the event just to left of mouse
     if not tMovePreCalc then
-        tMovePreCalc = {}
-        local mouseStartTime = tTimeFromPixel[stepStartMouseX] 
+        -- mouseStartX/Y store the starting X/Y positions for each right-click toggle between 1-sided and 2SIDED
+        --    so that each 2SIDED step can move relative to its own starting position.
+        tMovePreCalc = {mouseStartX = stepStartMouseX, mouseStartY = stepStartMouseY} 
         for take, tID in pairs(tSteps[#tSteps].tGroups) do
-            tMovePreCalc[take] = {mouseStartTick = tTickFromTime[take][mouseStartTime],
-                                  leftmostTick = tTickFromTime[take][tSteps[#tSteps].globalLeftmostTime],
+            tMovePreCalc[take] = {leftmostTick = tTickFromTime[take][tSteps[#tSteps].globalLeftmostTime],
                                   rightmostTick = tTickFromTime[take][tSteps[#tSteps].globalNoteOffTime],
+                                  -- The values and ticks that were added in previous 2SIDED steps must be added to current step's relative movement
                                   curAddValue = 0, prevAddValue = 0,
-                                  curAddTicks = 0, prevAddTicks = 0,
-                                  }
+                                  curAddTicks = 0, prevAddTicks = 0, }
         end
     end
     
@@ -858,7 +864,7 @@ function Defer_Move()
         
         -- CONSTRUCT NEW STEP: by copying previous - except those tables/values that will be newly contructed
         local old = tSteps[#tSteps]
-        local new = {tGroups = {}, isChangingPositions = moveLEFTRIGHT}
+        local new = {tGroups = {}, isChangingPositions = true}
         tSteps[#tSteps+1] = new
         for key, entry in pairs(old) do
             if not new[key] then new[key] = entry end
@@ -867,11 +873,6 @@ function Defer_Move()
             new.tGroups[take] = {}
             for id, t in pairs(tID) do
                 new.tGroups[take][id] = {}
-                --[[if moveUPDOWN then 
-                    new.tGroups[take][id] = {tV = {}}
-                else
-                    new.tGroups[take][id] = {tT = {}, tOff = {}}
-                end]]
                 for a, b in pairs(t) do
                     if not new.tGroups[take][id][a] then new.tGroups[take][id][a] = b end
                 end
@@ -890,14 +891,15 @@ function Defer_Move()
             if move2SIDED then
                 -- Update new starting positions for relative movement
                 if moveLEFTRIGHT then
-                    mouseStartY = mouseY
+                    tMovePreCalc.mouseStartY = mouseY
                     for take, tID in pairs(tSteps[#tSteps].tGroups) do
                         tMovePreCalc[take].prevAddValue = tMovePreCalc[take].curAddValue
                     end
                 else
-                    local mouseStartTime = tTimeFromPixel[mouseX] 
+                    --local mouseStartTime = tTimeFromPixel[mouseX] 
+                    tMovePreCalc.mouseStartX = mouseX
                     for take, tID in pairs(tSteps[#tSteps].tGroups) do
-                        tMovePreCalc[take].mouseStartTick = tTickFromTime[take][mouseStartTime]
+                        --tMovePreCalc[take].mouseStartTick = tTickFromTime[take][mouseStartTime]
                         tMovePreCalc[take].prevAddTicks = tMovePreCalc[take].curAddTicks
                     end
                 end
@@ -933,10 +935,9 @@ function Defer_Move()
         -- The PPQ range of the selected events is used as reference to calculate
         --     magnitude of mouse movement.
         
-        local newValue, power, mouseRelativeMovement
         if moveUPDOWN or move2SIDED then
         
-            local mouseUpDownMove = (mouseStartY-mouseY) / (ME_TargetBottomPixel-ME_TargetTopPixel) --ME_TargetGetMouseValue()-mouseStartCCValue)/(laneMaxValue-laneMinValue) -- Positive if moved to right, negative if moved to left
+            local mouseUpDownMove = (tMovePreCalc.mouseStartY-mouseY) / (ME_TargetBottomPixel-ME_TargetTopPixel) --ME_TargetGetMouseValue()-mouseStartCCValue)/(laneMaxValue-laneMinValue) -- Positive if moved to right, negative if moved to left
             local newValue
             for take, tID in pairs(tSteps[#tSteps-1].tGroups) do  
                 local laneMinValue, laneMaxValue = tID.laneMinValue or laneMinValue, tID.laneMaxValue or laneMaxValue
@@ -961,11 +962,14 @@ function Defer_Move()
         if moveLEFTRIGHT or move2SIDED then
             
             -- If the mouse moves out of range, it may mess up 2-sided move, moving points out of range and messing up sequence.  
-            local mouseTime = tTimeFromPixel[mouseX]
+            local mouseTime = SnapTime(tTimeFromPixel[mouseX])
+            local mouseStartTime = SnapTime(tTimeFromPixel[tMovePreCalc.mouseStartX])
             
             for take, tID in pairs(tSteps[#tSteps-1].tGroups) do 
                 local mouseTick = tTickFromTime[take][mouseTime]
-                local addTicks  = mouseTick-tMovePreCalc[take].mouseStartTick + tMovePreCalc[take].prevAddTicks
+                local mouseStartTick = tTickFromTime[take][mouseStartTime]
+                --local addTicks  = mouseTick-tMovePreCalc[take].mouseStartTick + tMovePreCalc[take].prevAddTicks
+                local addTicks  = mouseTick-mouseStartTick + tMovePreCalc[take].prevAddTicks
                 tMovePreCalc[take].curAddTicks = addTicks
                 for id, t in pairs(tID) do  
                     if tSteps[#tSteps].tGroups[take][id].tT == t.tT then
@@ -3869,15 +3873,16 @@ function Setup_EditableTakes()
     activeItem  = activeItem  or reaper.GetMediaItemTake_Item(activeTake)
     activeTrack = activeTrack or reaper.GetMediaItem_Track(activeItem)
     tTakeInfo[activeTake] = {item = activeItem, track = activeTrack}
-    
+
     if not isInline then
         local midiSettingOK, midiSetting = reaper.get_config_var_string("midieditor") -- One MIDI editor per project?
         if midiSettingOK and tonumber(midiSetting)&3 == 1
-        --and reaper.GetToggleCommandStateEx(sectionID, 40874) == 1 -- Options: Draw and edit CC events on all tracks
-        and reaper.GetToggleCommandStateEx(sectionID, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
-        and reaper.GetToggleCommandStateEx(sectionID, 40891) == 1 -- Options: MIDI track list/media item lane selection is linked to editability
+        --and reaper.GetToggleCommandStateEx(32060, 40874) == 1 -- Options: Draw and edit CC events on all tracks
+        -- Note: don't use sectionID, because script might have been called from Main context.
+        and reaper.GetToggleCommandStateEx(32060, 40892) == 1 -- Options: MIDI track list/media item lane selection is linked to visibility
+        and reaper.GetToggleCommandStateEx(32060, 40891) == 1 -- Options: MIDI track list/media item lane selection is linked to editability
         then
-            local allTracks = (reaper.GetToggleCommandStateEx(sectionID, 40901) == 0) -- Options: Avoid automatically setting MIDI items from other tracks editable
+            local allTracks = (reaper.GetToggleCommandStateEx(32060, 40901) == 0) -- Options: Avoid automatically setting MIDI items from other tracks editable
             for i = 0, reaper.CountSelectedMediaItems(0)-1 do
                 local item = reaper.GetSelectedMediaItem(0, i)
                 if item and item ~= activeItem and reaper.ValidatePtr2(0, item, "MediaItem*") then -- Active take has already been saved
