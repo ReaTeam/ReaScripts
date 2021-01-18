@@ -1,0 +1,18 @@
+-- @description Toggle docked toolbars on mouse hover
+-- @author BuyOne
+-- @website https://forum.cockos.com/member.php?u=134058
+-- @version 1.0
+-- @metapackage
+-- @provides
+--   [main] BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable sidebars (settings inside).lua
+--   [main] BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker (settings inside).lua
+--   [main] BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker simpler (settings inside).lua
+--   [main] BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable Toolbar Docker simplest.lua
+--   [main] BuyOne_Cursor toggleable docked toolbars/BuyOne_Cursor toggleable toolbar at top of main window.lua
+-- @about
+--   5 scripts to toggle docked toolbars on mouse hover, meant to free up screen real estate when toolbars are not in active use:
+--   BuyOne_Cursor toggleable sidebars (settings inside).lua
+--   BuyOne_Cursor toggleable Toolbar Docker (settings inside).lua
+--   BuyOne_Cursor toggleable Toolbar Docker simpler (settings inside).lua
+--   BuyOne_Cursor toggleable Toolbar Docker simplest.lua
+--   BuyOne_Cursor toggleable toolbar at top of main window.lua
