@@ -9,6 +9,7 @@
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
 * Forum Thread:
+* Demo: https://raw.githubusercontent.com/Buy-One/screenshots/main/Cursor%20toggleable%20sidebars.gif
 * Version: 1.0
 * REAPER: at least v5.962
 * Extensions: SWS/S&M
