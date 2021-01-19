@@ -1,9 +1,8 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.31
+Version: 6.32
 Changelog:
-  + NEW: "Move" snaps relative (unless Shift is held).
-  + FIXED: In MIDI editor, edit all editable takes even if called from Main context.
+  + FIXED: "Move" function refused to move up/down if the starting values of all points were exactly the same.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -806,7 +805,6 @@ function Defer_Move()
         -- For other lanes, move direction depends on mouse movement, similar
         --    to the "move in one direction only" mouse modifiers.
         if laneIsALL or laneIsPIANOROLL or laneIsSYSEX or laneIsTEXT or laneIsBANKPROG 
-        or (tSteps[#tSteps].globalMaxValue == tSteps[#tSteps].globalMinValue)
         then
             moveLEFTRIGHT, moveUPDOWN = true, false
             canMoveBothDirections = false
