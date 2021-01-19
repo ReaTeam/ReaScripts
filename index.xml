@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e27c6234edee60ecde674ffd9b20c06b4061084c" name="ReaTeam Scripts">
+<index version="1" commit="9718d997e2cc70e1812d5413c5ea41149296022a" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2808,8 +2808,20 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </version>
     </reapack>
     <reapack name="spk77_Create take volume envelope from active take to other takes in item.eel" type="script" desc="Create take volume envelope from active take to other takes in item">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 EEL script for Cockos REAPER by spk77. Mod by X-Raym for v1.1 (multi-items support).\par}
+}
+]]></description>
+      </metadata>
       <version name="1.0" author="spk77" time="2015-12-06T06:55:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/773800f5416237e7b2bae44b71fe435a62a85b9b/Envelopes/Takes/spk77_Create%20take%20volume%20envelope%20from%20active%20take%20to%20other%20takes%20in%20item.eel</source>
+      </version>
+      <version name="1.1" author="spk77" time="2021-01-19T09:26:46Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9718d997e2cc70e1812d5413c5ea41149296022a/Envelopes/Takes/spk77_Create%20take%20volume%20envelope%20from%20active%20take%20to%20other%20takes%20in%20item.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Paste stored take mute envelope source to active takes in same group.eel" type="script" desc="Paste stored take mute envelope to active takes in same group">
