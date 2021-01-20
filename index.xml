@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c3427577d895935c428780a8004e9fc1ae61adf5" name="ReaTeam Scripts">
+<index version="1" commit="0c7d69e8330b9eaee7ce85f09d4914fe4008f5cb" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -2822,6 +2822,9 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
       </version>
       <version name="1.1" author="spk77" time="2021-01-19T09:26:46Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/9718d997e2cc70e1812d5413c5ea41149296022a/Envelopes/Takes/spk77_Create%20take%20volume%20envelope%20from%20active%20take%20to%20other%20takes%20in%20item.eel</source>
+      </version>
+      <version name="1.1.1" author="spk77" time="2021-01-20T10:05:22Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0c7d69e8330b9eaee7ce85f09d4914fe4008f5cb/Envelopes/Takes/spk77_Create%20take%20volume%20envelope%20from%20active%20take%20to%20other%20takes%20in%20item.eel</source>
       </version>
     </reapack>
     <reapack name="spk77_Paste stored take mute envelope source to active takes in same group.eel" type="script" desc="Paste stored take mute envelope to active takes in same group">
