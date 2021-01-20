@@ -1,16 +1,15 @@
--- @description ICio - Set Color Gradient to Children tracks starting from Parent color
+-- @description Set Color Gradient to Children tracks starting from Parent color
 -- @author ICio
 -- @version 1.3
 -- @screenshot https://i.ibb.co/0VLtZXz/gradient2.gif
 -- @about
---   -- v1.3
---   -- this script sets a color gradient to children tracks based on Parent color
---   -- Gradient step is proportional to the amount of children tracks
---   -- Gradient step can be changed in the script 
---   -- multiple track or folder selections are allowed
---   -- items are forced to track color
+--   - This script sets a color gradient to children tracks based on Parent color
+--   - Gradient step is proportional to the amount of children tracks
+--   - Gradient step can be changed in the script 
+--   - Multiple track or folder selections are allowed
+--   - Items are forced to track color
 --
---   enjoy color gradients!
+--   Enjoy color gradients!
 
 
 ------------------------------------?:^) written by 80icio thanks to Poulhoi -------------------------------------
