@@ -1,4 +1,4 @@
--- @description Set Color Gradient to Children tracks starting from Parent color
+-- @description Set color gradient to children tracks starting from parent color
 -- @author ICio
 -- @version 1.3
 -- @screenshot https://i.ibb.co/0VLtZXz/gradient2.gif
