@@ -4,7 +4,7 @@
  * Author: spk77
  * Author URI: http://forum.cockos.com/member.php?u=49553
  * Licence: GPL v3
- * Version: 1.1
+ * Version: 1.1.1
  */
 
 function paste_take_vol_env() (
@@ -13,17 +13,17 @@ function paste_take_vol_env() (
     item = GetSelectedMediaItem(0, j);
     source_take = GetActiveTake( item );
     (source_vol_env = GetTakeEnvelopeByName(source_take, "Volume")) ? (
-      GetSetEnvelopeState(source_vol_env, #source_vol_env);
+      GetEnvelopeStateChunk(source_vol_env, #env,0);
       i = 0;
       loop(CountTakes(item),
         source_vol_env && source_take != GetTake(item, i) ? (
           SetActiveTake(GetTake(item, i));
           (env = GetTakeEnvelopeByName(GetTake(item, i), "Volume")) ? (
-            GetSetEnvelopeState(env, #source_vol_env);
+            SetEnvelopeStateChunk(env, #env,0);
           ) : (
             Main_OnCommand(NamedCommandLookup("_S&M_TAKEENV1"), 0); // SWS/S&M: Show and unbypass take volume envelope
             (env = GetTakeEnvelopeByName(GetTake(item, i), "Volume")) ? (
-              GetSetEnvelopeState(env, #source_vol_env);
+              SetEnvelopeStateChunk(env, #env,0);
             );
           );
         );
