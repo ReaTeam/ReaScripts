@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a34b50c4d24bb60b094e8edf9d97a5619cce559f" name="ReaTeam Scripts">
+<index version="1" commit="ab1c8667056d9cbbe81bb38021d943dedd29e232" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -13655,8 +13655,8 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </version>
       <version name="1.23" author="amagalma &amp; gianfini" time="2021-01-22T15:08:07Z">
         <changelog><![CDATA[- fix: region renaming when less than all regions are selected]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2c7465a4d1c7301bf49a7f8fa5d4e96da9fe6924/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
-        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/2c7465a4d1c7301bf49a7f8fa5d4e96da9fe6924/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab1c8667056d9cbbe81bb38021d943dedd29e232/Various/amagalma_gianfini_ReaNamer%20(track-item-region%20renaming%20utility).lua</source>
+        <source file="amagalma_ReaNamer Replace Help.lua">https://github.com/ReaTeam/ReaScripts/raw/ab1c8667056d9cbbe81bb38021d943dedd29e232/Various/amagalma_ReaNamer%20Replace%20Help.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Go to track (mousewheel only) reverse.eel" type="script" desc="amagalma_Go to track (mousewheel only) reverse">
