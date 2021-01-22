@@ -43,7 +43,7 @@
 
 -----------------------------------------------------------------------------------------------
 
-local version = "1.21"
+local version = "1.23"
 
 if not reaper.APIExists( "BR_Win32_FindWindowEx" ) then
   reaper.MB( "SWS / S&M extension is required for this script to work", "SWS / S&M extension is not installed!", 0 )
