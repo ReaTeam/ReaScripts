@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2c7465a4d1c7301bf49a7f8fa5d4e96da9fe6924" name="ReaTeam Scripts">
+<index version="1" commit="a34b50c4d24bb60b094e8edf9d97a5619cce559f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3615,6 +3615,25 @@ Better error-checking in general]]></changelog>
       </metadata>
       <version name="1.00" author="amagalma" time="2020-03-18T13:42:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ea9eef55feedced5c2ea81b993cde5accfab3b88/Items%20Editing/amagalma_Explode%20takes%20of%20items%20across%20children%20tracks,%20optionally%20mute%20and%20lock%20original%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Fill space between selected items with empty items.lua" type="script" desc="Fill space between selected items with empty items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 #Fills the space between the selected items with empty items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Inside the script you can set if:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the newly inserted items will be the only selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab the newly inserted items will have an empty take or be really empty items\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=248298</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-01-22T15:26:53Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a34b50c4d24bb60b094e8edf9d97a5619cce559f/Items%20Editing/amagalma_Fill%20space%20between%20selected%20items%20with%20empty%20items.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Implode enclosed items as takes of longer items on the same track.lua" type="script" desc="amagalma_Implode enclosed items as takes of longer items on the same track">
