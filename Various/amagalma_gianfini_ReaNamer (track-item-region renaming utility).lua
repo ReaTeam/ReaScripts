@@ -1,8 +1,8 @@
 -- @description ReaNamer (track-item-region renaming utility)
 -- @author amagalma & gianfini
--- @version 1.22
+-- @version 1.23
 -- @changelog
---   - change: items mode is automatically selected when launching the script, only if there are selected items and last mouse click was in the arrange view but not on an envelope
+--   - fix: region renaming when less than all regions are selected
 -- @provides amagalma_ReaNamer Replace Help.lua
 -- @link
 --   http://forum.cockos.com/showthread.php?t=190534
@@ -1326,7 +1326,7 @@ local function main() -- MAIN FUNCTION -----------------------------------------
   if what == "regions" then
     local _, _, num_regions = reaper.CountProjectMarkers( 0 )
     local st, en = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
-    if st ~= prev_st or en ~= prev_en or #RegionNamesIndex ~= num_regions then
+    if st ~= prev_st or en ~= prev_en then
       init_tables()
       prev_st, prev_en = st, en
     end
