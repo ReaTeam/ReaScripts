@@ -1,7 +1,6 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.0
--- @changelog v 0.9.0 Beta version (windows only, it seems)
+-- @version 0.9.0beta
 -- @provides [windows] .
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
