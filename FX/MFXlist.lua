@@ -1,6 +1,7 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.0beta
+-- @version 0.9.1beta
+-- @changelog v0.9.1beta Add preset awareness
 -- @provides [windows] .
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
@@ -19,6 +20,20 @@
 --   For detailed info see the MFXlist Github repo https://github.com/martinfabian/MFXlist. 
 --   For bugs and questions, see the Reaper forum thread https://forum.cockos.com/showthread.php?p=2395782
 
+-- @description FX list for Reaper left docker (MFX-list)
+-- @author M Fabian, inlcudes code by Edgemeal
+-- @SCRIPT_version 0.9.1
+-- @changelog
+--   Nothing yet, or rather... everything
+-- @link
+--   Forum Thread https://forum.cockos.com/showthread.php?t=210987
+-- @screenshot 
+-- @donation something.good.for.humankind 
+-- @about
+--   # Native ReaScript reimplementation of Doppelganger's FXlist (only the FX part, not the send stuff etc)
+--   # Needs the js_ReaScriptAPI (tested with reaper_js_ReaScriptAPI64.dll) by 
+--   #         Julian Sander, https://forum.cockos.com/showthread.php?t=212174
+--   # Developed using ZeroBrane Studio as IDE, https://studio.zerobrane.com/
 
 local string, table, math = string, table, math
 local rpr, gfx = reaper, gfx
@@ -60,7 +75,7 @@ local MFXlist =
   FONT_INVFLAG = 0x56000000,    -- invert  
   
   -- Script specific constants, from here below change only if you really know what you are doing
-  SCRIPT_VERSION = "v0.9.0",
+  SCRIPT_VERSION = "v0.9.1",
   SCRIPT_NAME = "MFX-list",
   SCRIPT_AUTHORS = {"M Fabian"},
   SCRIPT_YEAR = "2020-2021",
@@ -1348,5 +1363,13 @@ local function mfxlistMain()
   
 end -- mfxlistMain
 ------------------------------------------------ It all starts here, really
-initializeScript()
-mfxlistMain() -- run main loop
+
+-- Adding preset awareness here
+local function Init()
+  initializeScript()
+  mfxlistMain() -- run main loop
+end
+
+if not preset_file_init then 
+  Init()
+end
