@@ -1,7 +1,7 @@
 -- @description Prevent item extend on record
 -- @author Tagirijus
--- @version 1.2
--- @changelog Fixed a bug, in which, in some situations, the shortened item will be extended ahead of the play cursors.
+-- @version 1.3
+-- @changelog I reverted the last fix, found another issue and now I re-reverted the other fix, since it seems to fix a new issue I totally do not understand ...
 -- @about
 --   # Description
 --
@@ -21,22 +21,39 @@
  * ReaScript Name: tagirijus_Prevent item extend on record.lua
  * Author: Manuel Senfft (Tagirijus)
  * Licence: MIT
- * REAPER: 6.08
+ * REAPER: 6.20
  * Extensions: None
- * Version: 1.2
+ * Version: 1.3
 --]]
 
 
 local scriptTitle = 'Tagirijus: Prevent item extend on record'
 local selectedTrackCount = reaper.CountSelectedTracks(0)
-local firstStart = false
-local itemHeal = {}
+local itemHealLength = {}
+local itemHealMute = {}
+local itemHealPosition = {}
+local existingItems = {}
 
 
 
 --===== SOME FUNCTIONS =====--
 
-function ShortenItemsUnderCursor(playCursorPosition)
+function debugMsg(msg)
+    reaper.ShowMessageBox(tostring(msg), 'DEBUG MSG', 0)
+end
+
+function keyExists(array, key)
+    return array[key] ~= nil
+end
+
+function GetExistingItems()
+    for i = 0, reaper.CountMediaItems(0) - 1 do
+        item = reaper.GetMediaItem(0, i)
+        existingItems[reaper.BR_GetMediaItemGUID(item)] = item
+    end
+end
+
+function ShortenAndMuteItemsUnderCursor(playCursorPosition)
 
     -- iter through the selected tracks to find their items under the play cursor
     for i = 0, selectedTrackCount - 1 do
@@ -52,20 +69,52 @@ function ShortenItemsUnderCursor(playCursorPosition)
             local item = reaper.GetTrackMediaItem(track, ii)
             local itemPosition = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
             local itemLength = reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
+            local itemMute = reaper.GetMediaItemInfo_Value(item, 'B_MUTE')
 
             local itemStartsBeforeCursor = itemPosition <= playCursorPosition
+            local itemStartsOnCursor = itemPosition == playCursorPosition
             local itemReachesIntoCursor = itemPosition + itemLength > playCursorPosition
 
             local itemSelected = reaper.IsMediaItemSelected(item)
 
             if itemStartsBeforeCursor and itemReachesIntoCursor and not itemSelected then
 
-                -- store the original length for later "healing"
-                itemHeal[reaper.BR_GetMediaItemGUID(item)] = itemLength
+                -- store the original length, mute state and position for later "healing"
+                itemHealLength[reaper.BR_GetMediaItemGUID(item)] = itemLength
+                itemHealMute[reaper.BR_GetMediaItemGUID(item)] = itemMute
+                itemHealPosition[reaper.BR_GetMediaItemGUID(item)] = itemPosition
 
-                -- shorten the item here
-                local newLength = playCursorPosition - itemPosition - 0.01 -- 0.01 due to an unknown bug, which happens otherwise
+                -- if the cursor is exactly on the start of the item,
+                -- it has to be slightly repositioned so that the
+                -- script will work correctly
+                if itemStartsOnCursor then
+                    reaper.SetMediaItemInfo_Value(item, 'D_POSITION', itemPosition - 0.1)
+                    newLength = 0.1
+                else
+                    -- I once had a weird bug that the item changes in length while recording,
+                    -- but not at the playcursor. With substracting 0.01 it's some monkey patch
+                    -- I did not faced this bug again, thus using the line without - 0.01
+                    -- OLD LINE:
+                    -- newLength = playCursorPosition - itemPosition - 0.01
+                    -- NEW LINE:
+                    -- newLength = playCursorPosition - itemPosition
+                    -- And suddenly (maybe due to a Reaper update?) I have a very weird problem
+                    -- again that in certain situations, where ... I am not sure ... there is
+                    -- an odd BPM, maybe combined with signature changes and looped items
+                    -- some items cannot be recorded new, since they would be recorded into
+                    -- the looped item, while this item cannot be extended or so and thus
+                    -- in the end nothing will be recorded ...
+                    -- long text, short solution: I randomly tried my other monkey patch again
+                    -- and it somehow fixes this issue ...
+                    -- I have ABSOLUTELY no idea why this is happening, but it SEEMS (for now)
+                    -- that this -0.01 seem to fix an issue I cannot understand :D
+                    -- NEW LINE 2:
+                    newLength = playCursorPosition - itemPosition - 0.01
+                end
+
+                -- shorten and mute the item here
                 reaper.SetMediaItemInfo_Value(item, 'D_LENGTH', newLength)
+                reaper.SetMediaItemInfo_Value(item, 'B_MUTE', 1)
 
             end
 
@@ -75,11 +124,30 @@ function ShortenItemsUnderCursor(playCursorPosition)
 
 end
 
-function HealItemsLengths()
-    for itemGUID, itemLength in pairs(itemHeal) do
+function HealItemsLengthsAndMuteState()
+    for itemGUID, itemLength in pairs(itemHealLength) do
         local item = reaper.BR_GetMediaItemByGUID(0, itemGUID)
-        reaper.SetMediaItemInfo_Value(item, 'D_LENGTH', itemLength)
+        reaper.SetMediaItemInfo_Value(item, 'D_LENGTH', itemHealLength[itemGUID])
+        reaper.SetMediaItemInfo_Value(item, 'B_MUTE', itemHealMute[itemGUID])
+        reaper.SetMediaItemInfo_Value(item, 'D_POSITION', itemHealPosition[itemGUID])
     end
+end
+
+function SelectNewestMediaItems()
+    for i = 0, reaper.CountMediaItems(0) - 1 do
+        item = reaper.GetMediaItem(0, i)
+        uid = reaper.BR_GetMediaItemGUID(item)
+
+        if not keyExists(existingItems, uid) then
+            reaper.SetMediaItemSelected(item, 1)
+        end
+    end
+    reaper.UpdateArrange()
+end
+
+function TrimTheNewItems()
+    commandID = reaper.NamedCommandLookup('_BR_TRIM_MIDI_ITEM_ACT_CONTENT')
+    reaper.Main_OnCommand(commandID, -1)
 end
 
 
@@ -90,7 +158,8 @@ end
 function OnStartRecording()
     -- apparently the undo block will not work in defer scripts
     -- reaper.Undo_BeginBlock()
-    ShortenItemsUnderCursor(reaper.GetCursorPosition())
+    GetExistingItems()
+    ShortenAndMuteItemsUnderCursor(reaper.GetCursorPosition())
 end
 
 function OnRecord()
@@ -99,7 +168,9 @@ end
 
 function OnStopRecording()
 
-    HealItemsLengths()
+    HealItemsLengthsAndMuteState()
+    SelectNewestMediaItems()
+    TrimTheNewItems()
     -- apparently the undo block will not work in defer scripts
     -- reaper.Undo_EndBlock(scriptTitle, -1)
     return
