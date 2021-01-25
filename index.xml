@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9766dd6aedd7e297b2cc2e794b253b6a5fb815d9" name="ReaTeam Scripts">
+<index version="1" commit="a492b2fac4b2c4dbf865118fcffec0a52ba90c4e" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17622,6 +17622,10 @@ uc_note_min_seconds = 1\par}
       <version name="1.2" author="Tagirijus" time="2020-04-22T04:21:41Z">
         <changelog><![CDATA[Fixed a bug, in which, in some situations, the shortened item will be extended ahead of the play cursors.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3707b8b6c98d627d6dcd14baf85f5c5a6cfce5bc/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
+      </version>
+      <version name="1.3" author="Tagirijus" time="2021-01-25T21:50:48Z">
+        <changelog><![CDATA[I reverted the last fix, found another issue and now I re-reverted the other fix, since it seems to fix a new issue I totally do not understand ...]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a492b2fac4b2c4dbf865118fcffec0a52ba90c4e/Various/tagirijus_Prevent%20item%20extend%20on%20record.lua</source>
       </version>
     </reapack>
     <reapack name="tompad_MusicMath.lua" type="script" desc="MusicMath - bpm/pitch to ms/Hz converter">
