@@ -1,7 +1,10 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.2beta
--- @changelog Prevent nil error if click and drag while no fx
+-- @version 0.9.3beta
+-- @changelog
+--   Prevent nil error if click and drag while no fx
+--   Fix the all-tracks-hidden bug (issue #16)
+--   Add menu to switch to next docker
 -- @provides [windows] .
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
@@ -60,7 +63,7 @@ local MFXlist =
   FONT_INVFLAG = 0x56000000,    -- invert  
   
   -- Script specific constants, from here below change only if you really know what you are doing
-  SCRIPT_VERSION = "v0.9.1",
+  SCRIPT_VERSION = "v0.9.3",
   SCRIPT_NAME = "MFX-list",
   SCRIPT_AUTHORS = {"M Fabian"},
   SCRIPT_YEAR = "2020-2021",
@@ -81,9 +84,10 @@ local MFXlist =
   CLICK_RESOY = 10, 
   
   -- Right click menu 
-  MENU_STR = "Info|Quit",
-  MENU_SHOWINFO = 1,
-  MENU_QUIT = 2,
+  MENU_STR = "Next dock|Info|Quit",
+  MENU_NEXTDOCK = 1,
+  MENU_SHOWINFO = 2,
+  MENU_QUIT = 3,
   
   -- Flag constants for TrackFX_Show(track, index, showFlag)
   FXCHAIN_HIDE = 0, 
@@ -109,7 +113,7 @@ local MFXlist =
   WIN_Y = 200,
   WIN_W = 200,
   WIN_H = 200,
-  LEFT_ARRANGEDOCKER = 512+1, -- 512 = left of arrange view, +1 == docked (not universally true)
+  DOCKER_NUM = 512+1, -- 512 = left of arrange view, +1 == docked (not universally true)
   
   -- Window class names to look for, I have no idea how or if this works on Mac/Linux
   -- CLASS_TRACKLISTWIN = "REAPERTrackListWindow", -- this is the arrange view where the media items live
@@ -377,6 +381,58 @@ linkedList = -- has to be global here, made local below
           end, -- remove (ptr)
 }
 local linkedList = linkedList
+----------------------------------------------------------------
+-- This doesn't work, I find no way to make sense of the docker
+local function findLeftDock()
+  
+  local mhwnd = rpr.GetMainHwnd()
+  local _, mleft, mtop, mright, mbottom = rpr.JS_Window_GetClientRect(mhwnd)
+  Msg("MainHwnd, left: "..mleft..", top: "..mtop..", right: "..mright..", bottom: "..mbottom)
+  
+  local adr = getTitleMatchWindows("REAPER_dock", true) -- this does get all 16 dockers
+  local count = #adr
+  local docknumber = 0 -- the order of how the dockers are returned does not make sense to me
+  for i = 1, count do
+    local hwnd = rpr.JS_Window_HandleFromAddress(adr[i]) 
+    --local classname = rpr.JS_Window_GetClassName(hwnd)
+    --Msg("i: "..i..", adr: "..adr[i]..", class: "..classname)
+    --if classname == "REAPER_dock" then
+      local _, left, top, right, bottom = rpr.JS_Window_GetRect(hwnd) 
+      Msg("REAPER_dock #"..docknumber..", left: "..left..", top: "..top..", right: "..right..", bottom: "..bottom)
+      if left == mleft then -- this should be the left docker?
+        -- then what? how to get its number? do they come in order?
+        --MFXlist.DOCKER_NUM = 2^docknumber + 1
+      end
+      docknumber = docknumber + 1
+    --end
+  end
+  
+end -- findLeftDock
+---------------------------------------------
+-- This is the next best thing we can do, add
+-- menu option to switch to the next docker
+local function nextDocker(bits)
+  
+  local masked = bits & 0xFFFF
+  local shifted = masked >> 1
+  if shifted == 0 then
+    shifted = 0x8001
+  else
+    shifted = shifted | 0x01
+  end
+  return shifted
+  
+end -- nextDocker
+------------------------------
+local function switchDocker()
+  
+  MFXlist.DOCKER_NUM = nextDocker(MFXlist.DOCKER_NUM)
+
+  gfx.quit()
+  gfx.clear = MFXlist.COLOR_EMPTYSLOT[1] * 255 + MFXlist.COLOR_EMPTYSLOT[2] * 255 * 256 + MFXlist.COLOR_EMPTYSLOT[3] * 255 * 65536
+  gfx.init(MFXlist.SCRIPT_NAME, MFXlist.WIN_W, MFXlist.WIN_H, MFXlist.DOCKER_NUM, MFXlist.WIN_X, MFXlist.WIN_Y)
+  
+end -- switchDocker
 -----------------------------------------
 -- Seems that the only way to affect last
 -- touched track by scripting is to do:
@@ -520,8 +576,10 @@ local function getFirstTCPTrackBinary()
       return track, index + 1
     end      
   end
-
-  assert(nil, "getFirstTCPTrackBinary: Should never get here!")
+  
+  -- Are all tracks hidden (height = 0) and first track has negative y-coord? (issue #18)
+  -- Then there are no visible tracks, what do we do? Pretend that there are no tracks!
+  return nil, -1
   
 end -- getFirstTCPTrackBinary
 ---------------------------------------------------------------------------
@@ -778,6 +836,30 @@ local function handleMenu(mcap, mx, my)
     return ret
   elseif ret == MFXlist.MENU_SHOWINFO then
     showInfo(mx, my)
+  elseif ret == MFXlist.MENU_NEXTDOCK then
+    switchDocker()
+  elseif ret == MENU_SETUP10 then
+    setupForTesting(10)
+  elseif ret == MFXlist.MENU_SHOWFIRSTTCP then
+    local startt = rpr.time_precise()
+    local track, idx = getFirstTCPTrackBinary()
+    local endt = rpr.time_precise()
+    Msg("First visible track: "..idx.." ("..endt-startt..")")
+  elseif ret == MFXlist.MENU_SHOWLASTTCP then
+    local _, _, _, h = getClientBounds(MFXlist.TCP_HWND)
+    local startt = rpr.time_precise()
+    local track, idx = getLastTCPTrackBinary(h)
+    local endt = rpr.time_precise()
+    Msg("Last visible track (bin): "..idx.." ("..endt-startt..")")
+  elseif ret == MFXlist.MENU_LINEARFINDLAST then
+    local ftrack, fidx = getFirstTCPTrackBinary()
+    local _, _, _, h = getClientBounds(MFXlist.TCP_HWND)
+    local startt = rpr.time_precise()
+    local ltrack, lidx = getLastTCPTrackLinear(h, fidx)
+    local endt = rpr.time_precise()
+    Msg("Last visible track (lin): "..lidx.." ("..endt-startt..")")
+  elseif ret == MFXlist.MENU_FINDLEFTDOCK then
+    findLeftDock()
   end
   
   return ret
@@ -785,7 +867,7 @@ local function handleMenu(mcap, mx, my)
 end -- handleMenu
 --------------------------------------------
 -- Swap bits 2 and 3 (0-based from the left)
-local function swapCtrlShft(bits)
+local function swapCtrlShft(bits)	
   
   local mask = MFXlist.MOD_CTRL | MFXlist.MOD_SHIFT -- 0xC -- 1100
   local shftctrl = ((bits & MFXlist.MOD_CTRL) << 1) | ((bits & MFXlist.MOD_SHIFT) >> 1)
@@ -1149,11 +1231,11 @@ local function handleMouse()
       local strack = MFXlist.drag_object and MFXlist.drag_object[1] or nil  -- source track
       local ttrack = MFXlist.track_hovered  -- target track
       if strack and ttrack then
-        local sfxid = MFXlist.drag_object[2]  -- source fx id
+        local sfxid = MFXlist.drag_object[2]  -- source fx id, can be nil
+        local tfxid = MFXlist.fx_hovered      -- target fxid, can be nil
+        
+        -- Handle the drop
         if sfxid then
-          local tfxid = MFXlist.fx_hovered      -- target fxid, can be nil
-          
-          -- Handle the drop
           if not tfxid then
             tfxid = rpr.TrackFX_GetCount(ttrack) + 1
           end
@@ -1195,8 +1277,13 @@ local function handleMouse()
         if DO_DEBUG then
           local track = MFXlist.drag_object[1]
           local fxid = MFXlist.drag_object[2]
-          local _, tname = rpr.GetTrackName(track)
-          local _, fxname = rpr.TrackFX_GetFXName(track, fxid-1, "")
+          if not track or not fxid then
+            Msg("track: "..(track and "valid" or "nil")..", fxid: "..(fxid and fxid or "nil"))
+          else
+            local _, tname = rpr.GetTrackName(track)
+            local _, fxname = rpr.TrackFX_GetFXName(track, fxid-1, "") 
+            Msg("Possible drag start: "..tname..", "..fxname)
+          end
         end -- DO_DEBUG
         
       end
@@ -1246,7 +1333,7 @@ end -- exitScript
 local function openWindow()
   
   -- Dock state - not valid for Reaper v4 or earlier
-  local dockstate = MFXlist.LEFT_ARRANGEDOCKER
+  local dockstate = MFXlist.DOCKER_NUM
   if rpr.HasExtState(MFXlist.SCRIPT_NAME, "dock") then 
       local extstate = rpr.GetExtState(MFXlist.SCRIPT_NAME, "dock")
       dockstate = tonumber(extstate)
