@@ -1,7 +1,7 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.1beta
--- @changelog Add preset awareness
+-- @version 0.9.2beta
+-- @changelog Prevent nil error if click and drag while no fx
 -- @provides [windows] .
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
@@ -785,7 +785,7 @@ local function handleMenu(mcap, mx, my)
 end -- handleMenu
 --------------------------------------------
 -- Swap bits 2 and 3 (0-based from the left)
-local function swapCtrlShft(bits)	
+local function swapCtrlShft(bits)
   
   local mask = MFXlist.MOD_CTRL | MFXlist.MOD_SHIFT -- 0xC -- 1100
   local shftctrl = ((bits & MFXlist.MOD_CTRL) << 1) | ((bits & MFXlist.MOD_SHIFT) >> 1)
@@ -1150,16 +1150,17 @@ local function handleMouse()
       local ttrack = MFXlist.track_hovered  -- target track
       if strack and ttrack then
         local sfxid = MFXlist.drag_object[2]  -- source fx id
-        local tfxid = MFXlist.fx_hovered      -- target fxid, can be nil
-        
-        -- Handle the drop
-        if not tfxid then
-          tfxid = rpr.TrackFX_GetCount(ttrack) + 1
+        if sfxid then
+          local tfxid = MFXlist.fx_hovered      -- target fxid, can be nil
+          
+          -- Handle the drop
+          if not tfxid then
+            tfxid = rpr.TrackFX_GetCount(ttrack) + 1
+          end
+          -- If any combination of Ctrl is held down when dropping, then it is a copy
+          local tomove = not (gfx.mouse_cap & MFXlist.MOD_CTRL == MFXlist.MOD_CTRL)
+          rpr.TrackFX_CopyToTrack(strack, sfxid-1, ttrack, tfxid-1, tomove)
         end
-        -- If any combination of Ctrl is held down when dropping, then it is a copy
-        local tomove = not (gfx.mouse_cap & MFXlist.MOD_CTRL == MFXlist.MOD_CTRL)
-        rpr.TrackFX_CopyToTrack(strack, sfxid-1, ttrack, tfxid-1, tomove)
-        
       end
       
       -- Reset drag info
