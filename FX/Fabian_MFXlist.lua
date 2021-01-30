@@ -1,11 +1,9 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.3beta
+-- @version 0.9.4beta
 -- @changelog
---   Prevent nil error if click and drag while no fx
---   Fix the all-tracks-hidden bug (issue #16)
---   Add menu to switch to next docker
--- @provides [windows] .
+--   Fix Mac reverse y-coords
+--   Fix drop indicator when no drop FX
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
 --   # MFXlist
@@ -63,7 +61,7 @@ local MFXlist =
   FONT_INVFLAG = 0x56000000,    -- invert  
   
   -- Script specific constants, from here below change only if you really know what you are doing
-  SCRIPT_VERSION = "v0.9.3",
+  SCRIPT_VERSION = "v0.9.4",
   SCRIPT_NAME = "MFX-list",
   SCRIPT_AUTHORS = {"M Fabian"},
   SCRIPT_YEAR = "2020-2021",
@@ -115,6 +113,9 @@ local MFXlist =
   WIN_H = 200,
   DOCKER_NUM = 512+1, -- 512 = left of arrange view, +1 == docked (not universally true)
   
+  -- "Win" for Windows, "Mac" for Mac, "Linux" for Linux, determined when initializing
+  WHAT_OS = nil,
+  
   -- Window class names to look for, I have no idea how or if this works on Mac/Linux
   -- CLASS_TRACKLISTWIN = "REAPERTrackListWindow", -- this is the arrange view where the media items live
   CLASS_TCPDISPLAY = "REAPERTCPDisplay", -- this is the TCP where the track panes live
@@ -162,6 +163,8 @@ local MFXlist =
   
   footer_text = "MFX-list", -- changes after initializing, shows name of currently hovered track
   header_text = "MFX-list", -- this doesn't really change after initialzing, but could if useful
+  
+  is_mac = nil, -- true if we are on Mac (where screen y-coords need to be swapped)
 }
 
 local CURR_PROJ = 0
@@ -198,7 +201,11 @@ end
 local function getClientBounds(hwnd)
   
   local ret, left, top, right, bottom = rpr.JS_Window_GetClientRect(hwnd)
-  return left, top, right-left, bottom-top
+  local height = bottom - top
+  
+  if MFXlist.WHAT_OS == "Mac" then height = top - bottom end
+  
+  return left, top, right-left, height
   
 end --GetClientBounds
 -----------------------------------------
@@ -789,7 +796,7 @@ local function drawTracks()
         
       end
       -- if dragging and are on top of this FX, show drop indicator above it
-      if insidetrack and MFXlist.drag_object and MFXlist.fx_hovered == i then
+      if insidetrack and MFXlist.drag_object and MFXlist.drag_object[2] and MFXlist.fx_hovered == i then
         
         drawDropIndicator()
         
@@ -798,7 +805,7 @@ local function drawTracks()
       
     end
     -- if dragging and not hovering any FX, draw drop indicator at end of FX chain
-    if insidetrack and MFXlist.drag_object and not MFXlist.fx_hovered then
+    if insidetrack and MFXlist.drag_object and MFXlist.drag_object[2] and not MFXlist.fx_hovered then
       
       drawDropIndicator()
       
@@ -813,16 +820,27 @@ local function drawTracks()
 end -- drawTracks
 -----------------------------------------
 -- Shows it in Reaper's console (for now)
-local function showInfo(mx, my)
+-- Not using Msg here, since we want this
+-- to show even if DO_DEBUG is false
+local function showInfo()
   
-  rpr.ShowConsoleMsg(MFXlist.SCRIPT_NAME.." "..MFXlist.SCRIPT_VERSION..'\n')
+  local width = math.tointeger(gfx.w)
+  local height = math.tointeger(gfx.h)
+  local x, y, w, h = getClientBounds(MFXlist.TCP_HWND) -- TCP screen coords
+  
+  rpr.ShowConsoleMsg("\n"..MFXlist.SCRIPT_NAME.." "..MFXlist.SCRIPT_VERSION..'\n')
   local authors = table.concat(MFXlist.SCRIPT_AUTHORS, ", ")
   rpr.ShowConsoleMsg(authors..", "..MFXlist.SCRIPT_YEAR..'\n')
-  rpr.ShowConsoleMsg("Dock: "..gfx.dock(-1)..", gfx.w: "..gfx.w..", gfx.h: "..gfx.h)
-  -- rpr.ShowConsoleMsg("TCP area (screen coords): "..x..", "..y..", "..w..", "..h)
-  rpr.ShowConsoleMsg("\nMFXlist header: 0, 0, "..gfx.w..", "..MFXlist.TCP_top) 
-  rpr.ShowConsoleMsg("\nMFXlist drawing area: 0, "..MFXlist.TCP_top..", "..gfx.w..", "..MFXlist.TCP_bot - MFXlist.TCP_top)
-  rpr.ShowConsoleMsg("\nMFXlist footer: 0, "..MFXlist.TCP_bot..", "..gfx.w..", "..gfx.h - MFXlist.TCP_bot)
+  
+  rpr.ShowConsoleMsg("Dock: "..math.tointeger(gfx.dock(-1))..", gfx.w: "..width..", gfx.h: "..height)
+  rpr.ShowConsoleMsg("\nTCP area (screen coords): "..x..", "..y..", "..w..", "..h)
+  rpr.ShowConsoleMsg("\nMFXlist header: 0, 0, "..width..", "..math.tointeger(MFXlist.TCP_top)) 
+  rpr.ShowConsoleMsg("\nMFXlist track area: 0, "..math.tointeger(MFXlist.TCP_top)..", "..width..", "..math.tointeger(MFXlist.TCP_bot - MFXlist.TCP_top))
+  rpr.ShowConsoleMsg("\nMFXlist footer: 0, "..math.tointeger(MFXlist.TCP_bot)..", "..width..", "..math.tointeger(height - MFXlist.TCP_bot))
+  
+  if DO_DEBUG then
+    Msg("\nWhat OS? "..MFXlist.WHAT_OS)
+  end
   
 end -- showInfo
 ---------------------------------------
@@ -1354,18 +1372,20 @@ end -- openWindow
 ------------------------------------------------ 
 local function initializeScript()
   
+  local whatos = rpr.GetOS()
+  if whatos:find("OSX") ~= nil or whatos:find("macOS") ~= nil then
+    MFXlist.WHAT_OS = "Mac"
+  elseif whatos:find("Win") ~= nil then
+    MFXlist.WHAT_OS = "Win"
+  else
+    MFXlist.WHAT_OS = "Linux" -- this is really just a guess, but anyway...
+  end
+  
   local hwnd, x, y, w, h = getTCPProperties() -- TCP screen coordinates
   assert(hwnd, "Could not get TCP HWND, cannot do much now, sorry")
   MFXlist.TCP_HWND = hwnd
   
-  local cx, cy = gfx.screentoclient(x, y)
-  MFXlist.TCP_top = cy
-  MFXlist.TCP_bot = MFXlist.TCP_top + h
-  
-  gfx.line(0, cy, gfx.w, cy) -- line on level with TCP top (do not draw FX above this)
-  gfx.line(0, cy + h, gfx.w, cy + h) -- line on level with TCP bottom (do not draw FX below this)
-  
-  initSWSCommands()
+  -- initSWSCommands()
   
   rpr.atexit(exitScript)
   openWindow()
@@ -1375,6 +1395,16 @@ local function initializeScript()
   --local foregraound = rpr.JS_Window_GetForeground() -- and that we are at the foreground
   --assert(foregraound == MFXlist.MFX_HWND, "Something is amiss, either I'm not focused or I'm not foreground")
 
+  local cx, cy = gfx.screentoclient(x, y)
+  MFXlist.TCP_top = cy
+  MFXlist.TCP_bot = MFXlist.TCP_top + h
+  
+  gfx.line(0, cy, gfx.w, cy) -- line on level with TCP top (do not draw FX above this)
+  gfx.line(0, cy + h, gfx.w, cy + h) -- line on level with TCP bottom (do not draw FX below this)
+  
+  if DO_DEBUG then
+    showInfo()
+  end
   
   MFXlist.header_text = MFXlist.SCRIPT_NAME.." "..MFXlist.SCRIPT_VERSION
   
