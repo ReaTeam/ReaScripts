@@ -1,6 +1,6 @@
 -- @description Set color gradient to children tracks starting from parent color
 -- @author ICio
--- @version 1.3
+-- @version 1.4
 -- @screenshot https://i.ibb.co/0VLtZXz/gradient2.gif
 -- @about
 --   - This script sets a color gradient to children tracks based on Parent color
@@ -17,8 +17,9 @@
 
 
 local r = reaper
-local verifysws = reaper.APIExists( 'CF_GetSWSVersion' )------- my easy way to check if SWS extensions are installed
+local verifysws = r.APIExists( 'CF_GetSWSVersion' )------- my easy way to check if SWS extensions are installed
 
+-----------------------------------------------------------------------------------------------------------
 if  verifysws then  
 
 local selchildren = r.NamedCommandLookup("_SWS_SELCHILDREN")
@@ -46,6 +47,9 @@ function seltracktable()
 end
 
 function main()
+track = r.GetSelectedTrack(0, 0)
+ColorNative = r.GetTrackColor(track)
+if ColorNative ~= 0 then
 r.Main_OnCommandEx(colchildren, 0, 0)
 r.Main_OnCommandEx(selchildren, 0, 0)
 local trackCount = r.CountSelectedTracks(0)
@@ -67,6 +71,7 @@ local gradientstep =  math.ceil((gradientstep*10)/(trackCount+1)) ----dependent 
           r.Main_OnCommandEx(40421, 0, 0)
           r.Main_OnCommandEx(itemtotrkcolor, 0, 0)
       end
+  end
   end
 end
 
@@ -90,5 +95,6 @@ r.PreventUIRefresh(-1)
 r.Undo_EndBlock( "folder Color Gradient", 0)
 
 else
-reaper.ShowMessageBox( "SWS/S&M extensions not installed                        download from https://www.sws-extension.org/", "ERROR", 0 )
+
+reaper.ShowMessageBox( "This script requires the SWS/S&M extension.\n\nThe SWS/S&M extension can be downloaded from www.sws-extension.org.", "ERROR", 0)
 end
