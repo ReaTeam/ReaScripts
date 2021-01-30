@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="37896a684a1f681e6174b2561d2f2676eca7aaed" name="ReaTeam Scripts">
+<index version="1" commit="c3113cd0da41a92ecf7379fcc9ff53edc0db4e74" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12593,6 +12593,9 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.3" author="ICio" time="2021-01-20T00:22:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c3427577d895935c428780a8004e9fc1ae61adf5/Tracks%20Properties/ICio_Set%20color%20gradient%20to%20children%20tracks%20starting%20from%20parent%20color.lua</source>
+      </version>
+      <version name="1.4" author="ICio" time="2021-01-30T15:50:37Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c3113cd0da41a92ecf7379fcc9ff53edc0db4e74/Tracks%20Properties/ICio_Set%20color%20gradient%20to%20children%20tracks%20starting%20from%20parent%20color.lua</source>
       </version>
     </reapack>
     <reapack name="jmieszkowski_Create folders from selected tracks based on their names and color them.lua" type="script" desc="Create folders from selected tracks based on their names and color them">
