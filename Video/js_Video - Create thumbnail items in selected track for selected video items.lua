@@ -1,6 +1,8 @@
 --[[
 ReaScript name: js_Video - Create thumbnail items in selected track for selected video items
 Version: 0.91
+Changelog:
+  + Accept decimal intervals such as 1/23.976
 Author: juliansader
 Website: https://forum.cockos.com/showthread.php?t=237293
 Donation: https://www.paypal.me/juliansader
@@ -21,14 +23,6 @@ About:
   REAPER does not currently offer the option of displaying thumbnails in video items.  This script is the first in a pair of scripts that are intended to remedy the shortcoming: 
 
   The second script in the pair is "js_Video - Automatically adjust size of thumbnail items when zooming", which turns static thumbnails into a repsonsive, auto-zooming thumbnail track.
-]]
-
---[[
-  Changelog:
-  * v0.90 (2020-05-30)
-    + Initial beta release.
-  * v0.91 (2020-05-30)
-    + Properly detect Linux.
 ]]
 
 -- USER AREA: Default thumbnail size
@@ -53,7 +47,7 @@ for i = 0, reaper.CountSelectedMediaItems(0)-1 do
         
     if sourceType == "VIDEO" then
         local path = reaper.GetMediaSourceFileName(source, ""):gsub("\\", "/")
-        if path:sub(-4,-4) ~= [[.]] then reaper.MB("Video file does not end with a 3-character extension:\n\n"..path, "ERROR", 0) return end
+        --if path:sub(-4,-4) ~= [[.]] then reaper.MB("Video file does not end with a 3-character extension:\n\n"..path, "ERROR", 0) return end
         local file = path:match("[^/]+$")
         local offset = reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
         local itemStart = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
@@ -68,7 +62,7 @@ end
 
 -- SETUP FFMPEG PATH
 OS = reaper.GetOS()
-if OS:match("Other") then
+if OS:match("Linux") then
     linuxRetval = reaper.ExecProcess([[ffmpeg -version]], 10000)
     if not linuxRetval or linuxRetval:sub(1,1) ~= "0" then
         reaper.MB("This script requires ffmpeg to be installed.", "ERROR", 0)
@@ -112,17 +106,24 @@ reaper.SetProjExtState(0, "js_Thumbnails", "Save folder", saveFolder)
 -- GET USER INPUTS: SPACING AND THUMBNAIL SIZE
 defaultHeightStr = string.format("%i", math.min(1080, math.max(10, (thumbnailHeight and tonumber(thumbnailHeight) or 100)))//1)
 while not (thumbnailHeight and numer and denom) do
-    inputOK, input = reaper.GetUserInputs("Thumbnail size", 2, "Thumbnail height (pixels),Interval (seconds)", defaultHeightStr..",1/2")
+    inputOK, input = reaper.GetUserInputs("Thumbnail parameters", 2, "Thumbnail height (pixels),Interval (seconds)", defaultHeightStr..",1/2")
     if not inputOK then return false end
-    thumbnailHeight, numer, denom = input:match("([^,]+),([^/%.]+)/*(.*)")
+    thumbnailHeight, numerStr, denomStr = input:match("([^,]+),([^/]+)/*(.*)")
     thumbnailHeight = thumbnailHeight and tonumber(thumbnailHeight)
-    numer = numer and tonumber(numer)
-    denom = denom and tonumber(denom) or 1
+    numer = numerStr and tonumber(numerStr)
+    denom = denomStr and tonumber(denomStr) or 1
 end
 thumbnailHeight = math.min(1080, math.max(10, thumbnailHeight//1))
 thumbnailHeightStr = string.format("%i", thumbnailHeight)
-numerStr = string.format("%i", numer)
-denomStr = string.format("%i", denom)
+if numer == numer//1 and denom == denom//1 then
+    intervalStr = string.format("%i_%i", numer//1, denom//1)
+    fpsCmdStr   = (numer==1) and string.format("%i", denom//1) or string.format("%i/%i", denom//1, numer//1)
+else
+    intervalStr = string.format("%s_%s", tostring(numer), tostring(denom))
+    fpsCmdStr   = (numer==1) and tostring(denom) or tostring(denom/numer)
+end
+--numerStr = string.format("%i", numer)
+--denomStr = string.format("%i", denom)
 emptyItemLength = numer/denom
 
 
@@ -137,12 +138,13 @@ reaper.SetMediaTrackInfo_Value(destTrack, "I_HEIGHTOVERRIDE", thumbnailHeight)
 -- LOOP THROUGH ALL VIDEO ITEMS, AND EXTRACT THUMBNAILS
 for cnt, vid in ipairs(tVideos) do
     reaper.PreventUIRefresh(1) -- MUCH faster when UI doesn't update for each new item
-    imagePathBase = saveFolder..vid.file.."-"..thumbnailHeightStr.."p"..tonumber(vid.offset).."ms+" ..numerStr.."_"..denomStr.."x"
+    imagePathBase = saveFolder..vid.file.."-"..thumbnailHeightStr.."p"..tonumber(vid.offset).."ms+" .. intervalStr .. "x" --numerStr.."_"..denomStr.."x"
     offsetStringForFile = tonumber(vid.offset)
     imagePath = imagePathBase..[[%05d.jpg]]
     command = ffmpegPath .. [[ -ss ]] .. string.format("%.3f", vid.offset) .. [[ -t ]] .. string.format("%.3f", vid.itemLength)
               .. [[ -i "]] .. vid.path ..[["]]
-              .. [[ -q:v 1 -vf "scale=-1:]] .. thumbnailHeightStr .. [[, fps=]]..denom..[[/]]..numer..[["]]
+              .. [[ -q:v 1 -vf "scale=-1:]] .. thumbnailHeightStr 
+              .. [[, fps=]]..fpsCmdStr..[["]] --denom..[[/]]..numer..[["]]
               .. [[ -sws_flags lanczos -start_number 0 ]] 
               .. [[ "]] .. imagePath .. [["]]
     reaper.ShowConsoleMsg("Starting extraction from video item #"..tostring(cnt).."."
@@ -153,8 +155,8 @@ for cnt, vid in ipairs(tVideos) do
     i = 0
     while reaper.file_exists(imagePathBase..string.format("%05i.jpg", i)) do
         local item = reaper.AddMediaItemToTrack(destTrack)
-        reaper.SetMediaItemPosition(item, vid.itemStart+i*emptyItemLength, false)
-        reaper.SetMediaItemLength(item, emptyItemLength, true) -- Little bit of spacing between items
+        reaper.SetMediaItemPosition(item, vid.itemStart+(i*numer)/denom, false) -- +i*emptyItemLength
+        reaper.SetMediaItemLength(item, emptyItemLength, true)
         reaper.SetMediaItemSelected(item, true) -- !!!!!
         local chunkOK, chunk = reaper.GetItemStateChunk(item, "", false)
         if chunkOK then
