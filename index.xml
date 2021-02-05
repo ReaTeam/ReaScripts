@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4feb3fd18e09f6ade05063d5bde8cdd07ed1c745" name="ReaTeam Scripts">
+<index version="1" commit="fe3ed1f76630ac175235cac4dd36f3d1eb573148" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17829,8 +17829,8 @@ Added a check for time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5e575c9d489e7ce45f0f3b92ccf67944f0c193fd/Video/js_Video%20-%20Create%20thumbnail%20items%20in%20selected%20track%20for%20selected%20video%20items.lua</source>
       </version>
       <version name="0.91" author="juliansader" time="2020-05-30T11:20:56Z">
-        <changelog><![CDATA[+ Properly detect Linux.]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e9ba0b2ffef18bad9a327918d8003a56e843a9c1/Video/js_Video%20-%20Create%20thumbnail%20items%20in%20selected%20track%20for%20selected%20video%20items.lua</source>
+        <changelog><![CDATA[+ Accept decimal intervals such as 1/23.976]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/fe3ed1f76630ac175235cac4dd36f3d1eb573148/Video/js_Video%20-%20Create%20thumbnail%20items%20in%20selected%20track%20for%20selected%20video%20items.lua</source>
       </version>
     </reapack>
     <reapack name="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items.lua" type="script" desc="js_Video - Extract thumbnails of video items to empty, MIDI or video processor items">
