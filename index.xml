@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9b4359c329d4938b9fab96ece3c7e57f8305b176" name="ReaTeam Scripts">
+<index version="1" commit="4feb3fd18e09f6ade05063d5bde8cdd07ed1c745" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6230,6 +6230,12 @@ support removal of the helper JSFX across project tabs]]></changelog>
         <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/36ab66d28ee4b3a0e8564a5efb36bbc7b67c5bc4/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/36ab66d28ee4b3a0e8564a5efb36bbc7b67c5bc4/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
         <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/36ab66d28ee4b3a0e8564a5efb36bbc7b67c5bc4/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
+      </version>
+      <version name="1.0" author="cfillion" time="2021-02-05T06:43:28Z">
+        <changelog><![CDATA[fix midi event passthrough [p=2229143]]]></changelog>
+        <source main="midi_editor">https://github.com/ReaTeam/ReaScripts/raw/4feb3fd18e09f6ade05063d5bde8cdd07ed1c745/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source main="midi_editor" file="cfillion_Step sequencing (options).lua">https://github.com/ReaTeam/ReaScripts/raw/4feb3fd18e09f6ade05063d5bde8cdd07ed1c745/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).lua</source>
+        <source type="effect" file="cfillion_Step sequencing (replace mode).jsfx">https://github.com/ReaTeam/ReaScripts/raw/4feb3fd18e09f6ade05063d5bde8cdd07ed1c745/MIDI%20Editor/cfillion_Step%20sequencing%20(replace%20mode).jsfx</source>
       </version>
     </reapack>
     <reapack name="cfillion_Toggle MIDI preview on transport change.lua" type="script" desc="Toggle MIDI preview on transport change">
