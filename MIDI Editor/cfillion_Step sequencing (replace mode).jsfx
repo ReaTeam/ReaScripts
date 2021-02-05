@@ -1,5 +1,6 @@
 noindex: true
 
+desc:Step sequencing (replace mode) by cfillion
 
 options:gmem=cfillion_stepRecordReplace
 options:no_meter
@@ -71,5 +72,5 @@ while(midirecv(offset, msg, pitch, vel)) (
   allNotesReleased = notes[0] > 0 && releasedNotes == notes[0];
   allNotesReleased && gmem[0] > 0 ? flushNoteBuffer();
 
-  midisend(offset, msg, note, vel);
+  midisend(offset, msg, pitch, vel);
 );

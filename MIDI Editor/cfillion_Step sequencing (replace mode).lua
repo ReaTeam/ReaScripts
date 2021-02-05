@@ -1,7 +1,7 @@
 -- @description Step sequencing (replace mode)
 -- @author cfillion
--- @version 1.0alpha3
--- @changelog improve options menu position and styling on Windows when js_ReaScript API is present
+-- @version 1.0
+-- @changelog fix midi event passthrough [p=2229143]
 -- @provides
 --   .
 --   [main] . > cfillion_Step sequencing (options).lua
