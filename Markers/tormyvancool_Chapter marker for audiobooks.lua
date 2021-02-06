@@ -1,10 +1,9 @@
--- @description Chapter Marker for Audiobooks (ID3 Metatag "CHAP=Chapter_Title")
+-- @description Chapter marker for audiobooks (ID3 Metatag "CHAP=Chapter_Title")
 -- @author Tormy Van Cool
 -- @version 1.0
--- @provides . > ChapterMarker_TormyVanCool.lua
 -- @screenshot Example: ChapterMarker.lua in action https://i.imgur.com/aEZhqwv.gif
 -- @about
---   #Chapter Marker for Audiobooks
+--   # Chapter Marker for Audiobooks
 --
 --   It adds  ID3 Metatag "CHAP=Chapter_Title_by_the_User" by a pop up that asks to the user, the title of each chapter.
 --   Then it adds the marker with the correct tag at the mouse position
