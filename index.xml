@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b36f297ef90d26e4c269e487e0a25f492139e5e0" name="ReaTeam Scripts">
+<index version="1" commit="a9f291adf914623f06e4ddeeadd67874bb0d934f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6169,6 +6169,27 @@ Renumber markers and regions when pasting]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Markers/spk77_Move%20nearest%20marker%20to%20edit%20cursor.eel</source>
       </version>
     </reapack>
+    <reapack name="tormyvancool_Chapter marker for audiobooks.lua" type="script" desc="Chapter marker for audiobooks (ID3 Metatag &quot;CHAP=Chapter_Title&quot;)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Chapter Marker for Audiobooks\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It adds ID3 Metatag "CHAP=Chapter_Title_by_the_User" by a pop up that asks to the user, the title of each chapter. Then it adds the marker with the correct tag at the mouse position\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Key features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Asks for the title of each chapter by a pop up field\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It can be used very effectively as Armed Action\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It add the prefix "CHAP=" to any title inserted by the user, avoiding sintaxis errors\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab When metadata is used, rendering an MP3, "CHAP=" is automatically added\sa180\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://i.imgur.com/aEZhqwv.gif">Example: ChapterMarker.lua in action</link>
+      </metadata>
+      <version name="1.0" author="Tormy Van Cool" time="2021-02-06T20:36:30Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e542fdfc08baf2a3310277cd5ef87a2db1751c7c/Markers/tormyvancool_Chapter%20marker%20for%20audiobooks.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="MIDI Editor">
     <reapack name="amagalma_Delete CC-Text-Sysex events by type.lua" type="script" desc="amagalma_Delete CC-Text-Sysex events by type.lua">
@@ -11430,6 +11451,29 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       <version name="1.0.0" author="Thonex" time="2018-07-26T16:56:32Z">
         <changelog><![CDATA[Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ae5febb5c0c810b831cf760c4c02bc5e9d527b6/Regions/Thonex_Set%20time%20selection%20to%20region%20at%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tormyvancool_Chapter region for podcasts and recorded broadcasts.lua" type="script" desc="Chapter region for podcasts and recorded broadcasts">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Chapter Region for Podcasts and Recorded Broadcasts\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It's an ideal feature for Podcasts and Recorded Broadcasts It enables the user to highlight all the embedded songs by just a click.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 By selecting the item of a song, a pop up windows asks to enter: Title and Performer of the song. Automatically the script calculates the duration of the song in second, rounding it up to the 2nd decimal, based on the duration of the item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It creates a region with the following line preceded by the ID3 Tag "CHAP=" "CHAP=Title:title_of_the_song|Performer:Performer_of_the_song|Duration:Duration_in_seconds"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This can be used by any decoder, to get all the CHAP tags inside the Podcast, getting out all the required information to be sent to Collecting Societies for the Rights collection.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Key features:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It can work also as Armed Action\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It creates a region that contains the required Tags without sintaxis errors.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab It embeds the ID3 tags while Reaper is rendering the MP3s with Metadata, in automatic way.\sa180\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://i.imgur.com/lnlAMab.gif">Example: ChapterRegion.lua in action</link>
+      </metadata>
+      <version name="1.0" author="Tormy Van Cool" time="2021-02-06T20:37:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a9f291adf914623f06e4ddeeadd67874bb0d934f/Regions/tormyvancool_Chapter%20region%20for%20podcasts%20and%20recorded%20broadcasts.lua</source>
       </version>
     </reapack>
   </category>
