@@ -1,9 +1,11 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.4beta
+-- @version 0.9.5beta
 -- @changelog
---   Fix Mac reverse y-coords
---   Fix drop indicator when no drop FX
+--   Fix alternative FX browser (issue #21)
+--   Fix failed assertion Win/Ctrl click (issue #23)
+--   Make drop indicator color customizable (issue #22)
+--   Fix preset awareness to actually work
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
 --   # MFXlist
@@ -21,17 +23,22 @@
 --   For detailed info see the MFXlist Github repo https://github.com/martinfabian/MFXlist. 
 --   For bugs and questions, see the Reaper forum thread https://forum.cockos.com/showthread.php?p=2395782
 
+
 local string, table, math = string, table, math
 local rpr, gfx = reaper, gfx
 -------------------------------------------
 -- Variables with underscore are global
 -- All caps denotes constants, do not assign to these in the code!
 -- Non-constants are used to communicate between different parts of the code
-local MFXlist = 
+MFXlist = 
 { 
   -- user settable stuff
   COLOR_EMPTYSLOT = {40/255, 40/255, 40/255},
   COLOR_FXHOVERED = {1, 1, 0}, 
+  COLOR_DROPMOVE = {0, 0, 1},
+  COLOR_DROPCOPY = {0, 1, 0},
+  COLOR_SELECTEDTRACK = {1, 1, 1},
+  
   --[[ not used for now
   COLOR_BLACK   = {012/255, 012/255, 012/255},
   COLOR_VST     = {},
@@ -61,7 +68,7 @@ local MFXlist =
   FONT_INVFLAG = 0x56000000,    -- invert  
   
   -- Script specific constants, from here below change only if you really know what you are doing
-  SCRIPT_VERSION = "v0.9.4",
+  SCRIPT_VERSION = "v0.9.5",
   SCRIPT_NAME = "MFX-list",
   SCRIPT_AUTHORS = {"M Fabian"},
   SCRIPT_YEAR = "2020-2021",
@@ -114,7 +121,7 @@ local MFXlist =
   DOCKER_NUM = 512+1, -- 512 = left of arrange view, +1 == docked (not universally true)
   
   -- "Win" for Windows, "Mac" for Mac, "Linux" for Linux, determined when initializing
-  WHAT_OS = nil,
+  WHAT_OS = nil, -- On Mac the y-coords go the other direction
   
   -- Window class names to look for, I have no idea how or if this works on Mac/Linux
   -- CLASS_TRACKLISTWIN = "REAPERTrackListWindow", -- this is the arrange view where the media items live
@@ -135,6 +142,10 @@ local MFXlist =
   ACT_ZOOMOUTVERT = 40112, -- View: Zoom out vertical
   
   ACT_FXBROWSERWINDOW = 40271, -- View: Show FX browser window
+  ALT_FXBROWSER = nil, -- Alternative FX browswer, put command ID here
+    -- "_RS490460a16d7e7bb0285ccb1891b67f8f59593a61", -- Quick Adder
+    -- "_RS36fe8a223d7ec08e45d4e8569c9bc15b9e417dfa", -- Fast FX finder
+  ALT_FXBROWSERTITLE = nil,
   
   CMD_FOCUSARRANGE = 0, -- SWS/BR: Focus arrange (_BR_FOCUS_ARRANGE_WND)
   CMD_FOCUSTRACKS = 0,  -- SWS/BR: Focus tracks (_BR_FOCUS_TRACKS)
@@ -163,10 +174,9 @@ local MFXlist =
   
   footer_text = "MFX-list", -- changes after initializing, shows name of currently hovered track
   header_text = "MFX-list", -- this doesn't really change after initialzing, but could if useful
-  
-  is_mac = nil, -- true if we are on Mac (where screen y-coords need to be swapped)
-}
 
+}
+local MFXlist = MFXlist -- MFXlist has to be global for preswet to work, here it becmoes local
 local CURR_PROJ = 0
 ------------------------------------------ Stolen from https://stackoverflow.com/questions/41942289/display-contents-of-tables-in-lua
 -- Recursive print of a table, returns a string
@@ -285,6 +295,45 @@ local function initSWSCommands()
   MFXlist.CMD_SCROLLTCPUP = rpr.NamedCommandLookup("_XENAKIOS_TVPAGEUP")
   
 end 
+------------------------------------------------------
+-- If given the command ID for alternative FX browser
+-- replace that command ID by what Reaper returns for it
+-- Open the browser to get its hwnd and title 
+-- The title is needed to toggle it open/close, 
+-- or can we use the hwnd for that?
+local function initAltFXBrowser()
+  
+  if MFXlist.ALT_FXBROWSER then
+    
+    local cmd = rpr.NamedCommandLookup(MFXlist.ALT_FXBROWSER)
+    if cmd <= 0 then
+      MFXlist.ALT_FXBROWSER = nil
+      return
+    end
+    MFXlist.ALT_FXBROWSER = cmd
+    rpr.PreventUIRefresh(1)
+    rpr.Main_OnCommand(MFXlist.ALT_FXBROWSER, 0) -- open the window
+    local hwnd = rpr.JS_Window_GetFocus()
+    if not hwnd then
+      Msg("Could not get handle to Alt FX Browser window")
+      MFXlist.ALT_FXBROWSER = nil
+    else -- So we have the hwnd now, will it remain the same? Probably not
+      MFXlist.ALT_FXBROWSERTITLE = rpr.JS_Window_GetTitle(hwnd)
+      -- rpr.JS_Window_Destroy(hwnd)
+      rpr.JS_WindowMessage_Post(hwnd, "WM_CLOSE", 0,0,0,0) -- if I close like this I guess I can reuse the hwnd
+      Msg("Title of Alt FX Browser: "..MFXlist.ALT_FXBROWSERTITLE) -- this works!
+    end
+    rpr.PreventUIRefresh(-1)
+  end
+  
+end -- initAltFXBrowser
+------------------------------------------------
+-- Fetches the action IDs for various commands
+local function initCommands()
+  
+  initAltFXBrowser()
+  
+end -- initCommands
 -------------------------------------------------
 -- These scroll whole pages, I don't want that
 local function scrollTCPUp()
@@ -706,7 +755,7 @@ local function drawFooter()
   local text = MFXlist.footer_text
   if text and text ~= "" then 
     gfx.set(1, 1, 1, 0.7)
-    gfx.setfont(MFXlist.FONT_FXNAME, MFXlist.FONT_NAME1, MFXlist.FONT_SIZE1)
+    gfx.setfont(MFXlist.FONT_FXNAME) --, MFXlist.FONT_NAME1, MFXlist.FONT_SIZE1)
     gfx.x, gfx.y = 0, MFXlist.TCP_bot   
     gfx.drawstr(text, 5, gfx.w, gfx.h) -- Note, the last two parameters are the right/bottom COORDS of the box to draw within, not width/height
   end
@@ -716,7 +765,7 @@ end -- drawFooter
 local function drawSelectedIndicator(ycoord, height)
   
   -- Msg("drawSelectedIndicator("..ycoord..", "..height..")")
-  gfx.set(1, 1, 1, 1)
+  gfx.set(MFXlist.COLOR_SELECTEDTRACK[1], MFXlist.COLOR_SELECTEDTRACK[2], MFXlist.COLOR_SELECTEDTRACK[3], 1)
   gfx.line(gfx.w-2, ycoord + 1, gfx.w-2, ycoord + height - 2)
   
 end -- drawSelectedIndicator
@@ -724,9 +773,9 @@ end -- drawSelectedIndicator
 local function drawDropIndicator()
   
   if gfx.mouse_cap & MFXlist.MOD_CTRL == MFXlist.MOD_CTRL then
-    gfx.set(0, 0, 1) -- blue indicates copy
+    gfx.set(MFXlist.COLOR_DROPCOPY[1], MFXlist.COLOR_DROPCOPY[2], MFXlist.COLOR_DROPCOPY[3])
   else
-    gfx.set(0, 1, 0) -- green indicates move
+    gfx.set(MFXlist.COLOR_DROPMOVE[1], MFXlist.COLOR_DROPMOVE[2], MFXlist.COLOR_DROPMOVE[3])
   end
   gfx.line(10, gfx.y, gfx.w-10, gfx.y)
   
@@ -840,6 +889,7 @@ local function showInfo()
   
   if DO_DEBUG then
     Msg("\nWhat OS? "..MFXlist.WHAT_OS)
+    Msg("gfx.ext_retina: "..gfx.ext_retina)
   end
   
 end -- showInfo
@@ -986,6 +1036,21 @@ local function manageOpenWindows()
   end
   
 end -- manageOpenWindows
+------------------------------------------------------------
+-- We get here ONLY if MFXlist.ALT_FXBROWSER is initialized 
+local function toggleAltFXBrowser()
+  
+  -- if already open, then close
+  local hwnd = rpr.JS_Window_Find(MFXlist.ALT_FXBROWSERTITLE, true)
+  if hwnd then
+    -- rpr.JS_Window_Destroy(hwnd) -- destroying it means it scans on every open
+    rpr.JS_WindowMessage_Post(hwnd, "WM_CLOSE", 0,0,0,0)
+    focusTCP()
+  else -- open
+    rpr.Main_OnCommand(MFXlist.ALT_FXBROWSER, 0)
+  end
+  
+end -- toggleAltFXBrowser
 -----------------------------------------------------------------------------------
 -- It seems manageOpenWindows solved the problem was attempted to be solved by this
 local prev_focus = false
@@ -1066,7 +1131,26 @@ local function handleLeftMBclick(mcap, mx, my)
     if modkeys == 0 then -- No modifier key, open Add FX dialog
       
       rpr.SetOnlyTrackSelected(track)
-      rpr.Main_OnCommand(MFXlist.ACT_FXBROWSERWINDOW, 0)    
+
+      if MFXlist.ALT_FXBROWSER then
+        toggleAltFXBrowser()
+      else
+        rpr.Main_OnCommand(MFXlist.ACT_FXBROWSERWINDOW, 0)
+      end
+      -- focusTCP() -- Should let the FX Browser have focus
+      
+      -- Two issues introduced here:
+      -- 1. The track selection changes, this is necessary since that is the way that the FX browser
+      --    knows which track to add to. fxlist does the same. But clicking an empty slot in the
+      --    mixer does not change the track selection. Maybe store track selection before and then
+      --    restore it after opening teh FX browser? 
+      -- 2. Clicking once opens the FX browser, clicking again closes it. MFX then gets the focus,
+      --    and then the focus is stolen so no key strokes go to Reaper. And I see no way to query 
+      --    the FX browser window's state, or how to put it on openwin_list. Keeping track of the
+      --    state myself is not a solution, as the window can be closed by ESC, Cancel, or upper 
+      --    right X. Also, when clicking OK in teh FX browser, teh FX chain window opens. Closing
+      --    one again gives focus to MFX, and the focus is stolen.
+      
       return
       
     elseif modkeys == (MFXlist.MOD_SHIFT | MFXlist.MOD_CTRL | MFXlist.MOD_ALT) then
@@ -1121,7 +1205,8 @@ local function handleLeftMBclick(mcap, mx, my)
       focusTCP()
       return
     else
-      assert(nil, "handleLeftMB (1): should not get here!")
+      -- assert(nil, "handleLeftMB (1): should not get here!")
+      -- Msg("Left click track with Win/Ctrl mod key not supported")
     end
     return
   end
@@ -1185,7 +1270,8 @@ local function handleLeftMBclick(mcap, mx, my)
     return
     
   else
-    assert(nil, "handleLeftMB (2): should not get here!")
+    -- assert(nil, "handleLeftMB (2): should not get here!")
+    -- Msg("Left click FX with Win/Ctrl mod key not supported")
   end
   
 end -- handleLeftMB
@@ -1385,8 +1471,8 @@ local function initializeScript()
   assert(hwnd, "Could not get TCP HWND, cannot do much now, sorry")
   MFXlist.TCP_HWND = hwnd
   
-  -- initSWSCommands()
-  
+  -- findLeftDock() -- doesnt work (yet)
+
   rpr.atexit(exitScript)
   openWindow()
   
@@ -1395,6 +1481,9 @@ local function initializeScript()
   --local foregraound = rpr.JS_Window_GetForeground() -- and that we are at the foreground
   --assert(foregraound == MFXlist.MFX_HWND, "Something is amiss, either I'm not focused or I'm not foreground")
 
+  -- initSWSCommands()
+  initCommands()
+  
   local cx, cy = gfx.screentoclient(x, y)
   MFXlist.TCP_top = cy
   MFXlist.TCP_bot = MFXlist.TCP_top + h
@@ -1413,7 +1502,7 @@ local function initializeScript()
   gfx.setfont(MFXlist.FONT_HEADER, MFXlist.FONT_NAME2, MFXlist.FONT_SIZE2)
   
   MFXlist.openwin_list = linkedList.new()
-    
+
   -- Set up the header buffer for blitting -- cannot seem to get the blit of the header to work 
   gfx.dest = MFXlist.BLITBUF_HEAD
   -- according to https://forum.cockos.com/showthread.php?t=204629, this piece is missing
@@ -1468,7 +1557,7 @@ end -- mfxlistMain
 ------------------------------------------------ It all starts here, really
 
 -- Adding preset awareness here
-local function Init()
+function Init()
   initializeScript()
   mfxlistMain() -- run main loop
 end
