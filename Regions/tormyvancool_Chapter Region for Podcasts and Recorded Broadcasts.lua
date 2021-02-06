@@ -1,7 +1,6 @@
--- @description Chapter Region for Podcasts and Recorded Broadcasts
+-- @description Chapter region for podcasts and recorded broadcasts
 -- @author Tormy Van Cool
 -- @version 1.0
--- @provides . > ChapterRegion_TormyVanCool.lua
 -- @screenshot Example: ChapterRegion.lua in action https://i.imgur.com/lnlAMab.gif
 -- @about
 --   # Chapter Region for Podcasts and Recorded Broadcasts
@@ -54,4 +53,3 @@ InputString_PERFORMER='Performer:'..t[2]:upper()
 local name = "CHAP="..InputString_TITLE..'|'..InputString_PERFORMER..'|'..itemduration
 create_region(name)
 reaper.Main_OnCommand(40020,0)
-
