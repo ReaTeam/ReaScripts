@@ -1,11 +1,10 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.5beta
+-- @version 0.9.6beta
 -- @changelog
---   Fix alternative FX browser (issue #21)
---   Fix failed assertion Win/Ctrl click (issue #23)
---   Make drop indicator color customizable (issue #22)
---   Fix preset awareness to actually work
+--   Merge pull request from GavinRay97 (Thanks!)
+--   Add switch to show FX type 
+--   Better handling of long FX name
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
 --   # MFXlist
@@ -39,6 +38,9 @@ MFXlist =
   COLOR_DROPCOPY = {0, 1, 0},
   COLOR_SELECTEDTRACK = {1, 1, 1},
   
+  -- Determines whether to show FX type (JS, VST, etc) in the name
+  SHOW_FXTYPE = false, 
+  
   --[[ not used for now
   COLOR_BLACK   = {012/255, 012/255, 012/255},
   COLOR_VST     = {},
@@ -48,6 +50,7 @@ MFXlist =
   --]]
   FX_DISABLEDA = 0.3, -- fade of name for disabled FX
   FX_OFFLINEDA = 0.1, -- even fainter for offlined FX
+  
   
   -- Delay for return of focus during mouse wheel
   FOCUS_DELAY = 10, 
@@ -68,7 +71,7 @@ MFXlist =
   FONT_INVFLAG = 0x56000000,    -- invert  
   
   -- Script specific constants, from here below change only if you really know what you are doing
-  SCRIPT_VERSION = "v0.9.5",
+  SCRIPT_VERSION = "v0.9.6",
   SCRIPT_NAME = "MFX-list",
   SCRIPT_AUTHORS = {"M Fabian"},
   SCRIPT_YEAR = "2020-2021",
@@ -500,6 +503,49 @@ local function setLastTouchedTrack(track)
   
 end -- setLastTouchedTrack
 --------------------------------------------------------
+local function split(str, sep)
+    local fields = {}
+    local pattern = str.format("([^%s]+)", sep)
+    str:gsub(
+        pattern,
+        function(c)
+            fields[#fields + 1] = c
+        end
+    )
+    return fields
+end
+--------------------------------------------------------
+local function formatFXNameAndType(fxname, fxtype)
+    local segments = split(fxname, "/")
+    local trimmed_fx_name = segments[#segments]
+
+    -- Strip parenthesized text
+    trimmed_fx_name = trimmed_fx_name:gsub("%([^()]*%)", "")
+
+  --[[ -- Something is wronmg with this claim, comes from PR #25
+    -- JSFX doesn't have "JS:" appended to it like "VST" does, so let's fake-append it for uniformity and easier if/else logic
+    if fxtype == "JS:" then
+        trimmed_fx_name = "JS: " .. trimmed_fx_name
+    end
+  --]]
+  
+  -- For video processor we remove trailing " -- video processor"
+  if fxtype == "VID:" then
+    trimmed_fx_name = trimmed_fx_name:gsub(" -- video processor", "")
+  end
+
+    if not MFXlist.SHOW_FXTYPE then
+        trimmed_fx_name = trimmed_fx_name:gsub(MFXlist.MATCH_UPTOCOLON .. "%s", "") -- up to colon and then space, replace by nothing
+    else -- we are to show the FX type, VST:, JS:, VID:, so dont remove anything but add "VID: " where appropriate
+      if fxtype == "VID:" then
+        -- remove " -- video processor", add "VID: "
+        trimmed_fx_name = "VID: "..trimmed_fx_name
+      end
+    end
+
+    return trimmed_fx_name
+end
+--------------------------------------------------------
 local function collectFX(track)
   assert(track, "collectFX: invalid parameter - track")
   
@@ -509,8 +555,7 @@ local function collectFX(track)
   for i = 1, numfx do
     local _, fxname = rpr.TrackFX_GetFXName(track, i-1, "")
     local fxtype = fxname:match(MFXlist.MATCH_UPTOCOLON) or "VID:"  -- Video processor FX don't have prefixes
-    fxname = fxname:gsub(MFXlist.MATCH_UPTOCOLON.."%s", "") -- up to colon and then space, replace by nothing
-    fxname = fxname:gsub("%([^()]*%)","")
+    fxname = formatFXNameAndType(fxname, fxtype)
     local enabled =  rpr.TrackFX_GetEnabled(track, i-1)
     local offlined = rpr.TrackFX_GetOffline(track, i-1)
     table.insert(fxtab, {fxname = fxname, fxtype = fxtype, enabled = enabled, offlined = offlined}) -- confusing <key, value> pairs here, but it works
