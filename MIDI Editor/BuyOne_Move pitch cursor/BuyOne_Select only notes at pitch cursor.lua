@@ -16,6 +16,8 @@
 * Changelog:
 	+ v1.0 	Initial release
 
+* Notes: Works exclusively, other selected notes get deselected.
+
 ]]
 
 
