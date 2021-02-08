@@ -2,7 +2,7 @@
 
 --[[
 
-* ReaScript Name: BuyOne_Move pitch cursor to the highest note left of edit cursor.lua
+* ReaScript Name: BuyOne_Move pitch cursor to last note.lua
 * Description: Meant to complement native MIDI Editor actions for use in custom actions
 * Instructions:
 * Author: Buy One
