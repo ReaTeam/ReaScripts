@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aac6edf4527ec7a4939324a795a85fcccbb440f1" name="ReaTeam Scripts">
+<index version="1" commit="e2a3dd0a36039a473574655864a79995eafb8fbd" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4400,7 +4400,7 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This script splits selected non-locked items at edit cursor.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script splits selected non-locked items at edit cursor. Items that are only locked to active take are split.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The logic is inspired by spk77's script "Split all items at edit cursor".\par}
 }
 ]]></description>
@@ -4409,6 +4409,10 @@ show "Saved!" message for 2 seconds after saving settings into a slot]]></change
       </metadata>
       <version name="1.0" author="cfillion" time="2017-03-13T23:18:53Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f88afc8afd59725ff3e20e3626023edd4e1ba5e3/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
+      </version>
+      <version name="1.1" author="cfillion" time="2021-02-08T23:02:31Z">
+        <changelog><![CDATA[Split items that are only locked to active take [p=2403266]]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e2a3dd0a36039a473574655864a79995eafb8fbd/Items%20Editing/cfillion_Split%20selected%20non-locked%20items%20at%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="cool_MK Slicer.lua" type="script" desc="MK Slicer">
