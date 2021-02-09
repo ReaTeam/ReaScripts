@@ -1,10 +1,10 @@
--- @description Implode items across tracks into takes
+-- @description Implode items across tracks into takes (keep splits)
 -- @author amagalma
 -- @version 1.00
 -- @link https://forum.cockos.com/showthread.php?t=153354
 -- @screenshot https://i.ibb.co/NYr9RbQ/Implode-items-across-tracks-into-takes.gif
 -- @donation https://www.paypal.me/amagalma
--- @about Improved version of "Take: Implode items across tracks into takes" action that works as it should
+-- @about Just like the native "Take: Implode items across tracks into takes" action but it keeps the splits
 
 
 local item_cnt = reaper.CountSelectedMediaItems( 0 )
@@ -80,29 +80,8 @@ for i = 1, #items do
   groups[items[i][2]][items[i][4]] = items[i]
 end
 
--- Iterate groups and do the thing
-for position, t in pairs(groups) do
-  reaper.SelectAllMediaItems( 0, false )
-  local empty_items = {}
-  local length
-  for i = 1, #tracks do
-    if t[i] then
-      reaper.SetMediaItemSelected( t[i][1], true )
-      length = t[i][6]
-    else
-      local empty_item = reaper.AddMediaItemToTrack( tracks[i] )
-      reaper.AddTakeToMediaItem( empty_item )
-      empty_items[#empty_items+1] = empty_item
-      reaper.SetMediaItemSelected( empty_item, true )
-    end
-  end
-  for v = 1, #empty_items do
-    reaper.SetMediaItemInfo_Value( empty_items[v], "D_POSITION", position )
-    reaper.SetMediaItemInfo_Value( empty_items[v], "D_LENGTH", length )
-  end
-  reaper.Main_OnCommand(40438, 0) -- Implode items across tracks into takes
-end
+reaper.Main_OnCommand(40438, 0) -- Implode items across tracks into takes
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
-reaper.Undo_EndBlock2( 0, "Implode items across tracks into takes", 4 )
+reaper.Undo_EndBlock2( 0, "Implode items across tracks into takes, keep splits", 4 )
