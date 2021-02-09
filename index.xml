@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="453d47c516e45f9aeba780a9e1cff23caa0ef5c7" name="ReaTeam Scripts">
+<index version="1" commit="2b363e5018ed9d3f2d9fa368c7b122f45ff7cf65" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11601,6 +11601,20 @@ Don't report an error if no render presets were created yet]]></changelog>
       <version name="1.2" author="DSG" time="2020-06-11T05:25:13Z">
         <changelog><![CDATA[[bugfix] Fixed partial script execution without time selection]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/8ec9e5351b4d15316b32be91d901ec9f5872e631/Rendering/DSG_Render%20time%20selection%20to%20new%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Render whole items in new take.lua" type="script" desc="Render whole items in new take">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Rend selected items in new takes to apply take FX. Rendering applies to the entire source file, in order to enlarge items length later. By Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-02-09T22:13:54Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b363e5018ed9d3f2d9fa368c7b122f45ff7cf65/Rendering/rodilab_Render%20whole%20items%20in%20new%20take.lua</source>
       </version>
     </reapack>
   </category>
