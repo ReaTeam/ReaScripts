@@ -1,6 +1,6 @@
 -- @description Implode items across tracks into takes (keep splits)
 -- @author amagalma
--- @version 1.00
+-- @version 1.05
 -- @link https://forum.cockos.com/showthread.php?t=153354
 -- @screenshot https://i.ibb.co/NYr9RbQ/Implode-items-across-tracks-into-takes.gif
 -- @donation https://www.paypal.me/amagalma
@@ -81,6 +81,15 @@ for i = 1, #items do
 end
 
 reaper.Main_OnCommand(40438, 0) -- Implode items across tracks into takes
+
+-- Move all items to top track
+for i = 0, reaper.CountSelectedMediaItems( 0 ) - 1 do
+  local item = reaper.GetSelectedMediaItem( 0, i)
+  local track = reaper.GetMediaItem_Track( item )
+  if track ~= first_track then
+    reaper.MoveMediaItemToTrack( item, first_track )
+  end
+end
 
 reaper.PreventUIRefresh( -1 )
 reaper.UpdateArrange()
