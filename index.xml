@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b363e5018ed9d3f2d9fa368c7b122f45ff7cf65" name="ReaTeam Scripts">
+<index version="1" commit="339479d91380e23118cc81febd3fc9c85ad68174" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3709,7 +3709,7 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/93d335f83ad051d9821fa015f273a0aa6f7f7348/Items%20Editing/amagalma_Implode%20enclosed%20items%20as%20takes%20of%20longer%20items%20on%20the%20same%20track.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Implode items across tracks into takes.lua" type="script" desc="Implode items across tracks into takes (keep splits)">
+    <reapack name="amagalma_Implode items across tracks into takes (keep splits).lua" type="script" desc="Implode items across tracks into takes (keep splits)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -3722,8 +3722,8 @@ Better error-checking in general]]></changelog>
         <link rel="screenshot">https://i.ibb.co/NYr9RbQ/Implode-items-across-tracks-into-takes.gif</link>
         <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
-      <version name="1.00" author="amagalma" time="2020-10-19T10:25:35Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/453d47c516e45f9aeba780a9e1cff23caa0ef5c7/Items%20Editing/amagalma_Implode%20items%20across%20tracks%20into%20takes.lua</source>
+      <version name="1.05" author="amagalma" time="2021-02-09T23:16:26Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/339479d91380e23118cc81febd3fc9c85ad68174/Items%20Editing/amagalma_Implode%20items%20across%20tracks%20into%20takes%20(keep%20splits).lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Nudge to source preferred position (used by BWF) for selected items' active takes.lua" type="script" desc="amagalma_Take: Nudge to source preferred position (used by BWF) for selected items' active takes">
