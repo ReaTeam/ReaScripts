@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a128084de0ba52c27e2fb3ed4785599d2fd645b5" name="ReaTeam Scripts">
+<index version="1" commit="60756c6c12c3e23429e31d6ca7501d69a9833d78" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14184,6 +14184,25 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main" file="amagalma_Save current horizontal zoom as preset 3.lua">https://github.com/ReaTeam/ReaScripts/raw/a128084de0ba52c27e2fb3ed4785599d2fd645b5/Various/amagalma_Save%20current%20Horizontal%20Zoom%20as%20preset%20bundle.lua</source>
         <source main="main" file="amagalma_Save current horizontal zoom as preset 4.lua">https://github.com/ReaTeam/ReaScripts/raw/a128084de0ba52c27e2fb3ed4785599d2fd645b5/Various/amagalma_Save%20current%20Horizontal%20Zoom%20as%20preset%20bundle.lua</source>
         <source main="main" file="amagalma_Save current horizontal zoom as preset 5.lua">https://github.com/ReaTeam/ReaScripts/raw/a128084de0ba52c27e2fb3ed4785599d2fd645b5/Various/amagalma_Save%20current%20Horizontal%20Zoom%20as%20preset%20bundle.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Save current Vertical Zoom as preset bundle.lua" type="script" desc="Save current Vertical Zoom as preset bundle">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 To be used with the amagalma_Vertical Zoom preset bundle\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-02-10T10:18:01Z">
+        <source main="main" file="amagalma_Save current vertical zoom as preset 1.lua">https://github.com/ReaTeam/ReaScripts/raw/60756c6c12c3e23429e31d6ca7501d69a9833d78/Various/amagalma_Save%20current%20Vertical%20Zoom%20as%20preset%20bundle.lua</source>
+        <source main="main" file="amagalma_Save current vertical zoom as preset 2.lua">https://github.com/ReaTeam/ReaScripts/raw/60756c6c12c3e23429e31d6ca7501d69a9833d78/Various/amagalma_Save%20current%20Vertical%20Zoom%20as%20preset%20bundle.lua</source>
+        <source main="main" file="amagalma_Save current vertical zoom as preset 3.lua">https://github.com/ReaTeam/ReaScripts/raw/60756c6c12c3e23429e31d6ca7501d69a9833d78/Various/amagalma_Save%20current%20Vertical%20Zoom%20as%20preset%20bundle.lua</source>
+        <source main="main" file="amagalma_Save current vertical zoom as preset 4.lua">https://github.com/ReaTeam/ReaScripts/raw/60756c6c12c3e23429e31d6ca7501d69a9833d78/Various/amagalma_Save%20current%20Vertical%20Zoom%20as%20preset%20bundle.lua</source>
+        <source main="main" file="amagalma_Save current vertical zoom as preset 5.lua">https://github.com/ReaTeam/ReaScripts/raw/60756c6c12c3e23429e31d6ca7501d69a9833d78/Various/amagalma_Save%20current%20Vertical%20Zoom%20as%20preset%20bundle.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Set size of Vertical Zoom presets.lua" type="script" desc="Set size of Vertical Zoom presets">
