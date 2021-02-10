@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ff4650baf6833a15d24242d776a40a5558251e4f" name="ReaTeam Scripts">
+<index version="1" commit="a6a8d070a96f8c167d295ac7fbf4c585fe704509" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14146,6 +14146,21 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       </metadata>
       <version name="1.00" author="amagalma" time="2020-11-08T11:58:44Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6269126e3795141eaced15e6abcea10c0701cfed/Various/amagalma_Ripple%20recording.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Set size of Vertical Zoom presets.lua" type="script" desc="Set size of Vertical Zoom presets">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Sets the sizes of amagalma_Vertical Zoom preset bundle\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.0" author="amagalma" time="2021-02-10T00:32:31Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a6a8d070a96f8c167d295ac7fbf4c585fe704509/Various/amagalma_Set%20size%20of%20Vertical%20Zoom%20presets.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render).lua" type="script" desc="Show path from list menu (Resource, Selected Item, Project File, Record, Secondary Record, Render)">
