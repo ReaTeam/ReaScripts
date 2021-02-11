@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="60756c6c12c3e23429e31d6ca7501d69a9833d78" name="ReaTeam Scripts">
+<index version="1" commit="2de658a258428c60b99c485017a3091ade5e60ea" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5555,19 +5555,29 @@ here
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2bc0cd1b9b5726dc5fc3b1ea95432c7dfc01d052/Items%20Properties/amagalma_Enable%20'No%20autofades'%20property%20for%20selected%20items.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Group selected items vertically.lua" type="script" desc="amagalma_Group selected items vertically">
+    <reapack name="amagalma_Group selected items vertically.lua" type="script" desc="Group selected items vertically (optionally color randomly each group)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Groups selected items in different tracks vertically if they are aligned\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want each group to be randomly colored\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Groups selected items in different tracks vertically if they are aligned and optionally randomly colors each group\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want each group to be randomly colored\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Items whose position is less than 1ms apart get aligned\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo creation\sa180\par}
 }
 ]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-08-06T17:57:30Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/76c5bcd2dd9c7b620e8007a67474118d45214fcf/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
+      </version>
+      <version name="1.1" author="amagalma" time="2021-02-11T18:30:55Z">
+        <changelog><![CDATA[- Items whose position is less than 1ms apart get aligned
+- Smart undo creation
+- Maximized speed
+- Changed name description]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2de658a258428c60b99c485017a3091ade5e60ea/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Lock all items in project to their active take (mouse click will not change active take).lua" type="script" desc="Lock all items in project to their active take (mouse click will not change active take)">
