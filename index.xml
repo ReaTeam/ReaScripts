@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2de658a258428c60b99c485017a3091ade5e60ea" name="ReaTeam Scripts">
+<index version="1" commit="f9746a660762fbab82133a14cd71f93834de3485" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3959,6 +3959,10 @@ Better error-checking in general]]></changelog>
 - from now on the setting for the crossfade length and shape is gotten automatically from Reaper Preferences ("Overlap and crossfade items when splitting, length" and "Default crossfade shape")
 - updated ReaPack info]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/63ea732e207062c05c66d5c99827c315a943748e/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.51" author="amagalma" time="2021-02-12T11:20:08Z">
+        <changelog><![CDATA[- disabled forgotten debug messages from previous version]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f9746a660762fbab82133a14cd71f93834de3485/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
