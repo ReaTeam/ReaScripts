@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f8fc9d2915cc5a0e25a066327cf590886ea237a9" name="ReaTeam Scripts">
+<index version="1" commit="a89169afd4951554d09b0c175ae4a263ca4731a3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3177,6 +3177,12 @@ Fix preset awareness to actually work]]></changelog>
 Add switch to show FX type 
 Better handling of long FX name]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f9c456577c845b71725c5c29d52a0477f71c8de3/FX/Fabian_MFXlist.lua</source>
+      </version>
+      <version name="0.9.7beta" author="M Fabian" time="2021-02-13T21:50:46Z">
+        <changelog><![CDATA[Merge pull request from GavinRay97 (Thanks!)
+Add switch to show FX type 
+Better handling of long FX name]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a89169afd4951554d09b0c175ae4a263ca4731a3/FX/Fabian_MFXlist.lua</source>
       </version>
     </reapack>
     <reapack name="js_Track FX grouping.lua" type="script" desc="js_Track FX grouping.lua">
