@@ -1,17 +1,22 @@
 -- @description MIDI note velocity Statistics - compress or expand above and below threshold
 -- @author amagalma
--- @version 1.00
--- @provides [main=main] .
+-- @version 1.01
+-- @changelog
+--   - If JS_ReaScriptAPI is present then a topmost pin is attached to the script's window
+--   - Registered script in Midi Editor and Main
+-- @provides [main=main,midi_editor] .
+-- @link https://forum.cockos.com/showthread.php?t=249525
 -- @screenshot https://i.ibb.co/NyH3yQ0/Velocity-statistics.jpg
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   Returns the average, median and statistical mode of all note velocities in current take (open ME window or selected item in Arrange). You can choose one of them to set as a threshold (or set your own value) and compress/expand differently the notes that their velocities are above the threshold, and those that are below.
 --   Values 1 to 100 bring note velocities towards the threshold (compress) and values -1 to -100 move them away (expand).
 --
---   Requires Lokasenna GUI v2
+--   - Requires Lokasenna GUI v2
+--   - If JS_ReaScriptAPI is present then a topmost pin is attached to the script's window
 
 
-local version = "1.00"
+local version = "1.01"
 
 -- Check Lokasenna_GUI library availability --
 local lib_path = reaper.GetExtState("Lokasenna_GUI", "lib_path_v2")
@@ -48,6 +53,9 @@ if missing_lib then
   return reaper.defer(function() end)
 end
 
+local JS_API = reaper.APIExists( "JS_Window_Find", "title" )
+local script_hwnd
+
 
 local _, _, section, cmdID = reaper.get_action_context()
 reaper.SetToggleCommandState( section, cmdID, 1 ) -- Set ON
@@ -72,7 +80,7 @@ end
 local function GetTake()
   local midi_editor = reaper.MIDIEditor_GetActive()
   local take = reaper.MIDIEditor_GetTake( midi_editor )
-  if not take then 
+  if not take then
     local item = reaper.GetSelectedMediaItem( 0 , 0 )
     if not item then return end
     take = reaper.GetActiveTake( item )
@@ -304,7 +312,7 @@ end
 
 -----------------------------------------------------------------------------
 
-GUI.name = "MIDI note velocity Statistics - v" .. version
+GUI.name = "MIDI velocity Statistics - v" .. version
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 250, 437
 GUI.anchor, GUI.corner = "screen", "C"
 GUI.colors.txt = {225,225,225,255}
@@ -686,4 +694,10 @@ end
 
 GUI.Val("ChkAvg", true)
 GUI.Init()
+if JS_API then
+  script_hwnd = reaper.JS_Window_Find( GUI.name, true )
+  if script_hwnd then
+    reaper.JS_Window_AttachTopmostPin( script_hwnd )
+  end
+end
 GUI.Main()
