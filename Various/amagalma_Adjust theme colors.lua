@@ -1,8 +1,8 @@
 -- @description Adjust theme colors
 -- @author amagalma
--- @version 2.18
+-- @version 2.19
 -- @changelog
---   - Fix for script immediately closing sometimes when run (due to native API GetLastColorThemeFile bug)
+--   - added "Selected track background" which had been forgotten out
 -- @provides [extension windows] 7za.exe https://www.dropbox.com/s/nyrrt3h64u0gojw/7za.exe?dl=1
 -- @link http://forum.cockos.com/showthread.php?t=232639
 -- @about
@@ -26,7 +26,7 @@
 --   - Script Requires Lokasenna GUI v2 and JS_ReaScriptAPI to work. Both are checked if they exist at the start of the script
 
 
-local version = "2.18"
+local version = "2.19"
 -----------------------------------------------------------------------
 
 
@@ -204,7 +204,7 @@ gr[4] = { "docker_shadow", "docker_selface", "docker_unselface", "docker_text", 
 -- Timeline & Lanes
 gr[5] = { "col_tl_fg", "col_tl_fg2", "col_tl_bg", "col_tl_bgsel", "col_tl_bgsel2", "region", "region_lane_bg", "region_lane_text", "marker", "marker_lane_bg", "marker_lane_text", "col_tsigmark", "ts_lane_bg", "ts_lane_text", "timesig_sel_bg" }
 -- Arrange
-gr[6] = { "col_tr1_bg", "col_tr2_bg", "col_tr1_divline", "col_tr2_divline", "col_envlane1_divline", "col_envlane2_divline", "col_arrangebg", "arrange_vgrid", "col_gridlines2", "col_gridlines3", "col_gridlines" }
+gr[6] = { "col_tr1_bg", "col_tr2_bg", "selcol_tr1_bg", "selcol_tr2_bg", "col_tr1_divline", "col_tr2_divline", "col_envlane1_divline", "col_envlane2_divline", "col_arrangebg", "arrange_vgrid", "col_gridlines2", "col_gridlines3", "col_gridlines" }
 -- Media Item Labels
 gr[7] = { "col_mi_label", "col_mi_label_sel", "col_mi_label_float", "col_mi_label_float_sel" }
 -- Media Item Peaks
