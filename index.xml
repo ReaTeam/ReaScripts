@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6fc59fc894f81b327117837b061fd2adafea6eb0" name="ReaTeam Scripts">
+<index version="1" commit="feb725ee9e8ab3da700477c8338257fa209ff73c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3492,6 +3492,22 @@ Better error-checking in general]]></changelog>
       <version name="1.0" author="spk77" time="2017-02-08T16:53:25Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/247255a02eb50e565d8dade9685aa85a97f69f9c/FX/spk77_Link%20selected%20tracks%20FX%20parameters.lua</source>
+      </version>
+    </reapack>
+    <reapack name="tagirijus_FX list menu.lua" type="script" desc="FX list as popup">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Description\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This plugin will open a quick drop down menu on the mouse cursor listing all the FX for the selected track. A click on any FX will open its window floating.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Manuel Senfft" time="2021-02-17T08:00:01Z">
+        <changelog><![CDATA[First version!]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/feb725ee9e8ab3da700477c8338257fa209ff73c/FX/tagirijus_FX%20list%20menu.lua</source>
       </version>
     </reapack>
   </category>
