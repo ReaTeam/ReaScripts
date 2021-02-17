@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="feb725ee9e8ab3da700477c8338257fa209ff73c" name="ReaTeam Scripts">
+<index version="1" commit="7aba66e478f32a3bded11cbe06aa27fa69d90ca3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12802,6 +12802,15 @@ Added a "matching '•'" variant of the script at the request of blumpy]]></chan
       </metadata>
       <version name="1.0" author="Edgemeal" time="2019-12-03T18:05:23Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/de67e1712fbe9ff48a6a91836143f007f1500f2c/Tracks%20Properties/edgemeal_Select%20tracks%20with%20locked%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="edgemeal_Show VSTi from selected MIDI track sends.lua" type="script" desc="Show VSTi from selected MIDI track sends">
+      <metadata>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=249614">Forum Thread</link>
+        <link rel="donation" href="https://www.paypal.me/Edgemeal">Donate</link>
+      </metadata>
+      <version name="1.0" author="Edgemeal" time="2021-02-17T22:17:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7aba66e478f32a3bded11cbe06aa27fa69d90ca3/Tracks%20Properties/edgemeal_Show%20VSTi%20from%20selected%20MIDI%20track%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="edgemeal_Unselect last (bottom) selected track.lua" type="script" desc="Unselect last (bottom) selected track">
