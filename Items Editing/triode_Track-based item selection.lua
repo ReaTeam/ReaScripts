@@ -26,10 +26,9 @@
 --   B3: Individual item selection
 --   B4: Track group based item selection
 --
---   This script is for the first click to select.  Download the other track based scripts to get item range selection (shift-click), toggle selection, item split (select right or left) using the same modes.
---
---   There are also scripts for unselect all items and making newly recorded items create selections compatible with the above actions.
---
+--   This first script is for selecting items.  The other track based scripts create item range selection (shift-click), toggle item selection, item split (select right or left) using the same modes.
+--   There are also scripts for unselecting all items and making newly recorded items create selections compatible with the above actions.
+--   You can map the individual item selection scripts to modifiers to bypass the track-based scripts when their modes are selected.
 --   None of these scripts run anything in the background.
 --   No undo point is created by the item selection scripts (unless you specifically set item select undo in reaper's preferences)
 
