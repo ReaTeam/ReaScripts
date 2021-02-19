@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7aba66e478f32a3bded11cbe06aa27fa69d90ca3" name="ReaTeam Scripts">
+<index version="1" commit="c80fcf03e7a20abc333a2f848c5d13e6742a95f2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14618,15 +14618,17 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/80d8a2f8c1771225a6c3d86839dc2a63405e8ff9/Various/amagalma_Toggle%20enclose%20selected%20or%20focused%20FX%20in%20visible%20chain%20with%20AB_LM%20Level%20Matching%20VST%20or%20JSFX.lua</source>
       </version>
     </reapack>
-    <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks/items/envelope points under mouse (smart select all)">
+    <reapack name="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all).eel" type="script" desc="amagalma_Toggle Select all tracks, items or envelope points under mouse (smart select all)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle select/unselect all tracks/items/envelope points depending on what is under mouse\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Toggle select/unselect all tracks/items/envelope points depending on what is under mouse cursor\par}
 }
 ]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188418</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
       </metadata>
       <version name="1.0" author="amagalma" time="2017-04-12T17:49:15Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/48e8d6885b3def1df36af4e901d4b7dd248dff67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
@@ -14634,6 +14636,10 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="1.1" author="amagalma" time="2017-04-13T18:34:55Z">
         <changelog><![CDATA[+ Increased the scope of the action. Now it works in more places (like empty tcp, empty arrange etc)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/4967ec83e692a3b8c8d140dc5d7b27e5414cab67/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
+      </version>
+      <version name="1.11" author="amagalma" time="2021-02-19T02:05:24Z">
+        <changelog><![CDATA[Fix for latest SWS update]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c80fcf03e7a20abc333a2f848c5d13e6742a95f2/Various/amagalma_Toggle%20Select%20all%20tracks,%20items%20or%20envelope%20points%20under%20mouse%20(smart%20select%20all).eel</source>
       </version>
     </reapack>
     <reapack name="amagalma_Toggle show media itemtake or automation item properties, depending on last touched context.lua" type="script" desc="Toggle show media item/take or automation item properties, depending on last touched context">
