@@ -1,7 +1,7 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.75
--- @changelog - Added ability to show an additional guide line on the timeline (settings inside the script)
+-- @version 1.80
+-- @changelog - Fixed guide line misalignment by a few pixels when initiating item dragging or content movement
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -77,7 +77,6 @@ end
 
 -------------------------------------------------------------------
 
-local reaper = reaper
 local debug = false
 Arrange_snap_support = Arrange_snap_support == 1
 MidiEditor_snap_support = MidiEditor_snap_support == 1
@@ -135,6 +134,7 @@ local start = reaper.time_precise()
 local prev_scrollpos_time = start
 local continue = true
 local change = false
+local start_item_pos, start_take_offs, start_x
 -- Refresh toolbar
 local _, _, section, cmdID = reaper.get_action_context()
 reaper.SetToggleCommandState( section, cmdID, 1 )
@@ -142,7 +142,7 @@ reaper.RefreshToolbar2( section, cmdID )
 
 -------------------------------------------------------------------
 
-function Msg(string)
+local function Msg(string)
   if debug then return reaper.ShowConsoleMsg(string) end
 end
 
@@ -152,7 +152,7 @@ local function round(num)
   end
 end
 
-function exit()
+local function exit()
   if bm then reaper.JS_LICE_DestroyBitmap(bm) end
   if bm2 then reaper.JS_LICE_DestroyBitmap(bm2) end
   reaper.SetToggleCommandState( section, cmdID, 0 )
@@ -160,7 +160,7 @@ function exit()
   reaper.defer(function() end)
 end
 
-function visibletracksheight()
+local function visibletracksheight()
   local tr_cnt = reaper.CountTracks( 0 )
   if tr_cnt < 1 then return 0 end
   local last_track
@@ -177,7 +177,7 @@ end
 local vis_tracks_h = visibletracksheight()
 local prev_vis_tracks_h = vis_tracks_h
 
-function GetMidiViewMousePositionAndHZoom(MidiEditor, width, x)
+local function GetMidiViewMousePositionAndHZoom(MidiEditor, width, x)
   -- x, y must be to client
   local midiview = reaper.JS_Window_FindChildByID( MidiEditor, 0x3E9 )
   local take = reaper.MIDIEditor_GetTake( MidiEditor )
@@ -222,9 +222,13 @@ function GetMidiViewMousePositionAndHZoom(MidiEditor, width, x)
   return HZoom, x
 end
 
+
+local function in_arrange(x)
+  return (0 <= x and x < trackview_w)
+end
 -------------------------------------------------------------------
 
-function main()
+local function main()
   local now = reaper.time_precise()
   local x, y = reaper.GetMousePosition() -- screen
 
@@ -329,24 +333,60 @@ function main()
     end
 
     if continue then
+      
+      local item, take = reaper.GetItemFromPoint( x, y, true )
+      if item and reaper.JS_Mouse_GetState( 1 ) & 1 == 1 then
+        if not start_item_pos then
+          start_item_pos = reaper.GetMediaItemInfo_Value( item, "D_POSITION")
+        end
+        if not start_take_offs then
+          start_take_offs = reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" )
+        end
+        if not start_x then start_x = reaper.JS_Window_ScreenToClient(trackview, x, y) end
+      else
+        if start_item_pos then start_item_pos,start_x = false,false end
+        if start_take_offs then start_take_offs,start_x = false,false end
+      end
+    
       if change or (x ~= prev_x or y ~= prev_y) then
         prev_x, prev_y = x, y
         change = false
         zoom = reaper.GetHZoomLevel()
         local x_cl, y_cl = reaper.JS_Window_ScreenToClient(trackview, x, y)
-
-        if 0 <= x_cl and x_cl < trackview_w and 0 <= y_cl and y_cl <= trackview_h then
+        
+        
+        if in_arrange(x_cl) and 0 <= y_cl and y_cl <= trackview_h then
           if snap then
             local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
             local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
             x_cl = x_cl + diff
           end
-
+          
+          local edit, _, flag = reaper.GetItemEditingTime2()
+          if edit ~= -666 then
+            if flag == 4 then
+              local new_pos = start_x + floor((reaper.GetMediaItemInfo_Value( item, "D_POSITION") -
+                     start_item_pos) * zoom + 0.5)
+              if in_arrange(new_pos) then
+                x_cl = new_pos
+              else
+                start_item_pos,start_x = false,false
+              end
+            elseif flag == 8 and take then
+              local new_pos = start_x - floor((reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" ) -
+                     start_take_offs) * zoom + 0.5)
+              if in_arrange(new_pos) then
+                x_cl = new_pos
+              else 
+                start_take_offs,start_x = false, false
+              end
+            end
+          end
+          
           if bigLine then
             Msg("draw big line at " .. x_cl .. "\n")
             reaper.JS_Composite(trackview, x_cl, 0, 1, (vis_tracks_h < trackview_h and vis_tracks_h or trackview_h), bm, 0, 0, 1, 1, true)
           else
-            local item = reaper.GetItemFromPoint( x, y, true )
             if item then
               local par_track = reaper.GetMediaItem_Track( item )
               if item ~= prev_item or par_track ~= prev_track then
