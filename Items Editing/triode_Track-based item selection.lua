@@ -3,17 +3,17 @@
 -- @version 0.72
 -- @metapackage
 -- @provides
---   [main] triode_Track-based item selection/Track-based item selection.lua
---   [main] triode_Track-based item selection/Track-based item range selection.lua
---   [main] triode_Track-based item selection/Track-based split items (select left).lua
---   [main] triode_Track-based item selection/Track-based split items (select right).lua
---   [main] triode_Track-based item selection/Unselect all items (track-based item selection).lua
---   [main] triode_Track-based item selection/Track-based non-contiguous item selection.lua
---   [main] triode_Track-based item selection/Record Toggle (compatible with track based item selection).lua
---   triode_Track-based item selection/Play/Stop Toggle (compatible with track based item selection).lua
---   [main] triode_Track-based item selection/Individual item selection (compatible with track-based item selection).lua
---   [main] triode_Track-based item selection/Individual item range selection (compatible with track-based item selection).lua
---   [main] triode_Track-based item selection/Individual non-contiguous item selection (compatible with track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Track-based item selection.lua
+--   [main] triode_Track-based item selection/triode_Track-based item range selection.lua
+--   [main] triode_Track-based item selection/triode_Track-based split items (select left).lua
+--   [main] triode_Track-based item selection/triode_Track-based split items (select right).lua
+--   [main] triode_Track-based item selection/triode_Unselect all items (track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Track-based non-contiguous item selection.lua
+--   [main] triode_Track-based item selection/triode_Record Toggle (compatible with track based item selection).lua
+--   [main] triode_Track-based item selection/triode_Play-Stop Toggle (compatible with track based item selection).lua
+--   [main] triode_Track-based item selection/triode_Individual item selection (compatible with track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Individual item range selection (compatible with track-based item selection).lua
+--   [main] triode_Track-based item selection/triode_Individual non-contiguous item selection (compatible with track-based item selection).lua
 -- @link http://www.outoftheboxsounds.com/
 -- @donation If you like this script please support https://www.paypal.com/paypalme/outoftheboxsounds
 -- @about
