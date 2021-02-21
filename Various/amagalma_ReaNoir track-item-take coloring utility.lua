@@ -1,7 +1,9 @@
 -- @description ReaNoir - Track/Item/Take coloring utility
 -- @author amagalma
--- @version 2.15
--- @changelog fix: coloring a range of tracks/items/takes with a gradient (thanks to juliansader)
+-- @version 2.16
+-- @changelog
+--   - better random color function
+--   - added some PreventUIRefresh to speed up coloring
 -- @link http://forum.cockos.com/showthread.php?t=189602
 -- @donation https://www.paypal.me/amagalma
 -- @about
@@ -36,7 +38,7 @@
 -- Special Thanks to: Spacemen Tree, spk77, X-Raym, cfillion, Lokasenna and Gianfini!!! :)
 
 
-version = "v2.15"
+version = "v2.16"
 
 
 
@@ -52,7 +54,7 @@ version = "v2.15"
 
 
 
-local reaper = reaper
+local math = math
 
 -----------------------------------------------FOR DEBUGGING-------------------------------------
 function Msg(name)
@@ -605,6 +607,7 @@ end
           end
         end
         boxID.onCtrlClick = function ()
+        reaper.PreventUIRefresh( 1 )
           if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
             if seltracks > 2 then
@@ -700,6 +703,7 @@ end
             SetSliders(boxID)
             found = nil
           end
+          reaper.PreventUIRefresh( -1 )
         end
     end
    
@@ -760,6 +764,7 @@ end
     end
 
     function ApplyColor_Tracks()
+      reaper.PreventUIRefresh( 1 )
       reaper.Undo_BeginBlock()
          local track_count = reaper.CountTracks(0)
          for i=0, track_count-1 do
@@ -770,9 +775,11 @@ end
                end
          end
       reaper.Undo_EndBlock("Color selected track(s)", -1)
+      reaper.PreventUIRefresh( -1 )
     end
     
     function ApplyColor_Items()
+      reaper.PreventUIRefresh( 1 )
       reaper.Undo_BeginBlock()     
          local item_count =  reaper.CountSelectedMediaItems(0)
          if item_count > 0 then      
@@ -783,9 +790,11 @@ end
              end     
          end
       reaper.Undo_EndBlock("Color selected item(s)", -1)
+      reaper.PreventUIRefresh( -1 )
     end
     
     function ApplyColor_Takes()
+      reaper.PreventUIRefresh( 1 )
       reaper.Undo_BeginBlock()     
         local item_count =  reaper.CountSelectedMediaItems(0)
         if item_count > 0 then      
@@ -801,6 +810,7 @@ end
             end     
         end
       reaper.Undo_EndBlock("Color active take of selected item(s)", -1)
+      reaper.PreventUIRefresh( -1 )
     end
     
     function Palette_info_GUI()
@@ -877,6 +887,7 @@ end
     end
     
     function TintShade(tintorshade)
+      reaper.PreventUIRefresh( 1 )
         if what == "tracks" then
           local seltracks = reaper.CountSelectedTracks(0)
           if seltracks > 2 then
@@ -979,6 +990,7 @@ end
           end
           found = nil
         end
+      reaper.PreventUIRefresh( -1 )
     end
     
     
@@ -1047,7 +1059,37 @@ end
         end
     end
 
+
+    local list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+    local list_size = 24
+    math.randomseed( os.time() )
+    for i = #list, 2, -1 do
+      local j = math.random(i)
+      list[i], list[j] = list[j], list[i]
+    end
+
     
+    local function GiveRandomColor()
+      if list_size == 0 then
+        list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+        list_size = 24
+        math.randomseed( os.time() )
+        for i = #list, 2, -1 do
+          local j = math.random(i)
+          list[i], list[j] = list[j], list[i]
+        end
+      end
+      local k = 0
+      while k == 0 do
+        k = math.floor(math.random()*list_size + 0.5)
+      end
+      local color = list[k]
+      table.remove(list, k)
+      list_size = list_size-1
+      return color
+    end
+
+
     function RandomColors_INIT()
       local RandomColors_x = GUI_centerx -72
       local RandomColors_y = GUI_centery + 128 - compact
@@ -1057,74 +1099,50 @@ end
       RandomColors_btn :set_label_color(0.8,0.8,0.8,1)
       
       RandomColors_btn.onClick = function ()
-        local list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
-        local list_size = 24
+        reaper.PreventUIRefresh( 1 )
         if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
-            reaper.Undo_BeginBlock()
-            for i=0, seltracks-1 do
-              if list_size == 0 then
-                list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
-                list_size = 24
-              end      
-              local k = math.random(1, list_size)
-              local colorbox = list[k]
-              table.remove(list, k)
-              list_size = list_size-1
-              Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
-              local cur_track = reaper.GetSelectedTrack(0,i)
-              local sel_track = reaper.IsTrackSelected(cur_track)
-                if sel_track == true then
-                  reaper.SetTrackColor(cur_track, ConvertedRGB)
-                end
+            if seltracks ~= 0 then
+              reaper.Undo_BeginBlock()
+              for i=0, seltracks-1 do
+                local colorbox = GiveRandomColor()
+                Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
+                local cur_track = reaper.GetSelectedTrack(0,i)
+                local sel_track = reaper.IsTrackSelected(cur_track)
+                  if sel_track == true then
+                    reaper.SetTrackColor(cur_track, ConvertedRGB)
+                  end
+              end
+              reaper.Undo_EndBlock("Set random color selection for selected track(s)", -1)
             end
-            reaper.Undo_EndBlock("Set random color selection for selected track(s)", -1)
-            list, list_size = nil, nil            
         elseif what == "items" then
             local seltitems = reaper.CountSelectedMediaItems(0)
-            if seltitems > 0 then
-            reaper.Undo_BeginBlock()
+            if seltitems ~= 0 then
+              reaper.Undo_BeginBlock()
               for i=0, seltitems-1 do
-                if list_size == 0 then
-                  list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
-                  list_size = 24
-                end      
-                local k = math.random(1, list_size)
-                local colorbox = list[k]
-                table.remove(list, k)
-                list_size = list_size-1
+                local colorbox = GiveRandomColor()
                 Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
                 local cur_item = reaper.GetSelectedMediaItem(0,i)
                 reaper.SetMediaItemInfo_Value(cur_item, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
                 reaper.UpdateItemInProject( cur_item )
               end         
-            reaper.Undo_EndBlock("Set random color selection for selected item(s)", -1)
+              reaper.Undo_EndBlock("Set random color selection for selected item(s)", -1)
             end
         elseif what == "takes" then
           local seltitems = reaper.CountSelectedMediaItems(0)
-          if seltitems > 0 then
+          if seltitems ~= 0 then
             reaper.Undo_BeginBlock()
             for i=0, seltitems-1 do
               local cur_item = reaper.GetSelectedMediaItem(0,i)
               local take_cnt = reaper.CountTakes(cur_item)
               if take_cnt == 0 then
-                local k = math.random(1, list_size)
-                local colorbox = list[k]
-                table.remove(list, k)
-                list_size = list_size-1
+                local colorbox = GiveRandomColor()
                 Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)
                 reaper.SetMediaItemInfo_Value(cur_item, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
                 reaper.UpdateItemInProject(cur_item)
               else
                 for j=0, take_cnt-1 do
-                  if list_size == 0 then
-                    list = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
-                    list_size = 24
-                  end      
-                  local k = math.random(1, list_size)
-                  local colorbox = list[k]
-                  table.remove(list, k)
-                  list_size = list_size-1
+                  local colorbox = GiveRandomColor()
                   Convert_RGB(ColorBoxes[colorbox].r +0.2, ColorBoxes[colorbox].g +0.2, ColorBoxes[colorbox].b +0.2, 1)           
                   cur_take = reaper.GetMediaItemTake( cur_item, j)
                   reaper.SetMediaItemTakeInfo_Value(cur_take, "I_CUSTOMCOLOR", ConvertedRGB|0x1000000)
@@ -1135,6 +1153,7 @@ end
             reaper.Undo_EndBlock("Set random color selection for selected take(s)", -1)
           end
         end
+        reaper.PreventUIRefresh( -1 )
       end
     end
     
@@ -1492,6 +1511,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
         end
 
         RGBsquare_btn.onCtrlClick = function ()
+          reaper.PreventUIRefresh( 1 )
           if what == "tracks" then
             local seltracks = reaper.CountSelectedTracks(0)
             if seltracks > 2 then
@@ -1589,6 +1609,7 @@ Tracks/Items/Takes: shows to what colors are applied ------------------------
             end
             found = nil
           end
+          reaper.PreventUIRefresh( -1 )
         end
 
     end
