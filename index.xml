@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2d6b51a6d71e1fb2351afd31fa10c2d56e3ad0bd" name="ReaTeam Scripts">
+<index version="1" commit="b1d790fd0e9f432ac07127937cd34f405f26f51f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14283,6 +14283,11 @@ Changed slider behavior: clicking on the slider does not move the handle any mor
       <version name="2.15" author="amagalma" time="2020-08-21T17:29:56Z">
         <changelog><![CDATA[fix: coloring a range of tracks/items/takes with a gradient (thanks to juliansader)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c5b81d9b616d488cf01b8fe7d1ba6c2e82323517/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
+      </version>
+      <version name="2.16" author="amagalma" time="2021-02-21T20:19:09Z">
+        <changelog><![CDATA[- better random color function
+- added some PreventUIRefresh to speed up coloring]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b1d790fd0e9f432ac07127937cd34f405f26f51f/Various/amagalma_ReaNoir%20track-item-take%20coloring%20utility.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Reaper GUI color controls XL.lua" type="script" desc="Reaper GUI color controls XL">
