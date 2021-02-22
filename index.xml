@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d9d2dcfdaddd9123a2492695c31284bddd462992" name="ReaTeam Scripts">
+<index version="1" commit="ba06ee73e59bf45b83047a9c29a43dc85dfae8ae" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -1955,19 +1955,19 @@ Refactored/reorganized the code for readability]]></changelog>
       </version>
     </reapack>
   </category>
-  <category name="Development/Parser">
+  <category name="Development/RPP-Parser">
     <reapack name="Reateam_RPP-Parser.lua" type="script" desc="RPP Parser">
       <metadata>
         <link rel="website" href="https://github.com/ReaTeam/ReaScripts">ReaTeam/ReaScripts</link>
       </metadata>
-      <version name="2.0" author="mrlimbic, X-Raym, acendan" time="2021-02-22T23:37:10Z">
+      <version name="2.0" author="mrlimbic, X-Raym, acendan" time="2021-02-22T23:59:11Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d9d2dcfdaddd9123a2492695c31284bddd462992/Development/Parser/Reateam_RPP-Parser.lua</source>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/aaff2332dae3006cb66d150ea60392369feb9e44/Development/RPP-Parser/Reateam_RPP-Parser.lua</source>
       </version>
     </reapack>
     <reapack name="Reateam_RPP-Parser_test.lua" type="script" desc="RPP Parser Test">
-      <version name="1.0" author="X-Raym" time="2021-02-22T23:37:10Z">
-        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d9d2dcfdaddd9123a2492695c31284bddd462992/Development/Parser/Reateam_RPP-Parser_test.lua</source>
+      <version name="1.0" author="X-Raym" time="2021-02-22T23:59:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ba06ee73e59bf45b83047a9c29a43dc85dfae8ae/Development/RPP-Parser/Reateam_RPP-Parser_test.lua</source>
       </version>
     </reapack>
   </category>
