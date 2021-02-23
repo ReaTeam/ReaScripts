@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ba06ee73e59bf45b83047a9c29a43dc85dfae8ae" name="ReaTeam Scripts">
+<index version="1" commit="bffd32c9333d4b0f2e847cd13db27d0c34ae92ed" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -1956,6 +1956,24 @@ Refactored/reorganized the code for readability]]></changelog>
     </reapack>
   </category>
   <category name="Development/RPP-Parser">
+    <reapack name="amagalma_Display all referenced media files in all projects residing in a folder path.lua" type="script" desc="Display all referenced media files in all projects residing in a folder path">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Displays a list with all the media files that are referenced in all the rpp and rpp-bak files that reside in the same user chosen folder.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Displays the number of projects found, the number of media files found, the number of total references for each media file and the number of projects that this media file is referenced in.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Requires JS_ReaScriptAPI and RPP-Parser\sa180\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=249852</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-02-23T13:57:27Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bffd32c9333d4b0f2e847cd13db27d0c34ae92ed/Development/RPP-Parser/amagalma_Display%20all%20referenced%20media%20files%20in%20all%20projects%20residing%20in%20a%20folder%20path.lua</source>
+      </version>
+    </reapack>
     <reapack name="Reateam_RPP-Parser.lua" type="script" desc="RPP Parser">
       <metadata>
         <link rel="website" href="https://github.com/ReaTeam/ReaScripts">ReaTeam/ReaScripts</link>
