@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bffd32c9333d4b0f2e847cd13db27d0c34ae92ed" name="ReaTeam Scripts">
+<index version="1" commit="bf51d714a03dc5315fd375b9b193c08721e574f1" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5455,6 +5455,21 @@ here
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-02-14T22:04:21Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/59216bcb5d28839af07e76afd0839427977f9fd3/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Trim oversized edges.lua" type="script" desc="Trim oversized edges">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Trim item edges that exceed the length of the source media file.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-02-24T16:17:57Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/81fd6b92ef7dfc20c9b3ac37c5286225834f70aa/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
       </version>
     </reapack>
     <reapack name="solger_Smart split MIDI item.lua" type="script" desc="Smart split MIDI item">
@@ -11798,12 +11813,16 @@ Don't report an error if no render presets were created yet]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Rend selected items in new takes to apply take FX. Rendering applies to the entire source file, in order to enlarge items length later. By Rodrigo Diaz (aka Rodilab)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rend selected items in new takes to apply take FX. Rendering applies to the entire source file, in order to enlarge items length later. Works only with audio sources (no MIDI). By Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-02-09T22:13:54Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2b363e5018ed9d3f2d9fa368c7b122f45ff7cf65/Rendering/rodilab_Render%20whole%20items%20in%20new%20take.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-02-24T16:19:27Z">
+        <changelog><![CDATA[Works only with audio sources.  Forbidden midi sources.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf51d714a03dc5315fd375b9b193c08721e574f1/Rendering/rodilab_Render%20whole%20items%20in%20new%20take.lua</source>
       </version>
     </reapack>
   </category>
@@ -12343,6 +12362,36 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
         <source main="main" file="Lokasenna_Snap loop points to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
         <source main="main" file="Lokasenna_Snap loop point start to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
         <source main="main" file="Lokasenna_Snap loop point end to visible grid.lua">https://github.com/ReaTeam/ReaScripts/raw/8ea20315caa8db53e84c0ed731f71850bcf0cd6d/Time%20Selection/Lokasenna_Snap%20time%20selection%20or%20loop%20points%20to%20grid.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Play next item once.lua" type="script" desc="Play next item once">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Select, set time selection and play the next item of the track once.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-02-24T16:19:07Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e51ad05d2f20bac43b88e2858f8978b23faffbe7/Time%20Selection/rodilab_Play%20next%20item%20once.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Set time selection to fade under mouse cursor.lua" type="script" desc="Set time selection to fade under mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Set edit cursor and time selection to fade or crossfade under mouse cursor. If no fade or crossfade under cursor, does not change selection or edit cursor position.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-02-24T16:18:32Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3558cfb108bea4bd4a3a9ac415e2292be6f24790/Time%20Selection/rodilab_Set%20time%20selection%20to%20fade%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set time selection from edit cursor to end of items.eel" type="script" desc="Set time selection from edit cursor to end of items">
