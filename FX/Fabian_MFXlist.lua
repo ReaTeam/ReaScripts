@@ -1,26 +1,20 @@
 -- @description MFXlist
 -- @author M Fabian
--- @version 0.9.8beta
--- @changelog
---   Shift+Ctrl now offlines FX (like in Mixer)
---   Right-click menu improved
---   Alternative FX browser fixes
+-- @version 0.9.9beta
+-- @changelog Fix auto-float quick added FX (issue #33)
 -- @screenshot MFXlist.gif https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif
 -- @about
 --   # MFXlist
 --   A Lua ReaScript that implements an FX strip meant to be docked to the left
---   of the TCP in the arrange view. The original idea comes from Doppelganger's 
---   fxlist (https://forum.cockos.com/showthread.php?t=210987), but this is a 
---   native ReaScript re-implementation of the FX strip part of fxlist. MFXlist 
---   packages existing functionality into a better (in my opinion) user interface 
---   compared to the existing native implementation; the used screen estate is
---   simply smaller. 
+--   of the TCP in the arrange view. MFXlist packages existing functionality into
+--   a better (in my opinion) user interface compared to the existing native
+--   implementation; the used screen estate is simply smaller. 
 --
 --   MFXlist is mainly developed and tested on Windows and Reaper 6.20, and it 
 --   uses the js_ReaScriptAPI  extension (https://forum.cockos.com/showthread.php?t=212174).
 --
 --   For detailed info see the MFXlist Github repo https://github.com/martinfabian/MFXlist. 
---   For bugs and questions, see the Reaper forum thread https://forum.cockos.com/showthread.php?p=2395782
+--   For bugs and questions, see the Reaper forum thread https://forum.cockos.com/showthread.php?p=2398556
 
 local string, table, math = string, table, math
 local rpr, gfx = reaper, gfx
@@ -70,7 +64,7 @@ MFXlist =
   FONT_INVFLAG = 0x56000000,    -- invert  
   
   -- Script specific constants, from here below change only if you really know what you are doing
-  SCRIPT_VERSION = "v0.9.8",
+  SCRIPT_VERSION = "v0.9.9",
   SCRIPT_NAME = "MFX-list",
   SCRIPT_AUTHORS = {"M Fabian"},
   SCRIPT_YEAR = "2020-2021",
@@ -1043,7 +1037,15 @@ local function handleMenu(mcap, mx, my)
       
       local fxname = MFXlist.MENU_QUICKFX[ret]
       local index = rpr.TrackFX_AddByName(track, fxname, false, -10000)
-      handleToggleWindow(track, index, 2)
+      -- handleToggleWindow(track, index, 2, true) -- true => if window already opened, then don't close it
+      rpr.TrackFX_Show(track, index, 3) -- 3 == show floating window
+      MFXlist.openwin_list:insert({track, index})      
+      
+      if DO_DEBUG then
+        local _, tname = rpr.GetTrackName(track)
+        Msg("Track: "..tname..", added FX: "..fxname.." as index "..index)
+      end -- DO_DEBUG
+      
     end
     
   end
