@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bf51d714a03dc5315fd375b9b193c08721e574f1" name="ReaTeam Scripts">
+<index version="1" commit="485e8176f688442054fa40deb976e863212b84f9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3173,9 +3173,9 @@ Additional checking to identify target window.]]></changelog>
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 MFXlist\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A Lua ReaScript that implements an FX strip meant to be docked to the left of the TCP in the arrange view. The original idea comes from Doppelganger's fxlist (https://forum.cockos.com/showthread.php?t=210987), but this is a native ReaScript re-implementation of the FX strip part of fxlist. MFXlist packages existing functionality into a better (in my opinion) user interface compared to the existing native implementation; the used screen estate is simply smaller.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A Lua ReaScript that implements an FX strip meant to be docked to the left of the TCP in the arrange view. MFXlist packages existing functionality into a better (in my opinion) user interface compared to the existing native implementation; the used screen estate is simply smaller.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MFXlist is mainly developed and tested on Windows and Reaper 6.20, and it uses the js_ReaScriptAPI extension (https://forum.cockos.com/showthread.php?t=212174).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 For detailed info see the MFXlist Github repo https://github.com/martinfabian/MFXlist. For bugs and questions, see the Reaper forum thread https://forum.cockos.com/showthread.php?p=2395782\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For detailed info see the MFXlist Github repo https://github.com/martinfabian/MFXlist. For bugs and questions, see the Reaper forum thread https://forum.cockos.com/showthread.php?p=2398556\par}
 }
 ]]></description>
         <link rel="screenshot" href="https://github.com/martinfabian/MFXlist/raw/main/MFXlist.gif">MFXlist.gif</link>
@@ -3223,6 +3223,10 @@ Better handling of long FX name]]></changelog>
 Right-click menu improved
 Alternative FX browser fixes]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6fc59fc894f81b327117837b061fd2adafea6eb0/FX/Fabian_MFXlist.lua</source>
+      </version>
+      <version name="0.9.9beta" author="M Fabian" time="2021-02-27T22:14:16Z">
+        <changelog><![CDATA[Fix auto-float quick added FX (issue #33)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/485e8176f688442054fa40deb976e863212b84f9/FX/Fabian_MFXlist.lua</source>
       </version>
     </reapack>
     <reapack name="js_Track FX grouping.lua" type="script" desc="js_Track FX grouping.lua">
