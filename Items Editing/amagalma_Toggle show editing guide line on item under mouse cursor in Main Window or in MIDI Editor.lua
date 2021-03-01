@@ -1,7 +1,7 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.80
--- @changelog - Fixed guide line misalignment by a few pixels when initiating item dragging or content movement
+-- @version 1.81
+-- @changelog - Fix crash with empty items introduced in v1.80
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -339,7 +339,7 @@ local function main()
         if not start_item_pos then
           start_item_pos = reaper.GetMediaItemInfo_Value( item, "D_POSITION")
         end
-        if not start_take_offs then
+        if take and not start_take_offs then
           start_take_offs = reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" )
         end
         if not start_x then start_x = reaper.JS_Window_ScreenToClient(trackview, x, y) end
