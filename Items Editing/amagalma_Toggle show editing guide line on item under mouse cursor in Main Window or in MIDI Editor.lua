@@ -1,7 +1,7 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.81
--- @changelog - Fix crash with empty items introduced in v1.80
+-- @version 1.82
+-- @changelog - Fix crash with empty items introduced in v1.80 #2
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -135,6 +135,7 @@ local prev_scrollpos_time = start
 local continue = true
 local change = false
 local start_item_pos, start_take_offs, start_x
+local moving_item, moving_take
 -- Refresh toolbar
 local _, _, section, cmdID = reaper.get_action_context()
 reaper.SetToggleCommandState( section, cmdID, 1 )
@@ -334,13 +335,16 @@ local function main()
 
     if continue then
       
-      local item, take = reaper.GetItemFromPoint( x, y, true )
-      if item and reaper.JS_Mouse_GetState( 1 ) & 1 == 1 then
+      local grabbing = reaper.JS_Mouse_GetState( 1 ) & 1 == 1
+      if not grabbing then
+        moving_item, moving_take = reaper.GetItemFromPoint( x, y, true )
+      end
+      if moving_item and grabbing then
         if not start_item_pos then
-          start_item_pos = reaper.GetMediaItemInfo_Value( item, "D_POSITION")
+          start_item_pos = reaper.GetMediaItemInfo_Value( moving_item, "D_POSITION")
         end
-        if take and not start_take_offs then
-          start_take_offs = reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" )
+        if moving_take and not start_take_offs then
+          start_take_offs = reaper.GetMediaItemTakeInfo_Value( moving_take, "D_STARTOFFS" )
         end
         if not start_x then start_x = reaper.JS_Window_ScreenToClient(trackview, x, y) end
       else
@@ -365,15 +369,15 @@ local function main()
           local edit, _, flag = reaper.GetItemEditingTime2()
           if edit ~= -666 then
             if flag == 4 then
-              local new_pos = start_x + floor((reaper.GetMediaItemInfo_Value( item, "D_POSITION") -
+              local new_pos = start_x + floor((reaper.GetMediaItemInfo_Value( moving_item, "D_POSITION") -
                      start_item_pos) * zoom + 0.5)
               if in_arrange(new_pos) then
                 x_cl = new_pos
               else
                 start_item_pos,start_x = false,false
               end
-            elseif flag == 8 and take then
-              local new_pos = start_x - floor((reaper.GetMediaItemTakeInfo_Value( take, "D_STARTOFFS" ) -
+            elseif flag == 8 and moving_take then
+              local new_pos = start_x - floor((reaper.GetMediaItemTakeInfo_Value( moving_take, "D_STARTOFFS" ) -
                      start_take_offs) * zoom + 0.5)
               if in_arrange(new_pos) then
                 x_cl = new_pos
@@ -387,14 +391,14 @@ local function main()
             Msg("draw big line at " .. x_cl .. "\n")
             reaper.JS_Composite(trackview, x_cl, 0, 1, (vis_tracks_h < trackview_h and vis_tracks_h or trackview_h), bm, 0, 0, 1, 1, true)
           else
-            if item then
-              local par_track = reaper.GetMediaItem_Track( item )
-              if item ~= prev_item or par_track ~= prev_track then
-                prev_item = item
+            if moving_item then
+              local par_track = reaper.GetMediaItem_Track( moving_item )
+              if moving_item ~= prev_item or par_track ~= prev_track then
+                prev_item = moving_item
                 prev_track = par_track
                 track_y = reaper.GetMediaTrackInfo_Value( par_track, "I_TCPY" )
-                      + reaper.GetMediaItemInfo_Value( item, "I_LASTY" ) -- client
-                item_h = reaper.GetMediaItemInfo_Value( item, "I_LASTH" )
+                      + reaper.GetMediaItemInfo_Value( moving_item, "I_LASTY" ) -- client
+                item_h = reaper.GetMediaItemInfo_Value( moving_item, "I_LASTH" )
               end
               Msg("draw line at " .. x_cl .. "\n")
               reaper.JS_Composite(trackview, x_cl, track_y, 1, item_h, bm, 0, 0, 1, 1, true)
