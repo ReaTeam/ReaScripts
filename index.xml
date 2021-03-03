@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a7c98fd8f2e794d687aeb0d1ec4713e3b6f08e19" name="ReaTeam Scripts">
+<index version="1" commit="85f87e3601c069697fcfa2c01c78b4060b81bc1b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11512,6 +11512,25 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
 + Project Lists: Duplicate entries are now only listed once
 + Recent Projects: Fix for preventing a 'not responding' bug if no [Recent] entry section exists in the reaper.ini yet]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e5196917add0b4fce3cece104a77328e22ce4d68/Project%20Properties/solger_ReaLauncher.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Razor Edit">
+    <reapack name="amagalma_Crossfade items in Razor Edit area.lua" type="script" desc="Crossfade items in Razor Edit area">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Turns the RE area into a crossfade between the items that are inside it. Works with up to two items per track.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You can set inside the script if you want to keep the RE area or not and force a specific crossfade shape (otherwise the one set in Reaper Preferences is used).\par}
+}
+]]></description>
+        <link rel="screenshot">https://i.ibb.co/Bgx3X62/crossfade-items-in-razor-edit-area.gif</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-03-03T07:24:51Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/85f87e3601c069697fcfa2c01c78b4060b81bc1b/Razor%20Edit/amagalma_Crossfade%20items%20in%20Razor%20Edit%20area.lua</source>
       </version>
     </reapack>
   </category>
