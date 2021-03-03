@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="73ecb9a9c214cf8345d744e134694bacd237a098" name="ReaTeam Scripts">
+<index version="1" commit="a7c98fd8f2e794d687aeb0d1ec4713e3b6f08e19" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4704,6 +4704,12 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 +The Random Reverse function now has an intensity slider
 +Improved Random Mute pattern creation]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6cf049e54bde99cd0c905dcfdd893a58866bbf99/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.03" author="cool" time="2021-03-03T03:10:45Z">
+        <changelog><![CDATA[+ Now, when moving the waveform, the cursor changes its appearance.
++ Added option to choose between Play/Stop and Play/Pause when pressing Spacebar.
++ Polishing the work of Razor Edit.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a7c98fd8f2e794d687aeb0d1ec4713e3b6f08e19/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
