@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af66dcf51cd02642c17caa2ba21601d3ec356b6b" name="ReaTeam Scripts">
+<index version="1" commit="bc26b6287a405d52f5d8ba3774f88b6dd5a08584" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12450,6 +12450,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-02-24T16:18:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/3558cfb108bea4bd4a3a9ac415e2292be6f24790/Time%20Selection/rodilab_Set%20time%20selection%20to%20fade%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-03-04T10:56:53Z">
+        <changelog><![CDATA[Update: Prevent UI Refresh]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc26b6287a405d52f5d8ba3774f88b6dd5a08584/Time%20Selection/rodilab_Set%20time%20selection%20to%20fade%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Set time selection from edit cursor to end of items.eel" type="script" desc="Set time selection from edit cursor to end of items">
