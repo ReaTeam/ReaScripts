@@ -1,6 +1,7 @@
 -- @description Implode mono items into stereo item
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
+-- @changelog Updates : Restore item selection after rend, and prevent UI Refresh
 -- @about
 --   Searches for matches between the selected mono items, and implode them into stereo items.
 --   - To match, items source must be mono audio files and items must have the same position, length, startoffs, source length, samplerate and playrate.
@@ -10,13 +11,13 @@
 --
 --   by Rodrigo Diaz (aka Rodilab)
 
-reaper.Undo_BeginBlock()
-
 -- Count selected items
-count = reaper.CountSelectedMediaItems(0)
+local count = reaper.CountSelectedMediaItems(0)
 
 -- if at least two items are selected
 if count > 1 then
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
 
   -- Save selected items in a list
   local item_list = {}
@@ -166,11 +167,21 @@ if count > 1 then
     end
   end
 
+  -- Restore selection
+  reaper.SelectAllMediaItems(0,0)
+  for i=0, count-1 do
+    local item = item_list[i]
+    if item ~= nil then
+      reaper.SetMediaItemSelected(item,1)
+    end
+  end
+
   if match < final_count then
     match = tostring(final_count-match)
     reaper.ShowMessageBox(match.." items didn't match. \nItems source must be mono audio files. And items must have the same position, length, startoffs, playrate, source length and samplerate.", "Error: Combine mono items into stereo item", 0 )
   end
 
+  reaper.Undo_EndBlock("Implode mono items into stereo item",0)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
 end
-
-reaper.Undo_EndBlock("Combine mono items into stereo item",0)
