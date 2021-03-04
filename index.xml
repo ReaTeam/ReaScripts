@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7173b30fc434ca8bc8b2de36f395c3088d96de1d" name="ReaTeam Scripts">
+<index version="1" commit="5889e59948d5d0ecb35ecbbfaac8558d711384de" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5496,6 +5496,21 @@ here
       <version name="1.1" author="Rodilab" time="2021-03-04T10:52:40Z">
         <changelog><![CDATA[Updates : Restore item selection after rend, and prevent UI Refresh]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/976ac599af4142c5dd75049df0beffda590afca0/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Smart copy, and move cursor to start of items (if copying items).lua" type="script" desc="Smart copy, and move cursor to start of items (if copying items)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Copy items/tracks/envelope points (depending on focus) within time selection, if any (smart copy) If copying items, then set edit cursor to earliest selected item start position Pro Tools like\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-04T12:05:07Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5889e59948d5d0ecb35ecbbfaac8558d711384de/Items%20Editing/rodilab_Smart%20copy,%20and%20move%20cursor%20to%20start%20of%20items%20(if%20copying%20items).lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Trim oversized edges.lua" type="script" desc="Trim oversized edges">
