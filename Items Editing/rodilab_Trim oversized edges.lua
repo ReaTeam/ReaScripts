@@ -1,26 +1,27 @@
 -- @description Trim oversized edges
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
+-- @changelog Update : Prevent UI Refresh
 -- @about
 --   Trim item edges that exceed the length of the source media file.
 --
 --   by Rodrigo Diaz (aka Rodilab)
 
--- Save items in a list
 local count = reaper.CountSelectedMediaItems(0)
 
 if count > 0 then
   reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
 
+  -- Save items in a list
   local item_list = {}
   for i=0, count-1 do
-    item_list[i] = reaper.GetSelectedMediaItem(0,i)
+    item_list[i+1] = reaper.GetSelectedMediaItem(0,i)
   end
 
   local init_cursor = reaper.GetCursorPosition()
 
-  for i=0, count-1 do
-    local item = item_list[i]
+  for i, item in ipairs(item_list) do
     local take =  reaper.GetActiveTake(item)
     local source = reaper.GetMediaItemTake_Source(take)
     local position = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
@@ -53,14 +54,15 @@ if count > 0 then
   end
 
   -- Restore EditCursor position
-  cursor = reaper.GetCursorPosition()
-  reaper.MoveEditCursor(init_cursor-cursor,false)
+  reaper.SetEditCurPos(init_cursor,false,false)
 
   -- Restore selection
   reaper.SelectAllMediaItems(0,false)
-  for i=0, count-1 do
-    reaper.SetMediaItemSelected(item_list[i],true)
+  for i, item in ipairs(item_list) do
+    reaper.SetMediaItemSelected(item,true)
   end
 
   reaper.Undo_EndBlock("Trim oversized edges",0)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
 end
