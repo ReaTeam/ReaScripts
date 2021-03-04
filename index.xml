@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2647a4969fc34390b1ef754df1ec0222aa98a4cf" name="ReaTeam Scripts">
+<index version="1" commit="af66dcf51cd02642c17caa2ba21601d3ec356b6b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5478,6 +5478,10 @@ here
       <version name="1.0" author="Rodilab" time="2021-02-14T22:04:21Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/59216bcb5d28839af07e76afd0839427977f9fd3/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
       </version>
+      <version name="1.1" author="Rodilab" time="2021-03-04T10:52:40Z">
+        <changelog><![CDATA[Updates : Restore item selection after rend, and prevent UI Refresh]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/976ac599af4142c5dd75049df0beffda590afca0/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
+      </version>
     </reapack>
     <reapack name="rodilab_Trim oversized edges.lua" type="script" desc="Trim oversized edges">
       <metadata>
@@ -5492,6 +5496,10 @@ here
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-02-24T16:17:57Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/81fd6b92ef7dfc20c9b3ac37c5286225834f70aa/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-03-04T10:53:06Z">
+        <changelog><![CDATA[Update : Prevent UI Refresh]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4e8cba955b9eae43cdd2e3295ec4facd134d1b4/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
       </version>
     </reapack>
     <reapack name="solger_Smart split MIDI item.lua" type="script" desc="Smart split MIDI item">
@@ -11854,7 +11862,8 @@ Don't report an error if no render presets were created yet]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Rend selected items in new takes to apply take FX. Rendering applies to the entire source file, in order to enlarge items length later. Works only with audio sources (no MIDI). By Rodrigo Diaz (aka Rodilab)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Rend selected items in new takes to apply take FX. Rendering applies to the entire source file, in order to enlarge items length later. Works only with audio sources (no MIDI).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
       </metadata>
@@ -11864,6 +11873,10 @@ Don't report an error if no render presets were created yet]]></changelog>
       <version name="1.1" author="Rodilab" time="2021-02-24T16:19:27Z">
         <changelog><![CDATA[Works only with audio sources.  Forbidden midi sources.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf51d714a03dc5315fd375b9b193c08721e574f1/Rendering/rodilab_Render%20whole%20items%20in%20new%20take.lua</source>
+      </version>
+      <version name="1.2" author="Rodilab" time="2021-03-04T10:53:36Z">
+        <changelog><![CDATA[Update : Restore item selection, and Prevent UI Refresh]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c01470f1000cf0992524d30113cd0b0d086a7502/Rendering/rodilab_Render%20whole%20items%20in%20new%20take.lua</source>
       </version>
     </reapack>
   </category>
@@ -12418,6 +12431,10 @@ is off-screen. Reaper issue, should be fixed soon.]]></changelog>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-02-24T16:19:07Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e51ad05d2f20bac43b88e2858f8978b23faffbe7/Time%20Selection/rodilab_Play%20next%20item%20once.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-03-04T10:54:51Z">
+        <changelog><![CDATA[Update : Prevent UI Refresh]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/af66dcf51cd02642c17caa2ba21601d3ec356b6b/Time%20Selection/rodilab_Play%20next%20item%20once.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Set time selection to fade under mouse cursor.lua" type="script" desc="Set time selection to fade under mouse cursor">
