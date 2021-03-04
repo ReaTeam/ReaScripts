@@ -1,6 +1,7 @@
 -- @description Set time selection to fade under mouse cursor
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
+-- @changelog Update: Prevent UI Refresh
 -- @about
 --   Set edit cursor and time selection to fade or crossfade under mouse cursor.
 --   If no fade or crossfade under cursor, does not change selection or edit cursor position.
@@ -11,6 +12,7 @@ local item, cursor_position = reaper.BR_ItemAtMouseCursor()
 
 if item ~= nil then
   reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
 
   local item_start = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
   local item_end = item_start + reaper.GetMediaItemInfo_Value(item,"D_LENGTH")
@@ -48,4 +50,6 @@ if item ~= nil then
   end
 
   reaper.Undo_EndBlock("Set time selection to fade under mouse cursor",0)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
 end
