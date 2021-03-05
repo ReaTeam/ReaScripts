@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5889e59948d5d0ecb35ecbbfaac8558d711384de" name="ReaTeam Scripts">
+<index version="1" commit="ca573d22010495ec73d50aa9bfb9eb7b56fe6eed" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4196,6 +4196,11 @@ Better error-checking in general]]></changelog>
       <version name="1.82" author="amagalma" time="2021-03-02T12:41:27Z">
         <changelog><![CDATA[- Fix crash with empty items introduced in v1.80 #2]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/73ecb9a9c214cf8345d744e134694bacd237a098/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.84" author="amagalma" time="2021-03-05T11:08:35Z">
+        <changelog><![CDATA[- Fix crash after pressing both left and right mouse buttons at the same time
+- Maintain relative guide line position when dragging items with snap enabled]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca573d22010495ec73d50aa9bfb9eb7b56fe6eed/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
