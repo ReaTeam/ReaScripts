@@ -1,7 +1,9 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.82
--- @changelog - Fix crash with empty items introduced in v1.80 #2
+-- @version 1.84
+-- @changelog
+--    - Fix crash after pressing both left and right mouse buttons at the same time
+--    - Maintain relative guide line position when dragging items with snap enabled
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -346,7 +348,15 @@ local function main()
         if moving_take and not start_take_offs then
           start_take_offs = reaper.GetMediaItemTakeInfo_Value( moving_take, "D_STARTOFFS" )
         end
-        if not start_x then start_x = reaper.JS_Window_ScreenToClient(trackview, x, y) end
+        if not start_x then 
+          if snap then
+            local mouse_pos = reaper.BR_PositionAtMouseCursor( false )
+            local diff = floor((reaper.SnapToGrid( 0, mouse_pos ) - mouse_pos)*zoom + 0.5)
+            start_x = reaper.JS_Window_ScreenToClient(trackview, x, y) + diff
+          else
+            start_x = reaper.JS_Window_ScreenToClient(trackview, x, y)
+          end
+        end
       else
         if start_item_pos then start_item_pos,start_x = false,false end
         if start_take_offs then start_take_offs,start_x = false,false end
@@ -367,7 +377,7 @@ local function main()
           end
           
           local edit, _, flag = reaper.GetItemEditingTime2()
-          if edit ~= -666 then
+          if edit ~= -666 and start_item_pos then
             if flag == 4 then
               local new_pos = start_x + floor((reaper.GetMediaItemInfo_Value( moving_item, "D_POSITION") -
                      start_item_pos) * zoom + 0.5)
