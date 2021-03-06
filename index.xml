@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5c49e0dec7205826fbc6ce82bb9aa14e67d23c6f" name="ReaTeam Scripts">
+<index version="1" commit="2a533d498af5dbb87bec21467b9c30627a46d7e7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -17940,6 +17940,21 @@ uc_note_min_seconds = 1\par}
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
       <version name="1.0" author="PL9" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/PL9_Source%20Time%20Position%20Tool.eel</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 If time selection is set and last focus on items, then cut selected area of items. Else, remove items/tracks/envelope points (depending on focus)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-06T02:09:10Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2a533d498af5dbb87bec21467b9c30627a46d7e7/Various/rodilab_Smart%20remove.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart select all (depending on focus, tracks selected and time selection).lua" type="script" desc="Smart select all (depending on focus, tracks selected and time selection)">
