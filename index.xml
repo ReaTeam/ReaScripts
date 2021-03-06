@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ca573d22010495ec73d50aa9bfb9eb7b56fe6eed" name="ReaTeam Scripts">
+<index version="1" commit="5c49e0dec7205826fbc6ce82bb9aa14e67d23c6f" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5465,6 +5465,21 @@ here
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/facf61b7745a660e14b973b07ecf2974a094e772/Items%20Editing/pandabot_Select%20every%20N%20tracks%20within%20selection.eel</source>
       </version>
     </reapack>
+    <reapack name="rodilab_Duplicate items or tracks (depending on focus and time selection).lua" type="script" desc="Duplicate items or tracks (depending on focus and time selection)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Duplicate items or tracks (depending on focus) If time selection is set and focus on items, then duplicate selected area of items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-06T02:06:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d76beaac4045332856658f17c91d7b58781023f9/Items%20Editing/rodilab_Duplicate%20items%20or%20tracks%20(depending%20on%20focus%20and%20time%20selection).lua</source>
+      </version>
+    </reapack>
     <reapack name="rodilab_Explode multichannel items to mono items in new tracks (without render).lua" type="script" desc="Explode multichannel items to mono items in new tracks (without render)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5516,6 +5531,21 @@ here
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-03-04T12:05:07Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5889e59948d5d0ecb35ecbbfaac8558d711384de/Items%20Editing/rodilab_Smart%20copy,%20and%20move%20cursor%20to%20start%20of%20items%20(if%20copying%20items).lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Smart cut, and move cursor to start of items (if cuting items).lua" type="script" desc="Smart cut, and move cursor to start of items (if cuting items)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Cut items/tracks/envelope points (depending on focus) within time selection, if any (smart cut) If cuting items, then set edit cursor to earliest selected item start position Pro Tools like\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-06T02:07:25Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c49e0dec7205826fbc6ce82bb9aa14e67d23c6f/Items%20Editing/rodilab_Smart%20cut,%20and%20move%20cursor%20to%20start%20of%20items%20(if%20cuting%20items).lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Trim oversized edges.lua" type="script" desc="Trim oversized edges">
@@ -17910,6 +17940,24 @@ uc_note_min_seconds = 1\par}
     <reapack name="PL9_Source Time Position Tool.eel" type="script" desc="Source Time Position Tool">
       <version name="1.0" author="PL9" time="2015-12-03T07:38:56Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4d7fad8010bdd39125dae5435a7126b2fa46058/Various/PL9_Source%20Time%20Position%20Tool.eel</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Smart select all (depending on focus, tracks selected and time selection).lua" type="script" desc="Smart select all (depending on focus, tracks selected and time selection)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Select all (tracks, items or points) depending on focus, tracks selected and time selection.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If focus on tracks, then select all tracks\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If focus on items, then select all items in selected tracks in time selection (in all tracks if no track selected / in all project if time selection isn't set)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If focus on envelopes, then select all points in time selection (in all project if time selection isn't set)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-06T02:07:06Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/d6adaa5ef60369701c7f3d399b228645ed9577a7/Various/rodilab_Smart%20select%20all%20(depending%20on%20focus,%20tracks%20selected%20and%20time%20selection).lua</source>
       </version>
     </reapack>
     <reapack name="sexan_Project time counter.lua" type="script" desc="Project Time Counter with AFK mode">
