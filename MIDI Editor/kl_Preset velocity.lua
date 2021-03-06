@@ -1,10 +1,11 @@
 -- @description Preset velocity
 -- @author KL
--- @version 0.1
+-- @version 0.2
+-- @changelog Replaced excessive defering with tail calls. Script is now faster
 -- @provides
 --   [main=main] .
---   [effect] kl_Preset velocity/Velocity Slider.jsfx
 --   [effect] kl_Preset velocity/Note Preview.jsfx
+--   [effect] kl_Preset velocity/Velocity Slider.jsfx
 -- @screenshot
 --   https://s2.gifyu.com/images/presetvelocity.gif
 --   https://s2.gifyu.com/images/w3035c3b355a825f3.gif
@@ -15,10 +16,8 @@
 --   - a simple note preview system 
 --   - A GUI with a couple of settings
 
- 
-
 -------------------------------------------------------
--- SETS THE VELOCITY OF NOTES THAT YOU DRAW TO A PRESET VALUE IN A JSFX 
+-- SETS THE VELOCITY OF INSERTED NOTES TO A PRESET VALUE IN A JSFX 
 -- THIS SCRIPT MANAGES THE LOADING AND MOVING AROUND OF THE NOTE PREVIEW JSFX
 -- THIS SCRIPT SHOULD BE LOADED INTO THE MAIN SECTION
 -- THE VELOCITY SLIDER IS NOT REMOVED WHEN SCRIPT IS CANCELLED.
@@ -27,14 +26,14 @@
 -- ACTIVE MIDI ITEM FOLLOw SELECTON CHANGES IN ARRANGE VIEW [X] 
 -- SELECTION IS LINKED TO EDITABILITY [X]
 -------------------------------------------------------------------- 
+
 -----------USER SETTINGS-----------------------
 apply_to = {"MIDI editor: Insert note","MIDI editor: Insert notes"} -- look in the UNDO history
 dont_apply_to = {"MIDI editor: Paste events"} 
 change_preset_when_adjusting_velocity = true
 change_preset_when_selecting_note = true
-set_velocity_to_slider_value_when_deleting_notes = true
-set_to_slider_preset_when_switching_take = true 
 ----------------------------------------------------
+
 local name = "ddddddddddddddddddsgd334f3e_____________________gh" 
 reaper.gmem_attach(name)  
 fxname = "Note Preview" 
@@ -47,7 +46,7 @@ if not lib_path or lib_path == "" then
     reaper.MB("Couldn't load the Lokasenna_GUI library. Please install 'Lokasenna's GUI library v2 for Lua', available on ReaPack, then run the 'Set Lokasenna_GUI v2 library path.lua' script in your Action List.", "Whoops!", 0)
     return
 end 
- 
+
 loadfile(lib_path .. "Core.lua")()
 GUI.req("Classes/Class - Options.lua")()
 GUI.req("Classes/Class - Slider.lua")()
@@ -58,7 +57,7 @@ GUI.name = "Preset Velocity"
 GUI.x, GUI.y, GUI.w, GUI.h = 0, 0, 145,160
 GUI.anchor, GUI.corner = "screen",   "TR" 
 GUI.escape_bypass = true 
- 
+
 GUI.New("Settings", "Checklist", {
     z = 11,
     x = 14.0,
@@ -155,61 +154,62 @@ end
 end 
 
 function detect() -- Look for velocity slider or create one at lastclicked or 1st track
-   local track
-   for i=0, reaper.CountTracks(0)-1 do 
-       track = reaper.GetTrack(0,i) 
-       if track==nil then msg("track = nil") end 
-       for j=0,reaper.TrackFX_GetCount( track)-1 do
-           retval, buf = reaper.TrackFX_GetFXName( track,j,"") 
-           if buf:find(fxname2) then 
-               reaper.TrackFX_Show( track, j, 3)
-               return track
-           end
-        end
-   end 
-   -- ADD the velocity slider 
-   local track = reaper.GetLastTouchedTrack()
-   if track == nil then
-       track = reaper.GetTrack(0,0)
-   end
-   local number = reaper.TrackFX_AddByName( track, fxname2,0,-1)    
-   if number==-1 then 
-       reaper.MB("Unable to find an fx with name : "..fxname)
-       return  
-   else 
-       reaper.TrackFX_Show( track, number, 3)
-       return track
-   end
+  local track
+  for i=0, reaper.CountTracks(0)-1 do 
+     track = reaper.GetTrack(0,i) 
+     if track==nil then end 
+     for j=0,reaper.TrackFX_GetCount( track)-1 do
+         retval, buf = reaper.TrackFX_GetFXName( track,j,"") 
+         if buf:find(fxname2) then 
+            reaper.TrackFX_Show( track, j, 3)
+            return track
+         end
+     end
+  end 
+  -- ADD the velocity slider 
+  local track = reaper.GetLastTouchedTrack()
+  if track == nil then
+    track = reaper.GetTrack(0,0)
+  end
+
+  local number = reaper.TrackFX_AddByName( track, fxname2,0,-1)    
+  if number==-1 then 
+    return  
+  else 
+    reaper.TrackFX_Show( track, number, 3)
+    return track
+  end
 end 
 
 function updatetable() 
-    gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "") 
-    MIDIlen = MIDIstring:len()  
-    tableEvents = {}  
-    local _tablePos={} 
-    local _tableNoteon ={} 
-    stringPos = 1  
-    pos=0
-    local a=1 
-    selected_notes = 0
-    while stringPos < MIDIlen do 
-       offset, flags, ms, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos) 
-       pos=pos+offset 
-       if ms:len() == 3 and ms:byte(1)>>4 == 9 then 
-          _tableNoteon[a]=ms 
-          _tablePos[a]=pos 
-          a=a+1 
-          if flags&1==1 then
-             selected_notes = selected_notes + 1 
-             last_velocity = ms:byte(3)
-          end
-        end 
-    end 
-    tablePos=_tablePos 
-    tableNoteon=_tableNoteon 
+   gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "") 
+   MIDIlen = MIDIstring:len()  
+   tableEvents = {}  
+   local _tablePos={} 
+   local _tableNoteon ={} 
+   stringPos = 1  
+   pos=0
+   local a=1 
+   selected_notes = 0
+   while stringPos < MIDIlen do 
+      offset, flags, ms, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos) 
+      pos=pos+offset 
+      if ms:len() == 3 and ms:byte(1)>>4 == 9 then 
+        _tableNoteon[a]=ms 
+        _tablePos[a]=pos 
+        a=a+1 
+        if flags&1==1 then
+          selected_notes = selected_notes + 1 
+          last_velocity = ms:byte(3)
+        end
+      end 
+     
+   end 
+   tablePos=_tablePos 
+   tableNoteon=_tableNoteon 
 end 
 
-function SetVelocityUnselected(tV)   
+function SetVelocityUnselected(tV) 
    local gotAllOK
    local MIDIstring 
    gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "") 
@@ -217,6 +217,7 @@ function SetVelocityUnselected(tV)
    tableEvents = {}  
    local _tablePos={} 
    local _tableNoteon ={} 
+  -- tNoteons={}
    stringPos = 1  
    pos=0 
    local countVC = 0
@@ -234,13 +235,13 @@ function SetVelocityUnselected(tV)
                    if countVC <= notes_added then --blocks a potential chain reaction of unexplainable velocity changes
                       ms = ms:sub(1,2)..string.char(tV) -- change velocity  
                       countVC = countVC + 1
-                   end    
+                   else end    
                end 
-            else     
+            else 
                if countVC <= notes_added then 
                   ms = ms:sub(1,2)..string.char(tV) 
                   countVC = countVC + 1
-               end 
+               else  end 
             end
           end
           _tableNoteon[a]=ms 
@@ -253,10 +254,6 @@ function SetVelocityUnselected(tV)
    tableNoteon=_tableNoteon 
    reaper.MIDI_SetAllEvts(take, table.concat(tableEvents)) 
 end 
- 
-function requestslidervalue() 
-   reaper.gmem_write(0,reaper.gmem_read(1))
-end
 
 _debounce = false -- prevent multiple calls
 function update() 
@@ -272,10 +269,9 @@ function update()
     updatetable() 
     _, cnt = reaper.MIDI_CountEvts(take)
     _, newhash  = reaper.MIDI_GetHash( take, true, "" )  
-    return reaper.defer( function()
-                           _debounce=false
-                          return main()
-    end) 
+    _debounce=false
+    return main()
+  else 
   end
 end 
 
@@ -286,6 +282,7 @@ function main()
     _item=item
     take = reaper.MIDIEditor_GetTake(reaper.MIDIEditor_GetActive() ) 
     --ret = reaper.ValidatePtr(take,"MediaItem_Take*") 
+
     retval_ = pcall(function()  --prevent crash when gluing midiitems
       item=reaper.GetMediaItemTake_Item(take)
     end) 
@@ -294,20 +291,18 @@ function main()
     end 
     if take ~= nil then 
       if take~=_take or item~=_item then 
-        if set_to_slider_preset_when_switching_take then 
-           requestslidervalue() 
-        end
-        return reaper.defer(update)
+        return update()
       end
        ----------------- Hash section -------------------------     
        oldhash=newhash
-       _, newhash  = reaper.MIDI_GetHash( take, true, "" ) -- notesonly 
-       if newhash~=oldhash then    
-           return reaper.defer(track_mouse)  
+       _, newhash  = reaper.MIDI_GetHash( take, true, "" ) -- notesonly    
+       if newhash~=oldhash then  
+           return track_mouse()
        end 
     end 
+    
     return reaper.defer(main) 
-   end
+  else end
 end
 
 function track_mouse() -- give the user time to drag and extend note
@@ -317,74 +312,57 @@ function track_mouse() -- give the user time to drag and extend note
        return reaper.defer(track_mouse)    
    end 
    if get_left_mousebutton_state==0 then
-      return reaper.defer(checkMIDI)
+      return checkMIDI()
    end
 end 
-
 
 function checkMIDI() 
     _cnt = cnt
     _, cnt = reaper.MIDI_CountEvts(take) 
     notes_added = cnt - _cnt 
     undo = reaper.Undo_CanUndo2(0) 
-    if cnt>_cnt then -- this protects against ctrl-z undo action 
-       for h=1 , #apply_to do    
-          if undo==apply_to[h] then 
-            reaper.defer(function() 
-               SetVelocityUnselected(reaper.gmem_read(0)) --test 
-               return reaper.defer(update) 
-            end) 
-          end 
-       end 
+    if cnt>_cnt then -- DOnt use ctrl-z to delete notes
+      for h=1 , #apply_to do 
+         if undo==apply_to[h] then 
+            SetVelocityUnselected(reaper.gmem_read(0)) 
+            return update()
+         end 
+      end 
        for h=1,#dont_apply_to do 
          if undo==dont_apply_to[h] then 
-            return reaper.defer(update) 
+           return update()
          end 
-       end  
-       return reaper.defer(update)
-       --[[  
-       if undo=="MIDI editor: Paste events" then 
-          return reaper.defer(update)       
-       end 
-       if undo=="MIDI editor: Insert note" 
-       or undo=="MIDI editor: Insert notes" then 
-          return reaper.defer(function() 
-                         SetVelocityUnselected(reaper.gmem_read(0)) --test 
-                         return reaper.defer(update) 
-                    end) 
-       end  ]]
+       end
     end 
     if _cnt==cnt then 
        updatetable()
-       if undo=="MIDI editor: Move events" then 
-           return reaper.defer(update)
+       if undo=="MIDI editor: Move events" then   
+          return update()
        end 
        if selected_notes==1 then 
            if undo=="MIDI editor: Select events" then 
                if change_preset_when_selecting_note  then 
                   if last_velocity then
-                      reaper.gmem_write(0,last_velocity) 
+                     reaper.gmem_write(1,reaper.gmem_read(0))
+                     reaper.gmem_write(0,last_velocity) 
                   end 
-               else  
+               else 
+               return update()
            end 
-           return reaper.defer(update) 
         end 
-        if change_preset_when_adjusting_velocity then -- this change is independent of undo history!
+        if change_preset_when_adjusting_velocity then -- the GUI slider will move with any velocity adjustments of note
            reaper.gmem_write(0,last_velocity) 
         end
       end
     end 
     if cnt<_cnt then 
        if undo == "MIDI editor: Cut events" then 
-           -- do nothing
+          return update()
        end 
-       if set_velocity_to_slider_value_when_deleting_notes then 
-          if undo == "MIDI editor: Delete events" then 
-             requestslidervalue() 
-          end 
+       if undo == "MIDI editor: Delete events" then 
        end 
     end
-    return reaper.defer(update) 
+    return update()
 end 
 
 reaper.atexit( function() 
@@ -403,9 +381,11 @@ reaper.atexit( function()
 end) 
 
 local s={}
+
 local _val_ = reaper.GetExtState("Preset Velocity","change_preset_when_selecting_note") 
 if _val_=="1" then s[1] = true end 
 if _val_=="0" then s[1] = false end 
+
 local _val_ = reaper.GetExtState("Preset Velocity","change_preset_when_adjusting_velocity") 
 if _val_=="1" then s[2] = true end 
 if _val_=="0" then s[2] = false end
@@ -414,6 +394,7 @@ GUI.Val("Settings",s)
 GUI.freq = 0.2 
 GUI.Init()
 GUI.Main() 
+
 tableNoteon = {} 
 tablePos = {}
 detect()

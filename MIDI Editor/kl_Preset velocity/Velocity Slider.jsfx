@@ -1,8 +1,6 @@
 noindex: true
 
-version: 0.1
-author: KL
-# Preset Velocity
+
 desc: Velocity Slider
 slider1:vel=1< 1,127,1> Preset velocity 
  
