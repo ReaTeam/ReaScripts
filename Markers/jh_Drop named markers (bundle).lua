@@ -1,0 +1,26 @@
+-- @description jh_Drop named marker
+-- @author John Harkins
+-- @version 1.0
+-- @provides
+--   [main] jh_Drop named markers (bundle)/jh_Drop BRIDGE marker at play cursor.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop CHORUS marker at play cursor.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop END marker at play cursor.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop INTRO marker at play cursor.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop named marker function.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop OUTRO marker at play cursor.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop PRE-CH marker at play cursor.lua
+--   [main] jh_Drop named markers (bundle)/jh_Drop VERSE marker at play cursor.lua
+-- @about
+--   Quite simply drops a marker with a predefined name.
+--
+--   Customize the names by opening a script and updating the value that name= is set with.
+--
+--   For example make a copy of a script, update this code in the script file with the name you want to give your marker, rename the script so it makes sense to you, load it in to the actions list, give it a keystroke and then just just play your project and drop meaningful markers.
+--
+--   --
+--   -- CUSTOM MARKER NAME HERE
+--   --
+--   local name = "Bridge"
+--   --
+
+-- @noindex
