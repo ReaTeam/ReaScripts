@@ -13,8 +13,7 @@ options:gmem=ddddddddddddddddddsgd334f3e_____________________gh
 @block
 
 while (midirecv(offset,msg1,msg2,msg3)) (
-    (play_state==0)&&(msg1&$xF0==$x90)?(
+    (play_state==0)&&(msg1&$xF0==$x90)&&(msg3!==0)?(
       midisend(offset, msg1,msg2, gmem[0]); ):(midisend(offset, msg1,msg2,msg3);
  );
 );
-
