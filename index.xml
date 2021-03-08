@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e88c515a8c9fcc4d50a6d1238a0aa674d1f7ae98" name="ReaTeam Scripts">
+<index version="1" commit="21d9dc003423dd981ae902d9437301ce7efdfb0d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -6006,6 +6006,25 @@ selection.]]></changelog>
       <version name="1.0.0-1" author="Nantho" time="2017-05-12T18:10:06Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6bf762aa2b4cffb5418be6f03083975106da030b/Items%20Properties/Nantho_Item%20Auto-Gain%20Staging%20-%20Peak%20vs.%20RMS.lua</source>
         <source file="Nantho_PeakVsRMS/spk77_Get max peak val and pos from take_function.lua">https://github.com/ReaTeam/ReaScripts/raw/6bf762aa2b4cffb5418be6f03083975106da030b/Items%20Properties/spk77_Get%20max%20peak%20val%20and%20pos%20from%20take_function.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Rename takes and item notes with BWF and iXML metadata.lua" type="script" desc="Rename takes and item notes with BWF and iXML metadata">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 For WAVE selected items : Rename active take and set new notes with BWF and iXML metadatas. Set cutom name with #Wildcards. First text-box for Take Name, second text-box for Item Notes (if empty, then don't change) Look "User Config Area" on the top of script to :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customize default name, notes, separators, markers etc...\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add, remove or edit #Wildcards keys\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add, remove or edit BWF metadata fields for each #Wildcard\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable/Disable popup message box (if disable, set default)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-08T12:57:45Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21d9dc003423dd981ae902d9437301ce7efdfb0d/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
