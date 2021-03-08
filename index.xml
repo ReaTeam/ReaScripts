@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2a533d498af5dbb87bec21467b9c30627a46d7e7" name="ReaTeam Scripts">
+<index version="1" commit="e88c515a8c9fcc4d50a6d1238a0aa674d1f7ae98" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -9879,6 +9879,12 @@ the scripts be started and stopped in multiple ways, allowing a more customized 
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/672b8d2503a79412073085bdb48513713ee2441d/MIDI%20Editor/kl_Preset%20velocity.lua</source>
         <source type="effect" file="kl_Preset velocity/Velocity Slider.jsfx">https://github.com/ReaTeam/ReaScripts/raw/672b8d2503a79412073085bdb48513713ee2441d/MIDI%20Editor/kl_Preset%20velocity/Velocity%20Slider.jsfx</source>
         <source type="effect" file="kl_Preset velocity/Note Preview.jsfx">https://github.com/ReaTeam/ReaScripts/raw/672b8d2503a79412073085bdb48513713ee2441d/MIDI%20Editor/kl_Preset%20velocity/Note%20Preview.jsfx</source>
+      </version>
+      <version name="0.2" author="KL" time="2021-03-08T12:34:52Z">
+        <changelog><![CDATA[Replaced excessive defering with tail calls. Script is now faster]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e88c515a8c9fcc4d50a6d1238a0aa674d1f7ae98/MIDI%20Editor/kl_Preset%20velocity.lua</source>
+        <source type="effect" file="kl_Preset velocity/Velocity Slider.jsfx">https://github.com/ReaTeam/ReaScripts/raw/e88c515a8c9fcc4d50a6d1238a0aa674d1f7ae98/MIDI%20Editor/kl_Preset%20velocity/Velocity%20Slider.jsfx</source>
+        <source type="effect" file="kl_Preset velocity/Note Preview.jsfx">https://github.com/ReaTeam/ReaScripts/raw/e88c515a8c9fcc4d50a6d1238a0aa674d1f7ae98/MIDI%20Editor/kl_Preset%20velocity/Note%20Preview.jsfx</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_CC Ryder.lua" type="script" desc="CC Ryder">
