@@ -1,6 +1,7 @@
 -- @description Preset velocity
 -- @author KL
--- @version 0.1
+-- @version 0.2
+-- @changelog Replaced excessive defering with tail calls. Script is now faster
 -- @provides
 --   [main=main] .
 --   [effect] kl_Preset velocity/Velocity Slider.jsfx
