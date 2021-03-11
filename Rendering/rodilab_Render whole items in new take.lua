@@ -1,11 +1,13 @@
 -- @description Render whole items in new take
 -- @author Rodilab
--- @version 1.2
--- @changelog Update : Restore item selection, and Prevent UI Refresh
+-- @version 1.3
+-- @changelog Update : New script in this package to preserve the Take Name
+-- @provides [main] rodilab_Render whole items in new take/rodilab_Render whole items in new take (preserve take name).lua
 -- @about
 --   Rend selected items in new takes to apply take FX.
 --   Rendering applies to the entire source file, in order to enlarge items length later.
 --   Works only with audio sources (no MIDI).
+--   A second script is available in this package to preserve the take name.
 --
 --   by Rodrigo Diaz (aka Rodilab)
 
