@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a59614019360cf673acdbfc6e9597d9c2e08dea9" name="ReaTeam Scripts">
+<index version="1" commit="b633841bedd997ad87fb51ce45936bb59ddb660d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11667,6 +11667,22 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2021-03-03T07:24:51Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/85f87e3601c069697fcfa2c01c78b4060b81bc1b/Razor%20Edit/amagalma_Crossfade%20items%20in%20Razor%20Edit%20area.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Delete all envelope points inside Razor Edit areas.lua" type="script" desc="Delete all envelope points inside Razor Edit areas">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Differs from the native action because it does not add edge points.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=250759</link>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-03-14T14:46:15Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b633841bedd997ad87fb51ce45936bb59ddb660d/Razor%20Edit/amagalma_Delete%20all%20envelope%20points%20inside%20Razor%20Edit%20areas.lua</source>
       </version>
     </reapack>
   </category>
