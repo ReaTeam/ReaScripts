@@ -1,3 +1,5 @@
+-- @noindex
+
 --[[
 
 * ReaScript Name: BuyOne_Lock FX and FX chains.lua
