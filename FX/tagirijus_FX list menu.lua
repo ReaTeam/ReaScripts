@@ -1,4 +1,4 @@
--- @description FX list as popup
+-- @description FX list menu
 -- @author Tagirijus
 -- @version 1.1
 -- @changelog Changed the name of the author and the script to be more coherent with my other scripts.
