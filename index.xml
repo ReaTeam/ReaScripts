@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b633841bedd997ad87fb51ce45936bb59ddb660d" name="ReaTeam Scripts">
+<index version="1" commit="9dde24a025694c9508c112377d6b47a975e81bc9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -393,6 +393,20 @@
       <version name="2.0" author="amagalma" time="2019-04-08T01:09:10Z">
         <changelog><![CDATA[# Uses new CF_GetCommandText function. No need to write action list into txt file any more.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b415a837980dd40f8dcd5d9f6a5eb64f04b1f038/Development/amagalma_Find%20action%20or%20script%20name%20by%20its%20Command%20ID.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Theme variable descriptions.lua" type="script" desc="Theme variable descriptions">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Parsed from reascripthelp.html\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="amagalma, X-Raym" time="2021-03-17T14:32:37Z">
+        <source>https://github.com/ReaTeam/ReaScripts/raw/9dde24a025694c9508c112377d6b47a975e81bc9/Development/amagalma_Theme%20variable%20descriptions.lua</source>
       </version>
     </reapack>
     <reapack name="cfillion_GFX Input Inspector.lua" type="script" desc="GFX Input Inspector">
@@ -1974,6 +1988,11 @@ Refactored/reorganized the code for readability]]></changelog>
       </metadata>
       <version name="1.0" author="Will Develop" time="2020-06-11T05:31:32Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f220b677140ae0d11165faf0c190136ca05b5e51/Development/willdevelop_Read%20tags%20(for%20plugin%20tag%20system).lua</source>
+      </version>
+    </reapack>
+    <reapack name="X-Raym_Color_functions.lua" type="script" desc="Color functions">
+      <version name="1.0" author="X-Raym" time="2021-03-17T14:32:37Z">
+        <source>https://github.com/ReaTeam/ReaScripts/raw/9dde24a025694c9508c112377d6b47a975e81bc9/Development/X-Raym_Color_functions.lua</source>
       </version>
     </reapack>
   </category>
