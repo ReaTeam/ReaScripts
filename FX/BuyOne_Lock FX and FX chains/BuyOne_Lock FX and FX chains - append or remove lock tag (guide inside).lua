@@ -27,25 +27,25 @@ The script will work provided the lock tag precedes the FX name and is followed 
 space, e.g. "TAG VST: My plugin".
 
 The TAG setting in the USER SETTINGS is optional since this script takes its value from
-the main script BuyOne_Lock FX and FX chains.lua. Only if for any reason it fails to
-fetch one does it look for the tag in this setting. If it throws an error telling that
-the tag hasn't been defined look first of all in the main script.
+the main script BuyOne_Lock FX and FX chains (guide inside).lua. Only if for any reason 
+it fails to fetch one does it look for the tag in this setting. If it throws an error 
+telling that the tag hasn't been defined look first of all in the main script.
 
 If FOCUSED option is enabled in the USER SETTINGS section below then if FX chain is open
 the lock tag set in the USER SETTINGS will only be appended to or removed from the name
 of any currently focused plugin in the open FX chain regardless of object selection. If
-FX chain is closed the script will work globally affecting all FX in the selected objects.
+FX chain is closed the script will work globally affecting all FX in selected objects.
 
-If FOCUSED option is disabled the script will work globally for the selected objects
+If FOCUSED option is disabled the script will work globally for selected objects
 regardless of the focused FX in the open FX chain.
 
-With option INCLUDE_INPUT_MON_FX enabled in the USER SETTINGS section below then the
-script will also globally affect track input FX as well as Monitor FX if Master track is
+With option INCLUDE_INPUT_MON_FX enabled in the USER SETTINGS section below the script 
+will also globally affect track input FX as well as Monitor FX if Master track is
 selected.
 
 The script only works in one direction, if the name of the focused FX or at least one FX
-in selected objects contains the tag, the script removes it, if the focused FX or no FX
-in the selected objects contains the tag the script appends it.
+in selected objects contains the tag, the script removes it, if the focused FX does not 
+or no FX in the selected objects does contain the tag the script appends it.
 
 If some plugins store lots of data (usually heavy commercial plugins) it may take a bit
 longer for the script to finish. In such cases while the script is running REAPER may become
