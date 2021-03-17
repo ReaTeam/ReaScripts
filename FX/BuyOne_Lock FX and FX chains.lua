@@ -1,4 +1,4 @@
--- @description Lock FX and FX chains + Append and remove lock tag
+-- @description Lock FX and FX chains + Append or remove lock tag
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.0
