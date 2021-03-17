@@ -34,7 +34,7 @@ button. Next time the script will be terminated without generating this dialogue
 The lock works in either global or in individual mode per FX chain.
 
 The global mode is the default one and is initialized as soon as the script is started. In this
-mode the all FX in the chain are locked and their order can't be changed, but they can be removed
+mode all FX in the chain are locked and their order can't be changed, but they can be removed
 and new FX can be added. Once a new FX is added it becomes locked. To place a new FX at the position
 of the existing one just drag and drop the new one from the FX browser over the list entry of the
 existing one within the chain but not over its UI.
