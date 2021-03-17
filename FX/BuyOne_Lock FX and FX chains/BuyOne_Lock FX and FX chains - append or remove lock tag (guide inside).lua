@@ -1,3 +1,5 @@
+-- @noindex
+
 --[[
 
 * ReaScript Name: BuyOne_Lock FX and FX chains - append or remove lock tag.lua
