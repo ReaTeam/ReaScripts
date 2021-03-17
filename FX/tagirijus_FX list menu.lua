@@ -1,7 +1,7 @@
 -- @description FX list as popup
--- @author Manuel Senfft
--- @version 1.0
--- @changelog First version!
+-- @author Tagirijus
+-- @version 1.1
+-- @changelog Changed the name of the author and the script to be more coherent with my other scripts.
 -- @about
 --   # Description
 --
