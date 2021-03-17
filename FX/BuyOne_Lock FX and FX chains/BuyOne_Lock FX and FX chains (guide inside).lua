@@ -31,7 +31,7 @@ keyboard shorcut or from a toolbar button. On closure in REAPER's 'ReaScript tas
 dialogue checkmark 'Remember my answer for this script' checkbox and press 'Terminate instances'
 button. Next time the script will be terminated without generating this dialogue.
 
-The lock works in either global and in individual mode per FX chain.
+The lock works in either global or in individual mode per FX chain.
 
 The global mode is the default one and is initialized as soon as the script is started. In this
 mode the all FX in the chain are locked and their order can't be changed, but they can be removed
