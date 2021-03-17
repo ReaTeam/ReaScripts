@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6631aa64497d70f8e72cb58b6776c9371e9c58c7" name="ReaTeam Scripts">
+<index version="1" commit="14b21c2689b33fb4e8b48d2c054b69cf68a5a168" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3573,7 +3573,7 @@ Better error-checking in general]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/247255a02eb50e565d8dade9685aa85a97f69f9c/FX/spk77_Link%20selected%20tracks%20FX%20parameters.lua</source>
       </version>
     </reapack>
-    <reapack name="tagirijus_FX list menu.lua" type="script" desc="FX list as popup">
+    <reapack name="tagirijus_FX list menu.lua" type="script" desc="FX list menu">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -3587,6 +3587,10 @@ Better error-checking in general]]></changelog>
       <version name="1.0" author="Manuel Senfft" time="2021-02-17T08:00:01Z">
         <changelog><![CDATA[First version!]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/feb725ee9e8ab3da700477c8338257fa209ff73c/FX/tagirijus_FX%20list%20menu.lua</source>
+      </version>
+      <version name="1.1" author="Tagirijus" time="2021-03-17T20:29:01Z">
+        <changelog><![CDATA[Changed the name of the author and the script to be more coherent with my other scripts.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/14b21c2689b33fb4e8b48d2c054b69cf68a5a168/FX/tagirijus_FX%20list%20menu.lua</source>
       </version>
     </reapack>
   </category>
