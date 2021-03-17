@@ -2,7 +2,7 @@
 
 --[[
 
-* ReaScript Name: BuyOne_Lock FX and FX chains.lua
+* ReaScript Name: BuyOne_Lock FX and FX chains (guide inside).lua
 * Description: Locks order of FX in the currently focused FX chain to prevent inadvertent reordering
 * Instructions: included
 * Author: Buy One
