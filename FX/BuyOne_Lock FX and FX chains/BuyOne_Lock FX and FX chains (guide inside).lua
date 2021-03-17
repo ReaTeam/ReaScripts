@@ -40,7 +40,7 @@ of the existing one just drag and drop the new one from the FX browser over the 
 existing one within the chain but not over its UI.
 
 The individual mode is initialized by appending a tag, defined in the USER SETTINGS, to the FX
-name displayed in the FX chain. It can be appended and removed while the script is runnng. In this
+name displayed in the FX chain. It can be appended and removed while the script is running. In this
 mode only the tagged FX can't be moved. When other FX are added and removed the tagged ones maintain
 their position unless the number of FX upstream of the tagged FX is reduced in which case their
 position is updated and they remain locked at their new position. When all FX in the chain are tagged,
@@ -55,7 +55,7 @@ To be able to monitor the script on/off status you may want to assign it to a to
 be lit while it's on.
 
 There's an auxiliary script
-BuyOne_Lock FX and FX chains - append or remove lock tag.lua
+BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
 which automates the task of appending and removing lock tags from FX names. If you append tags manually,
 in order to be then able to remove them with this auxiliary script place the lock tag before the FX name
 and separate them with space, e.g. "TAG VST: My plugin".
