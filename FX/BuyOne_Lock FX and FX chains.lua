@@ -9,4 +9,4 @@
 -- @about
 --  Locks individual tagged FX in the focused FX chain or the entire FX chain to prevent inadvertent change of FX order.
 --  Another script automates the task of appending and removing lock tags.
---  Istructions are provided inside the script files.
+--  Instructions are provided inside the script files.
