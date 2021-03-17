@@ -12,7 +12,7 @@
 * Demo:
 * Version: 1.0
 * REAPER: at least v5.962
-* Extensions:
+* Extensions: SWS/S&M (not obligatory but recommended)
 * Changelog:
 	+ v1.0 	Initial release
 
