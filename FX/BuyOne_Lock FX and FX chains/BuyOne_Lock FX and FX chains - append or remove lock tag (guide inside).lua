@@ -2,8 +2,8 @@
 
 --[[
 
-* ReaScript Name: BuyOne_Lock FX and FX chains - append or remove lock tag.lua
-* Description: meant to be used alongside BuyOne_Lock FX and FX chains.lua
+* ReaScript Name: BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
+* Description: meant to be used alongside BuyOne_Lock FX and FX chains (guide inside).lua
 * Instructions: included
 * Author: Buy One
 * Author URL: https://forum.cockos.com/member.php?u=134058
