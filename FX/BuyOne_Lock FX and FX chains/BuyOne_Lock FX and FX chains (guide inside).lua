@@ -60,6 +60,8 @@ which automates the task of appending and removing lock tags from FX names. If y
 in order to be then able to remove them with this auxiliary script place the lock tag before the FX name
 and separate them with space, e.g. "TAG VST: My plugin".
 
+Video processor plugin isn't supported by the script at the moment.
+
 ]]
 
 --------------------- USER SETTINGS --------------------
