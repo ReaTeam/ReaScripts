@@ -51,6 +51,8 @@ If some plugins store lots of data (usually heavy commercial plugins) it may tak
 longer for the script to finish. In such cases while the script is running REAPER may become
 unresponsive.
 
+Video processor plugin isn't supported by the script at the moment.
+
 ]]
 
 --------------------------- USER SETTINGS ---------------------------
@@ -171,7 +173,7 @@ function Edit_Chunk(TAG, obj_chunk, prev_GUID, fx_GUID, name, tagged)
 -- in FX chunks FX custom name is only enclosed within quotes if it contains spaces, but placing them within quotes arbitrarily doesn't cause problems
 -- without custom name TrackFX_GetFXName() function returns default name, the first one within quotes which features in the chunk for non-JS plugins and the one defined in the code for JS plugins, which doesn't feature in the chunk by default, but is fetched from reaper-jsfx.ini
 
-			if fx_chunk:match('<JS') or fx_chunk:match('<VIDEO_EFFECT') then
+			if fx_chunk:match('<JS') then
 			local targ_str = fx_chunk:match('\"\"') and '\"\"' or name -- without a custom name it only contains ""
 			local repl_str = targ_str == name and TAG..' '..name or '\"'..TAG..' '..name..'\"'
 			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
