@@ -167,8 +167,9 @@ end
 function Edit_Chunk(TAG, obj_chunk, prev_GUID, fx_GUID, name, tagged)
 
 	local tag = name:match(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ')
-		if not tag and not tagged then -- append
-		local fx_chunk = obj_chunk:match(prev_GUID..'.-BYPASS.-(<.-'..fx_GUID..')')
+	local fx_chunk = obj_chunk:match(prev_GUID..'.-BYPASS.-(<.-'..fx_GUID..')')
+	
+		if not tag and not tagged then -- append		
 
 -- in FX chunks FX custom name is only enclosed within quotes if it contains spaces, but placing them within quotes arbitrarily doesn't cause problems
 -- without custom name TrackFX_GetFXName() function returns default name, the first one within quotes which features in the chunk for non-JS plugins and the one defined in the code for JS plugins, which doesn't feature in the chunk by default, but is fetched from reaper-jsfx.ini
@@ -185,6 +186,7 @@ function Edit_Chunk(TAG, obj_chunk, prev_GUID, fx_GUID, name, tagged)
 			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
 			obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
 			end
+		
 		else -- remove
 		local fx_chunk = obj_chunk:match(prev_GUID..'.-BYPASS.-(<.-'..fx_GUID..')')
 		local upd_fx_chunk = fx_chunk:gsub(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ', '')
