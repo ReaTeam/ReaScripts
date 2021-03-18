@@ -179,13 +179,11 @@ function Edit_Chunk(TAG, obj_chunk, prev_GUID, fx_GUID, name, tagged)
 			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
 			obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
 			else
-				if not fx_chunk:match(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ') then
-				local name_esc = name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
-				local targ_str = fx_chunk:match('<.-\".-(0%s'..name_esc..')') or fx_chunk:match('<.-\".-(0%s\"'..name_esc..'\")') or '0 \"\"' -- when name is either without spaces and so without quotes, within quotes, or not set at all
-				local repl_str = '0 \"'..TAG..' '..name..'\"'
-				local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
-				obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
-				end
+			local name_esc = name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
+			local targ_str = fx_chunk:match('<.-\".-(0%s'..name_esc..')') or fx_chunk:match('<.-\".-(0%s\"'..name_esc..'\")') or '0 \"\"' -- when name is either without spaces and so without quotes, within quotes, or not set at all
+			local repl_str = '0 \"'..TAG..' '..name..'\"'
+			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
+			obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
 			end
 		else -- remove
 		local fx_chunk = obj_chunk:match(prev_GUID..'.-BYPASS.-(<.-'..fx_GUID..')')
