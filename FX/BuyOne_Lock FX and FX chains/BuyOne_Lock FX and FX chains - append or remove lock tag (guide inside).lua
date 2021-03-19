@@ -188,8 +188,9 @@ function Edit_Chunk(TAG, obj_chunk, prev_GUID, fx_GUID, name, tagged)
 			end
 		
 		else -- remove
-		local fx_chunk = obj_chunk:match(prev_GUID..'.-BYPASS.-(<.-'..fx_GUID..')')
-		local upd_fx_chunk = fx_chunk:gsub(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ', '')
+		local targ_str = fx_chunk:match(name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'))
+		local repl_str = targ_str:gsub(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ', '')
+		upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
 		obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
 		end
 	return obj_chunk, tagged_focused_fx
