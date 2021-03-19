@@ -141,7 +141,7 @@ local function Restore_Chunk(retval, obj, fx_num, ref_chunk)
 		end
 	end
 
-	local rest_chunk = cur_chunk:gsub(cur_fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), ref_fx_chunk)
+	local rest_chunk = cur_chunk:gsub(cur_fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), ref_fx_chunk:gsub('%%','%%%%')):gsub('%%%%','%%') -- escape in replacment string with subsequent reversal is mainly for Video editor chunks
 	local val = SetObjChunk(retval, obj, rest_chunk)
 
 	return last_sel_fx -- if reordering involves last sel fx then its UI is reopened otherwise the UI of fx which is involved in reordering will reopen (either of the one being dragged or the one sought to be replaced, hard to perdict which exactly); for mon fx last selected fx is only updated in reaper-hwoutfx.ini after mon. fx chain is closed or closed and reopened, wasn't successful in reliably store and extract that value, opted for another mechanism employed in the Restore_FX_Chain() function which at least produces consistent results
