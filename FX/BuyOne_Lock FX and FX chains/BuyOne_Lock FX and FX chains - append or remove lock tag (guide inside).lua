@@ -51,8 +51,6 @@ If some plugins store lots of data (usually heavy commercial plugins) it may tak
 longer for the script to finish. In such cases while the script is running REAPER may become
 unresponsive.
 
-The script doesn't support the Video processor plugin at the moment.
-
 ]]
 
 --------------------------- USER SETTINGS ---------------------------
