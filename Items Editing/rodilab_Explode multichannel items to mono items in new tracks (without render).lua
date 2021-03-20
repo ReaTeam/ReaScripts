@@ -1,6 +1,6 @@
 -- @description Explode multichannel items to mono items in new tracks (without render)
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
 -- @about
 --   Explode multichannel selected items to mono items in new tracks (without render new source files).
 --   This script changes the channel mode of the takes, and preserve media source file.
@@ -60,88 +60,99 @@ if count > 0 then
     "D_PLAY_OFFSET"}
 
   for i, item in ipairs(item_list) do
-
-    -- Get some track/item/take/source infos
-    local track = reaper.GetMediaItem_Track(item)
-    local track_id =  reaper.GetMediaTrackInfo_Value(track,"IP_TRACKNUMBER")
     local take = reaper.GetActiveTake(item)
-    local take_name = reaper.GetTakeName(take)
-    local take_chanmode = reaper.GetMediaItemTakeInfo_Value(take,"I_CHANMODE")
-    local source = reaper.GetMediaItemTake_Source(take)
-    local source_chan = reaper.GetMediaSourceNumChannels(source)
+    if take then
+      local source = reaper.GetMediaItemTake_Source(take)
+      if reaper.GetMediaSourceSampleRate(source) > 0 then
+        -- Get some track/item/take/source infos
+        local track = reaper.GetMediaItem_Track(item)
+        local track_id =  reaper.GetMediaTrackInfo_Value(track,"IP_TRACKNUMBER")
+        local take = reaper.GetActiveTake(item)
+        local take_name = reaper.GetTakeName(take)
+        local take_chanmode = reaper.GetMediaItemTakeInfo_Value(take,"I_CHANMODE")
+        local source_chan = reaper.GetMediaSourceNumChannels(source)
+        local position = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
+        local length = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")
+        local playrate = reaper.GetMediaItemInfo_Value(item,"D_PLAYRATE")
 
-    -- Find the real chan num of take
-    if source_chan > 1 and take_chanmode < 2 then
-      take_chan = source_chan
-    elseif source_chan > 1 and take_chanmode > 66 then
-      take_chan = 2
-    else
-      take_chan = 1
-    end
+        -- Find the real chan num of take
+        if source_chan > 1 and take_chanmode < 2 then
+          take_chan = source_chan
+        elseif source_chan > 1 and take_chanmode > 66 then
+          take_chan = 2
+        else
+          take_chan = 1
+        end
 
-    if take_chan > 1 then
+        if take_chan > 1 then
 
-      -- Create new tracks if necessary
-      if track == previous_track then
-        if track_max_chan < take_chan then
-          for j=0, take_chan - track_max_chan - 1 do
-            reaper.InsertTrackAtIndex(track_id+track_max_chan+j,true)
-            local _,track_name =  reaper.GetSetMediaTrackInfo_String(track,"P_NAME","",false)
-            local new_track = reaper.GetTrack(0,track_id+track_max_chan+j)
-            table.insert(new_tracks_list,new_track)
-            reaper.GetSetMediaTrackInfo_String(new_track,"P_NAME",track_name.." - "..(j+track_max_chan+1),true)
-            for p, parname in ipairs(track_parnames) do
-              reaper.SetMediaTrackInfo_Value(new_track,parname,reaper.GetMediaTrackInfo_Value(track,parname))
+          -- Create new tracks if necessary
+          if track == previous_track then
+            if track_max_chan < take_chan then
+              for j=0, take_chan - track_max_chan - 1 do
+                reaper.InsertTrackAtIndex(track_id+track_max_chan+j,true)
+                local _,track_name =  reaper.GetSetMediaTrackInfo_String(track,"P_NAME","",false)
+                local new_track = reaper.GetTrack(0,track_id+track_max_chan+j)
+                table.insert(new_tracks_list,new_track)
+                reaper.GetSetMediaTrackInfo_String(new_track,"P_NAME",track_name.." - "..(j+track_max_chan+1),true)
+                for p, parname in ipairs(track_parnames) do
+                  reaper.SetMediaTrackInfo_Value(new_track,parname,reaper.GetMediaTrackInfo_Value(track,parname))
+                end
+              end
+              track_max_chan = take_chan
+            end
+          else
+            track_max_chan = take_chan
+            for j=0, take_chan - 1 do
+              reaper.InsertTrackAtIndex(track_id+j,true)
+              local _,track_name =  reaper.GetSetMediaTrackInfo_String(track,"P_NAME","",false)
+              new_track = reaper.GetTrack(0,track_id+j)
+              table.insert(new_tracks_list,new_track)
+              reaper.GetSetMediaTrackInfo_String(new_track,"P_NAME",track_name.." - "..(j+1),true)
+              for p, parname in ipairs(track_parnames) do
+                reaper.SetMediaTrackInfo_Value(new_track,parname,reaper.GetMediaTrackInfo_Value(track,parname))
+              end
             end
           end
-          track_max_chan = take_chan
-        end
-      else
-        track_max_chan = take_chan
-        for j=0, take_chan - 1 do
-          reaper.InsertTrackAtIndex(track_id+j,true)
-          local _,track_name =  reaper.GetSetMediaTrackInfo_String(track,"P_NAME","",false)
-          new_track = reaper.GetTrack(0,track_id+j)
-          table.insert(new_tracks_list,new_track)
-          reaper.GetSetMediaTrackInfo_String(new_track,"P_NAME",track_name.." - "..(j+1),true)
-          for p, parname in ipairs(track_parnames) do
-            reaper.SetMediaTrackInfo_Value(new_track,parname,reaper.GetMediaTrackInfo_Value(track,parname))
+          previous_track = track
+          track_id =  reaper.GetMediaTrackInfo_Value(track,"IP_TRACKNUMBER")
+
+          reaper.Main_OnCommand(40769,0)-- Unselect all
+          reaper.SetMediaItemSelected(item,true)-- Select item
+          reaper.Main_OnCommand(40698,0)-- Copy item
+          --reaper.Main_OnCommand(41173,0)-- Move cursor
+          reaper.SetEditCurPos(position,false,false)
+          reaper.SetOnlyTrackSelected(track)-- Select one track
+
+          for i=0, take_chan-1 do
+            reaper.Main_OnCommand(40285,0)-- Go to next track
+            reaper.SetEditCurPos(position,false,false)
+            reaper.Main_OnCommand(42398,0)-- Past item
+
+            -- Set take name
+            local new_item = reaper.GetSelectedMediaItem(0,0)
+            reaper.SetMediaItemInfo_Value(new_item,"D_POSITION",position)
+            reaper.SetMediaItemInfo_Value(new_item,"D_LENGTH",length)
+            reaper.SetMediaItemInfo_Value(new_item,"D_PLAYRATE",playrate)
+            table.insert(new_items_list,new_item)
+            local new_take = reaper.GetActiveTake(new_item)
+            reaper.GetSetMediaItemTakeInfo_String(new_take,"P_NAME",take_name.." - "..i+1,true)
+
+            -- Change new take chanmode to mono (depend of parent take chanmode)
+            if take_chanmode == 0 then
+              reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",i+3)
+            elseif take_chanmode == 1 then
+              if i == 0 then
+                reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",4)
+              elseif i == 1 then
+                reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",3)
+              else
+                reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",i+3)
+              end
+            elseif take_chanmode > 66 then
+              reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",(take_chanmode-67)+i+3)
+            end
           end
-        end
-      end
-      previous_track = track
-      track_id =  reaper.GetMediaTrackInfo_Value(track,"IP_TRACKNUMBER")
-
-      reaper.Main_OnCommand(40769,0)-- Unselect all
-      reaper.SetMediaItemSelected(item,true)-- Select item
-      reaper.Main_OnCommand(40698,0)-- Copy item
-      reaper.Main_OnCommand(41173,0)-- Move cursor
-      reaper.SetOnlyTrackSelected(track)-- Select one track
-
-      for i=0, take_chan-1 do
-        reaper.Main_OnCommand(40285,0)-- Go to next track
-        reaper.Main_OnCommand(42398,0)-- Past item
-        reaper.Main_OnCommand(41173,0)-- Move cursor
-
-        -- Set take name
-        local new_item = reaper.GetSelectedMediaItem(0,0)
-        table.insert(new_items_list,new_item)
-        local new_take = reaper.GetActiveTake(new_item)
-        reaper.GetSetMediaItemTakeInfo_String(new_take,"P_NAME",take_name.." - "..i+1,true)
-
-        -- Change new take chanmode to mono (depend of parent take chanmode)
-        if take_chanmode == 0 then
-          reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",i+3)
-        elseif take_chanmode == 1 then
-          if i == 0 then
-            reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",4)
-          elseif i == 1 then
-            reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",3)
-          else
-            reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",i+3)
-          end
-        elseif take_chanmode > 66 then
-          reaper.SetMediaItemTakeInfo_Value(new_take,"I_CHANMODE",(take_chanmode-67)+i+3)
         end
       end
     end
