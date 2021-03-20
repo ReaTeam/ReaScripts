@@ -90,7 +90,6 @@ local f = io.open(fx_lock_script_path..'BuyOne_Lock FX and FX chains (guide insi
 	f:close()
 	return content:match('TAG = %[%[(.-)%]%]'):gsub('[%s]','')
 	end
-
 end
 
 
