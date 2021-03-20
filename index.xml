@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="14b21c2689b33fb4e8b48d2c054b69cf68a5a168" name="ReaTeam Scripts">
+<index version="1" commit="641dce873437ac6a10f7e340d7d49a5d57f45764" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5535,6 +5535,9 @@ here
       <version name="1.0" author="Rodilab" time="2021-03-04T11:36:38Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7173b30fc434ca8bc8b2de36f395c3088d96de1d/Items%20Editing/rodilab_Explode%20multichannel%20items%20to%20mono%20items%20in%20new%20tracks%20(without%20render).lua</source>
       </version>
+      <version name="1.1" author="Rodilab" time="2021-03-20T12:30:09Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ab3c50c6fef40fc8910274fe406dc130cc6c8b0b/Items%20Editing/rodilab_Explode%20multichannel%20items%20to%20mono%20items%20in%20new%20tracks%20(without%20render).lua</source>
+      </version>
     </reapack>
     <reapack name="rodilab_Implode mono items into stereo item.lua" type="script" desc="Implode mono items into stereo item">
       <metadata>
@@ -5557,6 +5560,9 @@ here
       <version name="1.1" author="Rodilab" time="2021-03-04T10:52:40Z">
         <changelog><![CDATA[Updates : Restore item selection after rend, and prevent UI Refresh]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/976ac599af4142c5dd75049df0beffda590afca0/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
+      </version>
+      <version name="1.2" author="Rodilab" time="2021-03-20T12:30:28Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dafa132ec302c72882092530a99605db5b952a82/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Move items, preserving crossfade lengths.lua" type="script" desc="Move items, preserving crossfade lengths">
@@ -5622,6 +5628,9 @@ here
       <version name="1.1" author="Rodilab" time="2021-03-04T10:53:06Z">
         <changelog><![CDATA[Update : Prevent UI Refresh]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/e4e8cba955b9eae43cdd2e3295ec4facd134d1b4/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
+      </version>
+      <version name="1.2" author="Rodilab" time="2021-03-20T12:32:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/641dce873437ac6a10f7e340d7d49a5d57f45764/Items%20Editing/rodilab_Trim%20oversized%20edges.lua</source>
       </version>
     </reapack>
     <reapack name="solger_Smart split MIDI item.lua" type="script" desc="Smart split MIDI item">
@@ -6086,17 +6095,19 @@ selection.]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 For WAVE selected items : Rename active take and set new notes with BWF and iXML metadatas. Set cutom name with #Wildcards. First text-box for Take Name, second text-box for Item Notes (if empty, then don't change) Look "User Config Area" on the top of script to :\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Customize default name, notes, separators, markers etc...\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add, remove or edit #Wildcards keys\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add, remove or edit BWF metadata fields for each #Wildcard\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable/Disable popup message box (if disable, set default)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 For BWF selected items : Set custom name with $wildcards for rename active take and set new notes. First text-box for Take Name, second text-box for Item Notes (if empty, then don't change). Look "User Config Area" on the top of script to :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Add, remove or edit $wildcards (and metadata fields identifiers)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Enable/Disable popup message box (if disable, set last default)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 $bitdepth, $chnl, $circled, $date, $falsestart, $fileindex, $filename, $filetyp, $nogood, $note, $originator, $originatorref, $project, $reaname, $reaproject, $reatrack, $samplerate, $scene, $speed, $startoffsset, $tag, $take, $taketyp, $tape, $tcstart, $time, $timeref, $totalfiles, $trackcount, $trackname, $ubits, $wildtrack\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
 }
 ]]></description>
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-03-08T12:57:45Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/21d9dc003423dd981ae902d9437301ce7efdfb0d/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-03-20T12:30:48Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/01015114d44e596c22898909ef11e292b418bc83/Items%20Properties/rodilab_Rename%20takes%20and%20item%20notes%20with%20BWF%20and%20iXML%20metadata.lua</source>
       </version>
     </reapack>
     <reapack name="spk77_Breeder_PL9_Copy paste item properties (incl BWF).eel" type="script" desc="Copy paste item properties (incl BWF)">
@@ -18082,6 +18093,9 @@ uc_note_min_seconds = 1\par}
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-03-06T02:09:10Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2a533d498af5dbb87bec21467b9c30627a46d7e7/Various/rodilab_Smart%20remove.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-03-20T12:31:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/c67fdc73f29e3d28093eeea4499db82f10f24c55/Various/rodilab_Smart%20remove.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart select all (depending on focus, tracks selected and time selection).lua" type="script" desc="Smart select all (depending on focus, tracks selected and time selection)">
