@@ -3,7 +3,7 @@
 --[[
 
 * ReaScript Name: BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
-* Description: meant to be used alongside BuyOne_Lock FX and FX chains (guide inside).lua
+* Description: meant to be used alongside BuyOne_Lock FX and FX chains.lua
 * Instructions: included
 * Author: Buy One
 * Author URL: https://forum.cockos.com/member.php?u=134058
@@ -27,8 +27,8 @@ The script will work provided the lock tag precedes the FX name and is followed 
 space, e.g. "TAG VST: My plugin".
 
 The TAG setting in the USER SETTINGS is optional since this script takes its value from
-the main script BuyOne_Lock FX and FX chains (guide inside).lua. Only if for any reason 
-it fails to fetch one does it look for the tag in this setting. If it throws an error 
+the main script BuyOne_Lock FX and FX chains (guide inside).lua. Only if for any reason
+it fails to fetch one does it look for the tag in this setting. If it throws an error
 telling that the tag hasn't been defined look first of all in the main script.
 
 If FOCUSED option is enabled in the USER SETTINGS section below then if FX chain is open
@@ -39,31 +39,31 @@ FX chain is closed the script will work globally affecting all FX in selected ob
 If FOCUSED option is disabled the script will work globally for selected objects
 regardless of the focused FX in the open FX chain.
 
-With option INCLUDE_INPUT_MON_FX enabled in the USER SETTINGS section below the script 
+With option INCLUDE_INPUT_MON_FX enabled in the USER SETTINGS section below the script
 will also globally affect track input FX as well as Monitor FX if Master track is
 selected.
 
 The script only works in one direction, if the name of the focused FX or at least one FX
-in selected objects contains the tag, the script removes it, if the focused FX does not 
+in selected objects contains the tag, the script removes it, if the focused FX does not
 or no FX in the selected objects does contain the tag the script appends it.
 
 If some plugins store lots of data (usually heavy commercial plugins) it may take a bit
 longer for the script to finish. In such cases while the script is running REAPER may become
 unresponsive.
 
-Video processor plugin isn't supported by the script at the moment.
+The script doesn't support the Video processor plugin at the moment.
 
 ]]
 
 --------------------------- USER SETTINGS ---------------------------
 ---------------------------------------------------------------------
+ -- Any QWERTY keyboard symbol save for quotation mark " and %
+ -- between the double square brackets
 
- -- Any QWERTY keyboard symbol save for quotation mark "
- -- Backslash must look like so \\
-
-TAG = "" -- optional, only needed if BuyOne_Lock FX and FX chains.lua script is unavailable
-FOCUSED = "1" -- if FX chain is open the script will only affect focused FX
-INCLUDE_INPUT_MON_FX = "1" -- relevant when applying the lock tag in batch
+TAG = [[]] -- optional, only needed if
+-- BuyOne_Lock FX and FX chains (guide inside).lua script is unavailable
+FOCUSED = [[1]] -- if FX chain is open the script will only affect focused FX
+INCLUDE_INPUT_MON_FX = [[1]] -- relevant when applying the lock tag in batch
 
 ---------------------------------------------------------------------
 ------------------------ END OF USER SETTINGS -----------------------
@@ -85,6 +85,7 @@ local function Get_TAG_Val() -- fetch from the main script
 
 local info = debug.getinfo(1,'S')
 local fx_lock_script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
+--Msg(fx_lock_script_path)
 local f = io.open(fx_lock_script_path..'BuyOne_Lock FX and FX chains (guide inside).lua', 'r')
 local content = f:read('*a')
 f:close()
@@ -103,12 +104,12 @@ local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' '
 		if r.TrackFX_GetCount(tr) > 0 then
 			for i = 0, r.TrackFX_GetCount(tr)-1 do
 			local retval, name = r.TrackFX_GetFXName(tr, i, '')
-			if name:match(TAG) then tagged = true return tagged end
+			if name:match('^'..TAG) then tagged = true return tagged end
 			end
 			if INCLUDE_INPUT_MON_FX ~= '' and r.TrackFX_GetRecCount(tr) > 0 then
 				for i = 0, r.TrackFX_GetRecCount(tr)-1 do
 				local retval, name = r.TrackFX_GetFXName(tr, i+0x1000000, '')
-				if name:match(TAG) then tagged = true return tagged end
+				if name:match('^'..TAG) then tagged = true return tagged end
 				end
 			end
 		end
@@ -120,7 +121,7 @@ local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' '
 			if r.TakeFX_GetCount(take) > 0 then
 				for i = 0, r.TakeFX_GetCount(take)-1 do
 				local retval, name = r.TakeFX_GetFXName(take, i, '')
-				if name:match(TAG) then tagged = true return tagged end
+				if name:match('^'..TAG) then tagged = true return tagged end
 				end
 			end
 		end
@@ -165,32 +166,45 @@ end
 
 function Edit_Chunk(TAG, obj_chunk, prev_GUID, fx_GUID, name, tagged)
 
-	local tag = name:match(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ')
+	local tag = name:match('^'..TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..'%s')
 	local fx_chunk = obj_chunk:match(prev_GUID..'.-BYPASS.-(<.-'..fx_GUID..')')
-	
-		if not tag and not tagged then -- append		
+
+		if not tag and not tagged then -- append
 
 -- in FX chunks FX custom name is only enclosed within quotes if it contains spaces, but placing them within quotes arbitrarily doesn't cause problems
 -- without custom name TrackFX_GetFXName() function returns default name, the first one within quotes which features in the chunk for non-JS plugins and the one defined in the code for JS plugins, which doesn't feature in the chunk by default, but is fetched from reaper-jsfx.ini
 
-			if fx_chunk:match('<JS') then
+			if fx_chunk:match('<JS')
+			then
 			local targ_str = fx_chunk:match('\"\"') and '\"\"' or name -- without a custom name it only contains ""
 			local repl_str = targ_str == name and TAG..' '..name or '\"'..TAG..' '..name..'\"'
 			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
 			obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
-			else
-			local name_esc = name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
-			local targ_str = fx_chunk:match('<.-\".-(0%s'..name_esc..')') or fx_chunk:match('<.-\".-(0%s\"'..name_esc..'\")') or '0 \"\"' -- when name is either without spaces and so without quotes, within quotes, or not set at all
-			local repl_str = '0 \"'..TAG..' '..name..'\"'
-			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
-			obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
+			elseif not fx_chunk:match('<VIDEO_EFFECT') then
+				local name_esc = name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
+				local targ_str = fx_chunk:match('<.-\".-(0%s'..name_esc..')') or fx_chunk:match('<.-\".-(0%s\"'..name_esc..'\")') or '0 \"\"' -- when name is either without spaces and so without quotes, within quotes, or not set at all
+				local repl_str = '0 \"'..TAG..' '..name..'\"'
+				local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
+				obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
+			else -- Video processor
+			local targ_str = fx_chunk:match('(<CODE\n|//.-)\n')
+			local eval_tag = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' '
+			local repl_str = (targ_str and not targ_str:match('^'..eval_tag)) and '<CODE\n|//'..TAG..' '..targ_str:match('//(.-)$') or (not targ_str and '<CODE\n|//'..TAG..' ') -- evaluate if there's commented out line in the preset code
+			local upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str):gsub('%%', '%%%%') -- escape % which may be present in the Video processor code
+			obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk):gsub('%%%%', '%%')	-- restore original single % signs in the chunk
 			end
-		
 		else -- remove
-		local targ_str = fx_chunk:match(name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'))
-		local repl_str = targ_str:gsub(TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ', '')
-		upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
-		obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk)
+		local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' '
+			if not fx_chunk:match('<VIDEO_EFFECT') then
+			local targ_str = fx_chunk:match(name:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')) or '' -- the empty string is to address cases of batch removal when there's JS plugin for which lock tag has never been set and so whose name cannot be found in the chunk and would return nil otherwise
+			local repl_str = targ_str:gsub(TAG, '')
+			upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str)
+			else -- Video processor
+			local targ_str = fx_chunk:match('(<CODE\n|//'..TAG..')')
+			local repl_str = targ_str:gsub(TAG, '') -- targ string without the tag
+			upd_fx_chunk = fx_chunk:gsub(targ_str:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), repl_str):gsub('%%', '%%%%') -- escape % which may be present in the Video processor code
+			end
+		obj_chunk = obj_chunk:gsub(fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), upd_fx_chunk):gsub('%%%%', '%%') -- restore original single % signs in the chunk
 		end
 	return obj_chunk, tagged_focused_fx
 end
@@ -199,7 +213,7 @@ end
 function APPND_OR_REMOVE_IN_FOCUS(TAG, retval, track_num, item_num, fx_num, mon_fx)
 
 local tagged
-local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
+local tag = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')..' ' -- only for the sake of evaluation here, to the function Edit_Chunk() original TAG is being passed
 
 	if retval == 1 then -- track FX incl input and Master main FX
 	local tr = r.GetTrack(0,track_num-1) or r.GetMasterTrack(0)
@@ -207,7 +221,7 @@ local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
 		if ret == 'err_mess' then Err_mess() r.defer(function() end) return end
 		if ret then
 		local retval, name = r.TrackFX_GetFXName(tr, fx_num, '')
-			if name:match(TAG..' ') then tagged = true end
+			if name:match('^'..tag) then tagged = true end
 		local fx_GUID = r.TrackFX_GetFXGUID(tr, fx_num):gsub('[%-]','%%%0')
 		local prev_GUID = r.TrackFX_GetFXGUID(tr, fx_num-1) or ''
 		local prev_GUID = prev_GUID:gsub('[%-]','%%%0')
@@ -221,7 +235,7 @@ local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
 		if ret then
 		local take = r.GetActiveTake(item)
 		local retval, name = r.TakeFX_GetFXName(take, fx_num, '')
-			if name:match(TAG..' ') then tagged = true end
+			if name:match('^'..tag) then tagged = true end
 		local fx_GUID = r.TakeFX_GetFXGUID(take, fx_num):gsub('[%-]','%%%0')
 		local prev_GUID = r.TakeFX_GetFXGUID(take, fx_num-1) or ''
 		local prev_GUID = prev_GUID:gsub('[%-]','%%%0')
@@ -240,7 +254,7 @@ local TAG = TAG:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0')
 		if ret == 'err_mess' then Err_mess() r.DeleteTrack(tr) r.defer(function() end) return end
 		if ret then
 		local retval, name = r.TrackFX_GetFXName(tr, 0, '')
-			if name:match(TAG..' ') then tagged = true end -- to avoid doing the following routine unnecessarily
+			if name:match('^'..tag) then tagged = true end -- to avoid doing the following routine unnecessarily
 		local fx_GUID = r.TrackFX_GetFXGUID(tr, 0):gsub('[%-]','%%%0')
 		local prev_GUID = '' -- because it's the first FX on the temp track
 		local tr_chunk = Edit_Chunk(TAG, tr_chunk, prev_GUID, fx_GUID, name, tagged)
@@ -351,7 +365,8 @@ r.PreventUIRefresh(1)
 
 TAG = Get_TAG_Val() ~= '' and Get_TAG_Val() or TAG
 
-	if TAG == '' then r.MB('The lock tag hasn\'t been defined.', 'ERROR', 0) r.defer(function() end) return end
+local err = TAG == '' and 'The lock tag hasn\'t been defined.' or ((TAG == '"' or TAG == '%') and '        Illegal tag. Quotation mark \"\n\nand percent sign % aren\'t supported.')
+	if err then r.MB(err,'ERROR',0) r.defer(function() end) return end
 
 local retval, track_num, item_num, fx_num = r.GetFocusedFX() -- item_num is number within the track whose index is returned as track_num
 local mon_fx = retval == 0 and r.TrackFX_GetRecChainVisible(r.GetMasterTrack(0)) >= 0
