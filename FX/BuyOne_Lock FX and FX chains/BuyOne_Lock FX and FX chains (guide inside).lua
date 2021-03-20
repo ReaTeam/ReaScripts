@@ -65,11 +65,12 @@ BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
 which automates the task of appending and removing lock tags from FX names. If you append tags manually,
 in order to be then able to remove them with this auxiliary script place the lock tag before the FX name
 and separate them with space, e.g. "TAG VST: My plugin".
-Since in the case of the Video processor the lock tag is applied to the first line of its preset code
-which is used by REAPER to name the Video processor instances in the FX chain, once you change the
-plugin preset the tag will be lost and it won't be restored once you return to the previously tagged
-preset because it wasn't explicitly saved. The only way to keep the tag in a Video processor preset code
-after applying it with the auxiliary script is to manually save it with Ctrl(Command)+S as described above.
+Since in the case of the Video processor the auxiliary script applies the lock tag to the first line of 
+the Video processor preset code which is used by REAPER to name the Video processor instances in the FX 
+chain, once you change the plugin preset the tag will be lost and it won't be restored once you return 
+to the previously tagged preset because it wasn't explicitly saved. The only way to keep the tag in a 
+Video processor preset code after applying it with the auxiliary script is to manually save it with 
+Ctrl(Command)+S as described above.
 
 ]]
 
