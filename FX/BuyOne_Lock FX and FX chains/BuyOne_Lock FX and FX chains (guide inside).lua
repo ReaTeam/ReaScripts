@@ -69,7 +69,7 @@ Since in the case of the Video processor the lock tag is applied to the first li
 which is used by REAPER to name the Video processor instances in the FX chain, once you change the
 plugin preset the tag will be lost and it won't be restored once you return to the previously tagged
 preset because it wasn't explicitly saved. The only way to keep the tag in a Video processor preset code
-is to save it with Ctrl(Command)+S as described above.
+after applying it with the auxiliary script is to manually save it with Ctrl(Command)+S as described above.
 
 ]]
 
