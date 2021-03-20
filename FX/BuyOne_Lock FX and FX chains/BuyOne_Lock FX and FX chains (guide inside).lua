@@ -12,7 +12,7 @@
 * Demo:
 * Version: 1.0
 * REAPER: at least v5.962
-* Extensions: SWS/S&M (not obligatory but recommended)
+* Extensions:
 * Changelog:
 	+ v1.0 	Initial release
 
@@ -49,7 +49,13 @@ new FX can only be inserted at the bottom of the chain.
 While FX are locked in the track FX chain they can still be reordered in the Mixer FX insert slots if
 the FX chain is hidden.
 
-As the tag any QWERTY keyboard symbols can be used save for quotation mark ".
+To add the lock tag to the Video processor name, insert it in the very first line of its preset code
+(the first commented out line), e.g. //X De-interlace track/item
+where X is the lock tag and hit Ctrl(Command)+S. Be aware that after that the tag will be burnt
+into the code and will be displayed in the Video processor instance name each time the preset is loaded.
+You can however delete it and again save the preset.
+
+As the tag any QWERTY keyboard symbols can be used save for quotation mark " and percent sign %.
 
 To be able to monitor the script on/off status you may want to assign it to a toolbar button which will
 be lit while it's on.
@@ -59,20 +65,23 @@ BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
 which automates the task of appending and removing lock tags from FX names. If you append tags manually,
 in order to be then able to remove them with this auxiliary script place the lock tag before the FX name
 and separate them with space, e.g. "TAG VST: My plugin".
-
-The script doesn't support the Video processor plugin at the moment.
+Since in the case of the Video processor the lock tag is applied to the first line of its preset code
+which is used by REAPER to name the Video processor instances in the FX chain, once you change the
+plugin preset the tag will be lost and it won't be restored once you return to the previously tagged
+preset because it wasn't explicitly saved. The only way to keep the tag in a Video processor preset code
+is to save it with Ctrl(Command)+S as described above.
 
 ]]
 
---------------------- USER SETTINGS --------------------
---------------------------------------------------------
- -- Any QWERTY keyboard symbol save for quotation mark "
- -- Backslash must look like so \\
+------------------------ USER SETTINGS -----------------------
+--------------------------------------------------------------
+ -- Any QWERTY keyboard symbol save for quotation mark " and %
+ -- between the double square brackets
 
-TAG = "X"
+TAG = [[X]]
 
---------------------------------------------------------
------------------- END OF USER SETTINGS ----------------
+--------------------------------------------------------------
+-------------------- END OF USER SETTINGS --------------------
 
 
 function Msg(param)
@@ -143,7 +152,9 @@ local function Restore_Chunk(retval, obj, fx_num, ref_chunk)
 		end
 	end
 
-	local rest_chunk = cur_chunk:gsub(cur_fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), ref_fx_chunk)
+	local ref_fx_chunk = ref_fx_chunk:match('[%%]') and ref_fx_chunk:gsub('%%','%%%%') or ref_fx_chunk -- escape in replacement string with subsequent reversal after replacement is mainly for Video processor chunks
+
+	local rest_chunk = cur_chunk:gsub(cur_fx_chunk:gsub('[%(%)%+%-%[%]%.%^%$%*%?%%]','%%%0'), ref_fx_chunk):gsub('%%%%','%%')
 	local val = SetObjChunk(retval, obj, rest_chunk)
 
 	return last_sel_fx -- if reordering involves last sel fx then its UI is reopened otherwise the UI of fx which is involved in reordering will reopen (either of the one being dragged or the one sought to be replaced, hard to perdict which exactly); for mon fx last selected fx is only updated in reaper-hwoutfx.ini after mon. fx chain is closed or closed and reopened, wasn't successful in reliably store and extract that value, opted for another mechanism employed in the Restore_FX_Chain() function which at least produces consistent results
@@ -161,7 +172,7 @@ local name_changed
 	fx_cnt = r.TakeFX_GetCount(take)
 		for i = 0, fx_cnt-1 do -- find if there're any tagged FX in the chain
 		local retval, name = r.TakeFX_GetFXName(take, i, '')
-			if name:match(TAG) then tagged = true tagged_num = tagged_num + 1  end
+			if name:match('^'..TAG) then tagged = true tagged_num = tagged_num + 1  end
 			if fx_names_t and fx_names_t[r.TakeFX_GetFXGUID(take, i)] ~= name then name_changed = true end
 		end
 	elseif retval == 1 then -- track FX chain
@@ -170,7 +181,7 @@ local name_changed
 		for i = 0, fx_cnt-1 do
 		local fx_idx = fx_num < 16777216 and i or i+0x1000000
 		local retval, name = r.TrackFX_GetFXName(tr, fx_idx, '')
-			if name:match(TAG) then tagged = true tagged_num = tagged_num + 1 end
+			if name:match('^'..TAG) then tagged = true tagged_num = tagged_num + 1 end
 			if fx_names_t and fx_names_t[r.TrackFX_GetFXGUID(tr, fx_idx)] ~= name then name_changed = true end
 		end
 	elseif retval == 0 and r.TrackFX_GetRecChainVisible(r.GetMasterTrack(0)) >= 0 then -- Monitor FX chain
@@ -178,7 +189,7 @@ local name_changed
 	fx_cnt = r.TrackFX_GetRecCount(tr)
 		for i = 0, fx_cnt-1 do
 		local retval, name = r.TrackFX_GetFXName(tr, i+0x1000000, '')
-			if name:match(TAG) then tagged = true tagged_num = tagged_num + 1 end
+			if name:match('^'..TAG) then tagged = true tagged_num = tagged_num + 1 end
 			if fx_names_t and fx_names_t[r.TrackFX_GetFXGUID(tr, i+0x1000000)] ~= name then name_changed = true end
 		end
 	end
@@ -200,15 +211,15 @@ function Store_FX_Chain(retval, track_num, item, fx_num)
 		local take = r.GetActiveTake(item)
 			for i = 0, r.TakeFX_GetCount(take)-1 do -- find if there're any tagged FX in the chain
 			local retval, name = r.TakeFX_GetFXName(take, i, '')
-			if name:match(TAG) then tagged = true break end
+			if name:match('^'..TAG) then tagged = true break end
 			end
 			for i = 0, r.TakeFX_GetCount(take)-1 do	-- store
 			local retval, name = r.TakeFX_GetFXName(take, i, '')
 			local fx_GUID = r.TakeFX_GetFXGUID(take, i)
 			fx_names_t[fx_GUID] = name
-				if tagged and name:match(TAG) then
-				fx_t[i+1] = fx_GUID
-				elseif not tagged then fx_t[#fx_t+1] = fx_GUID end
+				if tagged and name:match('^'..TAG) then
+				fx_t[i+1] = fx_GUID -- table for when at least one plugin is tagged
+				elseif not tagged then fx_t[#fx_t+1] = fx_GUID end -- table for when none is tagged
 			end
 		-- Track FX chain
 		elseif retval == 1 then -- main FX chain
@@ -217,14 +228,14 @@ function Store_FX_Chain(retval, track_num, item, fx_num)
 			for i = 0, fx_cnt do -- find if there're any tagged FX in the chain
 			local fx_idx = fx_num < 16777216 and i or i+0x1000000 -- main or input fx
 			local retval, name = r.TrackFX_GetFXName(tr, fx_idx, '')
-				if name:match(TAG) then tagged = true break end
+				if name:match('^'..TAG) then tagged = true break end
 			end
 			for i = 0, fx_cnt do
 			local fx_idx = fx_num < 16777216 and i or i+0x1000000 -- main or input fx
 			local retval, name = r.TrackFX_GetFXName(tr, fx_idx, '')
 			local fx_GUID = r.TrackFX_GetFXGUID(tr, fx_idx)
 			fx_names_t[fx_GUID] = name
-				if tagged and name:match(TAG) then
+				if tagged and name:match('^'..TAG) then
 				fx_t[i+1] = fx_GUID
 				elseif not tagged then
 				fx_t[#fx_t+1] = fx_GUID end
@@ -234,13 +245,13 @@ function Store_FX_Chain(retval, track_num, item, fx_num)
 		local mon_fx_cnt = r.TrackFX_GetRecCount(tr)-1
 			for i = 0, mon_fx_cnt do -- find if there're any tagged FX in the chain
 			local retval, name = r.TrackFX_GetFXName(tr, i+0x1000000, '')
-				if name:match(TAG) then tagged = true break end
+				if name:match('^'..TAG) then tagged = true break end
 			end
 			for i = 0, mon_fx_cnt do
 			local retval, name = r.TrackFX_GetFXName(tr, i+0x1000000, '')
 			local fx_GUID = r.TrackFX_GetFXGUID(tr, i+0x1000000)
 			fx_names_t[fx_GUID] = name
-				if tagged and name:match(TAG) then
+				if tagged and name:match('^'..TAG) then
 				fx_t[i+1] = fx_GUID
 				elseif not tagged then
 				fx_t[#fx_t+1] = fx_GUID
@@ -252,6 +263,8 @@ end
 
 
 function Restore_FX_Chain(retval, track_num, item, fx_num, ref_fx_chain, ref_chunk, tagged, tagged_num)
+-- checks if fx indices correspond to the reference table keys which store fx GUIDs as values
+-- to trigger order restoration
 
 local mon_fx_upd
 
@@ -374,6 +387,10 @@ r.PreventUIRefresh(-1)
 
 end
 
+
+local err = TAG == '' and 'The lock tag hasn\'t been defined.' or ((TAG == '"' or TAG == '%') and '        Illegal tag. Quotation mark \"\n\nand percent sign % aren\'t supported.')
+	if err then r.MB(err,'ERROR',0) r.defer(function() end) return end
+
 local _, _, sect_ID, cmd_ID, _,_,_ = r.get_action_context()
 
 local toggle_state = r.GetToggleCommandStateEx(sect_ID, cmd_ID)
@@ -389,6 +406,5 @@ r.SetToggleCommandState(sect_ID, cmd_ID, 0)
 end
 
 r.atexit(Toggle_Off)
-
 
 
