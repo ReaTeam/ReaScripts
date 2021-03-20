@@ -1,81 +1,99 @@
 -- @description Rename takes and item notes with BWF and iXML metadata
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
 -- @about
---   For WAVE selected items : Rename active take and set new notes with BWF and iXML metadatas.
---   Set cutom name with #Wildcards.
---   First text-box for Take Name, second text-box for Item Notes (if empty, then don't change)
+--   For BWF selected items : Set custom name with $wildcards for rename active take and set new notes.
+--   First text-box for Take Name, second text-box for Item Notes (if empty, then don't change).
 --   Look "User Config Area" on the top of script to :
---   - Customize default name, notes, separators, markers etc...
---   - Add, remove or edit #Wildcards keys
---   - Add, remove or edit BWF metadata fields for each #Wildcard
---   - Enable/Disable popup message box (if disable, set default)
+--   - Add, remove or edit $wildcards (and metadata fields identifiers)
+--   - Enable/Disable popup message box (if disable, set last default)
+--
+--   $bitdepth, $chnl, $circled, $date, $falsestart, $fileindex, $filename, $filetyp, $nogood, $note, $originator, $originatorref, $project, $reaname, $reaproject, $reatrack, $samplerate, $scene, $speed, $startoffsset, $tag, $take, $taketyp, $tape, $tcstart, $time, $timeref, $totalfiles, $trackcount, $trackname, $ubits, $wildtrack
 --
 --   by Rodrigo Diaz (aka Rodilab)
 
 --------------------------------------------------------------------------------------
 -- User Config Area ------------------------------------------------------------------
 --------------------------------------------------------------------------------------
-default_name = "#Scene-#Take#Circled (#TrackName)"
-default_notes = "#Note"
 trackname_separator_1 = ":" -- Separator between Track Number and Track Name
 trackname_separator_2 = " / " -- Separator between each track
-cercled_marker = "*"
+circled_marker = "*"
 wildtrack_marker = "WildTrack!"
 nogood_marker = "NoGood!"
 falsestart_marker = "FalseStart!"
 message_box = true -- Popup message box (if not, set default value)
 separator = "~" -- This special character is prohibited in the message box
-key_char = "#"
+key_char = "$"
 list_tags = {
   -- Reaper Infos
-  ReaProject={"Reaper:Project"},
-  ReaName={"Reaper:TakeName"},
-  ReaTrack={"Reaper:TrackName"},
+  reaproject={"Reaper:Project"},
+  reaname={"Reaper:TakeName"},
+  reatrack={"Reaper:TrackName"},
   -- BWF
-  StartOffSset={"Generic:StartOffset"},
-  Date={"BWF:OriginationDate","IXML:BEXT:BWF_ORIGINATION_DATE"},
-  Time={"BWF:OriginationTime","IXML:BEXT:BWF_ORIGINATION_TIME"},
-  TimeRef={"BWF:TimeReference","IXML:BEXT:BWF_TIME_REFERENCE_LOW"},
-  OriginatorRef={"BWF:OriginatorReference","IXML:BEXT:BWF_ORIGINATOR_REFERENCE"},
-  Originator={"BWF:Originator","IXML:BEXT:BWF_ORIGINATOR"},
+  startoffsset={"Generic:StartOffset"},
+  date={"BWF:OriginationDate","IXML:BEXT:BWF_ORIGINATION_DATE"},
+  time={"BWF:OriginationTime","IXML:BEXT:BWF_ORIGINATION_TIME"},
+  timeref={"BWF:TimeReference","IXML:BEXT:BWF_TIME_REFERENCE_LOW","IXML:SPEED:TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_LO"},
+  originatorref={"BWF:OriginatorReference","IXML:BEXT:BWF_ORIGINATOR_REFERENCE"},
+  originator={"BWF:Originator","IXML:BEXT:BWF_ORIGINATOR"},
   -- BWF:Description
-  Scene={"aSCENE","sSCENE","IXML:SCENE"},
-  Take={"aTAKE","sTAKE","IXML:TAKE"},
-  Note={"aNOTE","sNOTE","IXML:NOTE"},
-  Filename={"aFILENAME","sFILENAME","IXML:HISTORY:ORIGINAL_FILENAME","IXML:HISTORY:CURRENT_FILENAME"},
-  Speed={"aSPEED","sSPEED"},
-  FileTyp={"aTYP","sTYP"},
-  Tag={"aTAG","sTAG"},
-  Ubits={"aUBITS","sUBITS","IXML:UBITS"},
-  Circled={"aCIRCLED","sCIRCLED","IXML:CIRCLED"},
-  WildTrack={"aWILDTRACK","sWILDTRACK","IXML:WILD_TRACK","IXML:TAKE_TYPE"},
-  Tape={"aTAPE","sTAPE","IXML:TAPE"},
-  Chnl={"aCHNL"},
-  TrackName={"aTRK","sTRK"},
+  scene={"aSCENE","sSCENE","IXML:SCENE"},
+  take={"aTAKE","sTAKE","IXML:TAKE"},
+  note={"aNOTE","sNOTE","IXML:NOTE"},
+  filename={"aFILENAME","sFILENAME","IXML:HISTORY:ORIGINAL_FILENAME","IXML:HISTORY:CURRENT_FILENAME"},
+  speed={"aSPEED","sSPEED"},
+  filetyp={"aTYP","sTYP"},
+  tag={"aTAG","sTAG"},
+  ubits={"aUBITS","sUBITS","IXML:UBITS"},
+  circled={"aCIRCLED","sCIRCLED","IXML:CIRCLED"},
+  wildtrack={"aWILDTRACK","sWILDTRACK","IXML:WILD_TRACK","IXML:TAKE_TYPE"},
+  tape={"aTAPE","sTAPE","IXML:TAPE"},
+  chnl={"aCHNL"},
+  trackname={"aTRK","sTRK"},
   -- only in iXML
-  Project={"IXML:PROJECT"},
-  TakeTyp={"IXML:TAKE_TYPE"},
-  NoGood={"IXML:NO_GOOD","IXML:TAKE_TYPE"},
-  FalseStart={"IXML:FALSE_START","IXML:TAKE_TYPE"},
-  TotalFiles={"IXML:FILE_SET:TOTAL_FILES"},
-  FileIndex={"IXML:FILE_SET:FILE_SET_INDEX"},
-  BitDepth={"IXML:SPEED:AUDIO_BIT_DEPTH"},
-  SampleRate={"IXML:SPEED:FILE_SAMPLE_RATE"},
-  TrackCount={"IXML:TRACK_LIST:TRACK_COUNT"}
+  project={"IXML:PROJECT"},
+  taketyp={"IXML:TAKE_TYPE"},
+  nogood={"IXML:NO_GOOD","IXML:TAKE_TYPE"},
+  falsestart={"IXML:FALSE_START","IXML:TAKE_TYPE"},
+  totalfiles={"IXML:FILE_SET:TOTAL_FILES"},
+  fileindex={"IXML:FILE_SET:FILE_SET_INDEX"},
+  bitdepth={"IXML:SPEED:AUDIO_BIT_DEPTH"},
+  samplerate={"IXML:SPEED:FILE_SAMPLE_RATE"},
+  trackcount={"IXML:TRACK_LIST:TRACK_COUNT"},
+  tcstart={"IXML:SPEED:TIMECODE_RATE"}
 }
---------------------------------------------------------------------------------------
--- End -------------------------------------------------------------------------------
---------------------------------------------------------------------------------------
 
+---------------------------------------------------------------------------------
+--- Ext State -------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
+conf = {}
 
+extstate_id = "RODILAB_Rename_takes_and_item_notes_with_BWF_and_iXML_metadata"
+function ExtState_Load()
+  local def = {
+    default_name = "$scene-$take$circled ($trackname)",
+    default_notes = "$note",
+    popup_wildcards = "true"
+    }
+  for key in pairs(def) do
+    if reaper.HasExtState(extstate_id,key) then
+      conf[key] = reaper.GetExtState(extstate_id,key)
+    else
+      conf[key] = def[key]
+    end
+  end
+end
 
+function ExtState_Save(default_text)
+  conf.default_name = default_text:match("(.+)"..separator) or ""
+  conf.default_notes = default_text:match(separator.."(.+)") or ""
+  for key in pairs(conf) do reaper.SetExtState(extstate_id, key, conf[key], true) end
+end
 
-
--------------------------------------
--- Function : Search tag in a list --
--------------------------------------
+---------------------------------------------------------------------------------
+-- Function : Search tag in a list ----------------------------------------------
+---------------------------------------------------------------------------------
 local function search(list_chunk,list_metadata)
   for i, tag in ipairs(list_chunk) do
     if not list_metadata[tag] and i == #list_chunk then
@@ -86,9 +104,38 @@ local function search(list_chunk,list_metadata)
   end
 end
 
--------------------------------------
--- Function : Get all tracks names --
--------------------------------------
+---------------------------------------------------------------------------------
+-- Function : Time Code Start ---------------------------------------------------
+---------------------------------------------------------------------------------
+
+local function get_tc_start(source,list_metadata)
+  local tc_rate = search(list_tags["tcstart"],list_metadata)
+  local samplerate =  reaper.GetMediaSourceSampleRate(source)
+  local _,ssm = reaper.GetMediaFileMetadata(source,"BWF:TimeReference")
+  if tc_rate and samplerate and ssm then
+    for k, v in string.gmatch(tc_rate, "(%d+)/(%d+)") do
+      tc_rate = k/v
+    end
+    if tc_rate then
+      local calc = (ssm/samplerate)/3600
+      local heures = math.floor(calc)
+      calc = (calc-heures)*60
+      local minutes = math.floor(calc)
+      calc = (calc-minutes)*60
+      local secondes = math.floor(calc)
+      local images = math.floor((calc-secondes)/(1/tc_rate))
+
+      if images < 10 then
+        images = "0"..images
+      end
+      return heures..":"..minutes..":"..secondes..":"..images
+    end
+  end
+end
+
+---------------------------------------------------------------------------------
+-- Function : Get all tracks names ----------------------------------------------
+---------------------------------------------------------------------------------
 local function get_all_track_names(take, key, list_metadata)
   -- Set all track names in a list
   local tracks_names_list = {}
@@ -120,16 +167,28 @@ local function get_all_track_names(take, key, list_metadata)
     end
     -- Set track_name with all tracks names
     local track_name = ""
-    for i=1, take_channels do
+    for i=1, take_channels do 
       if take_chanmode == 1 and count_tracks_names > 1 and i == 1 then
         -- Invert channel 1 and 2
-        track_name = track_name..tracks_names_list[2]
+        if tracks_names_list[2] then
+          track_name = track_name..tracks_names_list[2]
+        else
+          track_name = track_name.."?"
+        end
       elseif take_chanmode == 1 and count_tracks_names > 1 and i == 2 then
         -- Invert channel 1 and 2
-        track_name = track_name..tracks_names_list[1]
+        if tracks_names_list[1] then
+          track_name = track_name..tracks_names_list[1]
+        else
+          track_name = track_name.."?"
+        end
       else
         -- Normal order
-        track_name = track_name..tracks_names_list[i+chanel_offset]
+        if tracks_names_list[i+chanel_offset] then
+          track_name = track_name..tracks_names_list[i+chanel_offset]
+        else
+          track_name = track_name.."?"
+        end
       end
       -- Add separator if isn't last track name
       if take_channels > 1 and i < take_channels then
@@ -142,18 +201,11 @@ local function get_all_track_names(take, key, list_metadata)
   end
 end
 
--------------------------------------
--- Main Function --------------------
--------------------------------------
+---------------------------------------------------------------------------------
+-- Main Function ----------------------------------------------------------------
+---------------------------------------------------------------------------------
 function main(input)
   reaper.Undo_BeginBlock()
-
-  -- Sort keys alphabetically
-  sort_keys = {}
-  for key,_ in pairs(list_tags) do
-    table.insert(sort_keys,key)
-  end
-  table.sort(sort_keys)
 
   for i=0, count-1 do
     -- Get item, take and source
@@ -200,36 +252,38 @@ function main(input)
 
               -- Get metadata value
               local value = nil
-              if key == "TrackName" then
+              if key == "trackname" then
                 value = get_all_track_names(take,list_tags[key],list_metadata)
+              elseif key == "tcstart" then
+                value = get_tc_start(source,list_metadata)
               else
                 value = search(list_tags[key],list_metadata)
               end
 
               if value then
-                if key == "Scene" or key == "Take" then
+                if key == "scene" or key == "take" then
                   value = string.gsub(value,"%s+","")
-                elseif key == "WildTrack" then
+                elseif key == "wildtrack" then
                   if value == "TRUE" or value == "WILD_TRACK" then
                     value = wildtrack_marker
                   else
                     value = ""
                   end
-                elseif key == "NoGood" then
+                elseif key == "nogood" then
                   if value == "TRUE" or value == "NO_GOOD" then
                     value = nogood_marker
                   else
                     value = ""
                   end
-                elseif key == "FalseStart" then
+                elseif key == "falsestart" then
                   if value == "TRUE" or value == "FALSE_START" then
                     value = falsestart_marker
                   else
                     value = ""
                   end
-                elseif key == "Circled" then
+                elseif key == "circled" then
                   if value == "TRUE" then
-                    value = cercled_marker
+                    value = circled_marker
                   else
                     value = ""
                   end
@@ -266,34 +320,53 @@ function main(input)
       end -- End source type is "WAVE"
     end -- End active take isset
   end -- End for selected items
-  reaper.Undo_EndBlock("Rename takes with BWF and iXML metadata", -1)
+  reaper.Undo_EndBlock(script_name, -1)
 end
 
-
--------------------------------------
--- DO IT ----------------------------
--------------------------------------
+---------------------------------------------------------------------------------
+-- DO IT ------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 count = reaper.CountSelectedMediaItems(0)
 if count > 0 then
-  reaper.PreventUIRefresh(1)
+  script_name = "Rename takes and item notes with BWF and iXML metadata"
 
-  local script_name = "Rename takes and item notes with BWF and iXML metadata"
+  -- Sort keys alphabetically
+  sort_keys = {}
+  for key,_ in pairs(list_tags) do
+    table.insert(sort_keys,key)
+  end
+  table.sort(sort_keys)
+
+  ExtState_Load()
+
+  if conf.popup_wildcards == "true" then
+    local message_keys = ""
+    for i,key in ipairs(sort_keys) do
+      message_keys = message_keys..key_char..key.."\n"
+    end
+    message_keys = message_keys.."\nShow this list next time ?"
+    local retval = reaper.ShowMessageBox("Available keys :\n\n"..message_keys,script_name,4)
+    if retval == 7 then
+      conf.popup_wildcards = "false"
+    end
+  end
+
+  local default_text = conf.default_name..separator..conf.default_notes
   if message_box then
-    retval, default_text = reaper.GetUserInputs(script_name, 2, "Take Name / Item notes,extrawidth=200,separator="..separator, default_name..separator..default_notes)
+    retval, default_text = reaper.GetUserInputs(
+      script_name,2,"Take Name,Item Notes,extrawidth=200,separator="..separator,default_text)
   end
   if retval or not message_box then
-    if not message_box then
-      default_text = default_name..separator..default_notes
-    end
     local _, count_separator = string.gsub(default_text,separator,"")
     if count_separator == 1 then
+      ExtState_Save(default_text)
+      reaper.PreventUIRefresh(1)
       main(default_text)
+      reaper.PreventUIRefresh(-1)
+      reaper.UpdateArrange()
     else
       reaper.ShowMessageBox("Error: The \""..separator.."\" character is not allowed.",script_name,0)
     end
   end
-
-  reaper.PreventUIRefresh(-1)
-  reaper.UpdateArrange()
 end
