@@ -85,7 +85,6 @@ local function Get_TAG_Val() -- fetch from the main script
 
 local info = debug.getinfo(1,'S')
 local fx_lock_script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
---Msg(fx_lock_script_path)
 local f = io.open(fx_lock_script_path..'BuyOne_Lock FX and FX chains (guide inside).lua', 'r')
 local content = f:read('*a')
 f:close()
