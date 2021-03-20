@@ -365,7 +365,7 @@ r.PreventUIRefresh(1)
 
 TAG = Get_TAG_Val() ~= '' and Get_TAG_Val() or TAG
 
-local err = TAG == '' and 'The lock tag hasn\'t been defined.' or ((TAG == '"' or TAG == '%') and '        Illegal tag. Quotation mark \"\n\nand percent sign % aren\'t supported.')
+local err = TAG == '' and '\tThe lock tag hasn\'t been defined,\n\nor "BuyOne_Lock FX and FX Chains (guide inside).lua"\n\n\t        file hasn\'t been found.' or ((TAG == '"' or TAG == '%') and '        Illegal tag. Quotation mark \"\n\nand percent sign % aren\'t supported.')
 	if err then r.MB(err,'ERROR',0) r.defer(function() end) return end
 
 local retval, track_num, item_num, fx_num = r.GetFocusedFX() -- item_num is number within the track whose index is returned as track_num
