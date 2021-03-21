@@ -1,10 +1,15 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.03
+-- @version 2.1
 -- @changelog
---   + Now, when moving the waveform, the cursor changes its appearance.
---   + Added option to choose between Play/Stop and Play/Pause when pressing Spacebar.
---   + Polishing the work of Razor Edit.
+--   + Added a Sync button (zoom and waveform position) with Arrange View window.
+--   + Added controls for easy access to changing grid parameters.
+--   + Improved the behavior of the Add Markers function during playback.
+--   + Now the script does not show an error window if no tracks are selected.
+--   + Now the script does not close if the action of the Get Item button caused an error.
+--   + Now errors when the script window is open are displayed only in the script interface, without additional windows.
+--   + Improved behavior when working with Razor Edit.
+--   + Partially rewritten code to free locales (bypassing 200 locale limit)
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -62,7 +67,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.03 by Maxim Kokarev 
+MK Slicer v2.1 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -71,7 +76,7 @@ https://www.facebook.com/MyDawEdition/
 "Remove selected overlapped items (by tracks)" 
 "Remove final selected item in tracks"
 "Unselect all items except first selected in track"
-"Grid switch"
+"Grid switch" (snippet)
 scripts by Archie
 https://forum.cockos.com/member.php?u=120700
 
@@ -89,10 +94,10 @@ script by me2beats
 https://forum.cockos.com/member.php?u=100851
 ]]
 
--------------------------------------------------------------------------------
+----------------------------------------------------------------------------
 -- Some functions(local functions work faster in big cicles(~30%)) ------------
--- R.Ierusalimschy - "lua Performance Tips" -----------------------------------
--------------------------------------------------------------------------------
+-- R.Ierusalimschy - "lua Performance Tips" ----------------------------------
+----------------------------------------------------------------------------
 local r = reaper
 local abs  = math.abs
 local min  = math.min
@@ -123,6 +128,15 @@ Midi_sampler_offs_stat = 0
 Reset_to_def = 0
 RE_Status = 0
 SliceQ_Status_Rand = 0
+Swing_on = 0
+Grid1_on = 0
+Grid2_on = 0
+Grid4_on = 0
+Grid8_on = 0
+Grid16_on = 0
+Grid32_on = 0
+Grid64_on = 0
+GridT_on = 0
 
 ----------------------------Advanced Settings-------------------------------------------
 
@@ -149,6 +163,7 @@ Sampler_preset_state = tonumber(r.GetExtState('cool_MK Slicer.lua','Sampler_pres
 AutoScroll = tonumber(r.GetExtState('cool_MK Slicer.lua','AutoScroll'))or 0;
 PlayMode = tonumber(r.GetExtState('cool_MK Slicer.lua','PlayMode'))or 0;
 Loop_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Loop_on'))or 1;
+Sync_on = tonumber(r.GetExtState('cool_MK Slicer.lua','Sync_on'))or 0;
 ZeroCrossings = tonumber(r.GetExtState('cool_MK Slicer.lua','ZeroCrossings'))or 0;
 ItemFadesOverride = tonumber(r.GetExtState('cool_MK Slicer.lua','ItemFadesOverride'))or 1;
 ObeyingTheSelection = tonumber(r.GetExtState('cool_MK Slicer.lua','ObeyingTheSelection'))or 1;
@@ -384,10 +399,11 @@ sel_tr_count = r.CountSelectedTracks(0)
                r.Main_OnCommand(40061, 0) -- Split at Time Selection
                r.Main_OnCommand(40635, 0) -- Remove Time Selection
            end
-    else
+    elseif sel_tr_count > 1 then
     gfx.quit() 
     r.ShowConsoleMsg("Only single track items, please. User manual: https://forum.cockos.com/showthread.php?t=232672")
     return
+    elseif sel_tr_count ==0 then
   end
 
 local i=0;
@@ -950,12 +966,19 @@ end
 getitem = 1
 
 function GetTempo()
-tempo = r.Master_GetTempo()
-retoffset = (60000/tempo)/16 - 20
-retrigms = retoffset*0.00493 or 0.0555
+    tempo = r.Master_GetTempo()
+    retoffset = (60000/tempo)/16 - 20
+    retrigms = retoffset*0.00493 or 0.0555
 end
 GetTempo()
-
+---------------------Initial Swing Set---------------------------------------------
+    _, _, swng_on, swngdefamt = r.GetSetProjectGrid(0,false)
+   if swngdefamt then
+       swngdefamt = (swngdefamt+1)/2   
+   end
+    if swng_on == 1 then 
+       Swing_on = 1 
+     end
 r.PreventUIRefresh(-1); r.Undo_EndBlock('Slicer', -1)
 
 --------------------------------------------------------------------------------
@@ -1136,7 +1159,7 @@ end
 ----------------------------------------------------------------------------------------------------
 ---   Create Element Child Classes(Button,Slider,Knob)   -------------------------------------------
 ----------------------------------------------------------------------------------------------------
-local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, Txt, Txt2, Line, Line_colored, Line2 = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, Slider_simple, Slider_complex, Slider_Fine, Slider_Swing, Slider_fgain, Rng_Slider, Knob, CheckBox, CheckBox_simple, CheckBox_Show, Frame, Colored_Rect, Colored_Rect_top, Frame_filled, ErrMsg, Txt, Txt2, Line, Line_colored, Line2 = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
   extended(Button,     Element)
   extended(Button_small,     Element)
   extended(Button_top,     Element)
@@ -1147,6 +1170,7 @@ local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, S
   extended(Slider_simple,     Element)
   extended(Slider_complex,     Element)
   extended(Slider_Fine,     Element)
+  extended(Slider_Swing,     Element)
   extended(Slider_fgain,     Element)
   extended(ErrMsg,     Element)
   extended(Txt,     Element)
@@ -1155,7 +1179,7 @@ local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, S
   extended(Line_colored,     Element)
   extended(Line2,     Element)
     -- Create Slider Child Classes --
-    local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Loop_Slider, Rdc_Slider, O_Slider, Q_Slider, X_Slider, X_SliderOff = {},{},{},{},{},{},{},{},{},{},{},{},{},{}
+  local H_Slider, V_Slider, T_Slider, HP_Slider, LP_Slider, G_Slider, S_Slider, Rtg_Slider, Loop_Slider, Rdc_Slider, O_Slider, Sw_Slider, Q_Slider, X_Slider, X_SliderOff = {},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
     extended(H_Slider, Slider_small)
     extended(V_Slider, Slider)
     extended(T_Slider, Slider)
@@ -1167,6 +1191,7 @@ local Button, Button_small, Button_top, Button_Settings, Slider, Slider_small, S
     extended(Rtg_Slider, Slider)
     extended(Rdc_Slider, Slider)
     extended(O_Slider, Slider_Fine)
+    extended(Sw_Slider, Slider_Swing)
     extended(Q_Slider, Slider_simple)
     extended(X_Slider, Slider_simple)
     extended(X_SliderOff, Slider)
@@ -1471,6 +1496,19 @@ function Slider_Fine:set_norm_val_m_wheel()
     return true
 end
 
+function Slider_Swing:set_norm_val_m_wheel()
+    if Shift == true then
+    Mult_S = 0.005 -- Set step
+    else
+    Mult_S = 0.05 -- Set step
+    end
+    local Step = Mult_S
+    if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1) end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0) end
+    return true
+end
+
 function Slider_fgain:set_norm_val_m_wheel()
     if Shift == true then
     Mult_S = 0.005 -- Set step
@@ -1595,6 +1633,16 @@ if RememberLast == 0 then
 Offs_Slider = DefaultOffset
 end
 end
+function Sw_Slider:set_norm_val()
+    local x, w = self.x, self.w
+    local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
+    if Shift then VAL = self.norm_val + ((gfx.mouse_x-last_x)/(w*K))
+       else VAL = (gfx.mouse_x-x)/w end
+    if VAL<0 then VAL=0 elseif VAL>1 then VAL=1 end
+    if MCtrl then VAL = swngdefamt end --set default value by Ctrl+LMB
+    self.norm_val=VAL
+
+end
 function Q_Slider:set_norm_val()
     local x, w = self.x, self.w
     local VAL,K = 0,10 -- VAL=temp value;K=coefficient(when Ctrl pressed)
@@ -1681,6 +1729,11 @@ function O_Slider:draw_body()
     local val = w * self.norm_val
     gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw O_Slider body
 end
+function Sw_Slider:draw_body()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = w * self.norm_val
+    gfx.rect(x+1,y+1, val-2, h-2, true)  -- draw O_Slider body
+end
 function Q_Slider:draw_body()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local val = w * self.norm_val
@@ -1754,6 +1807,12 @@ function Rdc_Slider:draw_lbl()
     gfx.drawstr(self.lbl) -- draw Rdc_Slider label
 end
 function O_Slider:draw_lbl()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local lbl_w, lbl_h = gfx.measurestr(self.lbl)
+    gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
+    gfx.drawstr(self.lbl) -- draw O_Slider label
+end
+function Sw_Slider:draw_lbl()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local lbl_w, lbl_h = gfx.measurestr(self.lbl)
     gfx.x = x+3; gfx.y = y+(h-lbl_h)/2;
@@ -1846,6 +1905,13 @@ function Rdc_Slider:draw_val()
     gfx.drawstr(val) -- draw Rdc_Slider Value
 end
 function O_Slider:draw_val()
+    local x,y,w,h  = self.x,self.y,self.w,self.h
+    local val = string.format("%.2f", self.norm_val)
+    local val_w, val_h = gfx.measurestr(val)
+    gfx.x = x+w-val_w-5; gfx.y = y+(h-val_h)/2;
+    gfx.drawstr(val) -- draw O_Slider Value
+end
+function Sw_Slider:draw_val()
     local x,y,w,h  = self.x,self.y,self.w,self.h
     local val = string.format("%.2f", self.norm_val)
     local val_w, val_h = gfx.measurestr(val)
@@ -2058,6 +2124,51 @@ if fnt_sz >= 18 then fnt_sz = 18 end
        if runcheck ~= 1 then
            Main_Timer()
        end
+ ---------------------------------------------------------
+             end  
+          end
+          -- in elm L_down -----
+          if self:mouseDown() then a=a+0.3 
+             self:set_norm_val()
+             if self.onMove then self.onMove() end 
+          end
+          --in elm L_up(released and was previously pressed)--
+          --if self:mouseClick() then --[[self.onClick()]] end
+          -- L_up released(and was previously pressed in elm)--
+          if self:mouseUp() and self.onUp then self.onUp()
+             MouseUpX = 1
+             mouse_ox, mouse_oy = -1, -1 -- reset after self.onUp()
+          end    
+    -- Draw sldr body, frame ---
+    gfx.set(r,g,b,a)  -- set body,frame color
+    self:draw_body()  -- body
+    self:draw_frame() -- frame
+    -- Draw label,value --------
+    gfx.set(table.unpack(self.fnt_rgba))   -- set lbl,val color
+    gfx.setfont(1, fnt, fnt_sz) -- set lbl,val fnt
+    self:draw_lbl()   -- draw lbl
+    self:draw_val()   -- draw value
+end
+------------------------------------------------------------------------------
+function Slider_Swing:draw() -- Offset slider with fine tuning and additional line redrawing
+  if not Z_w or not Z_h then return end -- return if zoom not defined
+  self.x, self.w = (self.def_xywh[1]* Z_w) , (self.def_xywh[3]* Z_w) -- upd x,w
+  self.y, self.h = (self.def_xywh[2]* Z_h) , (self.def_xywh[4]* Z_h) -- upd y,h
+    local r,g,b,a  = self.r,self.g,self.b,self.a
+    local fnt,fnt_sz = self.fnt, self.fnt_sz*(Z_h*1.05)
+    if fnt_sz <= 12 then fnt_sz = 12 end
+if fnt_sz >= 18 then fnt_sz = 18 end
+    -- Get mouse state ---------
+          -- in element(and get mouswheel) --
+          if self:mouseIN() then a=a+0.2
+             if self:set_norm_val_m_wheel() then 
+             if gfx.mouse_wheel == 0 then 
+                if self.onMove then self.onMove() end 
+     end
+----------------------------------------------------------                  
+
+                        MW_doit_slider_Swing()  --------- main function
+  
  ---------------------------------------------------------
              end  
           end
@@ -2934,74 +3045,106 @@ corrY2 = 3 -- Random_Setup menu correction
 ---------------------------------------------------------------
 ---  Create Frames   ------------------------------------------
 ---------------------------------------------------------------
-local Fltr_Frame = Frame:new(10, 375+corrY,180,100)
-local Gate_Frame = Frame:new(200,375+corrY,180,100)
-local Mode_Frame = Frame:new(390,375+corrY,645,100)
-local Mode_Frame_filled = Frame_filled:new(670,380+corrY,191,69,  0.2,0.2,0.2,0.5 )
-local Gate_Frame_filled = Frame_filled:new(210,380+corrY,160,89,  0.2,0.2,0.2,0.5 )
+------local tables to reduce locals (avoid 200 locals limits)-------
+local elm_table = {Fltr_Frame, Gate_Frame, Mode_Frame, Mode_Frame_filled, Gate_Frame_filled, Random_Setup_Frame_filled, Random_Setup_Frame, Grid1_Led, Grid2_Led, Grid4_Led, Grid8_Led, Grid16_Led, Grid32_Led, Grid64_Led, GridT_Led, Swing_Led}
 
-local Random_Setup_Frame_filled = Frame_filled:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 )
-local Random_Setup_Frame = Frame:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 )
+elm_table[1] = Frame:new(10, 375+corrY,180,100) --Fltr_Frame
+elm_table[2] = Frame:new(200,375+corrY,180,100) --Gate_Frame
+elm_table[3] = Frame:new(390,375+corrY,645,100) --Mode_Frame
+elm_table[4] = Frame_filled:new(670,380+corrY,191,69,  0.2,0.2,0.2,0.5 ) --Mode_Frame_filled
+elm_table[5] = Frame_filled:new(210,380+corrY,160,89,  0.2,0.2,0.2,0.5 ) --Gate_Frame_filled
 
-local Frame_byGrid = Colored_Rect:new(591,410+corrY,2,18,  0.1,0.7,0.6,1 ) -- Blue indicator
-local Frame_byGrid2 = Colored_Rect:new(591,410+corrY,2,18,  0.7,0.7,0.0,1 ) -- Yellow indicator
+elm_table[6] = Frame_filled:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame_filled
+elm_table[7] = Frame:new(670,373+corrY2,147,112,  0.15,0.15,0.15,1 ) --Random_Setup_Frame
 
-local Light_Loop_on = Colored_Rect_top:new(981,5,2,20,  0.0,0.7,0.0,1 ) -- Green indicator
-local Light_Loop_off = Colored_Rect_top:new(981,5,2,20,  0.5,0.5,0.5,0.5 ) -- Grey indicator
+elm_table[8] = Colored_Rect_top:new(50,24,40,2,  0.0,0.7,0.0,1 ) -- Grid1_Led
+elm_table[9] = Colored_Rect_top:new(92,24,40,2,  0.0,0.7,0.0,1 ) -- Grid2_Led
+elm_table[10] = Colored_Rect_top:new(134,24,40,2,  0.0,0.7,0.0,1 ) -- Grid4_Led
+elm_table[11] = Colored_Rect_top:new(176,24,40,2,  0.0,0.7,0.0,1 ) -- Grid8_Led
+elm_table[12] = Colored_Rect_top:new(218,24,40,2,  0.0,0.7,0.0,1 ) -- Grid16_Led
+elm_table[13] = Colored_Rect_top:new(260,24,40,2,  0.0,0.7,0.0,1 ) -- Grid32_Led
+elm_table[14] = Colored_Rect_top:new(302,24,40,2,  0.0,0.7,0.0,1 ) -- Grid64_Led
+elm_table[15] = Colored_Rect_top:new(344,24,40,2,  0.0,0.7,0.0,1 ) -- GridT_Led
+elm_table[16] = Colored_Rect_top:new(391,24,50,2,  0.0,0.7,0.0,1 ) -- Swing_Led
 
-local Rand_Mode_Color1 = Colored_Rect:new(675,377+corrY2,2,14,  0.1,0.8,0.2,1 ) --  indicator
-local Rand_Mode_Color2 = Colored_Rect:new(675,392+corrY2,2,14,  0.7,0.7,0.0,1 ) --  indicator
-local Rand_Mode_Color3 = Colored_Rect:new(675,407+corrY2,2,14,  0.8,0.4,0.1,1 ) --  indicator
-local Rand_Mode_Color4 = Colored_Rect:new(675,422+corrY2,2,14,  0.7,0.0,0.0,1 ) --  indicator
-local Rand_Mode_Color5 = Colored_Rect:new(675,452+corrY2,2,14,  0.2,0.5,1,1 ) --  indicator
-local Rand_Mode_Color6 = Colored_Rect:new(675,437+corrY2,2,14,  0.8,0.1,0.8,1 ) --  indicator
-local Rand_Mode_Color7 = Colored_Rect:new(675,467+corrY2,2,14,  0.1,0.7,0.6,1 ) --  indicator
+local leds_table = {Frame_byGrid, Frame_byGrid2, Light_Loop_on, Light_Loop_off, Light_Sync_on, Light_Sync_off, Rand_Mode_Color1, Rand_Mode_Color2, Rand_Mode_Color3, Rand_Mode_Color4, Rand_Mode_Color5, Rand_Mode_Color6, Rand_Mode_Color7, Rand_Button_Color1, Rand_Button_Color2, Rand_Button_Color3, Rand_Button_Color4, Rand_Button_Color5, Rand_Button_Color6, Rand_Button_Color7}
 
-local Rand_Button_Color1 = Colored_Rect:new(598,436,8,2,  0.1,0.8,0.2,1 ) --  indicator
-local Rand_Button_Color2 = Colored_Rect:new(607,436,9,2,  0.7,0.7,0.0,1 ) --  indicator
-local Rand_Button_Color3 = Colored_Rect:new(617,436,9,2,  0.8,0.4,0.1,1 ) --  indicator
-local Rand_Button_Color4 = Colored_Rect:new(627,436,9,2,  0.7,0.0,0.0,1 ) --  indicator
-local Rand_Button_Color5 = Colored_Rect:new(647,436,9,2,  0.2,0.5,1,1 ) --  indicator
-local Rand_Button_Color6 = Colored_Rect:new(637,436,9,2,  0.8,0.1,0.8,1 ) --  indicator
-local Rand_Button_Color7 = Colored_Rect:new(657,436,8,2,  0.1,0.7,0.6,1 ) --  indicator
+leds_table[1] = Colored_Rect:new(591,410+corrY,2,18,  0.1,0.7,0.6,1 ) -- Frame_byGrid (Blue indicator)
+leds_table[2] = Colored_Rect:new(591,410+corrY,2,18,  0.7,0.7,0.0,1 ) -- Frame_byGrid2 (Yellow indicator)
 
-local Triangle = Txt2:new(642,415+corrY2,55,18, 0.4,0.4,0.4,1, ">","Arial",20)
-local RandText = Txt2:new(749,374+corrY2,55,18, 0.4,0.4,0.4,1, "Intensity","Arial",10)
+leds_table[3] = Colored_Rect_top:new(981,5,2,20,  0.0,0.7,0.0,1 ) -- Light_Loop_on
+leds_table[4] = Colored_Rect_top:new(981,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Loop_off
 
-local Q_Rnd_Linked = Line_colored:new(482,375+corrY,152,18,  0.7,0.5,0.1,1) --| Q_Rnd_Linked Bracket
-local Q_Rnd_Linked2 = Line2:new(480,380+corrY,156,18,  0.177,0.177,0.177,1)--| Q_Rnd_Linked Bracket fill
+leds_table[5] = Colored_Rect_top:new(921,5,2,20,  0.0,0.7,0.0,1 ) -- Light_Sync_on
+leds_table[6] = Colored_Rect_top:new(921,5,2,20,  0.5,0.5,0.5,0.5 ) -- Light_Sync_off
 
-local Line = Line:new(774,404+corrY,82,6) --| Preset/Velocity Bracket
-local Line2 = Line2:new(774,407+corrY,82,4,  0.177,0.177,0.177,1)--| Preset/Velocity Bracket fill
-local Loop_Dis = Colored_Rect_top:new(10,28,1024,15,  0.23,0.23,0.23,0.5)--| Loop Disable fill
+leds_table[7] = Colored_Rect:new(675,377+corrY2,2,14,  0.1,0.8,0.2,1 ) --  Rand_Mode_Color1
+leds_table[8] = Colored_Rect:new(675,392+corrY2,2,14,  0.7,0.7,0.0,1 ) --  Rand_Mode_Color2
+leds_table[9] = Colored_Rect:new(675,407+corrY2,2,14,  0.8,0.4,0.1,1 ) --  Rand_Mode_Color3
+leds_table[10] = Colored_Rect:new(675,422+corrY2,2,14,  0.7,0.0,0.0,1 ) --  Rand_Mode_Color4
+leds_table[11] = Colored_Rect:new(675,452+corrY2,2,14,  0.2,0.5,1,1 ) --  Rand_Mode_Color5
+leds_table[12] = Colored_Rect:new(675,437+corrY2,2,14,  0.8,0.1,0.8,1 ) --  Rand_Mode_Color6
+leds_table[13] = Colored_Rect:new(675,467+corrY2,2,14,  0.1,0.7,0.6,1 ) --  Rand_Mode_Color7
 
-local Frame_Loop_TB = {Light_Loop_on}
-local Frame_Loop_TB2 = {Light_Loop_off, Loop_Dis}
-local Frame_TB = {Fltr_Frame, Gate_Frame, Mode_Frame} 
-local FrameR_TB = {Line, Line2}
-local FrameQR_Link_TB = {Q_Rnd_Linked,Q_Rnd_Linked2}
-local Frame_TB1 = {Frame_byGrid2}
-local Frame_TB2 = {Gate_Frame_filled, Frame_byGrid} -- Grid mode
-local Frame_TB2_Trigg = {Mode_Frame_filled}
+leds_table[14] = Colored_Rect:new(598,436,8,2,  0.1,0.8,0.2,1 ) --  Rand_Button_Color1
+leds_table[15] = Colored_Rect:new(607,436,9,2,  0.7,0.7,0.0,1 ) --  Rand_Button_Color2
+leds_table[16] = Colored_Rect:new(617,436,9,2,  0.8,0.4,0.1,1 ) --  Rand_Button_Color3
+leds_table[17] = Colored_Rect:new(627,436,9,2,  0.7,0.0,0.0,1 ) --  Rand_Button_Color4
+leds_table[18] = Colored_Rect:new(647,436,9,2,  0.2,0.5,1,1 ) --  Rand_Button_Color5
+leds_table[19] = Colored_Rect:new(637,436,9,2,  0.8,0.1,0.8,1 ) --  Rand_Button_Color6
+leds_table[20] = Colored_Rect:new(657,436,8,2,  0.1,0.7,0.6,1 ) --  Rand_Button_Color7
 
-local Rand_Mode_Color1_TB = {Rand_Mode_Color1}
-local Rand_Mode_Color2_TB = {Rand_Mode_Color2}
-local Rand_Mode_Color3_TB = {Rand_Mode_Color3}
-local Rand_Mode_Color4_TB = {Rand_Mode_Color4}
-local Rand_Mode_Color5_TB = {Rand_Mode_Color5}
-local Rand_Mode_Color6_TB = {Rand_Mode_Color6}
-local Rand_Mode_Color7_TB = {Rand_Mode_Color7}
+local others_table = {Triangle, RandText, Q_Rnd_Linked, Q_Rnd_Linked2, Line, Line2, Loop_Dis}
 
-local Rand_Button_Color1_TB = {Rand_Button_Color1}
-local Rand_Button_Color2_TB = {Rand_Button_Color2}
-local Rand_Button_Color3_TB = {Rand_Button_Color3}
-local Rand_Button_Color4_TB = {Rand_Button_Color4}
-local Rand_Button_Color5_TB = {Rand_Button_Color5}
-local Rand_Button_Color6_TB = {Rand_Button_Color6}
-local Rand_Button_Color7_TB = {Rand_Button_Color7}
+others_table[1] = Txt2:new(642,415+corrY2,55,18, 0.4,0.4,0.4,1, ">","Arial",20) --Triangle
+others_table[2] = Txt2:new(749,374+corrY2,55,18, 0.4,0.4,0.4,1, "Intensity","Arial",10) --RandText
 
-local Triangle_TB = {Triangle}
-local RandText_TB = {RandText}
+others_table[3] = Line_colored:new(482,375+corrY,152,18,  0.7,0.5,0.1,1) --| Q_Rnd_Linked (Bracket)
+others_table[4] = Line2:new(480,380+corrY,156,18,  0.177,0.177,0.177,1)--| Q_Rnd_Linked2 (Bracket fill)
+
+others_table[5] = Line:new(774,404+corrY,82,6) --Line (Preset/Velocity Bracket)
+others_table[6] = Line2:new(774,407+corrY,82,4,  0.177,0.177,0.177,1)--Line2 (Preset/Velocity Bracket fill)
+others_table[7] = Colored_Rect_top:new(10,28,1024,15,  0.23,0.23,0.23,0.5)--Loop_Dis (Loop Disable fill)
+
+local Frame_Sync_TB = {leds_table[5]}
+local Frame_Sync_TB2 = {leds_table[6]}
+local Frame_Loop_TB = {leds_table[3]}
+local Frame_Loop_TB2 = {leds_table[4], others_table[7]}
+local Frame_TB = {elm_table[1], elm_table[2], elm_table[3]} 
+local FrameR_TB = {others_table[5], others_table[6]}
+local FrameQR_Link_TB = {others_table[3],others_table[4]}
+local Frame_TB1 = {leds_table[2]}
+local Frame_TB2 = {elm_table[5], leds_table[1]} -- Grid mode
+local Frame_TB2_Trigg = {elm_table[4]}
+
+local Grid1_Led_TB = {elm_table[8]}
+local Grid2_Led_TB = {elm_table[9]}
+local Grid4_Led_TB = {elm_table[10]}
+local Grid8_Led_TB = {elm_table[11]}
+local Grid16_Led_TB = {elm_table[12]}
+local Grid32_Led_TB = {elm_table[13]}
+local Grid64_Led_TB = {elm_table[14]}
+local GridT_Led_TB = {elm_table[15]}
+local Swing_Led_TB = {elm_table[16]}
+
+local Rand_Mode_Color1_TB = {leds_table[7]}
+local Rand_Mode_Color2_TB = {leds_table[8]}
+local Rand_Mode_Color3_TB = {leds_table[9]}
+local Rand_Mode_Color4_TB = {leds_table[10]}
+local Rand_Mode_Color5_TB = {leds_table[11]}
+local Rand_Mode_Color6_TB = {leds_table[12]}
+local Rand_Mode_Color7_TB = {leds_table[13]}
+
+local Rand_Button_Color1_TB = {leds_table[14]}
+local Rand_Button_Color2_TB = {leds_table[15]}
+local Rand_Button_Color3_TB = {leds_table[16]}
+local Rand_Button_Color4_TB = {leds_table[17]}
+local Rand_Button_Color5_TB = {leds_table[18]}
+local Rand_Button_Color6_TB = {leds_table[19]}
+local Rand_Button_Color7_TB = {leds_table[20]}
+
+local Triangle_TB = {others_table[1]}
+local RandText_TB = {others_table[2]}
 
 local Midi_Sampler = CheckBox_simple:new(670,410+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  MIDI_Mode,
                               {"Sampler","Trigger"} )
@@ -3555,24 +3698,239 @@ end
 local LoopScale = Loop_Slider:new(10,29,1024,18, 0.28,0.4,0.7,0.8, "","Arial",16, 0,1 ) -- Play Loop Range
 
 function LoopScale:draw_val()
-    if Loop_on == 1 then
+
            if loop_start then
               if self_Zoom == nil then self_Zoom = 1 end
               if shift_Pos == nil then shift_Pos = 0 end
               rng1 = math_round(loop_start+(self.norm_val/self_Zoom+(shift_Pos/1024))*loop_length,3)
               rng2 = math_round(loop_start+(self.norm_val2/self_Zoom+(shift_Pos/1024))*loop_length,3)
            end
-    end
 end
+
               if rng1 == nil then rng1 = 0 end
               if rng2 == nil then rng2 = 1 end
+
+-- Swing Button ----------------------------
+local Swing_Btn = Button_top:new(391,5,50,19, 0.3,0.3,0.3,1, "Swing",    "Arial",16 )
+Swing_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, swingamt = r.GetSetProjectGrid(0,false)
+        if Swing_on == 0 then 
+             Swing_on = 1
+    r.GetSetProjectGrid(0, true, division, 1, swing_slider_amont)
+               else
+             Swing_on = 0
+    r.GetSetProjectGrid(0, true, division, 0)
+        end
+   end 
+end 
+
+triplets = 2
+
+-- Grid Button T----------------------------
+local GridT_Btn = Button_top:new(344,5,40,19, 0.3,0.3,0.3,1, "T",    "Arial",16 )
+GridT_Btn.onClick = 
+function()
+   if Wave.State then 
+        if GridT_on == 0 then 
+             GridT_on = 1
+             triplets = 3
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+    r.GetSetProjectGrid(0, true, (division+division/3)/2, swing_mode)
+               else
+             GridT_on = 0
+             triplets = 2
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+    r.GetSetProjectGrid(0, true, division+division/2, swing_mode)
+        end
+   end 
+end 
+
+-- Grid Button 1----------------------------
+local Grid1_Btn = Button_top:new(50,5,40,19, 0.3,0.3,0.3,1, "1",    "Arial",16 )
+Grid1_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid1_on == 0 then 
+             Grid1_on = 1
+             Grid2_on = 0
+             Grid4_on = 0
+             Grid8_on = 0
+             Grid16_on = 0
+             Grid32_on = 0
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, 2/triplets, swing_mode)
+               else
+             Grid1_on = 0
+        end
+   end 
+end 
+
+-- Grid Button 1/2----------------------------
+local Grid2_Btn = Button_top:new(92,5,40,19, 0.3,0.3,0.3,1, "1/2",    "Arial",16 )
+Grid2_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid2_on == 0 then 
+             Grid1_on = 0
+             Grid2_on = 1
+             Grid4_on = 0
+             Grid8_on = 0
+             Grid16_on = 0
+             Grid32_on = 0
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, 1/triplets, swing_mode)
+               else
+             Grid2_on = 0
+        end
+   end 
+end 
+
+-- Grid Button 1/4----------------------------
+local Grid4_Btn = Button_top:new(134,5,40,19, 0.3,0.3,0.3,1, "1/4",    "Arial",16 )
+Grid4_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid4_on == 0 then 
+             Grid1_on = 0
+             Grid2_on = 0
+             Grid4_on = 1
+             Grid8_on = 0
+             Grid16_on = 0
+             Grid32_on = 0
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, 0.5/triplets, swing_mode)
+               else
+             Grid4_on = 0
+        end
+   end 
+end 
+
+-- Grid Button 1/8----------------------------
+local Grid8_Btn = Button_top:new(176,5,40,19, 0.3,0.3,0.3,1, "1/8",    "Arial",16 )
+Grid8_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid8_on == 0 then 
+             Grid1_on = 0
+             Grid2_on = 0
+             Grid4_on = 0
+             Grid8_on = 1
+             Grid16_on = 0
+             Grid32_on = 0
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, 0.25/triplets, swing_mode)
+               else
+             Grid8_on = 0
+        end
+   end 
+end 
+
+-- Grid Button 1/16----------------------------
+local Grid16_Btn = Button_top:new(218,5,40,19, 0.3,0.3,0.3,1, "1/16",    "Arial",16 )
+Grid16_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid16_on == 0 then 
+             Grid1_on = 0
+             Grid2_on = 0
+             Grid4_on = 0
+             Grid8_on = 0
+             Grid16_on = 1
+             Grid32_on = 0
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, 0.125/triplets, swing_mode)
+               else
+             Grid16_on = 0
+        end
+   end 
+end 
+
+-- Grid Button 1/32----------------------------
+local Grid32_Btn = Button_top:new(260,5,40,19, 0.3,0.3,0.3,1, "1/32",    "Arial",16 )
+Grid32_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid32_on == 0 then 
+             Grid1_on = 0
+             Grid2_on = 0
+             Grid4_on = 0
+             Grid8_on = 0
+             Grid16_on = 0
+             Grid32_on = 1
+             Grid64_on = 0
+    r.GetSetProjectGrid(0, true, 0.0625/triplets, swing_mode)
+               else
+             Grid32_on = 0
+        end
+   end 
+end 
+
+-- Grid Button 1/64----------------------------
+local Grid64_Btn = Button_top:new(302,5,40,19, 0.3,0.3,0.3,1, "1/64",    "Arial",16 )
+Grid64_Btn.onClick = 
+function()
+   if Wave.State then 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+        if Grid64_on == 0 then 
+             Grid1_on = 0
+             Grid2_on = 0
+             Grid4_on = 0
+             Grid8_on = 0
+             Grid16_on = 0
+             Grid32_on = 0
+             Grid64_on = 1
+    r.GetSetProjectGrid(0, true, 0.03125/triplets, swing_mode)
+               else
+             Grid64_on = 0
+        end
+   end 
+end 
+
+-------------------------------------------------------------------------------------
+-----------------Swing Slider-----------------------------------------------------
+-------------------------------------------------------------------------------------
+
+local Swing_Sld = Sw_Slider:new(443,5,100,20, 0.28,0.4,0.7,0.8, " ","Arial",16, swngdefamt )
+function Swing_Sld:draw_val()
+
+  self.form_val  = (100- self.norm_val * 200)*( -1)     -- form_val
+
+  function fixzero()
+  self_form_val = self.form_val
+  if (self_form_val== 0.0)then self_form_val = 0 end
+  end
+  fixzero()  
+
+  local x,y,w,h  = self.x,self.y,self.w,self.h
+  local val = string.format("%.0f", self_form_val).." %"
+  local val_w, val_h = gfx.measurestr(val)
+  gfx.x = x+w-val_w-3
+  gfx.drawstr(val)--draw Slider Value
+  swing_slider_amont = self_form_val/100
+  end
+Swing_Sld.onUp =
+function() 
+   if Wave.State then
+    fixzero() 
+    local _, division, _, _ = r.GetSetProjectGrid(0,false)
+    r.GetSetProjectGrid(0, true, division, swing_mode, swing_slider_amont)
+   end 
+end
 
 ----------------------------------------------------------------------------------
 ----------------------Notes CheckBox---------------------------------------------
 ----------------------------------------------------------------------------------
 Trigger_Oct_Shift = tonumber(r.GetExtState('cool_MK Slicer.lua','Trigger_Oct_Shift'))or 0;
-local octa = Trigger_Oct_Shift+1
-local note = 23+(octa*12)
+octa = Trigger_Oct_Shift+1
+note = 23+(octa*12)
 
 local OutNote  = CheckBox_simple:new(670,430+corrY,98,18, 0.28,0.4,0.7,0.8, "","Arial",16,  OutNote_State,
                               {
@@ -3622,6 +3980,10 @@ local Velocity = Txt:new(788,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Velocity","Arial
 local Slider_TB = {HP_Freq,LP_Freq,Fltr_Gain, 
                    Gate_Thresh,Gate_Sensitivity,Gate_Retrig,Gate_ReducePoints,Offset_Sld,QStrength_Sld,Project}
 
+local Sliders_Grid_TB = {Grid1_Btn, Grid2_Btn, Grid4_Btn, Grid8_Btn, Grid16_Btn, Grid32_Btn, Grid64_Btn, GridT_Btn}
+
+local Slider_Swing_TB = {Swing_Sld}
+
 local Slider_TB_Trigger = {Gate_VeloScale, VeloMode,OutNote, Velocity}
 
 local Slider_TB_Trigger_notes = {Gate_VeloScale, VeloMode,OutNote2, Velocity}
@@ -3634,7 +3996,6 @@ local SliderRandPan_TB = {RandPan_Sld}
 local SliderRandPtch_TB = {RandPtch_Sld}
 local SliderRand_TBPos = {RandPos_Sld}
 local SliderRand_TBM = {RandRev_Sld}
-
 
 local Preset = Txt:new(788,384+corrY,55,18, 0.8,0.8,0.8,0.8, "Preset","Arial",22)
 
@@ -3657,6 +4018,18 @@ function()
    end 
 end 
 
+-- Create Sync Button ----------------------------
+local Sync_Btn = Button_top:new(924,5,50,20, 0.3,0.3,0.3,1, "Sync",    "Arial",16 )
+Sync_Btn.onClick = 
+function()
+   if Wave.State then 
+        if Sync_on == 0 then 
+             Sync_on = 1
+               else
+             Sync_on = 0
+        end
+   end 
+end 
 
 -- Get Selection button --------------------------
 local Get_Sel_Button = Button:new(20,380+corrY,160,25, 0.3,0.3,0.3,1, "Get Item",    "Arial",16 )
@@ -3829,27 +4202,10 @@ sel_tr_count = r.CountSelectedTracks(0)
                r.Main_OnCommand(40061, 0) -- Split at Time Selection
                r.Main_OnCommand(40635, 0) -- Remove Time Selection
            end
-    else
-    gfx.quit() 
-    r.ShowConsoleMsg("Only single track items, please. User manual: https://forum.cockos.com/showthread.php?t=232672")
-    return
+    elseif sel_tr_count > 1 then
+ goto next_step
+    elseif sel_tr_count ==0 then
   end
-
-local i=0;
-while(true) do;
-  i=i+1;
-  local item = r.GetSelectedMediaItem(0,i-1);
-  if item then;
-  active_take = r.GetActiveTake(item)  -- active take in item
-    if r.TakeIsMIDI(active_take) then 
-       gfx.quit() 
-       r.ShowConsoleMsg("Only Wave items, please. Additional help: https://forum.cockos.com/showthread.php?t=232672") 
-       return 
-    end
-  else;
-    break;
-  end;
-end;
 
 function re_createRE()
     local itemCount = r.CountSelectedMediaItems(0) -- re-create deleted RE
@@ -3898,7 +4254,7 @@ end
              re_createRE()
              deferinit()
         end
-
+::next_step::
 ---------------------------------------End of RE_Splits----------------------------------------
 
 function sel_tracks_items() --Select only tracks of selected items
@@ -4826,13 +5182,13 @@ end
 --- Button_TB --------------------------
 ----------------------------------------
 local Loop_TB = {LoopScale}
-local LoopBtn_TB = {Loop_Btn}
+local LoopBtn_TB = {Loop_Btn, Sync_Btn, Swing_Btn}
 
 local Checkbox_TB_preset = {Sampler_preset}
 
 local Button_TB = {Get_Sel_Button, Settings, Just_Slice, Quantize_Slices, Add_Markers, Quantize_Markers, Random, Reset_All, Random_SetupB}
 local Button_TB2 = {Create_MIDI, Midi_Sampler}
-local Random_Setup_TB2 = {Random_Setup_Frame_filled, Random_Setup_Frame, Random_OrderB, Random_VolB, Random_PitchB, Random_PanB, Random_MuteB, Random_PositionB, Random_ReverseB, Random_SetupClearB}
+local Random_Setup_TB2 = {elm_table[6], elm_table[7], Random_OrderB, Random_VolB, Random_PitchB, Random_PanB, Random_MuteB, Random_PositionB, Random_ReverseB, Random_SetupClearB}
  
 -------------------------------------------------------------------------------------
 --- CheckBoxes ---------------------------------------------------------------------
@@ -5758,7 +6114,7 @@ MarkersQ_Status = 1
 SliceQ_Init_Status = 0
 Reset_Status = 1
 
-if Random_Status == 1 then  
+if Random_Status == 1 or Markers_Status == 1 then  
 Wave:Reset_All()
 end
 
@@ -6926,7 +7282,7 @@ self_Zoom = self.Zoom --refresh loop by mw middle click
     end
 
 
-if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then
+if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then -- set and delay new cursor
 
         time_start = reaper.time_precise()       
         local function Main()     
@@ -6946,6 +7302,30 @@ if Cursor_Status == 1 and (last_x - gfx.mouse_x) ~= 0.0 then
            Main()
         end
 
+end
+
+MouseAct = 0
+if ((last_x - gfx.mouse_x) ~= 0.0) and (self:mouseDown() or self:mouseM_Down()) then MouseAct = 1 end
+
+if Sync_on == 1 and ((self:mouseIN() and gfx.mouse_wheel ~= 0) or MouseAct == 1) then -- sync_on by mousewheel only
+
+        time_startx = reaper.time_precise()       
+ local  function Mainx()     
+            local elapsedx = reaper.time_precise() - time_startx      
+            if elapsedx >= 0.2 then
+              Sync_on2 = 0
+              runcheckx = 0
+                return
+            else
+             Sync_on2 = 1
+              runcheckx = 1
+                reaper.defer(Mainx)
+            end           
+        end
+        
+        if runcheckx ~= 1 then
+           Mainx()
+        end
 end
 
     --------------------------------------------
@@ -7086,6 +7466,59 @@ function MAIN()
     if Wave.State then      
           Wave:from_gfxBuffer() -- Wave from gfx buffer
           Gate_Gl:draw_Lines()  -- Draw Gate trig-lines
+
+        local _, division, swing, _ = r.GetSetProjectGrid(0,false)
+-----------------------------Grid Buttons Leds-------------------------------------------------------
+        if division == 1 or division == 2/3 then
+                 for key,frame  in pairs(Grid1_Led_TB)    do frame:draw()  end  
+        Grid1_on = 0
+        end
+        if division == 0.5 or division == 1/3 then
+                 for key,frame  in pairs(Grid2_Led_TB)    do frame:draw()  end  
+        Grid2_on = 0
+        end
+        if division == 0.25 or division == 0.5/3 then
+                 for key,frame  in pairs(Grid4_Led_TB)    do frame:draw()  end  
+        Grid4_on = 0
+        end
+        if division == 0.125 or division == 0.25/3 then
+                 for key,frame  in pairs(Grid8_Led_TB)    do frame:draw()  end  
+        Grid8_on = 0
+        end
+        if division == 0.0625 or division == 0.125/3 then
+                 for key,frame  in pairs(Grid16_Led_TB)    do frame:draw()  end  
+        Grid16_on = 0
+        end
+        if division == 0.03125 or division == 0.0625/3 then
+                 for key,frame  in pairs(Grid32_Led_TB)    do frame:draw()  end 
+        Grid32_on = 0 
+        end
+        if division == 0.015625 or division == 0.03125/3 then
+                 for key,frame  in pairs(Grid64_Led_TB)    do frame:draw()  end  
+        Grid64_on = 0
+        end
+           if ((floor(1/division+.5)) % 3) == 0 then Trplts = true else Trplts = false end;
+        if GridT_on == 1 or Trplts == true then
+                 for key,frame  in pairs(GridT_Led_TB)    do frame:draw()  end  
+        end
+        if Swing_on == 1 then
+                 for key,frame  in pairs(Swing_Led_TB)    do frame:draw()  end  
+        end
+
+-----------------------------Top Buttons-------------------------------------------------------
+
+              for key,btn    in pairs(Sliders_Grid_TB)   do btn:draw()    end 
+
+           if swing == 1  then
+              for key,btn    in pairs(Slider_Swing_TB)   do btn:draw()    end 
+          end
+
+           if Sync_on == 1 then
+              for key,btn    in pairs(Frame_Sync_TB)   do btn:draw()    end 
+              else
+              for key,btn    in pairs(Frame_Sync_TB2)   do btn:draw()    end 
+          end
+
           if Loop_on == 1 then
               for key,btn    in pairs(Frame_Loop_TB)   do btn:draw()    end 
               for key,btn    in pairs(Loop_TB)   do btn:draw()    end 
@@ -7230,6 +7663,27 @@ function MW_doit_slider_Fine()
             DrawGridGuides()
       end
 end
+
+function MW_doit_slider_Swing()
+        time_start = reaper.time_precise()       
+        local function Mainz()     
+            local elapsed = reaper.time_precise() - time_start       
+            if elapsed >= 0.1 then
+                --
+              runcheck = 0
+                return
+            else         
+        r.GetSetProjectGrid(0, true, division, swing_mode, swing_slider_amont) --
+              runcheck = 1
+                reaper.defer(Mainz)
+            end           
+        end
+        
+   if runcheck ~= 1 then
+      Mainz()
+   end
+end
+
 function MW_doit_slider_fgain()
       if Wave.State then
             Gate_Gl:Apply_toFiltered() -- redraw transient markers
@@ -7306,6 +7760,7 @@ function store_settings2() --store sliders/checkboxes
         r.SetExtState('cool_MK Slicer.lua','RandPos_Sld.norm_val',RandPos_Sld.norm_val,true);
         r.SetExtState('cool_MK Slicer.lua','RandRev_Sld.norm_val',RandRev_Sld.norm_val,true);
 
+          r.SetExtState('cool_MK Slicer.lua','Sync_on',Sync_on,true);
      end
 end
 
@@ -7328,7 +7783,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.03"
+    local Wnd_Title = "MK Slicer v2.1"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -7365,7 +7820,7 @@ function Info_Line()
         local i,T,str1,str2,str3,str4;
     if  division >= 0.6 and division <= 0.7 then divisi = division/2
     else divisi = division end
-        fraction = floor(1/divisi+.5);
+        fraction = floor(1/divisi+.5)
         str1 = (string.format("%.0f",1).."/"..string.format("%.0f",fraction)):gsub("/%s-1$","");
         if division >= 1 then str2 = string.format("%.3f",division):gsub("[0.]-$","") else str2 = str1 end;
         if (fraction % 3) == 0 then T = true else T = false end;
@@ -7391,6 +7846,7 @@ end
 ---------------------------------------
 --   Mainloop   ------------------------
 ---------------------------------------
+
 function mainloop()
 
     -- zoom level -- 
@@ -7444,9 +7900,33 @@ function mainloop()
         r.GetSet_LoopTimeRange(isloop, true, rng1, rng2, false)
     end
 
+
+    if Sync_on2 == 1 then
+           if loop_start then
+              if self_Zoom == nil then self_Zoom = 1 end
+              if shift_Pos == nil then shift_Pos = 0 end
+              rng3 = math_round(loop_start-((loop_length/self_Zoom)/20)+(0/self_Zoom+(shift_Pos/1024))*( loop_length ),3)
+              rng4 = math_round(loop_start+((loop_length/self_Zoom)/16)+(1/self_Zoom+(shift_Pos/1024))*( loop_length ),3)
+           end
+
+              if rng3 == nil then rng3 = 0 end
+              if rng4 == nil then rng4 = 1 end
+
+         reaper.GetSet_ArrangeView2( 0,1,0,0,rng3, rng4 )
+
+    end
+
+if gfx.mouse_wheel ~= 0 then
+wheel_check = 1
+else
+wheel_check = 0
+end
+
     last_mouse_cap = gfx.mouse_cap
     last_x, last_y = gfx.mouse_x, gfx.mouse_y
     gfx.mouse_wheel = 0 -- reset mouse_wheel
+
+
     char = gfx.getchar()
 
     if char==32 then 
@@ -7611,7 +8091,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.03"
+     local Wnd_Title = "MK Slicer v2.1"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -7623,7 +8103,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.03"
+    local Wnd_Title = "MK Slicer v2.1"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
