@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="641dce873437ac6a10f7e340d7d49a5d57f45764" name="ReaTeam Scripts">
+<index version="1" commit="cd195d4857aac443df251737b45d08db14bcba1c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4760,6 +4760,17 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Added option to choose between Play/Stop and Play/Pause when pressing Spacebar.
 + Polishing the work of Razor Edit.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/a7c98fd8f2e794d687aeb0d1ec4713e3b6f08e19/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.4" author="cool" time="2021-03-24T15:36:05Z">
+        <changelog><![CDATA[+ Added a Sync button (zoom and waveform position) with Arrange View window.
++ Added controls for easy access to changing grid parameters.
++ Improved the behavior of the Add Markers function during playback.
++ Now the script does not show an error window if no tracks are selected.
++ Now the script does not close if the action of the Get Item button caused an error.
++ Now errors when the script window is open are displayed only in the script interface, without additional windows.
++ Improved behavior when working with Razor Edit.
++ Partially rewritten code to free locales (bypassing 200 locale limit)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd195d4857aac443df251737b45d08db14bcba1c/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
