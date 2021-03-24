@@ -1,6 +1,6 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.1
+-- @version 2.4
 -- @changelog
 --   + Added a Sync button (zoom and waveform position) with Arrange View window.
 --   + Added controls for easy access to changing grid parameters.
