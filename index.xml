@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4a4e63939dc5ea47c832834fc045838187350547" name="ReaTeam Scripts">
+<index version="1" commit="6a42bd2e681458df51ba93c7ccc2aebee02f231b" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3061,6 +3061,22 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ce6539a2bd15baebc2fed4b1095fbf6f3758afe/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Lock FX and FX chains.lua" type="script" desc="Lock FX and FX chains + Append or remove lock tag">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Locks individual tagged FX in the focused FX chain or the entire FX chain to prevent inadvertent change of FX order. Another script automates the task of appending and removing lock tags. Instructions are provided inside the script files.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-03-25T18:23:13Z">
+        <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c01b7c8d7be306173db9e961b68375a26e10448a/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20(guide%20inside).lua</source>
+        <source main="main" file="BuyOne_Lock FX and FX chains/BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua">https://github.com/ReaTeam/ReaScripts/raw/c01b7c8d7be306173db9e961b68375a26e10448a/FX/BuyOne_Lock%20FX%20and%20FX%20chains/BuyOne_Lock%20FX%20and%20FX%20chains%20-%20append%20or%20remove%20lock%20tag%20(guide%20inside).lua</source>
+      </version>
+    </reapack>
     <reapack name="cfillion_Monitoring FX bypass bundle.lua" type="script" desc="Monitoring FX bypass bundle (bypass, unbypass or toggle)">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5576,6 +5592,21 @@ here
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dafa132ec302c72882092530a99605db5b952a82/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
       </version>
     </reapack>
+    <reapack name="rodilab_Move items to synchronize with the TimeRef of the first selected item (BWF metadata).lua" type="script" desc="Move items to synchronize with the TimeRef of the first selected item (BWF metadata)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Move all selected items (except the first one) to synchronize their TimeRef metadata with the TimeRef metadata of the first selected item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-25T18:23:45Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2214de7b9ab19b647ca4f5172d8951e52a1eea7d/Items%20Editing/rodilab_Move%20items%20to%20synchronize%20with%20the%20TimeRef%20of%20the%20first%20selected%20item%20(BWF%20metadata).lua</source>
+      </version>
+    </reapack>
     <reapack name="rodilab_Move items, preserving crossfade lengths.lua" type="script" desc="Move items, preserving crossfade lengths">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5590,6 +5621,21 @@ here
       <version name="1.0" author="Rodilab" time="2021-03-11T21:07:12Z">
         <source main="main" file="rodilab_Move items, preserving crossfade lengths/Move items left, preserving crossfade lengths.lua">https://github.com/ReaTeam/ReaScripts/raw/a59614019360cf673acdbfc6e9597d9c2e08dea9/Items%20Editing/rodilab_Move%20items,%20preserving%20crossfade%20lengths/Move%20items%20left,%20preserving%20crossfade%20lengths.lua</source>
         <source main="main" file="rodilab_Move items, preserving crossfade lengths/Move items right, preserving crossfade lengths.lua">https://github.com/ReaTeam/ReaScripts/raw/a59614019360cf673acdbfc6e9597d9c2e08dea9/Items%20Editing/rodilab_Move%20items,%20preserving%20crossfade%20lengths/Move%20items%20right,%20preserving%20crossfade%20lengths.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Reorganize vertically all items in selected tracks  according to track index metadata.lua" type="script" desc="Reorganize vertically all items in selected tracks  according to track index metadata">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Reorganize vertically all items in selected tracks according to track index metadata. To do this, items are moved up or down in the selected tracks. If additional tracks are needed, then they are created (with the parameters of the first selected track). Note: selected tracks must follow each other.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 by Rodrigo Diaz (aka Rodilab)\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-25T18:24:08Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6a42bd2e681458df51ba93c7ccc2aebee02f231b/Items%20Editing/rodilab_Reorganize%20vertically%20all%20items%20in%20selected%20tracks%20%20according%20to%20track%20index%20metadata.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart copy, and move cursor to start of items (if copying items).lua" type="script" desc="Smart copy, and move cursor to start of items (if copying items)">
