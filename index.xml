@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6a42bd2e681458df51ba93c7ccc2aebee02f231b" name="ReaTeam Scripts">
+<index version="1" commit="582439d6739281dbae44a8dcb846c1a3f707fef3" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -16249,6 +16249,15 @@ Author field
 Copy path to clipboard
 Error prevention]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/7e083e37277dfde6dc22b05de718accf191304d4/Various/Lokasenna_Generate%20script%20from%20custom%20action.lua</source>
+      </version>
+      <version name="1.1.1" author="Lokasenna" time="2021-03-27T07:05:30Z">
+        <changelog><![CDATA[Update by X-Raym
+New output directory
+Reapack compatible header
+Author field
+Copy path to clipboard
+Error prevention]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/582439d6739281dbae44a8dcb846c1a3f707fef3/Various/Lokasenna_Generate%20script%20from%20custom%20action.lua</source>
       </version>
     </reapack>
     <reapack name="Lokasenna_Insert most recent exported file....lua" type="script" desc="Insert most recent exported file...">
