@@ -1,6 +1,6 @@
 --[[
     Description: Generate script from custom action
-    Version: 1.1
+    Version: 1.1.1
     Author: Lokasenna
     Donation: https://paypal.me/Lokasenna
     Changelog:
@@ -163,7 +163,7 @@ local function go()
   end
 
   local action_str, err = load_action_str(id)
-  if not actions_str or err then
+  if not action_str or err then
     reaper.ShowMessageBox(err, "Whoops!", 0)
     return
   end
