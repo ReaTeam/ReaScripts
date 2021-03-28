@@ -1,4 +1,4 @@
--- @description Toggle docked toolbars on mouse hover
+-- @description Cursor toggleable docked toolbars (5 scripts)
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.0
