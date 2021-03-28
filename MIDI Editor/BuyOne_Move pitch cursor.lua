@@ -1,4 +1,4 @@
--- @description Move pitch cursor in various permutations + a few selection options conditional on pitch cursor
+-- @description Move pitch cursor in various permutations + a few selection options conditional on pitch cursor (23 scripts)
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.0
