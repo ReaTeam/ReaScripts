@@ -60,6 +60,10 @@ As the tag any QWERTY keyboard symbols can be used save for quotation mark " and
 To be able to monitor the script on/off status you may want to assign it to a toolbar button which will
 be lit while it's on.
 
+If you want the script to run constantly and still be able to move FX inside an FX chain, load some 
+dummy JS plugin which does nothing (create an empty .jsfx file) and lock only that with the lock tag, 
+the rest of plugins will be unlocked.
+
 There's an auxiliary script
 BuyOne_Lock FX and FX chains - append or remove lock tag (guide inside).lua
 which automates the task of appending and removing lock tags from FX names. If you append tags manually,
