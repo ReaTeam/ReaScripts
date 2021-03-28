@@ -1,4 +1,4 @@
--- @description Convert custom actions to Lua ReaScript
+-- @description Convert custom actions to Lua ReaScript (3 scripts)
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.2
