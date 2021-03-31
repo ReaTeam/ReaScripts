@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="da8bc8db0f27ba7b70ac16b6954f310f4426380f" name="ReaTeam Scripts">
+<index version="1" commit="ede2e9ea9b20bd94178c109e31148f6d30aac04c" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3993,7 +3993,8 @@ Better error-checking in general]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades selected items\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Crossfades 2 items per track inside a Razor Edit area OR selected items\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If there is a Razor Edit area then the script works on the RE like my "amagalma_Crossfade items in Razor Edit area.lua" script, else works on the selected items\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If any two items are adjacent then it creates a crossfade on the left side of the items' touch point\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If any two items are almost adjacent and their gap is less or equal to the default crossfade time then a crossfade is created\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If items overlap then it creates a crossfade at the overlapping area\par}
@@ -4002,7 +4003,8 @@ Better error-checking in general]]></changelog>
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo point creation (only if there has been at least one change)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep the time selection or remove it (default: remove)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to keep selected the previously selected items or not (default: keep selected)\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default crossfade length and type are gotten automatically from Reaper Preferences ("Overlap and crossfade items when splitting, length" and "Default crossfade shape")\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Default crossfade length and type are gotten automatically from Reaper Preferences ("Overlap and crossfade items when splitting, length" and "Default crossfade shape")\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Fade shape can be specified inside the script (overrides the one set in the Preferences)\sa180\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=195490</link>
@@ -4090,6 +4092,11 @@ Better error-checking in general]]></changelog>
       <version name="1.51" author="amagalma" time="2021-02-12T11:20:08Z">
         <changelog><![CDATA[- disabled forgotten debug messages from previous version]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/f9746a660762fbab82133a14cd71f93834de3485/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
+      </version>
+      <version name="1.60" author="amagalma" time="2021-03-31T10:29:10Z">
+        <changelog><![CDATA[- add: now works with Razor edit areas too (2 items per track)
+- add: you can now specify a different shape instead of the one set in the Reaper Preferences]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ede2e9ea9b20bd94178c109e31148f6d30aac04c/Items%20Editing/amagalma_Smart%20Crossfade.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Snap MIDI item(s) edges to grid without changing content position.lua" type="script" desc="amagalma_Snap MIDI item(s) edges to grid without changing content position">
