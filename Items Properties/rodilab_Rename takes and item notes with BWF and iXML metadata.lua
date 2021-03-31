@@ -1,6 +1,7 @@
 -- @description Rename takes and item notes with BWF and iXML metadata
 -- @author Rodilab
--- @version 1.1
+-- @version 1.2
+-- @changelog Update : Read the iXML Track List metadata
 -- @about
 --   For BWF selected items : Set custom name with $wildcards for rename active take and set new notes.
 --   First text-box for Take Name, second text-box for Item Notes (if empty, then don't change).
@@ -136,14 +137,34 @@ end
 ---------------------------------------------------------------------------------
 -- Function : Get all tracks names ----------------------------------------------
 ---------------------------------------------------------------------------------
-local function get_all_track_names(take, key, list_metadata)
+local function get_all_track_names(take, key, list_metadata, source)
   -- Set all track names in a list
   local tracks_names_list = {}
-  for i=1, 64 do
-    for w, k in ipairs(key) do
-      local search_trk = search({k..i},list_metadata)
-      if search_trk then
-        table.insert(tracks_names_list,i..trackname_separator_1..search_trk)
+  local retval, tracklist_count = reaper.GetMediaFileMetadata(source,"IXML:TRACK_LIST:TRACK_COUNT")
+  if retval == 1 then
+    for i=1, tracklist_count do
+      local tracklist_interleave = ""
+      if i > 1 then
+        tracklist_interleave = tracklist_interleave..":"..i
+      end
+      local retval, tracklist_index = reaper.GetMediaFileMetadata(source,"IXML:TRACK_LIST:TRACK:CHANNEL_INDEX"..tracklist_interleave)
+      if retval == 1 then
+        local retval, tracklist_name = reaper.GetMediaFileMetadata(source,"IXML:TRACK_LIST:TRACK:NAME"..tracklist_interleave)
+        if retval ~= 1 then
+          tracklist_name = "?"
+        end
+          table.insert(tracks_names_list,tracklist_index..trackname_separator_1..tracklist_name)
+      end
+    end
+  else
+    -- No IXML Track List
+    -- Search in BWF Comment
+    for i=1, 64 do
+      for w, k in ipairs(key) do
+        local search_trk = search({k..i},list_metadata)
+        if search_trk then
+          table.insert(tracks_names_list,i..trackname_separator_1..search_trk)
+        end
       end
     end
   end
@@ -253,7 +274,7 @@ function main(input)
               -- Get metadata value
               local value = nil
               if key == "trackname" then
-                value = get_all_track_names(take,list_tags[key],list_metadata)
+                value = get_all_track_names(take,list_tags[key],list_metadata,source)
               elseif key == "tcstart" then
                 value = get_tc_start(source,list_metadata)
               else
