@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d76b20300b9aaf6347eca79c7bd0b070255b701c" name="ReaTeam Scripts">
+<index version="1" commit="ebe4d55ed20878b9b754f0c85f0942e6684dc87d" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5597,6 +5597,22 @@ here
       </version>
       <version name="1.2" author="Rodilab" time="2021-03-20T12:30:28Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/dafa132ec302c72882092530a99605db5b952a82/Items%20Editing/rodilab_Implode%20mono%20items%20into%20stereo%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="rodilab_Match criteria (match with BWF and iXML metadata).lua" type="script" desc="Match criteria (match with BWF and iXML metadata)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Requires the script "Lokasenna's GUI library v2 for Lua". Please install it first with ReaPack.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Search for matches to audio files in a folder, according to the matching criteria in the BWF and iXML metadata. Then imports the matching files into new takes or tracks.\par}
+}
+]]></description>
+        <link rel="screenshot" href="https://www.rodrigodiaz.fr/prive/Match_Criteria.png">Match Criteria GUI</link>
+      </metadata>
+      <version name="1.0" author="Rodilab" time="2021-03-31T20:12:37Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ebe4d55ed20878b9b754f0c85f0942e6684dc87d/Items%20Editing/rodilab_Match%20criteria%20(match%20with%20BWF%20and%20iXML%20metadata).lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Move items to synchronize with the TimeRef of the first selected item (BWF metadata).lua" type="script" desc="Move items to synchronize with the TimeRef of the first selected item (BWF metadata)">
