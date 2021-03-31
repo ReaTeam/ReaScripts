@@ -1,13 +1,15 @@
 -- @description Smart Crossfade
 -- @author amagalma
--- @version 1.51
+-- @version 1.60
 -- @changelog
---   - disabled forgotten debug messages from previous version
+--   - add: now works with Razor edit areas too (2 items per track)
+--   - add: you can now specify a different shape instead of the one set in the Reaper Preferences
 -- @link https://forum.cockos.com/showthread.php?t=195490
 -- @donation https://www.paypal.me/amagalma
 -- @about
---   # Crossfades selected items
+--   # Crossfades 2 items per track inside a Razor Edit area OR selected items
 --
+--   - If there is a Razor Edit area then the script works on the RE like my "amagalma_Crossfade items in Razor Edit area.lua" script, else works on the selected items
 --   - If any two items are adjacent then it creates a crossfade on the left side of the items' touch point
 --   - If any two items are almost adjacent and their gap is less or equal to the default crossfade time then a crossfade is created
 --   - If items overlap then it creates a crossfade at the overlapping area
@@ -17,32 +19,118 @@
 --   - You can set inside the script if you want to keep the time selection or remove it (default: remove)
 --   - You can set inside the script if you want to keep selected the previously selected items or not (default: keep selected)
 --   - Default crossfade length and type are gotten automatically from Reaper Preferences ("Overlap and crossfade items when splitting, length" and "Default crossfade shape")
+--   - Fade shape can be specified inside the script (overrides the one set in the Preferences)
 
 
 ----------------------------------- USER SETTINGS -------------------------------------------------
                                                                                                  --
+local xfadeshape = -1    -- enter 0 to 7 or -1 to apply the shape set in the Reaper Preferences  --
+                                                                                                 --
+-- Time selection settings                                                                       --
 local keep_selected  = 1 -- Set to 1 if you want to keep the items selected (else unselect all)  --
 local remove_timesel = 1 -- Set to 1 if you want to remove the time selection (else keep it)     --
+                                                                                                 --
+-- Razor Edit area settings                                                                      --
+local remove_RE_area = 1 -- Set to 1 if you want to remove the Razor Edit area (else keep it)    --
                                                                                                  --
 ---------------------------------------------------------------------------------------------------
 
 
 ---------------------------------------------------------------------------------------------------
 
+local debug = false
+if debug then reaper.ClearConsole() end
+local function Msg(str)
+  if debug then reaper.ShowConsoleMsg(tostring(str) .."\n") end
+end
+
+local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2]) or 0.01
+if xfadeshape < 0 or xfadeshape > 7 then
+  xfadeshape = tonumber(({reaper.get_config_var_string( "defxfadeshape" )})[2]) or 7
+end
+
+
+-- Razor Edit
+--------------------------------
+--------------------------------
+
+local track_cnt = reaper.CountTracks(0)
+if track_cnt == 0 then return reaper.defer(function() end) end
+
+local tracks_with_RE, tr = {}, 0
+
+local began_block = false
+
+for t = 0, track_cnt - 1 do
+  local track = reaper.GetTrack(0, t)
+  local _, area = reaper.GetSetMediaTrackInfo_String(track, "P_RAZOREDITS", "", false)
+  if area ~= "" then
+    local areaS, areaE = area:match("(%S+) (%S+)")
+    areaS, areaE = tonumber(areaS), tonumber(areaE)
+    local item_cnt = reaper.CountTrackMediaItems(track)
+    local items = {}
+    local i = 0
+    local continue = true
+    while i ~= item_cnt do
+      local item = reaper.GetTrackMediaItem(track, i)
+      local Start = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      local End = Start + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+      if (Start >= areaS and Start < areaE) or 
+           (End >= areaS and Start < areaE) or
+          (Start <= areaS and End >= areaE) then
+        items[#items+1] = {item, Start, End}
+      end
+      if Start >= areaE or #items > 2 then break end
+      i = i + 1
+    end
+    if #items == 2 then
+      if not began_block then
+        reaper.Undo_BeginBlock()
+        reaper.PreventUIRefresh( 1 )
+        began_block = true
+      end
+      tr = tr + 1
+      tracks_with_RE[tr] = track
+      reaper.BR_SetItemEdges( items[1][1], items[1][2], areaE )
+      reaper.SetMediaItemInfo_Value( items[1][1], "D_FADEOUTLEN_AUTO", areaE - areaS )
+      reaper.SetMediaItemInfo_Value(items[1][1], "C_FADEOUTSHAPE", xfadeshape)
+      reaper.BR_SetItemEdges( items[2][1], areaS, items[2][3] )
+      reaper.SetMediaItemInfo_Value( items[2][1], "D_FADEINLEN_AUTO", areaE - areaS )
+      reaper.SetMediaItemInfo_Value(items[2][1], "C_FADEINSHAPE", xfadeshape)
+    end
+  end
+end
+
+if began_block then
+  remove_RE_area = remove_RE_area == 1
+  if remove_RE_area then
+    for i = 1, tr do
+      reaper.GetSetMediaTrackInfo_String(tracks_with_RE[i], "P_RAZOREDITS", "", true)
+    end
+  end
+  
+  reaper.PreventUIRefresh( -1 )
+  reaper.UpdateArrange()
+  reaper.Undo_EndBlock( "Smart crossfade items in RE area", (remove_RE_area and 1 or 0)|4 )
+  return
+end
+
+
+-- Time Selection
+--------------------------------
+--------------------------------
+
 local item_cnt = reaper.CountSelectedMediaItems(0)
-if item_cnt < 2 then return end
-local math = math
+if item_cnt < 2 then return reaper.defer(function() end) end
+
+local abs = math.abs
 local sel_item = {}
 local sel_start, sel_end = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 local change = false -- to be used for undo point creation
-local timeselexists
-local debug = false
-if debug then reaper.ClearConsole() end
-local xfadetime = tonumber(({reaper.get_config_var_string( "defsplitxfadelen" )})[2]) or 0.01
-local xfadeshape = tonumber(({reaper.get_config_var_string( "defxfadeshape" )})[2]) or 7
+--local timeselexists
 
 local function eq( a, b ) -- equal
-  return (math.abs( a - b ) < 0.00001)
+  return (abs( a - b ) < 0.00001)
 end
 
 local function leq( a, b ) -- a less than or equal to b
@@ -53,9 +141,6 @@ local function geq( a, b ) -- a greater than or equal to b
   return a + 0.00001 > b 
 end
 
-local function Msg(str)
-  if debug then reaper.ShowConsoleMsg(tostring(str) .."\n") end
-end
 ---------------------------------------------------------------------------------------------------
 
 local function FadeIn(item, value)
@@ -123,11 +208,11 @@ for i = 2, item_cnt do
       -- items do not touch and there is no time selection covering parts of both items
       -- do nothing
       Msg("not touch - gap greater than xfadetime")
-    elseif geq( second_start - first_end, xfadetime) then
+    --[[elseif geq( second_start - first_end, xfadetime) then
     --leq( first_start, second_start) and geq( first_end, second_end) then
       -- one item encloses the other
       -- do nothing
-      Msg("enclosure")
+      Msg("enclosure")--]]
     elseif sel_start ~= sel_end and geq(sel_end, second_start) and leq(sel_end, second_end) and leq(sel_start, first_end) and geq(sel_start, first_start) then
       -- time selection exists and covers parts of both items
       Msg("inside time selection")
