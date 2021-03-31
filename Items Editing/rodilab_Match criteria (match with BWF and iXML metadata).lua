@@ -1,4 +1,4 @@
--- @description Match Criteria (match with BWF and iXML metadata)
+-- @description Match criteria (match with BWF and iXML metadata)
 -- @author Rodilab
 -- @version 1.0
 -- @screenshot Match Criteria GUI https://www.rodrigodiaz.fr/prive/Match_Criteria.png
