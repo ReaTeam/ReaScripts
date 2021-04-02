@@ -1,8 +1,9 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.32
+Version: 6.40
 Changelog:
-  + FIXED: "Move" function refused to move up/down if the starting values of all points were exactly the same.
+  + NEW: Automation lane automatically expands to accomodate all zones.
+  + NEW: Optional tooltips provide info while editing.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -220,7 +221,7 @@ About:
 -- CONSTANTS AND VARIABLES (that modders may find useful)
 
 -- The raw MIDI data string will be divided into substrings in tMIDI, which can be concatenated into a new edited MIDI string in each cycle.
- tTakeInfo = {}
+local tTakeInfo = {}
 local tMIDI = {} -- Each take or envelope or AI gets its own subtable: tMIDI[take] = {}
 
 --[[ CCs in different takes, lanes and channels must each be handled separately.  
@@ -315,8 +316,8 @@ local sourceLengthTicks -- = reaper.BR_GetMidiSourceLenPPQ(activeTake)
 local minimumTick, maximumTick -- The mouse PPO position should not go outside the boundares of either the visible item or the underlying MIDI source
 
 -- Some internal stuff that will be used to set up everything
-local  _, activeTake, activeItem, activeTrack = nil, nil, nil, nil
-local window, segment, details = nil, nil, nil -- given by the SWS function reaper.BR_GetMouseCursorContext()
+  _, activeTake, activeItem, activeTrack = nil, nil, nil, nil
+local window, segment, details = nil, nil, nil -- given by the SWS func reaper.BR_GetMouseCursorContext()
 local startTime, prevMousewheelTime = 0, 0
 local lastPPQPos -- to calculate offset to next CC
 
@@ -420,6 +421,9 @@ setmetatable(tTimeFromPixel, {__index = function(t, x)
                                             t[x] = time
                                             return time
                                         end })                                                                                                                         
+
+
+showTooltips =true
 
 
 --##################################
@@ -645,6 +649,8 @@ function Defer_Stretch_Left()
                     end
                 end
             end
+            reaper.JS_LICE_Clear(bitmap, 0)
+            Tooltip(string.format("Stretch: x%.4f", stretchFactor):gsub("%.*0*$", ""))
         end
         
         CONSTRUCT_AND_UPLOAD()
@@ -750,6 +756,8 @@ function Defer_Stretch_Right()
                     end
                 end
             end
+            reaper.JS_LICE_Clear(bitmap, 0)
+            Tooltip(string.format("Stretch: x%.4f", stretchFactor):gsub("%.*0*$", ""))
         end
         
         CONSTRUCT_AND_UPLOAD()
@@ -805,6 +813,7 @@ function Defer_Move()
         -- For other lanes, move direction depends on mouse movement, similar
         --    to the "move in one direction only" mouse modifiers.
         if laneIsALL or laneIsPIANOROLL or laneIsSYSEX or laneIsTEXT or laneIsBANKPROG 
+        --or (tSteps[#tSteps].globalMaxValue == tSteps[#tSteps].globalMinValue)
         then
             moveLEFTRIGHT, moveUPDOWN = true, false
             canMoveBothDirections = false
@@ -933,6 +942,8 @@ function Defer_Move()
         -- The PPQ range of the selected events is used as reference to calculate
         --     magnitude of mouse movement.
         
+        local moveTooltip = ""
+        
         if moveUPDOWN or move2SIDED then
         
             local mouseUpDownMove = (tMovePreCalc.mouseStartY-mouseY) / (ME_TargetBottomPixel-ME_TargetTopPixel) --ME_TargetGetMouseValue()-mouseStartCCValue)/(laneMaxValue-laneMinValue) -- Positive if moved to right, negative if moved to left
@@ -941,6 +952,9 @@ function Defer_Move()
                 local laneMinValue, laneMaxValue = tID.laneMinValue or laneMinValue, tID.laneMaxValue or laneMaxValue
                 local addValue = mouseUpDownMove*(laneMaxValue-laneMinValue) + tMovePreCalc[take].prevAddValue
                 tMovePreCalc[take].curAddValue = addValue
+                if activeTake and take == activeTake then moveTooltip = string.format("Value%+i", (addValue+0.5)//1) .. (move2SIDED and " / " or "")
+                elseif activeEnv and take == activeEnv then moveTooltip = string.format("Value%+.4f", addValue):gsub("%.*0*$", "") .. (move2SIDED and " / " or "")
+                end
                 for id, t in pairs(tID) do
                     if tSteps[#tSteps].tGroups[take][id].tV == t.tV then
                         tSteps[#tSteps].tGroups[take][id].tV ={}
@@ -957,6 +971,7 @@ function Defer_Move()
             end
         end
         
+        
         if moveLEFTRIGHT or move2SIDED then
             
             -- If the mouse moves out of range, it may mess up 2-sided move, moving points out of range and messing up sequence.  
@@ -969,6 +984,9 @@ function Defer_Move()
                 --local addTicks  = mouseTick-tMovePreCalc[take].mouseStartTick + tMovePreCalc[take].prevAddTicks
                 local addTicks  = mouseTick-mouseStartTick + tMovePreCalc[take].prevAddTicks
                 tMovePreCalc[take].curAddTicks = addTicks
+                if isMIDI and take == activeTake then moveTooltip = moveTooltip .. string.format("Ticks%+i", (addTicks+0.5)//1)
+                elseif activeEnv and take == activeEnv then moveTooltip = moveTooltip .. string.format("Time%+.4f", addTicks):gsub("%.*0*$", "")
+                end
                 for id, t in pairs(tID) do  
                     if tSteps[#tSteps].tGroups[take][id].tT == t.tT then
                         tSteps[#tSteps].tGroups[take][id].tT ={}
@@ -989,7 +1007,8 @@ function Defer_Move()
                 end
             end
         end
-      
+        reaper.JS_LICE_Clear(bitmap, 0)
+        Tooltip(moveTooltip)
         CONSTRUCT_AND_UPLOAD()
         
     end -- mustCalculate stuff
@@ -1008,7 +1027,7 @@ end -- Defer_Move
 
 local warpLEFTRIGHT, warpUPDOWN, mouseStartTick = false, false, nil
 local mouseMovementResolution, warpCurve = 5, 1
-local warpMouseStartFraction = nil
+local warpMouseStartHorzFraction = nil
 local hasConstructedNewWarpStep = false
 local warp2SIDED, warp2Power, warp2MouseAbove = false, 1, nil
 local tWarpPreCalc = nil
@@ -1075,8 +1094,8 @@ function Defer_Warp()
         local mouseStartTime = tTimeFromPixel[stepStartMouseX] 
         for take, tID in pairs(tSteps[#tSteps].tGroups) do
             tWarpPreCalc[take] = {mouseStartTick = tTickFromTime[take][mouseStartTime],
-                                  leftmostTick = tTickFromTime[take][tSteps[#tSteps].globalLeftmostTime],
-                                  rightmostTick = tTickFromTime[take][tSteps[#tSteps].globalNoteOffTime],
+                                  globalLeftmostTick = tTickFromTime[take][tSteps[#tSteps].globalLeftmostTime],
+                                  globalNoteOffTick = tTickFromTime[take][tSteps[#tSteps].globalNoteOffTime],
                                   }
             for id, t in pairs(tID) do
                 tWarpPreCalc[take][id] = { eventJustLeftOfMouse = binarySearchEventJustLeftOfMouseTick(t.tT, tWarpPreCalc[take].mouseStartTick) }
@@ -1114,8 +1133,8 @@ function Defer_Warp()
             local left  = tTickFromTime[activeTake][ tSteps[#tSteps].globalLeftmostTime ] -- At this time, the new step table has not yet been constructed.
             local right = tTickFromTime[activeTake][ tSteps[#tSteps].globalNoteOffTime ]
             local range = right - left
-            warpMouseStartFraction = (mouseTick-left)/range
-            --warpMouseStartFraction = (mouseStartTick-tSteps[#tSteps].globalLeftmostTick) / (tSteps[#tSteps].globalNoteOffTick - tSteps[#tSteps].globalLeftmostTick)   
+            warpMouseStartHorzFraction = (mouseTick-left)/range
+            --warpMouseStartHorzFraction = (mouseStartTick-tSteps[#tSteps].globalLeftmostTick) / (tSteps[#tSteps].globalNoteOffTick - tSteps[#tSteps].globalLeftmostTick)   
         else -- warpUPDOWN
             --mouseStartCCValue = GetMouseValue()
             mouseStartY = mouseY
@@ -1191,6 +1210,8 @@ function Defer_Warp()
         --     magnitude of mouse movement.
         
         local newValue, power, mouseRelativeMovement
+        local warpTooltip = ""
+        
         if warpUPDOWN then -- or warpBOTH is not used in the new Multi Tool anymore
         
             local mouseUpDownMove = (mouseStartY-mouseY) / (ME_TargetBottomPixel-ME_TargetTopPixel) --ME_TargetGetMouseValue()-mouseStartCCValue)/(laneMaxValue-laneMinValue) -- Positive if moved to right, negative if moved to left
@@ -1201,6 +1222,7 @@ function Defer_Warp()
             else
                 power = math.log(0.5 - mouseUpDownMove/2, 0.5)
             end
+            warpTooltip = string.format("Warp: %.4f", power):gsub("%.*0*$", "")
             
             local min, max = tSteps[#tSteps-1].globalMinValue, tSteps[#tSteps-1].globalMaxValue
             local range = max-min
@@ -1246,6 +1268,7 @@ function Defer_Warp()
                 end
                 warp2Power = math.log(temp, 0.5)
                 warp2MouseAbove = (mouseUpDownMove > 0)
+                --warpTooltip = string.format("%.4f", mouseUpDownMove):gsub("%.*0*$", "")
             end
             
             -- If the mouse moves out of range, it may mess up 2-sided warp, moving points out of range and messing up sequence.  
@@ -1257,15 +1280,15 @@ function Defer_Warp()
             end
             
             for take, tID in pairs(tSteps[#tSteps-1].tGroups) do 
-            
                 -- APPLY 1-SIDED WARP
                 local mouseTick = tTickFromTime[take][mouseTime]
-                local left  = tWarpPreCalc[take].leftmostTick
-                local right = tWarpPreCalc[take].rightmostTick
+                local left  = tWarpPreCalc[take].globalLeftmostTick
+                local right = tWarpPreCalc[take].globalNoteOffTick
                 local range = right - left
-                local mouseLeftRightMove = (mouseTick-left)/range
-                if mouseLeftRightMove > 0.95 then mouseLeftRightMove = 0.95 elseif mouseLeftRightMove < 0.05 then mouseLeftRightMove = 0.05 end
-                 power = (warpCurve == 1) and (math.log(mouseLeftRightMove, warpMouseStartFraction)) or (math.log(1-mouseLeftRightMove, 1-warpMouseStartFraction))
+                local warpMouseNewHorzFraction = (mouseTick-left)/range
+                if warpMouseNewHorzFraction > 0.95 then warpMouseNewHorzFraction = 0.95 elseif warpMouseNewHorzFraction < 0.05 then warpMouseNewHorzFraction = 0.05 end
+                power = (warpCurve == 1) and (math.log(warpMouseNewHorzFraction, warpMouseStartHorzFraction)) or (math.log(1-warpMouseNewHorzFraction, 1-warpMouseStartHorzFraction))
+                warpTooltip = string.format("Warp: %.4f", power):gsub("%.*0*$", "") --.. warpTooltip
                 
                 if range == 0 or power == 1 then -- just copy, if no warp             
                     for id, t in pairs(tID) do  
@@ -1343,7 +1366,8 @@ function Defer_Warp()
                 end
             end -- if warp2SIDED then
         end
-      
+        reaper.JS_LICE_Clear(bitmap, 0)
+        Tooltip(warpTooltip)
         CONSTRUCT_AND_UPLOAD()
         
     end -- mustCalculate stuff
@@ -1423,8 +1447,9 @@ function Defer_Scale()
         local newRangeMin, newRangeMax
         local new, old = tSteps[#tSteps], tSteps[#tSteps-1]
         local oldMinValue, oldMaxValue = old.globalMinValue, old.globalMaxValue
+        
         if oldMinValue == oldMaxValue then
-            newRangeMax = GetMouseValue("LIMIT")
+            newRangeMax = GetMouseValue("LIMIT") --(((GetMouseValue("LIMIT")*1000)//1)/1000)
             newRangeMin = newRangeMax
             for take, tID in pairs(new.tGroups) do
                 for id, t in pairs(tID) do
@@ -1436,7 +1461,7 @@ function Defer_Scale()
             end
         else
             if scaleTOP then
-                newRangeMax = GetMouseValue("LIMIT")
+                newRangeMax = GetMouseValue("LIMIT") --(((GetMouseValue("LIMIT")*1000)//1)/1000)
                 if scaleSYMMETRIC then
                     newRangeMin = old.globalMinValue-(newRangeMax-oldMaxValue)
                     if newRangeMin < laneMinValue then
@@ -1450,7 +1475,7 @@ function Defer_Scale()
                     newRangeMin = oldMinValue
                 end
             else -- scaleBOTTOM
-                newRangeMin = GetMouseValue("LIMIT")
+                newRangeMin = GetMouseValue("LIMIT") --(((GetMouseValue("LIMIT")*1000)//1)/1000)
                 if scaleSYMMETRIC then
                     newRangeMax = old.globalMaxValue-(newRangeMin-oldMinValue)
                     if newRangeMax < laneMinValue then
@@ -1465,13 +1490,13 @@ function Defer_Scale()
                 end
             end
         
-            local stretchFactor = (newRangeMax - newRangeMin)/(oldMaxValue-oldMinValue)
+            local scaleFactor = (newRangeMax - newRangeMin)/(oldMaxValue-oldMinValue)
                 
             for take, tID in pairs(new.tGroups) do
                 for id, t in pairs(tID) do
                     local tV, tOldV = t.tV, old.tGroups[take][id].tV
                     for i = 1, #tOldV do
-                        tV[i] = newRangeMin + stretchFactor*(tOldV[i] - oldMinValue)
+                        tV[i] = newRangeMin + scaleFactor*(tOldV[i] - oldMinValue)
                     end
                 end
             end
@@ -1483,7 +1508,12 @@ function Defer_Scale()
         reaper.JS_LICE_Clear(bitmap, 0)
         reaper.JS_LICE_Line(bitmap, Guides_LeftPixel, topLineY, Guides_RightPixel, topLineY, Guideline_Color_Top, 1, "COPY", true)
         reaper.JS_LICE_Line(bitmap, Guides_LeftPixel, bottomLineY, Guides_RightPixel, bottomLineY, Guideline_Color_Bottom, 1, "COPY", true)
-    
+  
+        if isMIDI then
+            Tooltip(string.format("Range: %.f - %.f", newRangeMin, newRangeMax))
+        else
+            Tooltip(string.format("Range: %.3f", newRangeMin):gsub("%.*0*$", "") .. " - " .. string.format("%.3f", newRangeMax):gsub("%.*0*$", ""))
+        end
         CONSTRUCT_AND_UPLOAD()
     end
 
@@ -1504,7 +1534,7 @@ end -- Defer_Scale
 local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK, WHITE = 0xFFAA2200, 0xFFFF0000, 0xFF00BB00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFFFF8800, 0xFF000000, 0xFFFFFFFF
 function LoadZoneColors()
     
-    local extState = reaper.GetExtState("js_Multi Tool", "Settings") or ""
+    local extState = reaper.GetExtState("js_Multi Tool", "Settfings") or ""
     local colorCompress = extState:match("compress.-(%d+)")
     local colorScale    = extState:match("scale.-(%d+)")
     local colorStretch  = extState:match("stretch.-(%d+)")
@@ -1514,14 +1544,14 @@ function LoadZoneColors()
     local colorRedo     = extState:match("redo.-(%d+)")
     local colorMove     = extState:match("move.-(%d+)")
 
-    tColors = {compress = (colorCompress  and tonumber(colorCompress) or YELLOW),
-               scale    = (colorScale     and tonumber(colorScale)    or ORANGE),
-               stretch  = (colorStretch   and tonumber(colorStretch)  or DARKRED),
-               tilt     = (colorTilt      and tonumber(colorTilt)     or PURPLE),
-               warp     = (colorWarp      and tonumber(colorWarp)     or GREEN),
+    tColors = {compress = (colorCompress  and tonumber(colorCompress) or RED),
+               scale    = (colorScale     and tonumber(colorScale)    or PURPLE),
+               stretch  = (colorStretch   and tonumber(colorStretch)  or PURPLE),
+               tilt     = (colorTilt      and tonumber(colorTilt)     or ORANGE),
+               warp     = (colorWarp      and tonumber(colorWarp)     or BLUE),
                undo     = (colorUndo      and tonumber(colorUndo)     or RED),
                redo     = (colorRedo      and tonumber(colorRedo)     or GREEN),
-               move     = (colorMove      and tonumber(colorMove)     or WHITE),
+               move     = (colorMove      and tonumber(colorMove)     or GREEN),
                black    = BLACK
               }
 
@@ -1592,12 +1622,14 @@ function ContextMenu()
     local w = reaper.JS_Window_FindTop(uniqueTitle, true)
     --if w then reaper.JS_Window_SetOpacity(w, "ALPHA", 0) end
     gfx.x, gfx.y = -20, -40
-    local s = gfx.showmenu("|Zone color||Zone size||")
+    local s = gfx.showmenu("|Zone color||Zone size||"..(showTooltips and "!" or "").."Show tooltips")
     gfx.quit()
     if s == 1 then
         ChooseZoneColor()
     elseif s == 2 then
         ChooseZoneSize()
+    elseif s == 3 then
+        showTooltips = not showTooltips
     end
     reaper.JS_Mouse_SetPosition(x, y)
     return "NEXT"
@@ -2251,6 +2283,11 @@ function Defer_Tilt()
             x1, t1, b1 = x2, t2, b2
         end
         
+        -- Tooltip
+        mouseNewCCValueStr = isMIDI and (string.format("Value: %.f", mouseNewCCValue)) or (string.format("Value: %.4f", mouseNewCCValue):gsub("%.*0*$", ""))
+        tiltWheelStr = string.format("%.2f", tiltWheel):gsub("%.*0*$", "")
+        Tooltip(mouseNewCCValueStr .. " / Curve: " ..tiltWheelStr )
+
         CONSTRUCT_AND_UPLOAD()
         
     end -- mustCalculate stuff
@@ -2467,7 +2504,7 @@ function Defer_Compress()
                         else
                             tempLaneMin = laneMinValue
                         end
-                    else -- compressBOTTON
+                    else -- compressBOTTOM
                         tempLaneMin = laneMinValue + fraction*(mouseNewCCValue-laneMinValue)
                         if compressSYMMETRIC then
                             tempLaneMax = laneMaxValue + fraction*(laneMinValue-mouseNewCCValue)
@@ -2561,6 +2598,37 @@ function Defer_Compress()
         
         --reaper.JS_Window_InvalidateRect(midiview, Guides_LeftPixel-20, ME_TargetTopPixel-20, Guides_RightPixel+20, ME_TargetBottomPixel+20, false)
         
+        --[[[if isMIDI then
+            Tooltip(string.format("%i - %i / %.3f", (newRangeMin+0.5)//1, (newRangeMax+0.5)//1, compressWheel):gsub("%.*0*$", ""))
+        else
+            Tooltip(string.format("%.3f", newRangeMin):gsub("%.*0*$", "") .. " - " .. string.format("%.3f", newRangeMax):gsub("%.*0*$", "") .. string.format("%.3f", compressWheel):gsub("%.*0*$", ""))
+        end]]
+        
+        -- Tooltip
+        -- Compression shapes can be too complex to summarize in one tooltip. So only show tooltip when compression line is flat.
+        if compressWheel == 0 then
+            local tempLaneMin, tempLaneMax
+            if compressTOP then
+                tempLaneMax = mouseNewCCValue
+                if compressSYMMETRIC then
+                    tempLaneMin = laneMinValue + laneMaxValue - mouseNewCCValue
+                else
+                    tempLaneMin = laneMinValue
+                end
+            else -- compressBOTTOM
+                tempLaneMin = mouseNewCCValue
+                if compressSYMMETRIC then
+                    tempLaneMax = laneMaxValue + laneMinValue - mouseNewCCValue
+                else
+                    tempLaneMax = laneMaxValue
+                end
+            end
+            if isMIDI then
+                Tooltip(string.format("Lane: %.f - %.f", tempLaneMin, tempLaneMax))
+            else
+                Tooltip(string.format("Lane: %.3f", tempLaneMin):gsub("%.*0*$", "") .. " - " .. string.format("%.3f", tempLaneMax):gsub("%.*0*$", ""))
+            end
+        end
         CONSTRUCT_AND_UPLOAD()
         
     end -- mustCalculate stuff
@@ -2788,6 +2856,8 @@ end
 --##########################
 ----------------------------
 function DisplayZones()    
+    
+    --Tooltip("") -- Immediately clear tooltip
     
     if not tColors then
         LoadZoneColors()
@@ -3078,7 +3148,10 @@ function AtExit()
         end
     end
     if tooltipState == 1 then reaper.Main_OnCommand(41344, 0) end
+    if tooltipHWND then reaper.JS_WindowMessage_ReleaseWindow(tooltipHWND) end
 
+    if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
+    if LICE_Font then reaper.JS_LICE_DestroyFont(LICE_Font) end
     --[[ Just something to display table with userdata keys in IDE watchlist
     tTT = {}
     for take, t in pairs(tTakeInfo) do
@@ -3161,6 +3234,17 @@ function AtExit()
         end
     end
                   
+                  
+    if activeEnv and origEnvChunkHeightStr and origEnvChunkHeightStr ~= "0" then
+        local chunkOK, chunk = reaper.GetEnvelopeStateChunk(activeEnv, "", false)
+        if chunkOK and chunk then 
+            chunk = chunk:gsub("\nLANEHEIGHT %S+ ", "\nLANEHEIGHT "..origEnvChunkHeightStr.." ", 1)
+            reaper.SetEnvelopeStateChunk(activeEnv, chunk, false)
+            reaper.UpdateArrange()
+        end
+    end
+    
+    
     -- Write nice, informative Undo strings
     if laneIsCC7BIT then
         undoString = "Multi tool: 7-bit CC lane ".. tostring(mouseOrigCCLane)
@@ -3425,8 +3509,10 @@ function Setup_MIDIEditorInfoFromTakeChunk()
     activeChannel, ME_TimeBase = activeTakeChunk:match("\nCFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+) %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+)")
     
     -- Get editor coordinates, size and zoom.
-    _, ME_Width, ME_Height = reaper.JS_Window_GetClientSize(windowUnderMouse) --takeChunk:match("CFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+) (%S+) (%S+) (%S+)") 
-        if not _ then reaper.MB("Could not determine the MIDI editor's client window pixel coordinates.", "ERROR", 0) return(false) end
+    if not MW_Width then
+        ME_SizeOK, ME_Width, ME_Height = reaper.JS_Window_GetClientSize(windowUnderMouse) --takeChunk:match("CFGEDIT %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ %S+ (%S+) (%S+) (%S+) (%S+)") 
+        if not ME_SizeOK then reaper.MB("Could not determine the MIDI editor's client window pixel coordinates.", "ERROR", 0) return(false) end
+    end
         if ME_Width < 100 or ME_Height < 100 then reaper.MB("The MIDI editor is too small for editing with the mouse", "ERROR", 0) return(false) end
     if isInline then
         ME_LeftmostTime, ME_RightmostTime = reaper.GetSet_ArrangeView2(0, false, 0, 0)
@@ -3669,12 +3755,13 @@ function Setup_AutomationContext()
     end
     
     activeEnv = nil
+    local trackY = nil
     -- Search take envelopes
     -- NOTE: Track envelopes can also be displayed inside Media Items lanes, so even if activeTake under mouse, activeEnv may turn out to be a track envelope.
     if activeTake then
         activeTrack = reaper.GetMediaItemTake_Track(activeTake)
         if activeTrack and reaper.ValidatePtr2(0, activeTrack, "MediaTrack*") then
-            local trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
+            trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
             if trackY then
                 for e = reaper.CountTakeEnvelopes(activeTake)-1, 0, -1 do
                     local env = reaper.GetTakeEnvelope(activeTake, e)
@@ -3685,7 +3772,6 @@ function Setup_AutomationContext()
                             local bottom  = top + height - 1
                             if mouseOrigY <= bottom then
                                 activeEnv = env
-                                ME_TargetTopPixel = trackY + reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPY_USED")
                                 break
     end end end end end end end 
 
@@ -3693,7 +3779,7 @@ function Setup_AutomationContext()
     if not activeEnv then
         activeTrack = reaper.GetTrackFromPoint(mouseOrigScreenX, mouseOrigScreenY) -- This function also return isEnvelope, but doesn't work for take envelopes
         if activeTrack and reaper.ValidatePtr2(0, activeTrack, "MediaTrack*") then
-            local trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
+            trackY = reaper.GetMediaTrackInfo_Value(activeTrack, "I_TCPY")
             if trackY then
                 for e = reaper.CountTrackEnvelopes(activeTrack)-1, 0, -1 do
                     local env = reaper.GetTrackEnvelope(activeTrack, e)
@@ -3704,7 +3790,6 @@ function Setup_AutomationContext()
                             local bottom  = top + height - 1
                             if mouseOrigY <= bottom then
                                 activeEnv = env
-                                ME_TargetTopPixel = trackY + reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPY_USED")
                                 break
     end end end end end end end
 
@@ -3714,7 +3799,26 @@ function Setup_AutomationContext()
         return false
     end
     
-    ME_TargetHeight   = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
+    -- If envelope is too narrow to show all zones, try to expand. (There seems to be no easier way than via the state chunk.)
+    local triedToChangeEnvHeight = false
+    do ::changeEnvHeight::
+        ME_TargetHeight = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
+        if ME_TargetHeight < zoneWidth*5 and not triedToChangeEnvHeight then
+            triedToChangeEnvHeight = true
+            local chunkOK, chunk = reaper.GetEnvelopeStateChunk(activeEnv, "", false)
+            if chunkOK and chunk then
+                origEnvChunkHeightStr = chunk:match("\nLANEHEIGHT (%S+) ")
+                if origEnvChunkHeightStr and origEnvChunkHeightStr ~= "0" then
+                    chunk = chunk:gsub("\nLANEHEIGHT %S+ ", "\nLANEHEIGHT "..string.format("%i", (zoneWidth*6)//1).." ", 1)
+                    --reaper.ShowConsoleMsg(chunk)
+                    reaper.SetEnvelopeStateChunk(activeEnv, chunk, false)
+                    reaper.UpdateArrange()
+                    goto changeEnvHeight
+                end
+            end
+        end
+    end
+    ME_TargetTopPixel = trackY + reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPY_USED")
     ME_TargetBottomPixel  = ME_TargetTopPixel + ME_TargetHeight - 1
     
     -- Razor selections take precedence over AI and point selections.
@@ -4949,23 +5053,64 @@ end -- ArmToolbarButton()
 
 --######################
 ------------------------
--- This function displays a tooltip next to the mouse cursor, and moves the tooltip with the cursor for 0.5 seconds
+-- This function displays a tooltip next to the mouse cursor.
+-- In order to disappear after 2 seconds, the functions defers itself.
+-- The function stores the bitmap background before drawing the tooltip, and then restores the content to disappear the tooltip.  
+-- The calling editing function MUST therefore draw or clear its bitmap BEFORE calling Tooltip.
 local tooltipTime = 0
 local tooltipText = ""
+local tooltipX, tooltipY, tooltipWidth
+--local tooltipHWND = nil
 function Tooltip(text)
-    if text then -- New tooltip text, so new tooltip
+    pcall(Tooltip_pcall, text)
+end
+
+function Tooltip_pcall(text)
+    if text and showTooltips then -- New tooltip text, so new tooltip
         tooltipTime = reaper.time_precise()
         tooltipText = text
-        local x, y = reaper.GetMousePosition()
-        reaper.TrackCtl_SetToolTip(tooltipText, x+10, y+10, true)
+        tooltipCaller = selectedEditFunction
+        if mouseX and mouseY then
+            tooltipX, tooltipY = mouseX+12, mouseY+8
+            tooltipWidth = 20 + (4.5*(#tooltipText))//1
+            reaper.JS_LICE_Blit(tooltipBitmap, 0, 0, bitmap, tooltipX, tooltipY, tooltipWidth+5, 31, 1, "COPY") -- Store before overwriting, so that tooltip can be deleted later.
+            reaper.JS_LICE_FillRect(bitmap, tooltipX+4, tooltipY+4, tooltipWidth, 20, 0xFF000000, 0.6, "COPY") -- Shadow
+            reaper.JS_LICE_FillRect(bitmap, tooltipX, tooltipY, tooltipWidth, 20, 0xAA000000, 1, "COPY") -- Background
+            reaper.JS_LICE_RoundRect(bitmap, tooltipX, tooltipY, tooltipWidth, 20, 0, winOS and 0x77777777 or 0x77FFFFFF, 0.3, "COPY", false) -- Border
+            reaper.JS_LICE_DrawText(bitmap, LICE_Font, tooltipText, #tooltipText, tooltipX+5, tooltipY+3, tooltipX+200, tooltipY+25)
+            reaper.defer(Tooltip)
+        end
+        --[[
+        reaper.TrackCtl_SetToolTip(tooltipText, tooltipX+10, tooltipY, true)
+        tooltipHWND = reaper.GetTooltipWindow()
+        if tooltipHWND then
+            reaper.JS_WindowMessage_Intercept(tooltipHWND, "WM_SETCURSOR", false)
+            reaper.JS_Window_SetOpacity(tooltipHWND, "ALPHA", 0.7)
+        end]]
+        
+    elseif reaper.time_precise() < tooltipTime+2 then
         reaper.defer(Tooltip)
-    elseif pcallOK and continue and reaper.time_precise() < tooltipTime+1 then -- if not (pcallOK and pcallRetval), then script is quitting, so don't defer
+    else
+        if tooltipCaller == selectedEditFunction and tooltipX and tooltipY and tooltipWidth then
+            reaper.JS_LICE_Blit(bitmap, tooltipX, tooltipY, tooltipBitmap, 0, 0, tooltipWidth+5, 31, 1, "COPY")
+            reaper.JS_Window_InvalidateRect(windowUnderMouse, tooltipX, tooltipY, tooltipX+tooltipWidth+5, tooltipY+30, true)
+        end
+    end
+    --[[
+    elseif pcallOK and continueScript and reaper.time_precise() < tooltipTime+2 then -- if not (pcallOK and pcallRetval), then script is quitting, so don't defer
         local x, y = reaper.GetMousePosition()
-        reaper.TrackCtl_SetToolTip(tooltipText, x+10, y+10, true)
+        if x ~= tooltipX or y ~= tooltipY then
+            tooltipX, tooltipY = x, y
+            reaper.TrackCtl_SetToolTip(tooltipText, tooltipX+10, tooltipY, true)
+            --reaper.JS_LICE_DrawText(bitmap, LICE_Font, tooltipText, #tooltipText, mouseX, mouseY, mouseX+8*(#tooltipText), mouseY+30)
+        end
         reaper.defer(Tooltip)
     else
         reaper.TrackCtl_SetToolTip("", 0, 0, false)
+        reaper.JS_WindowMessage_ReleaseWindow(tooltipHWND)
+        tooltipHWND = nil
     end
+    ]]
 end
 
 
@@ -5471,6 +5616,17 @@ function MAIN()
             if not tCursors[name] then reaper.MB("Could not load REAPER's native \""..name.."\" cursor, with number "..tostring(source)..".", "ERROR", 0) return false end
         end
     end
+    
+    -- SETUP TOOLTIP LICE STUFF
+    tooltipBitmap = reaper.JS_LICE_CreateBitmap(true, 200, 40)
+        if not tooltipBitmap then reaper.MB("Could not create LICE bitmap for tooltip", "ERROR", 0) return false end 
+    LICE_Font = reaper.JS_LICE_CreateFont()
+        if not LICE_Font then reaper.MB("Could not create a LICE font.", "ERROR", 0) return false end
+    GDI_Font  = reaper.JS_GDI_CreateFont(14, 100, 0, false, false, false, "Arial")
+        if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return false end
+    reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, winOS and "BLUR" or "") -- "VERTICAL", "BOTTOMUP", "NATIVE", "BLUR", "INVERT", "MONO", "SHADOW" or "OUTLINE".
+    reaper.JS_LICE_SetFontBkColor(LICE_Font, 0) -- Transparent
+    reaper.JS_LICE_SetFontColor(LICE_Font, 0xFFFFFFFF)
 
     
     -- INTERCEPT WINDOW MESSAGES:
@@ -5510,7 +5666,7 @@ function MAIN()
     
     return true 
 
-end -- function Main()
+end -- MAIN()
 
 
 --################################################
