@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ebe4d55ed20878b9b754f0c85f0942e6684dc87d" name="ReaTeam Scripts">
+<index version="1" commit="90c5a053f0cb095be5e1d5d27041df0128aac173" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5954,9 +5954,10 @@ here
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Groups selected items in different tracks vertically if they are aligned and optionally randomly colors each group\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want each group to be randomly colored\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Items whose position is less than 1ms apart get aligned\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Groups selected items in different tracks vertically, if they are aligned, and optionally colors randomly each group\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want each group to be colored randomly (default: no)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script if you want item ends to coincide too, for items to be grouped (default: yes)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can specify in the script how much two values can differ when they are being compared for equality (default: round to ms)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo creation\sa180\par}
 }
 ]]></description>
@@ -5971,6 +5972,11 @@ here
 - Maximized speed
 - Changed name description]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/2de658a258428c60b99c485017a3091ade5e60ea/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
+      </version>
+      <version name="1.3" author="amagalma" time="2021-04-02T07:51:26Z">
+        <changelog><![CDATA[- You can specify in the script how much two values can differ when they are being compared for equality (default: round to ms)
+- You can specify in the script if you want item ends to coincide too, for items to be grouped (default: yes, reverted to v1.0 behavior)]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/90c5a053f0cb095be5e1d5d27041df0128aac173/Items%20Properties/amagalma_Group%20selected%20items%20vertically.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Lock all items in project to their active take (mouse click will not change active take).lua" type="script" desc="Lock all items in project to their active take (mouse click will not change active take)">
