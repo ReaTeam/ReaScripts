@@ -6,6 +6,8 @@
 -- @about Allows inserting miltiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
 
 --[[
+* Licence: WTFPL
+* REAPER: at least v5.962
 
 —— To insert FX in multiple objects at once open the FX Browser, select FX, as many as needed,
 select the destination objects and run the script.
