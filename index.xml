@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="90c5a053f0cb095be5e1d5d27041df0128aac173" name="ReaTeam Scripts">
+<index version="1" commit="bc8226ef011808dfc804b9587633649c35284c45" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -11835,6 +11835,23 @@ Replace GetLastWord func with quicker solution (Thanks: Mespotine[t=233393]).]]>
       </metadata>
       <version name="1.00" author="amagalma" time="2021-03-14T14:46:15Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b633841bedd997ad87fb51ce45936bb59ddb660d/Razor%20Edit/amagalma_Delete%20all%20envelope%20points%20inside%20Razor%20Edit%20areas.lua</source>
+      </version>
+    </reapack>
+    <reapack name="amagalma_Remove all item fades within Razor Edit areas.lua" type="script" desc="Remove all item fades within Razor Edit areas">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Removes all item fades within Razor Edit areas\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You can set inside the script if you want to remove or keep the RE areas (default: remove)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Smart undo creation\sa180\par}
+}
+]]></description>
+        <link rel="donation">https://www.paypal.me/amagalma</link>
+      </metadata>
+      <version name="1.00" author="amagalma" time="2021-04-02T21:02:01Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bc8226ef011808dfc804b9587633649c35284c45/Razor%20Edit/amagalma_Remove%20all%20item%20fades%20within%20Razor%20Edit%20areas.lua</source>
       </version>
     </reapack>
   </category>
