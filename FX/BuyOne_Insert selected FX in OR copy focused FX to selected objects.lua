@@ -2,28 +2,8 @@
 -- @author BuyOne
 -- @website https://forum.cockos.com/member.php?u=134058
 -- @version 1.0
--- @changelog
---    + v1.0  Initial release
+-- @changelog Initial release
 -- @about Allows inserting miltiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.
-
-
---[[
-
-* ReaScript Name: BuyOne_Insert selected FX in OR copy focused FX to selected objects.lua
-* Description: Allows inserting miltiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects
-* Instructions: included
-* Author: Buy One
-* Author URL: https://forum.cockos.com/member.php?u=134058
-* Licence: WTFPL
-* Forum Thread:
-* Demo:
-* Version: 1.0
-* REAPER: at least v5.962
-* Changelog:
-	+ v1.0 	Initial release
-
-]]
-
 
 --[[
 
