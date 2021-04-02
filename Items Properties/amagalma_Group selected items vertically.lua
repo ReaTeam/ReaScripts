@@ -1,28 +1,36 @@
 -- @description Group selected items vertically (optionally color randomly each group)
 -- @author amagalma
--- @version 1.1
+-- @version 1.3
 -- @changelog
---   - Items whose position is less than 1ms apart get aligned
---   - Smart undo creation
---   - Maximized speed
---   - Changed name description
+--   - You can specify in the script how much two values can differ when they are being compared for equality (default: round to ms)
+--   - You can specify in the script if you want item ends to coincide too, for items to be grouped (default: yes, reverted to v1.0 behavior)
 -- @donation https://www.paypal.me/amagalma
 -- @about
---   # Groups selected items in different tracks vertically if they are aligned and optionally randomly colors each group
+--   # Groups selected items in different tracks vertically, if they are aligned, and optionally colors randomly each group
 --
---   - You can specify in the script if you want each group to be randomly colored
---   - Items whose position is less than 1ms apart get aligned
+--   - You can specify in the script if you want each group to be colored randomly (default: no)
+--   - You can specify in the script if you want item ends to coincide too, for items to be grouped (default: yes)
+--   - You can specify in the script how much two values can differ when they are being compared for equality (default: round to ms)
 --   - Smart undo creation
 
+--------------------- USER SETTINGS ---------------------------
 
---------------------- USER SETTINGS ----------------------
---                                                      --
--- Set to 1 if you want random colors or 0 if you don't --
---                                                      --
--------------------------                               --
-local RandomColors = 0 --                               --
--------------------------                               --
-----------------------------------------------------------
+-- Set to 1 if you want random colors or 0 if you don't
+  local RandomColors = 0
+
+-- If set to 1 then for items to group their ends must coincide
+  local item_ends_must_coincide = 1
+
+--[[ 
+  Sets the amount of rounding between two compared values
+  before they get compared for equality.
+  0 = round to seconds, 1 = round to 1/10 of a second
+  2 = round to 1/100 of a second, 3 = round to 1/1000 etc
+  Range of valid values: 0-7 
+--]]
+  local strictness_of_equality = 3
+
+---------------------------------------------------------------
 
 
 ----------------------------------------------------------------------------------
@@ -32,6 +40,14 @@ if reaper.CountSelectedMediaItems(0) == 0 then return end
 local undo = false
 local positions = {}
 local giveColor = RandomColors == 1
+local item_ends_must_coincide = item_ends_must_coincide == 1
+if strictness_of_equality < 0 then
+  strictness_of_equality = 0
+elseif strictness_of_equality > 7 then
+  strictness_of_equality = 7
+end
+local mult = 10^strictness_of_equality
+local div = 10^(-strictness_of_equality)
 
 local random = math.random
 local floor = math.floor
@@ -50,7 +66,11 @@ for i = 0, reaper.CountMediaItems(0) - 1 do
     MaxGroupID = item_group_id
   end
   if reaper.IsMediaItemSelected( item ) then
-    local pos = floor(reaper.GetMediaItemInfo_Value(item, "D_POSITION")*1000 + 0.5)*0.001
+    local pos = floor(reaper.GetMediaItemInfo_Value(item, "D_POSITION")*mult + 0.5)*div
+    if item_ends_must_coincide then
+      local len = floor(reaper.GetMediaItemInfo_Value(item, "D_LENGTH")*mult + 0.5)*div
+      pos = pos .. len
+    end
     if not positions[pos] then positions[pos] = {{}, 0} end
     positions[pos][2] = positions[pos][2] + 1
     positions[pos][1][positions[pos][2]] = item
