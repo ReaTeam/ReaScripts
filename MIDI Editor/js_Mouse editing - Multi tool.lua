@@ -1,9 +1,10 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.41
+Version: 6.42
 Changelog:
   + NEW: Automation lane automatically expands to accomodate all zones.
   + NEW: Optional tooltips provide info while editing.
+  + FIXED: Typo prevented loading zone colors.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -128,7 +129,7 @@ About:
       * If the mouse was dragged, proceed by lifting the mouse button.  
       * If the mouse button was clicked, proceed by clicking a second time.
   
-  Right-clicking on a zone while the zones are displayed pops up a context menu through which zone color and zone size can be customized.
+  Right-clicking on a zone while the zones are displayed pops up a context menu through which zone color and zone size can be customized, and tooltips can be toggled on/off.
       
       
   TWEAKING WHILE RUNNING:
@@ -1534,7 +1535,7 @@ end -- Defer_Scale
 local DARKRED, RED, GREEN, BLUE, PURPLE, TURQOISE, YELLOW, ORANGE, BLACK, WHITE = 0xFFAA2200, 0xFFFF0000, 0xFF00BB00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF, 0xFFFFFF00, 0xFFFF8800, 0xFF000000, 0xFFFFFFFF
 function LoadZoneColors()
     
-    local extState = reaper.GetExtState("js_Multi Tool", "Settfings") or ""
+    local extState = reaper.GetExtState("js_Multi Tool", "Settings") or ""
     local colorCompress = extState:match("compress.-(%d+)")
     local colorScale    = extState:match("scale.-(%d+)")
     local colorStretch  = extState:match("stretch.-(%d+)")
