@@ -1,6 +1,6 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.40
+Version: 6.41
 Changelog:
   + NEW: Automation lane automatically expands to accomodate all zones.
   + NEW: Optional tooltips provide info while editing.
@@ -3148,8 +3148,7 @@ function AtExit()
         end
     end
     if tooltipState == 1 then reaper.Main_OnCommand(41344, 0) end
-    if tooltipHWND then reaper.JS_WindowMessage_ReleaseWindow(tooltipHWND) end
-
+    if tooltipBitmap then reaper.JS_LICE_DestroyBitmap(tooltipBitmap) end
     if GDI_Font then reaper.JS_GDI_DeleteObject(GDI_Font) end
     if LICE_Font then reaper.JS_LICE_DestroyFont(LICE_Font) end
     --[[ Just something to display table with userdata keys in IDE watchlist
@@ -3235,7 +3234,7 @@ function AtExit()
     end
                   
                   
-    if activeEnv and origEnvChunkHeightStr and origEnvChunkHeightStr ~= "0" then
+    if activeEnv and origEnvChunkHeightStr then --and origEnvChunkHeightStr ~= "0" then
         local chunkOK, chunk = reaper.GetEnvelopeStateChunk(activeEnv, "", false)
         if chunkOK and chunk then 
             chunk = chunk:gsub("\nLANEHEIGHT %S+ ", "\nLANEHEIGHT "..origEnvChunkHeightStr.." ", 1)
@@ -3800,7 +3799,7 @@ function Setup_AutomationContext()
     end
     
     -- If envelope is too narrow to show all zones, try to expand. (There seems to be no easier way than via the state chunk.)
-    local triedToChangeEnvHeight = false
+    triedToChangeEnvHeight = false
     do ::changeEnvHeight::
         ME_TargetHeight = reaper.GetEnvelopeInfo_Value(activeEnv, "I_TCPH_USED")
         if ME_TargetHeight < zoneWidth*5 and not triedToChangeEnvHeight then
@@ -3808,9 +3807,8 @@ function Setup_AutomationContext()
             local chunkOK, chunk = reaper.GetEnvelopeStateChunk(activeEnv, "", false)
             if chunkOK and chunk then
                 origEnvChunkHeightStr = chunk:match("\nLANEHEIGHT (%S+) ")
-                if origEnvChunkHeightStr and origEnvChunkHeightStr ~= "0" then
+                if origEnvChunkHeightStr then --and origEnvChunkHeightStr ~= "0" then -- Wat does it mean when LANEHEIGHT = 0?  Perhaps newly created lane?
                     chunk = chunk:gsub("\nLANEHEIGHT %S+ ", "\nLANEHEIGHT "..string.format("%i", (zoneWidth*6)//1).." ", 1)
-                    --reaper.ShowConsoleMsg(chunk)
                     reaper.SetEnvelopeStateChunk(activeEnv, chunk, false)
                     reaper.UpdateArrange()
                     goto changeEnvHeight
