@@ -1,10 +1,10 @@
 --[[
 ReaScript name: js_Mouse editing - Multi Tool.lua
-Version: 6.42
+Version: 6.43
 Changelog:
   + NEW: Automation lane automatically expands to accomodate all zones.
   + NEW: Optional tooltips provide info while editing.
-  + FIXED: Typo prevented loading zone colors.
+  + FIXED: Smaller tooltip fonts on macOS and Linux.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -5621,7 +5621,7 @@ function MAIN()
         if not tooltipBitmap then reaper.MB("Could not create LICE bitmap for tooltip", "ERROR", 0) return false end 
     LICE_Font = reaper.JS_LICE_CreateFont()
         if not LICE_Font then reaper.MB("Could not create a LICE font.", "ERROR", 0) return false end
-    GDI_Font  = reaper.JS_GDI_CreateFont(14, 100, 0, false, false, false, "Arial")
+    GDI_Font  = reaper.JS_GDI_CreateFont(winOS and 14 or 11, 100, 0, false, false, false, "Arial")
         if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return false end
     reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, winOS and "BLUR" or "") -- "VERTICAL", "BOTTOMUP", "NATIVE", "BLUR", "INVERT", "MONO", "SHADOW" or "OUTLINE".
     reaper.JS_LICE_SetFontBkColor(LICE_Font, 0) -- Transparent
