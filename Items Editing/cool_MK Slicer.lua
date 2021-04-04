@@ -1,15 +1,12 @@
 -- @description MK Slicer
 -- @author cool
--- @version 2.4
+-- @version 2.11
 -- @changelog
---   + Added a Sync button (zoom and waveform position) with Arrange View window.
---   + Added controls for easy access to changing grid parameters.
---   + Improved the behavior of the Add Markers function during playback.
---   + Now the script does not show an error window if no tracks are selected.
---   + Now the script does not close if the action of the Get Item button caused an error.
---   + Now errors when the script window is open are displayed only in the script interface, without additional windows.
---   + Improved behavior when working with Razor Edit.
---   + Partially rewritten code to free locales (bypassing 200 locale limit)
+--   + Restored the ability to edit the position and velocity of markers (it was broken in the previous version, sorry).
+--   + Now toggling the Grid buttons does not reset the Swing amount.
+--   + Now the Swing slider does not show -0 when the value is 0.
+--   + Quick Q is now available when switching Slice / Markers modes and after changing Grid / Swing. Just press Q to get the result right away. After changing the parameters, pressing Q again will also work.
+--   + Fixed a bug. Now, when you change the parameters of the sliders using the mouse wheel, the changes will be immediately noticeable when the buttons are pressed.
 -- @link Forum Thread https://forum.cockos.com/showthread.php?t=232672
 -- @screenshot MKSlicer2.0 https://i.imgur.com/QFWHt9a.png
 -- @donation
@@ -67,7 +64,7 @@
 --   Sometimes a script applies glue to items. For example, when several items are selected and when a MIDI is created in a sampler mode.
 
 --[[
-MK Slicer v2.1 by Maxim Kokarev 
+MK Slicer v2.11 by Maxim Kokarev 
 https://forum.cockos.com/member.php?u=121750
 
 Co-Author of the compilation - MyDaw
@@ -474,21 +471,21 @@ end
 
 function sel_tracks_items() --Select only tracks of selected items
 
-	UnselectAllTracks()
-	selected_items_count = r.CountSelectedMediaItems(0)
+  UnselectAllTracks()
+  selected_items_count = r.CountSelectedMediaItems(0)
 
-	for i = 0, selected_items_count - 1  do
-		item = r.GetSelectedMediaItem(0, i) -- Get selected item i
-		track = r.GetMediaItem_Track(item)
-		r.SetTrackSelected(track, true)				
-	end 
+  for i = 0, selected_items_count - 1  do
+    item = r.GetSelectedMediaItem(0, i) -- Get selected item i
+    track = r.GetMediaItem_Track(item)
+    r.SetTrackSelected(track, true)        
+  end 
 end
 
 function UnselectAllTracks()
-	first_track = r.GetTrack(0, 0)
+  first_track = r.GetTrack(0, 0)
           if first_track then
-	      r.SetOnlyTrackSelected(first_track)
-	      r.SetTrackSelected(first_track, false)
+        r.SetOnlyTrackSelected(first_track)
+        r.SetTrackSelected(first_track, false)
           end
 end
 
@@ -1504,8 +1501,8 @@ function Slider_Swing:set_norm_val_m_wheel()
     end
     local Step = Mult_S
     if gfx.mouse_wheel == 0 then return false end  -- return if m_wheel = 0
-    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step, 1) end
-    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step, 0) end
+    if gfx.mouse_wheel > 0 then self.norm_val = min(self.norm_val+Step+0.00001, 1) end
+    if gfx.mouse_wheel < 0 then self.norm_val = max(self.norm_val-Step+0.00001, 0) end
     return true
 end
 
@@ -3737,12 +3734,12 @@ function()
              GridT_on = 1
              triplets = 3
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
-    r.GetSetProjectGrid(0, true, (division+division/3)/2, swing_mode)
+    r.GetSetProjectGrid(0, true, (division+division/3)/2, swing_mode, swingamt)
                else
              GridT_on = 0
              triplets = 2
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
-    r.GetSetProjectGrid(0, true, division+division/2, swing_mode)
+    r.GetSetProjectGrid(0, true, division+division/2, swing_mode, swingamt)
         end
    end 
 end 
@@ -3761,7 +3758,7 @@ function()
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 2/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 2/triplets, swing_mode, swingamt)
                else
              Grid1_on = 0
         end
@@ -3782,7 +3779,7 @@ function()
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 1/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 1/triplets, swing_mode, swingamt)
                else
              Grid2_on = 0
         end
@@ -3803,7 +3800,7 @@ function()
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.5/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 0.5/triplets, swing_mode, swingamt)
                else
              Grid4_on = 0
         end
@@ -3824,7 +3821,7 @@ function()
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.25/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 0.25/triplets, swing_mode, swingamt)
                else
              Grid8_on = 0
         end
@@ -3845,7 +3842,7 @@ function()
              Grid16_on = 1
              Grid32_on = 0
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.125/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 0.125/triplets, swing_mode, swingamt)
                else
              Grid16_on = 0
         end
@@ -3866,7 +3863,7 @@ function()
              Grid16_on = 0
              Grid32_on = 1
              Grid64_on = 0
-    r.GetSetProjectGrid(0, true, 0.0625/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 0.0625/triplets, swing_mode, swingamt)
                else
              Grid32_on = 0
         end
@@ -3887,7 +3884,7 @@ function()
              Grid16_on = 0
              Grid32_on = 0
              Grid64_on = 1
-    r.GetSetProjectGrid(0, true, 0.03125/triplets, swing_mode)
+    r.GetSetProjectGrid(0, true, 0.03125/triplets, swing_mode, swingamt)
                else
              Grid64_on = 0
         end
@@ -3901,14 +3898,13 @@ end
 local Swing_Sld = Sw_Slider:new(443,5,100,20, 0.28,0.4,0.7,0.8, " ","Arial",16, swngdefamt )
 function Swing_Sld:draw_val()
 
-  self.form_val  = (100- self.norm_val * 200)*( -1)     -- form_val
+  self.form_val  = ((100- self.norm_val * 200)*( -1))     -- form_val
 
   function fixzero()
   self_form_val = self.form_val
-  if (self_form_val== 0.0)then self_form_val = 0 end
+    if (self_form_val == 0.0) then self_form_val = 0 end
   end
   fixzero()  
-
   local x,y,w,h  = self.x,self.y,self.w,self.h
   local val = string.format("%.0f", self_form_val).." %"
   local val_w, val_h = gfx.measurestr(val)
@@ -3919,9 +3915,9 @@ function Swing_Sld:draw_val()
 Swing_Sld.onUp =
 function() 
    if Wave.State then
-    fixzero() 
     local _, division, _, _ = r.GetSetProjectGrid(0,false)
     r.GetSetProjectGrid(0, true, division, swing_mode, swing_slider_amont)
+    fixzero() 
    end 
 end
 
@@ -4259,21 +4255,21 @@ end
 
 function sel_tracks_items() --Select only tracks of selected items
 
-	UnselectAllTracks()
-	selected_items_count = r.CountSelectedMediaItems(0)
+  UnselectAllTracks()
+  selected_items_count = r.CountSelectedMediaItems(0)
 
-	for i = 0, selected_items_count - 1  do
-		item = r.GetSelectedMediaItem(0, i) -- Get selected item i
-		track = r.GetMediaItem_Track(item)
-		r.SetTrackSelected(track, true)				
-	end 
+  for i = 0, selected_items_count - 1  do
+    item = r.GetSelectedMediaItem(0, i) -- Get selected item i
+    track = r.GetMediaItem_Track(item)
+    r.SetTrackSelected(track, true)        
+  end 
 end
 
 function UnselectAllTracks()
-	first_track = r.GetTrack(0, 0)
+  first_track = r.GetTrack(0, 0)
           if first_track then
-	      r.SetOnlyTrackSelected(first_track)
-	      r.SetTrackSelected(first_track, false)
+        r.SetOnlyTrackSelected(first_track)
+        r.SetTrackSelected(first_track, false)
           end
 end
 
@@ -5977,6 +5973,13 @@ end
 
 function Wave:Quantize_Slices()
 
+
+     if Slice_Status == 1 then --instant Q
+        Wave:Just_Slice()
+        Slice_Status = 0
+     end
+
+
 if SliceQ_Init_Status == 1 then
               
  r.Undo_BeginBlock() 
@@ -6322,7 +6325,13 @@ end
 
 function Wave:Quantize_Markers()
 
+     if MarkersQ_Status == 0 then --instant Q
+        Wave:Add_Markers()
+        MarkersQ_Status = 1
+     end
+
      if MarkersQ_Status == 1 then
+
  r.Undo_BeginBlock() 
 r.PreventUIRefresh(1)
    -------------------------------------------
@@ -6498,7 +6507,7 @@ r.Main_OnCommand(r.NamedCommandLookup('_SWS_RESTORESEL'), 0)  -- Restore track s
 Reset_Status = 0
 SliceQ_Status = 0
 SliceQ_Init_Status = 0
-
+MarkersQ_Status = 0
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -6707,9 +6716,9 @@ function Load()
 
         track = r.GetSelectedTrack(0, 0)
         r.Main_OnCommand(40297,0) -- Unselect All Tracks
-	first_track = r.GetTrack(0, 0)
+  first_track = r.GetTrack(0, 0)
           if first_track then
-	      r.SetTrackSelected(first_track, true)
+        r.SetTrackSelected(first_track, true)
         end
 
         r.ReorderSelectedTracks(nmb+1, 0)
@@ -7270,7 +7279,7 @@ self_Zoom = self.Zoom --refresh loop by mw
     -----------------------------------------
       Cursor_Status = 0
     --- Wave Move ---------------------------
-    if self:mouseDown() or self:mouseM_Down() then 
+    if (self:mouseDown() or self:mouseM_Down()) and not Shift and not Ctrl then 
       Cursor_Status = 1
       self.Pos = self.Pos + (last_x - gfx.mouse_x)/(self.Zoom*Z_w)
       self.Pos = max(self.Pos, 0)
@@ -7654,6 +7663,7 @@ end
 function MW_doit_slider()
       if Wave.State then
             Gate_Gl:Apply_toFiltered() -- redraw transient markers
+            Slice_Status = 1
       end
 end
 
@@ -7661,6 +7671,7 @@ function MW_doit_slider_Fine()
       if Wave.State then
             Gate_Gl:Apply_toFiltered() -- redraw transient markers
             DrawGridGuides()
+            Slice_Status = 1
       end
 end
 
@@ -7688,6 +7699,7 @@ function MW_doit_slider_fgain()
       if Wave.State then
             Gate_Gl:Apply_toFiltered() -- redraw transient markers
             Wave:Redraw() --redraw filtered gain and filters
+            Slice_Status = 1
       end
 end
 
@@ -7696,6 +7708,7 @@ function MW_doit_slider_comlpex()
             Wave:Processing() -- redraw lowcut and highcut
             Gate_Gl:Apply_toFiltered() -- redraw transient markers
             Wave:Redraw() --redraw filtered gain and filters
+            Slice_Status = 1
       end
 end
 
@@ -7783,7 +7796,7 @@ function Init()
     -- Some gfx Wnd Default Values ---------------
     local R,G,B = 45,45,45              -- 0...255 format -- цвет основного окна
     local Wnd_bgd = R + G*256 + B*65536 -- red+green*256+blue*65536  
-    local Wnd_Title = "MK Slicer v2.1"
+    local Wnd_Title = "MK Slicer v2.11"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
  --   Wnd_W,Wnd_H = 1044,490 -- global values(used for define zoom level)
 
@@ -8091,7 +8104,7 @@ gfx.quit()
      dock_pos = dock_pos or 1025
      xpos = 400
      ypos = 320
-     local Wnd_Title = "MK Slicer v2.1"
+     local Wnd_Title = "MK Slicer v2.11"
      local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
      gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
 
@@ -8103,7 +8116,7 @@ gfx.quit()
     dock_pos = 0
     xpos = r.GetExtState("cool_MK Slicer.lua", "window_x") or 400
     ypos = r.GetExtState("cool_MK Slicer.lua", "window_y") or 320
-    local Wnd_Title = "MK Slicer v2.1"
+    local Wnd_Title = "MK Slicer v2.11"
     local Wnd_Dock, Wnd_X,Wnd_Y = dock_pos, xpos, ypos
     gfx.init( Wnd_Title, Wnd_W,Wnd_H, Wnd_Dock, Wnd_X,Wnd_Y )
  
