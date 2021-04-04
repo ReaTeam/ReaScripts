@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a3022e41216b00d47201834b9c9779f6d4b08e66" name="ReaTeam Scripts">
+<index version="1" commit="ce1393d830b01122a8c883a0625eba35a4240fe5" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -3061,6 +3061,22 @@ Improve "under mouse cursor" variants to work over any envelope]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/1ce6539a2bd15baebc2fed4b1095fbf6f3758afe/FX/amagalma_Toggle%20wet%200-100%25%20(or%20current%20value)%20for%20focused%20FX.lua</source>
       </version>
     </reapack>
+    <reapack name="BuyOne_Insert selected FX in OR copy focused FX to selected objects.lua" type="script" desc="Insert selected FX in OR copy focused FX to selected objects">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Allows inserting miltiple FX from FX browser or copying FX focused in an FX chain or in a floating window to selected objects. Detailed description is available inside the script.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/member.php?u=134058</link>
+      </metadata>
+      <version name="1.0" author="BuyOne" time="2021-04-04T01:08:02Z">
+        <changelog><![CDATA[Initial release]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/37e23ef9cc408699439728646fd321bac093573e/FX/BuyOne_Insert%20selected%20FX%20in%20OR%20copy%20focused%20FX%20to%20selected%20objects.lua</source>
+      </version>
+    </reapack>
     <reapack name="BuyOne_Lock FX and FX chains.lua" type="script" desc="Lock FX and FX chains + Append or remove lock tag">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4794,6 +4810,14 @@ Override Reaper option "Toggle enable/disable default fadein/fadeout" (on/off)]]
 + Improved behavior when working with Razor Edit.
 + Partially rewritten code to free locales (bypassing 200 locale limit)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/cd195d4857aac443df251737b45d08db14bcba1c/Items%20Editing/cool_MK%20Slicer.lua</source>
+      </version>
+      <version name="2.11" author="cool" time="2021-04-04T01:08:21Z">
+        <changelog><![CDATA[+ Restored the ability to edit the position and velocity of markers (it was broken in the previous version, sorry).
++ Now toggling the Grid buttons does not reset the Swing amount.
++ Now the Swing slider does not show -0 when the value is 0.
++ Quick Q is now available when switching Slice / Markers modes and after changing Grid / Swing. Just press Q to get the result right away. After changing the parameters, pressing Q again will also work.
++ Fixed a bug. Now, when you change the parameters of the sliders using the mouse wheel, the changes will be immediately noticeable when the buttons are pressed.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ce1393d830b01122a8c883a0625eba35a4240fe5/Items%20Editing/cool_MK%20Slicer.lua</source>
       </version>
     </reapack>
     <reapack name="ED_Select items with take FX in active take.lua" type="script" desc="Select items with take FX in active take">
