@@ -6,9 +6,9 @@
 -- @about Allows loading selected FX chain on selected objects. Detailed description is available inside the script.
 
 --[[
-  * Licence: WTFPL
-  * REAPER: at least v5.962
-  * Extensions: SWS/S&M (not obligatory but recommended)
+   * Licence: WTFPL
+   * REAPER: at least v5.962
+   * Extensions: SWS/S&M (not obligatory but recommended)
 
 
 By default the script works in add/replace mode adding FX chain to selected
@@ -46,8 +46,8 @@ and the arrange is being redrawn.
 -- Conversely, to enable one place any alphanumeric character between those.
 -- Try to not leave empty spaces.
 
-DIALOGUE = "" -- choose mode of operation at runtime when ADD_APPEND is enabled
-ADD_APPEND = "" -- add/append mode instead of add/replace
+DIALOGUE = "1" -- choose mode of operation at runtime when ADD_APPEND is enabled
+ADD_APPEND = "1" -- add/append mode instead of add/replace
 TRACK_MAIN_FX = "1" -- load as track main FX chain
 TRACK_INPUT_MON_FX = "1" -- load as track input FX and Master track Monitor FX chains
 TAKE_FX = "1" -- load as take FX chain
@@ -167,8 +167,8 @@ r.PreventUIRefresh(1)
 	local tr_chunk = UpdateTempTrackChunk(tr_chunk, fx_ch_chunk)
 	SetObjChunk(1, temp_track, tr_chunk)
 
-r.Undo_BeginBlock()	
-	
+r.Undo_BeginBlock()
+
 -- Copy FX from the temp track to selected objects
 
 		if sel_trk_cnt > 0 then
@@ -207,7 +207,7 @@ r.Undo_BeginBlock()
 				end
 			end
 		end
-	
+
 		if sel_itms_cnt > 0 and TAKE_FX then
 			for i = 0, sel_itms_cnt-1 do
 			local take = r.GetActiveTake(r.GetSelectedMediaItem(0,i))
