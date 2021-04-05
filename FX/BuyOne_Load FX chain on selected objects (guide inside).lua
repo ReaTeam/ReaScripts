@@ -27,6 +27,10 @@ enable/disable loading FX chain as a particular FX chain type.
 
 If item has several takes the FX chain is only applied to the selected one.
 
+To include Monitor FX chain in selected objects select Master track. Be aware
+that if TRACK_MAIN_FX option is enabled the same FX chain will also be loaded
+as the Master track main FX chain.
+
 It's advised to load FX chain preset to Monitor FX chain with the chain closed,
 otherwise REAPER will freeze for a short while as the chain is being updated
 and the arrange is being redrawn.
