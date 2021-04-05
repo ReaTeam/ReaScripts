@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0ab11746631d23c63ea07f7be49c414190432345" name="ReaTeam Scripts">
+<index version="1" commit="afc6f45dca45a294449416472669c7f8d6e7e0f2" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -12261,6 +12261,20 @@ Don't report an error if no render presets were created yet]]></changelog>
         <changelog><![CDATA[Update : New script in this package to preserve the Take Name]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/5c2601841cba9a385bc7caafc98fe999700373c1/Rendering/rodilab_Render%20whole%20items%20in%20new%20take.lua</source>
         <source main="main" file="rodilab_Render whole items in new take/rodilab_Render whole items in new take (preserve take name).lua">https://github.com/ReaTeam/ReaScripts/raw/5c2601841cba9a385bc7caafc98fe999700373c1/Rendering/rodilab_Render%20whole%20items%20in%20new%20take/rodilab_Render%20whole%20items%20in%20new%20take%20(preserve%20take%20name).lua</source>
+      </version>
+    </reapack>
+    <reapack name="uorcun_Insert start and end markers to time selection for subprojects.lua" type="script" desc="Insert =START and =END markers to time selection for subprojects">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Automatically inserts =START and =END to each side of time selection. Rendering Subprojects obey these two markers.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="Ugurcan Orcun" time="2021-04-05T21:59:36Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/afc6f45dca45a294449416472669c7f8d6e7e0f2/Rendering/uorcun_Insert%20start%20and%20end%20markers%20to%20time%20selection%20for%20subprojects.lua</source>
       </version>
     </reapack>
   </category>
