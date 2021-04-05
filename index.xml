@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ce1393d830b01122a8c883a0625eba35a4240fe5" name="ReaTeam Scripts">
+<index version="1" commit="0ab11746631d23c63ea07f7be49c414190432345" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -4281,6 +4281,10 @@ Better error-checking in general]]></changelog>
         <changelog><![CDATA[- Fix crash after pressing both left and right mouse buttons at the same time
 - Maintain relative guide line position when dragging items with snap enabled]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/ca573d22010495ec73d50aa9bfb9eb7b56fe6eed/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
+      </version>
+      <version name="1.85" author="amagalma" time="2021-04-05T09:22:40Z">
+        <changelog><![CDATA[- M1 Apple Macs support]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/0ab11746631d23c63ea07f7be49c414190432345/Items%20Editing/amagalma_Toggle%20show%20editing%20guide%20line%20on%20item%20under%20mouse%20cursor%20in%20Main%20Window%20or%20in%20MIDI%20Editor.lua</source>
       </version>
     </reapack>
     <reapack name="Argitoth_Select items with color of selected items.eel" type="script" desc="Select items with color of selected items">
