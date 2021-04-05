@@ -1,9 +1,8 @@
 -- @description Toggle show editing guide line on item under mouse cursor in Main Window or in MIDI Editor
 -- @author amagalma
--- @version 1.84
+-- @version 1.85
 -- @changelog
---    - Fix crash after pressing both left and right mouse buttons at the same time
---    - Maintain relative guide line position when dragging items with snap enabled
+--    - M1 Apple Macs support
 -- @donation https://www.paypal.me/amagalma
 -- @about
 --   # Displays a guide line on the item under the mouse cursor for easier editing in the Main Window, or a tall line in the focused MIDI Editor
@@ -44,7 +43,7 @@ local red2, green2, blue2 = 165, 165, 135
 
 -- Check JS_ReaScriptAPI availability
 local required_version, ok  = "1.002", false
-local js_api = { "reaper_js_ReaScriptAPI32.dll", "reaper_js_ReaScriptAPI32.dylib", "reaper_js_ReaScriptAPI64.dll", "reaper_js_ReaScriptAPI64.dylib", "reaper_js_ReaScriptAPI64.so" }
+local js_api = { "reaper_js_ReaScriptAPI32.dll", "reaper_js_ReaScriptAPI32.dylib", "reaper_js_ReaScriptAPI64.dll", "reaper_js_ReaScriptAPI64.dylib", "reaper_js_ReaScriptAPI64ARM.dylib", "reaper_js_ReaScriptAPI64.so" }
 local sep = reaper.GetOS():find("Win") and "\\" or "/"
 local ext_path = reaper.GetResourcePath() .. sep .. "UserPlugins" .. sep
 for i = 1, 5 do
