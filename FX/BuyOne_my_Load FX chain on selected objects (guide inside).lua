@@ -6,9 +6,9 @@
 -- @about Allows loading selected FX chain on selected objects. Detailed description is available inside the script.
 
 --[[
-	* Licence: WTFPL
-	* REAPER: at least v5.962
-	* Extensions: SWS/S&M (not obligatory but recommended)
+  * Licence: WTFPL
+  * REAPER: at least v5.962
+  * Extensions: SWS/S&M (not obligatory but recommended)
 
 
 By default the script works in add/replace mode adding FX chain to selected
