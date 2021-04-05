@@ -1,4 +1,4 @@
--- @description Insert Start/End markers to Time Selection for Subprojects
+-- @description Insert =START and =END markers to time selection for subprojects
 -- @author Ugurcan Orcun
 -- @version 1.0
 -- @about Automatically inserts =START and =END to each side of time selection. Rendering Subprojects obey these two markers.
