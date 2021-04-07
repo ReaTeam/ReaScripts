@@ -95,7 +95,7 @@ function Err_mess() -- if chunk size limit is exceeded and SWS extension isn't i
 end
 
 
-local function SetObjChunk(retval, obj, obj_chunk) -- retval stems from r.GetFocusedFX(), value 0 is only considered at the pasting stage because in the copying stage it's error caught before the function
+local function SetObjChunk(retval, obj, obj_chunk)
 		if not (obj and obj_chunk) then return end
 	return retval == 1 and r.SetTrackStateChunk(obj, obj_chunk, false) or r.SetItemStateChunk(obj, obj_chunk, false)
 end
