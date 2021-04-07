@@ -1,19 +1,22 @@
 -- @description Open item and center track
 -- @author Tagirijus
--- @version 1.0
+-- @version 1.1
+-- @changelog Fixed that a MIDIPOOL would not be opened like a MIDI item.
 -- @about
 --   # Description
 --
 --   This script will open a media item depending on its type and centeres the selected track into view. This becomes handy when working with the MIDI editor docked. On a large ensemble I often times double click a MIDI item to work on the MIDI notes but then maybe the selected track is not in view.
 
 --[[
- * ReaScript Name: tagirijus_Open item and center track.lua
  * Author: EUGEN27771 (original), slight modifications by Manuel Senfft (Tagirijus)
  * Licence: MIT
  * REAPER: 6.25
- * Extensions: None
- * Version: 1.0
 --]]
+
+
+function debugMsg(msg)
+	reaper.ShowMessageBox(tostring(msg), 'DEBUG MSG', 0)
+end
 
 
 ---------------------------------
@@ -61,6 +64,7 @@ end
 function Set_ID(S_Type)
     -- Midi Source ---------
     if     S_Type == "MIDI"          then ID = MIDI
+    elseif S_Type == "MIDIPOOL"      then ID = MIDI
     -- Audio Source --------
     elseif S_Type == "WAVE"          then ID = WAVE
     elseif S_Type == "REX"           then ID = REX
@@ -104,4 +108,4 @@ end
 
 ----------------------------------------
 ----------------------------------------
-main()
+reaper.defer(main)
