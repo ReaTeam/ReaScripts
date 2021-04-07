@@ -46,8 +46,8 @@ and the arrange is being redrawn.
 -- Conversely, to enable one place any alphanumeric character between those.
 -- Try to not leave empty spaces.
 
-DIALOGUE = "1" -- choose mode of operation at runtime when ADD_APPEND is enabled
-ADD_APPEND = "1" -- add/append mode instead of add/replace
+DIALOGUE = "" -- choose mode of operation at runtime when ADD_APPEND is enabled
+ADD_APPEND = "" -- add/append mode instead of add/replace
 TRACK_MAIN_FX = "1" -- load as track main FX chain
 TRACK_INPUT_MON_FX = "1" -- load as track input FX and Master track Monitor FX chains
 TAKE_FX = "1" -- load as take FX chain
