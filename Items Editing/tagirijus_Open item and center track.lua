@@ -8,12 +8,9 @@
 --   This script will open a media item depending on its type and centeres the selected track into view. This becomes handy when working with the MIDI editor docked. On a large ensemble I often times double click a MIDI item to work on the MIDI notes but then maybe the selected track is not in view.
 
 --[[
- * ReaScript Name: tagirijus_Open item and center track.lua
  * Author: EUGEN27771 (original), slight modifications by Manuel Senfft (Tagirijus)
  * Licence: MIT
  * REAPER: 6.25
- * Extensions: None
- * Version: 1.1
 --]]
 
 
