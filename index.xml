@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="afc6f45dca45a294449416472669c7f8d6e7e0f2" name="ReaTeam Scripts">
+<index version="1" commit="68a5105a749cbd2208a4d9e17e087a3816062730" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -5860,6 +5860,10 @@ here
       </metadata>
       <version name="1.0" author="Tagirijus" time="2021-03-17T20:10:59Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6631aa64497d70f8e72cb58b6776c9371e9c58c7/Items%20Editing/tagirijus_Open%20item%20and%20center%20track.lua</source>
+      </version>
+      <version name="1.1" author="Tagirijus" time="2021-04-07T20:40:14Z">
+        <changelog><![CDATA[Fixed that a MIDIPOOL would not be opened like a MIDI item.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/68a5105a749cbd2208a4d9e17e087a3816062730/Items%20Editing/tagirijus_Open%20item%20and%20center%20track.lua</source>
       </version>
     </reapack>
     <reapack name="triode_Track-based item selection.lua" type="script" desc="Track-based item selection">
