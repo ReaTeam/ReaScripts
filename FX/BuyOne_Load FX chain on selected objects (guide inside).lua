@@ -1,41 +1,40 @@
--- @description Load FX chain on selected objects
--- @author BuyOne
--- @website https://forum.cockos.com/member.php?u=134058
--- @version 1.0
--- @changelog Initial release
--- @about 
---   Allows loading selected FX chain on selected objects. Detailed description is available inside the script.
---
---   * By default the script works in add/replace mode adding FX chain to selected
---   objects which don't have any and replacing current FX chain in those which do.
---
---   * When option ADD_APPEND is enabled in the USER SETTINGS below the script works
---   in add/append mode where instead of replacing current FX chain it appends it
---   with the FX chain being added, placing it downstream.
---
---   * When both options DIALOGUE and ADD_APPEND are enabled in the USER SETTINGS below
---   the user is presented with the dialogue allowing them to choose between the two
---   modes every time the script is used.
---
---   * The USER SETTINGS options TRACK_MAIN_FX, TRACK_INPUT_MON_FX, TAKE_FX allow to
---   enable/disable loading FX chain as a particular FX chain type.
---
---   * If item has several takes the FX chain is only applied to the selected one.
---
---   * To include Monitor FX chain in selected objects select Master track. Be aware
---   that if TRACK_MAIN_FX option is enabled the same FX chain will also be loaded
---   as the Master track main FX chain.
---
---   * It's advised to load FX chain preset to Monitor FX chain with the chain closed,
---   otherwise REAPER will freeze for a short while as the chain is being updated
---   and the arrange is being redrawn.
+--[[ 
+ReaScript name: Load FX chain on selected objects (guide inside)
+Author: BuyOne
+Website: https://forum.cockos.com/member.php?u=134058
+Version: 1.0
+Changelog: Initial release
+About: 
+  Allows loading selected FX chain on selected objects. Detailed description is available inside the script.
 
---[[
-   * Licence: WTFPL
-   * REAPER: at least v5.962
-   * Extensions: SWS/S&M (not obligatory but recommended)
+  * By default the script works in add/replace mode adding FX chain to selected
+  objects which don't have any and replacing current FX chain in those which do.
+
+  * When option ADD_APPEND is enabled in the USER SETTINGS below the script works
+  in add/append mode where instead of replacing current FX chain it appends it
+  with the FX chain being added, placing it downstream.
+
+  * When both options DIALOGUE and ADD_APPEND are enabled in the USER SETTINGS below
+  the user is presented with the dialogue allowing them to choose between the two
+  modes every time the script is used.
+
+  * The USER SETTINGS options TRACK_MAIN_FX, TRACK_INPUT_MON_FX, TAKE_FX allow to
+  enable/disable loading FX chain as a particular FX chain type.
+
+  * If item has several takes the FX chain is only applied to the selected one.
+  
+  * To include Monitor FX chain in selected objects select Master track. Be aware
+  that if TRACK_MAIN_FX option is enabled the same FX chain will also be loaded
+  as the Master track main FX chain.
+
+  * It's advised to load FX chain preset to Monitor FX chain with the chain closed,
+  otherwise REAPER will freeze for a short while as the chain is being updated
+  and the arrange is being redrawn.
+
+Licence: WTFPL
+REAPER: at least v5.962
+Extensions: SWS/S&M (not obligatory but recommended)
 ]]
-
 
 -----------------------------------------------------------------------------
 ------------------------------ USER SETTINGS --------------------------------
