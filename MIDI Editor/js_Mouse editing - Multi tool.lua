@@ -2,9 +2,7 @@
 ReaScript name: js_Mouse editing - Multi Tool.lua
 Version: 6.43
 Changelog:
-  + NEW: Automation lane automatically expands to accomodate all zones.
-  + NEW: Optional tooltips provide info while editing.
-  + FIXED: Smaller tooltip fonts on macOS and Linux.
+  + FIXED: Pause when terminating.
 Author: juliansader
 Website: http://forum.cockos.com/showthread.php?t=176878
 Donation: https://www.paypal.me/juliansader
@@ -3119,6 +3117,10 @@ function DEFER_pcall()
         if pcallOK and not (continueStep == "QUIT") then
             selectedEditFunction = (continueStep == "CONTINUE") and selectedEditFunction or nextFunction or Defer_Zones
             --if selectedEditFunction == Defer_Zones then PreventUIRefresh(true) else PreventUIRefresh(false) end
+            --[[if tooltipText and tooltipTime and thisDeferTime and tooltipTime < thisDeferTime-2 then
+                
+            end]]
+            pcall(Tooltip)
             reaper.defer(DEFER_pcall)
         end
     end
@@ -5057,27 +5059,29 @@ end -- ArmToolbarButton()
 -- The function stores the bitmap background before drawing the tooltip, and then restores the content to disappear the tooltip.  
 -- The calling editing function MUST therefore draw or clear its bitmap BEFORE calling Tooltip.
 local tooltipTime = 0
-local tooltipText = ""
+local tooltipText = nil
 local tooltipX, tooltipY, tooltipWidth
 --local tooltipHWND = nil
-function Tooltip(text)
+--[[function Tooltip(text)
     pcall(Tooltip_pcall, text)
-end
+end]]
 
-function Tooltip_pcall(text)
-    if text and showTooltips then -- New tooltip text, so new tooltip
-        tooltipTime = reaper.time_precise()
-        tooltipText = text
-        tooltipCaller = selectedEditFunction
-        if mouseX and mouseY then
-            tooltipX, tooltipY = mouseX+12, mouseY+8
-            tooltipWidth = 20 + (4.5*(#tooltipText))//1
-            reaper.JS_LICE_Blit(tooltipBitmap, 0, 0, bitmap, tooltipX, tooltipY, tooltipWidth+5, 31, 1, "COPY") -- Store before overwriting, so that tooltip can be deleted later.
-            reaper.JS_LICE_FillRect(bitmap, tooltipX+4, tooltipY+4, tooltipWidth, 20, 0xFF000000, 0.6, "COPY") -- Shadow
-            reaper.JS_LICE_FillRect(bitmap, tooltipX, tooltipY, tooltipWidth, 20, 0xAA000000, 1, "COPY") -- Background
-            reaper.JS_LICE_RoundRect(bitmap, tooltipX, tooltipY, tooltipWidth, 20, 0, winOS and 0x77777777 or 0x77FFFFFF, 0.3, "COPY", false) -- Border
-            reaper.JS_LICE_DrawText(bitmap, LICE_Font, tooltipText, #tooltipText, tooltipX+5, tooltipY+3, tooltipX+200, tooltipY+25)
-            reaper.defer(Tooltip)
+function Tooltip(text)
+    if text then
+        if showTooltips then -- New tooltip text, so new tooltip
+            tooltipTime = thisDeferTime or reaper.time_precise()
+            tooltipText = text
+            tooltipCaller = selectedEditFunction
+            if mouseX and mouseY then
+                tooltipX, tooltipY = mouseX+12, mouseY+8
+                tooltipWidth = 20 + (4.5*(#tooltipText))//1
+                reaper.JS_LICE_Blit(tooltipBitmap, 0, 0, bitmap, tooltipX, tooltipY, tooltipWidth+5, 31, 1, "COPY") -- Store before overwriting, so that tooltip can be deleted later.
+                reaper.JS_LICE_FillRect(bitmap, tooltipX+4, tooltipY+4, tooltipWidth, 20, 0xFF000000, 0.6, "COPY") -- Shadow
+                reaper.JS_LICE_FillRect(bitmap, tooltipX, tooltipY, tooltipWidth, 20, 0xAA000000, 1, "COPY") -- Background
+                reaper.JS_LICE_RoundRect(bitmap, tooltipX, tooltipY, tooltipWidth, 20, 0, winOS and 0x77777777 or 0x77FFFFFF, 0.3, "COPY", false) -- Border
+                reaper.JS_LICE_DrawText(bitmap, LICE_Font, tooltipText, #tooltipText, tooltipX+5, tooltipY+3, tooltipX+200, tooltipY+25)
+                --reaper.defer(Tooltip)
+            end
         end
         --[[
         reaper.TrackCtl_SetToolTip(tooltipText, tooltipX+10, tooltipY, true)
@@ -5086,14 +5090,14 @@ function Tooltip_pcall(text)
             reaper.JS_WindowMessage_Intercept(tooltipHWND, "WM_SETCURSOR", false)
             reaper.JS_Window_SetOpacity(tooltipHWND, "ALPHA", 0.7)
         end]]
-        
-    elseif reaper.time_precise() < tooltipTime+2 then
+    --[[    
+    elseif pcallOK and continueStep == "CONTINUE" and tooltipCaller == selectedEditFunction and reaper.time_precise() < tooltipTime+2 then
         reaper.defer(Tooltip)
-    else
-        if tooltipCaller == selectedEditFunction and tooltipX and tooltipY and tooltipWidth then
-            reaper.JS_LICE_Blit(bitmap, tooltipX, tooltipY, tooltipBitmap, 0, 0, tooltipWidth+5, 31, 1, "COPY")
-            reaper.JS_Window_InvalidateRect(windowUnderMouse, tooltipX, tooltipY, tooltipX+tooltipWidth+5, tooltipY+30, true)
-        end
+    ]]
+    elseif tooltipTime and thisDeferTime and tooltipTime < thisDeferTime-1.8 -- Remove tooltip
+        and tooltipCaller == selectedEditFunction and tooltipX and tooltipY and tooltipWidth then
+        reaper.JS_LICE_Blit(bitmap, tooltipX, tooltipY, tooltipBitmap, 0, 0, tooltipWidth+5, 31, 1, "COPY")
+        reaper.JS_Window_InvalidateRect(windowUnderMouse, tooltipX, tooltipY, tooltipX+tooltipWidth+5, tooltipY+30, true)
     end
     --[[
     elseif pcallOK and continueScript and reaper.time_precise() < tooltipTime+2 then -- if not (pcallOK and pcallRetval), then script is quitting, so don't defer
@@ -5621,7 +5625,7 @@ function MAIN()
         if not tooltipBitmap then reaper.MB("Could not create LICE bitmap for tooltip", "ERROR", 0) return false end 
     LICE_Font = reaper.JS_LICE_CreateFont()
         if not LICE_Font then reaper.MB("Could not create a LICE font.", "ERROR", 0) return false end
-    GDI_Font  = reaper.JS_GDI_CreateFont(winOS and 14 or 11, 100, 0, false, false, false, "Arial")
+    GDI_Font  = reaper.JS_GDI_CreateFont(14, 100, 0, false, false, false, "Arial")
         if not GDI_Font then reaper.MB("Could not create a GDI font.", "ERROR", 0) return false end
     reaper.JS_LICE_SetFontFromGDI(LICE_Font, GDI_Font, winOS and "BLUR" or "") -- "VERTICAL", "BOTTOMUP", "NATIVE", "BLUR", "INVERT", "MONO", "SHADOW" or "OUTLINE".
     reaper.JS_LICE_SetFontBkColor(LICE_Font, 0) -- Transparent
