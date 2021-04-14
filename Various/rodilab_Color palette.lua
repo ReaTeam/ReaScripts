@@ -1,6 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.0
+-- @version 1.1
+-- @changelog Update : Set color to children tracks option, drag and drop insert (not remplace), improved spacing.
 -- @about
 --   Color tool with a color gradient palette and a customizable user palette.
 --   Use it to set new tracks/objects/takes colors.
@@ -9,6 +10,7 @@
 --
 --   - Click on color to set in selected tracks/objects/takes (depends on focus)
 --   - Can also set color in all tracks whose name begins with a given value
+--   - Set children tracks color option
 --   - Drag and drop colors to user palette
 --   - Edit color by right-click with color picker popup
 --   - Save as and Load user colors list
@@ -20,7 +22,6 @@ r = reaper
 script_name = "Color palette"
 default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.2)
 col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
-separator_spacing = 3
 -- Don't change
 item_button = 'Item'
 recalc_colors = true
@@ -28,6 +29,7 @@ restart = false
 set_tmp_values = false
 set_default_sizes = false
 settings = 0
+command_colchildren = r.NamedCommandLookup('_SWS_COLCHILDREN')
 -- User color file
 separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
 info = debug.getinfo(1,'S')
@@ -56,6 +58,7 @@ function ExtState_Load()
     user_y = 1,
     size = 18,
     spacing = 1,
+    setcolor_childs = false,
     mouse_pos = true,
     auto_close = false,
     namestart = 1,
@@ -157,13 +160,20 @@ end
 ---------------------------------------------------------------------------------
 
 function set_window()
-  local width = (conf.number_x * conf.size) + (conf.number_x * conf.spacing) + 15
+  if conf.spacing > 3 then
+    separator_spacing = conf.spacing
+  else
+    separator_spacing = 3
+  end
+
+  local width = (conf.number_x * conf.size) + ((conf.number_x -1 )* conf.spacing) + 15
   if width < 190 then
     width = 190
   end
-  local heigth = ((conf.palette_y + conf.user_y) * conf.size) + ((conf.palette_y + conf.user_y) * conf.spacing) + 36
+
+  local heigth = ((conf.palette_y + conf.user_y) * conf.size) + ((conf.palette_y + conf.user_y - 1) * conf.spacing) + 39
   if conf.palette_y > 0 and conf.user_y > 0 then
-    heigth = heigth + (separator_spacing * 2)
+    heigth = heigth + (separator_spacing+3)
   end
   if restart == false then
     if conf.mouse_pos == true then
@@ -253,6 +263,23 @@ function remove_user_color(i)
   end
 end
 
+function insert_new_user(position,new_value)
+  local size = #usercolors
+  if position > size then
+    table.insert(usercolors,new_value)
+  else
+    for i=0, size-1 do
+      j = size-i
+      if j > position then
+        usercolors[j+1] = usercolors[j]
+      elseif j == position then
+        usercolors[j+1] = usercolors[j]
+        usercolors[j] = new_value
+      end
+    end
+  end
+end
+
 function get_clipboard_color()
   local clipboard = reaper.CF_GetClipboard()
 
@@ -278,11 +305,7 @@ function SetColor(color_int)
   reaper.Undo_BeginBlock()
   reaper.PreventUIRefresh(1)
   local context = reaper.GetCursorContext2(true)
-
-  local r
-  local g
-  local b
-  local color
+  local color,r,g,b
   if color_int ~= 'default' then
     r,g,b = intRGBtoRGB(color_int)
     color = reaper.ColorToNative(r,g,b)
@@ -348,6 +371,11 @@ function SetColor(color_int)
     end
   end
 
+  -- Children tracks color
+  if context ~= 1 and conf.setcolor_childs == true and command_colchildren ~= 0 then
+    reaper.Main_OnCommand(command_colchildren,0)
+  end
+
   if conf.auto_close == true then
     close = true
   end
@@ -399,7 +427,7 @@ function loop()
   if settings > 0 then
     if settings == 1 then
     local settings_width = 250
-      local settings_heigth = 200
+      local settings_heigth = 220
       local x,y = r.GetMousePosition()
       x = math.floor(x-settings_width/2)
       y = y-display_h-20
@@ -438,6 +466,18 @@ function loop()
         reaper.ImGui_Text(ctx2,'Set colors to :')
         rv,conf.namestart = r.ImGui_RadioButtonEx(ctx2,'Selected tracks/items/takes',conf.namestart,1)
         rv,conf.namestart = r.ImGui_RadioButtonEx(ctx2,'Tracks by name',conf.namestart,2)
+        if command_colchildren ~= 0 then
+          rv,conf.setcolor_childs = r.ImGui_Checkbox(ctx2,'Set color to children tracks',conf.setcolor_childs)
+        else
+          rv,conf.setcolor_childs = r.ImGui_Checkbox(ctx2,'Set color to children tracks',false)
+          if rv == true then
+            r.ImGui_OpenPopup(ctx2,'SWS_Error')
+          end
+          if r.ImGui_BeginPopup(ctx2,'SWS_Error') then
+            r.ImGui_Text(ctx2,'Need SWS extension')
+            r.ImGui_EndPopup(ctx2)
+          end
+        end
         r.ImGui_Spacing(ctx2)r.ImGui_Separator(ctx2)r.ImGui_Spacing(ctx2)
         rv,conf.mouse_pos = r.ImGui_Checkbox(ctx2,'Open window on mouse position',conf.mouse_pos)
         rv,conf.auto_close = r.ImGui_Checkbox(ctx2,'Quit after apply color',conf.auto_close)
@@ -451,7 +491,9 @@ function loop()
         if r.ImGui_Button(ctx2,'Restore') then
           restore_default_colors()
         end
-        button_color = calc_colors()
+        if r.ImGui_IsAnyItemActive(ctx2) == true then
+          button_color = calc_colors()
+        end
         r.ImGui_EndTabItem(ctx2)
       end
       if r.ImGui_BeginTabItem(ctx2,'Size') then
@@ -550,13 +592,12 @@ function loop()
     r.ImGui_SameLine(ctx)
     r.ImGui_TextDisabled(ctx,mods_help)
   end
-
   r.ImGui_PopStyleColor(ctx,3)
 
   -- POPUP Color Picker
   if r.ImGui_BeginPopupContextItem(ctx,'Color Editor') then
-    local flags = r.ImGui_ColorEditFlags_NoAlpha() 
-                  | r.ImGui_ColorEditFlags_NoSidePreview() 
+    local flags = r.ImGui_ColorEditFlags_NoAlpha()
+                  | r.ImGui_ColorEditFlags_NoSidePreview()
                   | r.ImGui_ColorEditFlags_PickerHueWheel()
                   | r.ImGui_ColorEditFlags_NoInputs()
     if display_w > display_h then
@@ -565,6 +606,7 @@ function loop()
       picker_width = display_w
     end
     picker_width = picker_width * 0.8
+    if picker_width < 70 then picker_width = 70 end
     r.ImGui_PushItemWidth(ctx,picker_width)
     rv, usercolors[selected_button] = r.ImGui_ColorPicker4(ctx,'##ColorPicker',usercolors[selected_button],flags)
     r.ImGui_EndPopup(ctx)
@@ -587,14 +629,22 @@ function loop()
       button_flags = button_flags | r.ImGui_ColorEditFlags_NoBorder()
     end
 
+    -- Last line, dont bottom spacing
+    if i > conf.number_x*(conf.palette_y-1) then
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),conf.spacing,0)
+    end
+
     if r.ImGui_ColorButton(ctx,'##'..i,button_color[i],button_flags,conf.size,conf.size) then
       SetColor(button_color[i])
+    end
+
+    if i > conf.number_x*(conf.palette_y-1) then
+      r.ImGui_PopStyleVar(ctx)
     end
 
     -- Drag and Drop source
     if r.ImGui_BeginDragDropSource(ctx,r.ImGui_DragDropFlags_None()) then
       r.ImGui_SetDragDropPayload(ctx,'DnD_Color',button_color[i])
-      dragdrop_switch = 0
       r.ImGui_ColorButton(ctx,'DnD_Preview',button_color[i],r.ImGui_ColorEditFlags_NoAlpha())
       r.ImGui_EndDragDropSource(ctx)
     end
@@ -603,6 +653,8 @@ function loop()
   if conf.palette_y > 0 and conf.user_y > 0 then
     r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,separator_spacing)
     r.ImGui_Spacing(ctx)
+    r.ImGui_PopStyleVar(ctx)
+    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,separator_spacing+1)
     r.ImGui_Separator(ctx)
     r.ImGui_PopStyleVar(ctx)
   end
@@ -632,7 +684,6 @@ function loop()
 
     -- Main Button
     if r.ImGui_ColorButton(ctx,'##User'..i,button_user_color,button_flags,conf.size,conf.size) then
-      local mods = r.ImGui_GetKeyMods(ctx)
       if mods == 4 then
         if button_empty == false then
           remove_user_color(i)
@@ -664,30 +715,26 @@ function loop()
 
     -- Drag and drop source
     if button_empty == false then
-      if r.ImGui_BeginDragDropSource(ctx,r.ImGui_DragDropFlags_None()) then
+      if r.ImGui_BeginDragDropSource(ctx) then
         r.ImGui_SetDragDropPayload(ctx,'DnD_Color',usercolors[i])
-        dragdrop_switch = i
+        if not dragdrop_source_id then
+          dragdrop_source_id = i
+        end
         r.ImGui_ColorButton(ctx,'DnD_Preview',usercolors[i],r.ImGui_ColorEditFlags_NoAlpha())
         r.ImGui_EndDragDropSource(ctx)
       end
     end
     -- Drag and drop target
     if r.ImGui_BeginDragDropTarget(ctx) then
-      local payload
-      rv,payload = r.ImGui_AcceptDragDropPayload(ctx,'DnD_Color')
-      if rv then
-        if button_empty == false then
-          if dragdrop_switch > 0 then
-            usercolors[dragdrop_switch] = usercolors[i]
-          end
-          usercolors[i] = payload
-        else
-          usercolors[#usercolors+1] = payload
-          if dragdrop_switch > 0 then
-            remove_user_color(dragdrop_switch)
-          end
+      local rv,payload = r.ImGui_AcceptDragDropPayload(ctx,'DnD_Color')
+      if rv == true then
+        if dragdrop_source_id then
+          remove_user_color(dragdrop_source_id)
+          dragdrop_source_id = nil
         end
+        insert_new_user(i,payload)
       end
+      r.ImGui_EndDragDropTarget(ctx)
     end
 
     -- Right Click open popup
