@@ -4120,12 +4120,19 @@ inputCharacters[","] = 44
 inputCharacters["."] = 46
 inputCharacters["<"] = 60
 inputCharacters[">"] = 62
+
+inputCharacters["ESC"] = 27
+
 local workingDirectory = reaper.GetResourcePath() .. "/Scripts/ChordGun/src"
 
 
 function handleInput()
 
 	inputCharacter = gfx.getchar()
+	
+	if inputCharacter == inputCharacters["ESC"] then
+		gfx.quit()
+	end
 
 	if inputCharacter == inputCharacters["0"] then
 		stopAllNotesFromPlaying()

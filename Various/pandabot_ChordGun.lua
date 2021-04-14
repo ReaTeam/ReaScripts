@@ -2,8 +2,8 @@
 Description: ChordGun
 Author: pandabot
 License: MIT
-Version: 1.6
-Changelog: + updated dock persistence method
+Version: 1.7
+Changelog: + added escape keyboard shortcut to close the script
 Screenshot: https://github.com/benjohnson2001/ChordGun/raw/release/ChordGun/src/images/chordGunInterface.png
 Donate: https://paypal.me/benjohnson2001
 Links:
