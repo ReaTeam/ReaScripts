@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e3e44867dff0c07def9712f52541bf1da71add2f" name="ReaTeam Scripts">
+<index version="1" commit="746dea526ea134a3c8dd10d21cb0325e90f94b74" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18382,6 +18382,7 @@ uc_note_min_seconds = 1\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 User interface generated with ReaImGui (Dear ImGui), please install it first with ReaPack and restart Reaper.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on color to set in selected tracks/objects/takes (depends on focus)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can also set color in all tracks whose name begins with a given value\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set children tracks color option\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Drag and drop colors to user palette\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Edit color by right-click with color picker popup\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Save as and Load user colors list\par}
@@ -18392,6 +18393,10 @@ uc_note_min_seconds = 1\par}
       </metadata>
       <version name="1.0" author="Rodilab" time="2021-04-13T21:15:11Z">
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/22a44ea038c542d09d795da461b4da7f642ed7b5/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.1" author="Rodilab" time="2021-04-14T20:14:48Z">
+        <changelog><![CDATA[Update : Set color to children tracks option, drag and drop insert (not remplace), improved spacing.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/746dea526ea134a3c8dd10d21cb0325e90f94b74/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
