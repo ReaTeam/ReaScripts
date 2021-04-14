@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="746dea526ea134a3c8dd10d21cb0325e90f94b74" name="ReaTeam Scripts">
+<index version="1" commit="b4fb85184c708536981c910b17fc2cfa6c23b833" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -14050,6 +14050,25 @@ uc_track_name_abbreviations = \{"O-Out", "O-MID"\}\par}
       <version name="1.61" author="Airon" time="2016-06-15T15:29:41Z">
         <changelog><![CDATA[+ spk77: fixed colour swatch reset (forum.cockos.com/showpost.php?p=1694646&postcount=282)]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/682b3cc9ce9511ff8707e94fb694a0f66f777650/Various/Airon_Colour%20Swatch.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ak5k_Low latency monitoring.lua" type="script" desc="Low latency monitoring">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Low Latency Monitoring\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Provides REAPER a function also known as Low Latency Monitoring, Low Latency Mode, Native Low Latency Monitoring, Constrain Delay Compenstation, Reduce Latency when Monitoring etc. It resembles the one from Cubase.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 While enabled, it takes offline/bypasses latency inducing plugins (VSTs etc) from project and rec armed and/or input monitored signal chains, to provide lowest possible latency and CPU usage when monitoring through software.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Plugins contributing PDC latency to monitored signal chain will be bypassed, once the set limit is exceeded per signal chain. Useful when recording e.g. software synths or guitars through amp sims into a REAPER project already filled with plugins.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Can be setup as a toolbar toggle on/off button, and this is recommended. Parameters can be configured. Tested with REAPER 6.27.\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=245445">Forum thread, more detailed information</link>
+      </metadata>
+      <version name="1.3" author="ak5k" time="2021-04-14T20:39:02Z">
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/b4fb85184c708536981c910b17fc2cfa6c23b833/Various/ak5k_Low%20latency%20monitoring.lua</source>
       </version>
     </reapack>
     <reapack name="amagalma_Adjust theme colors.lua" type="script" desc="Adjust theme colors">
