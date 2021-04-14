@@ -1,4 +1,4 @@
--- @description Low Latency Monitoring
+-- @description Low latency monitoring
 -- @author ak5k
 -- @version 1.3
 -- @link Forum thread, more detailed information https://forum.cockos.com/showthread.php?t=245445
