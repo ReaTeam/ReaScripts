@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b4fb85184c708536981c910b17fc2cfa6c23b833" name="ReaTeam Scripts">
+<index version="1" commit="bf0f81f91257719bcfe4e35207f29258d412fca9" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18416,6 +18416,10 @@ uc_note_min_seconds = 1\par}
       <version name="1.1" author="Rodilab" time="2021-04-14T20:14:48Z">
         <changelog><![CDATA[Update : Set color to children tracks option, drag and drop insert (not remplace), improved spacing.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/746dea526ea134a3c8dd10d21cb0325e90f94b74/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.2" author="Rodilab" time="2021-04-15T19:51:18Z">
+        <changelog><![CDATA[Update : "Get selected track color" bug fixed, Save/Load bug fixed in Windows, JS_API ImGui and SWS verification, Improvement of "Compare with selected track colors" feature.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf0f81f91257719bcfe4e35207f29258d412fca9/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
