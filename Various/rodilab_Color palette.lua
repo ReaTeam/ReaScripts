@@ -1,7 +1,7 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.1
--- @changelog Update : Set color to children tracks option, drag and drop insert (not remplace), improved spacing.
+-- @version 1.2
+-- @changelog Update : "Get selected track color" bug fixed, Save/Load bug fixed in Windows, JS_API ImGui and SWS verification, Improvement of "Compare with selected track colors" feature.
 -- @about
 --   Color tool with a color gradient palette and a customizable user palette.
 --   Use it to set new tracks/objects/takes colors.
@@ -20,8 +20,7 @@
 
 r = reaper
 script_name = "Color palette"
-default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.2)
-col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
+
 -- Don't change
 item_button = 'Item'
 recalc_colors = true
@@ -29,11 +28,14 @@ restart = false
 set_tmp_values = false
 set_default_sizes = false
 settings = 0
+file_dialog = 0
+extension_list = "Text file (.txt)\0*.txt\0\0"
 command_colchildren = r.NamedCommandLookup('_SWS_COLCHILDREN')
 -- User color file
-separ = string.match(reaper.GetOS(), "Win") and "\\" or "/"
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
+OS_Win = string.match(reaper.GetOS(), "Win")
+separ = package.config:sub(1,1)
 last_palette_on_exit = script_path .."rodilab_"..script_name..separ.."last_palette_on_exit.txt"
 UserPalettes_path = script_path .. "rodilab_"..script_name..separ
 reaper.RecursiveCreateDirectory(UserPalettes_path,1)
@@ -105,7 +107,6 @@ end
 
 function SaveColorFile(palette_file)
   file = io.open(palette_file,"w+")
-
   for i,color_int in ipairs(usercolors) do
     local color_hex = INTtoHEX(color_int)
     ---- Write to file ----
@@ -222,23 +223,23 @@ function calc_colors()
   return color_table
 end
 
-function compare_sel_colors(color_int)
-  local r,g,b = intRGBtoRGB(color_int)
-  local color = reaper.ColorToNative(r,g,b)
-
-  local color_list = {}
-
+function get_seltracks_colors()
+  seltracks_colors = {}
   local count = reaper.CountSelectedTracks(0)
   if count > 0 then
     for i=0, count-1 do
       local track = reaper.GetSelectedTrack(0,i)
-      local track_color = reaper.ColorToNative(reaper.ColorFromNative(reaper.GetTrackColor(track)))
-      table.insert(color_list,track_color)
+      local track_color = reaper.GetTrackColor(track)
+      local r, g, b = reaper.ColorFromNative(track_color)
+      track_color = b + g*16^2 + r*16^4
+      table.insert(seltracks_colors,track_color)
     end
   end
+end
 
-  for i,sel_colors in ipairs(color_list) do
-    if sel_colors == color then
+function compare_sel_colors(color_int)
+  for i,sel_colors in ipairs(seltracks_colors) do
+    if sel_colors == color_int then
       return true
     end
   end
@@ -292,6 +293,8 @@ function get_first_sel_trackcolor()
   if count > 0 then
     local track = reaper.GetSelectedTrack(0,0)
     local track_color = reaper.GetTrackColor(track)
+    local r,g,b = reaper.ColorFromNative(track_color)
+    track_color = b + g*16^2 + r*16^4
     return track_color
   end
   return nil
@@ -389,6 +392,48 @@ end
 ---------------------------------------------------------------------------------
 
 function loop()
+
+  -- Save/Load Dialog (reset script)
+  if file_dialog > 0 then
+    if OS_Win then
+      r.ImGui_DestroyContext(ctx2)
+      r.ImGui_DestroyContext(ctx)
+    end
+    -- Save Dialog
+    if file_dialog == 1 then
+      rv, fileName = r.JS_Dialog_BrowseForSaveFile('Save user palette',UserPalettes_path,'',extension_list)
+      if rv == 1 or rv == true then
+        if fileName:sub(string.len(fileName)-3,string.len(fileName)) ~= '.txt' then
+          fileName = fileName..'.txt'
+        end
+        SaveColorFile(fileName)
+      end
+    end
+    -- Load Dialog
+    if file_dialog == 2 then
+      local rv, fileName = r.JS_Dialog_BrowseForOpenFiles('Open user palette',UserPalettes_path,'',extension_list,false)
+      if rv == 1 then
+        usercolors = LoadColorFile(fileName)
+      end
+    end
+    file_dialog = 0
+    settings = 0
+    if OS_Win then
+      set_window()
+    end
+  end
+
+  -- Close Window ?
+  if r.ImGui_IsCloseRequested(ctx) or r.ImGui_IsKeyDown(ctx,53) or close == true then
+    SaveColorFile(last_palette_on_exit)
+    if settings == 2 then
+      r.ImGui_DestroyContext(ctx2)
+    end
+    r.ImGui_DestroyContext(ctx)
+    ExtState_Save()
+    return
+  end
+
   -- Reset
   if restart == true then
     if set_tmp_values == true then
@@ -409,13 +454,8 @@ function loop()
     restart = false
   end
 
-  -- Close Window ?
-  if r.ImGui_IsCloseRequested(ctx) or r.ImGui_IsKeyDown(ctx,53) or close == true then
-    SaveColorFile(last_palette_on_exit)
-    r.ImGui_DestroyContext(ctx)
-    ExtState_Save()
-    return
-  end
+  -- Get selected tracks color
+  get_seltracks_colors()
 
   local rv
   local windows_flag = r.ImGui_WindowFlags_NoDecoration()
@@ -449,21 +489,16 @@ function loop()
         r.ImGui_AlignTextToFramePadding(ctx2)
         r.ImGui_Text(ctx2,'User file :')
         r.ImGui_SameLine(ctx2)
+        --local extension_list = "Text file (.txt)\0*.txt\0\0"
         if r.ImGui_Button(ctx2,'Save as') then
-          local rv, fileName = r.JS_Dialog_BrowseForSaveFile('Save user palette',UserPalettes_path,'','*.txt')
-          if rv ==  1 then
-            SaveColorFile(fileName..'.txt')
-          end
+          file_dialog = 1
         end
         r.ImGui_SameLine(ctx2)
         if r.ImGui_Button(ctx2,'Load') then
-          local rv, fileName = r.JS_Dialog_BrowseForOpenFiles('Open user palette',UserPalettes_path,'','*.txt',false)
-          if rv == 1 then
-            usercolors = LoadColorFile(fileName)
-          end
+          file_dialog = 2
         end
         r.ImGui_Spacing(ctx2)r.ImGui_Separator(ctx2)r.ImGui_Spacing(ctx2)
-        reaper.ImGui_Text(ctx2,'Set colors to :')
+        r.ImGui_Text(ctx2,'Set colors to :')
         rv,conf.namestart = r.ImGui_RadioButtonEx(ctx2,'Selected tracks/items/takes',conf.namestart,1)
         rv,conf.namestart = r.ImGui_RadioButtonEx(ctx2,'Tracks by name',conf.namestart,2)
         if command_colchildren ~= 0 then
@@ -490,6 +525,7 @@ function loop()
         rv,conf.color_grey = r.ImGui_Checkbox(ctx2,'First col is grey',conf.color_grey)
         if r.ImGui_Button(ctx2,'Restore') then
           restore_default_colors()
+          button_color = calc_colors()
         end
         if r.ImGui_IsAnyItemActive(ctx2) == true then
           button_color = calc_colors()
@@ -612,6 +648,11 @@ function loop()
     r.ImGui_EndPopup(ctx)
   end
 
+  if r.ImGui_BeginPopup(ctx,'SWS_Error') then
+    r.ImGui_Text(ctx,'Need SWS extension')
+    r.ImGui_EndPopup(ctx)
+  end
+
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameBorderSize(),1)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Border(),col_border)
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),0)
@@ -689,13 +730,17 @@ function loop()
           remove_user_color(i)
         end
       elseif mods == 1 then
-        local past_color = get_clipboard_color()
-        if past_color then
-          if button_empty == false then
-            usercolors[i] = past_color
-          else
-            usercolors[#usercolors+1] = past_color
+        if r.APIExists('CF_GetClipboard') == true then
+          local past_color = get_clipboard_color()
+          if past_color then
+            if button_empty == false then
+              usercolors[i] = past_color
+            else
+              usercolors[#usercolors+1] = past_color
+            end
           end
+        else
+          r.ImGui_OpenPopup(ctx,'SWS_Error')
         end
       elseif  mods == 2 then
         local first_sel_color = get_first_sel_trackcolor()
@@ -759,12 +804,28 @@ end
 -- DO IT ------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-if r.ImGui_CreateContext ~= nil then
-  ExtState_Load()
-  usercolors = LoadColorFile(last_palette_on_exit)
-  get_tmp_values()
-  set_window()
-  r.defer(loop)
+local ImGui_exist = r.APIExists('ImGui_CreateContext')
+if ImGui_exist == true then
+  local JS_API_exist = r.APIExists('JS_Dialog_BrowseForOpenFiles')
+  if JS_API_exist == true then
+    default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.2)
+    col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
+    ExtState_Load()
+    usercolors = LoadColorFile(last_palette_on_exit)
+    get_tmp_values()
+    set_window()
+    r.defer(loop)
+  else
+    r.ShowMessageBox("Please install \"js_ReaScriptAPI: API functions for ReaScripts\" with ReaPack and restart Reaper",script_name,0)
+    local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
+    if ReaPack_exist == true then
+      r.ReaPack_BrowsePackages('js_ReaScriptAPI: API functions for ReaScripts')
+    end
+  end
 else
   r.ShowMessageBox("Please install \"ReaImGui: ReaScript binding for Dear ImGui\" with ReaPack and restart Reaper",script_name,0)
+  local ReaPack_exist = r.APIExists('ReaPack_BrowsePackages')
+  if ReaPack_exist == true then
+    r.ReaPack_BrowsePackages('ReaImGui: ReaScript binding for Dear ImGui')
+  end
 end
