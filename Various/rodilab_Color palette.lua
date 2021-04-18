@@ -1,13 +1,17 @@
 -- @description Color palette
 -- @author Rodilab
--- @version 1.2
--- @changelog Update : "Get selected track color" bug fixed, Save/Load bug fixed in Windows, JS_API ImGui and SWS verification, Improvement of "Compare with selected track colors" feature.
+-- @version 1.3
+-- @changelog Update : Dock mode, Vertical mode, Any modifier-click on "Item" button switch to "Track Name" mode and viceversa, Ctrl-click set color in children tracks (Ctrl+Alt in Windows), Background color like Default_6.0 theme, Save last window position, Bug fixed when drag and drop and right click.
 -- @about
 --   Color tool with a color gradient palette and a customizable user palette.
 --   Use it to set new tracks/objects/takes colors.
 --
---   User interface generated with ReaImGui (Dear ImGui), please install it first with ReaPack and restart Reaper.
+--   Requirement :
+--   - ReaImGui: ReaScript binding for Dear ImGui
+--   - js_ReaScriptAPI: API functions for ReaScripts
+--   - SWS Extension
 --
+--   Features :
 --   - Click on color to set in selected tracks/objects/takes (depends on focus)
 --   - Can also set color in all tracks whose name begins with a given value
 --   - Set children tracks color option
@@ -20,7 +24,7 @@
 
 r = reaper
 script_name = "Color palette"
-
+rounding = 4.0
 -- Don't change
 item_button = 'Item'
 recalc_colors = true
@@ -31,10 +35,11 @@ settings = 0
 file_dialog = 0
 extension_list = "Text file (.txt)\0*.txt\0\0"
 command_colchildren = r.NamedCommandLookup('_SWS_COLCHILDREN')
+tmp = {}
 -- User color file
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]]
-OS_Win = string.match(reaper.GetOS(), "Win")
+OS_Win = string.match(reaper.GetOS(),"Win")
 separ = package.config:sub(1,1)
 last_palette_on_exit = script_path .."rodilab_"..script_name..separ.."last_palette_on_exit.txt"
 UserPalettes_path = script_path .. "rodilab_"..script_name..separ
@@ -60,11 +65,15 @@ function ExtState_Load()
     user_y = 1,
     size = 18,
     spacing = 1,
+    vertical = false,
     setcolor_childs = false,
     mouse_pos = true,
     auto_close = false,
     namestart = 1,
-    namestart_char = ''
+    namestart_char = '',
+    dock = false,
+    x = false,
+    y = false
     }
   for key in pairs(def) do
     if r.HasExtState(extstate_id,key) then
@@ -99,6 +108,7 @@ function restore_default_sizes()
   conf.user_y = def.user_y
   conf.spacing = def.spacing
   conf.size = def.size
+  conf.vertical = def.vertical
 end
 
 ---------------------------------------------------------------------------------
@@ -167,28 +177,82 @@ function set_window()
     separator_spacing = 3
   end
 
-  local width = (conf.number_x * conf.size) + ((conf.number_x -1 )* conf.spacing) + 15
-  if width < 190 then
-    width = 190
+  local width = (conf.number_x*conf.size)+((conf.number_x-1)*conf.spacing)
+  local heigth = ((conf.palette_y + conf.user_y)*conf.size)+((conf.palette_y+conf.user_y-1)*conf.spacing)
+
+  if conf.palette_y > 0 and conf.user_y > 0 then
+    heigth = heigth+(separator_spacing+3)
   end
 
-  local heigth = ((conf.palette_y + conf.user_y) * conf.size) + ((conf.palette_y + conf.user_y - 1) * conf.spacing) + 39
-  if conf.palette_y > 0 and conf.user_y > 0 then
-    heigth = heigth + (separator_spacing+3)
+  if conf.vertical == true then
+    local tmp_width = width
+    local tmp_heigth = heigth
+    width = tmp_heigth + 15
+    heigth = tmp_width + 101
+  else
+    width = width + 15
+    heigth = heigth + 39
   end
-  if restart == false then
-    if conf.mouse_pos == true then
-      x, y = r.GetMousePosition()
-      x = math.floor(x - (width/2))
-      y = math.floor(y + (heigth/2))
-    else
-      x = nil
-      y = nil
-    end
+
+  local width_min
+  if conf.vertical == true then
+    width_min = 80
+  else
+    width_min = 190
+  end
+
+  if width < width_min then
+    width = width_min
+  end
+
+  if restart == false and conf.mouse_pos == true then
+    conf.x, conf.y = r.GetMousePosition()
+    conf.x = math.floor(conf.x - (width/2))
+    conf.y = math.floor(conf.y + (heigth/2))
   end
 
   button_color = calc_colors()
-  ctx = r.ImGui_CreateContext(script_name,width,heigth,x,y)
+  ctx = r.ImGui_CreateContext(script_name,width,heigth,conf.x,conf.y)
+  hwnd = r.ImGui_GetNativeHwnd(ctx)
+  if conf.dock == true then
+    r.DockWindowAddEx(hwnd,script_name,script_name,true)
+  end
+end
+
+function align_groups(i)
+  local modulo = (i-1) % conf.number_x
+
+  -- First item in each line
+  if modulo == 0 then
+    -- Exept first item
+    if i ~= 1 then
+      r.ImGui_EndGroup(ctx)
+      -- Si vertical, meme ligne pour chaque groupe
+      if conf.vertical == true then
+        r.ImGui_SameLine(ctx)
+      end
+    end
+    r.ImGui_BeginGroup(ctx)
+  end
+
+  -- If horizontal, same line for each item in group
+  if conf.vertical == false and modulo > 0 then
+    r.ImGui_SameLine(ctx)
+  end
+
+end
+
+function get_window_pos()
+  rv, conf.x, conf.y,ctx_right,ctx_bottom = r.JS_Window_GetClientRect(hwnd)
+  if not OS_Win then
+    conf.y = conf.y - 10
+  end
+end
+
+function get_tmp_values()
+  for key, value in pairs(conf) do
+    tmp[key] = conf[key]
+  end
 end
 
 function calc_colors()
@@ -225,12 +289,12 @@ end
 
 function get_seltracks_colors()
   seltracks_colors = {}
-  local count = reaper.CountSelectedTracks(0)
+  local count = r.CountSelectedTracks(0)
   if count > 0 then
     for i=0, count-1 do
-      local track = reaper.GetSelectedTrack(0,i)
-      local track_color = reaper.GetTrackColor(track)
-      local r, g, b = reaper.ColorFromNative(track_color)
+      local track = r.GetSelectedTrack(0,i)
+      local track_color = r.GetTrackColor(track)
+      local r, g, b = r.ColorFromNative(track_color)
       track_color = b + g*16^2 + r*16^4
       table.insert(seltracks_colors,track_color)
     end
@@ -244,14 +308,6 @@ function compare_sel_colors(color_int)
     end
   end
   return false
-end
-
-function get_tmp_values()
-  tmp_number_x = conf.number_x
-  tmp_palette_y = conf.palette_y
-  tmp_user_y = conf.user_y
-  tmp_size = conf.size
-  tmp_spacing = conf.spacing
 end
 
 function remove_user_color(i)
@@ -282,22 +338,28 @@ function insert_new_user(position,new_value)
 end
 
 function get_clipboard_color()
-  local clipboard = reaper.CF_GetClipboard()
-
+  local clipboard = r.CF_GetClipboard()
   local color_int = HEXtoINT(clipboard)
   return color_int
 end
 
-function get_first_sel_trackcolor()
-  local count = reaper.CountSelectedTracks(0)
+function get_first_seltrack_color()
+  local count = r.CountSelectedTracks(0)
   if count > 0 then
-    local track = reaper.GetSelectedTrack(0,0)
-    local track_color = reaper.GetTrackColor(track)
-    local r,g,b = reaper.ColorFromNative(track_color)
+    local track = r.GetSelectedTrack(0,0)
+    local track_color = r.GetTrackColor(track)
+    local r,g,b = r.ColorFromNative(track_color)
     track_color = b + g*16^2 + r*16^4
     return track_color
   end
   return nil
+end
+
+function centered_button()
+  if conf.vertical == true then
+    r.ImGui_NewLine(ctx)
+    r.ImGui_SameLine(ctx,(display_w-button_size)/2)
+  end
 end
 
 ---------------------------------------------------------------------------------
@@ -375,7 +437,7 @@ function SetColor(color_int)
   end
 
   -- Children tracks color
-  if context ~= 1 and conf.setcolor_childs == true and command_colchildren ~= 0 then
+  if context ~= 1 and command_colchildren ~= 0 and (conf.setcolor_childs == true or mods == 5 or mods == 8) then
     reaper.Main_OnCommand(command_colchildren,0)
   end
 
@@ -391,8 +453,12 @@ end
 --- ImGui -----------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function loop()
+reaper.atexit(function()
+  ExtState_Save()
+  SaveColorFile(last_palette_on_exit)
+end)
 
+function loop()
   -- Save/Load Dialog (reset script)
   if file_dialog > 0 then
     if OS_Win then
@@ -425,33 +491,31 @@ function loop()
 
   -- Close Window ?
   if r.ImGui_IsCloseRequested(ctx) or r.ImGui_IsKeyDown(ctx,53) or close == true then
-    SaveColorFile(last_palette_on_exit)
     if settings == 2 then
       r.ImGui_DestroyContext(ctx2)
     end
+    get_window_pos()
     r.ImGui_DestroyContext(ctx)
-    ExtState_Save()
     return
   end
 
-  -- Reset
+  -- Restart
   if restart == true then
+    restart = false
     if set_tmp_values == true then
-      conf.number_x = tmp_number_x
-      conf.palette_y = tmp_palette_y
-      conf.user_y = tmp_user_y
-      conf.size = tmp_size
-      conf.spacing = tmp_spacing
       set_tmp_values = false
+      for key,value in pairs(tmp) do
+        conf[key] = tmp[key]
+      end
     end
     if set_default_sizes == true then
       restore_default_sizes()
     end
     get_tmp_values()
     button_color = calc_colors()
+    get_window_pos()
     r.ImGui_DestroyContext(ctx)
     set_window()
-    restart = false
   end
 
   -- Get selected tracks color
@@ -459,18 +523,33 @@ function loop()
 
   local rv
   local windows_flag = r.ImGui_WindowFlags_NoDecoration()
-  local background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.1,1)
-  local rounding = 4.0
-  local display_w, display_h = r.ImGui_GetDisplaySize(ctx)
+  display_w, display_h = r.ImGui_GetDisplaySize(ctx)
 
   -- Window Settings
   if settings > 0 then
     if settings == 1 then
-    local settings_width = 250
-      local settings_heigth = 220
-      local x,y = r.GetMousePosition()
-      x = math.floor(x-settings_width/2)
-      y = y-display_h-20
+      local settings_width = 250
+      local settings_heigth = 245
+      local x,y
+      if conf.dock == true then
+        x = nil
+        y = nil
+      else
+        get_window_pos()
+        x = conf.x
+        if x < 0 then x = 0 end
+        if OS_Win then
+          y = conf.y - settings_heigth - 65
+          if y < settings_heigth then 
+            y = ctx_bottom + 65
+          end
+        else
+          y = ctx_bottom - 35
+          if y < settings_heigth then 
+            y = conf.y + settings_heigth + 30
+          end
+        end
+      end
       ctx2 = r.ImGui_CreateContext(script_name.." - Settings",settings_width,settings_heigth,x,y)
       settings = 2
     end
@@ -516,6 +595,12 @@ function loop()
         r.ImGui_Spacing(ctx2)r.ImGui_Separator(ctx2)r.ImGui_Spacing(ctx2)
         rv,conf.mouse_pos = r.ImGui_Checkbox(ctx2,'Open window on mouse position',conf.mouse_pos)
         rv,conf.auto_close = r.ImGui_Checkbox(ctx2,'Quit after apply color',conf.auto_close)
+        rv,conf.dock = r.ImGui_Checkbox(ctx2,'Dock window',conf.dock)
+        if r.ImGui_IsItemClicked(ctx2) then
+          if conf.dock == true then conf.dock = false
+          else conf.dock = true end
+          restart = true
+        end
         r.ImGui_EndTabItem(ctx2)
       end
       if r.ImGui_BeginTabItem(ctx2,'Colors') then
@@ -534,12 +619,19 @@ function loop()
       end
       if r.ImGui_BeginTabItem(ctx2,'Size') then
         r.ImGui_PushItemWidth(ctx2,90)
-        rv, tmp_number_x = r.ImGui_InputInt(ctx2,'Rows',tmp_number_x,1,10)
-        if tmp_number_x < 1 then tmp_number_x = 1 end
-        rv,tmp_palette_y = r.ImGui_InputInt(ctx2,'Palette Lines',tmp_palette_y,1,10)
-        rv,tmp_user_y = r.ImGui_InputInt(ctx2,'User Lines',tmp_user_y,1,10)
-        rv,tmp_size = r.ImGui_InputInt(ctx2,'Size (pixels)',tmp_size,1,10)
-        rv,tmp_spacing = r.ImGui_InputInt(ctx2,'Spacing (pixels)',tmp_spacing,1,10)
+        rv, tmp.number_x = r.ImGui_InputInt(ctx2,'Rows',tmp.number_x,1,10)
+        if tmp.number_x < 1 then tmp.number_x = 1 end
+        rv,tmp.palette_y = r.ImGui_InputInt(ctx2,'Palette Lines',tmp.palette_y,1,10)
+        rv,tmp.user_y = r.ImGui_InputInt(ctx2,'User Lines',tmp.user_y,1,10)
+        rv,tmp.size = r.ImGui_InputInt(ctx2,'Size (pixels)',tmp.size,1,10)
+        rv,tmp.spacing = r.ImGui_InputInt(ctx2,'Spacing (pixels)',tmp.spacing,1,10)
+        rv,tmp.vertical = r.ImGui_Checkbox(ctx2,'Vertical mod',tmp.vertical)
+        -- Positives values
+        for key, value in pairs(tmp) do
+          if type(value) == 'number' and value < 0 then
+            tmp[key] = 0
+          end
+        end
         r.ImGui_PopItemWidth(ctx2)
         if r.ImGui_Button(ctx2,'Apply') then
           restart = true
@@ -553,23 +645,26 @@ function loop()
         r.ImGui_EndTabItem(ctx2)
       end
       if r.ImGui_BeginTabItem(ctx2,'Help') then
-        local msg_list = {
-                          'Drag and drop to copy/past color in user palette',
+        local msg_list = {'Drag and drop to insert color in user palette',
                           'Right-click to edit user color',
                           'Alt-click to remove user color',
-                          'Cmd-click to past HEX value in user color',
-                          'Shift-click to get first selected track color into user color'
-                          }
+                          'Cmd-click to past HEX value',
+                          'Ctrl-click set color in children tracks',
+                          'Shift-click to get first selected track color in user',
+                          'Right-click on Settings button to dock/undock window',
+                          'Any modifier key-click on Item button to enable/disable "Track Name" mode'}
+        if OS_Win then
+          msg_list[4] = string.gsub(msg_list[4],'Cmd','Ctrl')
+          msg_list[5] = string.gsub(msg_list[5],'Ctrl','Ctrl+Alt')
+        end
         for i,msg in ipairs(msg_list) do
           r.ImGui_Bullet(ctx2)
           r.ImGui_TextWrapped(ctx2,msg)
-          r.ImGui_Spacing(ctx2)
         end
         r.ImGui_EndTabItem(ctx2)
       end
       r.ImGui_EndTabBar(ctx2)
     end
-
     r.ImGui_PopStyleVar(ctx2)
     r.ImGui_End(ctx2)
     if r.ImGui_IsCloseRequested(ctx2) or restart == true then
@@ -586,52 +681,81 @@ function loop()
   r.ImGui_PopStyleColor(ctx)
 
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_FrameRounding(),rounding)
+  r.ImGui_PushStyleColor(ctx,r.ImGui_Col_PopupBg(),background_popup_color)
 
-  local mods = r.ImGui_GetKeyMods(ctx)
-  if mods == 4 then
-    mods_help = 'Remove'
-  elseif mods == 1 then
+  mods = r.ImGui_GetKeyMods(ctx)
+  if mods == 1 then
     mods_help = 'Past'
-  elseif  mods == 2 then
+  elseif mods == 2 then
     mods_help = 'Get trk'
+  elseif mods == 4 then
+    mods_help = 'Remove'
+  elseif  mods == 5 or mods == 8 then
+    mods_help = 'Childs'
   else
     mods_help = nil
   end
 
-  local button_back = r.ImGui_ColorConvertHSVtoRGB(0,0,0.2,1)
-  local button_hover = r.ImGui_ColorConvertHSVtoRGB(0,0,0.3,1)
-  local button_active = r.ImGui_ColorConvertHSVtoRGB(0,0,0.4,1)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_Button(),button_back)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ButtonHovered(),button_hover)
   r.ImGui_PushStyleColor(ctx,r.ImGui_Col_ButtonActive(),button_active)
+  if conf.vertical == true then
+    button_size = 65
+  else
+    button_size = nil
+  end
+  centered_button()
   if conf.namestart == 1 then
-    if r.ImGui_Button(ctx,item_button) then
-      if item_button == 'Item' then
-        item_button = 'Take'
+    if r.ImGui_Button(ctx,item_button,button_size) then
+      if mods > 0 then
+        conf.namestart = 2
       else
-        item_button = 'Item'
+        if item_button == 'Item' then
+          item_button = 'Take'
+        else
+          item_button = 'Item'
+        end
       end
     end
   elseif conf.namestart == 2 then
-    r.ImGui_PushItemWidth(ctx,42)
+    r.ImGui_PushStyleColor(ctx,r.ImGui_Col_FrameBg(),framegb_color)
+    if button_size then
+      r.ImGui_PushItemWidth(ctx,button_size)
+    else
+      r.ImGui_PushItemWidth(ctx,42)
+    end
+
     rv,conf.namestart_char = r.ImGui_InputTextWithHint(ctx,'##NameStart Input','name?',conf.namestart_char)
+    if r.ImGui_IsItemClicked(ctx) and mods > 0 then
+      conf.namestart = 1
+    end
+    r.ImGui_PopStyleColor(ctx)
   end
-  r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx,'Default') then
+  if conf.vertical == false then r.ImGui_SameLine(ctx) end
+  centered_button()
+  if r.ImGui_Button(ctx,'Default',button_size) then
     SetColor('default')
   end
-  r.ImGui_SameLine(ctx)
-  if r.ImGui_Button(ctx,'Settings') then
+  if conf.vertical == false then r.ImGui_SameLine(ctx) end
+  centered_button()
+  if r.ImGui_Button(ctx,'Settings',button_size) then
     settings = 1
   end
+  r.ImGui_OpenPopupOnItemClick(ctx,'Dock Popup',1)
   if mods_help then
-    r.ImGui_SameLine(ctx)
+    if conf.vertical == false then r.ImGui_SameLine(ctx) end
     r.ImGui_TextDisabled(ctx,mods_help)
+  else
+    if conf.vertical == true then
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,r.ImGui_GetFontSize(ctx)+4)
+      r.ImGui_Spacing(ctx)
+      r.ImGui_PopStyleVar(ctx)
+    end
   end
   r.ImGui_PopStyleColor(ctx,3)
 
   -- POPUP Color Picker
-  if r.ImGui_BeginPopupContextItem(ctx,'Color Editor') then
+  if r.ImGui_BeginPopup(ctx,'Color Editor') then
     local flags = r.ImGui_ColorEditFlags_NoAlpha()
                   | r.ImGui_ColorEditFlags_NoSidePreview()
                   | r.ImGui_ColorEditFlags_PickerHueWheel()
@@ -648,6 +772,21 @@ function loop()
     r.ImGui_EndPopup(ctx)
   end
 
+  if r.ImGui_BeginPopup(ctx,'Dock Popup') then
+    local text
+    if conf.dock == true then text = 'Undock'
+    else text = 'Dock' end
+    r.ImGui_Text(ctx,text)
+    if r.ImGui_IsItemClicked(ctx) then
+      restart = true
+      if conf.dock == true then conf.dock = false
+      else conf.dock = true end
+      r.ImGui_CloseCurrentPopup(ctx)
+    end
+    r.ImGui_EndPopup(ctx)
+  end
+
+  -- SWS Error Popup
   if r.ImGui_BeginPopup(ctx,'SWS_Error') then
     r.ImGui_Text(ctx,'Need SWS extension')
     r.ImGui_EndPopup(ctx)
@@ -659,8 +798,11 @@ function loop()
   r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),conf.spacing,conf.spacing)
   -- Palette Colors
   for i=1, conf.number_x*conf.palette_y do
-    if ((i-1) % conf.number_x) ~= 0 then
-      r.ImGui_SameLine(ctx)
+    align_groups(i)
+
+    -- Last line, dont bottom spacing
+    if i == conf.number_x*(conf.palette_y-1)+1 and conf.vertical == false then
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),conf.spacing,0)
     end
 
     local button_flags =  r.ImGui_ColorEditFlags_NoAlpha()
@@ -670,17 +812,8 @@ function loop()
       button_flags = button_flags | r.ImGui_ColorEditFlags_NoBorder()
     end
 
-    -- Last line, dont bottom spacing
-    if i > conf.number_x*(conf.palette_y-1) then
-      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),conf.spacing,0)
-    end
-
     if r.ImGui_ColorButton(ctx,'##'..i,button_color[i],button_flags,conf.size,conf.size) then
       SetColor(button_color[i])
-    end
-
-    if i > conf.number_x*(conf.palette_y-1) then
-      r.ImGui_PopStyleVar(ctx)
     end
 
     -- Drag and Drop source
@@ -690,18 +823,27 @@ function loop()
       r.ImGui_EndDragDropSource(ctx)
     end
   end
+  if conf.palette_y > 0 then
+    r.ImGui_EndGroup(ctx)
+    if conf.vertical == false then r.ImGui_PopStyleVar(ctx) end
+  end
 
-  if conf.palette_y > 0 and conf.user_y > 0 then
-    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,separator_spacing)
-    r.ImGui_Spacing(ctx)
-    r.ImGui_PopStyleVar(ctx)
-    r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,separator_spacing+1)
-    r.ImGui_Separator(ctx)
-    r.ImGui_PopStyleVar(ctx)
+  if conf.vertical == false then
+    if conf.palette_y > 0 and conf.user_y > 0 then
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,separator_spacing)
+      r.ImGui_Spacing(ctx)
+      r.ImGui_PopStyleVar(ctx)
+      r.ImGui_PushStyleVar(ctx,r.ImGui_StyleVar_ItemSpacing(),0,separator_spacing+1)
+      r.ImGui_Separator(ctx)
+      r.ImGui_PopStyleVar(ctx)
+    end
+  elseif conf.vertical == true and conf.palette_y > 0 then
+    r.ImGui_SameLine(ctx,nil,separator_spacing*2+1)
   end
 
   -- User colors
   for i=1, conf.number_x*conf.user_y do
+    align_groups(i)
     local button_user_color
     local button_empty
     if usercolors[i] then
@@ -712,9 +854,6 @@ function loop()
       button_empty = true
     end
 
-    if ((i-1) % conf.number_x) ~= 0 then
-      r.ImGui_SameLine(ctx)
-    end
     -- Flags
     local button_flags =  r.ImGui_ColorEditFlags_NoAlpha()
                         | r.ImGui_ColorEditFlags_NoTooltip()
@@ -743,12 +882,12 @@ function loop()
           r.ImGui_OpenPopup(ctx,'SWS_Error')
         end
       elseif  mods == 2 then
-        local first_sel_color = get_first_sel_trackcolor()
-        if first_sel_color then
+        local first_seltrack_color = get_first_seltrack_color()
+        if first_seltrack_color then
           if button_empty == false then
-            usercolors[i] = first_sel_color
+            usercolors[i] = first_seltrack_color
           else
-            usercolors[#usercolors+1] = first_sel_color
+            usercolors[#usercolors+1] = first_seltrack_color
           end
         end
       else
@@ -789,10 +928,15 @@ function loop()
       elseif button_empty == true then
         selected_button = #usercolors+1
       end
+      r.ImGui_OpenPopup(ctx,'Color Editor')
     end
-    r.ImGui_OpenPopupOnItemClick(ctx,'Color Editor',1)
   end
-  r.ImGui_PopStyleColor(ctx,1)
+  if conf.user_y > 0 then
+    r.ImGui_EndGroup(ctx)
+  end
+
+  -- Global pop
+  r.ImGui_PopStyleColor(ctx,2)
   r.ImGui_PopStyleVar(ctx,4)
 
   -- End loop
@@ -808,8 +952,16 @@ local ImGui_exist = r.APIExists('ImGui_CreateContext')
 if ImGui_exist == true then
   local JS_API_exist = r.APIExists('JS_Dialog_BrowseForOpenFiles')
   if JS_API_exist == true then
-    default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.2)
+    -- Colors
+    background_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.2,1)
+    background_popup_color = r.ImGui_ColorConvertHSVtoRGB(1,0,0.15,1)
+    framegb_color = r.ImGui_ColorConvertHSVtoRGB(0,0,0.15,1)
+    default_usercolor = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27)
     col_border = r.ImGui_ColorConvertHSVtoRGB(0,0,1,1)
+    button_back = r.ImGui_ColorConvertHSVtoRGB(0,0,0.27,1)
+    button_hover = r.ImGui_ColorConvertHSVtoRGB(0,0,0.32,1)
+    button_active = r.ImGui_ColorConvertHSVtoRGB(0,0,0.4,1)
+
     ExtState_Load()
     usercolors = LoadColorFile(last_palette_on_exit)
     get_tmp_values()
