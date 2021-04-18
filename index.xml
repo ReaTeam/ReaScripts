@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bf0f81f91257719bcfe4e35207f29258d412fca9" name="ReaTeam Scripts">
+<index version="1" commit="6db28558323afd194c878b822e10147ed489d4d7" name="ReaTeam Scripts">
   <category name="Cursor">
     <reapack name="amagalma_Move edit cursor to closest item edge (among the selected items).lua" type="script" desc="Move edit cursor to closest item edge (among the selected items)">
       <metadata>
@@ -18398,7 +18398,11 @@ uc_note_min_seconds = 1\par}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Color tool with a color gradient palette and a customizable user palette. Use it to set new tracks/objects/takes colors.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 User interface generated with ReaImGui (Dear ImGui), please install it first with ReaPack and restart Reaper.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Requirement :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ReaImGui: ReaScript binding for Dear ImGui\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab js_ReaScriptAPI: API functions for ReaScripts\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab SWS Extension\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Features :\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Click on color to set in selected tracks/objects/takes (depends on focus)\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Can also set color in all tracks whose name begins with a given value\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Set children tracks color option\par}
@@ -18420,6 +18424,10 @@ uc_note_min_seconds = 1\par}
       <version name="1.2" author="Rodilab" time="2021-04-15T19:51:18Z">
         <changelog><![CDATA[Update : "Get selected track color" bug fixed, Save/Load bug fixed in Windows, JS_API ImGui and SWS verification, Improvement of "Compare with selected track colors" feature.]]></changelog>
         <source main="main">https://github.com/ReaTeam/ReaScripts/raw/bf0f81f91257719bcfe4e35207f29258d412fca9/Various/rodilab_Color%20palette.lua</source>
+      </version>
+      <version name="1.3" author="Rodilab" time="2021-04-18T09:49:02Z">
+        <changelog><![CDATA[Update : Dock mode, Vertical mode, Any modifier-click on "Item" button switch to "Track Name" mode and viceversa, Ctrl-click set color in children tracks (Ctrl+Alt in Windows), Background color like Default_6.0 theme, Save last window position, Bug fixed when drag and drop and right click.]]></changelog>
+        <source main="main">https://github.com/ReaTeam/ReaScripts/raw/6db28558323afd194c878b822e10147ed489d4d7/Various/rodilab_Color%20palette.lua</source>
       </version>
     </reapack>
     <reapack name="rodilab_Smart remove.lua" type="script" desc="Smart remove">
