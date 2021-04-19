@@ -207,7 +207,6 @@ local play_state = r.GetPlayState()
 	local play_pos = r.GetPlayPosition()
 	local mrk_idx, reg_idx = reaper.GetLastMarkerAndCurRegion(0, play_pos)
 	local retval, isrgn, mrk_pos, rgnend, mrk_name, mrk_num = reaper.EnumProjectMarkers(mrk_idx)
---Msg('MRK NAME = '..cmd_ID)
 	local preset = mrk_name:match('!.*%s(.*)$')
 	return type(tonumber(preset)) == 'number' and tonumber(preset) or preset -- either index or name
 	end
@@ -274,7 +273,6 @@ function NavigateTakeFXPresets(fx_GUID, TAG, preset)
 end
 
 local preset = GetPreset(cmd_ID)
-Msg(preset)
 
 	-- Traverse tracks main fx chains
 	for i = -1, r.CSurf_NumTracks(true)-1 do -- start from -1 to accommodate Master track
