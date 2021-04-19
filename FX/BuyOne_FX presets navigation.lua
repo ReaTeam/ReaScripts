@@ -14,10 +14,10 @@
 --   BuyOne_Extract focused FX preset count, active preset number and name.lua
 -- @metapackage
 -- @provides
---   [main] BuyOne_Cycle through focused FX presets forward (guide inside).lua
---   [main] BuyOne_Cycle through focused FX presets backwards (guide inside).lua
---   [main] BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua
---   [main] BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua
---   [main] BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua
---   [main] BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua
---   [main] BuyOne_Extract focused FX preset count, active preset number and name.lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets forward (guide inside).lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Cycle through focused FX presets backwards (guide inside).lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (FX ID dependent) (guide inside).lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (FX ID dependent) (guide inside).lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets forward switcher (TAG dependent) (guide inside).lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Dedicated FX presets backwards switcher (TAG dependent) (guide inside).lua
+--   [main] BuyOne_FX presets navigation/BuyOne_Extract focused FX preset count, active preset number and name.lua
