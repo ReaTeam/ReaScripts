@@ -115,7 +115,6 @@ TAG = [[PC]]
 -------------------------- END OF USER SETTINGS -----------------------------
 -----------------------------------------------------------------------------
 
--- https://forum.cockos.com/showthread.php?t=177151
 
 function Msg(param)
 reaper.ShowConsoleMsg(tostring(param)..'\n')
@@ -153,8 +152,6 @@ local TAG = TAG:gsub('[%s]','') -- remove empty spaces
 
 local ret, fx_GUID = r.GetProjExtState(0, scr_name, 'PRESET_SWITCHER_DATA')
 
---Msg(ret)
-
 	if ret == 0 then -- 0 when either value or key is deleted or non-existent
 
 	local retval, track_num, item_num, fx_num = r.GetFocusedFX()
@@ -165,17 +162,9 @@ local ret, fx_GUID = r.GetProjExtState(0, scr_name, 'PRESET_SWITCHER_DATA')
 	local tr = r.GetTrack(0,track_num-1) or r.GetMasterTrack()
 	local take_num = retval == 2 and fx_num>>16
 	local take = retval == 2 and r.GetMediaItemTake(r.GetTrackMediaItem(tr, item_num), take_num)
---	local take_cnt = retval == 2 and r.CountTakes(r.GetTrackMediaItem(tr, item_num)) -- for undo point
 	local fx_num = (retval == 2 and fx_num >= 65536) and fx_num & 0xFFFF or fx_num -- take fx index
 	local mon_fx = retval == 0 and src_mon_fx_idx >= 0
 	local fx_num = mon_fx and src_mon_fx_idx + 0x1000000 or fx_num -- mon fx index
-
-	-- 131072 = binary 0100000000000000000, hex 20000, 65536*2, 0xFFFF*2
-	-- 0xFFFF = binary 0001111111111111111, decimal 65536
-
-	--Msg('FX NUM = '..tostring(fx_num))
-
-	--	if retval == 2 then fx_num = nil end
 
 	-- Find if focused fx name contains the TAG
 	local fx_name = (retval == 1 or mon_fx) and select(2,r.TrackFX_GetFXName(tr,fx_num,'')) or select(2,r.TakeFX_GetFXName(take,fx_num,''))
@@ -191,8 +180,6 @@ local ret, fx_GUID = r.GetProjExtState(0, scr_name, 'PRESET_SWITCHER_DATA')
 		if pres_cnt == 0 then resp = r.MB('         The FX has no presets.\n\n      Would you like to proceed\n\n   with the link creation anyway?','PROMPT',4)
 			if resp == 7 then r.defer(function() end) return end
 		end
-
---Msg(retval)
 
 	-- Collect data to be saved as ext state and save the state
 	local obj_type = (mon_fx or retval == 1 and fx_num >= 16777216) and 11 or (retval == 1 and 10 or (retval == 2 and 2))
@@ -221,7 +208,7 @@ local play_state = r.GetPlayState()
 	local mrk_idx, reg_idx = reaper.GetLastMarkerAndCurRegion(0, play_pos)
 	local retval, isrgn, mrk_pos, rgnend, mrk_name, mrk_num = reaper.EnumProjectMarkers(mrk_idx)
 --Msg('MRK NAME = '..cmd_ID)
-	local preset = mrk_name:match('!.*%s(.*)$') -- mrk_name:match(cmd_ID..'%s(.*)$')
+	local preset = mrk_name:match('!.*%s(.*)$')
 	return type(tonumber(preset)) == 'number' and tonumber(preset) or preset -- either index or name
 	end
 
@@ -245,7 +232,6 @@ function NavigateTrackFXPresets(tr, fx_type, fx_cnt, fx_GUID, TAG, preset)
 				local pres = (preset and type(preset) == 'number' and preset <= preset_cnt) and r.TrackFX_SetPresetByIndex(tr, fx_num, preset-1) -- if index, -1 since count starts from zero
 				or (preset and r.TrackFX_SetPreset(tr, fx_num, preset) -- if name
 				or r.TrackFX_NavigatePresets(tr, fx_num, 1)) -- 1 = forward
-			--	r.TrackFX_NavigatePresets(tr, fx_num, 1) -- 1 = forward
 				_, tr_name = r.GetTrackName(tr)
 				_, pres_name = r.TrackFX_GetPreset(tr, fx_num, '') -- for undo caption
 				return tag, tr_name, fx_name, fx_num, pres_name end -- except the tag the values are meant for undo caption, fx_num for being able to distingush between main and input/mon fx
@@ -275,7 +261,6 @@ function NavigateTakeFXPresets(fx_GUID, TAG, preset)
 							local pres = (preset and type(preset) == 'number' and preset <= preset_cnt) and r.TakeFX_SetPresetByIndex(take, j, preset-1) -- if index, -1 since count starts from zero
 							or (preset and r.TakeFX_SetPreset(take, j, preset) -- if name
 							or r.TakeFX_NavigatePresets(take, j, 1)) -- 1 = forward
-						--	r.TakeFX_NavigatePresets(take, j, 1) -- 1 = forward
 							_, take_name = r.GetSetMediaItemTakeInfo_String(take, 'P_NAME', '', false)
 							_, pres_name = r.TakeFX_GetPreset(take, j, '') -- for undo caption
 							return tag, take_name, fx_name, take_cnt, i, pres_name end -- except the tag the values are meant for undo caption, 'i' = take_num
@@ -310,10 +295,6 @@ Msg(preset)
 	tag, take_name, fx_name, take_cnt, take_num, pres_name = NavigateTakeFXPresets(fx_GUID, TAG, preset)
 	end
 
-
-Msg('TAG = '..tostring(tag))
---Msg('TAKE NUM = '..tostring(tag))
-
 	-- when aborted inside the function due to lack of presets
 	if tag == 'no presets' then resp = r.MB('            The FX has no presets.\n\nWould you like to clear the link now?','PROMPT',4)
 		if resp == 6 then tag = nil
@@ -339,21 +320,11 @@ Msg('TAG = '..tostring(tag))
 	r.defer(function() end) return
 	end
 
-
---[[	WORKS
-	if not tag then r.SetProjExtState(0, scr_name, '', '') resp = r.MB('\t    The link has been cleared.\n\n    To prevent its restoration in the next session\n\n\t  the project must be saved.\n\n          "YES" - just Save   "NO" - Save As...\n\n            or save later at your convenience.','PROMPT',3) -- clear project ext state if no tag
-		if resp ~= 2 then mode = resp == 6 and false or true
-		r.Main_SaveProject(0, mode)
-		else end
-	r.defer(function() end) return end
-]]
-
 	-- Concatenate undo caption
 	local src_name = (fx_num and fx_num >= 16777216 and tr_name == 'MASTER') and 'in Monitor FX chain' or (take_cnt and take_cnt > 1 and 'in take '..tostring(take_num+1)..' of item \''..take_name..'\'' or (take_cnt and take_cnt == 1 and 'in item \''..take_name..'\'' or ((tr_name and tr_name == 'MASTER') and 'on Master track' or (tr_name and 'on '..tr_name))))
 	local fx_name = fx_name:match(':%s(.*)%s.-%(') or fx_name -- strip out plugin type prefix and dev name in parentheses in any
 
 	r.Undo_BeginBlock() -- placed here to prevent 'ReaScript:Run' message in the Undo menu bar at return on script errors or prompts, which doesn't impede the actual undo point creation since it's created by Track/TakeFX_NavigatePresets() anyway
 	r.Undo_EndBlock('Set '..fx_name..' preset to: \''..pres_name..'\' '..src_name,-1) -- Track/TakeFX_NavigatePresets() function creates an undo point by design which can't be avoided, for Monitor FX no undo point can be created
-
 
 
