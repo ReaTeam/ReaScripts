@@ -90,8 +90,8 @@ the preset, clicking the '+' button on the FX panel and selecting 'Rename preset
 option. Alternatively you could use
 BuyOne_Extract focused FX preset count, active preset number and name.lua script.
 
-If either preset number or preset name featuring in the action marker aren't found in
-the FX preset list next preset is selected.
+If preset number or preset name featuring in the action marker aren't found in
+the FX preset list or are left out of the action marker name, next preset is selected.
 
 ]]
 
