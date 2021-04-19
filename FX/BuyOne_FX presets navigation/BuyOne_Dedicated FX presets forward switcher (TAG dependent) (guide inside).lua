@@ -207,7 +207,7 @@ end
 
 
 local preset = GetPreset(cmd_ID)
-Msg(preset)
+
 
 	-- Traverse tracks main fx chains
 	for i = -1, r.CSurf_NumTracks(true)-1 do -- start from -1 to accommodate Master track
