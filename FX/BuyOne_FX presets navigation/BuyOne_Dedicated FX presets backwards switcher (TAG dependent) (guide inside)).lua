@@ -2,7 +2,7 @@
 
 --[[
 
-* ReaScript name: BuyOne_Dedicated FX presets forward switcher (TAG dependent)(guide inside).lua
+* ReaScript name: BuyOne_Dedicated FX presets backwards switcher (TAG dependent)(guide inside).lua
 * Author: BuyOne
 * Author URL: https://forum.cockos.com/member.php?u=134058
 * Licence: WTFPL
@@ -15,7 +15,7 @@
 
 --############################## G U I D E #####################################
 
-The script allows cycling in a forward direction through presets of one FX linked
+The script allows cycling in a backward direction through presets of one FX linked
 to the script.
 
 To create a link append the TAG defined in the USER SETTINGS below to the name of
@@ -90,8 +90,8 @@ the preset, clicking the '+' button on the FX panel and selecting 'Rename preset
 option. Alternatively you could use
 BuyOne_Extract focused FX preset count, active preset number and name.lua script.
 
-If either preset number or preset name featuring in the action marker aren't found in
-the FX preset list next preset is selected.
+If preset number or preset name featuring in the action marker aren't found in
+the FX preset list or are left out of the action marker name, previous preset is selected.
 
 ]]
 
